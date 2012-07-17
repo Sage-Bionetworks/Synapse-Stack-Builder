@@ -1,0 +1,20 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.sagebionetworks</groupId>
+	<artifactId>stack-builder</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>stack-builder</name>
+	<description>Project to build an entire Synapse stack</description>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<!-- We want maven to replaces ${property.names} for everything in the resources directory -->
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+	</build>
+</project>
