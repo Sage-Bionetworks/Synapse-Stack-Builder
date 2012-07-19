@@ -30,7 +30,7 @@ public class IdGeneratorSetup {
 			// Create the database Instance
 			CreateDBInstanceRequest request = new CreateDBInstanceRequest();
 			
-			instance = client.createDBInstance(createDBInstanceRequest);
+//			instance = client.createDBInstance(createDBInstanceRequest);
 		}catch(DBInstanceAlreadyExistsException e){
 			
 		}
@@ -61,6 +61,7 @@ public class IdGeneratorSetup {
 		request.setEngine("MySQL");
 		request.setMasterUsername(stack+MASTER_USER_SUFFIX);
 		request.setMasterUserPassword(defaultPassword);
+//		request.set
 		return request;
 	}
 
