@@ -31,4 +31,9 @@ public class Constants {
 	 * Property key for the stack instance.
 	 */
 	public static final String INSTANCE = "org.sagebionetworks.stack.instance";
+	
+	/**
+	 * Property key for the default id generator password.
+	 */
+	public static final String KEY_DEFAULT_ID_GEN_PASSWORD = "org.sagebionetworks.id.generator.db.default.password";
 }

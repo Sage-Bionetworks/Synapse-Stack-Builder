@@ -10,8 +10,15 @@ public class DatabaseInfo {
 
 	private String url;
 	private String userName;
+	private String plainTextPassword;
 	private String encryptedPassword;
 	
+	public String getPlainTextPassword() {
+		return plainTextPassword;
+	}
+	public void setPlainTextPassword(String plainTextPassword) {
+		this.plainTextPassword = plainTextPassword;
+	}
 	/**
 	 * The URL used to connect to this database.
 	 * 
