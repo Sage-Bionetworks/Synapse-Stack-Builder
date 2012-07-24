@@ -36,4 +36,9 @@ public class Constants {
 	 * Property key for the default id generator password.
 	 */
 	public static final String KEY_DEFAULT_ID_GEN_PASSWORD = "org.sagebionetworks.id.generator.db.default.password";
+	
+	/**
+	 * Property for the classless inter-domain routing to be used for SSH access
+	 */
+	public static final String KEY_CIDR_FOR_SSH = "org.sagebionetworks.cidr.for.ssh";
 }

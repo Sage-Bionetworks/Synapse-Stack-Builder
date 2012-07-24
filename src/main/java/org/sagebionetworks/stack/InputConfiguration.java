@@ -118,7 +118,7 @@ public class InputConfiguration {
 	 * For a dev stack this should be your last name.  For example, instance=hill would be used to create devhill
 	 * @return
 	 */
-	public Object getStackInstance() {
+	public String getStackInstance() {
 		return props.getProperty(Constants.INSTANCE);
 	}
 

@@ -28,6 +28,7 @@ public class StackDefaults {
 	 */
 	public static final String[] EXPECTED_PROPERTIES = new String[]{
 		Constants.KEY_DEFAULT_ID_GEN_PASSWORD,
+		Constants.KEY_CIDR_FOR_SSH,
 	};
 	
 	public static String DEFAULTS_BUCKET_SUFFIX = "-default";

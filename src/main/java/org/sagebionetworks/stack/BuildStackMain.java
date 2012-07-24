@@ -8,6 +8,8 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
+import com.amazonaws.services.ec2.AmazonEC2Client;
+import com.amazonaws.services.ec2.model.CreateSecurityGroupResult;
 import com.amazonaws.services.s3.AmazonS3Client;
 
 /**
@@ -34,8 +36,14 @@ public class BuildStackMain {
 			// Load the default properties used for this stack
 			Properties defaultStackProperties = StackDefaults.loadStackDefaultsFromS3(config.getStack(),new AmazonS3Client(config.getAWSCredentials()));
 			
+			// The first step is to setup the stack security
+			String elasticSecurityGroup = SecuritySetup.setupElasticBeanstalkEC2SecutiryGroup(
+					new AmazonEC2Client(config.getAWSCredentials()),
+					config.getStack(), 
+					config.getStackInstance(), defaultStackProperties.getProperty(Constants.KEY_CIDR_FOR_SSH));
+			
 			// Create or setup the Id generator database as needed.
-			DatabaseInfo idGeneratorDBInfo = IdGeneratorSetup.createIdGeneratorDatabase(config, defaultStackProperties);
+//			DatabaseInfo idGeneratorDBInfo = IdGeneratorSetup.createIdGeneratorDatabase(config, defaultStackProperties);
 
 		}catch(Throwable e){
 			log.error("Terminating: ",e);
