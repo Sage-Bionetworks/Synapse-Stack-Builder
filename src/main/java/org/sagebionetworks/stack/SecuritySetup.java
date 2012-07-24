@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
-
+import static org.sagebionetworks.stack.Constants.*;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
@@ -22,16 +22,6 @@ public class SecuritySetup {
 	
 	private static Logger log = Logger.getLogger(SecuritySetup.class.getName());
 	
-	public static final String IP_PROTOCOL_TCP = "tcp";
-	public static final int PORT_HTTPS = 443;
-	public static final int PORT_HTTP = 80;
-	public static final int PORT_SSH = 22;
-	
-	/**
-	 * The classless inter-domain routing to allow access to all IPs
-	 */
-	public static final String CIDR_ALL_IP = "0.0.0.0/0";
-	
 	/**
 	 * Create the EC2 security group that all elastic beanstalk instances will belong to.
 	 * 
@@ -48,19 +38,9 @@ public class SecuritySetup {
 		if(cidrForSSH == null) throw new IllegalArgumentException("The classless inter-domain routing for SSH cannot be null");
 		
 		CreateSecurityGroupRequest request = new CreateSecurityGroupRequest();
-		request.setDescription("All elastic beanstalk instances of stack:'"+stack+"' instance:'"+instance+"' belong to this EC2 security group");
-		request.setGroupName(String.format("elastic-beanstalk-%1$s-%2$s", stack, instance));
-		try{
-			// First create the EC2 group
-			CreateSecurityGroupResult result = ec2Client.createSecurityGroup(request);
-		}catch (AmazonServiceException e){
-			if("InvalidGroup.Duplicate".equals(e.getErrorCode())){
-				// This group already exists
-				log.info("Security Group: "+request.getGroupName()+" already exits");
-			}else{
-				throw e;
-			}
-		}
+		request.setDescription(String.format(SECURITY_GROUP_DESCRIPTION_TEMPLATE, stack, instance));
+		request.setGroupName(String.format(SECURITY_GROUP_NAME_TEMPLATE, stack, instance));
+		createSecurityGroup(ec2Client, request);
 		//Setup the permissions for this group:
 		// Allow anyone to access port 80 (HTTP)
 		addPermission(ec2Client, request.getGroupName(), new IpPermission().withIpProtocol(IP_PROTOCOL_TCP).withFromPort(PORT_HTTP).withToPort(PORT_HTTP).withIpRanges(CIDR_ALL_IP));
@@ -68,10 +48,29 @@ public class SecuritySetup {
 		addPermission(ec2Client, request.getGroupName(), new IpPermission().withIpProtocol(IP_PROTOCOL_TCP).withFromPort(PORT_HTTPS).withToPort(PORT_HTTPS).withIpRanges(CIDR_ALL_IP));
 		// Only allow ssh to the given address
 		addPermission(ec2Client, request.getGroupName(), new IpPermission().withIpProtocol(IP_PROTOCOL_TCP).withFromPort(PORT_SSH).withToPort(PORT_SSH).withIpRanges(cidrForSSH));
-
 		// Return the group name
 		return request.getGroupName();
 
+	}
+
+	/**
+	 * Create a security group. If the group already exists
+	 * @param ec2Client
+	 * @param request
+	 */
+	public static void createSecurityGroup(AmazonEC2Client ec2Client, CreateSecurityGroupRequest request) {
+		try{
+			// First create the EC2 group
+			log.info("Creating Security Group: "+request.getGroupName()+"...");
+			CreateSecurityGroupResult result = ec2Client.createSecurityGroup(request);
+		}catch (AmazonServiceException e){
+			if(ERROR_CODE_INVALID_GROUP_DUPLICATE.equals(e.getErrorCode())){
+				// This group already exists
+				log.info("Security Group: "+request.getGroupName()+" already exits");
+			}else{
+				throw e;
+			}
+		}
 	}
 	
 	/**
@@ -80,18 +79,21 @@ public class SecuritySetup {
 	 * @param groupName
 	 * @param permission
 	 */
-	private static void addPermission(AmazonEC2Client ec2Client, String groupName, IpPermission permission){
+	public static void addPermission(AmazonEC2Client ec2Client, String groupName, IpPermission permission){
 		// Make sure we can access the machines from with the VPN
 		try{
 			List<IpPermission> permissions = new LinkedList<IpPermission>();
 			permissions.add(permission);
 			// Configure this group
 			AuthorizeSecurityGroupIngressRequest ingressRequest = new AuthorizeSecurityGroupIngressRequest(groupName, permissions);
+			log.info("Adding IpPermission to group: '"+groupName+"'...");
+			log.info("IpPermission: "+permission.toString()+"");
 			ec2Client.authorizeSecurityGroupIngress(ingressRequest);
 		}catch(AmazonServiceException e){
 			// Ignore duplicates
-			if("InvalidPermission.Duplicate".equals(e.getErrorCode())){
+			if(ERROR_CODE_INVALID_PERMISSION_DUPLICATE.equals(e.getErrorCode())){
 				// This already exists
+				log.info("IpPermission: "+permission.toString()+" already exists for '"+groupName+"'");
 			}else{
 				// Throw any other error
 				throw e;

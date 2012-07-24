@@ -41,4 +41,70 @@ public class Constants {
 	 * Property for the classless inter-domain routing to be used for SSH access
 	 */
 	public static final String KEY_CIDR_FOR_SSH = "org.sagebionetworks.cidr.for.ssh";
+	
+	/**
+	 * An AWS error code used to indicate a duplicate permission.
+	 */
+	public static final String ERROR_CODE_INVALID_PERMISSION_DUPLICATE = "InvalidPermission.Duplicate";
+	
+	/**
+	 * An AWS error code used to indicate a duplicate security group.
+	 */
+	public static final String ERROR_CODE_INVALID_GROUP_DUPLICATE = "InvalidGroup.Duplicate";
+	
+	/**
+	 * An AWS error code used to indicate a DB parameter group is not found
+	 */
+	public static final String ERROR_CODE_DB_PARAMETER_GROUP_NOT_FOUND = "DBParameterGroupNotFound";
+	
+
+	/**
+	 * Template for the security group name.
+	 */
+	public static final String SECURITY_GROUP_NAME_TEMPLATE = "elastic-beanstalk-%1$s-%2$s";
+
+	/**
+	 * Template for the security description.
+	 */
+	public static final String SECURITY_GROUP_DESCRIPTION_TEMPLATE = "All elastic beanstalk instances of stack:'%1$s' instance:'%2$s' belong to this EC2 security group";
+	
+	/**
+	 * Used to create Ip permissions.
+	 */
+	public static final String IP_PROTOCOL_TCP = "tcp";
+	public static final int PORT_HTTPS = 443;
+	public static final int PORT_HTTP = 80;
+	public static final int PORT_SSH = 22;
+	
+	/**
+	 * The classless inter-domain routing to allow access to all IPs
+	 */
+	public static final String CIDR_ALL_IP = "0.0.0.0/0";
+	
+	/**
+	 * Part of setting up a database parameter group.
+	 */
+	public static final String MYSQL_5_5_DB_PARAMETER_GROUP_FAMILY = "mysql5.5";
+	
+	/**
+	 * Name of the DB parameter group
+	 */
+	public static final String DB_PARAM_GROUP_NAME_TEMPLATE = "mysql5-5-%1$s-params";
+	
+	/**
+	 * The description of the DB parameter group.
+	 */
+	public static final String DB_PARAM_GROUP_DESC_TEMPALTE = "Custom MySQL 5.5 database parameters (including slow query log enabled) used by all database intances belonging to stack: '%1$s'";
+	
+	/**
+	 * The DB parameter key for the slow query log.
+	 * 
+	 */
+	public static final String DB_PARAM_KEY_SLOW_QUERY_LOG = "slow_query_log";
+	
+	/**
+	 * To turn on the slow query log: slow_query_log=1
+	 */
+	public static final String DB_PARAM_VALUE_SLOW_QUERY_LOG = "1";
+	
 }

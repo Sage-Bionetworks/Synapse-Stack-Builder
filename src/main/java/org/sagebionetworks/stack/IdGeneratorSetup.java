@@ -1,5 +1,5 @@
 package org.sagebionetworks.stack;
-
+import static org.sagebionetworks.stack.Constants.*;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.rds.model.CreateDBInstanceRequest;
 import com.amazonaws.services.rds.model.DBInstance;
@@ -22,7 +22,7 @@ public class IdGeneratorSetup {
 	 * @param config
 	 * @return
 	 */
-	public static DatabaseInfo createIdGeneratorDatabase(AmazonRDSClient client, String defaultPassword){
+	public static DatabaseInfo createIdGeneratorDatabase(AmazonRDSClient client, String defaultPassword, String securityGroupName){
 		if(client == null) throw new IllegalArgumentException("AmazonRDSClient cannot be null");
 		if(defaultPassword == null) throw new IllegalArgumentException("Default password cannot be null");
 		DBInstance instance = null;
@@ -61,6 +61,7 @@ public class IdGeneratorSetup {
 		request.setEngine("MySQL");
 		request.setMasterUsername(stack+MASTER_USER_SUFFIX);
 		request.setMasterUserPassword(defaultPassword);
+//		request.
 //		request.set
 		return request;
 	}

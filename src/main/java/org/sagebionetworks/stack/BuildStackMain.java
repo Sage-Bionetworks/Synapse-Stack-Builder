@@ -10,6 +10,8 @@ import org.apache.log4j.Logger;
 
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.CreateSecurityGroupResult;
+import com.amazonaws.services.rds.AmazonRDSClient;
+import com.amazonaws.services.rds.model.DBParameterGroup;
 import com.amazonaws.services.s3.AmazonS3Client;
 
 /**
@@ -41,6 +43,9 @@ public class BuildStackMain {
 					new AmazonEC2Client(config.getAWSCredentials()),
 					config.getStack(), 
 					config.getStackInstance(), defaultStackProperties.getProperty(Constants.KEY_CIDR_FOR_SSH));
+			
+			// Setup the Database Parameter group
+			DBParameterGroup dbParamGroup = DatabaseParameterGroup.setupDBParameterGroup(new AmazonRDSClient(config.getAWSCredentials()), config.getStack());
 			
 			// Create or setup the Id generator database as needed.
 //			DatabaseInfo idGeneratorDBInfo = IdGeneratorSetup.createIdGeneratorDatabase(config, defaultStackProperties);
