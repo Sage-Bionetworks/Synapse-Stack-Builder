@@ -1,4 +1,4 @@
-package org.sagebionetworks;
+package org.sagebionetworks.stack;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -50,6 +50,7 @@ public class EC2SecuritySetupTest {
 	InputConfiguration config;	
 
 	AmazonEC2Client mockEC2Client;
+	EC2SecuritySetup ec2SecuritySetup;
 
 	@Before
 	public void before() throws IOException {
@@ -64,6 +65,7 @@ public class EC2SecuritySetupTest {
 		Properties defaults = new Properties();
 		defaults.put(Constants.KEY_CIDR_FOR_SSH, cidrForSSH);
 		config.addDefaultStackProperties(defaults);
+		ec2SecuritySetup = new EC2SecuritySetup(mockEC2Client, config);
 	}
 	
 	@Test (expected=AmazonServiceException.class)
@@ -73,7 +75,7 @@ public class EC2SecuritySetupTest {
 		exception.setErrorCode("unknown code");
 		CreateSecurityGroupRequest request = new CreateSecurityGroupRequest();
 		when(mockEC2Client.createSecurityGroup(request)).thenThrow(exception);
-		EC2SecuritySetup.createSecurityGroup(mockEC2Client, request);
+		ec2SecuritySetup.createSecurityGroup(request);
 	}
 	
 	@Test
@@ -84,7 +86,7 @@ public class EC2SecuritySetupTest {
 		exception.setErrorCode(Constants.ERROR_CODE_INVALID_GROUP_DUPLICATE);
 		CreateSecurityGroupRequest request = new CreateSecurityGroupRequest();
 		when(mockEC2Client.createSecurityGroup(request)).thenThrow(exception);
-		EC2SecuritySetup.createSecurityGroup(mockEC2Client, request);
+		ec2SecuritySetup.createSecurityGroup(request);
 	}
 
 	@Test (expected=AmazonServiceException.class)
@@ -94,7 +96,7 @@ public class EC2SecuritySetupTest {
 		exception.setErrorCode("unknown code");
 		doThrow(exception).when(mockEC2Client).authorizeSecurityGroupIngress(
 				any(AuthorizeSecurityGroupIngressRequest.class));
-		EC2SecuritySetup.addPermission(mockEC2Client, "groupName", new IpPermission());
+		ec2SecuritySetup.addPermission("groupName", new IpPermission());
 	}
 
 	@Test
@@ -104,7 +106,7 @@ public class EC2SecuritySetupTest {
 		exception.setErrorCode(Constants.ERROR_CODE_INVALID_PERMISSION_DUPLICATE);
 		doThrow(exception).when(mockEC2Client).authorizeSecurityGroupIngress(
 				any(AuthorizeSecurityGroupIngressRequest.class));
-		EC2SecuritySetup.addPermission(mockEC2Client, "groupName", new IpPermission());
+		ec2SecuritySetup.addPermission("groupName", new IpPermission());
 	}
 	
 	@Test
@@ -116,7 +118,7 @@ public class EC2SecuritySetupTest {
 		result.withSecurityGroups(expectedGroup);
 		when(mockEC2Client.describeSecurityGroups(any(DescribeSecurityGroupsRequest.class))).thenReturn(result);
 		// Create the security group.
-		SecurityGroup group = EC2SecuritySetup.setupElasticBeanstalkEC2SecutiryGroup(mockEC2Client, config);
+		SecurityGroup group = ec2SecuritySetup.setupElasticBeanstalkEC2SecutiryGroup();
 		assertEquals(expectedGroup, group);
 		String groupName = group.getGroupName();
 		assertNotNull(groupName);

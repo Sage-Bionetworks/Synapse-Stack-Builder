@@ -23,6 +23,27 @@ public class DatabaseSecuritySetup {
 	
 	private static Logger log = Logger.getLogger(DatabaseSecuritySetup.class.getName());
 	
+	private AmazonRDSClient rdsClient;
+	private InputConfiguration config;
+	private SecurityGroup elasticSecurityGroup;
+
+	/**
+	 * The IoC constructor.
+	 * @param rdsClient
+	 * @param config
+	 * @param elasticSecurityGroup
+	 */
+	public DatabaseSecuritySetup(AmazonRDSClient rdsClient,
+			InputConfiguration config, SecurityGroup elasticSecurityGroup) {
+		super();
+		if(rdsClient == null) throw new IllegalArgumentException("AmazonEC2Client cannot be null");
+		if(config == null) throw new IllegalArgumentException("Config cannot be null");
+		if(elasticSecurityGroup == null) throw new IllegalArgumentException("SecurityGroup cannot be null");
+		
+		this.rdsClient = rdsClient;
+		this.config = config;
+		this.elasticSecurityGroup = elasticSecurityGroup;
+	}
 
 	/**
 	 * Setup all of the database security groups needed for the stack.
@@ -31,31 +52,28 @@ public class DatabaseSecuritySetup {
 	 * @param elasticSecurityGroup 
 	 * @return
 	 */
-	public static void setupDatabaseAllSecuityGroups(AmazonRDSClient rdsClient, InputConfiguration config, SecurityGroup elasticSecurityGroup){
-		if(rdsClient == null) throw new IllegalArgumentException("AmazonEC2Client cannot be null");
-		if(config == null) throw new IllegalArgumentException("Config cannot be null");
-		
+	public void setupDatabaseAllSecuityGroups(){
 		// Create the ID generator security group
 		CreateDBSecurityGroupRequest request = new CreateDBSecurityGroupRequest();
 		request.setDBSecurityGroupDescription(config.getIdGeneratorDatabaseSecurityGroupDescription());
 		request.setDBSecurityGroupName(config.getIdGeneratorDatabaseSecurityGroupName());
-		createSecurityGroup(rdsClient, request);
+		createSecurityGroup(request);
 		
 		// Grant the EC2 security group access the ID generator database
-		addEC2SecurityGroup(rdsClient, request.getDBSecurityGroupName(), elasticSecurityGroup);
+		addEC2SecurityGroup(request.getDBSecurityGroupName(), elasticSecurityGroup);
 		// Allow anyone in the CIDR used for the stack SSH access to access this database.
-		addCIDRToGroup(rdsClient, request.getDBSecurityGroupName(), config.getCIDRForSSH());
+		addCIDRToGroup(request.getDBSecurityGroupName(), config.getCIDRForSSH());
 		
 		// Create Stack database security group
 		request = new CreateDBSecurityGroupRequest();
 		request.setDBSecurityGroupDescription(config.getStackDatabaseSecurityGroupDescription());
 		request.setDBSecurityGroupName(config.getStackDatabaseSecurityGroupName());
-		createSecurityGroup(rdsClient, request);
+		createSecurityGroup(request);
 		
 		// Grant the EC2 security group access the Stack MySQL database
-		addEC2SecurityGroup(rdsClient, request.getDBSecurityGroupName(), elasticSecurityGroup);
+		addEC2SecurityGroup(request.getDBSecurityGroupName(), elasticSecurityGroup);
 		// Allow anyone in the CIDR used for the stack SSH access to access this database.
-		addCIDRToGroup(rdsClient, request.getDBSecurityGroupName(), config.getCIDRForSSH());
+		addCIDRToGroup(request.getDBSecurityGroupName(), config.getCIDRForSSH());
 
 	}
 
@@ -64,7 +82,7 @@ public class DatabaseSecuritySetup {
 	 * @param ec2Client
 	 * @param request
 	 */
-	public static void createSecurityGroup(AmazonRDSClient rdsClient, CreateDBSecurityGroupRequest request) {
+	void createSecurityGroup(CreateDBSecurityGroupRequest request) {
 		try{
 			// First create the EC2 group
 			log.info("Creating Database Security Group: "+request.getDBSecurityGroupName()+"...");
@@ -86,7 +104,7 @@ public class DatabaseSecuritySetup {
 	 * @param groupName
 	 * @param cIDR
 	 */
-	public static void addCIDRToGroup(AmazonRDSClient rdsClient, String groupName, String cIDR){
+	void addCIDRToGroup(String groupName, String cIDR){
 		// Make sure we can access the machines from with the VPN
 		try{
 			// Configure this group
@@ -112,7 +130,7 @@ public class DatabaseSecuritySetup {
 	 * @param groupName
 	 * @param permission
 	 */
-	public static void addEC2SecurityGroup(AmazonRDSClient rdsClient, String groupName,  SecurityGroup elasticSecurityGroup){
+	void addEC2SecurityGroup(String groupName,  SecurityGroup elasticSecurityGroup){
 		// Make sure we can access the machines from with the VPN
 		try{
 			// Configure this group

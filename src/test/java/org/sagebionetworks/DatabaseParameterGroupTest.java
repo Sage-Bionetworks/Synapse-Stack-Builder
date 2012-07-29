@@ -35,6 +35,7 @@ public class DatabaseParameterGroupTest {
 	String instance ="A";
 	InputConfiguration config;	
 	AmazonRDSClient mockClient = null;
+	DatabaseParameterGroup databaseParamGroup;
 	
 	@Before
 	public void before() throws IOException{
@@ -46,6 +47,8 @@ public class DatabaseParameterGroupTest {
 		inputProperties.put(Constants.STACK, stack);
 		inputProperties.put(Constants.INSTANCE, instance);
 		config = new InputConfiguration(inputProperties);
+		// Inject the dependencies.
+		databaseParamGroup = new DatabaseParameterGroup(mockClient, config);
 	}
 	
 	@Test
@@ -56,7 +59,7 @@ public class DatabaseParameterGroupTest {
 		result.getDBParameterGroups().add(group);
 		when(mockClient.describeDBParameterGroups(any(DescribeDBParameterGroupsRequest.class))).thenReturn(result);
 		// simulate the group already exists
-		DBParameterGroup paramGroup = DatabaseParameterGroup.createOrGetDatabaseParameterGroup(mockClient, config);
+		DBParameterGroup paramGroup = databaseParamGroup.createOrGetDatabaseParameterGroup();
 		assertEquals(group, paramGroup);
 	}
 
@@ -78,7 +81,7 @@ public class DatabaseParameterGroupTest {
 		when(mockClient.describeDBParameterGroups(any(DescribeDBParameterGroupsRequest.class))).thenThrow(exception);
 		when(mockClient.createDBParameterGroup(request)).thenReturn(expected);
 		// simulate the group already exists
-		DBParameterGroup paramGroup = DatabaseParameterGroup.createOrGetDatabaseParameterGroup(mockClient, config);
+		DBParameterGroup paramGroup = databaseParamGroup.createOrGetDatabaseParameterGroup();
 		assertEquals(expected, paramGroup);
 		verify(mockClient).createDBParameterGroup(request);
 	}
@@ -89,7 +92,7 @@ public class DatabaseParameterGroupTest {
 		AmazonServiceException exception = new AmazonServiceException("Not found");
 		exception.setErrorCode("Some unknown error");
 		when(mockClient.describeDBParameterGroups(any(DescribeDBParameterGroupsRequest.class))).thenThrow(exception);
-		// simulate unknonw error
-		DatabaseParameterGroup.createOrGetDatabaseParameterGroup(mockClient, config);
+		// simulate unknown error
+		databaseParamGroup.createOrGetDatabaseParameterGroup();
 	}
 }

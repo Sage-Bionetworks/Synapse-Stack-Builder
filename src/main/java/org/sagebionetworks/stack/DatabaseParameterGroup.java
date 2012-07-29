@@ -32,22 +32,35 @@ import com.amazonaws.services.rds.model.Parameter;
 public class DatabaseParameterGroup {
 
 	private static Logger log = Logger.getLogger(DatabaseParameterGroup.class);
+	
+	AmazonRDSClient client;
+	InputConfiguration config;
 
+	/**
+	 * IoC constructor.
+	 * 
+	 * @param client
+	 * @param config
+	 */
+	public DatabaseParameterGroup(AmazonRDSClient client, InputConfiguration config){
+		this.client = client;
+		this.config = config;
+	}
 	/**
 	 * Setup the DB parameter group with all of the values we want to use.
 	 * @param client
 	 * @param stack
 	 * @return
 	 */
-	public static DBParameterGroup setupDBParameterGroup(AmazonRDSClient client, InputConfiguration config){
+	public DBParameterGroup setupDBParameterGroup(){
 		// First get the group
-		DBParameterGroup paramGroup = createOrGetDatabaseParameterGroup(client, config);
+		DBParameterGroup paramGroup = createOrGetDatabaseParameterGroup();
 		// Now make sure it has the parameters we want
-		Map<String, Parameter> map = getAllDBGroupParams(client, paramGroup.getDBParameterGroupName());
+		Map<String, Parameter> map = getAllDBGroupParams(paramGroup.getDBParameterGroupName());
 		// Turn on the slow query log.
-		setValueIfNeeded(paramGroup.getDBParameterGroupName(), client, map, Constants.DB_PARAM_KEY_SLOW_QUERY_LOG, "1");
+		setValueIfNeeded(paramGroup.getDBParameterGroupName(), map, Constants.DB_PARAM_KEY_SLOW_QUERY_LOG, "1");
 		// Set the slow query time (how long a query must be to get recored in the slow query log) in seconds..
-		setValueIfNeeded(paramGroup.getDBParameterGroupName(), client, map, Constants.DB_PARAM_KEY_LONG_QUERY_TIME, "1");
+		setValueIfNeeded(paramGroup.getDBParameterGroupName(), map, Constants.DB_PARAM_KEY_LONG_QUERY_TIME, "1");
 		// Set any other values...
 		
 		return paramGroup;
@@ -62,7 +75,7 @@ public class DatabaseParameterGroup {
 	 * @param value
 	 * @return true if changed.
 	 */
-	public static boolean setValueIfNeeded(String paramGroupName, AmazonRDSClient client, Map<String, Parameter> map, String key, String value){
+	boolean setValueIfNeeded(String paramGroupName, Map<String, Parameter> map, String key, String value){
 		// Check the slow query log value
 		Parameter param = map.get(key);
 		if(param == null) throw new IllegalStateException("Cannot find the expected DB parameter: "+key);
@@ -86,7 +99,7 @@ public class DatabaseParameterGroup {
 	 * Create or get the DBParameter group used by this stack.
 	 * @param stack
 	 */
-	public static DBParameterGroup createOrGetDatabaseParameterGroup(AmazonRDSClient client, InputConfiguration config){
+	public DBParameterGroup createOrGetDatabaseParameterGroup(){
 		// The group name
 		String groupName = config.getDatabaseParameterGroupName();
 		// First query for the group
@@ -120,7 +133,7 @@ public class DatabaseParameterGroup {
 	 * @param dbGroupName
 	 * @return
 	 */
-	public static Map<String, Parameter> getAllDBGroupParams(AmazonRDSClient client, String dbGroupName){
+	Map<String, Parameter> getAllDBGroupParams(String dbGroupName){
 		log.info("Fetching all DB group parameters...");
 		List<Parameter> fullParams = new LinkedList<Parameter>();
 		DescribeDBParametersResult results = client.describeDBParameters(new DescribeDBParametersRequest().withDBParameterGroupName(dbGroupName));

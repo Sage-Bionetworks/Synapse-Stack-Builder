@@ -10,7 +10,6 @@ import org.apache.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.services.ec2.AmazonEC2Client;
-import com.amazonaws.services.ec2.model.CreateSecurityGroupResult;
 import com.amazonaws.services.ec2.model.SecurityGroup;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.rds.model.DBParameterGroup;
@@ -43,18 +42,17 @@ public class BuildStackMain {
 			config.addDefaultStackProperties(defaultStackProperties);
 			
 			// The first step is to setup the stack security
-			SecurityGroup elasticSecurityGroup = EC2SecuritySetup.setupElasticBeanstalkEC2SecutiryGroup(
-					new AmazonEC2Client(config.getAWSCredentials()), config);
+			SecurityGroup elasticSecurityGroup = new EC2SecuritySetup(new AmazonEC2Client(config.getAWSCredentials()), config).setupElasticBeanstalkEC2SecutiryGroup();
 			
 			// Setup the Database Parameter group
-			DBParameterGroup dbParamGroup = DatabaseParameterGroup.setupDBParameterGroup(new AmazonRDSClient(config.getAWSCredentials()), config);
+			DBParameterGroup dbParamGroup = new DatabaseParameterGroup(new AmazonRDSClient(config.getAWSCredentials()), config).setupDBParameterGroup();
 			
-			// Setup all of the database secruity groups
-			DatabaseSecuritySetup.setupDatabaseAllSecuityGroups(new AmazonRDSClient(config.getAWSCredentials()), config, elasticSecurityGroup);
+			// Setup all of the database security groups
+			new DatabaseSecuritySetup(new AmazonRDSClient(config.getAWSCredentials()), config, elasticSecurityGroup).setupDatabaseAllSecuityGroups();
 			
+			// We are read to create the database instances
+			new MySqlDatabaseSetup(new AmazonRDSClient(config.getAWSCredentials()), config).setupAllDatabaseInstances();
 			
-			// Create or setup the Id generator database as needed.
-			DatabaseInfo idGeneratorDBInfo = IdGeneratorSetup.createIdGeneratorDatabase(new AmazonRDSClient(config.getAWSCredentials()), config);
 
 		}catch(Throwable e){
 			log.error("Terminating: ",e);

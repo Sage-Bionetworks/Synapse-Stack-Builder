@@ -35,7 +35,7 @@ public class DatabaseSecuritySetupTest {
 	AmazonRDSClient mockClient = null;
 	SecurityGroup elasticSecurityGroup;
 	String CIDR = "123.123.123/23";
-	
+	DatabaseSecuritySetup databaseSecuritySetup;
 	
 	@Before
 	public void before() throws IOException{
@@ -51,6 +51,7 @@ public class DatabaseSecuritySetupTest {
 		defaults.put(Constants.KEY_CIDR_FOR_SSH, CIDR);
 		config.addDefaultStackProperties(defaults);
 		elasticSecurityGroup = new SecurityGroup().withGroupName("ec2-security-group-name").withOwnerId("123");
+		databaseSecuritySetup = new DatabaseSecuritySetup(mockClient, config, elasticSecurityGroup);
 	}
 	
 	
@@ -64,7 +65,7 @@ public class DatabaseSecuritySetupTest {
 		unknown.setErrorCode("unknown error code");
 		when(mockClient.authorizeDBSecurityGroupIngress(any(AuthorizeDBSecurityGroupIngressRequest.class))).thenThrow(unknown);
 		// Make the call
-		DatabaseSecuritySetup.addEC2SecurityGroup(mockClient, dbGroupName, elasticSecurityGroup);
+		databaseSecuritySetup.addEC2SecurityGroup(dbGroupName, elasticSecurityGroup);
 	}
 	
 	
@@ -82,7 +83,7 @@ public class DatabaseSecuritySetupTest {
 		unknown.setErrorCode(ERROR_CODE_AUTHORIZATION_ALREADY_EXITS);
 		when(mockClient.authorizeDBSecurityGroupIngress(any(AuthorizeDBSecurityGroupIngressRequest.class))).thenThrow(unknown);
 		// Make the call
-		DatabaseSecuritySetup.addEC2SecurityGroup(mockClient, dbGroupName, elasticSecurityGroup);
+		databaseSecuritySetup.addEC2SecurityGroup(dbGroupName, elasticSecurityGroup);
 		// Validate the data was passed
 		verify(mockClient, times(1)).authorizeDBSecurityGroupIngress(expectedIngress);
 	}
@@ -101,7 +102,7 @@ public class DatabaseSecuritySetupTest {
 		unknown.setErrorCode(ERROR_CODE_AUTHORIZATION_ALREADY_EXITS);
 		when(mockClient.authorizeDBSecurityGroupIngress(any(AuthorizeDBSecurityGroupIngressRequest.class))).thenReturn(new DBSecurityGroup());
 		// Make the call
-		DatabaseSecuritySetup.addEC2SecurityGroup(mockClient, dbGroupName, elasticSecurityGroup);
+		databaseSecuritySetup.addEC2SecurityGroup(dbGroupName, elasticSecurityGroup);
 		// Validate the data was passed
 		verify(mockClient, times(1)).authorizeDBSecurityGroupIngress(expectedIngress);
 	}
@@ -117,7 +118,7 @@ public class DatabaseSecuritySetupTest {
 		unknown.setErrorCode("unknown error code");
 		when(mockClient.authorizeDBSecurityGroupIngress(any(AuthorizeDBSecurityGroupIngressRequest.class))).thenThrow(unknown);
 		// Make the call
-		DatabaseSecuritySetup.addCIDRToGroup(mockClient, dbGroupName, cIDR);
+		databaseSecuritySetup.addCIDRToGroup(dbGroupName, cIDR);
 	}
 	
 	
@@ -135,7 +136,7 @@ public class DatabaseSecuritySetupTest {
 		unknown.setErrorCode(ERROR_CODE_AUTHORIZATION_ALREADY_EXITS);
 		when(mockClient.authorizeDBSecurityGroupIngress(any(AuthorizeDBSecurityGroupIngressRequest.class))).thenThrow(unknown);
 		// Make the call
-		DatabaseSecuritySetup.addCIDRToGroup(mockClient, dbGroupName, cIDR);
+		databaseSecuritySetup.addCIDRToGroup(dbGroupName, cIDR);
 		// Validate the data was passed
 		verify(mockClient, times(1)).authorizeDBSecurityGroupIngress(expectedIngress);
 	}
@@ -153,7 +154,7 @@ public class DatabaseSecuritySetupTest {
 		unknown.setErrorCode(ERROR_CODE_AUTHORIZATION_ALREADY_EXITS);
 		when(mockClient.authorizeDBSecurityGroupIngress(any(AuthorizeDBSecurityGroupIngressRequest.class))).thenReturn(new DBSecurityGroup());
 		// Make the call
-		DatabaseSecuritySetup.addCIDRToGroup(mockClient, dbGroupName, cIDR);
+		databaseSecuritySetup.addCIDRToGroup(dbGroupName, cIDR);
 		// Validate the data was passed
 		verify(mockClient, times(1)).authorizeDBSecurityGroupIngress(expectedIngress);
 	}
@@ -169,7 +170,7 @@ public class DatabaseSecuritySetupTest {
 		AmazonServiceException exception = new AmazonServiceException("unknown");
 		exception.setErrorCode("unknown error code");
 		when(mockClient.createDBSecurityGroup(request)).thenThrow(exception);
-		DatabaseSecuritySetup.createSecurityGroup(mockClient, request);
+		databaseSecuritySetup.createSecurityGroup(request);
 	}
 	
 	/**
@@ -183,7 +184,7 @@ public class DatabaseSecuritySetupTest {
 		AmazonServiceException exception = new AmazonServiceException("unknown");
 		exception.setErrorCode(ERROR_CODE_DB_SECURITY_GROUP_ALREADY_EXISTS);
 		when(mockClient.createDBSecurityGroup(request)).thenThrow(exception);
-		DatabaseSecuritySetup.createSecurityGroup(mockClient, request);
+		databaseSecuritySetup.createSecurityGroup(request);
 		verify(mockClient, times(1)).createDBSecurityGroup(request);
 	}
 	
@@ -196,7 +197,7 @@ public class DatabaseSecuritySetupTest {
 		request.setDBSecurityGroupName("name");
 		request.setDBSecurityGroupDescription("description");
 		when(mockClient.createDBSecurityGroup(request)).thenReturn(new DBSecurityGroup());
-		DatabaseSecuritySetup.createSecurityGroup(mockClient, request);
+		databaseSecuritySetup.createSecurityGroup(request);
 		verify(mockClient, times(1)).createDBSecurityGroup(request);
 	}
 	
@@ -206,7 +207,7 @@ public class DatabaseSecuritySetupTest {
 	@Test
 	public void testSetupDatabaseAllSecuityGroups(){
 		// Make the call
-		DatabaseSecuritySetup.setupDatabaseAllSecuityGroups(mockClient, config, elasticSecurityGroup);
+		databaseSecuritySetup.setupDatabaseAllSecuityGroups();
 		// Verify the expected calls
 		// Id gen db security group
 		CreateDBSecurityGroupRequest request = new CreateDBSecurityGroupRequest();
