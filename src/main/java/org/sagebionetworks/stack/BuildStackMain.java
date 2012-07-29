@@ -11,6 +11,7 @@ import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.CreateSecurityGroupResult;
+import com.amazonaws.services.ec2.model.SecurityGroup;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.rds.model.DBParameterGroup;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -42,11 +43,14 @@ public class BuildStackMain {
 			config.addDefaultStackProperties(defaultStackProperties);
 			
 			// The first step is to setup the stack security
-			String elasticSecurityGroup = SecuritySetup.setupElasticBeanstalkEC2SecutiryGroup(
+			SecurityGroup elasticSecurityGroup = EC2SecuritySetup.setupElasticBeanstalkEC2SecutiryGroup(
 					new AmazonEC2Client(config.getAWSCredentials()), config);
 			
 			// Setup the Database Parameter group
 			DBParameterGroup dbParamGroup = DatabaseParameterGroup.setupDBParameterGroup(new AmazonRDSClient(config.getAWSCredentials()), config);
+			
+			// Setup all of the database secruity groups
+			DatabaseSecuritySetup.setupDatabaseAllSecuityGroups(new AmazonRDSClient(config.getAWSCredentials()), config, elasticSecurityGroup);
 			
 			
 			// Create or setup the Id generator database as needed.

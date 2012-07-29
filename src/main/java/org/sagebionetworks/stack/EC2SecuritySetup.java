@@ -12,7 +12,10 @@ import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest;
 import com.amazonaws.services.ec2.model.CreateSecurityGroupResult;
+import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
+import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult;
 import com.amazonaws.services.ec2.model.IpPermission;
+import com.amazonaws.services.ec2.model.SecurityGroup;
 
 /**
  * Setup the security used by the rest of the stack.
@@ -20,9 +23,9 @@ import com.amazonaws.services.ec2.model.IpPermission;
  * @author jmhill
  *
  */
-public class SecuritySetup {
+public class EC2SecuritySetup {
 	
-	private static Logger log = Logger.getLogger(SecuritySetup.class.getName());
+	private static Logger log = Logger.getLogger(EC2SecuritySetup.class.getName());
 	
 	/**
 	 * Create the EC2 security group that all elastic beanstalk instances will belong to.
@@ -33,7 +36,7 @@ public class SecuritySetup {
 	 * @param cidrForSSH - The classless inter-domain routing to be used for SSH access to these machines.
 	 * @return
 	 */
-	public static String setupElasticBeanstalkEC2SecutiryGroup(AmazonEC2Client ec2Client, InputConfiguration config){
+	public static SecurityGroup setupElasticBeanstalkEC2SecutiryGroup(AmazonEC2Client ec2Client, InputConfiguration config){
 		if(ec2Client == null) throw new IllegalArgumentException("AmazonEC2Client cannot be null");
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		
@@ -49,8 +52,9 @@ public class SecuritySetup {
 		// Only allow ssh to the given address
 		addPermission(ec2Client, request.getGroupName(), new IpPermission().withIpProtocol(IP_PROTOCOL_TCP).withFromPort(PORT_SSH).withToPort(PORT_SSH).withIpRanges(config.getCIDRForSSH()));
 		// Return the group name
-		return request.getGroupName();
-
+		DescribeSecurityGroupsResult result = ec2Client.describeSecurityGroups(new DescribeSecurityGroupsRequest().withGroupNames(request.getGroupName()));
+		if(result.getSecurityGroups() == null || result.getSecurityGroups().size() != 1) throw new IllegalStateException("Did not find one and ony one EC2 secruity group with the name: "+request.getGroupName());
+		return result.getSecurityGroups().get(0);
 	}
 
 	/**

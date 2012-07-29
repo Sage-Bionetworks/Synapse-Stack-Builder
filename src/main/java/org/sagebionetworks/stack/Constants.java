@@ -57,6 +57,16 @@ public class Constants {
 	 */
 	public static final String ERROR_CODE_DB_PARAMETER_GROUP_NOT_FOUND = "DBParameterGroupNotFound";
 	
+	/**
+	 * An AWS error code used to indicate that a DB security group already exits.
+	 */
+	public static final String ERROR_CODE_DB_SECURITY_GROUP_ALREADY_EXISTS = "DBSecurityGroupAlreadyExists";
+	
+	/**
+	 * An AWS error code used to indicate that a DB security group authorization already exists.
+	 */
+	public static final String ERROR_CODE_AUTHORIZATION_ALREADY_EXITS = "AuthorizationAlreadyExists";
+	
 
 	/**
 	 * Template for the security group name.

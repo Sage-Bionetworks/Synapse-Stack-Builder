@@ -186,40 +186,142 @@ public class InputConfiguration {
 	}
 
 
+	/**
+	 * The elastic security group name that all EC2 instances of this stack belong to.
+	 * @return
+	 */
 	public String getElasticSecurityGroupName() {
 		return validateAndGetProperty("elastic.security.group.name");
 	}
 
+	/**
+	 * The elastic security group description.
+	 * 
+	 * @return
+	 */
 	public String getElasticSecurityGroupDescription() {
 		return validateAndGetProperty("elastic.security.group.description");
 	}
 
+	/**
+	 * Classless Inter-Domain Routing (CIDR) used to grant SSH access to all machines in the stack.
+	 * 
+	 * @return
+	 */
 	public String getCIDRForSSH() {
 		return validateAndGetProperty(Constants.KEY_CIDR_FOR_SSH);
 	}
 
+	/**
+	 * The database parameter group contains all MySQL database parameters.
+	 * This parameter group is applied to all MySQL database.
+	 * The group name uniquely identifies the group.
+	 * @return
+	 */
 	public String getDatabaseParameterGroupName() {
 		return validateAndGetProperty("database.parameter.group.name");
 	}
 
+	/**
+	 * The database parameter group contains all MySQL database parameters.
+	 * This parameter group is applied to all MySQL database.
+	 * This is the description of the group.
+	 * @return
+	 */
 	public String getDatabaseParameterGroupDescription() {
 		return validateAndGetProperty("database.parameter.group.description");
 	}
 
+	/**
+	 * The schema name of the ID generator database.
+	 * 
+	 * @return
+	 */
 	public String getIdGeneratorDatabaseSchemaName() {
 		return validateAndGetProperty("id.gen.database.schema");
 	}
 
+	/**
+	 * The unique identifier of the ID generator database instances.
+	 * 
+	 * @return
+	 */
 	public String getIdGeneratorDatabaseIdentifier() {
 		return validateAndGetProperty("id.gen.database.identifier");
 	}
 
-	public String getIdGeneratorDatabaseUsername() {
-		return validateAndGetProperty("id.gen.database.user");
+	/**
+	 * The master username of the ID generator database.
+	 * @return
+	 */
+	public String getIdGeneratorDatabaseMasterUsername() {
+		return validateAndGetProperty("id.gen.database.master.user");
 	}
 
-	public String getIdGeneratorDatabasePasswordPlaintext() {
-		return validateAndGetProperty("id.gen.database.user");
+	/**
+	 * The plain text (non-encrypted) master password of the ID
+	 * generator database. 
+	 * @return
+	 */
+	public String getIdGeneratorDatabaseMasterPasswordPlaintext() {
+		return validateAndGetProperty("id.gen.database.master.user");
+	}
+
+	/**
+	 * The identifier of the stack database.
+	 * 
+	 * @return
+	 */
+	public String getStackDatabaseIdentifier() {
+		return validateAndGetProperty("stack.database.identifier");
+	}
+
+	/**
+	 * The schema of this stack's MySQL database
+	 * @return
+	 */
+	public String getStackDatabaseSchema() {
+		return validateAndGetProperty("stack.database.schema");
+	}
+
+	/**
+	 * The master user of this stack's MySQL database.
+	 * @return
+	 */
+	public String getStackDatabaseMasterUser() {
+		return validateAndGetProperty("stack.database.master.user");
+	}
+
+	/**
+	 * The database security group name used by the ID generator.
+	 * @return
+	 */
+	public String getIdGeneratorDatabaseSecurityGroupName() {
+		return validateAndGetProperty("id.gen.database.security.group.name");
+	}
+
+	/**
+	 * The database security group description used by the ID generator.
+	 * @return
+	 */
+	public String getIdGeneratorDatabaseSecurityGroupDescription() {
+		return validateAndGetProperty("id.gen.database.security.group.description");
+	}
+
+	/**
+	 * The database security group name used by the Stack's MySQL database.
+	 * @return
+	 */
+	public String getStackDatabaseSecurityGroupName() {
+		return validateAndGetProperty("stack.database.security.group.name");
+	}
+
+	/**
+	 * The database security group description used by the Stack's MySQL database.
+	 * @return
+	 */
+	public String getStackDatabaseSecurityGroupDescription() {
+		return validateAndGetProperty("stack.database.security.group.description");
 	}
 
 

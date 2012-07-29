@@ -58,8 +58,8 @@ public class IdGeneratorSetup {
 		// We only need a small instance for now.
 		request.setDBInstanceClass("db.m1.small");
 		request.setEngine("MySQL");
-		request.setMasterUsername(config.getIdGeneratorDatabaseUsername());
-		request.setMasterUserPassword(config.getIdGeneratorDatabasePasswordPlaintext());
+		request.setMasterUsername(config.getIdGeneratorDatabaseMasterUsername());
+		request.setMasterUserPassword(config.getIdGeneratorDatabaseMasterPasswordPlaintext());
 //		request.
 //		request.set
 		return request;

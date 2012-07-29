@@ -104,8 +104,20 @@ public class InputConfigurationTest {
 		assertEquals("All elastic beanstalk instances of stack:'"+stack+"' instance:'"+instance+"' belong to this EC2 security group", config.getElasticSecurityGroupDescription());
 		assertEquals("mysql5-5-"+stack+"-params", config.getDatabaseParameterGroupName());
 		assertEquals("Custom MySQL 5.5 database parameters (including slow query log enabled) used by all database instances belonging to stack: "+stack, config.getDatabaseParameterGroupDescription());
-		assertEquals(stack+"-id-generator", config.getIdGeneratorDatabaseIdentifier());
+		// Id gen database
+		String expectedIdGenIdentifier = stack+"-id-generator-db";
+		assertEquals(expectedIdGenIdentifier, config.getIdGeneratorDatabaseIdentifier());
 		assertEquals(stack+"idgen", config.getIdGeneratorDatabaseSchemaName());
-		assertEquals(stack+"idgenuser", config.getIdGeneratorDatabaseUsername());
+		assertEquals(stack+"idgenuser", config.getIdGeneratorDatabaseMasterUsername());
+		// Stack database
+		String expectedStackDBIdentifier = stack+"-"+instance+"-db";
+		assertEquals(expectedStackDBIdentifier, config.getStackDatabaseIdentifier());
+		assertEquals(stack+instance, config.getStackDatabaseSchema());
+		assertEquals(stack+instance+"user", config.getStackDatabaseMasterUser());
+		// The database security groups
+		assertEquals(expectedIdGenIdentifier+"-security-group", config.getIdGeneratorDatabaseSecurityGroupName());
+		assertEquals("The database security group used by the "+expectedIdGenIdentifier+".", config.getIdGeneratorDatabaseSecurityGroupDescription());
+		assertEquals(expectedStackDBIdentifier+"-security-group", config.getStackDatabaseSecurityGroupName());
+		assertEquals("The database security group used by the "+expectedStackDBIdentifier+".", config.getStackDatabaseSecurityGroupDescription());
 	}
 }
