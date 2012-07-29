@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -31,9 +32,6 @@ public class StackDefaults {
 		Constants.KEY_CIDR_FOR_SSH,
 	};
 	
-	public static String DEFAULTS_BUCKET_SUFFIX = "-default";
-	public static String DEFAULT_PROPERTY_FILE_SUFFIX = "-default.properties";
-	
 	/**
 	 * Connect to S3 and downloads the default properties for this stack.
 	 * 
@@ -42,16 +40,16 @@ public class StackDefaults {
 	 * @return
 	 * @throws IOException 
 	 */
-	public static Properties loadStackDefaultsFromS3(String stack, AmazonS3Client s3Client) throws IOException{
-		if(stack == null) throw new IllegalArgumentException("Stack cannot be null");
+	public static Properties loadStackDefaultsFromS3(InputConfiguration config, AmazonS3Client s3Client) throws IOException{
+		if(config == null) throw new IllegalArgumentException("Configuration cannot be null");
 		if(s3Client == null) throw new IllegalArgumentException("The AmazonS3Client cannot be null");
 		// This is the buck where we expect to find the properties.
-		String bucketName = stack+DEFAULTS_BUCKET_SUFFIX;
+		String bucketName = config.getDefaultS3BucketName();
 
 		log.info("Creating S3 Bucket: "+bucketName);
 		// This call is idempotent and will only actually create the bucket if it does not already exist.
 		Bucket bucket = s3Client.createBucket(bucketName);
-		String fileName = stack+DEFAULT_PROPERTY_FILE_SUFFIX;
+		String fileName = config.getDefaultPropertiesFileName();
 		File temp = File.createTempFile("DefaultProps", ".properties");
 		FileInputStream in = new FileInputStream(temp);
 		try{

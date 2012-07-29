@@ -89,12 +89,12 @@ public class Constants {
 	/**
 	 * Name of the DB parameter group
 	 */
-	public static final String DB_PARAM_GROUP_NAME_TEMPLATE = "mysql5-5-%1$s-params";
+//	public static final String DB_PARAM_GROUP_NAME_TEMPLATE = "mysql5-5-%1$s-params";
 	
 	/**
 	 * The description of the DB parameter group.
 	 */
-	public static final String DB_PARAM_GROUP_DESC_TEMPALTE = "Custom MySQL 5.5 database parameters (including slow query log enabled) used by all database intances belonging to stack: '%1$s'";
+//	public static final String DB_PARAM_GROUP_DESC_TEMPALTE = "Custom MySQL 5.5 database parameters (including slow query log enabled) used by all database instances belonging to stack: '%1$s'";
 	
 	/**
 	 * The DB parameter key for the slow query log.
@@ -103,8 +103,10 @@ public class Constants {
 	public static final String DB_PARAM_KEY_SLOW_QUERY_LOG = "slow_query_log";
 	
 	/**
-	 * To turn on the slow query log: slow_query_log=1
+	 * The DB parameter key for the long query time.
 	 */
-	public static final String DB_PARAM_VALUE_SLOW_QUERY_LOG = "1";
+	public static final String DB_PARAM_KEY_LONG_QUERY_TIME = "long_query_time";
+		
+
 	
 }

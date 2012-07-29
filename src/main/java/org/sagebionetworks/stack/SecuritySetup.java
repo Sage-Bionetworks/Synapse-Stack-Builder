@@ -4,6 +4,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.sagebionetworks.stack.config.InputConfiguration;
+
 import static org.sagebionetworks.stack.Constants.*;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.ec2.AmazonEC2Client;
@@ -31,15 +33,13 @@ public class SecuritySetup {
 	 * @param cidrForSSH - The classless inter-domain routing to be used for SSH access to these machines.
 	 * @return
 	 */
-	public static String setupElasticBeanstalkEC2SecutiryGroup(AmazonEC2Client ec2Client, String stack, String instance, String cidrForSSH){
+	public static String setupElasticBeanstalkEC2SecutiryGroup(AmazonEC2Client ec2Client, InputConfiguration config){
 		if(ec2Client == null) throw new IllegalArgumentException("AmazonEC2Client cannot be null");
-		if(stack == null) throw new IllegalArgumentException("Stack cannot be null");
-		if(instance == null) throw new IllegalArgumentException("Stack instances cannot be null");
-		if(cidrForSSH == null) throw new IllegalArgumentException("The classless inter-domain routing for SSH cannot be null");
+		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		
 		CreateSecurityGroupRequest request = new CreateSecurityGroupRequest();
-		request.setDescription(String.format(SECURITY_GROUP_DESCRIPTION_TEMPLATE, stack, instance));
-		request.setGroupName(String.format(SECURITY_GROUP_NAME_TEMPLATE, stack, instance));
+		request.setDescription(config.getElasticSecurityGroupDescription());
+		request.setGroupName(config.getElasticSecurityGroupName());
 		createSecurityGroup(ec2Client, request);
 		//Setup the permissions for this group:
 		// Allow anyone to access port 80 (HTTP)
@@ -47,7 +47,7 @@ public class SecuritySetup {
 		// Allow anyone to access port 443 (HTTPS)
 		addPermission(ec2Client, request.getGroupName(), new IpPermission().withIpProtocol(IP_PROTOCOL_TCP).withFromPort(PORT_HTTPS).withToPort(PORT_HTTPS).withIpRanges(CIDR_ALL_IP));
 		// Only allow ssh to the given address
-		addPermission(ec2Client, request.getGroupName(), new IpPermission().withIpProtocol(IP_PROTOCOL_TCP).withFromPort(PORT_SSH).withToPort(PORT_SSH).withIpRanges(cidrForSSH));
+		addPermission(ec2Client, request.getGroupName(), new IpPermission().withIpProtocol(IP_PROTOCOL_TCP).withFromPort(PORT_SSH).withToPort(PORT_SSH).withIpRanges(config.getCIDRForSSH()));
 		// Return the group name
 		return request.getGroupName();
 

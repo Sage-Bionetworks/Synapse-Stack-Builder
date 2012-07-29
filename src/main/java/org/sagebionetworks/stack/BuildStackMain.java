@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.CreateSecurityGroupResult;
@@ -36,19 +37,20 @@ public class BuildStackMain {
 			// Load the configuration
 			InputConfiguration config = loadConfiguration(pathConfig);
 			// Load the default properties used for this stack
-			Properties defaultStackProperties = StackDefaults.loadStackDefaultsFromS3(config.getStack(),new AmazonS3Client(config.getAWSCredentials()));
+			Properties defaultStackProperties = StackDefaults.loadStackDefaultsFromS3(config, new AmazonS3Client(config.getAWSCredentials()));
+			// Add the default properties to the config
+			config.addDefaultStackProperties(defaultStackProperties);
 			
 			// The first step is to setup the stack security
 			String elasticSecurityGroup = SecuritySetup.setupElasticBeanstalkEC2SecutiryGroup(
-					new AmazonEC2Client(config.getAWSCredentials()),
-					config.getStack(), 
-					config.getStackInstance(), defaultStackProperties.getProperty(Constants.KEY_CIDR_FOR_SSH));
+					new AmazonEC2Client(config.getAWSCredentials()), config);
 			
 			// Setup the Database Parameter group
-			DBParameterGroup dbParamGroup = DatabaseParameterGroup.setupDBParameterGroup(new AmazonRDSClient(config.getAWSCredentials()), config.getStack());
+			DBParameterGroup dbParamGroup = DatabaseParameterGroup.setupDBParameterGroup(new AmazonRDSClient(config.getAWSCredentials()), config);
+			
 			
 			// Create or setup the Id generator database as needed.
-//			DatabaseInfo idGeneratorDBInfo = IdGeneratorSetup.createIdGeneratorDatabase(config, defaultStackProperties);
+			DatabaseInfo idGeneratorDBInfo = IdGeneratorSetup.createIdGeneratorDatabase(new AmazonRDSClient(config.getAWSCredentials()), config);
 
 		}catch(Throwable e){
 			log.error("Terminating: ",e);
