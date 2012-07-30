@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.Properties;
 import org.apache.log4j.Logger;
 import org.sagebionetworks.stack.Constants;
+import org.sagebionetworks.stack.util.EncryptionUtils;
 import org.sagebionetworks.stack.util.PropertyFilter;
 
 import com.amazonaws.auth.AWSCredentials;
@@ -24,7 +25,7 @@ public class InputConfiguration {
 	public static final String REQUIRED_BUILDER_PROPERTIES_NAME = "required-builder.properties";
 	public static final String STACK_NAMES_PROPERTIES_FILE = "stack-instance-names.properties";
 	
-	private Properties props;
+	Properties props;
 		
 	/**
 	 * Create the Configuration object from properties
@@ -107,7 +108,7 @@ public class InputConfiguration {
 	 * @param key
 	 * @return
 	 */
-	private String validateAndGetProperty(String key){
+	String validateAndGetProperty(String key){
 		if(key == null) throw new IllegalArgumentException("Property key cannot be null");
 		String value = props.getProperty(key);
 		if(value == null) throw new IllegalStateException("Cannot find property: "+key);
@@ -115,8 +116,26 @@ public class InputConfiguration {
 		return value;
 	}
 	
-	public void addDefaultStackProperties(Properties defaultStackProperties) {
+	/**
+	 * Add properties with plaintext values.  Any property ending with .plaintext will have
+	 * its value encrypted and a property added with the same name ending in .encrypted
+	 * @param defaultStackProperties
+	 */
+	public void addPropertiesWithPlaintext(Properties defaultStackProperties) {
 		props.putAll(defaultStackProperties);
+		// Find any property with a 'plaintext' suffix
+		for(Object keyOb: defaultStackProperties.keySet()){
+			String key = (String) keyOb;
+			if(key.endsWith(Constants.PLAIN_TEXT_SUFFIX)){
+				// get the plain text value and encrypt it
+				String plainTextValue = defaultStackProperties.getProperty(key);
+				String cipherText = EncryptionUtils.encryptString(getEncryptionKey(), plainTextValue);
+				// Add this property to the set with the encrypted suffix
+				String encryptedKey = key.replaceAll(Constants.PLAIN_TEXT_SUFFIX, Constants.ENCRYPTED_SUFFIX);
+				// Add the encrypted property
+				props.put(encryptedKey, cipherText);
+			}
+		}
 	}
 	
 	/**
@@ -147,7 +166,7 @@ public class InputConfiguration {
 	 * The encryption key used to encrypt all passwords
 	 * @return
 	 */
-	public Object getEncryptionKey() {
+	public String getEncryptionKey() {
 		return validateAndGetProperty(Constants.STACK_ENCRYPTION_KEY);
 	}
 

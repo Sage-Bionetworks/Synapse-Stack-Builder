@@ -63,6 +63,7 @@ public class MySqlDatabaseSetup {
 		DBInstance instance = createOrGetDatabaseInstance(request);
 		log.debug("Database instance: ");
 		log.debug(instance);
+		// Add the address to the config
 
 	}
 	

@@ -49,7 +49,7 @@ public class DatabaseSecuritySetupTest {
 		config = new InputConfiguration(inputProperties);
 		Properties defaults = new Properties();
 		defaults.put(Constants.KEY_CIDR_FOR_SSH, CIDR);
-		config.addDefaultStackProperties(defaults);
+		config.addPropertiesWithPlaintext(defaults);
 		elasticSecurityGroup = new SecurityGroup().withGroupName("ec2-security-group-name").withOwnerId("123");
 		databaseSecuritySetup = new DatabaseSecuritySetup(mockClient, config, elasticSecurityGroup);
 	}

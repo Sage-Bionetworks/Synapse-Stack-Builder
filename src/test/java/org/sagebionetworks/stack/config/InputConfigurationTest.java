@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.sagebionetworks.stack.Constants;
 import org.sagebionetworks.stack.config.InputConfiguration;
+import org.sagebionetworks.stack.util.EncryptionUtils;
 
 import com.amazonaws.auth.AWSCredentials;
 
@@ -22,7 +23,7 @@ public class InputConfigurationTest {
 	Properties inputProperties;
 	String id = "aws id";
 	String password = "aws password";
-	String encryptionKey = "encryptionKey";
+	String encryptionKey = "encryption Key that is long enough to work";
 	String stack = "stack";
 	String instance ="instance";
 	
@@ -119,5 +120,28 @@ public class InputConfigurationTest {
 		assertEquals("The database security group used by the "+expectedIdGenIdentifier+".", config.getIdGeneratorDatabaseSecurityGroupDescription());
 		assertEquals(expectedStackDBIdentifier+"-security-group", config.getStackDatabaseSecurityGroupName());
 		assertEquals("The database security group used by the "+expectedStackDBIdentifier+".", config.getStackDatabaseSecurityGroupDescription());
+	}
+	
+	@Test
+	public void testAddPropertiesWithPlaintext() throws IOException{
+		InputConfiguration config = new InputConfiguration(inputProperties);
+		// These are properties that we want encrypted
+		Properties props = new Properties();
+		String plainTextKey = "key.one."+Constants.PLAIN_TEXT_SUFFIX;
+		String encryptedKey = "key.one."+Constants.ENCRYPTED_SUFFIX;
+		String plainText = "Please encrypte me!";
+		props.put(plainTextKey, plainText);
+		props.put("key.two", "Do not encrypt me!");
+		// Add the properties
+		config.addPropertiesWithPlaintext(props);
+		
+		// Make sure the original properties are there
+		assertEquals(plainText, config.validateAndGetProperty(plainTextKey));
+		assertEquals("Do not encrypt me!", config.validateAndGetProperty("key.two"));
+		
+		// Now check the expected encrypted key
+		String expectedCipherText = EncryptionUtils.encryptString(config.getEncryptionKey(), plainText);
+		assertEquals(expectedCipherText, config.validateAndGetProperty(encryptedKey));
+		
 	}
 }

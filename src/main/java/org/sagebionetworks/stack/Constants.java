@@ -35,7 +35,17 @@ public class Constants {
 	/**
 	 * Property key for the default id generator password.
 	 */
-	public static final String KEY_DEFAULT_ID_GEN_PASSWORD = "org.sagebionetworks.id.generator.db.default.password";
+	public static final String KEY_DEFAULT_ID_GEN_PASSWORD = "org.sagebionetworks.id.generator.db.default.password.plaintext";
+	
+	/**
+	 * Properties that requiring encryption should have this as a suffix.
+	 */
+	public static final String PLAIN_TEXT_SUFFIX = "plaintext";
+	
+	/**
+	 * The suffix added to the encrypted form of plain text properties.
+	 */
+	public static final String ENCRYPTED_SUFFIX = "encrypted";
 	
 	/**
 	 * Property for the classless inter-domain routing to be used for SSH access

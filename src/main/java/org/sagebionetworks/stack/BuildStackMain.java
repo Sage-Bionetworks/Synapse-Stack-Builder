@@ -39,7 +39,8 @@ public class BuildStackMain {
 			// Load the default properties used for this stack
 			Properties defaultStackProperties = StackDefaults.loadStackDefaultsFromS3(config, new AmazonS3Client(config.getAWSCredentials()));
 			// Add the default properties to the config
-			config.addDefaultStackProperties(defaultStackProperties);
+			// Note: This is where all encrypted properties are also added.
+			config.addPropertiesWithPlaintext(defaultStackProperties);
 			
 			// The first step is to setup the stack security
 			SecurityGroup elasticSecurityGroup = new EC2SecuritySetup(new AmazonEC2Client(config.getAWSCredentials()), config).setupElasticBeanstalkEC2SecutiryGroup();

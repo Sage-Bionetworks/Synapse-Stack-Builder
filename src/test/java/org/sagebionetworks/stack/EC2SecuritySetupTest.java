@@ -64,7 +64,7 @@ public class EC2SecuritySetupTest {
 		config = new InputConfiguration(inputProperties);
 		Properties defaults = new Properties();
 		defaults.put(Constants.KEY_CIDR_FOR_SSH, cidrForSSH);
-		config.addDefaultStackProperties(defaults);
+		config.addPropertiesWithPlaintext(defaults);
 		ec2SecuritySetup = new EC2SecuritySetup(mockEC2Client, config);
 	}
 	
