@@ -35,7 +35,17 @@ public class Constants {
 	/**
 	 * Property key for the default id generator password.
 	 */
-	public static final String KEY_DEFAULT_ID_GEN_PASSWORD = "org.sagebionetworks.id.generator.db.default.password";
+	public static final String KEY_DEFAULT_ID_GEN_PASSWORD = "org.sagebionetworks.id.generator.db.default.password.plaintext";
+	
+	/**
+	 * Properties that requiring encryption should have this as a suffix.
+	 */
+	public static final String PLAIN_TEXT_SUFFIX = "plaintext";
+	
+	/**
+	 * The suffix added to the encrypted form of plain text properties.
+	 */
+	public static final String ENCRYPTED_SUFFIX = "encrypted";
 	
 	/**
 	 * Property for the classless inter-domain routing to be used for SSH access
@@ -56,6 +66,16 @@ public class Constants {
 	 * An AWS error code used to indicate a DB parameter group is not found
 	 */
 	public static final String ERROR_CODE_DB_PARAMETER_GROUP_NOT_FOUND = "DBParameterGroupNotFound";
+	
+	/**
+	 * An AWS error code used to indicate that a DB security group already exits.
+	 */
+	public static final String ERROR_CODE_DB_SECURITY_GROUP_ALREADY_EXISTS = "DBSecurityGroupAlreadyExists";
+	
+	/**
+	 * An AWS error code used to indicate that a DB security group authorization already exists.
+	 */
+	public static final String ERROR_CODE_AUTHORIZATION_ALREADY_EXITS = "AuthorizationAlreadyExists";
 	
 
 	/**
@@ -85,17 +105,7 @@ public class Constants {
 	 * Part of setting up a database parameter group.
 	 */
 	public static final String MYSQL_5_5_DB_PARAMETER_GROUP_FAMILY = "mysql5.5";
-	
-	/**
-	 * Name of the DB parameter group
-	 */
-	public static final String DB_PARAM_GROUP_NAME_TEMPLATE = "mysql5-5-%1$s-params";
-	
-	/**
-	 * The description of the DB parameter group.
-	 */
-	public static final String DB_PARAM_GROUP_DESC_TEMPALTE = "Custom MySQL 5.5 database parameters (including slow query log enabled) used by all database intances belonging to stack: '%1$s'";
-	
+		
 	/**
 	 * The DB parameter key for the slow query log.
 	 * 
@@ -103,8 +113,44 @@ public class Constants {
 	public static final String DB_PARAM_KEY_SLOW_QUERY_LOG = "slow_query_log";
 	
 	/**
-	 * To turn on the slow query log: slow_query_log=1
+	 * The DB parameter key for the long query time.
 	 */
-	public static final String DB_PARAM_VALUE_SLOW_QUERY_LOG = "1";
+	public static final String DB_PARAM_KEY_LONG_QUERY_TIME = "long_query_time";
+	
+	/**
+	 * Small database instance class
+	 */
+	public static final String DATABASE_INSTANCE_CLASS_SMALL = "db.m1.small";
+	
+	/**
+	 * MySQL database engine.
+	 */
+	public static final String DATABASE_ENGINE_MYSQL = "MySQL";
+	
+	/**
+	 * MySQL version.
+	 */
+	public static final String DATABASE_ENGINE_MYSQL_VERSION = "5.5.12";
+	/**
+	 * us-east-1d
+	 */
+	public static final String  EC2_AVAILABILITY_ZONE_US_EAST_1D = "us-east-1d";
+	
+	/**
+	 * This window is in UTC.  Monday morning UTC should be Sunday night PDT.
+	 */
+	public static final String PREFERRED_DATABASE_MAINTENANCE_WINDOW_SUNDAY_NIGHT_PDT = "Mon:07:15-Mon:07:45";
+		
+	/**
+	 * This window is in UTC.  Should be 10 pm - 1 am PDT
+	 */
+	public static final String PREFERRED_DATABASE_BACKUP_WINDOW_MIDNIGHT = "3:00-6:00";
+	
+	/**
+	 * general-public-license
+	 */
+	public static final String LICENSE_MODEL_GENERAL_PUBLIC = "general-public-license";
+	
+
 	
 }

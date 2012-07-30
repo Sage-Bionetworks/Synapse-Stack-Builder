@@ -1,23 +1,27 @@
 package org.sagebionetworks.stack;
 
+import static org.sagebionetworks.stack.Constants.ERROR_CODE_DB_PARAMETER_GROUP_NOT_FOUND;
+import static org.sagebionetworks.stack.Constants.MYSQL_5_5_DB_PARAMETER_GROUP_FAMILY;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.rds.AmazonRDSClient;
+import com.amazonaws.services.rds.model.ApplyMethod;
 import com.amazonaws.services.rds.model.CreateDBParameterGroupRequest;
 import com.amazonaws.services.rds.model.DBParameterGroup;
 import com.amazonaws.services.rds.model.DescribeDBParameterGroupsRequest;
 import com.amazonaws.services.rds.model.DescribeDBParameterGroupsResult;
 import com.amazonaws.services.rds.model.DescribeDBParametersRequest;
 import com.amazonaws.services.rds.model.DescribeDBParametersResult;
+import com.amazonaws.services.rds.model.ModifyDBParameterGroupRequest;
 import com.amazonaws.services.rds.model.Parameter;
-
-import static org.sagebionetworks.stack.Constants.*;
 
 /**
  * Creates and maintains the MySQL database parameter group used by all database instances
@@ -28,26 +32,36 @@ import static org.sagebionetworks.stack.Constants.*;
 public class DatabaseParameterGroup {
 
 	private static Logger log = Logger.getLogger(DatabaseParameterGroup.class);
+	
+	AmazonRDSClient client;
+	InputConfiguration config;
 
+	/**
+	 * IoC constructor.
+	 * 
+	 * @param client
+	 * @param config
+	 */
+	public DatabaseParameterGroup(AmazonRDSClient client, InputConfiguration config){
+		this.client = client;
+		this.config = config;
+	}
 	/**
 	 * Setup the DB parameter group with all of the values we want to use.
 	 * @param client
 	 * @param stack
 	 * @return
 	 */
-	public static DBParameterGroup setupDBParameterGroup(AmazonRDSClient client, String stack){
+	public DBParameterGroup setupDBParameterGroup(){
 		// First get the group
-		DBParameterGroup paramGroup = createOrGetDatabaseParameterGroup(client, stack);
+		DBParameterGroup paramGroup = createOrGetDatabaseParameterGroup();
 		// Now make sure it has the parameters we want
-		Map<String, Parameter> map = getAllDBGroupParams(client, paramGroup.getDBParameterGroupName());
-
-		// Check the slow query log value
-		Parameter slowParam = map.get(Constants.DB_PARAM_KEY_SLOW_QUERY_LOG);
-		if(slowParam == null) throw new IllegalStateException("Cannot find the expected DB parameter: "+Constants.DB_PARAM_KEY_SLOW_QUERY_LOG);
-		// Do we need to change it?
-		if(!Constants.DB_PARAM_VALUE_SLOW_QUERY_LOG.equals(slowParam.getParameterValue())){
-			
-		}
+		Map<String, Parameter> map = getAllDBGroupParams(paramGroup.getDBParameterGroupName());
+		// Turn on the slow query log.
+		setValueIfNeeded(paramGroup.getDBParameterGroupName(), map, Constants.DB_PARAM_KEY_SLOW_QUERY_LOG, "1");
+		// Set the slow query time (how long a query must be to get recored in the slow query log) in seconds..
+		setValueIfNeeded(paramGroup.getDBParameterGroupName(), map, Constants.DB_PARAM_KEY_LONG_QUERY_TIME, "1");
+		// Set any other values...
 		
 		return paramGroup;
 	}
@@ -61,13 +75,21 @@ public class DatabaseParameterGroup {
 	 * @param value
 	 * @return true if changed.
 	 */
-	public boolean setValueIfNeeded(AmazonRDSClient client, Map<String, Parameter> map, String key, String value){
+	boolean setValueIfNeeded(String paramGroupName, Map<String, Parameter> map, String key, String value){
 		// Check the slow query log value
 		Parameter param = map.get(key);
 		if(param == null) throw new IllegalStateException("Cannot find the expected DB parameter: "+key);
 		// Do we need to change it?
 		if(!value.equals(param.getParameterValue())){
 			// We need to change the value.
+			ModifyDBParameterGroupRequest modifyRequest = new ModifyDBParameterGroupRequest();
+			modifyRequest.setDBParameterGroupName(paramGroupName);
+			List<Parameter> list = new LinkedList<Parameter>();
+			list.add(param);
+			param.setParameterValue(value);
+			param.setApplyMethod(ApplyMethod.Immediate);
+			modifyRequest.setParameters(list);
+			client.modifyDBParameterGroup(modifyRequest);
 			return true;
 		}
 		return false;
@@ -77,9 +99,9 @@ public class DatabaseParameterGroup {
 	 * Create or get the DBParameter group used by this stack.
 	 * @param stack
 	 */
-	public static DBParameterGroup createOrGetDatabaseParameterGroup(AmazonRDSClient client, String stack){
+	public DBParameterGroup createOrGetDatabaseParameterGroup(){
 		// The group name
-		String groupName = String.format(DB_PARAM_GROUP_NAME_TEMPLATE, stack);
+		String groupName = config.getDatabaseParameterGroupName();
 		// First query for the group
 		try{
 			// Query for this group
@@ -94,7 +116,7 @@ public class DatabaseParameterGroup {
 				CreateDBParameterGroupRequest request = new CreateDBParameterGroupRequest();
 				request.setDBParameterGroupFamily(MYSQL_5_5_DB_PARAMETER_GROUP_FAMILY);
 				request.setDBParameterGroupName(groupName);
-				request.setDescription(String.format(DB_PARAM_GROUP_DESC_TEMPALTE, stack));
+				request.setDescription(config.getDatabaseParameterGroupDescription());
 				return client.createDBParameterGroup(request);
 			}else{
 				// Any other error gets thrown
@@ -111,7 +133,7 @@ public class DatabaseParameterGroup {
 	 * @param dbGroupName
 	 * @return
 	 */
-	public static Map<String, Parameter> getAllDBGroupParams(AmazonRDSClient client, String dbGroupName){
+	Map<String, Parameter> getAllDBGroupParams(String dbGroupName){
 		log.info("Fetching all DB group parameters...");
 		List<Parameter> fullParams = new LinkedList<Parameter>();
 		DescribeDBParametersResult results = client.describeDBParameters(new DescribeDBParametersRequest().withDBParameterGroupName(dbGroupName));

@@ -3,9 +3,11 @@ package org.sagebionetworks.stack;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.junit.Before;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 import org.mockito.Mockito;
+import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.Bucket;
@@ -16,6 +18,25 @@ import com.amazonaws.services.s3.model.Bucket;
  *
  */
 public class StackDefaultsTest {
+	
+	Properties inputProperties;
+	String id = "aws id";
+	String password = "aws password";
+	String encryptionKey = "encryptionKey";
+	String stack = "dev";
+	String instance ="A";
+	InputConfiguration config;
+	
+	@Before
+	public void before() throws IOException{
+		inputProperties = new Properties();
+		inputProperties.put(Constants.AWS_ACCESS_KEY, id);
+		inputProperties.put(Constants.AWS_SECRET_KEY, password);
+		inputProperties.put(Constants.STACK_ENCRYPTION_KEY, encryptionKey);
+		inputProperties.put(Constants.STACK, stack);
+		inputProperties.put(Constants.INSTANCE, instance);
+		config = new InputConfiguration(inputProperties);
+	}
 
 	
 	@Test (expected=IllegalArgumentException.class)
@@ -44,13 +65,11 @@ public class StackDefaultsTest {
 	
 	@Test (expected=IllegalArgumentException.class)
 	public void testLoadStackDefaultsFromS3() throws IOException{
-		String stack = "dev";
-		String bucketString = stack+StackDefaults.DEFAULTS_BUCKET_SUFFIX;
-		
+		String bucketString = config.getDefaultS3BucketName();
 		AmazonS3Client mockClient = Mockito.mock(AmazonS3Client.class);
 		Bucket bucket = new Bucket(bucketString);
 		when(mockClient.createBucket(bucketString)).thenReturn(new Bucket());
 		// This should fail since the expected properties are missing.
-		StackDefaults.loadStackDefaultsFromS3(stack, mockClient);
+		StackDefaults.loadStackDefaultsFromS3(config, mockClient);
 	}
 }
