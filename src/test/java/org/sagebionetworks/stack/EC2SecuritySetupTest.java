@@ -1,44 +1,71 @@
-package org.sagebionetworks;
+package org.sagebionetworks.stack;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.sagebionetworks.stack.Constants.CIDR_ALL_IP;
 import static org.sagebionetworks.stack.Constants.IP_PROTOCOL_TCP;
 import static org.sagebionetworks.stack.Constants.PORT_HTTP;
+import static org.sagebionetworks.stack.Constants.PORT_HTTPS;
 import static org.sagebionetworks.stack.Constants.PORT_SSH;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.sagebionetworks.stack.Constants;
-import org.sagebionetworks.stack.SecuritySetup;
-
-import static org.sagebionetworks.stack.Constants.*;
+import org.sagebionetworks.stack.EC2SecuritySetup;
+import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest;
+import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
+import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult;
 import com.amazonaws.services.ec2.model.IpPermission;
+import com.amazonaws.services.ec2.model.SecurityGroup;
 
 /**
  * 
  * @author John
  *
  */
-public class SecuritySetupTest {
+public class EC2SecuritySetupTest {
+	
+	Properties inputProperties;
+	String id = "aws id";
+	String password = "aws password";
+	String encryptionKey = "encryptionKey";
+	String stack = "dev";
+	String instance ="A";
+	String cidrForSSH = "255.255.255/1";
+	InputConfiguration config;	
 
 	AmazonEC2Client mockEC2Client;
+	EC2SecuritySetup ec2SecuritySetup;
 
 	@Before
-	public void before() {
+	public void before() throws IOException {
 		mockEC2Client = Mockito.mock(AmazonEC2Client.class);
+		inputProperties = new Properties();
+		inputProperties.put(Constants.AWS_ACCESS_KEY, id);
+		inputProperties.put(Constants.AWS_SECRET_KEY, password);
+		inputProperties.put(Constants.STACK_ENCRYPTION_KEY, encryptionKey);
+		inputProperties.put(Constants.STACK, stack);
+		inputProperties.put(Constants.INSTANCE, instance);
+		config = new InputConfiguration(inputProperties);
+		Properties defaults = new Properties();
+		defaults.put(Constants.KEY_CIDR_FOR_SSH, cidrForSSH);
+		config.addPropertiesWithPlaintext(defaults);
+		ec2SecuritySetup = new EC2SecuritySetup(mockEC2Client, config);
 	}
 	
 	@Test (expected=AmazonServiceException.class)
@@ -48,7 +75,7 @@ public class SecuritySetupTest {
 		exception.setErrorCode("unknown code");
 		CreateSecurityGroupRequest request = new CreateSecurityGroupRequest();
 		when(mockEC2Client.createSecurityGroup(request)).thenThrow(exception);
-		SecuritySetup.createSecurityGroup(mockEC2Client, request);
+		ec2SecuritySetup.createSecurityGroup(request);
 	}
 	
 	@Test
@@ -59,7 +86,7 @@ public class SecuritySetupTest {
 		exception.setErrorCode(Constants.ERROR_CODE_INVALID_GROUP_DUPLICATE);
 		CreateSecurityGroupRequest request = new CreateSecurityGroupRequest();
 		when(mockEC2Client.createSecurityGroup(request)).thenThrow(exception);
-		SecuritySetup.createSecurityGroup(mockEC2Client, request);
+		ec2SecuritySetup.createSecurityGroup(request);
 	}
 
 	@Test (expected=AmazonServiceException.class)
@@ -69,7 +96,7 @@ public class SecuritySetupTest {
 		exception.setErrorCode("unknown code");
 		doThrow(exception).when(mockEC2Client).authorizeSecurityGroupIngress(
 				any(AuthorizeSecurityGroupIngressRequest.class));
-		SecuritySetup.addPermission(mockEC2Client, "groupName", new IpPermission());
+		ec2SecuritySetup.addPermission("groupName", new IpPermission());
 	}
 
 	@Test
@@ -79,19 +106,21 @@ public class SecuritySetupTest {
 		exception.setErrorCode(Constants.ERROR_CODE_INVALID_PERMISSION_DUPLICATE);
 		doThrow(exception).when(mockEC2Client).authorizeSecurityGroupIngress(
 				any(AuthorizeSecurityGroupIngressRequest.class));
-		SecuritySetup.addPermission(mockEC2Client, "groupName", new IpPermission());
+		ec2SecuritySetup.addPermission("groupName", new IpPermission());
 	}
 	
 	@Test
 	public void testSetupElasticBeanstalkEC2SecutiryGroup(){
-		String stack = "stack";
-		String instance = "instnace";
-		String cidrForSSH = "255.255.255/1";
-		
-		String expectedDescription = String.format(Constants.SECURITY_GROUP_DESCRIPTION_TEMPLATE, stack, instance);
-		String expectedGroupName = String.format(Constants.SECURITY_GROUP_NAME_TEMPLATE, stack, instance);
+		String expectedDescription = config.getElasticSecurityGroupDescription();
+		String expectedGroupName = config.getElasticSecurityGroupName();
+		DescribeSecurityGroupsResult result = new DescribeSecurityGroupsResult();
+		SecurityGroup expectedGroup = new SecurityGroup().withGroupName(expectedGroupName).withOwnerId("123");
+		result.withSecurityGroups(expectedGroup);
+		when(mockEC2Client.describeSecurityGroups(any(DescribeSecurityGroupsRequest.class))).thenReturn(result);
 		// Create the security group.
-		String groupName = SecuritySetup.setupElasticBeanstalkEC2SecutiryGroup(mockEC2Client, stack, instance, cidrForSSH);
+		SecurityGroup group = ec2SecuritySetup.setupElasticBeanstalkEC2SecutiryGroup();
+		assertEquals(expectedGroup, group);
+		String groupName = group.getGroupName();
 		assertNotNull(groupName);
 		assertEquals(expectedGroupName, groupName);
 		
