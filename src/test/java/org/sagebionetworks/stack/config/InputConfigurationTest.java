@@ -7,6 +7,8 @@ import java.util.Properties;
 
 import org.junit.Before;
 import org.junit.Test;
+import static org.sagebionetworks.stack.Constants.*;
+
 import org.sagebionetworks.stack.Constants;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.util.EncryptionUtils;
@@ -30,19 +32,19 @@ public class InputConfigurationTest {
 	@Before
 	public void before(){
 		inputProperties = new Properties();
-		inputProperties.put(Constants.AWS_ACCESS_KEY, id);
-		inputProperties.put(Constants.AWS_SECRET_KEY, password);
-		inputProperties.put(Constants.STACK_ENCRYPTION_KEY, encryptionKey);
-		inputProperties.put(Constants.STACK, stack);
-		inputProperties.put(Constants.INSTANCE, instance);
+		inputProperties.put(AWS_ACCESS_KEY, id);
+		inputProperties.put(AWS_SECRET_KEY, password);
+		inputProperties.put(STACK_ENCRYPTION_KEY, encryptionKey);
+		inputProperties.put(STACK, stack);
+		inputProperties.put(INSTANCE, instance);
 	}
 	
 	@Test
 	public void testLoad() throws IOException{
 		Properties props = InputConfiguration.loadRequired();
 		assertNotNull(props);
-		props.containsKey(Constants.AWS_ACCESS_KEY);
-		props.containsKey(Constants.AWS_SECRET_KEY);
+		props.containsKey(AWS_ACCESS_KEY);
+		props.containsKey(AWS_SECRET_KEY);
 	}
 	
 	/**
@@ -112,9 +114,9 @@ public class InputConfigurationTest {
 		assertEquals(stack+"idgenuser", config.getIdGeneratorDatabaseMasterUsername());
 		// Stack database
 		String expectedStackDBIdentifier = stack+"-"+instance+"-db";
-		assertEquals(expectedStackDBIdentifier, config.getStackDatabaseIdentifier());
-		assertEquals(stack+instance, config.getStackDatabaseSchema());
-		assertEquals(stack+instance+"user", config.getStackDatabaseMasterUser());
+		assertEquals(expectedStackDBIdentifier, config.getStackInstanceDatabaseIdentifier());
+		assertEquals(stack+instance, config.getStackInstanceDatabaseSchema());
+		assertEquals(stack+instance+"user", config.getStackInstanceDatabaseMasterUser());
 		// The database security groups
 		assertEquals(expectedIdGenIdentifier+"-security-group", config.getIdGeneratorDatabaseSecurityGroupName());
 		assertEquals("The database security group used by the "+expectedIdGenIdentifier+".", config.getIdGeneratorDatabaseSecurityGroupDescription());
@@ -122,13 +124,15 @@ public class InputConfigurationTest {
 		assertEquals("The database security group used by the "+expectedStackDBIdentifier+".", config.getStackDatabaseSecurityGroupDescription());
 	}
 	
+	
+	
 	@Test
 	public void testAddPropertiesWithPlaintext() throws IOException{
 		InputConfiguration config = new InputConfiguration(inputProperties);
 		// These are properties that we want encrypted
 		Properties props = new Properties();
-		String plainTextKey = "key.one."+Constants.PLAIN_TEXT_SUFFIX;
-		String encryptedKey = "key.one."+Constants.ENCRYPTED_SUFFIX;
+		String plainTextKey = "key.one."+PLAIN_TEXT_SUFFIX;
+		String encryptedKey = "key.one."+ENCRYPTED_SUFFIX;
 		String plainText = "Please encrypte me!";
 		props.put(plainTextKey, plainText);
 		props.put("key.two", "Do not encrypt me!");
@@ -142,6 +146,43 @@ public class InputConfigurationTest {
 		// Now check the expected encrypted key
 		String expectedCipherText = EncryptionUtils.encryptString(config.getEncryptionKey(), plainText);
 		assertEquals(expectedCipherText, config.validateAndGetProperty(encryptedKey));
+	}
+	
+	@Test
+	public void testStackPasswords() throws IOException{
+		// Load from the properties 
+		InputConfiguration config = new InputConfiguration(inputProperties);
+		Properties passwords = new Properties();
+		String plainTextPassword = "password";
+		String plainTextPassword2 = "password2";
+		String expectedCipherText = EncryptionUtils.encryptString(config.getEncryptionKey(), plainTextPassword);
+		String expectedCipherText2 = EncryptionUtils.encryptString(config.getEncryptionKey(), plainTextPassword2);
+		passwords.put(KEY_DEFAULT_ID_GEN_PASSWORD_PLAIN_TEXT, plainTextPassword);
+		passwords.put(Constants.KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_PLAIN_TEXT, plainTextPassword2);
+		config.addPropertiesWithPlaintext(passwords);
+		
+		// Make sure we can get both the plain text version and the encrypted versions
+		assertEquals(plainTextPassword, config.getIdGeneratorDatabaseMasterPasswordPlaintext());
+		assertEquals(expectedCipherText, config.validateAndGetProperty(KEY_DEFAULT_ID_GEN_PASSWORD_ENCRYPTED));
+		assertEquals(plainTextPassword2, config.getStackInstanceDatabaseMasterPasswordPlaintext());
+		assertEquals(expectedCipherText2, config.validateAndGetProperty(KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_ENCRYPTED));
+	}
+	
+	@Test
+	public void testIsProdcution() throws IOException{
+		// This is a production stack
+		inputProperties.put(STACK, "prod");
+		InputConfiguration config = new InputConfiguration(inputProperties);
+		assertTrue(config.isProductionStack());
+		// Also a prod stack
+		inputProperties.put(STACK, "PROD");
+		config = new InputConfiguration(inputProperties);
+		assertTrue(config.isProductionStack());
+		
+		// A dev stack in NOT a production stack.
+		inputProperties.put(STACK, "dev");
+		config = new InputConfiguration(inputProperties);
+		assertFalse(config.isProductionStack());
 		
 	}
 }

@@ -44,9 +44,40 @@ public class MySqlDatabaseSetup {
 	 * @param config
 	 */
 	public void setupAllDatabaseInstances(){
-		// Create the ID generator database
-		// Start with the default request
+		// Build the request to create the ID generator database.
+		CreateDBInstanceRequest request = buildIdGeneratorCreateDBInstanceRequest();
+		
+		// Get the instances
+		DBInstance idGenInstance = createOrGetDatabaseInstance(request);
+		log.debug("Database instance: ");
+		log.debug(idGenInstance);
+		
+		// Now create the stack instance database
+		request = buildStackInstancesCreateDBInstanceRequest();
+		
+		// Get the instances
+		DBInstance stackInstance = createOrGetDatabaseInstance(request);
+		log.debug("Database instance: ");
+		log.debug(stackInstance);
+	}
+
+	/**
+	 * Build up the CreateDBInstanceRequest used to create the ID Generator database.
+	 * 
+	 * @return
+	 */
+	CreateDBInstanceRequest buildIdGeneratorCreateDBInstanceRequest() {
 		CreateDBInstanceRequest request = getDefaultCreateDBInstanceRequest();
+		// Is this a production stack?
+		if(config.isProductionStack()){
+			// Production database need to have a backup replicate ready to go in another
+			// zone at all times!
+			request.setMultiAZ(true);
+		}else{
+			// This is not a production stack so we do not want to incur the extra cost of
+			// a backup replicate database in another zone.
+			request.setMultiAZ(false);
+		}
 		// This will be the schema name.
 		request.setDBName(config.getIdGeneratorDatabaseSchemaName());
 		request.setDBInstanceIdentifier(config.getIdGeneratorDatabaseIdentifier());
@@ -58,15 +89,46 @@ public class MySqlDatabaseSetup {
 		request.withDBSecurityGroups(config.getIdGeneratorDatabaseSecurityGroupName());
 		// The parameters.
 		request.setDBParameterGroupName(config.getDatabaseParameterGroupName());
-		
-		// Get the instances
-		DBInstance instance = createOrGetDatabaseInstance(request);
-		log.debug("Database instance: ");
-		log.debug(instance);
-		// Add the address to the config
-
+		return request;
 	}
 	
+	
+
+	/**
+	 * Build up the CreateDBInstanceRequest used for the stack-instance database.
+	 * 
+	 * @return
+	 */
+	CreateDBInstanceRequest buildStackInstancesCreateDBInstanceRequest() {
+		CreateDBInstanceRequest request = getDefaultCreateDBInstanceRequest();
+		// Production stacks have have different properties
+		if(config.isProductionStack()){
+			// Production database need to have a backup replicate ready to go in another
+			// zone at all times!
+			request.setMultiAZ(true);
+			// The production database should be a large
+			request.setDBInstanceClass(DATABASE_INSTANCE_CLASS_LARGE);
+		}else{
+			// This is not a production stack so we do not want to incur the extra cost of
+			// a backup replicate database in another zone.
+			request.setMultiAZ(false);
+			// All non-production databases should be small
+			request.setDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL);
+		}
+		// This will be the schema name.
+		request.setDBName(config.getStackInstanceDatabaseSchema());
+		request.setDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier());
+		// This is the main database for the stack so it should have 50 GB
+		request.setAllocatedStorage(new Integer(50));
+		request.setMasterUsername(config.getStackInstanceDatabaseMasterUser());
+		request.setMasterUserPassword(config.getStackInstanceDatabaseMasterPasswordPlaintext());
+		// The security group
+		request.withDBSecurityGroups(config.getStackDatabaseSecurityGroupName());
+		// The parameters.
+		request.setDBParameterGroupName(config.getDatabaseParameterGroupName());
+		// if this is a production stack
+		return request;
+	}
 	
 	/**
 	 * If this database instances does not already exist it will be created, otherwise the instance information will be returned.
@@ -89,6 +151,7 @@ public class MySqlDatabaseSetup {
 			return client.createDBInstance(request);
 		}
 	}
+	
 	/**
 	 * Fill out a CreateDBInstanceRequest will all of the default values.
 	 * 

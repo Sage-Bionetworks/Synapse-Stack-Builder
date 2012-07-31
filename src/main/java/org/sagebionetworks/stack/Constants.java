@@ -9,6 +9,11 @@ package org.sagebionetworks.stack;
 public class Constants {
 	
 	/**
+	 * This is the stack named used to indicate a production stack.
+	 * 
+	 */
+	public static final String PRODUCTION_STACK = "prod";
+	/**
 	 * Property key for the AWS ACCESS_KEY
 	 */
 	public static String AWS_ACCESS_KEY = "org.sagebionetworks.aws.access.key";
@@ -33,11 +38,6 @@ public class Constants {
 	public static final String INSTANCE = "org.sagebionetworks.stack.instance";
 	
 	/**
-	 * Property key for the default id generator password.
-	 */
-	public static final String KEY_DEFAULT_ID_GEN_PASSWORD = "org.sagebionetworks.id.generator.db.default.password.plaintext";
-	
-	/**
 	 * Properties that requiring encryption should have this as a suffix.
 	 */
 	public static final String PLAIN_TEXT_SUFFIX = "plaintext";
@@ -46,6 +46,21 @@ public class Constants {
 	 * The suffix added to the encrypted form of plain text properties.
 	 */
 	public static final String ENCRYPTED_SUFFIX = "encrypted";
+	
+	/**
+	 * Property key for the default id generator password.
+	 */
+	private static final String KEY_DEFAULT_ID_GEN_PASSWORD_PREFIX = "org.sagebionetworks.id.generator.db.default.password";
+	public static final String KEY_DEFAULT_ID_GEN_PASSWORD_PLAIN_TEXT = KEY_DEFAULT_ID_GEN_PASSWORD_PREFIX+"."+PLAIN_TEXT_SUFFIX;
+	public static final String KEY_DEFAULT_ID_GEN_PASSWORD_ENCRYPTED = KEY_DEFAULT_ID_GEN_PASSWORD_PREFIX+"."+ENCRYPTED_SUFFIX;
+	
+	
+	/**
+	 * Property key for stack-instance database
+	 */
+	private static final String KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_PREFIX = "org.sagebionetworks.stack.instance.db.default.password";
+	public static final String KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_PLAIN_TEXT = KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_PREFIX+"."+PLAIN_TEXT_SUFFIX;
+	public static final String KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_ENCRYPTED = KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_PREFIX+"."+ENCRYPTED_SUFFIX;
 	
 	/**
 	 * Property for the classless inter-domain routing to be used for SSH access
@@ -121,6 +136,11 @@ public class Constants {
 	 * Small database instance class
 	 */
 	public static final String DATABASE_INSTANCE_CLASS_SMALL = "db.m1.small";
+	
+	/**
+	 * Small database instance class
+	 */
+	public static final String DATABASE_INSTANCE_CLASS_LARGE = "db.m1.large";
 	
 	/**
 	 * MySQL database engine.

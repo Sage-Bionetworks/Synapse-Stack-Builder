@@ -1,5 +1,7 @@
 package org.sagebionetworks.stack.util;
 
+import java.security.InvalidKeyException;
+
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -15,6 +17,7 @@ import org.apache.commons.codec.binary.Base64;
  */
 public class EncryptionUtils {
 	
+	private static final String ENCRYPTION_KEY_MUST_BE_AT_LEAST_X_CHARACTERS = "Encryption key must be at least %1$d characters";
 	private static final String UTF_8 = "UTF-8";
 	public static final String DESEDE_ENCRYPTION_SCHEME = "DESede";
 	
@@ -36,6 +39,9 @@ public class EncryptionUtils {
 			cipher.init(Cipher.ENCRYPT_MODE, key);
 			byte[] ciphertext = cipher.doFinal(plainText.getBytes(UTF_8));
 			return new String(Base64.encodeBase64(ciphertext));
+		}catch (InvalidKeyException e){
+			// More meaning full error for short keys
+			throw new RuntimeException(String.format(ENCRYPTION_KEY_MUST_BE_AT_LEAST_X_CHARACTERS, DESedeKeySpec.DES_EDE_KEY_LEN), e);
 		}catch (Exception e){
 			// Convert all errors to a runtime
 			throw new RuntimeException(e);
@@ -60,6 +66,9 @@ public class EncryptionUtils {
 			byte[] cipherBytes = Base64.decodeBase64(cipherText.getBytes(UTF_8));
 			byte[] plainBytes = cipher.doFinal(cipherBytes);
 			return new String(plainBytes, UTF_8);
+		}catch (InvalidKeyException e){
+			// More meaning full error for short keys
+			throw new RuntimeException(String.format(ENCRYPTION_KEY_MUST_BE_AT_LEAST_X_CHARACTERS, DESedeKeySpec.DES_EDE_KEY_LEN), e);
 		}catch (Exception e){
 			// Convert all errors to a runtime
 			throw new RuntimeException(e);

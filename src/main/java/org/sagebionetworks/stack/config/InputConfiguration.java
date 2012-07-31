@@ -139,6 +139,14 @@ public class InputConfiguration {
 	}
 	
 	/**
+	 * Is this a production stack? 
+	 * @return
+	 */
+	public boolean isProductionStack() {
+		return Constants.PRODUCTION_STACK.equals(getStack().toLowerCase());
+	}
+	
+	/**
 	 * The Amazon Web Services access key (ID)
 	 * @return
 	 */
@@ -283,7 +291,7 @@ public class InputConfiguration {
 	 * @return
 	 */
 	public String getIdGeneratorDatabaseMasterPasswordPlaintext() {
-		return validateAndGetProperty("id.gen.database.master.user");
+		return validateAndGetProperty(Constants.KEY_DEFAULT_ID_GEN_PASSWORD_PLAIN_TEXT);
 	}
 
 	/**
@@ -291,24 +299,32 @@ public class InputConfiguration {
 	 * 
 	 * @return
 	 */
-	public String getStackDatabaseIdentifier() {
-		return validateAndGetProperty("stack.database.identifier");
+	public String getStackInstanceDatabaseIdentifier() {
+		return validateAndGetProperty("stack.instance.database.identifier");
 	}
 
 	/**
 	 * The schema of this stack's MySQL database
 	 * @return
 	 */
-	public String getStackDatabaseSchema() {
-		return validateAndGetProperty("stack.database.schema");
+	public String getStackInstanceDatabaseSchema() {
+		return validateAndGetProperty("stack.instance.database.schema");
 	}
 
 	/**
 	 * The master user of this stack's MySQL database.
 	 * @return
 	 */
-	public String getStackDatabaseMasterUser() {
-		return validateAndGetProperty("stack.database.master.user");
+	public String getStackInstanceDatabaseMasterUser() {
+		return validateAndGetProperty("stack.instance.database.master.user");
+	}
+	
+	/**
+	 * The master user of this stack's MySQL database.
+	 * @return
+	 */
+	public String getStackInstanceDatabaseMasterPasswordPlaintext() {
+		return validateAndGetProperty(Constants.KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_PLAIN_TEXT);
 	}
 
 	/**
@@ -342,6 +358,5 @@ public class InputConfiguration {
 	public String getStackDatabaseSecurityGroupDescription() {
 		return validateAndGetProperty("stack.database.security.group.description");
 	}
-
 
 }
