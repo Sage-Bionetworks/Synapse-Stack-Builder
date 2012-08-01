@@ -1,5 +1,8 @@
 package org.sagebionetworks.stack;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Basic constants for building the stack.
  * 
@@ -137,10 +140,39 @@ public class Constants {
 	 */
 	public static final String DATABASE_INSTANCE_CLASS_SMALL = "db.m1.small";
 	
+	
 	/**
 	 * Small database instance class
 	 */
 	public static final String DATABASE_INSTANCE_CLASS_LARGE = "db.m1.large";
+	
+	/**
+	 * 1 GB = 2^30 Bytes
+	 */
+	public static final Integer BYTES_PER_GIGABYTE = (int) Math.pow(2, 30);
+	
+	/**
+	 * Maps Database instances to their memory.
+	 * 
+	 */
+	private static final Map<String, Double> INSTANCE_MEMORY_MAP = new HashMap<String, Double>();
+	static{
+		// small 1.7 GB as of July 2012
+		INSTANCE_MEMORY_MAP.put(DATABASE_INSTANCE_CLASS_SMALL, 1.7*BYTES_PER_GIGABYTE);
+		// Large 7.5 GB as of July 2012
+		INSTANCE_MEMORY_MAP.put(DATABASE_INSTANCE_CLASS_LARGE, 7.5*BYTES_PER_GIGABYTE);
+	}
+	
+	/**
+	 * Get the total memory of a AWS Database instances class
+	 * @param intancesClass
+	 * @return
+	 */
+	public static Double getDatabaseClassMemrorySizeBytes(String intancesClass){
+		Double value = INSTANCE_MEMORY_MAP.get(intancesClass);
+		if(value == null) throw new IllegalArgumentException("Unknown AWS Database intances class: "+intancesClass);
+		return value;
+	}
 	
 	/**
 	 * MySQL database engine.
@@ -170,6 +202,32 @@ public class Constants {
 	 * general-public-license
 	 */
 	public static final String LICENSE_MODEL_GENERAL_PUBLIC = "general-public-license";
+	
+	/**
+	 * Email protocol for subscribing to a topic.
+	 */
+	public static final String TOPIC_SUBSCRIBE_PROTOCOL_EMAIL = "email";
+	
+	/**
+	 * The property key used for the RDS alert topic subscription endpoint
+	 */
+	public static final String KEY_RDS_ALAERT_SUBSCRIPTION_ENDPONT = "org.sagebionetworks.stack.rds.alert.topic.subscription.endpoint";
+	
+	/** 
+	 * Alarm constants.
+	 */
+	public static final String METRIC_FREEABLE_MEMORY = "FreeableMemory";
+	public static final String METRIC_WRITE_LATENCY = "WriteLatency";
+	public static final String METRIC_HIGH_CPU_UTILIZATION = "CPUUtilization";
+	public static final String METRIC_FREE_STOREAGE_SPACE = "FreeStorageSpace";
+	public static final String DB_INSTANCE_IDENTIFIER = "DBInstanceIdentifier";
+	public static final String NAME_SPACES_AWS_RDS = "AWS/RDS";
+	public static final String LOW_FREEABLE_MEMORY_NAME = "-Low-Freeable-Memory";
+	public static final String HIGH_WRITE_LATENCY = "High-Write-Latency";
+	public static final String HIGH_CPU_UTILIZATION = "High-CPU-Utilization";
+	public static final String LOW_FREE_STOREAGE_SPACE = "Low-Free-Storage-Space";
+	public static final int FIVE_MINUTES_IN_SECONDS = 5*60;
+	public static final String STATISTIC_AVERAGE = "Average";
 	
 
 	

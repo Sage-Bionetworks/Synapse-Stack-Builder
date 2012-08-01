@@ -1,6 +1,9 @@
 package org.sagebionetworks.stack;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.sagebionetworks.stack.Constants.DATABASE_ENGINE_MYSQL;
 import static org.sagebionetworks.stack.Constants.DATABASE_ENGINE_MYSQL_VERSION;
 import static org.sagebionetworks.stack.Constants.DATABASE_INSTANCE_CLASS_LARGE;
@@ -11,11 +14,9 @@ import static org.sagebionetworks.stack.Constants.PREFERRED_DATABASE_BACKUP_WIND
 import static org.sagebionetworks.stack.Constants.PREFERRED_DATABASE_MAINTENANCE_WINDOW_SUNDAY_NIGHT_PDT;
 
 import java.io.IOException;
-import java.util.Properties;
 
 import org.junit.Before;
 import org.junit.Test;
-import static org.mockito.Mockito.*;
 import org.mockito.Mockito;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
@@ -28,33 +29,19 @@ import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 
 public class MySqlDatabaseSetupTest {
 	
-	Properties inputProperties;
-	String id = "aws id";
-	String password = "aws password";
-	String encryptionKey = "encryptionKey that is long enough";
-	String stack = "dev";
-	String instance ="A";
 	InputConfiguration config;	
 	AmazonRDSClient mockClient = null;
+	GeneratedResources resources;
 	
 	MySqlDatabaseSetup databaseSetup;
 	
 	@Before
 	public void before() throws IOException{
 		mockClient = Mockito.mock(AmazonRDSClient.class);
-		inputProperties = new Properties();
-		inputProperties.put(Constants.AWS_ACCESS_KEY, id);
-		inputProperties.put(Constants.AWS_SECRET_KEY, password);
-		inputProperties.put(Constants.STACK_ENCRYPTION_KEY, encryptionKey);
-		inputProperties.put(Constants.STACK, stack);
-		inputProperties.put(Constants.INSTANCE, instance);
-		config = new InputConfiguration(inputProperties);
-		Properties defaults = new Properties();
-		defaults.put(Constants.KEY_DEFAULT_ID_GEN_PASSWORD_PLAIN_TEXT, password);
-		defaults.put(Constants.KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_PLAIN_TEXT, password);
-		config.addPropertiesWithPlaintext(defaults);
+		config = InputConfigHelper.createTestConfig("dev");
+		resources = new GeneratedResources();
 		// Create the creator
-		databaseSetup = new MySqlDatabaseSetup(mockClient, config);
+		databaseSetup = new MySqlDatabaseSetup(mockClient, config, resources);
 	}
 	
 	/**
@@ -79,14 +66,10 @@ public class MySqlDatabaseSetupTest {
 	 * @param prodStack
 	 * @throws IOException
 	 */
-	private void setConfigForStack(String prodStack) throws IOException {
-		inputProperties.put(Constants.STACK, prodStack);
-		config = new InputConfiguration(inputProperties);
-		Properties defaults = new Properties();
-		defaults.put(Constants.KEY_DEFAULT_ID_GEN_PASSWORD_PLAIN_TEXT, password);
-		config.addPropertiesWithPlaintext(defaults);
+	private void setConfigForStack(String stack) throws IOException {
+		config = InputConfigHelper.createTestConfig(stack);
 		// Create the creator
-		databaseSetup = new MySqlDatabaseSetup(mockClient, config);
+		databaseSetup = new MySqlDatabaseSetup(mockClient, config, resources);
 	}
 	
 	@Test

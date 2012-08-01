@@ -359,4 +359,22 @@ public class InputConfiguration {
 		return validateAndGetProperty("stack.database.security.group.description");
 	}
 
+	/**
+	 * The name of the RDS alert topic. This topic is used to notify by
+	 * email, when RDS alarms are triggered.
+	 * 
+	 * @return
+	 */
+	public String getRDSAlertTopicName() {
+		return validateAndGetProperty("stack.rds.alert.topic.name");
+	}
+
+	/**
+	 * The RDS alert topic subscription endpoint.
+	 * @return
+	 */
+	public String getRDSAlertSubscriptionEndpoint() {
+		return validateAndGetProperty(Constants.KEY_RDS_ALAERT_SUBSCRIPTION_ENDPONT);
+	}
+
 }

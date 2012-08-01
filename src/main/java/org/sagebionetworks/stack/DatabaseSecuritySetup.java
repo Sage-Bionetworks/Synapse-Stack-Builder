@@ -12,6 +12,8 @@ import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.rds.model.AuthorizeDBSecurityGroupIngressRequest;
 import com.amazonaws.services.rds.model.CreateDBSecurityGroupRequest;
 import com.amazonaws.services.rds.model.DBSecurityGroup;
+import com.amazonaws.services.rds.model.DescribeDBSecurityGroupsRequest;
+import com.amazonaws.services.rds.model.DescribeDBSecurityGroupsResult;
 
 /**
  * Setup the Database security groups.
@@ -25,24 +27,24 @@ public class DatabaseSecuritySetup {
 	
 	private AmazonRDSClient rdsClient;
 	private InputConfiguration config;
-	private SecurityGroup elasticSecurityGroup;
+	private GeneratedResources resources;
 
 	/**
 	 * The IoC constructor.
 	 * @param rdsClient
 	 * @param config
-	 * @param elasticSecurityGroup
+	 * @param resources
 	 */
 	public DatabaseSecuritySetup(AmazonRDSClient rdsClient,
-			InputConfiguration config, SecurityGroup elasticSecurityGroup) {
+			InputConfiguration config, GeneratedResources resources) {
 		super();
 		if(rdsClient == null) throw new IllegalArgumentException("AmazonEC2Client cannot be null");
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
-		if(elasticSecurityGroup == null) throw new IllegalArgumentException("SecurityGroup cannot be null");
-		
+		if(resources == null) throw new IllegalArgumentException("SecurityGroup cannot be null");
+		if(resources.getElasticBeanstalkEC2SecurityGroup() == null) throw new IllegalArgumentException("The GeneratedResources.getElasticBeanstalkEC2SecurityGroup() cannot be null");
 		this.rdsClient = rdsClient;
 		this.config = config;
-		this.elasticSecurityGroup = elasticSecurityGroup;
+		this.resources = resources;
 	}
 
 	/**
@@ -60,9 +62,12 @@ public class DatabaseSecuritySetup {
 		createSecurityGroup(request);
 		
 		// Grant the EC2 security group access the ID generator database
-		addEC2SecurityGroup(request.getDBSecurityGroupName(), elasticSecurityGroup);
+		addEC2SecurityGroup(request.getDBSecurityGroupName(), resources.getElasticBeanstalkEC2SecurityGroup());
 		// Allow anyone in the CIDR used for the stack SSH access to access this database.
 		addCIDRToGroup(request.getDBSecurityGroupName(), config.getCIDRForSSH());
+		
+		// capture the group info.
+		resources.setIdGeneratorDatabaseSecurityGroup(getDBSecurityGroup(request.getDBSecurityGroupName()));
 		
 		// Create Stack database security group
 		request = new CreateDBSecurityGroupRequest();
@@ -71,11 +76,27 @@ public class DatabaseSecuritySetup {
 		createSecurityGroup(request);
 		
 		// Grant the EC2 security group access the Stack MySQL database
-		addEC2SecurityGroup(request.getDBSecurityGroupName(), elasticSecurityGroup);
+		addEC2SecurityGroup(request.getDBSecurityGroupName(), resources.getElasticBeanstalkEC2SecurityGroup());
 		// Allow anyone in the CIDR used for the stack SSH access to access this database.
 		addCIDRToGroup(request.getDBSecurityGroupName(), config.getCIDRForSSH());
+		
+		// capture the group info.
+		resources.setStackInstancesDatabaseSecurityGroup(getDBSecurityGroup(request.getDBSecurityGroupName()));
 
 	}
+	
+	/**
+	 * Get the DB security group by name.
+	 * @param groupName
+	 * @return
+	 */
+	DBSecurityGroup getDBSecurityGroup(String groupName){
+		// Get this group
+		DescribeDBSecurityGroupsResult result = rdsClient.describeDBSecurityGroups(new DescribeDBSecurityGroupsRequest().withDBSecurityGroupName(groupName));
+		if(result == null || result.getDBSecurityGroups().size() != 1) throw new IllegalStateException("Did not find one and only one DB sercurity group with name: "+groupName);
+		return result.getDBSecurityGroups().get(0);
+	}
+	
 
 	/**
 	 * Create a security group. If the group already exists

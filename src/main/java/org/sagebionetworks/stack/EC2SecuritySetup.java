@@ -29,18 +29,21 @@ public class EC2SecuritySetup {
 	
 	private AmazonEC2Client ec2Client;
 	private InputConfiguration config;
-	
+	private GeneratedResources resources;
 	/**
 	 * IoC constructor.
 	 * @param ec2Client
 	 * @param config
+	 * @param resoruces 
 	 */
-	public EC2SecuritySetup(AmazonEC2Client ec2Client, InputConfiguration config) {
+	public EC2SecuritySetup(AmazonEC2Client ec2Client, InputConfiguration config, GeneratedResources resources) {
 		super();
 		if(ec2Client == null) throw new IllegalArgumentException("AmazonEC2Client cannot be null");
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
+		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
 		this.ec2Client = ec2Client;
 		this.config = config;
+		this.resources = resources;
 	}
 
 	/**
@@ -67,7 +70,10 @@ public class EC2SecuritySetup {
 		// Return the group name
 		DescribeSecurityGroupsResult result = ec2Client.describeSecurityGroups(new DescribeSecurityGroupsRequest().withGroupNames(request.getGroupName()));
 		if(result.getSecurityGroups() == null || result.getSecurityGroups().size() != 1) throw new IllegalStateException("Did not find one and ony one EC2 secruity group with the name: "+request.getGroupName());
-		return result.getSecurityGroups().get(0);
+		// Add this to the resources
+		SecurityGroup group = result.getSecurityGroups().get(0);
+		resources.setElasticBeanstalkEC2SecurityGroup(group);
+		return group;
 	}
 
 	/**

@@ -24,16 +24,19 @@ public class MySqlDatabaseSetup {
 	
 	private AmazonRDSClient client;
 	private InputConfiguration config;
-	
+	private GeneratedResources resources;
 	/**
 	 * The IoC constructor.
 	 * @param client
 	 * @param config
 	 */
-	public MySqlDatabaseSetup(AmazonRDSClient client, InputConfiguration config) {
-		super();
+	public MySqlDatabaseSetup(AmazonRDSClient client, InputConfiguration config, GeneratedResources resources) {
+		if(client == null) throw new IllegalArgumentException("AmazonRDSClient cannot be null");
+		if(config == null) throw new IllegalArgumentException("Config cannot be null");
+		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
 		this.client = client;
 		this.config = config;
+		this.resources = resources;
 	}
 
 
@@ -51,7 +54,7 @@ public class MySqlDatabaseSetup {
 		DBInstance idGenInstance = createOrGetDatabaseInstance(request);
 		log.debug("Database instance: ");
 		log.debug(idGenInstance);
-		
+		resources.setIdGeneratorDatabase(idGenInstance);
 		// Now create the stack instance database
 		request = buildStackInstancesCreateDBInstanceRequest();
 		
@@ -59,6 +62,7 @@ public class MySqlDatabaseSetup {
 		DBInstance stackInstance = createOrGetDatabaseInstance(request);
 		log.debug("Database instance: ");
 		log.debug(stackInstance);
+		resources.setStackInstancesDatabase(stackInstance);
 	}
 
 	/**

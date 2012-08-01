@@ -122,6 +122,8 @@ public class InputConfigurationTest {
 		assertEquals("The database security group used by the "+expectedIdGenIdentifier+".", config.getIdGeneratorDatabaseSecurityGroupDescription());
 		assertEquals(expectedStackDBIdentifier+"-security-group", config.getStackDatabaseSecurityGroupName());
 		assertEquals("The database security group used by the "+expectedStackDBIdentifier+".", config.getStackDatabaseSecurityGroupDescription());
+		// the alert topic
+		assertEquals(stack+"-RDS-Alert", config.getRDSAlertTopicName());
 	}
 	
 	
