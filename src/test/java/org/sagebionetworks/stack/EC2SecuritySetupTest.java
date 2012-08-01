@@ -46,7 +46,7 @@ public class EC2SecuritySetupTest {
 	@Before
 	public void before() throws IOException {
 		mockEC2Client = Mockito.mock(AmazonEC2Client.class);
-		config = InputConfigHelper.createTestConfig("dev");
+		config = TestHelper.createTestConfig("dev");
 		resources = new GeneratedResources();
 		ec2SecuritySetup = new EC2SecuritySetup(mockEC2Client, config, resources);
 	}

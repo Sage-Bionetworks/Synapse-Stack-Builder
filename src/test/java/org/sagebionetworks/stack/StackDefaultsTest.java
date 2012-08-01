@@ -23,7 +23,7 @@ public class StackDefaultsTest {
 	
 	@Before
 	public void before() throws IOException{
-		config = InputConfigHelper.createTestConfig("dev");
+		config = TestHelper.createTestConfig("dev");
 	}
 
 	

@@ -66,6 +66,15 @@ public class Constants {
 	public static final String KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_ENCRYPTED = KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_PREFIX+"."+ENCRYPTED_SUFFIX;
 	
 	/**
+	 * Other keys
+	 */
+	public static final String KEY_ORG_SAGEBIONETWORKS_BCC_GOOGLEAPPS_OAUTH_ACCESS_TOKEN_SECRET_PLAINTEXT = "org.sagebionetworks.bcc.googleapps.oauth.access.token.secret.plaintext";
+	public static final String KEY_ORG_SAGEBIONETWORKS_BCC_GOOGLEAPPS_OAUTH_ACCESS_TOKEN_PLAINTEXT = "org.sagebionetworks.bcc.googleapps.oauth.access.token.plaintext";
+	public static final String KEY_ORG_SAGEBIONETWORKS_BCC_GOOGLEAPPS_OAUTH_CONSUMER_SECRET_PLAINTEX = "org.sagebionetworks.bcc.googleapps.oauth.consumer.secret.plaintext";
+	public static final String KEY_ORG_SAGEBIONETWORKS_MAIL_PW_PLAINTEXT = "org.sagebionetworks.mailPW.plaintext";
+	public static final String KEY_ORG_SAGEBIONETWORKS_CROWD_APPLICATION_KEY_PLAINTEXT = "org.sagebionetworks.crowdApplicationKey.plaintext";
+	
+	/**
 	 * Property for the classless inter-domain routing to be used for SSH access
 	 */
 	public static final String KEY_CIDR_FOR_SSH = "org.sagebionetworks.cidr.for.ssh";
@@ -228,7 +237,23 @@ public class Constants {
 	public static final String LOW_FREE_STOREAGE_SPACE = "Low-Free-Storage-Space";
 	public static final int FIVE_MINUTES_IN_SECONDS = 5*60;
 	public static final String STATISTIC_AVERAGE = "Average";
+
 	
+	
+	/**
+	 * The stack config template file.
+	 */
+	public static String FILE_STACK_CONFIG_TEMPLATE = "stack-config-template.properties";
+	
+	/**
+	 * The key used to store the id generator database end point.
+	 */
+	public static String KEY_ID_GENERATOR_DB_ADDRESS = "id.gen.database.address";
+	
+	/**
+	 * The key used to store the stack instance database end point.
+	 */
+	public static String KEY_STACK_INSTANCE_DB_ADDRESS = "stack.instance.database.address";
 
 	
 }

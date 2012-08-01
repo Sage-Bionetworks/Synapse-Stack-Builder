@@ -42,7 +42,7 @@ public class AlarmSetupTest {
 		// Give this 10 GB
 		dbInstance.setAllocatedStorage(10);
 		topicArn = "arn:123:456";
-		config = InputConfigHelper.createTestConfig("dev");
+		config = TestHelper.createTestConfig("dev");
 		mockClient = Mockito.mock(AmazonCloudWatchClient.class);
 		resources = new GeneratedResources();
 		resources.setRdsAlertTopic(new CreateTopicResult().withTopicArn(topicArn));

@@ -27,7 +27,7 @@ public class NotificationSetupTest {
 	
 	@Before
 	public void before() throws IOException{
-		config = InputConfigHelper.createTestConfig("dev");
+		config = TestHelper.createTestConfig("dev");
 		mockClient = Mockito.mock(AmazonSNSClient.class);
 		resources = new GeneratedResources();
 		setup = new NotificationSetup(mockClient, config, resources);

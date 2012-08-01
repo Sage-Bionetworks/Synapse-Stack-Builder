@@ -54,6 +54,19 @@ public class InputConfiguration {
 	}
 	
 	/**
+	 * Create the union of the passed properties and all of the configuration properties.
+	 * @param props
+	 * @return
+	 */
+	public Properties createUnionOfInputAndConfig(Properties props){
+		Properties results = new Properties();
+		// Add all of the input properties
+		results.putAll(props);
+		// Add all of the configuration properties
+		results.putAll(this.props);
+		return results;
+	}
+	/**
 	 * Get the required properties file.
 	 * @return
 	 * @throws IOException
@@ -375,6 +388,14 @@ public class InputConfiguration {
 	 */
 	public String getRDSAlertSubscriptionEndpoint() {
 		return validateAndGetProperty(Constants.KEY_RDS_ALAERT_SUBSCRIPTION_ENDPONT);
+	}
+
+	/**
+	 * The bucket where all stack instance configuration can be found.
+	 * @return
+	 */
+	public String getStackConfigS3BucketName() {
+		return validateAndGetProperty("stack.config.s3.bucket.name");
 	}
 
 }

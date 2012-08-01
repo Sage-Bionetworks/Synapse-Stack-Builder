@@ -37,7 +37,7 @@ public class DatabaseSecuritySetupTest {
 	@Before
 	public void before() throws IOException{
 		mockClient = Mockito.mock(AmazonRDSClient.class);
-		config = InputConfigHelper.createTestConfig("dev");
+		config = TestHelper.createTestConfig("dev");
 		elasticSecurityGroup = new SecurityGroup().withGroupName("ec2-security-group-name").withOwnerId("123");
 		resources = new GeneratedResources();
 		resources.setElasticBeanstalkEC2SecurityGroup(elasticSecurityGroup);

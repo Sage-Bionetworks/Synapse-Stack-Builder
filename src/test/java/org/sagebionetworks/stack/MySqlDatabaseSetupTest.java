@@ -38,7 +38,7 @@ public class MySqlDatabaseSetupTest {
 	@Before
 	public void before() throws IOException{
 		mockClient = Mockito.mock(AmazonRDSClient.class);
-		config = InputConfigHelper.createTestConfig("dev");
+		config = TestHelper.createTestConfig("dev");
 		resources = new GeneratedResources();
 		// Create the creator
 		databaseSetup = new MySqlDatabaseSetup(mockClient, config, resources);
@@ -67,7 +67,7 @@ public class MySqlDatabaseSetupTest {
 	 * @throws IOException
 	 */
 	private void setConfigForStack(String stack) throws IOException {
-		config = InputConfigHelper.createTestConfig(stack);
+		config = TestHelper.createTestConfig(stack);
 		// Create the creator
 		databaseSetup = new MySqlDatabaseSetup(mockClient, config, resources);
 	}
