@@ -19,23 +19,11 @@ import com.amazonaws.services.s3.model.Bucket;
  */
 public class StackDefaultsTest {
 	
-	Properties inputProperties;
-	String id = "aws id";
-	String password = "aws password";
-	String encryptionKey = "encryptionKey";
-	String stack = "dev";
-	String instance ="A";
 	InputConfiguration config;
 	
 	@Before
 	public void before() throws IOException{
-		inputProperties = new Properties();
-		inputProperties.put(Constants.AWS_ACCESS_KEY, id);
-		inputProperties.put(Constants.AWS_SECRET_KEY, password);
-		inputProperties.put(Constants.STACK_ENCRYPTION_KEY, encryptionKey);
-		inputProperties.put(Constants.STACK, stack);
-		inputProperties.put(Constants.INSTANCE, instance);
-		config = new InputConfiguration(inputProperties);
+		config = TestHelper.createTestConfig("dev");
 	}
 
 	

@@ -1,5 +1,6 @@
 package org.sagebionetworks.stack;
 
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -22,36 +23,25 @@ import com.amazonaws.services.rds.model.AuthorizeDBSecurityGroupIngressRequest;
 import com.amazonaws.services.rds.model.CreateDBParameterGroupRequest;
 import com.amazonaws.services.rds.model.CreateDBSecurityGroupRequest;
 import com.amazonaws.services.rds.model.DBSecurityGroup;
+import com.amazonaws.services.rds.model.DescribeDBSecurityGroupsRequest;
+import com.amazonaws.services.rds.model.DescribeDBSecurityGroupsResult;
 
 public class DatabaseSecuritySetupTest {
 	
-	Properties inputProperties;
-	String id = "aws id";
-	String password = "aws password";
-	String encryptionKey = "encryptionKey";
-	String stack = "dev";
-	String instance ="A";
 	InputConfiguration config;	
 	AmazonRDSClient mockClient = null;
 	SecurityGroup elasticSecurityGroup;
-	String CIDR = "123.123.123/23";
 	DatabaseSecuritySetup databaseSecuritySetup;
+	GeneratedResources resources;
 	
 	@Before
 	public void before() throws IOException{
 		mockClient = Mockito.mock(AmazonRDSClient.class);
-		inputProperties = new Properties();
-		inputProperties.put(Constants.AWS_ACCESS_KEY, id);
-		inputProperties.put(Constants.AWS_SECRET_KEY, password);
-		inputProperties.put(Constants.STACK_ENCRYPTION_KEY, encryptionKey);
-		inputProperties.put(Constants.STACK, stack);
-		inputProperties.put(Constants.INSTANCE, instance);
-		config = new InputConfiguration(inputProperties);
-		Properties defaults = new Properties();
-		defaults.put(Constants.KEY_CIDR_FOR_SSH, CIDR);
-		config.addPropertiesWithPlaintext(defaults);
+		config = TestHelper.createTestConfig("dev");
 		elasticSecurityGroup = new SecurityGroup().withGroupName("ec2-security-group-name").withOwnerId("123");
-		databaseSecuritySetup = new DatabaseSecuritySetup(mockClient, config, elasticSecurityGroup);
+		resources = new GeneratedResources();
+		resources.setElasticBeanstalkEC2SecurityGroup(elasticSecurityGroup);
+		databaseSecuritySetup = new DatabaseSecuritySetup(mockClient, config, resources);
 	}
 	
 	
@@ -206,6 +196,15 @@ public class DatabaseSecuritySetupTest {
 	 */
 	@Test
 	public void testSetupDatabaseAllSecuityGroups(){
+		// Id gen
+		DBSecurityGroup expectedIdGroup = new DBSecurityGroup().withDBSecurityGroupName(config.getIdGeneratorDatabaseSecurityGroupName());
+		DescribeDBSecurityGroupsResult result = new DescribeDBSecurityGroupsResult().withDBSecurityGroups(expectedIdGroup);
+		when(mockClient.describeDBSecurityGroups(new DescribeDBSecurityGroupsRequest().withDBSecurityGroupName(config.getIdGeneratorDatabaseSecurityGroupName()))).thenReturn(result);
+		// stack
+		DBSecurityGroup expectedStackGroup = new DBSecurityGroup().withDBSecurityGroupName(config.getStackDatabaseSecurityGroupName());
+		result = new DescribeDBSecurityGroupsResult().withDBSecurityGroups(expectedStackGroup);
+		when(mockClient.describeDBSecurityGroups(new DescribeDBSecurityGroupsRequest().withDBSecurityGroupName(config.getStackDatabaseSecurityGroupName()))).thenReturn(result);
+		
 		// Make the call
 		databaseSecuritySetup.setupDatabaseAllSecuityGroups();
 		// Verify the expected calls
@@ -227,7 +226,7 @@ public class DatabaseSecuritySetupTest {
 		verify(mockClient, times(1)).authorizeDBSecurityGroupIngress(ingressRequest);
 		// add id gen CIDR
 		ingressRequest = new AuthorizeDBSecurityGroupIngressRequest(config.getIdGeneratorDatabaseSecurityGroupName());
-		ingressRequest.setCIDRIP(CIDR);
+		ingressRequest.setCIDRIP(config.getCIDRForSSH());
 		verify(mockClient, times(1)).authorizeDBSecurityGroupIngress(ingressRequest);
 		// add to the stack db group
 		// Check the access adds
@@ -237,8 +236,13 @@ public class DatabaseSecuritySetupTest {
 		verify(mockClient, times(1)).authorizeDBSecurityGroupIngress(ingressRequest);
 		// add stack CIDR
 		ingressRequest = new AuthorizeDBSecurityGroupIngressRequest(config.getStackDatabaseSecurityGroupName());
-		ingressRequest.setCIDRIP(CIDR);
+		ingressRequest.setCIDRIP(config.getCIDRForSSH());
 		verify(mockClient, times(1)).authorizeDBSecurityGroupIngress(ingressRequest);
+		
+		// Make sure the groups are set in the resources
+		assertEquals(expectedIdGroup, resources.getIdGeneratorDatabaseSecurityGroup());
+		assertEquals(expectedStackGroup, resources.getStackInstancesDatabaseSecurityGroup());
+		
 	}
 
 }

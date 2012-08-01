@@ -63,7 +63,7 @@ public class PropertyFilter {
 		// only visit a property once
 		if(visited.add(key)){
 			String value = toReplace.getProperty(key);
-			if (value == null)	throw new IllegalArgumentException(String.format("Cannot replaces a property value using property key: %1$s because there is no proprety with that key",key));
+			if (value == null)	throw new IllegalArgumentException(String.format("Cannot replaces a property value using property key: '%1$s' because there is no proprety with that key",key));
 			Matcher matcher = PATTERN.matcher(value);
 			StringBuffer sb = new StringBuffer();
 			// Find any matches
