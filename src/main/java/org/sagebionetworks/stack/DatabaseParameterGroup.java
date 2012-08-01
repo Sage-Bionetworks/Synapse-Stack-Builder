@@ -43,6 +43,8 @@ public class DatabaseParameterGroup {
 	 * @param config
 	 */
 	public DatabaseParameterGroup(AmazonRDSClient client, InputConfiguration config){
+		if(client == null) throw new IllegalArgumentException("AmazonRDSClient cannot be null");
+		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		this.client = client;
 		this.config = config;
 	}

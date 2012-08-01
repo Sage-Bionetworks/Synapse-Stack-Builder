@@ -15,13 +15,10 @@ import static org.sagebionetworks.stack.Constants.PORT_SSH;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Properties;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.sagebionetworks.stack.Constants;
-import org.sagebionetworks.stack.EC2SecuritySetup;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.AmazonServiceException;
@@ -40,32 +37,18 @@ import com.amazonaws.services.ec2.model.SecurityGroup;
  */
 public class EC2SecuritySetupTest {
 	
-	Properties inputProperties;
-	String id = "aws id";
-	String password = "aws password";
-	String encryptionKey = "encryptionKey";
-	String stack = "dev";
-	String instance ="A";
-	String cidrForSSH = "255.255.255/1";
 	InputConfiguration config;	
 
 	AmazonEC2Client mockEC2Client;
 	EC2SecuritySetup ec2SecuritySetup;
+	GeneratedResources resources;
 
 	@Before
 	public void before() throws IOException {
 		mockEC2Client = Mockito.mock(AmazonEC2Client.class);
-		inputProperties = new Properties();
-		inputProperties.put(Constants.AWS_ACCESS_KEY, id);
-		inputProperties.put(Constants.AWS_SECRET_KEY, password);
-		inputProperties.put(Constants.STACK_ENCRYPTION_KEY, encryptionKey);
-		inputProperties.put(Constants.STACK, stack);
-		inputProperties.put(Constants.INSTANCE, instance);
-		config = new InputConfiguration(inputProperties);
-		Properties defaults = new Properties();
-		defaults.put(Constants.KEY_CIDR_FOR_SSH, cidrForSSH);
-		config.addPropertiesWithPlaintext(defaults);
-		ec2SecuritySetup = new EC2SecuritySetup(mockEC2Client, config);
+		config = TestHelper.createTestConfig("dev");
+		resources = new GeneratedResources();
+		ec2SecuritySetup = new EC2SecuritySetup(mockEC2Client, config, resources);
 	}
 	
 	@Test (expected=AmazonServiceException.class)
@@ -140,8 +123,10 @@ public class EC2SecuritySetupTest {
 		verify(mockEC2Client).authorizeSecurityGroupIngress(request);
 		// ssh
 		list = new LinkedList<IpPermission>();
-		list.add(new IpPermission().withIpProtocol(IP_PROTOCOL_TCP).withFromPort(PORT_SSH).withToPort(PORT_SSH).withIpRanges(cidrForSSH));
+		list.add(new IpPermission().withIpProtocol(IP_PROTOCOL_TCP).withFromPort(PORT_SSH).withToPort(PORT_SSH).withIpRanges(config.getCIDRForSSH()));
 		request = new AuthorizeSecurityGroupIngressRequest(groupName, list);
 		verify(mockEC2Client).authorizeSecurityGroupIngress(request);
+		// Make sure this is set
+		assertNotNull(resources.getElasticBeanstalkEC2SecurityGroup());
 	}
 }

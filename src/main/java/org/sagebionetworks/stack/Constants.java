@@ -1,5 +1,8 @@
 package org.sagebionetworks.stack;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Basic constants for building the stack.
  * 
@@ -8,6 +11,11 @@ package org.sagebionetworks.stack;
  */
 public class Constants {
 	
+	/**
+	 * This is the stack named used to indicate a production stack.
+	 * 
+	 */
+	public static final String PRODUCTION_STACK = "prod";
 	/**
 	 * Property key for the AWS ACCESS_KEY
 	 */
@@ -33,11 +41,6 @@ public class Constants {
 	public static final String INSTANCE = "org.sagebionetworks.stack.instance";
 	
 	/**
-	 * Property key for the default id generator password.
-	 */
-	public static final String KEY_DEFAULT_ID_GEN_PASSWORD = "org.sagebionetworks.id.generator.db.default.password.plaintext";
-	
-	/**
 	 * Properties that requiring encryption should have this as a suffix.
 	 */
 	public static final String PLAIN_TEXT_SUFFIX = "plaintext";
@@ -46,6 +49,30 @@ public class Constants {
 	 * The suffix added to the encrypted form of plain text properties.
 	 */
 	public static final String ENCRYPTED_SUFFIX = "encrypted";
+	
+	/**
+	 * Property key for the default id generator password.
+	 */
+	private static final String KEY_DEFAULT_ID_GEN_PASSWORD_PREFIX = "org.sagebionetworks.id.generator.db.default.password";
+	public static final String KEY_DEFAULT_ID_GEN_PASSWORD_PLAIN_TEXT = KEY_DEFAULT_ID_GEN_PASSWORD_PREFIX+"."+PLAIN_TEXT_SUFFIX;
+	public static final String KEY_DEFAULT_ID_GEN_PASSWORD_ENCRYPTED = KEY_DEFAULT_ID_GEN_PASSWORD_PREFIX+"."+ENCRYPTED_SUFFIX;
+	
+	
+	/**
+	 * Property key for stack-instance database
+	 */
+	private static final String KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_PREFIX = "org.sagebionetworks.stack.instance.db.default.password";
+	public static final String KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_PLAIN_TEXT = KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_PREFIX+"."+PLAIN_TEXT_SUFFIX;
+	public static final String KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_ENCRYPTED = KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_PREFIX+"."+ENCRYPTED_SUFFIX;
+	
+	/**
+	 * Other keys
+	 */
+	public static final String KEY_ORG_SAGEBIONETWORKS_BCC_GOOGLEAPPS_OAUTH_ACCESS_TOKEN_SECRET_PLAINTEXT = "org.sagebionetworks.bcc.googleapps.oauth.access.token.secret.plaintext";
+	public static final String KEY_ORG_SAGEBIONETWORKS_BCC_GOOGLEAPPS_OAUTH_ACCESS_TOKEN_PLAINTEXT = "org.sagebionetworks.bcc.googleapps.oauth.access.token.plaintext";
+	public static final String KEY_ORG_SAGEBIONETWORKS_BCC_GOOGLEAPPS_OAUTH_CONSUMER_SECRET_PLAINTEX = "org.sagebionetworks.bcc.googleapps.oauth.consumer.secret.plaintext";
+	public static final String KEY_ORG_SAGEBIONETWORKS_MAIL_PW_PLAINTEXT = "org.sagebionetworks.mailPW.plaintext";
+	public static final String KEY_ORG_SAGEBIONETWORKS_CROWD_APPLICATION_KEY_PLAINTEXT = "org.sagebionetworks.crowdApplicationKey.plaintext";
 	
 	/**
 	 * Property for the classless inter-domain routing to be used for SSH access
@@ -122,6 +149,40 @@ public class Constants {
 	 */
 	public static final String DATABASE_INSTANCE_CLASS_SMALL = "db.m1.small";
 	
+	
+	/**
+	 * Small database instance class
+	 */
+	public static final String DATABASE_INSTANCE_CLASS_LARGE = "db.m1.large";
+	
+	/**
+	 * 1 GB = 2^30 Bytes
+	 */
+	public static final Integer BYTES_PER_GIGABYTE = (int) Math.pow(2, 30);
+	
+	/**
+	 * Maps Database instances to their memory.
+	 * 
+	 */
+	private static final Map<String, Double> INSTANCE_MEMORY_MAP = new HashMap<String, Double>();
+	static{
+		// small 1.7 GB as of July 2012
+		INSTANCE_MEMORY_MAP.put(DATABASE_INSTANCE_CLASS_SMALL, 1.7*BYTES_PER_GIGABYTE);
+		// Large 7.5 GB as of July 2012
+		INSTANCE_MEMORY_MAP.put(DATABASE_INSTANCE_CLASS_LARGE, 7.5*BYTES_PER_GIGABYTE);
+	}
+	
+	/**
+	 * Get the total memory of a AWS Database instances class
+	 * @param intancesClass
+	 * @return
+	 */
+	public static Double getDatabaseClassMemrorySizeBytes(String intancesClass){
+		Double value = INSTANCE_MEMORY_MAP.get(intancesClass);
+		if(value == null) throw new IllegalArgumentException("Unknown AWS Database intances class: "+intancesClass);
+		return value;
+	}
+	
 	/**
 	 * MySQL database engine.
 	 */
@@ -151,6 +212,48 @@ public class Constants {
 	 */
 	public static final String LICENSE_MODEL_GENERAL_PUBLIC = "general-public-license";
 	
+	/**
+	 * Email protocol for subscribing to a topic.
+	 */
+	public static final String TOPIC_SUBSCRIBE_PROTOCOL_EMAIL = "email";
+	
+	/**
+	 * The property key used for the RDS alert topic subscription endpoint
+	 */
+	public static final String KEY_RDS_ALAERT_SUBSCRIPTION_ENDPONT = "org.sagebionetworks.stack.rds.alert.topic.subscription.endpoint";
+	
+	/** 
+	 * Alarm constants.
+	 */
+	public static final String METRIC_FREEABLE_MEMORY = "FreeableMemory";
+	public static final String METRIC_WRITE_LATENCY = "WriteLatency";
+	public static final String METRIC_HIGH_CPU_UTILIZATION = "CPUUtilization";
+	public static final String METRIC_FREE_STOREAGE_SPACE = "FreeStorageSpace";
+	public static final String DB_INSTANCE_IDENTIFIER = "DBInstanceIdentifier";
+	public static final String NAME_SPACES_AWS_RDS = "AWS/RDS";
+	public static final String LOW_FREEABLE_MEMORY_NAME = "-Low-Freeable-Memory";
+	public static final String HIGH_WRITE_LATENCY = "High-Write-Latency";
+	public static final String HIGH_CPU_UTILIZATION = "High-CPU-Utilization";
+	public static final String LOW_FREE_STOREAGE_SPACE = "Low-Free-Storage-Space";
+	public static final int FIVE_MINUTES_IN_SECONDS = 5*60;
+	public static final String STATISTIC_AVERAGE = "Average";
+
+	
+	
+	/**
+	 * The stack config template file.
+	 */
+	public static String FILE_STACK_CONFIG_TEMPLATE = "stack-config-template.properties";
+	
+	/**
+	 * The key used to store the id generator database end point.
+	 */
+	public static String KEY_ID_GENERATOR_DB_ADDRESS = "id.gen.database.address";
+	
+	/**
+	 * The key used to store the stack instance database end point.
+	 */
+	public static String KEY_STACK_INSTANCE_DB_ADDRESS = "stack.instance.database.address";
 
 	
 }

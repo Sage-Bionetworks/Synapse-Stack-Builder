@@ -54,6 +54,19 @@ public class InputConfiguration {
 	}
 	
 	/**
+	 * Create the union of the passed properties and all of the configuration properties.
+	 * @param props
+	 * @return
+	 */
+	public Properties createUnionOfInputAndConfig(Properties props){
+		Properties results = new Properties();
+		// Add all of the input properties
+		results.putAll(props);
+		// Add all of the configuration properties
+		results.putAll(this.props);
+		return results;
+	}
+	/**
 	 * Get the required properties file.
 	 * @return
 	 * @throws IOException
@@ -136,6 +149,14 @@ public class InputConfiguration {
 				props.put(encryptedKey, cipherText);
 			}
 		}
+	}
+	
+	/**
+	 * Is this a production stack? 
+	 * @return
+	 */
+	public boolean isProductionStack() {
+		return Constants.PRODUCTION_STACK.equals(getStack().toLowerCase());
 	}
 	
 	/**
@@ -283,7 +304,7 @@ public class InputConfiguration {
 	 * @return
 	 */
 	public String getIdGeneratorDatabaseMasterPasswordPlaintext() {
-		return validateAndGetProperty("id.gen.database.master.user");
+		return validateAndGetProperty(Constants.KEY_DEFAULT_ID_GEN_PASSWORD_PLAIN_TEXT);
 	}
 
 	/**
@@ -291,24 +312,32 @@ public class InputConfiguration {
 	 * 
 	 * @return
 	 */
-	public String getStackDatabaseIdentifier() {
-		return validateAndGetProperty("stack.database.identifier");
+	public String getStackInstanceDatabaseIdentifier() {
+		return validateAndGetProperty("stack.instance.database.identifier");
 	}
 
 	/**
 	 * The schema of this stack's MySQL database
 	 * @return
 	 */
-	public String getStackDatabaseSchema() {
-		return validateAndGetProperty("stack.database.schema");
+	public String getStackInstanceDatabaseSchema() {
+		return validateAndGetProperty("stack.instance.database.schema");
 	}
 
 	/**
 	 * The master user of this stack's MySQL database.
 	 * @return
 	 */
-	public String getStackDatabaseMasterUser() {
-		return validateAndGetProperty("stack.database.master.user");
+	public String getStackInstanceDatabaseMasterUser() {
+		return validateAndGetProperty("stack.instance.database.master.user");
+	}
+	
+	/**
+	 * The master user of this stack's MySQL database.
+	 * @return
+	 */
+	public String getStackInstanceDatabaseMasterPasswordPlaintext() {
+		return validateAndGetProperty(Constants.KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_PLAIN_TEXT);
 	}
 
 	/**
@@ -343,5 +372,30 @@ public class InputConfiguration {
 		return validateAndGetProperty("stack.database.security.group.description");
 	}
 
+	/**
+	 * The name of the RDS alert topic. This topic is used to notify by
+	 * email, when RDS alarms are triggered.
+	 * 
+	 * @return
+	 */
+	public String getRDSAlertTopicName() {
+		return validateAndGetProperty("stack.rds.alert.topic.name");
+	}
+
+	/**
+	 * The RDS alert topic subscription endpoint.
+	 * @return
+	 */
+	public String getRDSAlertSubscriptionEndpoint() {
+		return validateAndGetProperty(Constants.KEY_RDS_ALAERT_SUBSCRIPTION_ENDPONT);
+	}
+
+	/**
+	 * The bucket where all stack instance configuration can be found.
+	 * @return
+	 */
+	public String getStackConfigS3BucketName() {
+		return validateAndGetProperty("stack.config.s3.bucket.name");
+	}
 
 }
