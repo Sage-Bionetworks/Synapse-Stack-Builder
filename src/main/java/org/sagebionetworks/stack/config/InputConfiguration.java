@@ -398,4 +398,20 @@ public class InputConfiguration {
 		return validateAndGetProperty("stack.config.s3.bucket.name");
 	}
 
+	/**
+	 * The path relative to the bucket of the stack configuration file.
+	 * @return
+	 */
+	public String getStackConfigurationFileS3Path() {
+		return validateAndGetProperty("stack.config.property.file.path");
+	}
+
+	/**
+	 * The full URL of the final stack configuration File.
+	 * @return
+	 */
+	public String getStackConfigurationFileURL() {
+		return validateAndGetProperty("stack.config.property.file.url");
+	}
+
 }
