@@ -5,6 +5,8 @@ import java.util.List;
 
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
 import com.amazonaws.services.ec2.model.SecurityGroup;
+import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
+import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
 import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBSecurityGroup;
 import com.amazonaws.services.sns.model.CreateTopicResult;
@@ -26,7 +28,79 @@ public class GeneratedResources {
 	private List<PutMetricAlarmRequest> idGeneratorDatabaseAlarms;
 	private List<PutMetricAlarmRequest> stackInstancesDatabaseAlarms;
 	private URL stackConfigurationFileURL;
+	private ApplicationDescription elasticBeanstalkApplication;
+	private ApplicationVersionDescription portalApplicationVersion;
+	private ApplicationVersionDescription reopApplicationVersion;
+	private ApplicationVersionDescription authApplicationVersion;
 	
+	/**
+	 * The elastic beanstalk application.
+	 * @return
+	 */
+	public ApplicationDescription getElasticBeanstalkApplication() {
+		return elasticBeanstalkApplication;
+	}
+
+	/**
+	 * The elastic beanstalk application.
+	 * @param elasticBeanstalkApplication
+	 */
+	public void setElasticBeanstalkApplication(
+			ApplicationDescription elasticBeanstalkApplication) {
+		this.elasticBeanstalkApplication = elasticBeanstalkApplication;
+	}
+
+	/**
+	 * The application version of the portal.
+	 * @return
+	 */
+	public ApplicationVersionDescription getPortalApplicationVersion() {
+		return portalApplicationVersion;
+	}
+
+	/**
+	 * The application version of the portal.
+	 * @param portalApplicationVersion
+	 */
+	public void setPortalApplicationVersion(
+			ApplicationVersionDescription portalApplicationVersion) {
+		this.portalApplicationVersion = portalApplicationVersion;
+	}
+
+	/**
+	 * The application version of the repository
+	 * @return
+	 */
+	public ApplicationVersionDescription getReopApplicationVersion() {
+		return reopApplicationVersion;
+	}
+
+	/**
+	 * 
+	 * @param reopApplicationVersion
+	 */
+	public void setReopApplicationVersion(
+			ApplicationVersionDescription reopApplicationVersion) {
+		this.reopApplicationVersion = reopApplicationVersion;
+	}
+
+	/**
+	 * The application version of the authentication service
+	 * @return
+	 */
+	public ApplicationVersionDescription getAuthApplicationVersion() {
+		return authApplicationVersion;
+	}
+
+	/**
+	 * The application version of the authentication service
+	 * @param authApplicationVersion
+	 */
+	public void setAuthApplicationVersion(
+			ApplicationVersionDescription authApplicationVersion) {
+		this.authApplicationVersion = authApplicationVersion;
+	}
+
 	/**
 	 * The elastic beanstalk security group for this stack instance.
 	 * @param group

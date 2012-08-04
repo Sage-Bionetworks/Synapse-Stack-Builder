@@ -414,13 +414,7 @@ public class InputConfiguration {
 		return validateAndGetProperty("stack.config.property.file.url");
 	}
 
-	/**
-	 * The URL of the portal artifact.
-	 * @return
-	 */
-	public String getPortalArtifactoryUrl() {
-		return validateAndGetProperty("artifactory.portal.url");
-	}
+
 
 	/**
 	 * The name of this elastic beanstalk application.
@@ -429,9 +423,75 @@ public class InputConfiguration {
 	public String getElasticBeanstalkApplicationName() {
 		return validateAndGetProperty("elastic.beanstalk.application.name");
 	}
-
+	
+	/**
+	 * The URL of the portal artifact.
+	 * @return
+	 */
+	public String getPortalArtifactoryUrl() {
+		return validateAndGetProperty("artifactory.portal.url");
+	}
+	/**
+	 * The version label for the portal war.
+	 * @return
+	 */
 	public String getPortalVersionLabel() {
 		return validateAndGetProperty("portal.version.label");
 	}
 
+	/**
+	 * The S3 path of the portal war.
+	 * @return
+	 */
+	public String getPortalVersionPath() {
+		return validateAndGetProperty("elastic.beanstalk.application.versions.s3.path.portal");
+	}
+	
+	/**
+	 * The URL of the portal artifact.
+	 * @return
+	 */
+	public String getRepoArtifactoryUrl() {
+		return validateAndGetProperty("artifactory.repo.url");
+	}
+	
+	/**
+	 * The version label for the repo war.
+	 * @return
+	 */
+	public String getRepoVersionLabel() {
+		return validateAndGetProperty("repo.version.label");
+	}
+
+	/**
+	 * The S3 path of the repo war.
+	 * @return
+	 */
+	public String getRepoVersionPath() {
+		return validateAndGetProperty("elastic.beanstalk.application.versions.s3.path.repo");
+	}
+	
+	/**
+	 * The URL of the portal artifact.
+	 * @return
+	 */
+	public String getAuthArtifactoryUrl() {
+		return validateAndGetProperty("artifactory.auth.url");
+	}
+	
+	/**
+	 * The version label for the auth war.
+	 * @return
+	 */
+	public String getAuthVersionLabel() {
+		return validateAndGetProperty("auth.version.label");
+	}
+
+	/**
+	 * The S3 path of the auth war.
+	 * @return
+	 */
+	public String getAuthVersionPath() {
+		return validateAndGetProperty("elastic.beanstalk.application.versions.s3.path.auth");
+	}
 }

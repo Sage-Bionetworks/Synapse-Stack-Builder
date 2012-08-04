@@ -84,7 +84,7 @@ public class BuildStackMain {
 		new StackConfigurationSetup(factory.createS3Client(), config, resources).setupAndUploadStackConfig();
 		
 		// Process the artifacts
-		new ArtifactProcessing(new DefaultHttpClient(), factory.createBeanstalkClient(), factory.createS3Client(), config).processArtifacts();
+		new ArtifactProcessing(new DefaultHttpClient(), factory, config, resources).processArtifacts();
 		
 		// Return all of the generated objects
 		return resources;

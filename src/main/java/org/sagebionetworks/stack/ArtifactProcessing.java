@@ -11,9 +11,11 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
+import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
+import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
 import com.amazonaws.services.elasticbeanstalk.model.CreateApplicationRequest;
 import com.amazonaws.services.elasticbeanstalk.model.CreateApplicationResult;
 import com.amazonaws.services.elasticbeanstalk.model.CreateApplicationVersionRequest;
@@ -43,17 +45,21 @@ public class ArtifactProcessing {
 	InputConfiguration config;
 	AWSElasticBeanstalkClient beanstalkClient;
 	AmazonS3Client s3Client;
+	GeneratedResources resources;
+	
 
 	/**
 	 * The IoC constructor.
 	 * @param httpClient
+	 * @param resources 
 	 */
-	public ArtifactProcessing(HttpClient httpClient, AWSElasticBeanstalkClient beanstalkClient, AmazonS3Client s3Client, InputConfiguration config) {
+	public ArtifactProcessing(HttpClient httpClient, AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
 		super();
 		this.httpClient = httpClient;
-		this.beanstalkClient = beanstalkClient;
-		this.s3Client = s3Client;
+		this.beanstalkClient = factory.createBeanstalkClient();
+		this.s3Client = factory.createS3Client();
 		this.config = config;
+		this.resources = resources;
 	}
 
 
@@ -64,10 +70,14 @@ public class ArtifactProcessing {
 	 */
 	public void processArtifacts() throws IOException{
 		// First create the application
-		ApplicationDescription app = createApplication();
+		resources.setElasticBeanstalkApplication(createOrGetApplication());
 		
 		// Create the application version for the portal
-		createApplicationVersion(config.getPortalVersionLabel(), config.getPortalArtifactoryUrl());
+		resources.setPortalApplicationVersion(createOrGetApplicationVersion(config.getPortalVersionPath(), config.getPortalVersionLabel(), config.getPortalArtifactoryUrl()));
+		// Create the application version for the reop
+		resources.setReopApplicationVersion(createOrGetApplicationVersion(config.getRepoVersionPath(), config.getRepoVersionLabel(), config.getRepoArtifactoryUrl()));
+		// Create the application version for the auth
+		resources.setAuthApplicationVersion(createOrGetApplicationVersion(config.getAuthVersionPath(), config.getAuthVersionLabel(), config.getAuthArtifactoryUrl()));
 
 	}
 	
@@ -75,7 +85,7 @@ public class ArtifactProcessing {
 	 * Create the application if it does not exist
 	 * @return
 	 */
-	public ApplicationDescription createApplication(){
+	public ApplicationDescription createOrGetApplication(){
 		String appName = config.getElasticBeanstalkApplicationName();
 		// Determine if the application already exists.
 		DescribeApplicationsResult result = beanstalkClient.describeApplications(new DescribeApplicationsRequest().withApplicationNames(appName));
@@ -98,7 +108,7 @@ public class ArtifactProcessing {
 	 * @param fileURl
 	 * @throws IOException
 	 */
-	public void createApplicationVersion(String versionLabel, String fileURL) throws IOException{
+	public ApplicationVersionDescription createOrGetApplicationVersion(String s3Path, final String versionLabel, String fileURL) throws IOException{
 		// First determine if this version already exists
 		log.debug(String.format("Creating version: %1$s using: %2$s ", versionLabel, fileURL));
 		DescribeApplicationVersionsResult results = beanstalkClient.describeApplicationVersions(new DescribeApplicationVersionsRequest().withApplicationName(config.getElasticBeanstalkApplicationName()).withVersionLabels(versionLabel));
@@ -107,8 +117,9 @@ public class ArtifactProcessing {
 			// first download the file
 			// Download the artifacts
 			File temp = null;
-			String key = "versions/"+versionLabel;
+			String key = s3Path+versionLabel;
 			try{
+				// First download the file from Artifactory
 				temp = downloadFile(fileURL);
 				// Now upload it to s3.
 				final long start = System.currentTimeMillis();;
@@ -117,14 +128,13 @@ public class ArtifactProcessing {
 				PutObjectResult putResult = s3Client.putObject(new PutObjectRequest(config.getStackConfigS3BucketName(), key, temp).withProgressListener(new ProgressListener() {
 					private volatile long lastUpdate = start;
 					public void progressChanged(ProgressEvent progressEvent) {
-						// They do not seem to know the meaning of the volatile key work at Amazon so the message never changes.
-						// Therefore we just print a generic progress message.
+						// The progress data they give use never seems to change so we just show the elase time.
 						long now = System.currentTimeMillis();
 						long lastUpdateElapase = now-lastUpdate;
 						long totalElapse = now-start;
 						if(lastUpdateElapase > 2*1000){
 							// Log the event
-							log.debug(String.format("Upload file to S3 progress event. Bytes transfered: %1$d, event code: %2$d.  Total upload elapse time: %3$d MS", progressEvent.getBytesTransfered(), progressEvent.getEventCode(), totalElapse));
+							log.debug(String.format("Uploading %1$s to S3. Elapse time: %2$tM:%2$tS:%2$tL ", versionLabel, totalElapse));
 							lastUpdate = now;
 						}
 					}
@@ -143,9 +153,12 @@ public class ArtifactProcessing {
 			.withAutoCreateApplication(false)
 			.withSourceBundle(location)
 			.withVersionLabel(versionLabel));
+			// Describe the version
+			results = beanstalkClient.describeApplicationVersions(new DescribeApplicationVersionsRequest().withApplicationName(config.getElasticBeanstalkApplicationName()).withVersionLabels(versionLabel));
 		}else{
 			log.debug(String.format("Version: %1$s already exists.", versionLabel));
 		}
+		return results.getApplicationVersions().get(0);
 	}
 
 	/**
@@ -176,7 +189,7 @@ public class ArtifactProcessing {
 				long elapse = now-start;
 				// Record the size every 2 seconds.
 				if(elapse > 2*1000){
-					log.debug(String.format("Downloaded:  %5.2f MB", downloadMB));
+					log.debug(String.format("Download progress: %1$5.2f MB for URL: %2$s",downloadMB, fileUrl));
 					start = now;
 				}
 				// Be nice to the machine.
