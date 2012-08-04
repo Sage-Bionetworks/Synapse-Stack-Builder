@@ -494,4 +494,36 @@ public class InputConfiguration {
 	public String getAuthVersionPath() {
 		return validateAndGetProperty("elastic.beanstalk.application.versions.s3.path.auth");
 	}
+
+	/**
+	 * The name of the SSL certificate private key.
+	 * @return
+	 */
+	public String getSSlCertificatePrivateKeyName() {
+		return validateAndGetProperty("ssl.certificate.privateKey.file.name");
+	}
+
+	/**
+	 * The name of the SSL certificate body file.
+	 * @return
+	 */
+	public String getSSLCertificateBodyKeyName() {
+		return validateAndGetProperty("ssl.certificate.body.file.name");
+	}
+	
+	/**
+	 * The name of the SSL certificate chain file
+	 * @return
+	 */
+	public String getSSLCertificateChainKeyName() {
+		return validateAndGetProperty("ssl.certificate.chain.file.name");
+	}
+
+	/**
+	 * The name of the SSL certificate
+	 * @return
+	 */
+	public String getSSLCertificateName() {
+		return validateAndGetProperty("ssl.certificate.name");
+	}
 }

@@ -7,6 +7,7 @@ import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
 import com.amazonaws.services.ec2.model.SecurityGroup;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
+import com.amazonaws.services.identitymanagement.model.ServerCertificateMetadata;
 import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBSecurityGroup;
 import com.amazonaws.services.sns.model.CreateTopicResult;
@@ -32,7 +33,24 @@ public class GeneratedResources {
 	private ApplicationVersionDescription portalApplicationVersion;
 	private ApplicationVersionDescription reopApplicationVersion;
 	private ApplicationVersionDescription authApplicationVersion;
+	private ServerCertificateMetadata sslCertificate;
 	
+	/**
+	 * The SSL certificate.
+	 * @return
+	 */
+	public ServerCertificateMetadata getSslCertificate() {
+		return sslCertificate;
+	}
+
+	/**
+	 * The SSL certificate
+	 * @param sslCertificate
+	 */
+	public void setSslCertificate(ServerCertificateMetadata sslCertificate) {
+		this.sslCertificate = sslCertificate;
+	}
+
 	/**
 	 * The elastic beanstalk application.
 	 * @return

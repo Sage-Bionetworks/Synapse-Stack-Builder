@@ -102,7 +102,7 @@ public class InputConfigurationTest {
 	public void testStackInstanceNames() throws IOException{
 		// Load from the properties 
 		InputConfiguration config = new InputConfiguration(inputProperties);
-		assertEquals(stack+"-default", config.getDefaultS3BucketName());
+		assertEquals(stack+"-default.sagebase.org", config.getDefaultS3BucketName());
 		assertEquals(stack+"-default.properties", config.getDefaultPropertiesFileName());
 		assertEquals("elastic-beanstalk-"+stack+"-"+instance, config.getElasticSecurityGroupName());
 		assertEquals("All elastic beanstalk instances of stack:'"+stack+"' instance:'"+instance+"' belong to this EC2 security group", config.getElasticSecurityGroupDescription());

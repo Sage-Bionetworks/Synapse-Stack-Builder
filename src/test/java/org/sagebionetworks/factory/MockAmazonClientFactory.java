@@ -7,6 +7,7 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.sns.AmazonSNSClient;
@@ -25,6 +26,7 @@ public class MockAmazonClientFactory implements AmazonClientFactory {
 	AmazonRDSClient mockRDSClient;
 	AmazonCloudWatchClient mockCloudWatchClient;
 	AWSElasticBeanstalkClient mockElasticBeanstalkClient;
+	AmazonIdentityManagementClient mockIdentityManagementClient;
 	AWSCredentials credentials;
 	
 	/**
@@ -37,6 +39,7 @@ public class MockAmazonClientFactory implements AmazonClientFactory {
 		mockRDSClient = Mockito.mock(AmazonRDSClient.class);
 		mockCloudWatchClient = Mockito.mock(AmazonCloudWatchClient.class);
 		mockElasticBeanstalkClient = Mockito.mock(AWSElasticBeanstalkClient.class);
+		mockIdentityManagementClient = Mockito.mock(AmazonIdentityManagementClient.class);
 	}
 
 	/**
@@ -83,6 +86,11 @@ public class MockAmazonClientFactory implements AmazonClientFactory {
 
 	public AWSElasticBeanstalkClient createBeanstalkClient() {
 		return mockElasticBeanstalkClient;
+	}
+
+	public AmazonIdentityManagementClient createIdentityManagementClient() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

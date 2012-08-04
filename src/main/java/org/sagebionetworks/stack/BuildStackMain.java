@@ -86,6 +86,9 @@ public class BuildStackMain {
 		// Process the artifacts
 		new ArtifactProcessing(new DefaultHttpClient(), factory, config, resources).processArtifacts();
 		
+		// Setup the SSL certificates
+		new SSLSetup(factory, config, resources).setupSSLCertificate();
+		
 		// Return all of the generated objects
 		return resources;
 	}
