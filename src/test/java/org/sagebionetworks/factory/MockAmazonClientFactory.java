@@ -6,6 +6,7 @@ import org.sagebionetworks.stack.factory.AmazonClientFactory;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 import com.amazonaws.services.ec2.AmazonEC2Client;
+import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.sns.AmazonSNSClient;
@@ -23,6 +24,7 @@ public class MockAmazonClientFactory implements AmazonClientFactory {
 	AmazonSNSClient mockSNSClient;
 	AmazonRDSClient mockRDSClient;
 	AmazonCloudWatchClient mockCloudWatchClient;
+	AWSElasticBeanstalkClient mockElasticBeanstalkClient;
 	AWSCredentials credentials;
 	
 	/**
@@ -34,6 +36,7 @@ public class MockAmazonClientFactory implements AmazonClientFactory {
 		mockSNSClient = Mockito.mock(AmazonSNSClient.class);
 		mockRDSClient = Mockito.mock(AmazonRDSClient.class);
 		mockCloudWatchClient = Mockito.mock(AmazonCloudWatchClient.class);
+		mockElasticBeanstalkClient = Mockito.mock(AWSElasticBeanstalkClient.class);
 	}
 
 	/**
@@ -76,6 +79,10 @@ public class MockAmazonClientFactory implements AmazonClientFactory {
 	 */
 	public AmazonCloudWatchClient createCloudWatchClient() {
 		return mockCloudWatchClient;
+	}
+
+	public AWSElasticBeanstalkClient createBeanstalkClient() {
+		return mockElasticBeanstalkClient;
 	}
 
 }

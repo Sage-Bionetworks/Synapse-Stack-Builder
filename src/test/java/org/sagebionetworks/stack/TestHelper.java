@@ -60,6 +60,9 @@ public class TestHelper {
 		inputProperties.put(Constants.STACK_ENCRYPTION_KEY, "Encryption key that is long enough");
 		inputProperties.put(Constants.STACK, stack);
 		inputProperties.put(Constants.INSTANCE, "A");
+		inputProperties.put(Constants.PORTAL_VERSION, "2.4.8");
+		inputProperties.put(Constants.AUTHENTICATION_VERSION, "1.2.3");
+		inputProperties.put(Constants.REPOSITORY_VERSION, "7.8.9");
 		return inputProperties;
 	}
 	

@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
@@ -81,6 +82,9 @@ public class BuildStackMain {
 		
 		// Create the configuration file and upload it S3
 		new StackConfigurationSetup(factory.createS3Client(), config, resources).setupAndUploadStackConfig();
+		
+		// Process the artifacts
+		new ArtifactProcessing(new DefaultHttpClient(), factory.createBeanstalkClient(), factory.createS3Client(), config).processArtifacts();
 		
 		// Return all of the generated objects
 		return resources;

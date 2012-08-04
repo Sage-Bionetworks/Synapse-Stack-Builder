@@ -414,4 +414,24 @@ public class InputConfiguration {
 		return validateAndGetProperty("stack.config.property.file.url");
 	}
 
+	/**
+	 * The URL of the portal artifact.
+	 * @return
+	 */
+	public String getPortalArtifactoryUrl() {
+		return validateAndGetProperty("artifactory.portal.url");
+	}
+
+	/**
+	 * The name of this elastic beanstalk application.
+	 * @return
+	 */
+	public String getElasticBeanstalkApplicationName() {
+		return validateAndGetProperty("elastic.beanstalk.application.name");
+	}
+
+	public String getPortalVersionLabel() {
+		return validateAndGetProperty("portal.version.label");
+	}
+
 }

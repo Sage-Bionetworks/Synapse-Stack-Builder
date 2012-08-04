@@ -3,6 +3,7 @@ package org.sagebionetworks.stack.factory;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 import com.amazonaws.services.ec2.AmazonEC2Client;
+import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.sns.AmazonSNSClient;
@@ -49,9 +50,15 @@ public interface AmazonClientFactory {
 	public AmazonRDSClient createRDSClient();
 	
 	/**
-	 * Create the AmazonCloudWatchClient.
+	 * Create a AmazonCloudWatchClient.
 	 * @return
 	 */
 	public AmazonCloudWatchClient createCloudWatchClient();
+	
+	/**
+	 * Create a AWSElasticBeanstalkClient.
+	 * @return
+	 */
+	public AWSElasticBeanstalkClient createBeanstalkClient();
 
 }

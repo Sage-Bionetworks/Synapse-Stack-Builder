@@ -10,6 +10,7 @@ import org.junit.Test;
 import static org.sagebionetworks.stack.Constants.*;
 
 import org.sagebionetworks.stack.Constants;
+import org.sagebionetworks.stack.TestHelper;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.util.EncryptionUtils;
 
@@ -31,7 +32,7 @@ public class InputConfigurationTest {
 	
 	@Before
 	public void before(){
-		inputProperties = new Properties();
+		inputProperties = TestHelper.createInputProperties("stack");
 		inputProperties.put(AWS_ACCESS_KEY, id);
 		inputProperties.put(AWS_SECRET_KEY, password);
 		inputProperties.put(STACK_ENCRYPTION_KEY, encryptionKey);

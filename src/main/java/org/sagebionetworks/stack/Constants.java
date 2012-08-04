@@ -41,6 +41,13 @@ public class Constants {
 	public static final String INSTANCE = "org.sagebionetworks.stack.instance";
 	
 	/**
+	 * The input keys for the war versions.
+	 */
+	public static final String PORTAL_VERSION = "org.sagebionetworks.portal.war.version";
+	public static final String AUTHENTICATION_VERSION = "org.sagebionetworks.auth.war.version";
+	public static final String REPOSITORY_VERSION = "org.sagebionetworks.repo.war.version";
+	
+	/**
 	 * Properties that requiring encryption should have this as a suffix.
 	 */
 	public static final String PLAIN_TEXT_SUFFIX = "plaintext";
