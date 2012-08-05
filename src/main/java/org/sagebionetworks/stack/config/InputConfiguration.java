@@ -10,6 +10,7 @@ import org.sagebionetworks.stack.util.PropertyFilter;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
 
 
 /**
@@ -525,5 +526,33 @@ public class InputConfiguration {
 	 */
 	public String getSSLCertificateName() {
 		return validateAndGetProperty("ssl.certificate.name");
+	}
+
+	public String getAuthEnvironmentName() {
+		return validateAndGetProperty("elastic.beanstalk.environment.auth.name");
+	}
+
+	public String getRepoEnvironmentName() {
+		return validateAndGetProperty("elastic.beanstalk.environment.repo.name");
+	}
+
+	public String getPortalEnvironmentName() {
+		return validateAndGetProperty("elastic.beanstalk.environment.portal.name");
+	}
+
+	/**
+	 * The key pair name used by this stack.
+	 * @return
+	 */
+	public String getStackKeyPairName() {
+		return validateAndGetProperty("elastic.stack.key.pair.name");
+	}
+
+	/**
+	 * The name of elastic beanstalk environment template for this instance.
+	 * @return
+	 */
+	public String getElasticBeanstalkTemplateName() {
+		return validateAndGetProperty("elastic.beanstalk.environment.template.name");
 	}
 }

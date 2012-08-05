@@ -89,6 +89,9 @@ public class BuildStackMain {
 		// Setup the SSL certificates
 		new SSLSetup(factory, config, resources).setupSSLCertificate();
 		
+		// Setup all environments
+		new ElasticBeanstalkSetup(factory.createBeanstalkClient(), config, resources).createAllEnvironments();
+		
 		// Return all of the generated objects
 		return resources;
 	}

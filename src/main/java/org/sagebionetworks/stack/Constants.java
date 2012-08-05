@@ -111,6 +111,8 @@ public class Constants {
 	 */
 	public static final String ERROR_CODE_AUTHORIZATION_ALREADY_EXITS = "AuthorizationAlreadyExists";
 	
+	public static final String 	ERROR_CODE_KEY_PAIR_NOT_FOUND = "InvalidKeyPair.NotFound";
+	
 
 	/**
 	 * Template for the security group name.
@@ -244,7 +246,6 @@ public class Constants {
 	public static final String LOW_FREE_STOREAGE_SPACE = "Low-Free-Storage-Space";
 	public static final int FIVE_MINUTES_IN_SECONDS = 5*60;
 	public static final String STATISTIC_AVERAGE = "Average";
-
 	
 	
 	/**
@@ -261,6 +262,18 @@ public class Constants {
 	 * The key used to store the stack instance database end point.
 	 */
 	public static String KEY_STACK_INSTANCE_DB_ADDRESS = "stack.instance.database.address";
-
 	
+	/**
+	 * Stack solution name for "32bit Amazon Linux running Tomcat 7"
+	 */
+	public static final String SOLUTION_STACK_NAME_32BIT_TOMCAT_7 = "32bit Amazon Linux running Tomcat 7";
+
+	/**
+	 * Stack solution name for "64bit Amazon Linux running Tomcat 7"
+	 */
+	public static final String SOLUTION_STACK_NAME_64BIT_TOMCAT_7 = "64bit Amazon Linux running Tomcat 7";
+	/**
+	 * Properties file of all of the beanstalk config values.
+	 */
+	public static final String ELASTIC_BEANSTALK_CONFIG_PROP_FILE_NAME = "elastic-beanstalk-config.properties";
 }

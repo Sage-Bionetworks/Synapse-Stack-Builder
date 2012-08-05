@@ -10,11 +10,15 @@ import static org.sagebionetworks.stack.Constants.*;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
+import com.amazonaws.services.ec2.model.CreateKeyPairRequest;
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest;
 import com.amazonaws.services.ec2.model.CreateSecurityGroupResult;
+import com.amazonaws.services.ec2.model.DescribeKeyPairsRequest;
+import com.amazonaws.services.ec2.model.DescribeKeyPairsResult;
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult;
 import com.amazonaws.services.ec2.model.IpPermission;
+import com.amazonaws.services.ec2.model.KeyPairInfo;
 import com.amazonaws.services.ec2.model.SecurityGroup;
 
 /**
@@ -73,7 +77,36 @@ public class EC2SecuritySetup {
 		// Add this to the resources
 		SecurityGroup group = result.getSecurityGroups().get(0);
 		resources.setElasticBeanstalkEC2SecurityGroup(group);
+		
+		// Create the key pair.
+		resources.setStackKeyPair(createOrGetKeyPair());
+		
 		return group;
+	}
+	
+	/**
+	 * Create the key par
+	 * @return
+	 */
+	public KeyPairInfo createOrGetKeyPair(){
+		String name =config.getStackKeyPairName();
+		try{
+			DescribeKeyPairsResult result =ec2Client.describeKeyPairs(new DescribeKeyPairsRequest().withKeyNames(name));
+			if(result.getKeyPairs().size() != 1) throw new IllegalStateException("Expceted one and only one key pair with the name: "+name);
+			log.debug("Stack KeyPair: "+name+" already exists");
+			return result.getKeyPairs().get(0);
+		}catch (AmazonServiceException e){
+			if(Constants.ERROR_CODE_KEY_PAIR_NOT_FOUND.equals(e.getErrorCode())){
+				// Create the key pair
+				log.debug("Creating the Stack KeyPair: "+name+" for the first time");
+				ec2Client.createKeyPair(new CreateKeyPairRequest(name));
+				DescribeKeyPairsResult result =ec2Client.describeKeyPairs(new DescribeKeyPairsRequest().withKeyNames(name));
+				if(result.getKeyPairs().size() != 1) throw new IllegalStateException("Expceted one and only one key pair with the name: "+name);
+				return result.getKeyPairs().get(0);
+			}else{
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 	/**

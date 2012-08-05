@@ -4,6 +4,7 @@ import java.net.URL;
 import java.util.List;
 
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
+import com.amazonaws.services.ec2.model.KeyPairInfo;
 import com.amazonaws.services.ec2.model.SecurityGroup;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
@@ -34,7 +35,24 @@ public class GeneratedResources {
 	private ApplicationVersionDescription reopApplicationVersion;
 	private ApplicationVersionDescription authApplicationVersion;
 	private ServerCertificateMetadata sslCertificate;
+	private KeyPairInfo stackKeyPair;
 	
+	/**
+	 * The Key Pair used by the stack.
+	 * @return
+	 */
+	public KeyPairInfo getStackKeyPair() {
+		return stackKeyPair;
+	}
+
+	/**
+	 * The Key Pair used by the stack.
+	 * @param stackKeyPair
+	 */
+	public void setStackKeyPair(KeyPairInfo stackKeyPair) {
+		this.stackKeyPair = stackKeyPair;
+	}
+
 	/**
 	 * The SSL certificate.
 	 * @return

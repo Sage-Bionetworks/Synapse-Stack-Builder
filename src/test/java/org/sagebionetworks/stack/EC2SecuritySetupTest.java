@@ -25,9 +25,12 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest;
+import com.amazonaws.services.ec2.model.DescribeKeyPairsRequest;
+import com.amazonaws.services.ec2.model.DescribeKeyPairsResult;
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult;
 import com.amazonaws.services.ec2.model.IpPermission;
+import com.amazonaws.services.ec2.model.KeyPairInfo;
 import com.amazonaws.services.ec2.model.SecurityGroup;
 
 /**
@@ -100,6 +103,8 @@ public class EC2SecuritySetupTest {
 		SecurityGroup expectedGroup = new SecurityGroup().withGroupName(expectedGroupName).withOwnerId("123");
 		result.withSecurityGroups(expectedGroup);
 		when(mockEC2Client.describeSecurityGroups(any(DescribeSecurityGroupsRequest.class))).thenReturn(result);
+		DescribeKeyPairsResult kpr = new DescribeKeyPairsResult().withKeyPairs(new KeyPairInfo().withKeyName("123"));
+		when(mockEC2Client.describeKeyPairs(any(DescribeKeyPairsRequest.class))).thenReturn(kpr);
 		// Create the security group.
 		SecurityGroup group = ec2SecuritySetup.setupElasticBeanstalkEC2SecutiryGroup();
 		assertEquals(expectedGroup, group);
