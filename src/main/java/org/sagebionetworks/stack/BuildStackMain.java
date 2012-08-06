@@ -63,7 +63,7 @@ public class BuildStackMain {
 		GeneratedResources resources = new GeneratedResources();
 		
 		// The first step is to setup the stack security
-		new EC2SecuritySetup(factory.createEC2Client(), config, resources).setupElasticBeanstalkEC2SecutiryGroup();
+		new EC2SecuritySetup(factory, config, resources).setupElasticBeanstalkEC2SecutiryGroup();
 		
 		// Setup the notification topic.
 		new NotificationSetup(factory.createSNSClient(), config, resources).setupNotificationTopics();

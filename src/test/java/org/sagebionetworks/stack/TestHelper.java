@@ -5,6 +5,9 @@ import java.util.Properties;
 
 import org.sagebionetworks.stack.config.InputConfiguration;
 
+import com.amazonaws.services.ec2.model.KeyPairInfo;
+import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
+import com.amazonaws.services.identitymanagement.model.ServerCertificateMetadata;
 import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.Endpoint;
 import static org.sagebionetworks.stack.Constants.*;
@@ -28,6 +31,8 @@ public class TestHelper {
 		InputConfiguration config = new InputConfiguration(inputProperties);
 		Properties defaults = createDefaultProperties();
 		config.addPropertiesWithPlaintext(defaults);
+		// Add the SSL ARN
+		config.setSSLCertificateARN("ssl:arn:123:456");
 		return config;
 	}
 
@@ -73,10 +78,15 @@ public class TestHelper {
 	 * @return
 	 */
 	public static GeneratedResources createTestResources(InputConfiguration config){
-		GeneratedResources resoruces  = new GeneratedResources();
-		resoruces.setIdGeneratorDatabase(new DBInstance().withDBInstanceIdentifier(config.getIdGeneratorDatabaseIdentifier()).withEndpoint(new Endpoint().withAddress("id-gen-db.someplace.com")));
-		resoruces.setStackInstancesDatabase(new DBInstance().withDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier()).withEndpoint(new Endpoint().withAddress("stack-instance-db.someplace.com")));
-		return resoruces;
+		GeneratedResources resources  = new GeneratedResources();
+		resources.setIdGeneratorDatabase(new DBInstance().withDBInstanceIdentifier(config.getIdGeneratorDatabaseIdentifier()).withEndpoint(new Endpoint().withAddress("id-gen-db.someplace.com")));
+		resources.setStackInstancesDatabase(new DBInstance().withDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier()).withEndpoint(new Endpoint().withAddress("stack-instance-db.someplace.com")));
+		resources.setSslCertificate(new ServerCertificateMetadata().withArn("ssl:arn:123"));
+		resources.setAuthApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getAuthVersionLabel()));
+		resources.setPortalApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getPortalVersionLabel()));
+		resources.setRepoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getRepoVersionLabel()));
+		resources.setStackKeyPair(new KeyPairInfo().withKeyName(config.getStackKeyPairName()));
+		return resources;
 	}
 
 }

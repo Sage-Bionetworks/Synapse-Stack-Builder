@@ -8,6 +8,8 @@ import com.amazonaws.services.ec2.model.KeyPairInfo;
 import com.amazonaws.services.ec2.model.SecurityGroup;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationOptionsResult;
+import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
 import com.amazonaws.services.identitymanagement.model.ServerCertificateMetadata;
 import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBSecurityGroup;
@@ -32,11 +34,84 @@ public class GeneratedResources {
 	private URL stackConfigurationFileURL;
 	private ApplicationDescription elasticBeanstalkApplication;
 	private ApplicationVersionDescription portalApplicationVersion;
-	private ApplicationVersionDescription reopApplicationVersion;
+	private ApplicationVersionDescription repoApplicationVersion;
 	private ApplicationVersionDescription authApplicationVersion;
 	private ServerCertificateMetadata sslCertificate;
 	private KeyPairInfo stackKeyPair;
+	private DescribeConfigurationOptionsResult elasticBeanstalkConfigurationTemplate;
+	private EnvironmentDescription authenticationEnvironment;
+	private EnvironmentDescription repositoryEnvironment;
+	private EnvironmentDescription portalEnvironment;
 	
+	/**
+	 * The authentication environment description.
+	 * @return
+	 */
+	public EnvironmentDescription getAuthenticationEnvironment() {
+		return authenticationEnvironment;
+	}
+
+	/**
+	 * The authentication environment description.
+	 * @param authenticationEnvironment
+	 */
+	public void setAuthenticationEnvironment(
+			EnvironmentDescription authenticationEnvironment) {
+		this.authenticationEnvironment = authenticationEnvironment;
+	}
+
+	/**
+	 * The repository environment description.
+	 * @return
+	 */
+	public EnvironmentDescription getRepositoryEnvironment() {
+		return repositoryEnvironment;
+	}
+
+	/**
+	 * The repository environment description.
+	 * @param repositoryEnvironment
+	 */
+	public void setRepositoryEnvironment(
+			EnvironmentDescription repositoryEnvironment) {
+		this.repositoryEnvironment = repositoryEnvironment;
+	}
+
+	/**
+	 * The portal environment description.
+	 * @return
+	 */
+	public EnvironmentDescription getPortalEnvironment() {
+		return portalEnvironment;
+	}
+
+	/**
+	 * The portal environment description.
+	 * @param portalEnvironment
+	 */
+	public void setPortalEnvironment(EnvironmentDescription portalEnvironment) {
+		this.portalEnvironment = portalEnvironment;
+	}
+
+	/**
+	 * Elastic Beanstalk Configuration Template used to create environments.
+	 * 
+	 * @return
+	 */
+	public DescribeConfigurationOptionsResult getElasticBeanstalkConfigurationTemplate() {
+		return elasticBeanstalkConfigurationTemplate;
+	}
+
+	/**
+	 * Elastic Beanstalk Configuration Template used to create environments.
+	 * 
+	 * @param elasticBeanstalkConfigurationTemplate
+	 */
+	public void setElasticBeanstalkConfigurationTemplate(
+			DescribeConfigurationOptionsResult elasticBeanstalkConfigurationTemplate) {
+		this.elasticBeanstalkConfigurationTemplate = elasticBeanstalkConfigurationTemplate;
+	}
+
 	/**
 	 * The Key Pair used by the stack.
 	 * @return
@@ -107,17 +182,17 @@ public class GeneratedResources {
 	 * The application version of the repository
 	 * @return
 	 */
-	public ApplicationVersionDescription getReopApplicationVersion() {
-		return reopApplicationVersion;
+	public ApplicationVersionDescription getRepoApplicationVersion() {
+		return repoApplicationVersion;
 	}
 
 	/**
 	 * 
 	 * @param reopApplicationVersion
 	 */
-	public void setReopApplicationVersion(
+	public void setRepoApplicationVersion(
 			ApplicationVersionDescription reopApplicationVersion) {
-		this.reopApplicationVersion = reopApplicationVersion;
+		this.repoApplicationVersion = reopApplicationVersion;
 	}
 
 	/**

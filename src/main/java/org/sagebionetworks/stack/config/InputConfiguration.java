@@ -67,6 +67,26 @@ public class InputConfiguration {
 		results.putAll(this.props);
 		return results;
 	}
+	
+	/**
+	 * Given input properties with values containing ${..} regular expressions, create
+	 * a new properties object with the values replaced from the InputConfiguration.
+	 * @param input
+	 */
+	public Properties createFilteredProperties(Properties input) {
+		// First create the union
+		Properties union = createUnionOfInputAndConfig(input);
+		// Use the filter to replace all regular expressions in the property values
+		PropertyFilter.replaceAllRegularExp(union);
+		// Build up the filtered properties.
+		Properties filterdInput = new Properties();
+		for(String key: input.stringPropertyNames()){
+			// The value comes from the filtered union.
+			String value = union.getProperty(key);
+			filterdInput.put(key, value);
+		}
+		return filterdInput;
+	}
 	/**
 	 * Get the required properties file.
 	 * @return
@@ -91,12 +111,17 @@ public class InputConfiguration {
 	 * @return
 	 * @throws IOException
 	 */
-	public static Properties loadPropertyFile(String fileName) throws IOException{
+	public static Properties loadPropertyFile(String fileName){
 		log.info("Loading "+fileName);
 		InputStream in = InputConfiguration.class.getClassLoader().getResourceAsStream(fileName);
 		if(in == null) throw new IllegalArgumentException("Cannot find the required builder properties file on the classpath: "+fileName);
 		Properties props = new Properties();
-		props.load(in);
+		try {
+			props.load(in);
+		} catch (IOException e) {
+			// convert to runtime.
+			throw new RuntimeException(e);
+		}
 		return props;
 	}
 	
@@ -547,6 +572,15 @@ public class InputConfiguration {
 	public String getStackKeyPairName() {
 		return validateAndGetProperty("elastic.stack.key.pair.name");
 	}
+	
+	/**
+	 * The name of the S3 File that contains this stack's keypair.
+	 * 
+	 * @return
+	 */
+	public String getStackKeyPairS3File(){
+		return validateAndGetProperty("elastic.stack.key.pair.s3.file.key");
+	}
 
 	/**
 	 * The name of elastic beanstalk environment template for this instance.
@@ -555,4 +589,18 @@ public class InputConfiguration {
 	public String getElasticBeanstalkTemplateName() {
 		return validateAndGetProperty("elastic.beanstalk.environment.template.name");
 	}
+
+	public void setSSLCertificateARN(String arn) {
+		props.setProperty(Constants.KEY_SSL_CERTIFICATE_ARN, arn);
+	}
+	
+	/**
+	 * Get the SSL Certificate ARN
+	 * @return
+	 */
+	public String geSSLCertificateARN(){
+		return validateAndGetProperty(Constants.KEY_SSL_CERTIFICATE_ARN);
+	}
+
+
 }

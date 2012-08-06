@@ -276,4 +276,9 @@ public class Constants {
 	 * Properties file of all of the beanstalk config values.
 	 */
 	public static final String ELASTIC_BEANSTALK_CONFIG_PROP_FILE_NAME = "elastic-beanstalk-config.properties";
+	
+	/**
+	 * The property key for the SSL certificate ARN.
+	 */
+	public static final String KEY_SSL_CERTIFICATE_ARN = "ssl.certificate.arn";
 }

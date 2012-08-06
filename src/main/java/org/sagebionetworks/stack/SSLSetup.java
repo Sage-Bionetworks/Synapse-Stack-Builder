@@ -72,6 +72,8 @@ public class SSLSetup {
 			meta = findCertificate(config.getSSLCertificateName());
 		}
 		if(meta == null) throw new IllegalStateException("Failed to find or create the SSL certificate: "+config.getSSLCertificateName());
+		// Also set the SSL Cert arn as a property
+		config.setSSLCertificateARN(meta.getArn());
 		resources.setSslCertificate(meta);
 	}
 	

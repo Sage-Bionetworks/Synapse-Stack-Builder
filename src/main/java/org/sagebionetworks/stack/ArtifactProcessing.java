@@ -17,7 +17,6 @@ import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
 import com.amazonaws.services.elasticbeanstalk.model.CreateApplicationRequest;
-import com.amazonaws.services.elasticbeanstalk.model.CreateApplicationResult;
 import com.amazonaws.services.elasticbeanstalk.model.CreateApplicationVersionRequest;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeApplicationVersionsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeApplicationVersionsResult;
@@ -75,7 +74,7 @@ public class ArtifactProcessing {
 		// Create the application version for the portal
 		resources.setPortalApplicationVersion(createOrGetApplicationVersion(config.getPortalVersionPath(), config.getPortalVersionLabel(), config.getPortalArtifactoryUrl()));
 		// Create the application version for the reop
-		resources.setReopApplicationVersion(createOrGetApplicationVersion(config.getRepoVersionPath(), config.getRepoVersionLabel(), config.getRepoArtifactoryUrl()));
+		resources.setRepoApplicationVersion(createOrGetApplicationVersion(config.getRepoVersionPath(), config.getRepoVersionLabel(), config.getRepoArtifactoryUrl()));
 		// Create the application version for the auth
 		resources.setAuthApplicationVersion(createOrGetApplicationVersion(config.getAuthVersionPath(), config.getAuthVersionLabel(), config.getAuthArtifactoryUrl()));
 
