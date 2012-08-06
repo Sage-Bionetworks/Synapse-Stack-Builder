@@ -19,15 +19,19 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.sagebionetworks.factory.MockAmazonClientFactory;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest;
+import com.amazonaws.services.ec2.model.DescribeKeyPairsRequest;
+import com.amazonaws.services.ec2.model.DescribeKeyPairsResult;
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult;
 import com.amazonaws.services.ec2.model.IpPermission;
+import com.amazonaws.services.ec2.model.KeyPairInfo;
 import com.amazonaws.services.ec2.model.SecurityGroup;
 
 /**
@@ -42,13 +46,15 @@ public class EC2SecuritySetupTest {
 	AmazonEC2Client mockEC2Client;
 	EC2SecuritySetup ec2SecuritySetup;
 	GeneratedResources resources;
+	MockAmazonClientFactory factory = new MockAmazonClientFactory();
 
 	@Before
 	public void before() throws IOException {
-		mockEC2Client = Mockito.mock(AmazonEC2Client.class);
+		factory = new MockAmazonClientFactory();
+		mockEC2Client = factory.createEC2Client();
 		config = TestHelper.createTestConfig("dev");
 		resources = new GeneratedResources();
-		ec2SecuritySetup = new EC2SecuritySetup(mockEC2Client, config, resources);
+		ec2SecuritySetup = new EC2SecuritySetup(factory, config, resources);
 	}
 	
 	@Test (expected=AmazonServiceException.class)
@@ -100,6 +106,8 @@ public class EC2SecuritySetupTest {
 		SecurityGroup expectedGroup = new SecurityGroup().withGroupName(expectedGroupName).withOwnerId("123");
 		result.withSecurityGroups(expectedGroup);
 		when(mockEC2Client.describeSecurityGroups(any(DescribeSecurityGroupsRequest.class))).thenReturn(result);
+		DescribeKeyPairsResult kpr = new DescribeKeyPairsResult().withKeyPairs(new KeyPairInfo().withKeyName("123"));
+		when(mockEC2Client.describeKeyPairs(any(DescribeKeyPairsRequest.class))).thenReturn(kpr);
 		// Create the security group.
 		SecurityGroup group = ec2SecuritySetup.setupElasticBeanstalkEC2SecutiryGroup();
 		assertEquals(expectedGroup, group);

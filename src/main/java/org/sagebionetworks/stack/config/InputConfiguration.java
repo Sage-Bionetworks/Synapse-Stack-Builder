@@ -10,6 +10,7 @@ import org.sagebionetworks.stack.util.PropertyFilter;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
 
 
 /**
@@ -66,6 +67,26 @@ public class InputConfiguration {
 		results.putAll(this.props);
 		return results;
 	}
+	
+	/**
+	 * Given input properties with values containing ${..} regular expressions, create
+	 * a new properties object with the values replaced from the InputConfiguration.
+	 * @param input
+	 */
+	public Properties createFilteredProperties(Properties input) {
+		// First create the union
+		Properties union = createUnionOfInputAndConfig(input);
+		// Use the filter to replace all regular expressions in the property values
+		PropertyFilter.replaceAllRegularExp(union);
+		// Build up the filtered properties.
+		Properties filterdInput = new Properties();
+		for(String key: input.stringPropertyNames()){
+			// The value comes from the filtered union.
+			String value = union.getProperty(key);
+			filterdInput.put(key, value);
+		}
+		return filterdInput;
+	}
 	/**
 	 * Get the required properties file.
 	 * @return
@@ -90,12 +111,17 @@ public class InputConfiguration {
 	 * @return
 	 * @throws IOException
 	 */
-	public static Properties loadPropertyFile(String fileName) throws IOException{
+	public static Properties loadPropertyFile(String fileName){
 		log.info("Loading "+fileName);
 		InputStream in = InputConfiguration.class.getClassLoader().getResourceAsStream(fileName);
 		if(in == null) throw new IllegalArgumentException("Cannot find the required builder properties file on the classpath: "+fileName);
 		Properties props = new Properties();
-		props.load(in);
+		try {
+			props.load(in);
+		} catch (IOException e) {
+			// convert to runtime.
+			throw new RuntimeException(e);
+		}
 		return props;
 	}
 	
@@ -397,5 +423,184 @@ public class InputConfiguration {
 	public String getStackConfigS3BucketName() {
 		return validateAndGetProperty("stack.config.s3.bucket.name");
 	}
+
+	/**
+	 * The path relative to the bucket of the stack configuration file.
+	 * @return
+	 */
+	public String getStackConfigurationFileS3Path() {
+		return validateAndGetProperty("stack.config.property.file.path");
+	}
+
+	/**
+	 * The full URL of the final stack configuration File.
+	 * @return
+	 */
+	public String getStackConfigurationFileURL() {
+		return validateAndGetProperty("stack.config.property.file.url");
+	}
+
+
+
+	/**
+	 * The name of this elastic beanstalk application.
+	 * @return
+	 */
+	public String getElasticBeanstalkApplicationName() {
+		return validateAndGetProperty("elastic.beanstalk.application.name");
+	}
+	
+	/**
+	 * The URL of the portal artifact.
+	 * @return
+	 */
+	public String getPortalArtifactoryUrl() {
+		return validateAndGetProperty("artifactory.portal.url");
+	}
+	/**
+	 * The version label for the portal war.
+	 * @return
+	 */
+	public String getPortalVersionLabel() {
+		return validateAndGetProperty("portal.version.label");
+	}
+
+	/**
+	 * The S3 path of the portal war.
+	 * @return
+	 */
+	public String getPortalVersionPath() {
+		return validateAndGetProperty("elastic.beanstalk.application.versions.s3.path.portal");
+	}
+	
+	/**
+	 * The URL of the portal artifact.
+	 * @return
+	 */
+	public String getRepoArtifactoryUrl() {
+		return validateAndGetProperty("artifactory.repo.url");
+	}
+	
+	/**
+	 * The version label for the repo war.
+	 * @return
+	 */
+	public String getRepoVersionLabel() {
+		return validateAndGetProperty("repo.version.label");
+	}
+
+	/**
+	 * The S3 path of the repo war.
+	 * @return
+	 */
+	public String getRepoVersionPath() {
+		return validateAndGetProperty("elastic.beanstalk.application.versions.s3.path.repo");
+	}
+	
+	/**
+	 * The URL of the portal artifact.
+	 * @return
+	 */
+	public String getAuthArtifactoryUrl() {
+		return validateAndGetProperty("artifactory.auth.url");
+	}
+	
+	/**
+	 * The version label for the auth war.
+	 * @return
+	 */
+	public String getAuthVersionLabel() {
+		return validateAndGetProperty("auth.version.label");
+	}
+
+	/**
+	 * The S3 path of the auth war.
+	 * @return
+	 */
+	public String getAuthVersionPath() {
+		return validateAndGetProperty("elastic.beanstalk.application.versions.s3.path.auth");
+	}
+
+	/**
+	 * The name of the SSL certificate private key.
+	 * @return
+	 */
+	public String getSSlCertificatePrivateKeyName() {
+		return validateAndGetProperty("ssl.certificate.privateKey.file.name");
+	}
+
+	/**
+	 * The name of the SSL certificate body file.
+	 * @return
+	 */
+	public String getSSLCertificateBodyKeyName() {
+		return validateAndGetProperty("ssl.certificate.body.file.name");
+	}
+	
+	/**
+	 * The name of the SSL certificate chain file
+	 * @return
+	 */
+	public String getSSLCertificateChainKeyName() {
+		return validateAndGetProperty("ssl.certificate.chain.file.name");
+	}
+
+	/**
+	 * The name of the SSL certificate
+	 * @return
+	 */
+	public String getSSLCertificateName() {
+		return validateAndGetProperty("ssl.certificate.name");
+	}
+
+	public String getAuthEnvironmentName() {
+		return validateAndGetProperty("elastic.beanstalk.environment.auth.name");
+	}
+
+	public String getRepoEnvironmentName() {
+		return validateAndGetProperty("elastic.beanstalk.environment.repo.name");
+	}
+
+	public String getPortalEnvironmentName() {
+		return validateAndGetProperty("elastic.beanstalk.environment.portal.name");
+	}
+
+	/**
+	 * The key pair name used by this stack.
+	 * @return
+	 */
+	public String getStackKeyPairName() {
+		return validateAndGetProperty("elastic.stack.key.pair.name");
+	}
+	
+	/**
+	 * The name of the S3 File that contains this stack's keypair.
+	 * 
+	 * @return
+	 */
+	public String getStackKeyPairS3File(){
+		return validateAndGetProperty("elastic.stack.key.pair.s3.file.key");
+	}
+
+	/**
+	 * The name of elastic beanstalk environment template for this instance.
+	 * @return
+	 */
+	public String getElasticBeanstalkTemplateName() {
+		return validateAndGetProperty("elastic.beanstalk.environment.template.name");
+	}
+
+	public void setSSLCertificateARN(String arn) {
+		props.setProperty(Constants.KEY_SSL_CERTIFICATE_ARN, arn);
+	}
+	
+	/**
+	 * Get the SSL Certificate ARN
+	 * @return
+	 */
+	public String geSSLCertificateARN(){
+		return validateAndGetProperty(Constants.KEY_SSL_CERTIFICATE_ARN);
+	}
+
 
 }

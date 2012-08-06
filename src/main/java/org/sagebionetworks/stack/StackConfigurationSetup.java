@@ -1,13 +1,19 @@
 package org.sagebionetworks.stack;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.util.PropertyFilter;
 
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.Bucket;
+import com.amazonaws.services.s3.model.PutObjectResult;
 
 /**
  * Builds and uploads the Stack configuration file used by the beanstalk instances.
@@ -15,6 +21,8 @@ import com.amazonaws.services.s3.model.Bucket;
  *
  */
 public class StackConfigurationSetup {
+	
+	private static Logger log = Logger.getLogger(StackConfigurationSetup.class.getName());
 	
 	private AmazonS3Client client;
 	private InputConfiguration config;
@@ -41,13 +49,45 @@ public class StackConfigurationSetup {
 	
 	/**
 	 * Builds and uploads the Stack configuration file used by the beanstalk instances.
+	 * @throws IOException 
 	 */
-	public void setupAndUploadStackConfig(){
+	public void setupAndUploadStackConfig() throws IOException{
 		// Fist make sure the bucket exists
 		String bucketName = config.getStackConfigS3BucketName();
+		log.info("Creating S3 Bucket: "+bucketName);
 		// This call is idempotent and will only actually create the bucket if it does not already exist.
 		Bucket bucket = client.createBucket(bucketName);
+		// This is the final property file that will be uploaded to S3.
+		Properties props = createConfigProperties();
+		// Write to a temp file that will get deleted.
+		File temp = File.createTempFile("TempProps", ".properties");
+		saveUploadDelete(bucketName, props, temp);
 		
+	}
+
+	/**
+	 * Save the properties, upload the file then delete the temp file.
+	 * @param bucketName
+	 * @param props
+	 * @param temp
+	 * @throws IOException
+	 * @throws MalformedURLException
+	 */
+	void saveUploadDelete(String bucketName, Properties props, File temp)throws IOException, MalformedURLException {
+		FileWriter writer = new FileWriter(temp);
+		try{
+			// Write it to file.
+			props.store(writer, "This file was auto-generated and should NOT be directly modified");
+			URL configUrl = new URL(config.getStackConfigurationFileURL());
+			log.debug("Uploading file: "+configUrl);
+			// Now upload the file to S3
+			PutObjectResult result = client.putObject(bucketName, config.getStackConfigurationFileS3Path(), temp);
+			resources.setStackConfigurationFileURL(configUrl);
+		}finally{
+			writer.close();
+			// Delete the temp file.
+			temp.delete();
+		}
 	}
 	
 	/**
@@ -79,5 +119,4 @@ public class StackConfigurationSetup {
 	}
 	
 	
-
 }

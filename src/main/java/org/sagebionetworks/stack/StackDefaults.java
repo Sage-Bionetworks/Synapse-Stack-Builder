@@ -32,6 +32,22 @@ public class StackDefaults {
 		Constants.KEY_CIDR_FOR_SSH,
 	};
 	
+	AmazonS3Client s3Client;
+	InputConfiguration config;
+	
+	
+	/**
+	 * The IoC constructor.
+	 * @param s3Client
+	 * @param config
+	 */
+	public StackDefaults(AmazonS3Client s3Client, InputConfiguration config) {
+		if(config == null) throw new IllegalArgumentException("Configuration cannot be null");
+		if(s3Client == null) throw new IllegalArgumentException("The AmazonS3Client cannot be null");
+		this.s3Client = s3Client;
+		this.config = config;
+	}
+
 	/**
 	 * Connect to S3 and downloads the default properties for this stack.
 	 * 
@@ -40,9 +56,7 @@ public class StackDefaults {
 	 * @return
 	 * @throws IOException 
 	 */
-	public static Properties loadStackDefaultsFromS3(InputConfiguration config, AmazonS3Client s3Client) throws IOException{
-		if(config == null) throw new IllegalArgumentException("Configuration cannot be null");
-		if(s3Client == null) throw new IllegalArgumentException("The AmazonS3Client cannot be null");
+	public Properties loadStackDefaultsFromS3() throws IOException{
 		// This is the buck where we expect to find the properties.
 		String bucketName = config.getDefaultS3BucketName();
 

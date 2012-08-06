@@ -1,9 +1,16 @@
 package org.sagebionetworks.stack;
 
+import java.net.URL;
 import java.util.List;
 
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
+import com.amazonaws.services.ec2.model.KeyPairInfo;
 import com.amazonaws.services.ec2.model.SecurityGroup;
+import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
+import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationOptionsResult;
+import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
+import com.amazonaws.services.identitymanagement.model.ServerCertificateMetadata;
 import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBSecurityGroup;
 import com.amazonaws.services.sns.model.CreateTopicResult;
@@ -24,6 +31,187 @@ public class GeneratedResources {
 	private DBInstance stackInstancesDatabase;
 	private List<PutMetricAlarmRequest> idGeneratorDatabaseAlarms;
 	private List<PutMetricAlarmRequest> stackInstancesDatabaseAlarms;
+	private URL stackConfigurationFileURL;
+	private ApplicationDescription elasticBeanstalkApplication;
+	private ApplicationVersionDescription portalApplicationVersion;
+	private ApplicationVersionDescription repoApplicationVersion;
+	private ApplicationVersionDescription authApplicationVersion;
+	private ServerCertificateMetadata sslCertificate;
+	private KeyPairInfo stackKeyPair;
+	private DescribeConfigurationOptionsResult elasticBeanstalkConfigurationTemplate;
+	private EnvironmentDescription authenticationEnvironment;
+	private EnvironmentDescription repositoryEnvironment;
+	private EnvironmentDescription portalEnvironment;
+	
+	/**
+	 * The authentication environment description.
+	 * @return
+	 */
+	public EnvironmentDescription getAuthenticationEnvironment() {
+		return authenticationEnvironment;
+	}
+
+	/**
+	 * The authentication environment description.
+	 * @param authenticationEnvironment
+	 */
+	public void setAuthenticationEnvironment(
+			EnvironmentDescription authenticationEnvironment) {
+		this.authenticationEnvironment = authenticationEnvironment;
+	}
+
+	/**
+	 * The repository environment description.
+	 * @return
+	 */
+	public EnvironmentDescription getRepositoryEnvironment() {
+		return repositoryEnvironment;
+	}
+
+	/**
+	 * The repository environment description.
+	 * @param repositoryEnvironment
+	 */
+	public void setRepositoryEnvironment(
+			EnvironmentDescription repositoryEnvironment) {
+		this.repositoryEnvironment = repositoryEnvironment;
+	}
+
+	/**
+	 * The portal environment description.
+	 * @return
+	 */
+	public EnvironmentDescription getPortalEnvironment() {
+		return portalEnvironment;
+	}
+
+	/**
+	 * The portal environment description.
+	 * @param portalEnvironment
+	 */
+	public void setPortalEnvironment(EnvironmentDescription portalEnvironment) {
+		this.portalEnvironment = portalEnvironment;
+	}
+
+	/**
+	 * Elastic Beanstalk Configuration Template used to create environments.
+	 * 
+	 * @return
+	 */
+	public DescribeConfigurationOptionsResult getElasticBeanstalkConfigurationTemplate() {
+		return elasticBeanstalkConfigurationTemplate;
+	}
+
+	/**
+	 * Elastic Beanstalk Configuration Template used to create environments.
+	 * 
+	 * @param elasticBeanstalkConfigurationTemplate
+	 */
+	public void setElasticBeanstalkConfigurationTemplate(
+			DescribeConfigurationOptionsResult elasticBeanstalkConfigurationTemplate) {
+		this.elasticBeanstalkConfigurationTemplate = elasticBeanstalkConfigurationTemplate;
+	}
+
+	/**
+	 * The Key Pair used by the stack.
+	 * @return
+	 */
+	public KeyPairInfo getStackKeyPair() {
+		return stackKeyPair;
+	}
+
+	/**
+	 * The Key Pair used by the stack.
+	 * @param stackKeyPair
+	 */
+	public void setStackKeyPair(KeyPairInfo stackKeyPair) {
+		this.stackKeyPair = stackKeyPair;
+	}
+
+	/**
+	 * The SSL certificate.
+	 * @return
+	 */
+	public ServerCertificateMetadata getSslCertificate() {
+		return sslCertificate;
+	}
+
+	/**
+	 * The SSL certificate
+	 * @param sslCertificate
+	 */
+	public void setSslCertificate(ServerCertificateMetadata sslCertificate) {
+		this.sslCertificate = sslCertificate;
+	}
+
+	/**
+	 * The elastic beanstalk application.
+	 * @return
+	 */
+	public ApplicationDescription getElasticBeanstalkApplication() {
+		return elasticBeanstalkApplication;
+	}
+
+	/**
+	 * The elastic beanstalk application.
+	 * @param elasticBeanstalkApplication
+	 */
+	public void setElasticBeanstalkApplication(
+			ApplicationDescription elasticBeanstalkApplication) {
+		this.elasticBeanstalkApplication = elasticBeanstalkApplication;
+	}
+
+	/**
+	 * The application version of the portal.
+	 * @return
+	 */
+	public ApplicationVersionDescription getPortalApplicationVersion() {
+		return portalApplicationVersion;
+	}
+
+	/**
+	 * The application version of the portal.
+	 * @param portalApplicationVersion
+	 */
+	public void setPortalApplicationVersion(
+			ApplicationVersionDescription portalApplicationVersion) {
+		this.portalApplicationVersion = portalApplicationVersion;
+	}
+
+	/**
+	 * The application version of the repository
+	 * @return
+	 */
+	public ApplicationVersionDescription getRepoApplicationVersion() {
+		return repoApplicationVersion;
+	}
+
+	/**
+	 * 
+	 * @param reopApplicationVersion
+	 */
+	public void setRepoApplicationVersion(
+			ApplicationVersionDescription reopApplicationVersion) {
+		this.repoApplicationVersion = reopApplicationVersion;
+	}
+
+	/**
+	 * The application version of the authentication service
+	 * @return
+	 */
+	public ApplicationVersionDescription getAuthApplicationVersion() {
+		return authApplicationVersion;
+	}
+
+	/**
+	 * The application version of the authentication service
+	 * @param authApplicationVersion
+	 */
+	public void setAuthApplicationVersion(
+			ApplicationVersionDescription authApplicationVersion) {
+		this.authApplicationVersion = authApplicationVersion;
+	}
+
 	/**
 	 * The elastic beanstalk security group for this stack instance.
 	 * @param group
@@ -153,6 +341,22 @@ public class GeneratedResources {
 	public void setStackInstancesDatabaseAlarms(
 			List<PutMetricAlarmRequest> stackInstancesDatabaseAlarms) {
 		this.stackInstancesDatabaseAlarms = stackInstancesDatabaseAlarms;
+	}
+
+	/**
+	 * The URL of the final stack configuration file generated by this build.
+	 * @return
+	 */
+	public URL getStackConfigurationFileURL() {
+		return stackConfigurationFileURL;
+	}
+
+	/**
+	 * The URL of the final stack configuration file generated by this build.
+	 * @param stackConfigurationFileURL
+	 */
+	public void setStackConfigurationFileURL(URL stackConfigurationFileURL) {
+		this.stackConfigurationFileURL = stackConfigurationFileURL;
 	}
 
 
