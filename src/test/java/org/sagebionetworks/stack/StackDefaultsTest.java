@@ -20,10 +20,13 @@ import com.amazonaws.services.s3.model.Bucket;
 public class StackDefaultsTest {
 	
 	InputConfiguration config;
-	
+	AmazonS3Client mockClient;
+	StackDefaults defaults;
 	@Before
 	public void before() throws IOException{
 		config = TestHelper.createTestConfig("dev");
+		mockClient = Mockito.mock(AmazonS3Client.class);
+		defaults = new StackDefaults(mockClient, config);
 	}
 
 	
@@ -54,10 +57,10 @@ public class StackDefaultsTest {
 	@Test (expected=IllegalArgumentException.class)
 	public void testLoadStackDefaultsFromS3() throws IOException{
 		String bucketString = config.getDefaultS3BucketName();
-		AmazonS3Client mockClient = Mockito.mock(AmazonS3Client.class);
+		
 		Bucket bucket = new Bucket(bucketString);
 		when(mockClient.createBucket(bucketString)).thenReturn(new Bucket());
 		// This should fail since the expected properties are missing.
-		StackDefaults.loadStackDefaultsFromS3(config, mockClient);
+		defaults.loadStackDefaultsFromS3();
 	}
 }

@@ -10,6 +10,7 @@ import org.junit.Test;
 import static org.sagebionetworks.stack.Constants.*;
 
 import org.sagebionetworks.stack.Constants;
+import org.sagebionetworks.stack.TestHelper;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.util.EncryptionUtils;
 
@@ -31,7 +32,7 @@ public class InputConfigurationTest {
 	
 	@Before
 	public void before(){
-		inputProperties = new Properties();
+		inputProperties = TestHelper.createInputProperties("stack");
 		inputProperties.put(AWS_ACCESS_KEY, id);
 		inputProperties.put(AWS_SECRET_KEY, password);
 		inputProperties.put(STACK_ENCRYPTION_KEY, encryptionKey);
@@ -101,7 +102,7 @@ public class InputConfigurationTest {
 	public void testStackInstanceNames() throws IOException{
 		// Load from the properties 
 		InputConfiguration config = new InputConfiguration(inputProperties);
-		assertEquals(stack+"-default", config.getDefaultS3BucketName());
+		assertEquals(stack+"-default.sagebase.org", config.getDefaultS3BucketName());
 		assertEquals(stack+"-default.properties", config.getDefaultPropertiesFileName());
 		assertEquals("elastic-beanstalk-"+stack+"-"+instance, config.getElasticSecurityGroupName());
 		assertEquals("All elastic beanstalk instances of stack:'"+stack+"' instance:'"+instance+"' belong to this EC2 security group", config.getElasticSecurityGroupDescription());

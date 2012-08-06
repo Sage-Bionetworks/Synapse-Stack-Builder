@@ -14,8 +14,8 @@ import java.util.Properties;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.sagebionetworks.stack.Constants;
 import org.sagebionetworks.stack.DatabaseParameterGroup;
+import org.sagebionetworks.stack.TestHelper;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.AmazonServiceException;
@@ -28,11 +28,6 @@ import com.amazonaws.services.rds.model.DescribeDBParameterGroupsResult;
 public class DatabaseParameterGroupTest {
 	
 	Properties inputProperties;
-	String id = "aws id";
-	String password = "aws password";
-	String encryptionKey = "encryptionKey";
-	String stack = "dev";
-	String instance ="A";
 	InputConfiguration config;	
 	AmazonRDSClient mockClient = null;
 	DatabaseParameterGroup databaseParamGroup;
@@ -40,12 +35,7 @@ public class DatabaseParameterGroupTest {
 	@Before
 	public void before() throws IOException{
 		mockClient = Mockito.mock(AmazonRDSClient.class);
-		inputProperties = new Properties();
-		inputProperties.put(Constants.AWS_ACCESS_KEY, id);
-		inputProperties.put(Constants.AWS_SECRET_KEY, password);
-		inputProperties.put(Constants.STACK_ENCRYPTION_KEY, encryptionKey);
-		inputProperties.put(Constants.STACK, stack);
-		inputProperties.put(Constants.INSTANCE, instance);
+		inputProperties = TestHelper.createInputProperties("dev");
 		config = new InputConfiguration(inputProperties);
 		// Inject the dependencies.
 		databaseParamGroup = new DatabaseParameterGroup(mockClient, config);

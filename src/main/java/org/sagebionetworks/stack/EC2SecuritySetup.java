@@ -1,21 +1,33 @@
 package org.sagebionetworks.stack;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
+import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 import static org.sagebionetworks.stack.Constants.*;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
+import com.amazonaws.services.ec2.model.CreateKeyPairRequest;
+import com.amazonaws.services.ec2.model.CreateKeyPairResult;
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest;
 import com.amazonaws.services.ec2.model.CreateSecurityGroupResult;
+import com.amazonaws.services.ec2.model.DescribeKeyPairsRequest;
+import com.amazonaws.services.ec2.model.DescribeKeyPairsResult;
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult;
 import com.amazonaws.services.ec2.model.IpPermission;
+import com.amazonaws.services.ec2.model.KeyPairInfo;
 import com.amazonaws.services.ec2.model.SecurityGroup;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.PutObjectResult;
 
 /**
  * Setup the security used by the rest of the stack.
@@ -28,6 +40,7 @@ public class EC2SecuritySetup {
 	private static Logger log = Logger.getLogger(EC2SecuritySetup.class.getName());
 	
 	private AmazonEC2Client ec2Client;
+	private AmazonS3Client s3Client;
 	private InputConfiguration config;
 	private GeneratedResources resources;
 	/**
@@ -36,12 +49,13 @@ public class EC2SecuritySetup {
 	 * @param config
 	 * @param resoruces 
 	 */
-	public EC2SecuritySetup(AmazonEC2Client ec2Client, InputConfiguration config, GeneratedResources resources) {
+	public EC2SecuritySetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
 		super();
-		if(ec2Client == null) throw new IllegalArgumentException("AmazonEC2Client cannot be null");
+		if(factory == null) throw new IllegalArgumentException("AmazonClientFactory cannot be null");
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
-		this.ec2Client = ec2Client;
+		this.ec2Client = factory.createEC2Client();
+		this.s3Client = factory.createS3Client();
 		this.config = config;
 		this.resources = resources;
 	}
@@ -73,7 +87,75 @@ public class EC2SecuritySetup {
 		// Add this to the resources
 		SecurityGroup group = result.getSecurityGroups().get(0);
 		resources.setElasticBeanstalkEC2SecurityGroup(group);
+		
+		// Create the key pair.
+		resources.setStackKeyPair(createOrGetKeyPair());
+		
 		return group;
+	}
+	
+	/**
+	 * Create the key par
+	 * @return
+	 */
+	public KeyPairInfo createOrGetKeyPair(){
+		String name =config.getStackKeyPairName();
+		KeyPairInfo info = describKeyPair();
+		if(info == null){
+			log.debug("Creating the Stack KeyPair: "+name+" for the first time");
+			CreateKeyPairResult kpResult = ec2Client.createKeyPair(new CreateKeyPairRequest(name));
+			
+			File temp = null;
+			FileOutputStream fos = null;
+			try{
+				temp = File.createTempFile("Temp", ".tmp");
+				fos = new FileOutputStream(temp);
+				// Write the material to the file.
+				fos.write(kpResult.getKeyPair().getKeyMaterial().getBytes("UTF-8"));
+				fos.close();
+				// Now write the file to S3
+				s3Client.putObject(new PutObjectRequest(config.getStackConfigS3BucketName(), config.getStackKeyPairS3File(), temp));
+			} catch (IOException e) {
+				// convert to runtime
+				throw new RuntimeException(e);
+			}finally{
+				if(fos != null){
+					try {
+						fos.close();
+					} catch (IOException e) {}
+				}
+				if(temp != null){
+					temp.delete();
+				}
+			}
+			
+			
+			return describKeyPair();
+		}else{
+			log.debug("Stack KeyPair: "+name+" already exists");
+			return info;
+		}
+		
+	}
+	
+	/**
+	 * Describe the key pair if it exists.
+	 * 
+	 * @return
+	 */
+	public KeyPairInfo describKeyPair(){
+		String name =config.getStackKeyPairName();
+		try{
+			DescribeKeyPairsResult result =ec2Client.describeKeyPairs(new DescribeKeyPairsRequest().withKeyNames(name));
+			if(result.getKeyPairs().size() != 1) throw new IllegalStateException("Expceted one and only one key pair with the name: "+name);
+			return result.getKeyPairs().get(0);
+		}catch (AmazonServiceException e){
+			if(Constants.ERROR_CODE_KEY_PAIR_NOT_FOUND.equals(e.getErrorCode())){
+				return null;
+			}else{
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 	/**
