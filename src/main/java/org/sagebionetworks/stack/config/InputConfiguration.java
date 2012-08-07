@@ -554,15 +554,27 @@ public class InputConfiguration {
 	}
 
 	public String getAuthEnvironmentName() {
-		return validateAndGetProperty("elastic.beanstalk.environment.auth.name");
+		return validateAndGetProperty("authentication.service.environment.name");
+	}
+	
+	public String getAuthEnvironmentCNAMEPrefix() {
+		return validateAndGetProperty("authentication.service.environment.cname.prefix");
 	}
 
 	public String getRepoEnvironmentName() {
-		return validateAndGetProperty("elastic.beanstalk.environment.repo.name");
+		return validateAndGetProperty("repository.service.environment.name");
+	}
+	
+	public String getRepoEnvironmentCNAMEPrefix() {
+		return validateAndGetProperty("repository.service.environment.cname.prefix");
 	}
 
 	public String getPortalEnvironmentName() {
-		return validateAndGetProperty("elastic.beanstalk.environment.portal.name");
+		return validateAndGetProperty("portal.environment.name");
+	}
+	
+	public String getPortalEnvironmentCNAMEPrefix() {
+		return validateAndGetProperty("portal.environment.cname.prefix");
 	}
 
 	/**
