@@ -80,6 +80,9 @@ public class BuildStackMain {
 		// Add all of the the alarms
 		new AlarmSetup(factory.createCloudWatchClient(), config, resources).setupAllAlarms();
 		
+		// Create the search index
+		new SearchIndexSetup(factory.createCloudSearchClient(), config, resources).setupSearch();
+		
 		// Create the configuration file and upload it S3
 		new StackConfigurationSetup(factory.createS3Client(), config, resources).setupAndUploadStackConfig();
 		

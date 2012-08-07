@@ -614,5 +614,13 @@ public class InputConfiguration {
 		return validateAndGetProperty(Constants.KEY_SSL_CERTIFICATE_ARN);
 	}
 
+	/**
+	 * Search index domain name.
+	 * @return
+	 */
+	public String getSearchIndexDomainName() {
+		return validateAndGetProperty("search.index.domain.name");
+	}
+
 
 }
