@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.util.PropertyFilter;
 
+import com.amazonaws.services.cloudsearch.model.DomainStatus;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.PutObjectResult;
@@ -42,6 +43,14 @@ public class StackConfigurationSetup {
 		if(resources.getIdGeneratorDatabase().getEndpoint() == null) throw new IllegalArgumentException("GeneratedResources.getIdGeneratorDatabase().getEndpoint() cannot be null");
 		if(resources.getStackInstancesDatabase() == null) throw new IllegalArgumentException("GeneratedResources.getStackInstancesDatabase() cannot be null");
 		if(resources.getStackInstancesDatabase().getEndpoint() == null) throw new IllegalArgumentException("GeneratedResources.getStackInstancesDatabase().getEndpoint() cannot be null");
+		if(resources.getSearchDomain() == null) throw new IllegalArgumentException("GeneratedResources.getSearchDomain() cannot be null");
+		DomainStatus searchStatus = resources.getSearchDomain();
+		if(resources.getSearchDomain().getSearchService() == null || searchStatus.getSearchService().getEndpoint() == null) {
+			throw new IllegalArgumentException(String.format("Do not have an endpoint for Search domain: '%1$s' created: '%2$s', processing: '%3$s'", searchStatus.getDomainName(), searchStatus.getCreated(), searchStatus.getProcessing()));
+		}
+		if(resources.getSearchDomain().getDocService() == null || resources.getSearchDomain().getDocService().getEndpoint() == null) {
+			throw new IllegalArgumentException(String.format("Do not have an endpoint for Search documents: '%1$s' created: '%2$s', processing: '%3$s'", searchStatus.getDomainName(), searchStatus.getCreated(), searchStatus.getProcessing()));
+		}
 		this.client = client;
 		this.config = config;
 		this.resources = resources;
@@ -105,6 +114,11 @@ public class StackConfigurationSetup {
 		union.put(Constants.KEY_ID_GENERATOR_DB_ADDRESS, resources.getIdGeneratorDatabase().getEndpoint().getAddress());
 		// Capture the stack instance DB end point.
 		union.put(Constants.KEY_STACK_INSTANCE_DB_ADDRESS, resources.getStackInstancesDatabase().getEndpoint().getAddress());
+		// Search index search endpoint
+		union.put(Constants.KEY_STACK_INSTANCE_SEARCH_INDEX_SEARCH_ENDPOINT, resources.getSearchDomain().getSearchService().getEndpoint());
+		// Search index document endpoint
+		union.put(Constants.KEY_STACK_INSTANCE_SEARCH_INDEX_DOCUMENT_ENDPOINT, resources.getSearchDomain().getDocService().getEndpoint());
+		// Add the urls for searach
 		// Apply the filter to replace all regular expression with the final values
 		PropertyFilter.replaceAllRegularExp(union);
 		// The final step is to copy over the values defined in the template

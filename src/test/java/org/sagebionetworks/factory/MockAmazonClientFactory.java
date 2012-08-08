@@ -4,6 +4,7 @@ import org.mockito.Mockito;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.services.cloudsearch.AmazonCloudSearchClient;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
@@ -27,6 +28,7 @@ public class MockAmazonClientFactory implements AmazonClientFactory {
 	AmazonCloudWatchClient mockCloudWatchClient;
 	AWSElasticBeanstalkClient mockElasticBeanstalkClient;
 	AmazonIdentityManagementClient mockIdentityManagementClient;
+	AmazonCloudSearchClient mockCloudSearchClient;
 	AWSCredentials credentials;
 	
 	/**
@@ -40,6 +42,7 @@ public class MockAmazonClientFactory implements AmazonClientFactory {
 		mockCloudWatchClient = Mockito.mock(AmazonCloudWatchClient.class);
 		mockElasticBeanstalkClient = Mockito.mock(AWSElasticBeanstalkClient.class);
 		mockIdentityManagementClient = Mockito.mock(AmazonIdentityManagementClient.class);
+		mockCloudSearchClient = Mockito.mock(AmazonCloudSearchClient.class);
 	}
 
 	/**
@@ -89,8 +92,11 @@ public class MockAmazonClientFactory implements AmazonClientFactory {
 	}
 
 	public AmazonIdentityManagementClient createIdentityManagementClient() {
-		// TODO Auto-generated method stub
-		return null;
+		return mockIdentityManagementClient;
+	}
+
+	public AmazonCloudSearchClient createCloudSearchClient() {
+		return mockCloudSearchClient;
 	}
 
 }

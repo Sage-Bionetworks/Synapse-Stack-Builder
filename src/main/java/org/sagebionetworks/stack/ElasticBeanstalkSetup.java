@@ -74,11 +74,11 @@ public class ElasticBeanstalkSetup {
 		resources.setElasticBeanstalkConfigurationTemplate(createOrUpdateConfigurationTemplate());
 		// Create the environments
 		// Auth
-		resources.setAuthenticationEnvironment(createEnvironment(config.getAuthEnvironmentName(), resources.getAuthApplicationVersion()));
+		resources.setAuthenticationEnvironment(createEnvironment(config.getAuthEnvironmentName(), config.getAuthEnvironmentCNAMEPrefix(), resources.getAuthApplicationVersion()));
 		// repo
-		resources.setRepositoryEnvironment(createEnvironment(config.getRepoEnvironmentName(), resources.getRepoApplicationVersion()));
+		resources.setRepositoryEnvironment(createEnvironment(config.getRepoEnvironmentName(), config.getRepoEnvironmentCNAMEPrefix(), resources.getRepoApplicationVersion()));
 		// portal
-		resources.setPortalEnvironment(createEnvironment(config.getPortalEnvironmentName(), resources.getPortalApplicationVersion()));
+		resources.setPortalEnvironment(createEnvironment(config.getPortalEnvironmentName(), config.getPortalEnvironmentCNAMEPrefix(), resources.getPortalApplicationVersion()));
 	}
 	
 	/**
@@ -135,8 +135,18 @@ public class ElasticBeanstalkSetup {
 		try{
 			DescribeEnvironmentsResult results = beanstalkClient.describeEnvironments(new DescribeEnvironmentsRequest().withApplicationName(config.getElasticBeanstalkApplicationName()).withEnvironmentNames(environmentName));
 			if(results.getEnvironments().size() < 1) return null;
-			if(results.getEnvironments().size() != 1) throw new IllegalStateException("Expected one and only one environment with name: "+environmentName);
-			return results.getEnvironments().get(0);
+			// Find a non-terminated environment
+			for(EnvironmentDescription env: results.getEnvironments()){
+				log.debug(String.format("Found environment with name: '%1$s' and status: '%2$s'", environmentName, env.getStatus()));
+				if("Terminated".equals(env.getStatus()) || "Terminating".equals(env.getStatus())){
+					// Cannot use a terminated environment
+					continue;
+				}else{
+					return env;
+				}
+			}
+			// No match found
+			return null;
 		}catch (AmazonServiceException e){
 			if("InvalidParameterValue".equals(e.getErrorCode())){
 				return null;
@@ -151,14 +161,15 @@ public class ElasticBeanstalkSetup {
 	 * @param version
 	 * @return 
 	 */
-	public EnvironmentDescription createEnvironment(String environmentName, ApplicationVersionDescription version){
+	public EnvironmentDescription createEnvironment(String environmentName, String environmentCNAME, ApplicationVersionDescription version){
 		EnvironmentDescription environment = describeEnvironment(environmentName);
 		if(environment == null){
 			// Create it since it does not exist
-			log.debug("Creating environment: "+environmentName);
+			log.debug(String.format("Creating environment name: '%1$s' with CNAME: '%2$s' ",environmentName, environmentCNAME));
 			CreateEnvironmentRequest cer = new CreateEnvironmentRequest(resources.getAuthApplicationVersion().getApplicationName(), environmentName);
 			cer.setTemplateName(config.getElasticBeanstalkTemplateName());
 			cer.setVersionLabel(version.getVersionLabel());
+			cer.setCNAMEPrefix(environmentCNAME);
 			// Query for it again
 			beanstalkClient.createEnvironment(cer);
 			environment = describeEnvironment(environmentName);
