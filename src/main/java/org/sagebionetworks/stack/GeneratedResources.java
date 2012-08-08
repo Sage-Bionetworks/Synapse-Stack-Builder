@@ -3,6 +3,7 @@ package org.sagebionetworks.stack;
 import java.net.URL;
 import java.util.List;
 
+import com.amazonaws.services.cloudsearch.model.DomainStatus;
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
 import com.amazonaws.services.ec2.model.KeyPairInfo;
 import com.amazonaws.services.ec2.model.SecurityGroup;
@@ -42,7 +43,24 @@ public class GeneratedResources {
 	private EnvironmentDescription authenticationEnvironment;
 	private EnvironmentDescription repositoryEnvironment;
 	private EnvironmentDescription portalEnvironment;
+	private DomainStatus searchDomain;
 	
+	/**
+	 * The search domain.
+	 * @return
+	 */
+	public DomainStatus getSearchDomain() {
+		return searchDomain;
+	}
+
+	/**
+	 * The search domain.
+	 * @param searchDomain
+	 */
+	public void setSearchDomain(DomainStatus searchDomain) {
+		this.searchDomain = searchDomain;
+	}
+
 	/**
 	 * The authentication environment description.
 	 * @return
@@ -358,7 +376,6 @@ public class GeneratedResources {
 	public void setStackConfigurationFileURL(URL stackConfigurationFileURL) {
 		this.stackConfigurationFileURL = stackConfigurationFileURL;
 	}
-
 
 
 }

@@ -264,6 +264,16 @@ public class Constants {
 	public static String KEY_STACK_INSTANCE_DB_ADDRESS = "stack.instance.database.address";
 	
 	/**
+	 * The endpoint for issuing searches.
+	 */
+	public static String KEY_STACK_INSTANCE_SEARCH_INDEX_SEARCH_ENDPOINT = "stack.instance.search.index.search.endpoint";
+	
+	/**
+	 * The endpoint for updating search documents.
+	 */
+	public static String KEY_STACK_INSTANCE_SEARCH_INDEX_DOCUMENT_ENDPOINT = "stack.instance.search.index.document.endpoint";
+	
+	/**
 	 * Stack solution name for "32bit Amazon Linux running Tomcat 7"
 	 */
 	public static final String SOLUTION_STACK_NAME_32BIT_TOMCAT_7 = "32bit Amazon Linux running Tomcat 7";

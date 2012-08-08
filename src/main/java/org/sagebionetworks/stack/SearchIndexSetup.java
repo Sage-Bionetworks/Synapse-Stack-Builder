@@ -39,10 +39,12 @@ public class SearchIndexSetup {
 			// We need to create it.
 			log.debug(String.format("Search index domain: '%1$s' does not exist, so creating it...",domainName));
 			CreateDomainResult result = client.createDomain(new CreateDomainRequest().withDomainName(domainName));
-			
+			domain = describeDomains();
+			this.resources.setSearchDomain(domain);
 		}else{
 			// It already exists
 			log.debug(String.format("Search index domain: '%1$s' already exists.", domainName));
+			this.resources.setSearchDomain(domain);
 		}
 		
 	}

@@ -3,6 +3,7 @@ package org.sagebionetworks.stack.config;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+
 import org.apache.log4j.Logger;
 import org.sagebionetworks.stack.Constants;
 import org.sagebionetworks.stack.util.EncryptionUtils;
@@ -10,7 +11,6 @@ import org.sagebionetworks.stack.util.PropertyFilter;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
 
 
 /**
