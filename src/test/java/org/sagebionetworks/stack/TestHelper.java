@@ -10,6 +10,9 @@ import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescripti
 import com.amazonaws.services.identitymanagement.model.ServerCertificateMetadata;
 import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.Endpoint;
+import com.amazonaws.services.cloudsearch.model.DomainStatus;
+import com.amazonaws.services.cloudsearch.model.ServiceEndpoint;
+
 import static org.sagebionetworks.stack.Constants.*;
 
 /**
@@ -81,6 +84,8 @@ public class TestHelper {
 		GeneratedResources resources  = new GeneratedResources();
 		resources.setIdGeneratorDatabase(new DBInstance().withDBInstanceIdentifier(config.getIdGeneratorDatabaseIdentifier()).withEndpoint(new Endpoint().withAddress("id-gen-db.someplace.com")));
 		resources.setStackInstancesDatabase(new DBInstance().withDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier()).withEndpoint(new Endpoint().withAddress("stack-instance-db.someplace.com")));
+		resources.setSearchDomain(new DomainStatus().withSearchService(new ServiceEndpoint().withEndpoint("search-service.someplace.com")));
+		resources.getSearchDomain().setDocService(new ServiceEndpoint().withEndpoint("doc-service.someplace.com"));
 		resources.setSslCertificate(new ServerCertificateMetadata().withArn("ssl:arn:123"));
 		resources.setAuthApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getAuthVersionLabel()));
 		resources.setPortalApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getPortalVersionLabel()));
