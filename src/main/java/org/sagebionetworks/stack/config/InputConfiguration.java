@@ -3,6 +3,7 @@ package org.sagebionetworks.stack.config;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+
 import org.apache.log4j.Logger;
 import org.sagebionetworks.stack.Constants;
 import org.sagebionetworks.stack.util.EncryptionUtils;
@@ -10,7 +11,6 @@ import org.sagebionetworks.stack.util.PropertyFilter;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
 
 
 /**
@@ -554,15 +554,27 @@ public class InputConfiguration {
 	}
 
 	public String getAuthEnvironmentName() {
-		return validateAndGetProperty("elastic.beanstalk.environment.auth.name");
+		return validateAndGetProperty("authentication.service.environment.name");
+	}
+	
+	public String getAuthEnvironmentCNAMEPrefix() {
+		return validateAndGetProperty("authentication.service.environment.cname.prefix");
 	}
 
 	public String getRepoEnvironmentName() {
-		return validateAndGetProperty("elastic.beanstalk.environment.repo.name");
+		return validateAndGetProperty("repository.service.environment.name");
+	}
+	
+	public String getRepoEnvironmentCNAMEPrefix() {
+		return validateAndGetProperty("repository.service.environment.cname.prefix");
 	}
 
 	public String getPortalEnvironmentName() {
-		return validateAndGetProperty("elastic.beanstalk.environment.portal.name");
+		return validateAndGetProperty("portal.environment.name");
+	}
+	
+	public String getPortalEnvironmentCNAMEPrefix() {
+		return validateAndGetProperty("portal.environment.cname.prefix");
 	}
 
 	/**
@@ -600,6 +612,14 @@ public class InputConfiguration {
 	 */
 	public String geSSLCertificateARN(){
 		return validateAndGetProperty(Constants.KEY_SSL_CERTIFICATE_ARN);
+	}
+
+	/**
+	 * Search index domain name.
+	 * @return
+	 */
+	public String getSearchIndexDomainName() {
+		return validateAndGetProperty("search.index.domain.name");
 	}
 
 

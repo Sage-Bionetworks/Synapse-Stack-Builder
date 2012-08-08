@@ -1,6 +1,7 @@
 package org.sagebionetworks.stack.factory;
 
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.services.cloudsearch.AmazonCloudSearchClient;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
@@ -67,5 +68,11 @@ public interface AmazonClientFactory {
 	 * @return
 	 */
 	public AmazonIdentityManagementClient createIdentityManagementClient();
+	
+	/**
+	 * Create a AmazonCloudSearchClient
+	 * @return
+	 */
+	public AmazonCloudSearchClient createCloudSearchClient();
 
 }
