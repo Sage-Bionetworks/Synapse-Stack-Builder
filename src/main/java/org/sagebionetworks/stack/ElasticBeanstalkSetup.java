@@ -27,6 +27,7 @@ import com.amazonaws.services.elasticbeanstalk.model.UpdateConfigurationTemplate
 import com.amazonaws.services.elasticbeanstalk.model.UpdateConfigurationTemplateResult;
 import com.amazonaws.services.elasticbeanstalk.model.UpdateEnvironmentRequest;
 import com.amazonaws.services.elasticbeanstalk.model.UpdateEnvironmentResult;
+import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 /**
  * Setup the elastic beanstalk environments.
@@ -34,7 +35,7 @@ import com.amazonaws.services.elasticbeanstalk.model.UpdateEnvironmentResult;
  * @author John
  *
  */
-public class ElasticBeanstalkSetup {
+public class ElasticBeanstalkSetup implements ResourceProcessor {
 	
 	private static Logger log = Logger.getLogger(ElasticBeanstalkSetup.class);
 	
@@ -49,9 +50,12 @@ public class ElasticBeanstalkSetup {
 	 * @param config
 	 * @param resources
 	 */
-	public ElasticBeanstalkSetup(AWSElasticBeanstalkClient client,
-			InputConfiguration config, GeneratedResources resources) {
-		if(client == null) throw new IllegalArgumentException("AWSElasticBeanstalkClient cannot be null");
+	public ElasticBeanstalkSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+		this.initialize(factory, config, resources);
+	}
+
+	public void initialize(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+		if(factory == null) throw new IllegalArgumentException("AWSClientFactory cannot be null");
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
 		// There are many dependencies for this setup.
@@ -61,11 +65,19 @@ public class ElasticBeanstalkSetup {
 		if(resources.getRepoApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getReopApplicationVersion() cannot be null");
 		if(resources.getAuthApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getAuthApplicationVersion() cannot be null");
 		if(resources.getStackKeyPair() == null) throw new IllegalArgumentException("GeneratedResources.getStackKeyPair() cannot be null");
-		this.beanstalkClient = client;
+		this.beanstalkClient = factory.createBeanstalkClient();
 		this.config = config;
 		this.resources = resources;
 	}
 	
+	public void setupResources() {
+		this.createAllEnvironments();
+	}
+	
+	public void teardownResources() {
+		
+	}
+
 	/**
 	 * Create the environments
 	 */

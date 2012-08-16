@@ -26,22 +26,23 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
+import org.sagebionetworks.factory.MockAmazonClientFactory;
 
 public class MySqlDatabaseSetupTest {
 	
 	InputConfiguration config;	
 	AmazonRDSClient mockClient = null;
 	GeneratedResources resources;
-	
 	MySqlDatabaseSetup databaseSetup;
+	MockAmazonClientFactory factory = new MockAmazonClientFactory();
 	
 	@Before
 	public void before() throws IOException{
-		mockClient = Mockito.mock(AmazonRDSClient.class);
+		mockClient = factory.createRDSClient();
 		config = TestHelper.createTestConfig("dev");
 		resources = new GeneratedResources();
 		// Create the creator
-		databaseSetup = new MySqlDatabaseSetup(mockClient, config, resources);
+		databaseSetup = new MySqlDatabaseSetup(factory, config, resources);
 	}
 	
 	/**
@@ -69,7 +70,7 @@ public class MySqlDatabaseSetupTest {
 	private void setConfigForStack(String stack) throws IOException {
 		config = TestHelper.createTestConfig(stack);
 		// Create the creator
-		databaseSetup = new MySqlDatabaseSetup(mockClient, config, resources);
+		databaseSetup = new MySqlDatabaseSetup(factory, config, resources);
 	}
 	
 	@Test

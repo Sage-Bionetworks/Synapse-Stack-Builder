@@ -50,7 +50,6 @@ public class EC2SecuritySetupTest {
 
 	@Before
 	public void before() throws IOException {
-		factory = new MockAmazonClientFactory();
 		mockEC2Client = factory.createEC2Client();
 		config = TestHelper.createTestConfig("dev");
 		resources = new GeneratedResources();
@@ -109,7 +108,8 @@ public class EC2SecuritySetupTest {
 		DescribeKeyPairsResult kpr = new DescribeKeyPairsResult().withKeyPairs(new KeyPairInfo().withKeyName("123"));
 		when(mockEC2Client.describeKeyPairs(any(DescribeKeyPairsRequest.class))).thenReturn(kpr);
 		// Create the security group.
-		SecurityGroup group = ec2SecuritySetup.setupElasticBeanstalkEC2SecutiryGroup();
+		ec2SecuritySetup.setupResources();
+		SecurityGroup group = resources.getElasticBeanstalkEC2SecurityGroup();
 		assertEquals(expectedGroup, group);
 		String groupName = group.getGroupName();
 		assertNotNull(groupName);

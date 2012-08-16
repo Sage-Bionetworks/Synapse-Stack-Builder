@@ -22,6 +22,7 @@ import com.amazonaws.services.rds.model.DescribeDBParametersRequest;
 import com.amazonaws.services.rds.model.DescribeDBParametersResult;
 import com.amazonaws.services.rds.model.ModifyDBParameterGroupRequest;
 import com.amazonaws.services.rds.model.Parameter;
+import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 /**
  * Creates and maintains the MySQL database parameter group used by all database instances
@@ -29,12 +30,13 @@ import com.amazonaws.services.rds.model.Parameter;
  * @author John
  *
  */
-public class DatabaseParameterGroup {
+public class DatabaseParameterGroup implements ResourceProcessor {
 
 	private static Logger log = Logger.getLogger(DatabaseParameterGroup.class);
 	
 	AmazonRDSClient client;
 	InputConfiguration config;
+	GeneratedResources resources;
 
 	/**
 	 * IoC constructor.
@@ -42,12 +44,28 @@ public class DatabaseParameterGroup {
 	 * @param client
 	 * @param config
 	 */
-	public DatabaseParameterGroup(AmazonRDSClient client, InputConfiguration config){
-		if(client == null) throw new IllegalArgumentException("AmazonRDSClient cannot be null");
-		if(config == null) throw new IllegalArgumentException("Config cannot be null");
-		this.client = client;
-		this.config = config;
+	public DatabaseParameterGroup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources){
+		initialize(factory, config, resources);
 	}
+
+	public void initialize(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+		if(factory == null) throw new IllegalArgumentException("AmazonClientFactory cannot be null");
+		if(config == null) throw new IllegalArgumentException("Config cannot be null");
+		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
+		this.client = factory.createRDSClient();
+		this.config = config;
+		this.resources = resources;
+	}
+	
+	public void setupResources() {
+		DBParameterGroup grp = setupDBParameterGroup();
+		this.resources.setDbParameterGroup(grp);
+	}
+	
+	public void teardownResources() {
+		
+	}
+	
 	/**
 	 * Setup the DB parameter group with all of the values we want to use.
 	 * @param client

@@ -14,6 +14,7 @@ import com.amazonaws.services.sns.model.ListSubscriptionsByTopicResult;
 import com.amazonaws.services.sns.model.SubscribeRequest;
 import com.amazonaws.services.sns.model.SubscribeResult;
 import com.amazonaws.services.sns.model.Subscription;
+import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 /**
  * Setup topics for notification.
@@ -21,7 +22,7 @@ import com.amazonaws.services.sns.model.Subscription;
  * @author John
  *
  */
-public class NotificationSetup {
+public class NotificationSetup implements ResourceProcessor {
 	
 	private static Logger log = Logger.getLogger(NotificationSetup.class.getName());
 	
@@ -35,15 +36,26 @@ public class NotificationSetup {
 	 * @param client
 	 * @param config
 	 */
-	public NotificationSetup(AmazonSNSClient client, InputConfiguration config, GeneratedResources resources) {
-		if(client == null) throw new IllegalArgumentException("AmazonRDSClient cannot be null");
+	public NotificationSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+		initialize(factory, config, resources);
+	}
+	
+	public void initialize(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+		if(factory == null) throw new IllegalArgumentException("AmazonClientFactory cannot be null");
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
-		this.client = client;
+		this.client = factory.createSNSClient();
 		this.config = config;
 		this.resources = resources;
 	}
 	
+	public void setupResources() {
+		setupNotificationTopics();
+	}
+	
+	public void teardownResources() {
+		
+	}
 	/**
 	 * Create The Notification topic.
 	 */

@@ -25,6 +25,7 @@ import com.amazonaws.services.rds.model.CreateDBSecurityGroupRequest;
 import com.amazonaws.services.rds.model.DBSecurityGroup;
 import com.amazonaws.services.rds.model.DescribeDBSecurityGroupsRequest;
 import com.amazonaws.services.rds.model.DescribeDBSecurityGroupsResult;
+import org.sagebionetworks.factory.MockAmazonClientFactory;
 
 public class DatabaseSecuritySetupTest {
 	
@@ -33,15 +34,16 @@ public class DatabaseSecuritySetupTest {
 	SecurityGroup elasticSecurityGroup;
 	DatabaseSecuritySetup databaseSecuritySetup;
 	GeneratedResources resources;
+	MockAmazonClientFactory factory = new MockAmazonClientFactory();
 	
 	@Before
 	public void before() throws IOException{
-		mockClient = Mockito.mock(AmazonRDSClient.class);
+		mockClient = factory.createRDSClient();
 		config = TestHelper.createTestConfig("dev");
 		elasticSecurityGroup = new SecurityGroup().withGroupName("ec2-security-group-name").withOwnerId("123");
 		resources = new GeneratedResources();
 		resources.setElasticBeanstalkEC2SecurityGroup(elasticSecurityGroup);
-		databaseSecuritySetup = new DatabaseSecuritySetup(mockClient, config, resources);
+		databaseSecuritySetup = new DatabaseSecuritySetup(factory, config, resources);
 	}
 	
 	
@@ -206,7 +208,7 @@ public class DatabaseSecuritySetupTest {
 		when(mockClient.describeDBSecurityGroups(new DescribeDBSecurityGroupsRequest().withDBSecurityGroupName(config.getStackDatabaseSecurityGroupName()))).thenReturn(result);
 		
 		// Make the call
-		databaseSecuritySetup.setupDatabaseAllSecuityGroups();
+		databaseSecuritySetup.setupDatabaseAllSecurityGroups();
 		// Verify the expected calls
 		// Id gen db security group
 		CreateDBSecurityGroupRequest request = new CreateDBSecurityGroupRequest();

@@ -13,6 +13,7 @@ import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationOption
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
 import com.amazonaws.services.identitymanagement.model.ServerCertificateMetadata;
 import com.amazonaws.services.rds.model.DBInstance;
+import com.amazonaws.services.rds.model.DBParameterGroup;
 import com.amazonaws.services.rds.model.DBSecurityGroup;
 import com.amazonaws.services.sns.model.CreateTopicResult;
 
@@ -44,6 +45,7 @@ public class GeneratedResources {
 	private EnvironmentDescription repositoryEnvironment;
 	private EnvironmentDescription portalEnvironment;
 	private DomainStatus searchDomain;
+	private DBParameterGroup dbParameterGroup;
 	
 	/**
 	 * The search domain.
@@ -375,6 +377,20 @@ public class GeneratedResources {
 	 */
 	public void setStackConfigurationFileURL(URL stackConfigurationFileURL) {
 		this.stackConfigurationFileURL = stackConfigurationFileURL;
+	}
+
+	/**
+	 * @return the dbParameterGroup
+	 */
+	public DBParameterGroup getDbParameterGroup() {
+		return dbParameterGroup;
+	}
+
+	/**
+	 * @param dbParameterGroup the dbParameterGroup to set
+	 */
+	public void setDbParameterGroup(DBParameterGroup dbParameterGroup) {
+		this.dbParameterGroup = dbParameterGroup;
 	}
 
 

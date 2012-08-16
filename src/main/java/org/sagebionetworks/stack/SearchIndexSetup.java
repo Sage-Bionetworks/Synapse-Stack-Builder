@@ -9,29 +9,33 @@ import com.amazonaws.services.cloudsearch.model.CreateDomainResult;
 import com.amazonaws.services.cloudsearch.model.DescribeDomainsRequest;
 import com.amazonaws.services.cloudsearch.model.DescribeDomainsResult;
 import com.amazonaws.services.cloudsearch.model.DomainStatus;
+import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 /**
  * Setup the Cloud search index for this stack isntance.
  * @author John
  *
  */
-public class SearchIndexSetup {
+public class SearchIndexSetup implements ResourceProcessor {
 	
 	private static Logger log = Logger.getLogger(SearchIndexSetup.class.getName());
 	
 	AmazonCloudSearchClient client;
 	InputConfiguration config;
 	GeneratedResources resources;
-	public SearchIndexSetup(AmazonCloudSearchClient client,
+	public SearchIndexSetup(AmazonClientFactory factory,
 			InputConfiguration config, GeneratedResources resources) {
 		super();
-		this.client = client;
+		this.initialize(factory, config, resources);
+	}
+	
+	public void initialize(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+		this.client = factory.createCloudSearchClient();
 		this.config = config;
 		this.resources = resources;
 	}
 	
-	
-	public void setupSearch(){
+	public void setupResources() {
 		String domainName = config.getSearchIndexDomainName();
 		// Does this search domain exist?
 		DomainStatus domain = describeDomains();
@@ -45,8 +49,14 @@ public class SearchIndexSetup {
 			// It already exists
 			log.debug(String.format("Search index domain: '%1$s' already exists.", domainName));
 			this.resources.setSearchDomain(domain);
-		}
+		}		
+	}
+	
+	public void teardownResources() {
 		
+	}
+	
+	public void setupSearch(){
 	}
 	
 	private DomainStatus describeDomains(){

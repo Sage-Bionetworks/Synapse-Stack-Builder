@@ -11,6 +11,7 @@ import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 
 import static org.sagebionetworks.stack.Constants.*;
+import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 /**
  * Setup the MySQL database
@@ -18,7 +19,7 @@ import static org.sagebionetworks.stack.Constants.*;
  * @author John
  *
  */
-public class MySqlDatabaseSetup {
+public class MySqlDatabaseSetup implements ResourceProcessor {
 	
 	private static Logger log = Logger.getLogger(MySqlDatabaseSetup.class.getName());
 	
@@ -30,15 +31,26 @@ public class MySqlDatabaseSetup {
 	 * @param client
 	 * @param config
 	 */
-	public MySqlDatabaseSetup(AmazonRDSClient client, InputConfiguration config, GeneratedResources resources) {
-		if(client == null) throw new IllegalArgumentException("AmazonRDSClient cannot be null");
+	public MySqlDatabaseSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+		this.initialize(factory, config, resources);
+	}
+
+	public void initialize(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+		if(factory == null) throw new IllegalArgumentException("AmazonClientFactory cannot be null");
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
-		this.client = client;
+		this.client = factory.createRDSClient();
 		this.config = config;
 		this.resources = resources;
 	}
-
+	
+	public void setupResources() {
+		this.setupAllDatabaseInstances();
+	}
+	
+	public void teardownResources() {
+		
+	}
 
 	/**
 	 * Create all database instances if they do not already exist.

@@ -35,7 +35,7 @@ import com.amazonaws.services.s3.model.PutObjectResult;
  * @author jmhill
  *
  */
-public class EC2SecuritySetup {
+public class EC2SecuritySetup implements ResourceProcessor {
 	
 	private static Logger log = Logger.getLogger(EC2SecuritySetup.class.getName());
 	
@@ -51,6 +51,10 @@ public class EC2SecuritySetup {
 	 */
 	public EC2SecuritySetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
 		super();
+		initialize(factory, config, resources);
+	}
+	
+	public void initialize(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
 		if(factory == null) throw new IllegalArgumentException("AmazonClientFactory cannot be null");
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
@@ -59,7 +63,7 @@ public class EC2SecuritySetup {
 		this.config = config;
 		this.resources = resources;
 	}
-
+	
 	/**
 	 * Create the EC2 security group that all elastic beanstalk instances will belong to.
 	 * 
@@ -69,7 +73,7 @@ public class EC2SecuritySetup {
 	 * @param cidrForSSH - The classless inter-domain routing to be used for SSH access to these machines.
 	 * @return
 	 */
-	public SecurityGroup setupElasticBeanstalkEC2SecutiryGroup(){
+	public void setupResources() {
 		CreateSecurityGroupRequest request = new CreateSecurityGroupRequest();
 		request.setDescription(config.getElasticSecurityGroupDescription());
 		request.setGroupName(config.getElasticSecurityGroupName());
@@ -90,8 +94,10 @@ public class EC2SecuritySetup {
 		
 		// Create the key pair.
 		resources.setStackKeyPair(createOrGetKeyPair());
+	}
+	
+	public void teardownResources() {
 		
-		return group;
 	}
 	
 	/**

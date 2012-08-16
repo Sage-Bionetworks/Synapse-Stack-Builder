@@ -17,6 +17,7 @@ import com.amazonaws.services.cloudwatch.model.Dimension;
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
 import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.sns.model.CreateTopicResult;
+import org.sagebionetworks.factory.MockAmazonClientFactory;
 
 /**
  * Test for the AlarmSetup.
@@ -33,6 +34,7 @@ public class AlarmSetupTest {
 	AmazonCloudWatchClient mockClient;
 	AlarmSetup setup;
 	GeneratedResources resources;
+	MockAmazonClientFactory factory = new MockAmazonClientFactory();
 	
 	
 	@Before
@@ -43,12 +45,12 @@ public class AlarmSetupTest {
 		dbInstance.setAllocatedStorage(10);
 		topicArn = "arn:123:456";
 		config = TestHelper.createTestConfig("dev");
-		mockClient = Mockito.mock(AmazonCloudWatchClient.class);
+		mockClient = factory.createCloudWatchClient();
 		resources = new GeneratedResources();
 		resources.setRdsAlertTopic(new CreateTopicResult().withTopicArn(topicArn));
 		resources.setStackInstancesDatabase(new DBInstance().withAllocatedStorage(50).withDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL).withDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier()));
 		resources.setIdGeneratorDatabase(new DBInstance().withAllocatedStorage(10).withDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL).withDBInstanceIdentifier(config.getIdGeneratorDatabaseIdentifier()));
-		setup = new AlarmSetup(mockClient, config, resources);
+		setup = new AlarmSetup(factory, config, resources);
 	}
 	
 	@Test

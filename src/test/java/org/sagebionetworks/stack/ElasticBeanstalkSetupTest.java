@@ -13,6 +13,7 @@ import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionSetting;
+import org.sagebionetworks.factory.MockAmazonClientFactory;
 
 public class ElasticBeanstalkSetupTest {
 	
@@ -21,13 +22,14 @@ public class ElasticBeanstalkSetupTest {
 	AWSElasticBeanstalkClient mockClient;
 	ElasticBeanstalkSetup setup;
 	GeneratedResources resources;
+	MockAmazonClientFactory factory = new MockAmazonClientFactory();
 
 	@Before
 	public void before() throws IOException {
-		mockClient = Mockito.mock(AWSElasticBeanstalkClient.class);
+		mockClient = factory.createBeanstalkClient();
 		config = TestHelper.createTestConfig("dev");
 		resources = TestHelper.createTestResources(config);
-		setup = new ElasticBeanstalkSetup(mockClient, config, resources);
+		setup = new ElasticBeanstalkSetup(factory, config, resources);
 	}
 	
 	@Test

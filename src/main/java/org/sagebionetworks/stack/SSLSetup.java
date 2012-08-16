@@ -28,7 +28,7 @@ import com.amazonaws.services.s3.model.S3Object;
  * @author John
  *
  */
-public class SSLSetup {
+public class SSLSetup implements ResourceProcessor {
 	
 	private static Logger log = Logger.getLogger(SSLSetup.class);
 	
@@ -43,15 +43,26 @@ public class SSLSetup {
 	 * @param config
 	 * @param resources
 	 */
-	public SSLSetup(AmazonClientFactory factory,
-			InputConfiguration config, GeneratedResources resources) {
+	public SSLSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
 		super();
+		this.initialize(factory, config, resources);
+	}
+
+	public void initialize(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
 		this.iamClient = factory.createIdentityManagementClient();
 		this.s3Client = factory.createS3Client();
 		this.config = config;
 		this.resources = resources;
 	}
 	
+	public void setupResources() {
+		this.setupSSLCertificate();
+	}
+	
+	public void teardownResources() {
+		
+	}
+
 	/**
 	 * Setup the SSL certificate.
 	 */

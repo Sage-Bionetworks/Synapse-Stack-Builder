@@ -11,6 +11,7 @@ import com.amazonaws.services.cloudwatch.model.ComparisonOperator;
 import com.amazonaws.services.cloudwatch.model.Dimension;
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
 import com.amazonaws.services.rds.model.DBInstance;
+import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 /**
  * Setups the various cloud watch alarms.
@@ -18,7 +19,7 @@ import com.amazonaws.services.rds.model.DBInstance;
  * @author John
  *
  */
-public class AlarmSetup {
+public class AlarmSetup implements ResourceProcessor {
 	
 
 	private static Logger log = Logger.getLogger(AlarmSetup.class.getName());
@@ -32,18 +33,30 @@ public class AlarmSetup {
 	 * @param client
 	 * @param config
 	 */
-	public AlarmSetup(AmazonCloudWatchClient client, InputConfiguration config, GeneratedResources resources) {
-		if(client == null) throw new IllegalArgumentException("AmazonCloudWatchClient cannot be null");
+	public AlarmSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+		this.initialize(factory, config, resources);
+	}
+	
+	public void initialize(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+		if(factory == null) throw new IllegalArgumentException("AmazonClientFactory cannot be null");
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
 		if(resources.getRdsAlertTopic() == null) throw new IllegalArgumentException("GeneratedResources.getRdsAlertTopic() cannot be null");
 		if(resources.getIdGeneratorDatabase() == null) throw new IllegalArgumentException("GeneratedResources.getIdGeneratorDatabase() cannot be null");
 		if(resources.getStackInstancesDatabase() == null) throw new IllegalArgumentException("GeneratedResources.getStackInstancesDatabase() cannot be null");
-		this.client = client;
+		this.client = factory.createCloudWatchClient();
 		this.config = config;
 		this.resources = resources;
 	}
 	
+	public void setupResources() {
+		this.setupAllAlarms();
+	}
+	
+	public void teardownResources() {
+		
+	}
+
 	/**
 	 * Setup all alarms.
 	 */

@@ -14,6 +14,7 @@ import com.amazonaws.services.rds.model.CreateDBSecurityGroupRequest;
 import com.amazonaws.services.rds.model.DBSecurityGroup;
 import com.amazonaws.services.rds.model.DescribeDBSecurityGroupsRequest;
 import com.amazonaws.services.rds.model.DescribeDBSecurityGroupsResult;
+import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 /**
  * Setup the Database security groups.
@@ -21,7 +22,7 @@ import com.amazonaws.services.rds.model.DescribeDBSecurityGroupsResult;
  * @author jmhill
  *
  */
-public class DatabaseSecuritySetup {
+public class DatabaseSecuritySetup implements ResourceProcessor {
 	
 	private static Logger log = Logger.getLogger(DatabaseSecuritySetup.class.getName());
 	
@@ -35,16 +36,27 @@ public class DatabaseSecuritySetup {
 	 * @param config
 	 * @param resources
 	 */
-	public DatabaseSecuritySetup(AmazonRDSClient rdsClient,
-			InputConfiguration config, GeneratedResources resources) {
+	public DatabaseSecuritySetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
 		super();
-		if(rdsClient == null) throw new IllegalArgumentException("AmazonEC2Client cannot be null");
+		initialize(factory, config, resources);
+	}
+
+	public void initialize(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+		if(factory == null) throw new IllegalArgumentException("AmazonClientFactory cannot be null");
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		if(resources == null) throw new IllegalArgumentException("SecurityGroup cannot be null");
 		if(resources.getElasticBeanstalkEC2SecurityGroup() == null) throw new IllegalArgumentException("The GeneratedResources.getElasticBeanstalkEC2SecurityGroup() cannot be null");
-		this.rdsClient = rdsClient;
+		this.rdsClient = factory.createRDSClient();
 		this.config = config;
 		this.resources = resources;
+	}
+	
+	public void setupResources() {
+		this.setupDatabaseAllSecurityGroups();
+	}
+	
+	public void teardownResources() {
+		
 	}
 
 	/**
@@ -54,7 +66,7 @@ public class DatabaseSecuritySetup {
 	 * @param elasticSecurityGroup 
 	 * @return
 	 */
-	public void setupDatabaseAllSecuityGroups(){
+	public void setupDatabaseAllSecurityGroups(){
 		// Create the ID generator security group
 		CreateDBSecurityGroupRequest request = new CreateDBSecurityGroupRequest();
 		request.setDBSecurityGroupDescription(config.getIdGeneratorDatabaseSecurityGroupDescription());
