@@ -62,7 +62,7 @@ public class ElasticBeanstalkSetupTest {
 			assertEquals("Values did not match for namespace: "+expectedCon.getNamespace()+" and option name: "+expectedCon.getOptionName(),expectedCon.getValue(), found.getValue());
 		}
 	}
-	
+
 	/**
 	 * Helper to find a configuration with a given namepaces and option name.
 	 * @param namespace

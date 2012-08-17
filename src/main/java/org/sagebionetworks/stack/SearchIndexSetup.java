@@ -6,6 +6,8 @@ import org.sagebionetworks.stack.config.InputConfiguration;
 import com.amazonaws.services.cloudsearch.AmazonCloudSearchClient;
 import com.amazonaws.services.cloudsearch.model.CreateDomainRequest;
 import com.amazonaws.services.cloudsearch.model.CreateDomainResult;
+import com.amazonaws.services.cloudsearch.model.DeleteDomainRequest;
+import com.amazonaws.services.cloudsearch.model.DeleteDomainResult;
 import com.amazonaws.services.cloudsearch.model.DescribeDomainsRequest;
 import com.amazonaws.services.cloudsearch.model.DescribeDomainsResult;
 import com.amazonaws.services.cloudsearch.model.DomainStatus;
@@ -53,7 +55,19 @@ public class SearchIndexSetup implements ResourceProcessor {
 	}
 	
 	public void teardownResources() {
-		
+		String domainName = config.getSearchIndexDomainName();
+		// Does this search domain exist?
+		DomainStatus domain = describeDomains();
+		if(domain == null){
+			// Report error
+			log.debug(String.format("Search index domain: '%1$s' does not exist!!!",domainName));
+		} else {
+			// Delete index domain
+			log.debug(String.format("Deleting index domain: '%1$s'...", domainName));
+			DeleteDomainResult result = client.deleteDomain(new DeleteDomainRequest().withDomainName(domainName));
+			this.resources.setSearchDomain(domain);
+			
+		}		
 	}
 	
 	public void setupSearch(){

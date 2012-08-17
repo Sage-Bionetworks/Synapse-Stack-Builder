@@ -7,6 +7,7 @@ import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.rds.model.CreateDBInstanceRequest;
 import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
+import com.amazonaws.services.rds.model.DeleteDBInstanceRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 
@@ -49,7 +50,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 	}
 	
 	public void teardownResources() {
-		
+		deleteStackDatabaseInstance();
 	}
 
 	/**
@@ -75,6 +76,26 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		log.debug("Database instance: ");
 		log.debug(stackInstance);
 		resources.setStackInstancesDatabase(stackInstance);
+	}
+
+	/*
+	 * Delete all stack instance database
+	 */
+
+	public void deleteStackDatabaseInstance() {
+		// Build the request to delete the stack instance database
+		DeleteDBInstanceRequest req = buildStackInstanceDeleteDBInstanceRequest();
+		DBInstance inst = null;
+		try {
+			inst = client.deleteDBInstance(req);
+		} catch (DBInstanceNotFoundException e) {
+			log.debug("Stack instance database not found!!!");
+		} finally {
+			if (inst != null) {
+				log.debug("Stack instance database status:" + inst.getDBInstanceStatus());
+			}
+		}
+		
 	}
 
 	/**
@@ -144,6 +165,26 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		request.setDBParameterGroupName(config.getDatabaseParameterGroupName());
 		// if this is a production stack
 		return request;
+	}
+
+	DeleteDBInstanceRequest buildStackInstanceDeleteDBInstanceRequest() {
+		DeleteDBInstanceRequest req = new DeleteDBInstanceRequest();
+		req.setDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier());
+		if (config.isProductionStack()) {
+			req.setSkipFinalSnapshot(Boolean.FALSE);
+			// TODO: Come up with better name for final snapshot
+			req.setFinalDBSnapshotIdentifier(config.getStack() + config.getStackInstance());
+		} else {
+			req.setSkipFinalSnapshot(Boolean.TRUE);
+		}
+		return req;
+		
+	}
+
+	DescribeDBInstancesRequest buildStackInstanceDescribeDBInstanceRequest() {
+		DescribeDBInstancesRequest req = new DescribeDBInstancesRequest();
+		req.setDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier());
+		return req;
 	}
 	
 	/**

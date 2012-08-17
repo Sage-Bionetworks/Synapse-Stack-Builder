@@ -50,7 +50,7 @@ public class AlarmSetup implements ResourceProcessor {
 	}
 	
 	public void setupResources() {
-		this.setupAllAlarms();
+		
 	}
 	
 	public void teardownResources() {
@@ -70,7 +70,7 @@ public class AlarmSetup implements ResourceProcessor {
 		instance = resources.getStackInstancesDatabase();
 		resources.setStackInstancesDatabaseAlarms(createAllAlarmsForDatabase(instance, topicArn));
 	}
-	
+
 	/**
 	 * Create all of the alarms for a given database.
 	 * @param databaseInstancesName
