@@ -99,7 +99,10 @@ public class EC2SecuritySetup implements ResourceProcessor {
 	public void teardownResources() {
 		
 	}
-	
+
+	public void gatherExistingResources() {
+	}
+
 	/**
 	 * Create the key par
 	 * @return

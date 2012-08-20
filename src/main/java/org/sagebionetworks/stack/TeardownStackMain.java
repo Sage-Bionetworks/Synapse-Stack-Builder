@@ -59,7 +59,7 @@ public class TeardownStackMain {
 		// Terminate environments
 		new ElasticBeanstalkSetup(factory, config, resources).teardownResources();
 		
-		// Don't think we should remove the SSL cert
+		// Don't deal with SSL cert now
 		
 		// Don't deal with artifacts now
 		
@@ -70,6 +70,13 @@ public class TeardownStackMain {
 		// Delete stack database instance
 		new MySqlDatabaseSetup(factory, config, resources).teardownResources();
 		
+		// Don't deal with DB security group now
+		
+		// Don't deal DB parameter group now
+		
+		// Don't deal with notification topic now
+		
+		// Don't deal with EC2 security group now
 		
 	}
 	/**

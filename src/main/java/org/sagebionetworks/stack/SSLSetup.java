@@ -13,6 +13,7 @@ import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
+import com.amazonaws.services.identitymanagement.model.DeleteServerCertificateRequest;
 import com.amazonaws.services.identitymanagement.model.ListServerCertificatesRequest;
 import com.amazonaws.services.identitymanagement.model.ListServerCertificatesResult;
 import com.amazonaws.services.identitymanagement.model.ServerCertificateMetadata;
@@ -60,7 +61,7 @@ public class SSLSetup implements ResourceProcessor {
 	}
 	
 	public void teardownResources() {
-		
+		this.deleteSSLCertificate();
 	}
 
 	/**
@@ -87,7 +88,25 @@ public class SSLSetup implements ResourceProcessor {
 		config.setSSLCertificateARN(meta.getArn());
 		resources.setSslCertificate(meta);
 	}
-	
+
+	/*
+	 * Delete the SSL certificate
+	 */
+	public void deleteSSLCertificate() {
+		ServerCertificateMetadata meta = findCertificate(config.getSSLCertificateName());
+		if (meta == null) {
+			// Just log
+			log.debug("Could not find SSL certificate metadata for" + config.getSSLCertificateName());
+		} else {
+			DeleteServerCertificateRequest request = new DeleteServerCertificateRequest();
+			request.setServerCertificateName(config.getSSLCertificateName());
+			iamClient.deleteServerCertificate(request);
+			meta = findCertificate(config.getSSLCertificateName());
+		}
+		if (meta != null) {
+			throw new IllegalStateException("Failed to delete the SSL certificate: "+config.getSSLCertificateName());
+		}
+	}
 	/**
 	 * Determine if the certificate already exists
 	 * @param certName

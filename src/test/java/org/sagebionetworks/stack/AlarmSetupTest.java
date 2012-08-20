@@ -17,6 +17,7 @@ import com.amazonaws.services.cloudwatch.model.Dimension;
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
 import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.sns.model.CreateTopicResult;
+import org.junit.Ignore;
 import org.sagebionetworks.factory.MockAmazonClientFactory;
 
 /**
@@ -136,7 +137,14 @@ public class AlarmSetupTest {
 		validateExpectedAlarms(config.getIdGeneratorDatabaseIdentifier(), resources.getIdGeneratorDatabaseAlarms());
 		validateExpectedAlarms(config.getStackInstanceDatabaseIdentifier(), resources.getStackInstancesDatabaseAlarms());
 	}
-	
+
+	@Ignore
+	@Test
+	public void testDeleteAllAlarms() {
+		setup.setupAllAlarms();
+		setup.deleteAllAlarmsForDatabase(dbInstance);
+	}
+
 	/**
 	 * Validate that all of the expected alarms are there.
 	 * @param expectedName

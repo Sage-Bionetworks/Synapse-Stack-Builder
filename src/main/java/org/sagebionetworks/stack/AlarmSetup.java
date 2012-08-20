@@ -8,9 +8,12 @@ import org.sagebionetworks.stack.config.InputConfiguration;
 import static org.sagebionetworks.stack.Constants.*;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 import com.amazonaws.services.cloudwatch.model.ComparisonOperator;
+import com.amazonaws.services.cloudwatch.model.DeleteAlarmsRequest;
 import com.amazonaws.services.cloudwatch.model.Dimension;
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
 import com.amazonaws.services.rds.model.DBInstance;
+import java.util.ArrayList;
+import java.util.Arrays;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 /**
@@ -50,7 +53,7 @@ public class AlarmSetup implements ResourceProcessor {
 	}
 	
 	public void setupResources() {
-		
+		this.setupAllAlarms();
 	}
 	
 	public void teardownResources() {
@@ -69,6 +72,18 @@ public class AlarmSetup implements ResourceProcessor {
 		// setup the alarms for the stack instances database.
 		instance = resources.getStackInstancesDatabase();
 		resources.setStackInstancesDatabaseAlarms(createAllAlarmsForDatabase(instance, topicArn));
+	}
+
+	/**
+	 * Delete all alarms.
+	 */
+	public void deleteAllAlarms(){
+		// setup the alarms for the id generator
+		DBInstance instance = resources.getIdGeneratorDatabase();
+		deleteAllAlarmsForDatabase(instance);
+		// setup the alarms for the stack instances database.
+		instance = resources.getStackInstancesDatabase();
+		deleteAllAlarmsForDatabase(instance);
 	}
 
 	/**
@@ -95,7 +110,19 @@ public class AlarmSetup implements ResourceProcessor {
 		}
 		return alarms;
 	}
-	
+
+	public void deleteAllAlarmsForDatabase(DBInstance instance) {
+		if (instance == null) throw new IllegalArgumentException("DBInstance cannpt be null");
+		
+		List<String> alarmsToDelete = Arrays.asList(
+				instance.getDBInstanceIdentifier()+LOW_FREEABLE_MEMORY_NAME,
+				instance.getDBInstanceIdentifier()+HIGH_WRITE_LATENCY,
+				instance.getDBInstanceIdentifier()+HIGH_CPU_UTILIZATION,
+				instance.getDBInstanceIdentifier()+LOW_FREE_STOREAGE_SPACE);
+		DeleteAlarmsRequest request = new DeleteAlarmsRequest().withAlarmNames(alarmsToDelete);
+		
+	}
+
 	/**
 	 * @param instances
 	 * @param topicArn

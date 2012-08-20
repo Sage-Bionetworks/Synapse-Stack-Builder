@@ -50,7 +50,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 	}
 	
 	public void teardownResources() {
-		deleteStackDatabaseInstance();
+		deleteStackInstanceDatabaseInstance();
 	}
 
 	/**
@@ -79,12 +79,27 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 	}
 
 	/*
-	 * Delete all stack instance database
+	 * Delete  Id genetator database
 	 */
 
-	public void deleteStackDatabaseInstance() {
+	public void deleteIdGeneratorDatabaseInstance() {
+		// Build the request to delete the stack instance database
+		DeleteDBInstanceRequest req = buildIdGeneratorDeleteDBInstanceRequest();
+		DBInstance inst = deleteDatabaseInstance(req);
+	}
+
+	/*
+	 * Delete  stack instance database
+	 */
+
+	public void deleteStackInstanceDatabaseInstance() {
 		// Build the request to delete the stack instance database
 		DeleteDBInstanceRequest req = buildStackInstanceDeleteDBInstanceRequest();
+		DBInstance inst = deleteDatabaseInstance(req);
+	}
+	
+
+	public DBInstance deleteDatabaseInstance(DeleteDBInstanceRequest req) {
 		DBInstance inst = null;
 		try {
 			inst = client.deleteDBInstance(req);
@@ -94,10 +109,9 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 			if (inst != null) {
 				log.debug("Stack instance database status:" + inst.getDBInstanceStatus());
 			}
+			return inst;
 		}
-		
 	}
-
 	/**
 	 * Build up the CreateDBInstanceRequest used to create the ID Generator database.
 	 * 
@@ -167,6 +181,20 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		return request;
 	}
 
+	DeleteDBInstanceRequest buildIdGeneratorDeleteDBInstanceRequest() {
+		DeleteDBInstanceRequest req = new DeleteDBInstanceRequest();
+		req.setDBInstanceIdentifier(config.getIdGeneratorDatabaseIdentifier());
+		if (config.isProductionStack()) {
+			req.setSkipFinalSnapshot(Boolean.FALSE);
+			// TODO: Come up with better name for final snapshot
+			req.setFinalDBSnapshotIdentifier(config.getStack() + config.getStackInstance());
+		} else {
+			req.setSkipFinalSnapshot(Boolean.TRUE);
+		}
+		return req;
+		
+	}
+
 	DeleteDBInstanceRequest buildStackInstanceDeleteDBInstanceRequest() {
 		DeleteDBInstanceRequest req = new DeleteDBInstanceRequest();
 		req.setDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier());
@@ -179,6 +207,12 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		}
 		return req;
 		
+	}
+
+	DescribeDBInstancesRequest buildIdGeneratorDescribeDBInstanceRequest() {
+		DescribeDBInstancesRequest req = new DescribeDBInstancesRequest();
+		req.setDBInstanceIdentifier(config.getIdGeneratorDatabaseIdentifier());
+		return req;
 	}
 
 	DescribeDBInstancesRequest buildStackInstanceDescribeDBInstanceRequest() {

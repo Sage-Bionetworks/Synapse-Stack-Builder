@@ -1,6 +1,7 @@
 package org.sagebionetworks.stack;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -24,6 +25,7 @@ import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.rds.model.CreateDBInstanceRequest;
 import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
+import com.amazonaws.services.rds.model.DeleteDBInstanceRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 import org.sagebionetworks.factory.MockAmazonClientFactory;
@@ -229,5 +231,63 @@ public class MySqlDatabaseSetupTest {
 		assertEquals(expected, request);
 	}
 	
+	@Test
+	public void testBuildIdGeneratorDeleteDBInstanceRequestProduction() throws IOException {
+		setupProductionConfig();
+		DeleteDBInstanceRequest expectedReq = new DeleteDBInstanceRequest();
+		expectedReq.setDBInstanceIdentifier(config.getIdGeneratorDatabaseIdentifier());
+		expectedReq.setSkipFinalSnapshot(Boolean.FALSE);
+		expectedReq.setFinalDBSnapshotIdentifier(config.getStack() + config.getStackInstance());
+		DeleteDBInstanceRequest req = databaseSetup.buildIdGeneratorDeleteDBInstanceRequest();
+		assertEquals(expectedReq, req);
+	}
 
+	@Test
+	public void testBuildIdGeneratorDeleteDBInstanceRequestNonProduction() throws IOException {
+		setupDevelopmentConfig();
+		DeleteDBInstanceRequest expectedReq = new DeleteDBInstanceRequest();
+		expectedReq.setDBInstanceIdentifier(config.getIdGeneratorDatabaseIdentifier());
+		expectedReq.setSkipFinalSnapshot(Boolean.TRUE);
+		DeleteDBInstanceRequest req = databaseSetup.buildIdGeneratorDeleteDBInstanceRequest();
+		assertEquals(expectedReq, req);
+	}
+	
+	@Test
+	public void testBuildStackInstanceDeleteDBInstanceRequestProduction() throws IOException {
+		setupProductionConfig();
+		DeleteDBInstanceRequest expectedReq = new DeleteDBInstanceRequest();
+		expectedReq.setDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier());
+		expectedReq.setSkipFinalSnapshot(Boolean.FALSE);
+		expectedReq.setFinalDBSnapshotIdentifier(config.getStack() + config.getStackInstance());
+		DeleteDBInstanceRequest req = databaseSetup.buildStackInstanceDeleteDBInstanceRequest();
+		assertEquals(expectedReq, req);
+	}
+
+	@Test
+	public void testBuildStackInstanceDeleteDBInstanceRequestNonProduction() throws IOException {
+		setupDevelopmentConfig();
+		DeleteDBInstanceRequest expectedReq = new DeleteDBInstanceRequest();
+		expectedReq.setDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier());
+		expectedReq.setSkipFinalSnapshot(Boolean.TRUE);
+		DeleteDBInstanceRequest req = databaseSetup.buildStackInstanceDeleteDBInstanceRequest();
+		assertEquals(expectedReq, req);
+	}
+	
+	@Test
+	public void testDeleteDatabaseInstanceDoesNotExist() {
+		// Should just be a no-op
+		DeleteDBInstanceRequest req = new DeleteDBInstanceRequest();
+		when(mockClient.deleteDBInstance(req)).thenThrow(new DBInstanceNotFoundException("Database instance does not exist"));
+		DBInstance inst = databaseSetup.deleteDatabaseInstance(req);
+		assertNull(inst);
+	}
+	
+	@Test
+	public void testDeleteDatabaseInstanceDoesExist() {
+		DeleteDBInstanceRequest req = new DeleteDBInstanceRequest();
+		req.setDBInstanceIdentifier("someDB");
+		when(mockClient.deleteDBInstance(req)).thenReturn(new DBInstance().withDBInstanceIdentifier("someDB"));
+		DBInstance inst = databaseSetup.deleteDatabaseInstance(req);
+		assertEquals(inst.getDBInstanceIdentifier(), "someDB");
+	}
 }
