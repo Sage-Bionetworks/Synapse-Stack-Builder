@@ -62,7 +62,7 @@ public class AlarmSetup implements ResourceProcessor {
 		
 	}
 	
-	public void gatherExistingResources() {
+	public void describeExistingResources() {
 		// This is the topic where all alarm notification are sent
 		String topicArn = resources.getRdsAlertTopic().getTopicArn();
 		// setup the alarms for the id generator

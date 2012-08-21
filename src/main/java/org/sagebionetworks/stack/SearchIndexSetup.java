@@ -54,6 +54,7 @@ public class SearchIndexSetup implements ResourceProcessor {
 		}		
 	}
 	
+	// TODO: Refactor to use resources
 	public void teardownResources() {
 		String domainName = config.getSearchIndexDomainName();
 		// Does this search domain exist?
@@ -68,6 +69,14 @@ public class SearchIndexSetup implements ResourceProcessor {
 			this.resources.setSearchDomain(domain);
 			
 		}		
+	}
+	
+	public void describeResources() {
+		String domainName = config.getSearchIndexDomainName();
+		DomainStatus domain = describeDomains();
+		if (domain != null) {
+			this.resources.setSearchDomain(domain);
+		}
 	}
 	
 	public void setupSearch(){

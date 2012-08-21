@@ -101,7 +101,7 @@ public class EC2SecuritySetup implements ResourceProcessor {
 		
 	}
 
-	public void gatherExistingResources() {
+	public void describeExistingResources() {
 		DescribeSecurityGroupsRequest req = new DescribeSecurityGroupsRequest();
 		req.setGroupNames(Arrays.asList(config.getElasticSecurityGroupName()));
 		DescribeSecurityGroupsResult res = ec2Client.describeSecurityGroups(req);

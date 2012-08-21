@@ -12,6 +12,7 @@ import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.rds.model.AuthorizeDBSecurityGroupIngressRequest;
 import com.amazonaws.services.rds.model.CreateDBSecurityGroupRequest;
 import com.amazonaws.services.rds.model.DBSecurityGroup;
+import com.amazonaws.services.rds.model.DeleteDBSecurityGroupRequest;
 import com.amazonaws.services.rds.model.DescribeDBSecurityGroupsRequest;
 import com.amazonaws.services.rds.model.DescribeDBSecurityGroupsResult;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
@@ -56,7 +57,34 @@ public class DatabaseSecuritySetup implements ResourceProcessor {
 	}
 	
 	public void teardownResources() {
+		DeleteDBSecurityGroupRequest req;
+
+		if (resources.getIdGeneratorDatabaseSecurityGroup() != null) {
+			req = new DeleteDBSecurityGroupRequest().withDBSecurityGroupName(config.getIdGeneratorDatabaseSecurityGroupName());
+			rdsClient.deleteDBSecurityGroup(req);
+			resources.setIdGeneratorDatabaseSecurityGroup(null);
+		}
+		if (resources.getIdGeneratorDatabaseSecurityGroup() != null) {
+			req = new DeleteDBSecurityGroupRequest().withDBSecurityGroupName(config.getStackDatabaseSecurityGroupName());
+			rdsClient.deleteDBSecurityGroup(req);
+			resources.setStackInstancesDatabaseSecurityGroup(null);
+		}
+	}
+	
+	public void describeExistingResources() {
+		DescribeDBSecurityGroupsRequest req;
+		DescribeDBSecurityGroupsResult res;
 		
+		req = new DescribeDBSecurityGroupsRequest().withDBSecurityGroupName(config.getIdGeneratorDatabaseSecurityGroupName());
+		res = rdsClient.describeDBSecurityGroups(req);
+		if ((res.getDBSecurityGroups() != null) && (res.getDBSecurityGroups().size() == 1)) {
+			resources.setIdGeneratorDatabaseSecurityGroup(res.getDBSecurityGroups().get(0));
+		}
+		req = new DescribeDBSecurityGroupsRequest().withDBSecurityGroupName(config.getStackDatabaseSecurityGroupName());
+		res = rdsClient.describeDBSecurityGroups(req);
+		if ((res.getDBSecurityGroups() != null) && (res.getDBSecurityGroups().size() == 1)) {
+			resources.setStackInstancesDatabaseSecurityGroup(res.getDBSecurityGroups().get(0));
+		}
 	}
 
 	/**

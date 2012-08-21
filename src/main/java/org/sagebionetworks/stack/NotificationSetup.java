@@ -11,6 +11,7 @@ import com.amazonaws.services.sns.model.CreateTopicRequest;
 import com.amazonaws.services.sns.model.CreateTopicResult;
 import com.amazonaws.services.sns.model.ListSubscriptionsByTopicRequest;
 import com.amazonaws.services.sns.model.ListSubscriptionsByTopicResult;
+import com.amazonaws.services.sns.model.ListTopicsRequest;
 import com.amazonaws.services.sns.model.SubscribeRequest;
 import com.amazonaws.services.sns.model.SubscribeResult;
 import com.amazonaws.services.sns.model.Subscription;
@@ -55,6 +56,9 @@ public class NotificationSetup implements ResourceProcessor {
 	
 	public void teardownResources() {
 		
+	}
+	
+	public void describeExistingResources() {
 	}
 	/**
 	 * Create The Notification topic.

@@ -16,6 +16,7 @@ import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.rds.model.ApplyMethod;
 import com.amazonaws.services.rds.model.CreateDBParameterGroupRequest;
 import com.amazonaws.services.rds.model.DBParameterGroup;
+import com.amazonaws.services.rds.model.DeleteDBParameterGroupRequest;
 import com.amazonaws.services.rds.model.DescribeDBParameterGroupsRequest;
 import com.amazonaws.services.rds.model.DescribeDBParameterGroupsResult;
 import com.amazonaws.services.rds.model.DescribeDBParametersRequest;
@@ -63,12 +64,24 @@ public class DatabaseParameterGroup implements ResourceProcessor {
 	}
 	
 	public void teardownResources() {
-		
+		if (resources.getDbParameterGroup() != null) {
+			DeleteDBParameterGroupRequest req;
+			req = new DeleteDBParameterGroupRequest().withDBParameterGroupName(config.getDatabaseParameterGroupName());
+			client.deleteDBParameterGroup(req);
+			resources.setDbParameterGroup(null);
+		}
 	}
 
 	
-	public void gatherAllResources() {
+	public void describeAllResources() {
+		DescribeDBParameterGroupsRequest req;
+		DescribeDBParameterGroupsResult res;
 		
+		req = new DescribeDBParameterGroupsRequest().withDBParameterGroupName(config.getDatabaseParameterGroupName());
+		res = client.describeDBParameterGroups(req);
+		if ((res.getDBParameterGroups() != null) && (res.getDBParameterGroups().size() == 1)) {
+			resources.setDbParameterGroup(res.getDBParameterGroups().get(0));
+		}
 	}
 	
 	/**
