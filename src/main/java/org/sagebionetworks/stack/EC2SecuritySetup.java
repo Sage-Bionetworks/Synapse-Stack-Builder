@@ -28,6 +28,7 @@ import com.amazonaws.services.ec2.model.SecurityGroup;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
+import java.util.Arrays;
 
 /**
  * Setup the security used by the rest of the stack.
@@ -101,6 +102,18 @@ public class EC2SecuritySetup implements ResourceProcessor {
 	}
 
 	public void gatherExistingResources() {
+		DescribeSecurityGroupsRequest req = new DescribeSecurityGroupsRequest();
+		req.setGroupNames(Arrays.asList(config.getElasticSecurityGroupName()));
+		DescribeSecurityGroupsResult res = ec2Client.describeSecurityGroups(req);
+		if ((res.getSecurityGroups() != null) && res.getSecurityGroups().size() == 1) {
+			SecurityGroup grp = res.getSecurityGroups().get(0);
+			resources.setElasticBeanstalkEC2SecurityGroup(grp);
+			String kpName = config.getStackKeyPairName();
+			KeyPairInfo inf = describeKeyPair();
+			if (inf != null) {
+				resources.setStackKeyPair(inf);
+			}
+		}
 	}
 
 	/**
@@ -109,7 +122,7 @@ public class EC2SecuritySetup implements ResourceProcessor {
 	 */
 	public KeyPairInfo createOrGetKeyPair(){
 		String name =config.getStackKeyPairName();
-		KeyPairInfo info = describKeyPair();
+		KeyPairInfo info = describeKeyPair();
 		if(info == null){
 			log.debug("Creating the Stack KeyPair: "+name+" for the first time");
 			CreateKeyPairResult kpResult = ec2Client.createKeyPair(new CreateKeyPairRequest(name));
@@ -139,7 +152,7 @@ public class EC2SecuritySetup implements ResourceProcessor {
 			}
 			
 			
-			return describKeyPair();
+			return describeKeyPair();
 		}else{
 			log.debug("Stack KeyPair: "+name+" already exists");
 			return info;
@@ -152,7 +165,7 @@ public class EC2SecuritySetup implements ResourceProcessor {
 	 * 
 	 * @return
 	 */
-	public KeyPairInfo describKeyPair(){
+	public KeyPairInfo describeKeyPair(){
 		String name =config.getStackKeyPairName();
 		try{
 			DescribeKeyPairsResult result =ec2Client.describeKeyPairs(new DescribeKeyPairsRequest().withKeyNames(name));

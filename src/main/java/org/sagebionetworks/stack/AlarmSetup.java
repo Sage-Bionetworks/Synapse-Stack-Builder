@@ -9,6 +9,8 @@ import static org.sagebionetworks.stack.Constants.*;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 import com.amazonaws.services.cloudwatch.model.ComparisonOperator;
 import com.amazonaws.services.cloudwatch.model.DeleteAlarmsRequest;
+import com.amazonaws.services.cloudwatch.model.DescribeAlarmsRequest;
+import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult;
 import com.amazonaws.services.cloudwatch.model.Dimension;
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
 import com.amazonaws.services.rds.model.DBInstance;
@@ -59,29 +61,46 @@ public class AlarmSetup implements ResourceProcessor {
 	public void teardownResources() {
 		
 	}
+	
+	public void gatherExistingResources() {
+		// This is the topic where all alarm notification are sent
+		String topicArn = resources.getRdsAlertTopic().getTopicArn();
+		// setup the alarms for the id generator
+		DBInstance instance = resources.getIdGeneratorDatabase();
+		resources.setIdGeneratorDatabaseAlarms(getAllAlarmsForDatabase(instance));
+		// setup the alarms for the stack instances database.
+		instance = resources.getStackInstancesDatabase();
+		resources.setStackInstancesDatabaseAlarms(getAllAlarmsForDatabase(instance));
+	}
 
 	/**
 	 * Setup all alarms.
 	 */
 	public void setupAllAlarms(){
+		List<PutMetricAlarmRequest> l;
+		DescribeAlarmsResult r;
 		// This is the topic where all alarm notification are sent
 		String topicArn = resources.getRdsAlertTopic().getTopicArn();
 		// setup the alarms for the id generator
 		DBInstance instance = resources.getIdGeneratorDatabase();
-		resources.setIdGeneratorDatabaseAlarms(createAllAlarmsForDatabase(instance, topicArn));
+		l = createAllAlarmsForDatabase(instance, topicArn);
+		r = getAllAlarmsForDatabase(instance);
+		resources.setIdGeneratorDatabaseAlarms(r);
 		// setup the alarms for the stack instances database.
 		instance = resources.getStackInstancesDatabase();
-		resources.setStackInstancesDatabaseAlarms(createAllAlarmsForDatabase(instance, topicArn));
+		l = createAllAlarmsForDatabase(instance, topicArn);
+		r = getAllAlarmsForDatabase(instance);
+		resources.setStackInstancesDatabaseAlarms(r);
 	}
 
 	/**
 	 * Delete all alarms.
 	 */
 	public void deleteAllAlarms(){
-		// setup the alarms for the id generator
+		// Delete the alarms for the id generator
 		DBInstance instance = resources.getIdGeneratorDatabase();
 		deleteAllAlarmsForDatabase(instance);
-		// setup the alarms for the stack instances database.
+		// Delete the alarms for the stack instances database.
 		instance = resources.getStackInstancesDatabase();
 		deleteAllAlarmsForDatabase(instance);
 	}
@@ -120,7 +139,20 @@ public class AlarmSetup implements ResourceProcessor {
 				instance.getDBInstanceIdentifier()+HIGH_CPU_UTILIZATION,
 				instance.getDBInstanceIdentifier()+LOW_FREE_STOREAGE_SPACE);
 		DeleteAlarmsRequest request = new DeleteAlarmsRequest().withAlarmNames(alarmsToDelete);
+		client.deleteAlarms(request);
+	}
+	
+	public DescribeAlarmsResult getAllAlarmsForDatabase(DBInstance instance) {
+		if (instance == null) throw new IllegalArgumentException("DBInstance cannpt be null");
 		
+		List<String> alarmsToDescribe = Arrays.asList(
+				instance.getDBInstanceIdentifier()+LOW_FREEABLE_MEMORY_NAME,
+				instance.getDBInstanceIdentifier()+HIGH_WRITE_LATENCY,
+				instance.getDBInstanceIdentifier()+HIGH_CPU_UTILIZATION,
+				instance.getDBInstanceIdentifier()+LOW_FREE_STOREAGE_SPACE);
+		DescribeAlarmsRequest req = new DescribeAlarmsRequest().withAlarmNames(alarmsToDescribe);
+		DescribeAlarmsResult res = client.describeAlarms(req);
+		return res;
 	}
 
 	/**

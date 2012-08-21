@@ -4,6 +4,7 @@ import java.net.URL;
 import java.util.List;
 
 import com.amazonaws.services.cloudsearch.model.DomainStatus;
+import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult;
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
 import com.amazonaws.services.ec2.model.KeyPairInfo;
 import com.amazonaws.services.ec2.model.SecurityGroup;
@@ -31,8 +32,8 @@ public class GeneratedResources {
 	private DBSecurityGroup stackInstancesDatabaseSecurityGroup;
 	private DBInstance idGeneratorDatabase;
 	private DBInstance stackInstancesDatabase;
-	private List<PutMetricAlarmRequest> idGeneratorDatabaseAlarms;
-	private List<PutMetricAlarmRequest> stackInstancesDatabaseAlarms;
+	private DescribeAlarmsResult idGeneratorDatabaseAlarms;
+	private DescribeAlarmsResult stackInstancesDatabaseAlarms;
 	private URL stackConfigurationFileURL;
 	private ApplicationDescription elasticBeanstalkApplication;
 	private ApplicationVersionDescription portalApplicationVersion;
@@ -334,7 +335,7 @@ public class GeneratedResources {
 	 * The list of alarms applied to the ID Generator database.
 	 * @return
 	 */
-	public List<PutMetricAlarmRequest> getIdGeneratorDatabaseAlarms() {
+	public DescribeAlarmsResult getIdGeneratorDatabaseAlarms() {
 		return idGeneratorDatabaseAlarms;
 	}
 
@@ -342,7 +343,7 @@ public class GeneratedResources {
 	 * The list of alarms applied to the ID Generator database.
 	 * @param idGeneratorDatabaseAlarms
 	 */
-	public void setIdGeneratorDatabaseAlarms(List<PutMetricAlarmRequest> idGeneratorDatabaseAlarms) {
+	public void setIdGeneratorDatabaseAlarms(DescribeAlarmsResult idGeneratorDatabaseAlarms) {
 		this.idGeneratorDatabaseAlarms = idGeneratorDatabaseAlarms;
 	}
 
@@ -350,7 +351,7 @@ public class GeneratedResources {
 	 * The list of Alarms applied to the stack instances database.
 	 * @return
 	 */
-	public List<PutMetricAlarmRequest> getStackInstancesDatabaseAlarms() {
+	public DescribeAlarmsResult getStackInstancesDatabaseAlarms() {
 		return stackInstancesDatabaseAlarms;
 	}
 
@@ -359,7 +360,7 @@ public class GeneratedResources {
 	 * @param stackInstancesDatabaseAlarms
 	 */
 	public void setStackInstancesDatabaseAlarms(
-			List<PutMetricAlarmRequest> stackInstancesDatabaseAlarms) {
+			DescribeAlarmsResult stackInstancesDatabaseAlarms) {
 		this.stackInstancesDatabaseAlarms = stackInstancesDatabaseAlarms;
 	}
 

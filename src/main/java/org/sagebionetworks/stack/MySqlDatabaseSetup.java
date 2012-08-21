@@ -52,6 +52,22 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 	public void teardownResources() {
 		deleteStackInstanceDatabaseInstance();
 	}
+	
+	public void gatherExistingResources() {
+		DescribeDBInstancesRequest req;
+		DescribeDBInstancesResult res;
+		
+		req = buildIdGeneratorDescribeDBInstanceRequest();
+		res = client.describeDBInstances(req);
+		if ((res.getDBInstances() != null) && (res.getDBInstances().size() == 1)) {
+			resources.setIdGeneratorDatabase(res.getDBInstances().get(0));
+		}
+		req = buildStackInstanceDescribeDBInstanceRequest();
+		res = client.describeDBInstances(req);
+		if ((res.getDBInstances() != null) && (res.getDBInstances().size() == 1)) {
+			resources.setStackInstancesDatabase(res.getDBInstances().get(0));
+		}
+	}
 
 	/**
 	 * Create all database instances if they do not already exist.
@@ -77,7 +93,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		log.debug(stackInstance);
 		resources.setStackInstancesDatabase(stackInstance);
 	}
-
+	
 	/*
 	 * Delete  Id genetator database
 	 */

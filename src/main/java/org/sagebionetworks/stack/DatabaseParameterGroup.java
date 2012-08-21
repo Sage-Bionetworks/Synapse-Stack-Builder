@@ -65,6 +65,11 @@ public class DatabaseParameterGroup implements ResourceProcessor {
 	public void teardownResources() {
 		
 	}
+
+	
+	public void gatherAllResources() {
+		
+	}
 	
 	/**
 	 * Setup the DB parameter group with all of the values we want to use.
