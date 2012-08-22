@@ -68,6 +68,10 @@ public class StackConfigurationSetup {
 	public void teardownResources() {
 		
 	}
+	
+	public void describeResources() {
+		
+	}
 
 	/**
 	 * Builds and uploads the Stack configuration file used by the beanstalk instances.

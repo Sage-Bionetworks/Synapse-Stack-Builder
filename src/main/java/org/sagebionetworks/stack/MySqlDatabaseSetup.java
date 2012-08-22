@@ -53,7 +53,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		deleteStackInstanceDatabaseInstance();
 	}
 	
-	public void describeExistingResources() {
+	public void describeResources() {
 		DescribeDBInstancesRequest req;
 		DescribeDBInstancesResult res;
 		

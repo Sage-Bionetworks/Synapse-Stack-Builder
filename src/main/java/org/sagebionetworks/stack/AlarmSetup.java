@@ -62,7 +62,7 @@ public class AlarmSetup implements ResourceProcessor {
 		
 	}
 	
-	public void describeExistingResources() {
+	public void describeResources() {
 		// This is the topic where all alarm notification are sent
 		String topicArn = resources.getRdsAlertTopic().getTopicArn();
 		// setup the alarms for the id generator
@@ -124,7 +124,7 @@ public class AlarmSetup implements ResourceProcessor {
 		alarms.add(createLowFreeStorage(instances, topicArn));
 		// Add all alarms from the lsit
 		for(PutMetricAlarmRequest alarm: alarms){
-			log.info("Creating or updateing alarm: "+alarm);
+			log.info("Creating or updating alarm: "+alarm);
 			client.putMetricAlarm(alarm);
 		}
 		return alarms;

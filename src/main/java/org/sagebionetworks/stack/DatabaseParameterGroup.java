@@ -73,7 +73,7 @@ public class DatabaseParameterGroup implements ResourceProcessor {
 	}
 
 	
-	public void describeAllResources() {
+	public void describeResources() {
 		DescribeDBParameterGroupsRequest req;
 		DescribeDBParameterGroupsResult res;
 		

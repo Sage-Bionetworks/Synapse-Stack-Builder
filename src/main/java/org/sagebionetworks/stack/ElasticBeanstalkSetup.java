@@ -81,6 +81,10 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	public void teardownResources() {
 		this.terminateAllEnvironments();
 	}
+	
+	public void describeResources() {
+		
+	}
 
 	/**
 	 * Create the environments

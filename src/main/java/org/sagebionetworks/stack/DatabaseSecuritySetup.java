@@ -71,7 +71,7 @@ public class DatabaseSecuritySetup implements ResourceProcessor {
 		}
 	}
 	
-	public void describeExistingResources() {
+	public void describeResources() {
 		DescribeDBSecurityGroupsRequest req;
 		DescribeDBSecurityGroupsResult res;
 		

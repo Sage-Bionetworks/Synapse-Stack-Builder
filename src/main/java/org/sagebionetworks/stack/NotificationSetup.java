@@ -58,7 +58,7 @@ public class NotificationSetup implements ResourceProcessor {
 		
 	}
 	
-	public void describeExistingResources() {
+	public void describeResources() {
 	}
 	/**
 	 * Create The Notification topic.

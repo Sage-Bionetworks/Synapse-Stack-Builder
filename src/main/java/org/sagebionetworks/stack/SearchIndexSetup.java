@@ -55,6 +55,7 @@ public class SearchIndexSetup implements ResourceProcessor {
 	}
 	
 	// TODO: Refactor to use resources
+	// TODO: Should we handle case where resource is inconsistent with service?
 	public void teardownResources() {
 		String domainName = config.getSearchIndexDomainName();
 		// Does this search domain exist?
@@ -66,9 +67,8 @@ public class SearchIndexSetup implements ResourceProcessor {
 			// Delete index domain
 			log.debug(String.format("Deleting index domain: '%1$s'...", domainName));
 			DeleteDomainResult result = client.deleteDomain(new DeleteDomainRequest().withDomainName(domainName));
-			this.resources.setSearchDomain(domain);
-			
-		}		
+		}
+		this.resources.setSearchDomain(null);
 	}
 	
 	public void describeResources() {
@@ -84,7 +84,7 @@ public class SearchIndexSetup implements ResourceProcessor {
 	
 	private DomainStatus describeDomains(){
 		DescribeDomainsResult result = client.describeDomains(new DescribeDomainsRequest().withDomainNames(config.getSearchIndexDomainName()));
-		if(result.getDomainStatusList().size() == 1) return result.getDomainStatusList().get(0);
+		if((result != null) && (result.getDomainStatusList().size() == 1)) return result.getDomainStatusList().get(0);
 		return null;
 	}
 
