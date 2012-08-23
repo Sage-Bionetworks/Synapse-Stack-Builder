@@ -40,8 +40,8 @@ public class TeardownStackMain {
 			AmazonClientFactory factory = new AmazonClientFactoryImpl();
 
 			GeneratedResources resources = describeStack(input, factory);
-			// Teardown the configuration
-			//teardownStack(input, factory, resources);
+			
+			teardownStack(input, factory, resources);
 
 		} catch (Throwable e) {
 			log.error("Terminating: ", e);
@@ -84,12 +84,12 @@ public class TeardownStackMain {
 		// Add all of the the alarms
 		new AlarmSetup(factory, config, resources).describeResources();
 
-		// Create the configuration file and upload it S3
-		new StackConfigurationSetup(factory, config, resources).describeResources();
+//		// Create the configuration file and upload it S3
+//		new StackConfigurationSetup(factory, config, resources).describeResources();
 
-//		// Process the artifacts
-//		new ArtifactProcessing(new DefaultHttpClient(), factory, config, resources).processArtifacts();
-//		
+		// Process the artifacts
+		new ArtifactProcessing(new DefaultHttpClient(), factory, config, resources).describeResources();
+		
 		// Setup the SSL certificates
 		new SSLSetup(factory, config, resources).describeResources();
 

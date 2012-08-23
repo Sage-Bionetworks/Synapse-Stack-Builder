@@ -50,7 +50,7 @@ public class AlarmSetupTest {
 		config = TestHelper.createTestConfig("dev");
 		mockClient = factory.createCloudWatchClient();
 		resources = new GeneratedResources();
-		resources.setRdsAlertTopic(new CreateTopicResult().withTopicArn(topicArn));
+		resources.setRdsAlertTopicArn(topicArn);
 		resources.setStackInstancesDatabase(new DBInstance().withAllocatedStorage(50).withDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL).withDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier()));
 		resources.setIdGeneratorDatabase(new DBInstance().withAllocatedStorage(10).withDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL).withDBInstanceIdentifier(config.getIdGeneratorDatabaseIdentifier()));
 		setup = new AlarmSetup(factory, config, resources);

@@ -125,6 +125,6 @@ public class NotificationSetupTest {
 		verify(mockClient, times(1)).createTopic(expectedTopic);
 		
 		// Make sure it was set the resources
-		assertEquals("The expected topic was not set in the resoruces",expectedResult, resources.getRdsAlertTopic());
+		assertEquals("The expected topic was not set in the resoruces",expectedResult.getTopicArn(), resources.getRdsAlertTopicArn());
 	}
 }

@@ -65,7 +65,13 @@ public class SSLSetup implements ResourceProcessor {
 	}
 	
 	public void describeResources() {
-		
+		ServerCertificateMetadata meta = findCertificate(config.getSSLCertificateName());
+		if (meta == null) {
+			throw new IllegalStateException("Failed to find or create the SSL certificate: "+config.getSSLCertificateName());
+		} else {
+			config.setSSLCertificateARN(meta.getArn());
+			resources.setSslCertificate(meta);
+		}		
 	}
 
 	/**
@@ -100,6 +106,7 @@ public class SSLSetup implements ResourceProcessor {
 		ServerCertificateMetadata meta = findCertificate(config.getSSLCertificateName());
 		if (meta == null) {
 			// Just log
+			// TODO: Or throw IllegalStateException?
 			log.debug("Could not find SSL certificate metadata for" + config.getSSLCertificateName());
 		} else {
 			DeleteServerCertificateRequest request = new DeleteServerCertificateRequest();

@@ -26,7 +26,7 @@ import com.amazonaws.services.sns.model.CreateTopicResult;
  */
 public class GeneratedResources {
 
-	private CreateTopicResult rdsAlertTopic;
+	private String rdsAlertTopicArn;
 	private SecurityGroup elasticBeanstalkEC2SecurityGroup;
 	private DBSecurityGroup idGeneratorDatabaseSecurityGroup;
 	private DBSecurityGroup stackInstancesDatabaseSecurityGroup;
@@ -253,16 +253,16 @@ public class GeneratedResources {
 	 * The topic used to notify when RDS alarms are triggered.
 	 * @return
 	 */
-	public CreateTopicResult getRdsAlertTopic() {
-		return rdsAlertTopic;
+	public String getRdsAlertTopicArn() {
+		return rdsAlertTopicArn;
 	}
 
 	/**
 	 * The topic used to notify when RDS alarms are triggered.
 	 * @param rdsAlertTopic
 	 */
-	public void setRdsAlertTopic(CreateTopicResult rdsAlertTopic) {
-		this.rdsAlertTopic = rdsAlertTopic;
+	public void setRdsAlertTopicArn(String rdsAlertTopicArn) {
+		this.rdsAlertTopicArn = rdsAlertTopicArn;
 	}
 
 	/**

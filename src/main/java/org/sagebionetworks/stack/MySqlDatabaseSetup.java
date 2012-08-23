@@ -97,7 +97,6 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 	/*
 	 * Delete  Id genetator database
 	 */
-
 	public void deleteIdGeneratorDatabaseInstance() {
 		// Build the request to delete the stack instance database
 		DeleteDBInstanceRequest req = buildIdGeneratorDeleteDBInstanceRequest();
@@ -107,7 +106,6 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 	/*
 	 * Delete  stack instance database
 	 */
-
 	public void deleteStackInstanceDatabaseInstance() {
 		// Build the request to delete the stack instance database
 		DeleteDBInstanceRequest req = buildStackInstanceDeleteDBInstanceRequest();

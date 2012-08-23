@@ -67,7 +67,6 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		if(resources.getAuthApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getAuthApplicationVersion() cannot be null");
 		if(resources.getPortalApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getPortalApplicationVersion() cannot be null");
 		if(resources.getRepoApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getReopApplicationVersion() cannot be null");
-		if(resources.getAuthApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getAuthApplicationVersion() cannot be null");
 		if(resources.getStackKeyPair() == null) throw new IllegalArgumentException("GeneratedResources.getStackKeyPair() cannot be null");
 		this.beanstalkClient = factory.createBeanstalkClient();
 		this.config = config;
@@ -83,7 +82,9 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	}
 	
 	public void describeResources() {
-		
+		resources.setAuthenticationEnvironment(describeEnvironment(config.getAuthEnvironmentName()));
+		resources.setPortalEnvironment(describeEnvironment(config.getPortalEnvironmentName()));
+		resources.setRepositoryEnvironment(describeEnvironment(config.getRepoEnvironmentName()));
 	}
 
 	/**
@@ -105,10 +106,10 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * Terminate the environments
 	 */
 	public void terminateAllEnvironments() {
-		this.terminateEnvironment(config.getAuthEnvironmentName());
-		this.terminateEnvironment(config.getPortalEnvironmentName());
-		this.terminateEnvironment(config.getRepoEnvironmentName());
-		this.deleteConfigurationTemplate();
+		this.terminateEnvironment(config.getAuthEnvironmentName(), config.getAuthEnvironmentCNAMEPrefix());
+		this.terminateEnvironment(config.getPortalEnvironmentName(), config.getPortalEnvironmentCNAMEPrefix());
+		this.terminateEnvironment(config.getRepoEnvironmentName(), config.getRepoEnvironmentCNAMEPrefix());
+//		this.deleteConfigurationTemplate();
 	}
 	/**
 	 * Create or get the Configuration template
@@ -237,14 +238,14 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	/**
 	 * Delete a single environment
 	 */
-	public void terminateEnvironment(String environmentName) {
+	public void terminateEnvironment(String environmentName, String environmentCName) {
 		EnvironmentDescription environment = describeEnvironment(environmentName);
 		if (environment == null) {
 			// Nothing to do except log
-			log.debug(String.format("Environment name: '%1$s' does not exist!!!",environmentName));
+			log.debug(String.format("Environment name: '%1$s' does not exist!!!", environmentName, environmentCName));
 		} else {
 			// Delete environment
-			log.debug(String.format("Terminating environment name: '%1$s' with CNAME: '%2$s' "));
+			log.debug(String.format("Terminating environment name: '%1$s' with CNAME: '%2$s' ", environmentName, environmentCName));
 			String environmentId = environment.getEnvironmentId();
 			TerminateEnvironmentRequest ter = new TerminateEnvironmentRequest().withEnvironmentId(environmentId).withTerminateResources(Boolean.TRUE);
 			TerminateEnvironmentResult terminateResult = beanstalkClient.terminateEnvironment(ter);
