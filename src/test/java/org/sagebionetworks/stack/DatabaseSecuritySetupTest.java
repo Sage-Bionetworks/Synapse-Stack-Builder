@@ -1,31 +1,35 @@
 package org.sagebionetworks.stack;
 
-import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.sagebionetworks.stack.Constants.ERROR_CODE_AUTHORIZATION_ALREADY_EXITS;
-import static org.sagebionetworks.stack.Constants.ERROR_CODE_DB_SECURITY_GROUP_ALREADY_EXISTS;
 
 import java.io.IOException;
 import java.util.Properties;
 
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
-import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
+import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult;
 import com.amazonaws.services.ec2.model.SecurityGroup;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.rds.model.AuthorizeDBSecurityGroupIngressRequest;
 import com.amazonaws.services.rds.model.CreateDBParameterGroupRequest;
 import com.amazonaws.services.rds.model.CreateDBSecurityGroupRequest;
 import com.amazonaws.services.rds.model.DBSecurityGroup;
+import com.amazonaws.services.rds.model.DeleteDBSecurityGroupRequest;
 import com.amazonaws.services.rds.model.DescribeDBSecurityGroupsRequest;
 import com.amazonaws.services.rds.model.DescribeDBSecurityGroupsResult;
+import java.util.Arrays;
+
+import static org.sagebionetworks.stack.Constants.ERROR_CODE_AUTHORIZATION_ALREADY_EXITS;
+import static org.sagebionetworks.stack.Constants.ERROR_CODE_DB_SECURITY_GROUP_ALREADY_EXISTS;
 import org.sagebionetworks.factory.MockAmazonClientFactory;
+import org.sagebionetworks.stack.config.InputConfiguration;
 
 public class DatabaseSecuritySetupTest {
 	
@@ -193,11 +197,44 @@ public class DatabaseSecuritySetupTest {
 		verify(mockClient, times(1)).createDBSecurityGroup(request);
 	}
 	
+	@Test
+	public void testDescribeSecurityGroupExists() {
+		DescribeDBSecurityGroupsRequest req = new DescribeDBSecurityGroupsRequest();
+		req.setDBSecurityGroupName("name");
+		when(mockClient.describeDBSecurityGroups(req)).thenReturn(new DescribeDBSecurityGroupsResult().withDBSecurityGroups(new DBSecurityGroup().withDBSecurityGroupName("name")));
+		DBSecurityGroup grp = databaseSecuritySetup.describeDBSecurityGroup("name");
+		assertEquals("name", grp.getDBSecurityGroupName());
+	}
+	
+	@Test
+	public void testDescribeResourcesExist() {
+		DescribeDBSecurityGroupsRequest reqIdGen = new DescribeDBSecurityGroupsRequest();
+		reqIdGen.setDBSecurityGroupName(config.getIdGeneratorDatabaseSecurityGroupName());
+		DescribeDBSecurityGroupsRequest reqStackInst = new DescribeDBSecurityGroupsRequest();
+		reqStackInst.setDBSecurityGroupName(config.getStackDatabaseSecurityGroupName());
+		when(mockClient.describeDBSecurityGroups(any(DescribeDBSecurityGroupsRequest.class))).thenReturn(
+				new DescribeDBSecurityGroupsResult().withDBSecurityGroups(new DBSecurityGroup().withDBSecurityGroupName(config.getIdGeneratorDatabaseSecurityGroupName())),
+				new DescribeDBSecurityGroupsResult().withDBSecurityGroups(new DBSecurityGroup().withDBSecurityGroupName(config.getStackDatabaseSecurityGroupName()))
+			);
+		databaseSecuritySetup.describeResources();
+		assertNotNull(resources.getIdGeneratorDatabaseSecurityGroup());
+		assertNotNull(resources.getStackInstancesDatabaseSecurityGroup());
+	}
+	
+	@Test
+	public void testTeardownResources() {
+		resources.setIdGeneratorDatabaseSecurityGroup(new DBSecurityGroup().withDBSecurityGroupName(config.getIdGeneratorDatabaseSecurityGroupName()));
+		resources.setStackInstancesDatabaseSecurityGroup(new DBSecurityGroup().withDBSecurityGroupName(config.getStackDatabaseSecurityGroupName()));
+		databaseSecuritySetup.teardownResources();
+		verify(mockClient, times(2)).deleteDBSecurityGroup(any(DeleteDBSecurityGroupRequest.class));
+		assertNull(resources.getIdGeneratorDatabaseSecurityGroup());
+		assertNull(resources.getStackInstancesDatabaseSecurityGroup());
+	}
 	/**
 	 * Test that the expected security groups are created.
 	 */
 	@Test
-	public void testSetupDatabaseAllSecuityGroups(){
+	public void testSetupDatabaseAllSecurityGroups(){
 		// Id gen
 		DBSecurityGroup expectedIdGroup = new DBSecurityGroup().withDBSecurityGroupName(config.getIdGeneratorDatabaseSecurityGroupName());
 		DescribeDBSecurityGroupsResult result = new DescribeDBSecurityGroupsResult().withDBSecurityGroups(expectedIdGroup);

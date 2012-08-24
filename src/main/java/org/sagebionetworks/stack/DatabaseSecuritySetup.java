@@ -56,6 +56,11 @@ public class DatabaseSecuritySetup implements ResourceProcessor {
 		this.setupDatabaseAllSecurityGroups();
 	}
 	
+
+	/*
+	 * Teardown all of the database security groups needed for the stack
+	 * NOTE: Do not call if you just want to teardown an instance of a stack!!!
+	 */
 	public void teardownResources() {
 		DeleteDBSecurityGroupRequest req;
 
@@ -64,7 +69,7 @@ public class DatabaseSecuritySetup implements ResourceProcessor {
 			rdsClient.deleteDBSecurityGroup(req);
 			resources.setIdGeneratorDatabaseSecurityGroup(null);
 		}
-		if (resources.getIdGeneratorDatabaseSecurityGroup() != null) {
+		if (resources.getStackInstancesDatabaseSecurityGroup() != null) {
 			req = new DeleteDBSecurityGroupRequest().withDBSecurityGroupName(config.getStackDatabaseSecurityGroupName());
 			rdsClient.deleteDBSecurityGroup(req);
 			resources.setStackInstancesDatabaseSecurityGroup(null);
@@ -75,16 +80,19 @@ public class DatabaseSecuritySetup implements ResourceProcessor {
 		DescribeDBSecurityGroupsRequest req;
 		DescribeDBSecurityGroupsResult res;
 		
-		req = new DescribeDBSecurityGroupsRequest().withDBSecurityGroupName(config.getIdGeneratorDatabaseSecurityGroupName());
-		res = rdsClient.describeDBSecurityGroups(req);
-		if ((res.getDBSecurityGroups() != null) && (res.getDBSecurityGroups().size() == 1)) {
-			resources.setIdGeneratorDatabaseSecurityGroup(res.getDBSecurityGroups().get(0));
-		}
-		req = new DescribeDBSecurityGroupsRequest().withDBSecurityGroupName(config.getStackDatabaseSecurityGroupName());
-		res = rdsClient.describeDBSecurityGroups(req);
-		if ((res.getDBSecurityGroups() != null) && (res.getDBSecurityGroups().size() == 1)) {
-			resources.setStackInstancesDatabaseSecurityGroup(res.getDBSecurityGroups().get(0));
-		}
+		resources.setIdGeneratorDatabaseSecurityGroup(describeDBSecurityGroup(config.getIdGeneratorDatabaseSecurityGroupName()));
+		resources.setStackInstancesDatabaseSecurityGroup(describeDBSecurityGroup(config.getStackDatabaseSecurityGroupName()));
+		
+//		req = new DescribeDBSecurityGroupsRequest().withDBSecurityGroupName(config.getIdGeneratorDatabaseSecurityGroupName());
+//		res = rdsClient.describeDBSecurityGroups(req);
+//		if ((res.getDBSecurityGroups() != null) && (res.getDBSecurityGroups().size() == 1)) {
+//			resources.setIdGeneratorDatabaseSecurityGroup(res.getDBSecurityGroups().get(0));
+//		}
+//		req = new DescribeDBSecurityGroupsRequest().withDBSecurityGroupName(config.getStackDatabaseSecurityGroupName());
+//		res = rdsClient.describeDBSecurityGroups(req);
+//		if ((res.getDBSecurityGroups() != null) && (res.getDBSecurityGroups().size() == 1)) {
+//			resources.setStackInstancesDatabaseSecurityGroup(res.getDBSecurityGroups().get(0));
+//		}
 	}
 
 	/**
@@ -107,7 +115,7 @@ public class DatabaseSecuritySetup implements ResourceProcessor {
 		addCIDRToGroup(request.getDBSecurityGroupName(), config.getCIDRForSSH());
 		
 		// capture the group info.
-		resources.setIdGeneratorDatabaseSecurityGroup(getDBSecurityGroup(request.getDBSecurityGroupName()));
+		resources.setIdGeneratorDatabaseSecurityGroup(describeDBSecurityGroup(request.getDBSecurityGroupName()));
 		
 		// Create Stack database security group
 		request = new CreateDBSecurityGroupRequest();
@@ -121,7 +129,7 @@ public class DatabaseSecuritySetup implements ResourceProcessor {
 		addCIDRToGroup(request.getDBSecurityGroupName(), config.getCIDRForSSH());
 		
 		// capture the group info.
-		resources.setStackInstancesDatabaseSecurityGroup(getDBSecurityGroup(request.getDBSecurityGroupName()));
+		resources.setStackInstancesDatabaseSecurityGroup(describeDBSecurityGroup(request.getDBSecurityGroupName()));
 
 	}
 	
@@ -130,7 +138,7 @@ public class DatabaseSecuritySetup implements ResourceProcessor {
 	 * @param groupName
 	 * @return
 	 */
-	DBSecurityGroup getDBSecurityGroup(String groupName){
+	DBSecurityGroup describeDBSecurityGroup(String groupName){
 		// Get this group
 		DescribeDBSecurityGroupsResult result = rdsClient.describeDBSecurityGroups(new DescribeDBSecurityGroupsRequest().withDBSecurityGroupName(groupName));
 		if(result == null || result.getDBSecurityGroups().size() != 1) throw new IllegalStateException("Did not find one and only one DB sercurity group with name: "+groupName);
@@ -158,6 +166,7 @@ public class DatabaseSecuritySetup implements ResourceProcessor {
 		}
 	}
 	
+
 	/**
 	 * Add a Classless Inter-Domain Routing (CIDR) to a database security group.  This will grant anyone within
 	 * the CIDR to access this database.

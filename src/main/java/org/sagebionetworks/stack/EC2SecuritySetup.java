@@ -18,6 +18,7 @@ import com.amazonaws.services.ec2.model.CreateKeyPairRequest;
 import com.amazonaws.services.ec2.model.CreateKeyPairResult;
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest;
 import com.amazonaws.services.ec2.model.CreateSecurityGroupResult;
+import com.amazonaws.services.ec2.model.DeleteSecurityGroupRequest;
 import com.amazonaws.services.ec2.model.DescribeKeyPairsRequest;
 import com.amazonaws.services.ec2.model.DescribeKeyPairsResult;
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
@@ -97,8 +98,17 @@ public class EC2SecuritySetup implements ResourceProcessor {
 		resources.setStackKeyPair(createOrGetKeyPair());
 	}
 	
+	/*
+	 * Teardown all EC2 security group resources
+	 * NOTE: Do not call if you just want to delete a stack instance!!!
+	 */
 	public void teardownResources() {
-		
+		if (resources.getElasticBeanstalkEC2SecurityGroup() != null) {
+			DeleteSecurityGroupRequest req = new DeleteSecurityGroupRequest();
+			req.setGroupName(config.getElasticSecurityGroupName());
+			ec2Client.deleteSecurityGroup(req);
+			resources.setElasticBeanstalkEC2SecurityGroup(null);
+		}
 	}
 
 	public void describeResources() {
