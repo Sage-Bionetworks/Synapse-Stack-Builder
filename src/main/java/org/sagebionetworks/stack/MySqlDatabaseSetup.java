@@ -7,10 +7,12 @@ import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.rds.model.CreateDBInstanceRequest;
 import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
+import com.amazonaws.services.rds.model.DeleteDBInstanceRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 
 import static org.sagebionetworks.stack.Constants.*;
+import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 /**
  * Setup the MySQL database
@@ -18,7 +20,7 @@ import static org.sagebionetworks.stack.Constants.*;
  * @author John
  *
  */
-public class MySqlDatabaseSetup {
+public class MySqlDatabaseSetup implements ResourceProcessor {
 	
 	private static Logger log = Logger.getLogger(MySqlDatabaseSetup.class.getName());
 	
@@ -30,15 +32,42 @@ public class MySqlDatabaseSetup {
 	 * @param client
 	 * @param config
 	 */
-	public MySqlDatabaseSetup(AmazonRDSClient client, InputConfiguration config, GeneratedResources resources) {
-		if(client == null) throw new IllegalArgumentException("AmazonRDSClient cannot be null");
+	public MySqlDatabaseSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+		this.initialize(factory, config, resources);
+	}
+
+	public void initialize(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+		if(factory == null) throw new IllegalArgumentException("AmazonClientFactory cannot be null");
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
-		this.client = client;
+		this.client = factory.createRDSClient();
 		this.config = config;
 		this.resources = resources;
 	}
-
+	
+	public void setupResources() {
+		this.setupAllDatabaseInstances();
+	}
+	
+	public void teardownResources() {
+		deleteStackInstanceDatabaseInstance();
+	}
+	
+	public void describeResources() {
+		DescribeDBInstancesRequest req;
+		DescribeDBInstancesResult res;
+		
+		req = buildIdGeneratorDescribeDBInstanceRequest();
+		res = client.describeDBInstances(req);
+		if ((res.getDBInstances() != null) && (res.getDBInstances().size() == 1)) {
+			resources.setIdGeneratorDatabase(res.getDBInstances().get(0));
+		}
+		req = buildStackInstanceDescribeDBInstanceRequest();
+		res = client.describeDBInstances(req);
+		if ((res.getDBInstances() != null) && (res.getDBInstances().size() == 1)) {
+			resources.setStackInstancesDatabase(res.getDBInstances().get(0));
+		}
+	}
 
 	/**
 	 * Create all database instances if they do not already exist.
@@ -64,7 +93,39 @@ public class MySqlDatabaseSetup {
 		log.debug(stackInstance);
 		resources.setStackInstancesDatabase(stackInstance);
 	}
+	
+	/*
+	 * Delete  Id genetator database
+	 */
+	public void deleteIdGeneratorDatabaseInstance() {
+		// Build the request to delete the stack instance database
+		DeleteDBInstanceRequest req = buildIdGeneratorDeleteDBInstanceRequest();
+		DBInstance inst = deleteDatabaseInstance(req);
+	}
 
+	/*
+	 * Delete  stack instance database
+	 */
+	public void deleteStackInstanceDatabaseInstance() {
+		// Build the request to delete the stack instance database
+		DeleteDBInstanceRequest req = buildStackInstanceDeleteDBInstanceRequest();
+		DBInstance inst = deleteDatabaseInstance(req);
+	}
+	
+
+	public DBInstance deleteDatabaseInstance(DeleteDBInstanceRequest req) {
+		DBInstance inst = null;
+		try {
+			inst = client.deleteDBInstance(req);
+		} catch (DBInstanceNotFoundException e) {
+			log.debug("Stack instance database not found!!!");
+		} finally {
+			if (inst != null) {
+				log.debug("Stack instance database status:" + inst.getDBInstanceStatus());
+			}
+			return inst;
+		}
+	}
 	/**
 	 * Build up the CreateDBInstanceRequest used to create the ID Generator database.
 	 * 
@@ -132,6 +193,46 @@ public class MySqlDatabaseSetup {
 		request.setDBParameterGroupName(config.getDatabaseParameterGroupName());
 		// if this is a production stack
 		return request;
+	}
+
+	DeleteDBInstanceRequest buildIdGeneratorDeleteDBInstanceRequest() {
+		DeleteDBInstanceRequest req = new DeleteDBInstanceRequest();
+		req.setDBInstanceIdentifier(config.getIdGeneratorDatabaseIdentifier());
+		if (config.isProductionStack()) {
+			req.setSkipFinalSnapshot(Boolean.FALSE);
+			// TODO: Come up with better name for final snapshot
+			req.setFinalDBSnapshotIdentifier(config.getStack() + config.getStackInstance());
+		} else {
+			req.setSkipFinalSnapshot(Boolean.TRUE);
+		}
+		return req;
+		
+	}
+
+	DeleteDBInstanceRequest buildStackInstanceDeleteDBInstanceRequest() {
+		DeleteDBInstanceRequest req = new DeleteDBInstanceRequest();
+		req.setDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier());
+		if (config.isProductionStack()) {
+			req.setSkipFinalSnapshot(Boolean.FALSE);
+			// TODO: Come up with better name for final snapshot
+			req.setFinalDBSnapshotIdentifier(config.getStack() + config.getStackInstance());
+		} else {
+			req.setSkipFinalSnapshot(Boolean.TRUE);
+		}
+		return req;
+		
+	}
+
+	DescribeDBInstancesRequest buildIdGeneratorDescribeDBInstanceRequest() {
+		DescribeDBInstancesRequest req = new DescribeDBInstancesRequest();
+		req.setDBInstanceIdentifier(config.getIdGeneratorDatabaseIdentifier());
+		return req;
+	}
+
+	DescribeDBInstancesRequest buildStackInstanceDescribeDBInstanceRequest() {
+		DescribeDBInstancesRequest req = new DescribeDBInstancesRequest();
+		req.setDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier());
+		return req;
 	}
 	
 	/**

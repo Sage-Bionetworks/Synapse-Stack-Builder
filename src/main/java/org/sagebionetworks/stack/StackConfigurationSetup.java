@@ -15,6 +15,7 @@ import com.amazonaws.services.cloudsearch.model.DomainStatus;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.PutObjectResult;
+import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 /**
  * Builds and uploads the Stack configuration file used by the beanstalk instances.
@@ -35,8 +36,12 @@ public class StackConfigurationSetup {
 	 * @param config
 	 * @param resources
 	 */
-	public StackConfigurationSetup(AmazonS3Client client, InputConfiguration config, GeneratedResources resources) {
-		if(client == null) throw new IllegalArgumentException("AmazonS3Client cannot be null");
+	public StackConfigurationSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+		initialize(factory, config, resources);
+	}
+
+	public void initialize(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+		if(factory == null) throw new IllegalArgumentException("AmazonClientFactory cannot be null");
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
 		if(resources.getIdGeneratorDatabase() == null) throw new IllegalArgumentException("GeneratedResources.getIdGeneratorDatabase() cannot be null");
@@ -51,11 +56,23 @@ public class StackConfigurationSetup {
 		if(resources.getSearchDomain().getDocService() == null || resources.getSearchDomain().getDocService().getEndpoint() == null) {
 			throw new IllegalArgumentException(String.format("Do not have an endpoint for Search documents: '%1$s' created: '%2$s', processing: '%3$s'", searchStatus.getDomainName(), searchStatus.getCreated(), searchStatus.getProcessing()));
 		}
-		this.client = client;
+		this.client = factory.createS3Client();
 		this.config = config;
 		this.resources = resources;
 	}
 	
+	public void setupResources()  throws IOException {
+		this.setupAndUploadStackConfig();
+	}
+	
+	public void teardownResources() {
+		
+	}
+	
+	public void describeResources() {
+		
+	}
+
 	/**
 	 * Builds and uploads the Stack configuration file used by the beanstalk instances.
 	 * @throws IOException 

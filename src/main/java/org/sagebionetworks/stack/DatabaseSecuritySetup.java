@@ -12,8 +12,10 @@ import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.rds.model.AuthorizeDBSecurityGroupIngressRequest;
 import com.amazonaws.services.rds.model.CreateDBSecurityGroupRequest;
 import com.amazonaws.services.rds.model.DBSecurityGroup;
+import com.amazonaws.services.rds.model.DeleteDBSecurityGroupRequest;
 import com.amazonaws.services.rds.model.DescribeDBSecurityGroupsRequest;
 import com.amazonaws.services.rds.model.DescribeDBSecurityGroupsResult;
+import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 /**
  * Setup the Database security groups.
@@ -21,7 +23,7 @@ import com.amazonaws.services.rds.model.DescribeDBSecurityGroupsResult;
  * @author jmhill
  *
  */
-public class DatabaseSecuritySetup {
+public class DatabaseSecuritySetup implements ResourceProcessor {
 	
 	private static Logger log = Logger.getLogger(DatabaseSecuritySetup.class.getName());
 	
@@ -35,16 +37,62 @@ public class DatabaseSecuritySetup {
 	 * @param config
 	 * @param resources
 	 */
-	public DatabaseSecuritySetup(AmazonRDSClient rdsClient,
-			InputConfiguration config, GeneratedResources resources) {
+	public DatabaseSecuritySetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
 		super();
-		if(rdsClient == null) throw new IllegalArgumentException("AmazonEC2Client cannot be null");
+		initialize(factory, config, resources);
+	}
+
+	public void initialize(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+		if(factory == null) throw new IllegalArgumentException("AmazonClientFactory cannot be null");
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		if(resources == null) throw new IllegalArgumentException("SecurityGroup cannot be null");
 		if(resources.getElasticBeanstalkEC2SecurityGroup() == null) throw new IllegalArgumentException("The GeneratedResources.getElasticBeanstalkEC2SecurityGroup() cannot be null");
-		this.rdsClient = rdsClient;
+		this.rdsClient = factory.createRDSClient();
 		this.config = config;
 		this.resources = resources;
+	}
+	
+	public void setupResources() {
+		this.setupDatabaseAllSecurityGroups();
+	}
+	
+
+	/*
+	 * Teardown all of the database security groups needed for the stack
+	 * NOTE: Do not call if you just want to teardown an instance of a stack!!!
+	 */
+	public void teardownResources() {
+		DeleteDBSecurityGroupRequest req;
+
+		if (resources.getIdGeneratorDatabaseSecurityGroup() != null) {
+			req = new DeleteDBSecurityGroupRequest().withDBSecurityGroupName(config.getIdGeneratorDatabaseSecurityGroupName());
+			rdsClient.deleteDBSecurityGroup(req);
+			resources.setIdGeneratorDatabaseSecurityGroup(null);
+		}
+		if (resources.getStackInstancesDatabaseSecurityGroup() != null) {
+			req = new DeleteDBSecurityGroupRequest().withDBSecurityGroupName(config.getStackDatabaseSecurityGroupName());
+			rdsClient.deleteDBSecurityGroup(req);
+			resources.setStackInstancesDatabaseSecurityGroup(null);
+		}
+	}
+	
+	public void describeResources() {
+		DescribeDBSecurityGroupsRequest req;
+		DescribeDBSecurityGroupsResult res;
+		
+		resources.setIdGeneratorDatabaseSecurityGroup(describeDBSecurityGroup(config.getIdGeneratorDatabaseSecurityGroupName()));
+		resources.setStackInstancesDatabaseSecurityGroup(describeDBSecurityGroup(config.getStackDatabaseSecurityGroupName()));
+		
+//		req = new DescribeDBSecurityGroupsRequest().withDBSecurityGroupName(config.getIdGeneratorDatabaseSecurityGroupName());
+//		res = rdsClient.describeDBSecurityGroups(req);
+//		if ((res.getDBSecurityGroups() != null) && (res.getDBSecurityGroups().size() == 1)) {
+//			resources.setIdGeneratorDatabaseSecurityGroup(res.getDBSecurityGroups().get(0));
+//		}
+//		req = new DescribeDBSecurityGroupsRequest().withDBSecurityGroupName(config.getStackDatabaseSecurityGroupName());
+//		res = rdsClient.describeDBSecurityGroups(req);
+//		if ((res.getDBSecurityGroups() != null) && (res.getDBSecurityGroups().size() == 1)) {
+//			resources.setStackInstancesDatabaseSecurityGroup(res.getDBSecurityGroups().get(0));
+//		}
 	}
 
 	/**
@@ -54,7 +102,7 @@ public class DatabaseSecuritySetup {
 	 * @param elasticSecurityGroup 
 	 * @return
 	 */
-	public void setupDatabaseAllSecuityGroups(){
+	public void setupDatabaseAllSecurityGroups(){
 		// Create the ID generator security group
 		CreateDBSecurityGroupRequest request = new CreateDBSecurityGroupRequest();
 		request.setDBSecurityGroupDescription(config.getIdGeneratorDatabaseSecurityGroupDescription());
@@ -67,7 +115,7 @@ public class DatabaseSecuritySetup {
 		addCIDRToGroup(request.getDBSecurityGroupName(), config.getCIDRForSSH());
 		
 		// capture the group info.
-		resources.setIdGeneratorDatabaseSecurityGroup(getDBSecurityGroup(request.getDBSecurityGroupName()));
+		resources.setIdGeneratorDatabaseSecurityGroup(describeDBSecurityGroup(request.getDBSecurityGroupName()));
 		
 		// Create Stack database security group
 		request = new CreateDBSecurityGroupRequest();
@@ -81,7 +129,7 @@ public class DatabaseSecuritySetup {
 		addCIDRToGroup(request.getDBSecurityGroupName(), config.getCIDRForSSH());
 		
 		// capture the group info.
-		resources.setStackInstancesDatabaseSecurityGroup(getDBSecurityGroup(request.getDBSecurityGroupName()));
+		resources.setStackInstancesDatabaseSecurityGroup(describeDBSecurityGroup(request.getDBSecurityGroupName()));
 
 	}
 	
@@ -90,7 +138,7 @@ public class DatabaseSecuritySetup {
 	 * @param groupName
 	 * @return
 	 */
-	DBSecurityGroup getDBSecurityGroup(String groupName){
+	DBSecurityGroup describeDBSecurityGroup(String groupName){
 		// Get this group
 		DescribeDBSecurityGroupsResult result = rdsClient.describeDBSecurityGroups(new DescribeDBSecurityGroupsRequest().withDBSecurityGroupName(groupName));
 		if(result == null || result.getDBSecurityGroups().size() != 1) throw new IllegalStateException("Did not find one and only one DB sercurity group with name: "+groupName);
@@ -118,6 +166,7 @@ public class DatabaseSecuritySetup {
 		}
 	}
 	
+
 	/**
 	 * Add a Classless Inter-Domain Routing (CIDR) to a database security group.  This will grant anyone within
 	 * the CIDR to access this database.

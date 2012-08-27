@@ -13,6 +13,7 @@ import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
+import com.amazonaws.services.identitymanagement.model.DeleteServerCertificateRequest;
 import com.amazonaws.services.identitymanagement.model.ListServerCertificatesRequest;
 import com.amazonaws.services.identitymanagement.model.ListServerCertificatesResult;
 import com.amazonaws.services.identitymanagement.model.ServerCertificateMetadata;
@@ -28,7 +29,7 @@ import com.amazonaws.services.s3.model.S3Object;
  * @author John
  *
  */
-public class SSLSetup {
+public class SSLSetup implements ResourceProcessor {
 	
 	private static Logger log = Logger.getLogger(SSLSetup.class);
 	
@@ -43,15 +44,36 @@ public class SSLSetup {
 	 * @param config
 	 * @param resources
 	 */
-	public SSLSetup(AmazonClientFactory factory,
-			InputConfiguration config, GeneratedResources resources) {
+	public SSLSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
 		super();
+		this.initialize(factory, config, resources);
+	}
+
+	public void initialize(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
 		this.iamClient = factory.createIdentityManagementClient();
 		this.s3Client = factory.createS3Client();
 		this.config = config;
 		this.resources = resources;
 	}
 	
+	public void setupResources() {
+		this.setupSSLCertificate();
+	}
+	
+	public void teardownResources() {
+		this.deleteSSLCertificate();
+	}
+	
+	public void describeResources() {
+		ServerCertificateMetadata meta = findCertificate(config.getSSLCertificateName());
+		if (meta == null) {
+			throw new IllegalStateException("Failed to find or create the SSL certificate: "+config.getSSLCertificateName());
+		} else {
+			config.setSSLCertificateARN(meta.getArn());
+			resources.setSslCertificate(meta);
+		}		
+	}
+
 	/**
 	 * Setup the SSL certificate.
 	 */
@@ -76,7 +98,26 @@ public class SSLSetup {
 		config.setSSLCertificateARN(meta.getArn());
 		resources.setSslCertificate(meta);
 	}
-	
+
+	/*
+	 * Delete the SSL certificate
+	 */
+	public void deleteSSLCertificate() {
+		ServerCertificateMetadata meta = findCertificate(config.getSSLCertificateName());
+		if (meta == null) {
+			// Just log
+			// TODO: Or throw IllegalStateException?
+			log.debug("Could not find SSL certificate metadata for" + config.getSSLCertificateName());
+		} else {
+			DeleteServerCertificateRequest request = new DeleteServerCertificateRequest();
+			request.setServerCertificateName(config.getSSLCertificateName());
+			iamClient.deleteServerCertificate(request);
+			meta = findCertificate(config.getSSLCertificateName());
+		}
+		if (meta != null) {
+			throw new IllegalStateException("Failed to delete the SSL certificate: "+config.getSSLCertificateName());
+		}
+	}
 	/**
 	 * Determine if the certificate already exists
 	 * @param certName

@@ -4,6 +4,7 @@ import java.net.URL;
 import java.util.List;
 
 import com.amazonaws.services.cloudsearch.model.DomainStatus;
+import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult;
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
 import com.amazonaws.services.ec2.model.KeyPairInfo;
 import com.amazonaws.services.ec2.model.SecurityGroup;
@@ -13,6 +14,7 @@ import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationOption
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
 import com.amazonaws.services.identitymanagement.model.ServerCertificateMetadata;
 import com.amazonaws.services.rds.model.DBInstance;
+import com.amazonaws.services.rds.model.DBParameterGroup;
 import com.amazonaws.services.rds.model.DBSecurityGroup;
 import com.amazonaws.services.sns.model.CreateTopicResult;
 
@@ -24,14 +26,14 @@ import com.amazonaws.services.sns.model.CreateTopicResult;
  */
 public class GeneratedResources {
 
-	private CreateTopicResult rdsAlertTopic;
+	private String rdsAlertTopicArn;
 	private SecurityGroup elasticBeanstalkEC2SecurityGroup;
 	private DBSecurityGroup idGeneratorDatabaseSecurityGroup;
 	private DBSecurityGroup stackInstancesDatabaseSecurityGroup;
 	private DBInstance idGeneratorDatabase;
 	private DBInstance stackInstancesDatabase;
-	private List<PutMetricAlarmRequest> idGeneratorDatabaseAlarms;
-	private List<PutMetricAlarmRequest> stackInstancesDatabaseAlarms;
+	private DescribeAlarmsResult idGeneratorDatabaseAlarms;
+	private DescribeAlarmsResult stackInstancesDatabaseAlarms;
 	private URL stackConfigurationFileURL;
 	private ApplicationDescription elasticBeanstalkApplication;
 	private ApplicationVersionDescription portalApplicationVersion;
@@ -44,6 +46,7 @@ public class GeneratedResources {
 	private EnvironmentDescription repositoryEnvironment;
 	private EnvironmentDescription portalEnvironment;
 	private DomainStatus searchDomain;
+	private DBParameterGroup dbParameterGroup;
 	
 	/**
 	 * The search domain.
@@ -250,16 +253,16 @@ public class GeneratedResources {
 	 * The topic used to notify when RDS alarms are triggered.
 	 * @return
 	 */
-	public CreateTopicResult getRdsAlertTopic() {
-		return rdsAlertTopic;
+	public String getRdsAlertTopicArn() {
+		return rdsAlertTopicArn;
 	}
 
 	/**
 	 * The topic used to notify when RDS alarms are triggered.
 	 * @param rdsAlertTopic
 	 */
-	public void setRdsAlertTopic(CreateTopicResult rdsAlertTopic) {
-		this.rdsAlertTopic = rdsAlertTopic;
+	public void setRdsAlertTopicArn(String rdsAlertTopicArn) {
+		this.rdsAlertTopicArn = rdsAlertTopicArn;
 	}
 
 	/**
@@ -332,7 +335,7 @@ public class GeneratedResources {
 	 * The list of alarms applied to the ID Generator database.
 	 * @return
 	 */
-	public List<PutMetricAlarmRequest> getIdGeneratorDatabaseAlarms() {
+	public DescribeAlarmsResult getIdGeneratorDatabaseAlarms() {
 		return idGeneratorDatabaseAlarms;
 	}
 
@@ -340,7 +343,7 @@ public class GeneratedResources {
 	 * The list of alarms applied to the ID Generator database.
 	 * @param idGeneratorDatabaseAlarms
 	 */
-	public void setIdGeneratorDatabaseAlarms(List<PutMetricAlarmRequest> idGeneratorDatabaseAlarms) {
+	public void setIdGeneratorDatabaseAlarms(DescribeAlarmsResult idGeneratorDatabaseAlarms) {
 		this.idGeneratorDatabaseAlarms = idGeneratorDatabaseAlarms;
 	}
 
@@ -348,7 +351,7 @@ public class GeneratedResources {
 	 * The list of Alarms applied to the stack instances database.
 	 * @return
 	 */
-	public List<PutMetricAlarmRequest> getStackInstancesDatabaseAlarms() {
+	public DescribeAlarmsResult getStackInstancesDatabaseAlarms() {
 		return stackInstancesDatabaseAlarms;
 	}
 
@@ -357,7 +360,7 @@ public class GeneratedResources {
 	 * @param stackInstancesDatabaseAlarms
 	 */
 	public void setStackInstancesDatabaseAlarms(
-			List<PutMetricAlarmRequest> stackInstancesDatabaseAlarms) {
+			DescribeAlarmsResult stackInstancesDatabaseAlarms) {
 		this.stackInstancesDatabaseAlarms = stackInstancesDatabaseAlarms;
 	}
 
@@ -375,6 +378,20 @@ public class GeneratedResources {
 	 */
 	public void setStackConfigurationFileURL(URL stackConfigurationFileURL) {
 		this.stackConfigurationFileURL = stackConfigurationFileURL;
+	}
+
+	/**
+	 * @return the dbParameterGroup
+	 */
+	public DBParameterGroup getDbParameterGroup() {
+		return dbParameterGroup;
+	}
+
+	/**
+	 * @param dbParameterGroup the dbParameterGroup to set
+	 */
+	public void setDbParameterGroup(DBParameterGroup dbParameterGroup) {
+		this.dbParameterGroup = dbParameterGroup;
 	}
 
 

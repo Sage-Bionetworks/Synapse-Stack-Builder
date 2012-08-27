@@ -18,6 +18,7 @@ import com.amazonaws.services.ec2.model.CreateKeyPairRequest;
 import com.amazonaws.services.ec2.model.CreateKeyPairResult;
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest;
 import com.amazonaws.services.ec2.model.CreateSecurityGroupResult;
+import com.amazonaws.services.ec2.model.DeleteSecurityGroupRequest;
 import com.amazonaws.services.ec2.model.DescribeKeyPairsRequest;
 import com.amazonaws.services.ec2.model.DescribeKeyPairsResult;
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
@@ -28,6 +29,7 @@ import com.amazonaws.services.ec2.model.SecurityGroup;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
+import java.util.Arrays;
 
 /**
  * Setup the security used by the rest of the stack.
@@ -35,7 +37,7 @@ import com.amazonaws.services.s3.model.PutObjectResult;
  * @author jmhill
  *
  */
-public class EC2SecuritySetup {
+public class EC2SecuritySetup implements ResourceProcessor {
 	
 	private static Logger log = Logger.getLogger(EC2SecuritySetup.class.getName());
 	
@@ -51,6 +53,10 @@ public class EC2SecuritySetup {
 	 */
 	public EC2SecuritySetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
 		super();
+		initialize(factory, config, resources);
+	}
+	
+	public void initialize(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
 		if(factory == null) throw new IllegalArgumentException("AmazonClientFactory cannot be null");
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
@@ -59,7 +65,7 @@ public class EC2SecuritySetup {
 		this.config = config;
 		this.resources = resources;
 	}
-
+	
 	/**
 	 * Create the EC2 security group that all elastic beanstalk instances will belong to.
 	 * 
@@ -69,7 +75,7 @@ public class EC2SecuritySetup {
 	 * @param cidrForSSH - The classless inter-domain routing to be used for SSH access to these machines.
 	 * @return
 	 */
-	public SecurityGroup setupElasticBeanstalkEC2SecutiryGroup(){
+	public void setupResources() {
 		CreateSecurityGroupRequest request = new CreateSecurityGroupRequest();
 		request.setDescription(config.getElasticSecurityGroupDescription());
 		request.setGroupName(config.getElasticSecurityGroupName());
@@ -90,17 +96,43 @@ public class EC2SecuritySetup {
 		
 		// Create the key pair.
 		resources.setStackKeyPair(createOrGetKeyPair());
-		
-		return group;
 	}
 	
+	/*
+	 * Teardown all EC2 security group resources
+	 * NOTE: Do not call if you just want to delete a stack instance!!!
+	 */
+	public void teardownResources() {
+		if (resources.getElasticBeanstalkEC2SecurityGroup() != null) {
+			DeleteSecurityGroupRequest req = new DeleteSecurityGroupRequest();
+			req.setGroupName(config.getElasticSecurityGroupName());
+			ec2Client.deleteSecurityGroup(req);
+			resources.setElasticBeanstalkEC2SecurityGroup(null);
+		}
+	}
+
+	public void describeResources() {
+		DescribeSecurityGroupsRequest req = new DescribeSecurityGroupsRequest();
+		req.setGroupNames(Arrays.asList(config.getElasticSecurityGroupName()));
+		DescribeSecurityGroupsResult res = ec2Client.describeSecurityGroups(req);
+		if ((res.getSecurityGroups() != null) && res.getSecurityGroups().size() == 1) {
+			SecurityGroup grp = res.getSecurityGroups().get(0);
+			resources.setElasticBeanstalkEC2SecurityGroup(grp);
+			String kpName = config.getStackKeyPairName();
+			KeyPairInfo inf = describeKeyPair();
+			if (inf != null) {
+				resources.setStackKeyPair(inf);
+			}
+		}
+	}
+
 	/**
 	 * Create the key par
 	 * @return
 	 */
 	public KeyPairInfo createOrGetKeyPair(){
 		String name =config.getStackKeyPairName();
-		KeyPairInfo info = describKeyPair();
+		KeyPairInfo info = describeKeyPair();
 		if(info == null){
 			log.debug("Creating the Stack KeyPair: "+name+" for the first time");
 			CreateKeyPairResult kpResult = ec2Client.createKeyPair(new CreateKeyPairRequest(name));
@@ -130,7 +162,7 @@ public class EC2SecuritySetup {
 			}
 			
 			
-			return describKeyPair();
+			return describeKeyPair();
 		}else{
 			log.debug("Stack KeyPair: "+name+" already exists");
 			return info;
@@ -143,7 +175,7 @@ public class EC2SecuritySetup {
 	 * 
 	 * @return
 	 */
-	public KeyPairInfo describKeyPair(){
+	public KeyPairInfo describeKeyPair(){
 		String name =config.getStackKeyPairName();
 		try{
 			DescribeKeyPairsResult result =ec2Client.describeKeyPairs(new DescribeKeyPairsRequest().withKeyNames(name));

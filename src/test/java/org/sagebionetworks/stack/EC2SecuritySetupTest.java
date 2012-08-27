@@ -2,6 +2,7 @@ package org.sagebionetworks.stack;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -26,6 +27,7 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest;
+import com.amazonaws.services.ec2.model.DeleteSecurityGroupRequest;
 import com.amazonaws.services.ec2.model.DescribeKeyPairsRequest;
 import com.amazonaws.services.ec2.model.DescribeKeyPairsResult;
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
@@ -50,7 +52,6 @@ public class EC2SecuritySetupTest {
 
 	@Before
 	public void before() throws IOException {
-		factory = new MockAmazonClientFactory();
 		mockEC2Client = factory.createEC2Client();
 		config = TestHelper.createTestConfig("dev");
 		resources = new GeneratedResources();
@@ -109,7 +110,8 @@ public class EC2SecuritySetupTest {
 		DescribeKeyPairsResult kpr = new DescribeKeyPairsResult().withKeyPairs(new KeyPairInfo().withKeyName("123"));
 		when(mockEC2Client.describeKeyPairs(any(DescribeKeyPairsRequest.class))).thenReturn(kpr);
 		// Create the security group.
-		SecurityGroup group = ec2SecuritySetup.setupElasticBeanstalkEC2SecutiryGroup();
+		ec2SecuritySetup.setupResources();
+		SecurityGroup group = resources.getElasticBeanstalkEC2SecurityGroup();
 		assertEquals(expectedGroup, group);
 		String groupName = group.getGroupName();
 		assertNotNull(groupName);
@@ -136,5 +138,13 @@ public class EC2SecuritySetupTest {
 		verify(mockEC2Client).authorizeSecurityGroupIngress(request);
 		// Make sure this is set
 		assertNotNull(resources.getElasticBeanstalkEC2SecurityGroup());
+	}
+	
+	@Test
+	public void testTeardownResources() {
+		resources.setElasticBeanstalkEC2SecurityGroup(new SecurityGroup().withGroupName(config.getElasticSecurityGroupName()));
+		ec2SecuritySetup.teardownResources();
+		verify(mockEC2Client).deleteSecurityGroup(any(DeleteSecurityGroupRequest.class));
+		assertNull(resources.getElasticBeanstalkEC2SecurityGroup());
 	}
 }
