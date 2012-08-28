@@ -11,9 +11,14 @@ import com.amazonaws.services.sns.model.CreateTopicRequest;
 import com.amazonaws.services.sns.model.CreateTopicResult;
 import com.amazonaws.services.sns.model.ListSubscriptionsByTopicRequest;
 import com.amazonaws.services.sns.model.ListSubscriptionsByTopicResult;
+import com.amazonaws.services.sns.model.ListTopicsRequest;
+import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.services.sns.model.SubscribeRequest;
 import com.amazonaws.services.sns.model.SubscribeResult;
 import com.amazonaws.services.sns.model.Subscription;
+import com.amazonaws.services.sns.model.Topic;
+
+import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 /**
  * Setup topics for notification.
@@ -21,7 +26,7 @@ import com.amazonaws.services.sns.model.Subscription;
  * @author John
  *
  */
-public class NotificationSetup {
+public class NotificationSetup implements ResourceProcessor {
 	
 	private static Logger log = Logger.getLogger(NotificationSetup.class.getName());
 	
@@ -35,15 +40,44 @@ public class NotificationSetup {
 	 * @param client
 	 * @param config
 	 */
-	public NotificationSetup(AmazonSNSClient client, InputConfiguration config, GeneratedResources resources) {
-		if(client == null) throw new IllegalArgumentException("AmazonRDSClient cannot be null");
+	public NotificationSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+		initialize(factory, config, resources);
+	}
+	
+	public void initialize(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+		if(factory == null) throw new IllegalArgumentException("AmazonClientFactory cannot be null");
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
-		this.client = client;
+		this.client = factory.createSNSClient();
 		this.config = config;
 		this.resources = resources;
 	}
 	
+	public void setupResources() {
+		setupNotificationTopics();
+	}
+	
+	public void teardownResources() {
+		
+	}
+	
+	public void describeResources() {
+		String topicName;
+		String subscriptionEndpoint;
+		ListTopicsResult res;
+		List<Topic> topics;
+		
+		topicName = config.getRDSAlertTopicName();
+		subscriptionEndpoint = config.getRDSAlertSubscriptionEndpoint();
+		res = client.listTopics();
+		topics = res.getTopics(); // TopicArn ends with topic name
+		for (Topic topic:topics) {
+			if (topic.getTopicArn().endsWith(topicName)) {
+				resources.setRdsAlertTopicArn(topic.getTopicArn());
+				break;
+			}
+		}		
+	}
 	/**
 	 * Create The Notification topic.
 	 */
@@ -52,7 +86,7 @@ public class NotificationSetup {
 		CreateTopicRequest request = new CreateTopicRequest();
 		request.setName(config.getRDSAlertTopicName());
 		CreateTopicResult result = client.createTopic(request);
-		resources.setRdsAlertTopic(result);
+		resources.setRdsAlertTopicArn(result.getTopicArn());
 		log.debug("Topic: "+result);
 		// Create the RDS alert subscription
 		Subscription sub = createSubScription(result.getTopicArn(), Constants.TOPIC_SUBSCRIBE_PROTOCOL_EMAIL, config.getRDSAlertSubscriptionEndpoint());

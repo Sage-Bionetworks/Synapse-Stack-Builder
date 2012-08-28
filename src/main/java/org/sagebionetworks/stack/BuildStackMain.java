@@ -63,37 +63,37 @@ public class BuildStackMain {
 		GeneratedResources resources = new GeneratedResources();
 		
 		// Since the search index can take time to setup, we buid it first.
-		new SearchIndexSetup(factory.createCloudSearchClient(), config, resources).setupSearch();
+		new SearchIndexSetup(factory, config, resources).setupResources();
 		
 		// The first step is to setup the stack security
-		new EC2SecuritySetup(factory, config, resources).setupElasticBeanstalkEC2SecutiryGroup();
+		new EC2SecuritySetup(factory, config, resources).setupResources();
 		
 		// Setup the notification topic.
-		new NotificationSetup(factory.createSNSClient(), config, resources).setupNotificationTopics();
+		new NotificationSetup(factory, config, resources).setupResources();
 		
 		// Setup the Database Parameter group
-		new DatabaseParameterGroup(factory.createRDSClient(), config).setupDBParameterGroup();
+		new DatabaseParameterGroup(factory, config, resources).setupResources();
 		
 		// Setup all of the database security groups
-		new DatabaseSecuritySetup(factory.createRDSClient(), config, resources).setupDatabaseAllSecuityGroups();
+		new DatabaseSecuritySetup(factory, config, resources).setupResources();
 		
 		// We are ready to create the database instances
-		new MySqlDatabaseSetup(factory.createRDSClient(), config, resources).setupAllDatabaseInstances();
+		new MySqlDatabaseSetup(factory, config, resources).setupResources();
 		
 		// Add all of the the alarms
-		new AlarmSetup(factory.createCloudWatchClient(), config, resources).setupAllAlarms();
+		new AlarmSetup(factory, config, resources).setupResources();
 				
 		// Create the configuration file and upload it S3
-		new StackConfigurationSetup(factory.createS3Client(), config, resources).setupAndUploadStackConfig();
+		new StackConfigurationSetup(factory, config, resources).setupResources();
 		
 		// Process the artifacts
 		new ArtifactProcessing(new DefaultHttpClient(), factory, config, resources).processArtifacts();
 		
 		// Setup the SSL certificates
-		new SSLSetup(factory, config, resources).setupSSLCertificate();
+		new SSLSetup(factory, config, resources).setupResources();
 		
 		// Setup all environments
-		new ElasticBeanstalkSetup(factory.createBeanstalkClient(), config, resources).createAllEnvironments();
+		new ElasticBeanstalkSetup(factory, config, resources).setupResources();
 		
 		// Return all of the generated objects
 		return resources;

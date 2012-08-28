@@ -13,6 +13,7 @@ import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionSetting;
+import org.sagebionetworks.factory.MockAmazonClientFactory;
 
 public class ElasticBeanstalkSetupTest {
 	
@@ -21,13 +22,14 @@ public class ElasticBeanstalkSetupTest {
 	AWSElasticBeanstalkClient mockClient;
 	ElasticBeanstalkSetup setup;
 	GeneratedResources resources;
+	MockAmazonClientFactory factory = new MockAmazonClientFactory();
 
 	@Before
 	public void before() throws IOException {
-		mockClient = Mockito.mock(AWSElasticBeanstalkClient.class);
+		mockClient = factory.createBeanstalkClient();
 		config = TestHelper.createTestConfig("dev");
 		resources = TestHelper.createTestResources(config);
-		setup = new ElasticBeanstalkSetup(mockClient, config, resources);
+		setup = new ElasticBeanstalkSetup(factory, config, resources);
 	}
 	
 	@Test
@@ -60,7 +62,7 @@ public class ElasticBeanstalkSetupTest {
 			assertEquals("Values did not match for namespace: "+expectedCon.getNamespace()+" and option name: "+expectedCon.getOptionName(),expectedCon.getValue(), found.getValue());
 		}
 	}
-	
+
 	/**
 	 * Helper to find a configuration with a given namepaces and option name.
 	 * @param namespace

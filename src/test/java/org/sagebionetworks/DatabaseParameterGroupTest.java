@@ -24,21 +24,27 @@ import com.amazonaws.services.rds.model.CreateDBParameterGroupRequest;
 import com.amazonaws.services.rds.model.DBParameterGroup;
 import com.amazonaws.services.rds.model.DescribeDBParameterGroupsRequest;
 import com.amazonaws.services.rds.model.DescribeDBParameterGroupsResult;
+import org.sagebionetworks.factory.MockAmazonClientFactory;
+import org.sagebionetworks.stack.GeneratedResources;
 
 public class DatabaseParameterGroupTest {
 	
 	Properties inputProperties;
-	InputConfiguration config;	
+	InputConfiguration config;
+	GeneratedResources resources;
 	AmazonRDSClient mockClient = null;
+	MockAmazonClientFactory factory = new MockAmazonClientFactory();
 	DatabaseParameterGroup databaseParamGroup;
 	
 	@Before
 	public void before() throws IOException{
-		mockClient = Mockito.mock(AmazonRDSClient.class);
+		
+		mockClient = factory.createRDSClient();
 		inputProperties = TestHelper.createInputProperties("dev");
 		config = new InputConfiguration(inputProperties);
+		resources = new GeneratedResources();
 		// Inject the dependencies.
-		databaseParamGroup = new DatabaseParameterGroup(mockClient, config);
+		databaseParamGroup = new DatabaseParameterGroup(factory, config, resources);
 	}
 	
 	@Test

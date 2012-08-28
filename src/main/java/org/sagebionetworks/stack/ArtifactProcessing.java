@@ -80,6 +80,13 @@ public class ArtifactProcessing {
 
 	}
 	
+	public void describeResources() {
+		resources.setElasticBeanstalkApplication(describeApplication());
+		resources.setPortalApplicationVersion(describeApplicationVersion(config.getPortalVersionLabel()));
+		resources.setRepoApplicationVersion(describeApplicationVersion(config.getRepoVersionLabel()));
+		resources.setAuthApplicationVersion(describeApplicationVersion(config.getAuthVersionLabel()));
+	}
+	
 	/**
 	 * Create the application if it does not exist
 	 * @return
@@ -99,6 +106,17 @@ public class ArtifactProcessing {
 		}
 		return result.getApplications().get(0);
 
+	}
+	
+	public ApplicationDescription describeApplication() {
+		String appName = config.getElasticBeanstalkApplicationName();
+		DescribeApplicationsResult result = beanstalkClient.describeApplications(new DescribeApplicationsRequest().withApplicationNames(appName));
+		if (result.getApplications().size() != 1) {
+			log.debug("Did not find one and only one Elastic Beanstalk Application with the name: "+ appName);
+			return null;
+		} else {
+			return result.getApplications().get(0);
+		}
 	}
 	
 	/**
@@ -158,6 +176,16 @@ public class ArtifactProcessing {
 			log.debug(String.format("Version: %1$s already exists.", versionLabel));
 		}
 		return results.getApplicationVersions().get(0);
+	}
+	
+	public ApplicationVersionDescription describeApplicationVersion(String versionLabel) {
+		DescribeApplicationVersionsResult results = beanstalkClient.describeApplicationVersions(new DescribeApplicationVersionsRequest().withApplicationName(config.getElasticBeanstalkApplicationName()).withVersionLabels(versionLabel));
+		if (results.getApplicationVersions().size() != 1) {
+			log.debug(String.format("Could not find version: %1$s...", versionLabel));
+			return null;
+		} else {
+			return results.getApplicationVersions().get(0);
+		}
 	}
 
 	/**

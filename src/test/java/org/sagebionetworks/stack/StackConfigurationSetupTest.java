@@ -17,6 +17,7 @@ import org.mockito.Mockito;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.services.s3.AmazonS3Client;
+import org.sagebionetworks.factory.MockAmazonClientFactory;
 
 public class StackConfigurationSetupTest {
 	
@@ -24,13 +25,14 @@ public class StackConfigurationSetupTest {
 	InputConfiguration config;
 	GeneratedResources resources;
 	StackConfigurationSetup setup;
+	MockAmazonClientFactory factory = new MockAmazonClientFactory();
 	
 	@Before
 	public void before() throws IOException{
 		config = TestHelper.createTestConfig("dev");
-		mockClient = Mockito.mock(AmazonS3Client.class);
+		mockClient = factory.createS3Client();
 		resources = TestHelper.createTestResources(config);
-		setup = new StackConfigurationSetup(mockClient, config, resources);
+		setup = new StackConfigurationSetup(factory, config, resources);
 	}
 	
 	@Test

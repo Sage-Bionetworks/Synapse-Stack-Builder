@@ -14,6 +14,8 @@ import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescripti
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionSetting;
 import com.amazonaws.services.elasticbeanstalk.model.CreateConfigurationTemplateRequest;
 import com.amazonaws.services.elasticbeanstalk.model.CreateEnvironmentRequest;
+import com.amazonaws.services.elasticbeanstalk.model.DeleteConfigurationTemplateRequest;
+import com.amazonaws.services.elasticbeanstalk.model.DeleteEnvironmentConfigurationRequest;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationOptionsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationOptionsResult;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentResourcesRequest;
@@ -23,10 +25,13 @@ import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsResult;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentResourceDescription;
 import com.amazonaws.services.elasticbeanstalk.model.RestartAppServerRequest;
+import com.amazonaws.services.elasticbeanstalk.model.TerminateEnvironmentRequest;
+import com.amazonaws.services.elasticbeanstalk.model.TerminateEnvironmentResult;
 import com.amazonaws.services.elasticbeanstalk.model.UpdateConfigurationTemplateRequest;
 import com.amazonaws.services.elasticbeanstalk.model.UpdateConfigurationTemplateResult;
 import com.amazonaws.services.elasticbeanstalk.model.UpdateEnvironmentRequest;
 import com.amazonaws.services.elasticbeanstalk.model.UpdateEnvironmentResult;
+import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 /**
  * Setup the elastic beanstalk environments.
@@ -34,7 +39,7 @@ import com.amazonaws.services.elasticbeanstalk.model.UpdateEnvironmentResult;
  * @author John
  *
  */
-public class ElasticBeanstalkSetup {
+public class ElasticBeanstalkSetup implements ResourceProcessor {
 	
 	private static Logger log = Logger.getLogger(ElasticBeanstalkSetup.class);
 	
@@ -49,9 +54,12 @@ public class ElasticBeanstalkSetup {
 	 * @param config
 	 * @param resources
 	 */
-	public ElasticBeanstalkSetup(AWSElasticBeanstalkClient client,
-			InputConfiguration config, GeneratedResources resources) {
-		if(client == null) throw new IllegalArgumentException("AWSElasticBeanstalkClient cannot be null");
+	public ElasticBeanstalkSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+		this.initialize(factory, config, resources);
+	}
+
+	public void initialize(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+		if(factory == null) throw new IllegalArgumentException("AWSClientFactory cannot be null");
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
 		// There are many dependencies for this setup.
@@ -59,13 +67,26 @@ public class ElasticBeanstalkSetup {
 		if(resources.getAuthApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getAuthApplicationVersion() cannot be null");
 		if(resources.getPortalApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getPortalApplicationVersion() cannot be null");
 		if(resources.getRepoApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getReopApplicationVersion() cannot be null");
-		if(resources.getAuthApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getAuthApplicationVersion() cannot be null");
 		if(resources.getStackKeyPair() == null) throw new IllegalArgumentException("GeneratedResources.getStackKeyPair() cannot be null");
-		this.beanstalkClient = client;
+		this.beanstalkClient = factory.createBeanstalkClient();
 		this.config = config;
 		this.resources = resources;
 	}
 	
+	public void setupResources() {
+		this.createAllEnvironments();
+	}
+	
+	public void teardownResources() {
+		this.terminateAllEnvironments();
+	}
+	
+	public void describeResources() {
+		resources.setAuthenticationEnvironment(describeEnvironment(config.getAuthEnvironmentName()));
+		resources.setPortalEnvironment(describeEnvironment(config.getPortalEnvironmentName()));
+		resources.setRepositoryEnvironment(describeEnvironment(config.getRepoEnvironmentName()));
+	}
+
 	/**
 	 * Create the environments
 	 */
@@ -80,13 +101,22 @@ public class ElasticBeanstalkSetup {
 		// portal
 		resources.setPortalEnvironment(createEnvironment(config.getPortalEnvironmentName(), config.getPortalEnvironmentCNAMEPrefix(), resources.getPortalApplicationVersion()));
 	}
-	
+
+	/*
+	 * Terminate the environments
+	 */
+	public void terminateAllEnvironments() {
+		this.terminateEnvironment(config.getAuthEnvironmentName(), config.getAuthEnvironmentCNAMEPrefix());
+		this.terminateEnvironment(config.getPortalEnvironmentName(), config.getPortalEnvironmentCNAMEPrefix());
+		this.terminateEnvironment(config.getRepoEnvironmentName(), config.getRepoEnvironmentCNAMEPrefix());
+//		this.deleteConfigurationTemplate();
+	}
 	/**
 	 * Create or get the Configuration template
 	 * @return
 	 */
 	public DescribeConfigurationOptionsResult createOrUpdateConfigurationTemplate(){
-		DescribeConfigurationOptionsResult desc = describTempalteConfiguration();
+		DescribeConfigurationOptionsResult desc = describeTemplateConfiguration();
 		if(desc == null){
 			log.debug("Creating Elastic Beanstalk Template for the first time with name: "+config.getElasticBeanstalkTemplateName()+"...");
 			// We need to create it
@@ -106,15 +136,28 @@ public class ElasticBeanstalkSetup {
 			UpdateConfigurationTemplateResult updateResult = beanstalkClient.updateConfigurationTemplate(request);
 
 		}
-		return describTempalteConfiguration();
+		return describeTemplateConfiguration();
 	}
 	
-	
+
+	public void deleteConfigurationTemplate() {
+		DescribeConfigurationOptionsResult desc = describeTemplateConfiguration();
+		if (desc == null) {
+			log.debug("Elastic Beanstalk configuration template does not exist!!!");
+		} else {
+			log.debug("Deleting Elastic Beanstalk configuration template with name: " + config.getElasticBeanstalkTemplateName());
+			DeleteConfigurationTemplateRequest req = new DeleteConfigurationTemplateRequest();
+			req.setApplicationName(config.getElasticBeanstalkApplicationName());
+			req.setTemplateName(config.getElasticBeanstalkTemplateName());
+			beanstalkClient.deleteConfigurationTemplate(req);
+		}
+	}
+
 	/**
 	 * Get the description if it exists.
 	 * @return
 	 */
-	public DescribeConfigurationOptionsResult describTempalteConfiguration(){
+	public DescribeConfigurationOptionsResult describeTemplateConfiguration(){
 		try{
 			DescribeConfigurationOptionsResult results = beanstalkClient.describeConfigurationOptions(new DescribeConfigurationOptionsRequest().withApplicationName(config.getElasticBeanstalkApplicationName()).withTemplateName(config.getElasticBeanstalkTemplateName()));
 			return results;
@@ -192,6 +235,22 @@ public class ElasticBeanstalkSetup {
 		}
 	}
 	
+	/**
+	 * Delete a single environment
+	 */
+	public void terminateEnvironment(String environmentName, String environmentCName) {
+		EnvironmentDescription environment = describeEnvironment(environmentName);
+		if (environment == null) {
+			// Nothing to do except log
+			log.debug(String.format("Environment name: '%1$s' does not exist!!!", environmentName, environmentCName));
+		} else {
+			// Delete environment
+			log.debug(String.format("Terminating environment name: '%1$s' with CNAME: '%2$s' ", environmentName, environmentCName));
+			String environmentId = environment.getEnvironmentId();
+			TerminateEnvironmentRequest ter = new TerminateEnvironmentRequest().withEnvironmentId(environmentId).withTerminateResources(Boolean.TRUE);
+			TerminateEnvironmentResult terminateResult = beanstalkClient.terminateEnvironment(ter);
+		}
+	}
 	/**
 	 * Get all options
 	 * @return
