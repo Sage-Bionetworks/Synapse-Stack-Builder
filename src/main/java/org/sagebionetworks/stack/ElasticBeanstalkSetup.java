@@ -142,10 +142,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 
 	public void deleteConfigurationTemplate() {
 		DescribeConfigurationOptionsResult desc = describeTemplateConfiguration();
-		if (desc == null) {
-			log.debug("Elastic Beanstalk configuration template does not exist!!!");
-		} else {
-			log.debug("Deleting Elastic Beanstalk configuration template with name: " + config.getElasticBeanstalkTemplateName());
+		if (desc != null) {
 			DeleteConfigurationTemplateRequest req = new DeleteConfigurationTemplateRequest();
 			req.setApplicationName(config.getElasticBeanstalkApplicationName());
 			req.setTemplateName(config.getElasticBeanstalkTemplateName());

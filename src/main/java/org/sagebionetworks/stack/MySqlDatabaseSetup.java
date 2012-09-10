@@ -96,6 +96,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 	
 	/*
 	 * Delete  Id genetator database
+	 * NOTE: Never call except when tearing down shared resources!!!
 	 */
 	public void deleteIdGeneratorDatabaseInstance() {
 		// Build the request to delete the stack instance database
@@ -195,6 +196,9 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		return request;
 	}
 
+	/*
+	 * NOTE: Do not call unless deleting shared resources!!!
+	 */
 	DeleteDBInstanceRequest buildIdGeneratorDeleteDBInstanceRequest() {
 		DeleteDBInstanceRequest req = new DeleteDBInstanceRequest();
 		req.setDBInstanceIdentifier(config.getIdGeneratorDatabaseIdentifier());

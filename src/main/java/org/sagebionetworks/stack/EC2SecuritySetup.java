@@ -123,6 +123,8 @@ public class EC2SecuritySetup implements ResourceProcessor {
 			if (inf != null) {
 				resources.setStackKeyPair(inf);
 			}
+		} else {
+			throw new IllegalStateException("Did not find one and ony one EC2 secruity group with the name: " + req.getGroupNames());
 		}
 	}
 

@@ -8,6 +8,7 @@ import com.amazonaws.services.cloudsearch.model.DeleteDomainResult;
 import com.amazonaws.services.cloudsearch.model.DescribeDomainsRequest;
 import com.amazonaws.services.cloudsearch.model.DescribeDomainsResult;
 import com.amazonaws.services.cloudsearch.model.DomainStatus;
+import com.amazonaws.services.simpleworkflow.model.DescribeDomainRequest;
 import java.io.IOException;
 
 import static org.junit.Assert.*;
@@ -67,19 +68,22 @@ public class SearchIndexSetupTest {
 		String deletedDomainName = config.getSearchIndexDomainName();
 		SearchIndexSetup idx = new SearchIndexSetup(factory, config, resources);
 		DomainStatus domainStatus = new DomainStatus().withDomainName(deletedDomainName);
-		when(mockClient.describeDomains(any(DescribeDomainsRequest.class))).thenReturn(new DescribeDomainsResult().withDomainStatusList(domainStatus));
-		when(mockClient.deleteDomain(any(DeleteDomainRequest.class))).thenReturn(new DeleteDomainResult().withDomainStatus(domainStatus));
+		resources.setSearchDomain(domainStatus);
+		DeleteDomainRequest delReq = new DeleteDomainRequest().withDomainName(deletedDomainName);
+		when(mockClient.deleteDomain(delReq)).thenReturn(new DeleteDomainResult().withDomainStatus(domainStatus));
 		idx.teardownResources();
 		assertNull(resources.getSearchDomain());
 	}
 	
 	
-	@Test
+	@Test(expected=IllegalStateException.class)
 	public void testTeardownResourcesNonExistentDomain() {
 		String deletedDomainName = config.getSearchIndexDomainName();
 		SearchIndexSetup idx = new SearchIndexSetup(factory, config, resources);
 		DomainStatus domainStatus = new DomainStatus().withDomainName(deletedDomainName);
-		when(mockClient.describeDomains(any(DescribeDomainsRequest.class))).thenReturn(null);
+		resources.setSearchDomain(domainStatus);
+		DeleteDomainRequest delReq = new DeleteDomainRequest().withDomainName(deletedDomainName);
+		when(mockClient.deleteDomain(delReq)).thenReturn(null);
 		idx.teardownResources();
 		assertNull(resources.getSearchDomain());
 	}
