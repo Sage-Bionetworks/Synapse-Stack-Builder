@@ -80,6 +80,11 @@ public class Constants {
 	public static final String KEY_ORG_SAGEBIONETWORKS_BCC_GOOGLEAPPS_OAUTH_CONSUMER_SECRET_PLAINTEX = "org.sagebionetworks.bcc.googleapps.oauth.consumer.secret.plaintext";
 	public static final String KEY_ORG_SAGEBIONETWORKS_MAIL_PW_PLAINTEXT = "org.sagebionetworks.mailPW.plaintext";
 	public static final String KEY_ORG_SAGEBIONETWORKS_CROWD_APPLICATION_KEY_PLAINTEXT = "org.sagebionetworks.crowdApplicationKey.plaintext";
+	public static final String KEY_ORG_SAGEBIONETWORKS_PORTAL_API_LINKEDIN_KEY = "org.sagebionetworks.portal.api.linkedin.key";
+	public static final String KEY_ORG_SAGEBIONETWORKS_PORTAL_API_LINKEDIN_SECRET_PLAINTEXT = "org.sagebionetworks.portal.api.linkedin.secret.plaintext";
+	public static final String KEY_ORG_SAGEBIONETWORKS_PORTAL_API_GETSATISFACTION_KEY = "org.sagebionetworks.portal.api.getsatisfaction.key";
+	public static final String KEY_ORG_SAGEBIONETWORKS_PORTAL_API_GETSATISFACTION_SECRET_PLAINTEXT = "org.sagebionetworks.portal.api.getsatisfaction.secret.plaintext";
+	
 	
 	/**
 	 * Property for the classless inter-domain routing to be used for SSH access
