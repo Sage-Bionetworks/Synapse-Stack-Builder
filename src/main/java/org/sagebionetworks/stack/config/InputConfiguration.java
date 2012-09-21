@@ -482,11 +482,27 @@ public class InputConfiguration {
 	}
 	
 	/**
+	 * The URL of the portal artifact.
+	 * @return
+	 */
+	public String getSearchArtifactoryUrl() {
+		return validateAndGetProperty("artifactory.search.url");
+	}
+	
+	/**
 	 * The version label for the repo war.
 	 * @return
 	 */
 	public String getRepoVersionLabel() {
 		return validateAndGetProperty("repo.version.label");
+	}
+	
+	/**
+	 * The version label for the repo war.
+	 * @return
+	 */
+	public String getSearchVersionLabel() {
+		return validateAndGetProperty("search.version.label");
 	}
 
 	/**
@@ -495,6 +511,15 @@ public class InputConfiguration {
 	 */
 	public String getRepoVersionPath() {
 		return validateAndGetProperty("elastic.beanstalk.application.versions.s3.path.repo");
+	}
+	
+
+	/**
+	 * The S3 path of the repo war.
+	 * @return
+	 */
+	public String getSearchVersionPath() {
+		return validateAndGetProperty("elastic.beanstalk.application.versions.s3.path.search");
 	}
 	
 	/**
@@ -567,6 +592,14 @@ public class InputConfiguration {
 	
 	public String getRepoEnvironmentCNAMEPrefix() {
 		return validateAndGetProperty("repository.service.environment.cname.prefix");
+	}
+	
+	public String getSearchEnvironmentName() {
+		return validateAndGetProperty("search.service.environment.name");
+	}
+	
+	public String getSearchEnvironmentCNAMEPrefix() {
+		return validateAndGetProperty("search.service.environment.cname.prefix");
 	}
 
 	public String getPortalEnvironmentName() {
