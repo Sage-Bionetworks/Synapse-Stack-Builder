@@ -91,6 +91,7 @@ public class TestHelper {
 		resources.setAuthApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getAuthVersionLabel()));
 		resources.setPortalApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getPortalVersionLabel()));
 		resources.setRepoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getRepoVersionLabel()));
+		resources.setSearchApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getSearchVersionLabel()));
 		resources.setStackKeyPair(new KeyPairInfo().withKeyName(config.getStackKeyPairName()));
 		return resources;
 	}
