@@ -46,6 +46,7 @@ public class Constants {
 	public static final String PORTAL_VERSION = "org.sagebionetworks.portal.war.version";
 	public static final String AUTHENTICATION_VERSION = "org.sagebionetworks.auth.war.version";
 	public static final String REPOSITORY_VERSION = "org.sagebionetworks.repo.war.version";
+	public static final String SEARCH_VERSION = "org.sagebionetworks.search.war.version";
 	
 	/**
 	 * Properties that requiring encryption should have this as a suffix.
