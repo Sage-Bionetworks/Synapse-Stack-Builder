@@ -82,7 +82,7 @@ public class MySqlDatabaseSetupTest {
 		expected.setAllocatedStorage(new Integer(5));
 		expected.setDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL);
 		expected.setEngine(DATABASE_ENGINE_MYSQL);
-		expected.setAvailabilityZone(EC2_AVAILABILITY_ZONE_US_EAST_1D);
+//		expected.setAvailabilityZone(EC2_AVAILABILITY_ZONE_US_EAST_1D);
 		expected.setPreferredMaintenanceWindow(PREFERRED_DATABASE_MAINTENANCE_WINDOW_SUNDAY_NIGHT_PDT);
 		expected.setBackupRetentionPeriod(new Integer(7));
 		expected.setPreferredBackupWindow(PREFERRED_DATABASE_BACKUP_WINDOW_MIDNIGHT);

@@ -28,6 +28,7 @@ public class StackDefaults {
 	 * The property keys we expect to find the default properties file.
 	 */
 	public static final String[] EXPECTED_PROPERTIES = new String[]{
+		Constants.STACK_ENCRYPTION_KEY,
 		Constants.KEY_DEFAULT_ID_GEN_PASSWORD_PLAIN_TEXT,
 		Constants.KEY_CIDR_FOR_SSH,
 	};
