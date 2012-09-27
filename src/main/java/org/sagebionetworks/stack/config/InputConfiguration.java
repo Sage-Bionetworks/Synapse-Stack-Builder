@@ -242,7 +242,14 @@ public class InputConfiguration {
 	public String getDefaultS3BucketName() {
 		return validateAndGetProperty("default.stack.s3.bucket");
 	}
-	
+
+	/**
+	 * The main bucket where all files for this stack reside.
+	 */
+	public String getMainFileS3BucketName() {
+		return validateAndGetProperty("main.file.s3.bucket");
+	}
+
 	/**
 	 * The file name of the default properties file in S3.
 	 * @return
@@ -250,7 +257,6 @@ public class InputConfiguration {
 	public String getDefaultPropertiesFileName() {
 		return validateAndGetProperty("default.stack.properties.name");
 	}
-
 
 	/**
 	 * The elastic security group name that all EC2 instances of this stack belong to.
