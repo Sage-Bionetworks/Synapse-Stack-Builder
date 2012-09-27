@@ -3,8 +3,10 @@ package org.sagebionetworks.stack;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,11 +15,11 @@ import java.util.Properties;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.sagebionetworks.factory.MockAmazonClientFactory;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.services.s3.AmazonS3Client;
-import org.sagebionetworks.factory.MockAmazonClientFactory;
+import com.amazonaws.services.s3.model.Bucket;
 
 public class StackConfigurationSetupTest {
 	
@@ -69,4 +71,14 @@ public class StackConfigurationSetupTest {
 		assertEquals(expectedUrl, resources.getStackConfigurationFileURL());
 	}
 
+	@Test
+	public void testSetupMainFileBucket() throws IOException{
+		Bucket mockBucket = mock(Bucket.class);
+		when(mockClient.createBucket(config.getMainFileS3BucketName())).thenReturn(mockBucket);
+		setup.setupMainFileBucket();
+		verify(mockClient, times(1)).createBucket(config.getMainFileS3BucketName());
+		// The resources should be set
+		assertNotNull(resources.getMainFileS3Bucket());
+		assertEquals(mockBucket, resources.getMainFileS3Bucket());
+	}
 }
