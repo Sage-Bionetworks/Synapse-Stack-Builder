@@ -92,6 +92,28 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		log.debug("Database instance: ");
 		log.debug(stackInstance);
 		resources.setStackInstancesDatabase(stackInstance);
+		
+		// Wait for both to be created
+		waitForDatabase(idGenInstance);
+		waitForDatabase(stackInstance);
+	}
+	
+	/**
+	 * Wait for a database to be available
+	 * @param stackInstance
+	 */
+	public void waitForDatabase(DBInstance stackInstance) {
+		String status = null;
+		do{
+			DescribeDBInstancesResult result = client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(stackInstance.getDBInstanceIdentifier()));
+			status = result.getDBInstances().get(0).getDBInstanceStatus();
+			log.info(String.format("Waiting for database: instance: %1$s status: %2$s ", stackInstance.getDBInstanceIdentifier(), status));
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		}while(!"available".equals(status));
 	}
 	
 	/*
@@ -267,7 +289,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		request.setAllocatedStorage(new Integer(5));
 		request.setDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL);
 		request.setEngine(DATABASE_ENGINE_MYSQL);
-		request.setAvailabilityZone(EC2_AVAILABILITY_ZONE_US_EAST_1D);
+//		request.setAvailabilityZone(EC2_AVAILABILITY_ZONE_US_EAST_1D);
 		request.setPreferredMaintenanceWindow(PREFERRED_DATABASE_MAINTENANCE_WINDOW_SUNDAY_NIGHT_PDT);
 		request.setBackupRetentionPeriod(new Integer(7));
 		request.setPreferredBackupWindow(PREFERRED_DATABASE_BACKUP_WINDOW_MIDNIGHT);
