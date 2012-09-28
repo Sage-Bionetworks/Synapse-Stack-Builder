@@ -225,12 +225,21 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			return environment;
 		}else{
 			log.debug("Environment already exists: "+environmentName+" updating it...");
+			// This first pass we just update the version
 			UpdateEnvironmentRequest uer = new UpdateEnvironmentRequest();
 			uer.setEnvironmentId(environment.getEnvironmentId());
 			uer.setEnvironmentName(environmentName);
-//			uer.setTemplateName(config.getElasticBeanstalkTemplateName());
 			uer.setVersionLabel(version.getVersionLabel());
 			UpdateEnvironmentResult updateResult = beanstalkClient.updateEnvironment(uer);
+			
+			// The second pass we update the environment template.
+			uer = new UpdateEnvironmentRequest();
+			uer.setEnvironmentId(environment.getEnvironmentId());
+			uer.setEnvironmentName(environmentName);
+			uer.setTemplateName(config.getElasticBeanstalkTemplateName());
+			uer.setVersionLabel(version.getVersionLabel());
+			updateResult = beanstalkClient.updateEnvironment(uer);
+			
 			// Restart the application
 //			beanstalkClient.restartAppServer(new RestartAppServerRequest().withEnvironmentId(environment.getEnvironmentId()));
 			// Return the new information.
