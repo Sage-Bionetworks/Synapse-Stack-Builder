@@ -53,6 +53,11 @@ public class TestHelper {
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_BCC_GOOGLEAPPS_OAUTH_CONSUMER_SECRET_PLAINTEX, "google consumer oath key");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_BCC_GOOGLEAPPS_OAUTH_ACCESS_TOKEN_PLAINTEXT, "google access token");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_BCC_GOOGLEAPPS_OAUTH_ACCESS_TOKEN_SECRET_PLAINTEXT, "google access token secret");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_PORTAL_API_LINKEDIN_KEY, "linkedin key");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_PORTAL_API_LINKEDIN_SECRET_PLAINTEXT, "linkedin secret");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_PORTAL_API_GETSATISFACTION_KEY, "getsatisfaction key");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_PORTAL_API_GETSATISFACTION_SECRET_PLAINTEXT, "getsatisfaction secret");
+		
 		return defaults;
 	}
 
