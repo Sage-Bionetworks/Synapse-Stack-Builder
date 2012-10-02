@@ -126,7 +126,7 @@ public class InputConfigurationTest {
 		// the alert topic
 		assertEquals(stack+"-RDS-Alert", config.getRDSAlertTopicName());
 		// Main file S3 bucket
-		assertEquals(stack+instance+"data.sagebase.org", config.getMainFileS3BucketName());
+		assertEquals(stack+"data.sagebase.org", config.getMainFileS3BucketName());
 	}
 	
 	
