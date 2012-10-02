@@ -29,12 +29,17 @@ public class BuildStackMain {
 			// Log the args.
 			logArgs(args);
 			// The path to the configuration property file must be provided
-			if(args == null || args.length != 1) throw new IllegalArgumentException("The first argument must be the path configuration property file to be used to build this stack.");
-			String pathConfig = args[0];
-			// Load the properites file
-			Properties input = loadPropertiesFromPath(pathConfig);
+			Properties input = null;
+			if(args != null && args.length ==1 && args[0] != null && !"".equals(args[0].trim())) {
+				String pathConfig = args[0];
+				// Load the properties file
+				input = loadPropertiesFromPath(pathConfig);
+			}else{
+				// Load the properties from the System Properties.
+				input = System.getProperties();
+			}
 			// Load the configuration
-			GeneratedResources resource = buildStack(input, new AmazonClientFactoryImpl());
+			buildStack(input, new AmazonClientFactoryImpl());
 
 		}catch(Throwable e){
 			log.error("Terminating: ",e);
