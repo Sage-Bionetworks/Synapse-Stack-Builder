@@ -222,28 +222,45 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			return environment;
 		}else{
 			log.debug("Environment already exists: "+environmentName+" updating it...");
+			// wait for environment to be ready after this change.
+			waitForEnvironmentReady(environmentName);
 			// This first pass we just update the version
 			UpdateEnvironmentRequest uer = new UpdateEnvironmentRequest();
 			uer.setEnvironmentId(environment.getEnvironmentId());
 			uer.setEnvironmentName(environmentName);
 			uer.setVersionLabel(version.getVersionLabel());
 			UpdateEnvironmentResult updateResult = beanstalkClient.updateEnvironment(uer);
-			
+			// wait for environment to be ready after this change.
+			waitForEnvironmentReady(environmentName);
 			// The second pass we update the environment template.
 			uer = new UpdateEnvironmentRequest();
 			uer.setEnvironmentId(environment.getEnvironmentId());
 			uer.setEnvironmentName(environmentName);
 			uer.setTemplateName(config.getElasticBeanstalkTemplateName());
-			uer.setVersionLabel(version.getVersionLabel());
 			updateResult = beanstalkClient.updateEnvironment(uer);
-			
-			// Restart the application
-//			beanstalkClient.restartAppServer(new RestartAppServerRequest().withEnvironmentId(environment.getEnvironmentId()));
 			// Return the new information.
 			environment = describeEnvironment(environmentName);
 			log.debug(environment);
 			return environment;
 		}
+	}
+	
+	/**
+	 * Wait for the Environment to be ready
+	 * @throws InterruptedException 
+	 */
+	public void waitForEnvironmentReady(String environmentName){
+		EnvironmentDescription environment = null;
+		do{
+			environment = describeEnvironment(environmentName);
+			if(environment == null) throw new IllegalArgumentException("Environment :"+environmentName+" does not exist");
+			log.info(String.format("Waiting for Environment '%1$s' to be ready.  Status: '%2$s'", environmentName, environment.getStatus()));
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		}while(!"Ready".equals(environment.getStatus()));
 	}
 	
 	/**
