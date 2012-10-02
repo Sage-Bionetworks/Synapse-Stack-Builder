@@ -59,7 +59,7 @@ public class DatabaseSecuritySetup implements ResourceProcessor {
 
 	/*
 	 * Teardown the database security groups needed for stack instance
-	 * NOTE: Do not call if you just want to teardown an instance of a stack!!!
+	 * 
 	 */
 	public void teardownResources() {
 		DeleteDBSecurityGroupRequest req;

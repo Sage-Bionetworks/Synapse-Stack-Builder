@@ -98,9 +98,6 @@ public class AlarmSetup implements ResourceProcessor {
 	 */
 	public void deleteAllAlarms(){
 		DBInstance instance;
-		// Delete the alarms for the id generator
-//		instance = resources.getIdGeneratorDatabase();
-//		deleteAllAlarmsForDatabase(instance);
 		// Delete the alarms for the stack instances database.
 		instance = resources.getStackInstancesDatabase();
 		deleteAllAlarmsForDatabase(instance);

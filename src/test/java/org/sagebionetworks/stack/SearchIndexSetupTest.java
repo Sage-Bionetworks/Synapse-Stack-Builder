@@ -76,17 +76,6 @@ public class SearchIndexSetupTest {
 	}
 	
 	
-	@Test(expected=IllegalStateException.class)
-	public void testTeardownResourcesNonExistentDomain() {
-		String deletedDomainName = config.getSearchIndexDomainName();
-		SearchIndexSetup idx = new SearchIndexSetup(factory, config, resources);
-		DomainStatus domainStatus = new DomainStatus().withDomainName(deletedDomainName);
-		resources.setSearchDomain(domainStatus);
-		DeleteDomainRequest delReq = new DeleteDomainRequest().withDomainName(deletedDomainName);
-		when(mockClient.deleteDomain(delReq)).thenReturn(null);
-		idx.teardownResources();
-		assertNull(resources.getSearchDomain());
-	}
 	@Test
 	public void testDescribeResourcesExistentDomain() {
 		String expectedDomainName = config.getSearchIndexDomainName();
