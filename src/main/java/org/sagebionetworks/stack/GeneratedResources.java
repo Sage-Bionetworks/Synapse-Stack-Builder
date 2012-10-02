@@ -37,6 +37,7 @@ public class GeneratedResources {
 	private URL stackConfigurationFileURL;
 	private ApplicationDescription elasticBeanstalkApplication;
 	private ApplicationVersionDescription portalApplicationVersion;
+	private ApplicationVersionDescription searchApplicationVersion;
 	private ApplicationVersionDescription repoApplicationVersion;
 	private ApplicationVersionDescription authApplicationVersion;
 	private ServerCertificateMetadata sslCertificate;
@@ -44,6 +45,7 @@ public class GeneratedResources {
 	private DescribeConfigurationOptionsResult elasticBeanstalkConfigurationTemplate;
 	private EnvironmentDescription authenticationEnvironment;
 	private EnvironmentDescription repositoryEnvironment;
+	private EnvironmentDescription searchEnvironment;
 	private EnvironmentDescription portalEnvironment;
 	private DomainStatus searchDomain;
 	private DBParameterGroup dbParameterGroup;
@@ -98,6 +100,24 @@ public class GeneratedResources {
 		this.repositoryEnvironment = repositoryEnvironment;
 	}
 
+	/**
+	 * The repository environment description.
+	 * @return
+	 */
+	public EnvironmentDescription getSearchEnvironment() {
+		return searchEnvironment;
+	}
+
+	/**
+	 * The repository environment description.
+	 * @param repositoryEnvironment
+	 */
+	public void setSearchEnvironment(
+			EnvironmentDescription searchEnvironment) {
+		this.searchEnvironment = searchEnvironment;
+	}
+
+	
 	/**
 	 * The portal environment description.
 	 * @return
@@ -214,6 +234,23 @@ public class GeneratedResources {
 	public void setRepoApplicationVersion(
 			ApplicationVersionDescription reopApplicationVersion) {
 		this.repoApplicationVersion = reopApplicationVersion;
+	}
+	
+	/**
+	 * The application version of the repository
+	 * @return
+	 */
+	public ApplicationVersionDescription getSearchApplicationVersion() {
+		return searchApplicationVersion;
+	}
+
+	/**
+	 * 
+	 * @param reopApplicationVersion
+	 */
+	public void setSearchApplicationVersion(
+			ApplicationVersionDescription searchApplication) {
+		this.searchApplicationVersion = searchApplication;
 	}
 
 	/**

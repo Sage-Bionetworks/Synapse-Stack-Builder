@@ -67,6 +67,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		if(resources.getAuthApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getAuthApplicationVersion() cannot be null");
 		if(resources.getPortalApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getPortalApplicationVersion() cannot be null");
 		if(resources.getRepoApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getReopApplicationVersion() cannot be null");
+		if(resources.getSearchApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getSearchApplicationVersion() cannot be null");
 		if(resources.getStackKeyPair() == null) throw new IllegalArgumentException("GeneratedResources.getStackKeyPair() cannot be null");
 		this.beanstalkClient = factory.createBeanstalkClient();
 		this.config = config;
@@ -85,6 +86,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		resources.setAuthenticationEnvironment(describeEnvironment(config.getAuthEnvironmentName()));
 		resources.setPortalEnvironment(describeEnvironment(config.getPortalEnvironmentName()));
 		resources.setRepositoryEnvironment(describeEnvironment(config.getRepoEnvironmentName()));
+		resources.setSearchEnvironment(describeEnvironment(config.getSearchEnvironmentName()));
 	}
 
 	/**
@@ -98,6 +100,8 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		resources.setAuthenticationEnvironment(createEnvironment(config.getAuthEnvironmentName(), config.getAuthEnvironmentCNAMEPrefix(), resources.getAuthApplicationVersion()));
 		// repo
 		resources.setRepositoryEnvironment(createEnvironment(config.getRepoEnvironmentName(), config.getRepoEnvironmentCNAMEPrefix(), resources.getRepoApplicationVersion()));
+		// search
+		resources.setSearchEnvironment(createEnvironment(config.getSearchEnvironmentName(), config.getSearchEnvironmentCNAMEPrefix(), resources.getSearchApplicationVersion()));
 		// portal
 		resources.setPortalEnvironment(createEnvironment(config.getPortalEnvironmentName(), config.getPortalEnvironmentCNAMEPrefix(), resources.getPortalApplicationVersion()));
 	}
@@ -109,6 +113,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		this.terminateEnvironment(config.getAuthEnvironmentName(), config.getAuthEnvironmentCNAMEPrefix());
 		this.terminateEnvironment(config.getPortalEnvironmentName(), config.getPortalEnvironmentCNAMEPrefix());
 		this.terminateEnvironment(config.getRepoEnvironmentName(), config.getRepoEnvironmentCNAMEPrefix());
+		this.terminateEnvironment(config.getSearchEnvironmentName(), config.getSearchEnvironmentCNAMEPrefix());
 //		this.deleteConfigurationTemplate();
 	}
 	/**
@@ -220,7 +225,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			UpdateEnvironmentRequest uer = new UpdateEnvironmentRequest();
 			uer.setEnvironmentId(environment.getEnvironmentId());
 			uer.setEnvironmentName(environmentName);
-			uer.setTemplateName(config.getElasticBeanstalkTemplateName());
+//			uer.setTemplateName(config.getElasticBeanstalkTemplateName());
 			uer.setVersionLabel(version.getVersionLabel());
 			UpdateEnvironmentResult updateResult = beanstalkClient.updateEnvironment(uer);
 			// Restart the application

@@ -77,7 +77,8 @@ public class ArtifactProcessing {
 		resources.setRepoApplicationVersion(createOrGetApplicationVersion(config.getRepoVersionPath(), config.getRepoVersionLabel(), config.getRepoArtifactoryUrl()));
 		// Create the application version for the auth
 		resources.setAuthApplicationVersion(createOrGetApplicationVersion(config.getAuthVersionPath(), config.getAuthVersionLabel(), config.getAuthArtifactoryUrl()));
-
+		// Create the application version for the search
+		resources.setSearchApplicationVersion(createOrGetApplicationVersion(config.getSearchVersionPath(), config.getSearchVersionLabel(), config.getSearchArtifactoryUrl()));
 	}
 	
 	public void describeResources() {
@@ -100,6 +101,7 @@ public class ArtifactProcessing {
 			log.debug(String.format("Could not find version: %1$s...", config.getPortalVersionLabel()));
 
 		}
+		resources.setSearchApplicationVersion(describeApplicationVersion(config.getSearchVersionLabel()));
 	}
 	
 	/**

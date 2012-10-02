@@ -76,6 +76,7 @@ public class TestHelper {
 		inputProperties.put(Constants.PORTAL_VERSION, "2.4.8");
 		inputProperties.put(Constants.AUTHENTICATION_VERSION, "1.2.3");
 		inputProperties.put(Constants.REPOSITORY_VERSION, "7.8.9");
+		inputProperties.put(Constants.SEARCH_VERSION, "10.11.12");
 		return inputProperties;
 	}
 	
@@ -95,6 +96,7 @@ public class TestHelper {
 		resources.setAuthApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getAuthVersionLabel()));
 		resources.setPortalApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getPortalVersionLabel()));
 		resources.setRepoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getRepoVersionLabel()));
+		resources.setSearchApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getSearchVersionLabel()));
 		resources.setStackKeyPair(new KeyPairInfo().withKeyName(config.getStackKeyPairName()));
 		return resources;
 	}
