@@ -100,15 +100,9 @@ public class EC2SecuritySetup implements ResourceProcessor {
 	
 	/*
 	 * Teardown all EC2 security group resources
-	 * NOTE: Do not call if you just want to delete a stack instance!!!
+	 * NOTE: NoOp
 	 */
 	public void teardownResources() {
-		if (resources.getElasticBeanstalkEC2SecurityGroup() != null) {
-			DeleteSecurityGroupRequest req = new DeleteSecurityGroupRequest();
-			req.setGroupName(config.getElasticSecurityGroupName());
-			ec2Client.deleteSecurityGroup(req);
-			resources.setElasticBeanstalkEC2SecurityGroup(null);
-		}
 	}
 
 	public void describeResources() {
@@ -123,6 +117,8 @@ public class EC2SecuritySetup implements ResourceProcessor {
 			if (inf != null) {
 				resources.setStackKeyPair(inf);
 			}
+		} else {
+			throw new IllegalStateException("Did not find one and ony one EC2 secruity group with the name: " + req.getGroupNames());
 		}
 	}
 

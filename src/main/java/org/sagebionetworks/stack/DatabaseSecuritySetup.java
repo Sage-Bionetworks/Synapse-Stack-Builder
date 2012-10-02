@@ -58,17 +58,12 @@ public class DatabaseSecuritySetup implements ResourceProcessor {
 	
 
 	/*
-	 * Teardown all of the database security groups needed for the stack
-	 * NOTE: Do not call if you just want to teardown an instance of a stack!!!
+	 * Teardown the database security groups needed for stack instance
+	 * 
 	 */
 	public void teardownResources() {
 		DeleteDBSecurityGroupRequest req;
 
-		if (resources.getIdGeneratorDatabaseSecurityGroup() != null) {
-			req = new DeleteDBSecurityGroupRequest().withDBSecurityGroupName(config.getIdGeneratorDatabaseSecurityGroupName());
-			rdsClient.deleteDBSecurityGroup(req);
-			resources.setIdGeneratorDatabaseSecurityGroup(null);
-		}
 		if (resources.getStackInstancesDatabaseSecurityGroup() != null) {
 			req = new DeleteDBSecurityGroupRequest().withDBSecurityGroupName(config.getStackDatabaseSecurityGroupName());
 			rdsClient.deleteDBSecurityGroup(req);
@@ -83,16 +78,6 @@ public class DatabaseSecuritySetup implements ResourceProcessor {
 		resources.setIdGeneratorDatabaseSecurityGroup(describeDBSecurityGroup(config.getIdGeneratorDatabaseSecurityGroupName()));
 		resources.setStackInstancesDatabaseSecurityGroup(describeDBSecurityGroup(config.getStackDatabaseSecurityGroupName()));
 		
-//		req = new DescribeDBSecurityGroupsRequest().withDBSecurityGroupName(config.getIdGeneratorDatabaseSecurityGroupName());
-//		res = rdsClient.describeDBSecurityGroups(req);
-//		if ((res.getDBSecurityGroups() != null) && (res.getDBSecurityGroups().size() == 1)) {
-//			resources.setIdGeneratorDatabaseSecurityGroup(res.getDBSecurityGroups().get(0));
-//		}
-//		req = new DescribeDBSecurityGroupsRequest().withDBSecurityGroupName(config.getStackDatabaseSecurityGroupName());
-//		res = rdsClient.describeDBSecurityGroups(req);
-//		if ((res.getDBSecurityGroups() != null) && (res.getDBSecurityGroups().size() == 1)) {
-//			resources.setStackInstancesDatabaseSecurityGroup(res.getDBSecurityGroups().get(0));
-//		}
 	}
 
 	/**

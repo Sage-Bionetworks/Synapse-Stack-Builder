@@ -62,6 +62,7 @@ public class StackConfigurationSetup {
 	}
 	
 	public void setupResources()  throws IOException {
+		this.setupMainFileBucket();
 		this.setupAndUploadStackConfig();
 	}
 	
@@ -71,6 +72,15 @@ public class StackConfigurationSetup {
 	
 	public void describeResources() {
 		
+	}
+
+	/**
+	 * Sets up the main S3 bucket (if not already exist) for storing app data.
+	 */
+	public void setupMainFileBucket() {
+		String bucketName = config.getMainFileS3BucketName();
+		Bucket bucket = client.createBucket(bucketName);
+		resources.setMainFileS3Bucket(bucket);
 	}
 
 	/**
@@ -88,7 +98,6 @@ public class StackConfigurationSetup {
 		// Write to a temp file that will get deleted.
 		File temp = File.createTempFile("TempProps", ".properties");
 		saveUploadDelete(bucketName, props, temp);
-		
 	}
 
 	/**

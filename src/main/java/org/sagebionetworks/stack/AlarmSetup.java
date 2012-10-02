@@ -59,7 +59,7 @@ public class AlarmSetup implements ResourceProcessor {
 	}
 	
 	public void teardownResources() {
-		
+		deleteAllAlarms();
 	}
 	
 	public void describeResources() {
@@ -67,10 +67,10 @@ public class AlarmSetup implements ResourceProcessor {
 		String topicArn = resources.getRdsAlertTopicArn();
 		// setup the alarms for the id generator
 		DBInstance instance = resources.getIdGeneratorDatabase();
-		resources.setIdGeneratorDatabaseAlarms(getAllAlarmsForDatabase(instance));
+		resources.setIdGeneratorDatabaseAlarms(describeAllAlarmsForDatabase(instance));
 		// setup the alarms for the stack instances database.
 		instance = resources.getStackInstancesDatabase();
-		resources.setStackInstancesDatabaseAlarms(getAllAlarmsForDatabase(instance));
+		resources.setStackInstancesDatabaseAlarms(describeAllAlarmsForDatabase(instance));
 	}
 
 	/**
@@ -84,12 +84,12 @@ public class AlarmSetup implements ResourceProcessor {
 		// setup the alarms for the id generator
 		DBInstance instance = resources.getIdGeneratorDatabase();
 		l = createAllAlarmsForDatabase(instance, topicArn);
-		r = getAllAlarmsForDatabase(instance);
+		r = describeAllAlarmsForDatabase(instance);
 		resources.setIdGeneratorDatabaseAlarms(r);
 		// setup the alarms for the stack instances database.
 		instance = resources.getStackInstancesDatabase();
 		l = createAllAlarmsForDatabase(instance, topicArn);
-		r = getAllAlarmsForDatabase(instance);
+		r = describeAllAlarmsForDatabase(instance);
 		resources.setStackInstancesDatabaseAlarms(r);
 	}
 
@@ -97,9 +97,7 @@ public class AlarmSetup implements ResourceProcessor {
 	 * Delete all alarms.
 	 */
 	public void deleteAllAlarms(){
-		// Delete the alarms for the id generator
-		DBInstance instance = resources.getIdGeneratorDatabase();
-		deleteAllAlarmsForDatabase(instance);
+		DBInstance instance;
 		// Delete the alarms for the stack instances database.
 		instance = resources.getStackInstancesDatabase();
 		deleteAllAlarmsForDatabase(instance);
@@ -133,23 +131,15 @@ public class AlarmSetup implements ResourceProcessor {
 	public void deleteAllAlarmsForDatabase(DBInstance instance) {
 		if (instance == null) throw new IllegalArgumentException("DBInstance cannpt be null");
 		
-		List<String> alarmsToDelete = Arrays.asList(
-				instance.getDBInstanceIdentifier()+LOW_FREEABLE_MEMORY_NAME,
-				instance.getDBInstanceIdentifier()+HIGH_WRITE_LATENCY,
-				instance.getDBInstanceIdentifier()+HIGH_CPU_UTILIZATION,
-				instance.getDBInstanceIdentifier()+LOW_FREE_STOREAGE_SPACE);
+		List<String> alarmsToDelete = this.getAlarms(instance);
 		DeleteAlarmsRequest request = new DeleteAlarmsRequest().withAlarmNames(alarmsToDelete);
 		client.deleteAlarms(request);
 	}
 	
-	public DescribeAlarmsResult getAllAlarmsForDatabase(DBInstance instance) {
+	public DescribeAlarmsResult describeAllAlarmsForDatabase(DBInstance instance) {
 		if (instance == null) throw new IllegalArgumentException("DBInstance cannpt be null");
 		
-		List<String> alarmsToDescribe = Arrays.asList(
-				instance.getDBInstanceIdentifier()+LOW_FREEABLE_MEMORY_NAME,
-				instance.getDBInstanceIdentifier()+HIGH_WRITE_LATENCY,
-				instance.getDBInstanceIdentifier()+HIGH_CPU_UTILIZATION,
-				instance.getDBInstanceIdentifier()+LOW_FREE_STOREAGE_SPACE);
+		List<String> alarmsToDescribe = this.getAlarms(instance);
 		DescribeAlarmsRequest req = new DescribeAlarmsRequest().withAlarmNames(alarmsToDescribe);
 		DescribeAlarmsResult res = client.describeAlarms(req);
 		return res;
@@ -234,5 +224,15 @@ public class AlarmSetup implements ResourceProcessor {
 		// CPUUtilization >= 90 for 5 minutes
 		alarmRequest.withStatistic(STATISTIC_AVERAGE).withMetricName(METRIC_FREE_STOREAGE_SPACE).withComparisonOperator(ComparisonOperator.LessThanOrEqualToThreshold).withThreshold(tenPercentBytes).withEvaluationPeriods(1).withPeriod(FIVE_MINUTES_IN_SECONDS);	
 		return alarmRequest;
+	}
+	
+	private static List<String> getAlarms(DBInstance instance) {
+		if(instance == null) throw new IllegalArgumentException("DBInstance cannot be null");
+		List<String> alarms = Arrays.asList(
+				instance.getDBInstanceIdentifier()+LOW_FREEABLE_MEMORY_NAME,
+				instance.getDBInstanceIdentifier()+HIGH_WRITE_LATENCY,
+				instance.getDBInstanceIdentifier()+HIGH_CPU_UTILIZATION,
+				instance.getDBInstanceIdentifier()+LOW_FREE_STOREAGE_SPACE);
+		return alarms;
 	}
 }

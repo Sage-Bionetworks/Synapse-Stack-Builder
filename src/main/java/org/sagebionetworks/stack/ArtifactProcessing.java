@@ -86,6 +86,21 @@ public class ArtifactProcessing {
 		resources.setPortalApplicationVersion(describeApplicationVersion(config.getPortalVersionLabel()));
 		resources.setRepoApplicationVersion(describeApplicationVersion(config.getRepoVersionLabel()));
 		resources.setAuthApplicationVersion(describeApplicationVersion(config.getAuthVersionLabel()));
+		if (resources.getElasticBeanstalkApplication() == null) {
+			log.debug("Did not find one and only one Elastic Beanstalk Application with the name: "+ config.getElasticBeanstalkApplicationName());
+		}
+		if (resources.getRepoApplicationVersion() == null) {
+			log.debug(String.format("Could not find version: %1$s...", config.getRepoVersionLabel()));
+
+		}
+		if (resources.getAuthApplicationVersion() == null) {
+			log.debug(String.format("Could not find version: %1$s...", config.getAuthVersionLabel()));
+
+		}
+		if (resources.getPortalApplicationVersion() == null) {
+			log.debug(String.format("Could not find version: %1$s...", config.getPortalVersionLabel()));
+
+		}
 		resources.setSearchApplicationVersion(describeApplicationVersion(config.getSearchVersionLabel()));
 	}
 	
@@ -114,7 +129,6 @@ public class ArtifactProcessing {
 		String appName = config.getElasticBeanstalkApplicationName();
 		DescribeApplicationsResult result = beanstalkClient.describeApplications(new DescribeApplicationsRequest().withApplicationNames(appName));
 		if (result.getApplications().size() != 1) {
-			log.debug("Did not find one and only one Elastic Beanstalk Application with the name: "+ appName);
 			return null;
 		} else {
 			return result.getApplications().get(0);
@@ -183,7 +197,6 @@ public class ArtifactProcessing {
 	public ApplicationVersionDescription describeApplicationVersion(String versionLabel) {
 		DescribeApplicationVersionsResult results = beanstalkClient.describeApplicationVersions(new DescribeApplicationVersionsRequest().withApplicationName(config.getElasticBeanstalkApplicationName()).withVersionLabels(versionLabel));
 		if (results.getApplicationVersions().size() != 1) {
-			log.debug(String.format("Could not find version: %1$s...", versionLabel));
 			return null;
 		} else {
 			return results.getApplicationVersions().get(0);
