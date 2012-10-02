@@ -212,10 +212,8 @@ public class DatabaseSecuritySetupTest {
 		reqIdGen.setDBSecurityGroupName(config.getIdGeneratorDatabaseSecurityGroupName());
 		DescribeDBSecurityGroupsRequest reqStackInst = new DescribeDBSecurityGroupsRequest();
 		reqStackInst.setDBSecurityGroupName(config.getStackDatabaseSecurityGroupName());
-		when(mockClient.describeDBSecurityGroups(any(DescribeDBSecurityGroupsRequest.class))).thenReturn(
-				new DescribeDBSecurityGroupsResult().withDBSecurityGroups(new DBSecurityGroup().withDBSecurityGroupName(config.getIdGeneratorDatabaseSecurityGroupName())),
-				new DescribeDBSecurityGroupsResult().withDBSecurityGroups(new DBSecurityGroup().withDBSecurityGroupName(config.getStackDatabaseSecurityGroupName()))
-			);
+		when(mockClient.describeDBSecurityGroups(reqIdGen)).thenReturn(new DescribeDBSecurityGroupsResult().withDBSecurityGroups(new DBSecurityGroup().withDBSecurityGroupName(config.getIdGeneratorDatabaseSecurityGroupName())));
+		when(mockClient.describeDBSecurityGroups(reqStackInst)).thenReturn(new DescribeDBSecurityGroupsResult().withDBSecurityGroups(new DBSecurityGroup().withDBSecurityGroupName(config.getStackDatabaseSecurityGroupName())));
 		databaseSecuritySetup.describeResources();
 		assertNotNull(resources.getIdGeneratorDatabaseSecurityGroup());
 		assertNotNull(resources.getStackInstancesDatabaseSecurityGroup());
@@ -225,9 +223,10 @@ public class DatabaseSecuritySetupTest {
 	public void testTeardownResources() {
 		resources.setIdGeneratorDatabaseSecurityGroup(new DBSecurityGroup().withDBSecurityGroupName(config.getIdGeneratorDatabaseSecurityGroupName()));
 		resources.setStackInstancesDatabaseSecurityGroup(new DBSecurityGroup().withDBSecurityGroupName(config.getStackDatabaseSecurityGroupName()));
+		DeleteDBSecurityGroupRequest req = new DeleteDBSecurityGroupRequest().withDBSecurityGroupName(resources.getStackInstancesDatabaseSecurityGroup().getDBSecurityGroupName());
 		databaseSecuritySetup.teardownResources();
-		verify(mockClient, times(2)).deleteDBSecurityGroup(any(DeleteDBSecurityGroupRequest.class));
-		assertNull(resources.getIdGeneratorDatabaseSecurityGroup());
+		verify(mockClient, times(1)).deleteDBSecurityGroup(req);
+		assertNotNull(resources.getIdGeneratorDatabaseSecurityGroup());
 		assertNull(resources.getStackInstancesDatabaseSecurityGroup());
 	}
 	/**
