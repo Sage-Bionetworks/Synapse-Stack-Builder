@@ -64,8 +64,6 @@ public class SearchIndexSetup implements ResourceProcessor {
 		}
 		if (result != null) {
 			this.resources.setSearchDomain(null);
-		} else {
-			throw new IllegalStateException("Could not delete domain " + domainName);
 		}
 	}
 	

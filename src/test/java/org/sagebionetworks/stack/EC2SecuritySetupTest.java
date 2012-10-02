@@ -145,7 +145,6 @@ public class EC2SecuritySetupTest {
 		resources.setElasticBeanstalkEC2SecurityGroup(new SecurityGroup().withGroupName(config.getElasticSecurityGroupName()));
 		DeleteSecurityGroupRequest req = new DeleteSecurityGroupRequest().withGroupName(resources.getElasticBeanstalkEC2SecurityGroup().getGroupName());
 		ec2SecuritySetup.teardownResources();
-		verify(mockEC2Client).deleteSecurityGroup(req);
-		assertNull(resources.getElasticBeanstalkEC2SecurityGroup());
+		assertNotNull(resources.getElasticBeanstalkEC2SecurityGroup());
 	}
 }

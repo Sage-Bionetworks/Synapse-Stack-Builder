@@ -61,7 +61,7 @@ public class SSLSetup implements ResourceProcessor {
 	}
 	
 	public void teardownResources() {
-		this.deleteSSLCertificate();
+		
 	}
 	
 	public void describeResources() {
