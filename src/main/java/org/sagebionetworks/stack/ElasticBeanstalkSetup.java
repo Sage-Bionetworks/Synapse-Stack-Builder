@@ -238,7 +238,10 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			uer.setEnvironmentName(environmentName);
 			uer.setTemplateName(config.getElasticBeanstalkTemplateName());
 			updateResult = beanstalkClient.updateEnvironment(uer);
+			
 			// Restart after the changes
+			// wait for environment to be ready after this change.
+			waitForEnvironmentReady(environmentName);
 			beanstalkClient.restartAppServer(new RestartAppServerRequest().withEnvironmentId(environment.getEnvironmentId()));
 			// Return the new information.
 			environment = describeEnvironment(environmentName);
