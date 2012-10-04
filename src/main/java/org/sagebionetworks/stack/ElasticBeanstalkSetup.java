@@ -315,6 +315,15 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			nameRaw = nameRaw.replaceAll("-", " ");
 			// What is left is the name
 			String name = nameRaw.replaceAll("\\?", ":");
+			if("aws:autoscaling:asg".equals(nameSpace) && "MinSize".equals(name)){
+				// For production we want a  value of 2
+				if(config.isProductionStack()){
+					if(Long.parseLong(value) < 2){
+						log.debug("Overriding aws.autoscaling.asg.MinSize for production to be at least 2");
+						value = "2";
+					}
+				}
+			}
 			ConfigurationOptionSetting config = new ConfigurationOptionSetting(nameSpace, name, value);
 			list.add(config);
 			log.debug(config);
