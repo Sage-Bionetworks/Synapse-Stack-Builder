@@ -241,8 +241,8 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			
 			// Restart after the changes
 			// wait for environment to be ready after this change.
-			waitForEnvironmentReady(environmentName);
-			beanstalkClient.restartAppServer(new RestartAppServerRequest().withEnvironmentId(environment.getEnvironmentId()));
+//			waitForEnvironmentReady(environmentName);
+//			beanstalkClient.restartAppServer(new RestartAppServerRequest().withEnvironmentId(environment.getEnvironmentId()));
 			// Return the new information.
 			environment = describeEnvironment(environmentName);
 			log.debug(environment);
