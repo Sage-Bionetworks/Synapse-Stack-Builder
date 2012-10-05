@@ -251,13 +251,13 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 					List<ConfigurationOptionSetting> settings = getAllElasticBeanstalkOptions();
 					boolean updated = false;
 					// Should we update the configuration?
-					if(csd == null || !areExpectedSettingsEquals(settings, csd.getOptionSettings())){
+//					if(csd == null || !areExpectedSettingsEquals(settings, csd.getOptionSettings())){
 						// First update the configuration
 						log.debug("Environment configurations need to be updated for: "+environmentName+"... updating it...");
 						updateConfigurationOnly(environmentName, environment);
 						// An update was made.
 						updated = true;
-					}
+//					}
 					// Should we update the version?
 					if(!environment.getVersionLabel().equals(version.getVersionLabel())){
 						log.debug("Environment version need to be updated for: "+environmentName+"... updating it...");
@@ -309,7 +309,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		uer.setEnvironmentId(environment.getEnvironmentId());
 		uer.setEnvironmentName(environmentName);
 		uer.setVersionLabel(version.getVersionLabel());
-		uer.setTemplateName(config.getElasticBeanstalkTemplateName());
+//		uer.setTemplateName(config.getElasticBeanstalkTemplateName());
 		UpdateEnvironmentResult result =beanstalkClient.updateEnvironment(uer);
 
 	}
