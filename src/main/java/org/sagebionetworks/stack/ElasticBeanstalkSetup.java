@@ -1,29 +1,38 @@
 package org.sagebionetworks.stack;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
+import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionSetting;
+import com.amazonaws.services.elasticbeanstalk.model.ConfigurationSettingsDescription;
 import com.amazonaws.services.elasticbeanstalk.model.CreateConfigurationTemplateRequest;
 import com.amazonaws.services.elasticbeanstalk.model.CreateEnvironmentRequest;
 import com.amazonaws.services.elasticbeanstalk.model.DeleteConfigurationTemplateRequest;
-import com.amazonaws.services.elasticbeanstalk.model.DeleteEnvironmentConfigurationRequest;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationOptionsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationOptionsResult;
-import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentResourcesRequest;
-import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentResourcesResult;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationSettingsRequest;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationSettingsResult;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsResult;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
-import com.amazonaws.services.elasticbeanstalk.model.EnvironmentResourceDescription;
 import com.amazonaws.services.elasticbeanstalk.model.RestartAppServerRequest;
 import com.amazonaws.services.elasticbeanstalk.model.TerminateEnvironmentRequest;
 import com.amazonaws.services.elasticbeanstalk.model.TerminateEnvironmentResult;
@@ -31,7 +40,6 @@ import com.amazonaws.services.elasticbeanstalk.model.UpdateConfigurationTemplate
 import com.amazonaws.services.elasticbeanstalk.model.UpdateConfigurationTemplateResult;
 import com.amazonaws.services.elasticbeanstalk.model.UpdateEnvironmentRequest;
 import com.amazonaws.services.elasticbeanstalk.model.UpdateEnvironmentResult;
-import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 /**
  * Setup the elastic beanstalk environments.
@@ -46,7 +54,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	private AWSElasticBeanstalkClient beanstalkClient;
 	private InputConfiguration config;
 	private GeneratedResources resources;
-	
+	private ExecutorService executor = Executors.newFixedThreadPool(4);
 	/**
 	 * The IoC constructor.
 	 * 
@@ -97,13 +105,25 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		resources.setElasticBeanstalkConfigurationTemplate(createOrUpdateConfigurationTemplate());
 		// Create the environments
 		// Auth
-		resources.setAuthenticationEnvironment(createEnvironment(config.getAuthEnvironmentName(), config.getAuthEnvironmentCNAMEPrefix(), resources.getAuthApplicationVersion()));
+		Future<EnvironmentDescription> authFuture = createEnvironment(config.getAuthEnvironmentName(), config.getAuthEnvironmentCNAMEPrefix(), resources.getAuthApplicationVersion());
 		// repo
-		resources.setRepositoryEnvironment(createEnvironment(config.getRepoEnvironmentName(), config.getRepoEnvironmentCNAMEPrefix(), resources.getRepoApplicationVersion()));
+		Future<EnvironmentDescription> repoFuture = createEnvironment(config.getRepoEnvironmentName(), config.getRepoEnvironmentCNAMEPrefix(), resources.getRepoApplicationVersion());
 		// search
-		resources.setSearchEnvironment(createEnvironment(config.getSearchEnvironmentName(), config.getSearchEnvironmentCNAMEPrefix(), resources.getSearchApplicationVersion()));
+		Future<EnvironmentDescription> searchFuture = createEnvironment(config.getSearchEnvironmentName(), config.getSearchEnvironmentCNAMEPrefix(), resources.getSearchApplicationVersion());
 		// portal
-		resources.setPortalEnvironment(createEnvironment(config.getPortalEnvironmentName(), config.getPortalEnvironmentCNAMEPrefix(), resources.getPortalApplicationVersion()));
+		Future<EnvironmentDescription> portalFuture = createEnvironment(config.getPortalEnvironmentName(), config.getPortalEnvironmentCNAMEPrefix(), resources.getPortalApplicationVersion());
+
+		// Fetch all of the results
+		try {
+			resources.setAuthenticationEnvironment(authFuture.get());
+			resources.setRepositoryEnvironment(repoFuture.get());
+			resources.setSearchEnvironment(searchFuture.get());
+			resources.setPortalEnvironment(portalFuture.get());
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		} catch (ExecutionException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	/*
@@ -139,7 +159,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			request.setTemplateName(config.getElasticBeanstalkTemplateName());
 			request.setOptionSettings(getAllElasticBeanstalkOptions());
 			UpdateConfigurationTemplateResult updateResult = beanstalkClient.updateConfigurationTemplate(request);
-
+			log.debug(updateResult);
 		}
 		return describeTemplateConfiguration();
 	}
@@ -182,7 +202,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			if(results.getEnvironments().size() < 1) return null;
 			// Find a non-terminated environment
 			for(EnvironmentDescription env: results.getEnvironments()){
-				log.debug(String.format("Found environment with name: '%1$s' and status: '%2$s'", environmentName, env.getStatus()));
+//				log.debug(String.format("Found environment with name: '%1$s' and status: '%2$s'", environmentName, env.getStatus()));
 				if("Terminated".equals(env.getStatus()) || "Terminating".equals(env.getStatus())){
 					// Cannot use a terminated environment
 					continue;
@@ -206,48 +226,109 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * @param version
 	 * @return 
 	 */
-	public EnvironmentDescription createEnvironment(String environmentName, String environmentCNAME, ApplicationVersionDescription version){
-		EnvironmentDescription environment = describeEnvironment(environmentName);
-		if(environment == null){
-			// Create it since it does not exist
-			log.debug(String.format("Creating environment name: '%1$s' with CNAME: '%2$s' ",environmentName, environmentCNAME));
-			CreateEnvironmentRequest cer = new CreateEnvironmentRequest(resources.getAuthApplicationVersion().getApplicationName(), environmentName);
-			cer.setTemplateName(config.getElasticBeanstalkTemplateName());
-			cer.setVersionLabel(version.getVersionLabel());
-			cer.setCNAMEPrefix(environmentCNAME);
-			// Query for it again
-			beanstalkClient.createEnvironment(cer);
-			environment = describeEnvironment(environmentName);
-			log.debug(environment);
-			return environment;
-		}else{
-			log.debug("Environment already exists: "+environmentName+" updating it...");
-			// wait for environment to be ready after this change.
-			waitForEnvironmentReady(environmentName);
-			// This first pass we just update the version
-			UpdateEnvironmentRequest uer = new UpdateEnvironmentRequest();
-			uer.setEnvironmentId(environment.getEnvironmentId());
-			uer.setEnvironmentName(environmentName);
-			uer.setVersionLabel(version.getVersionLabel());
-			UpdateEnvironmentResult updateResult = beanstalkClient.updateEnvironment(uer);
-			// wait for environment to be ready after this change.
-			waitForEnvironmentReady(environmentName);
-			// The second pass we update the environment template.
-			uer = new UpdateEnvironmentRequest();
-			uer.setEnvironmentId(environment.getEnvironmentId());
-			uer.setEnvironmentName(environmentName);
-			uer.setTemplateName(config.getElasticBeanstalkTemplateName());
-			updateResult = beanstalkClient.updateEnvironment(uer);
-			
-			// Restart after the changes
-			// wait for environment to be ready after this change.
-//			waitForEnvironmentReady(environmentName);
-//			beanstalkClient.restartAppServer(new RestartAppServerRequest().withEnvironmentId(environment.getEnvironmentId()));
-			// Return the new information.
-			environment = describeEnvironment(environmentName);
-			log.debug(environment);
-			return environment;
+	public Future<EnvironmentDescription> createEnvironment(final String environmentName, final String environmentCNAME,  final ApplicationVersionDescription version){
+		// This work is done on a separate thread.
+		Callable<EnvironmentDescription> worker = new Callable<EnvironmentDescription>() {
+			public EnvironmentDescription call() throws Exception {
+				EnvironmentDescription environment = describeEnvironment(environmentName);
+				if(environment == null){
+					// Create it since it does not exist
+					log.debug(String.format("Creating environment name: '%1$s' with CNAME: '%2$s' ",environmentName, environmentCNAME));
+					CreateEnvironmentRequest cer = new CreateEnvironmentRequest(resources.getAuthApplicationVersion().getApplicationName(), environmentName);
+					cer.setTemplateName(config.getElasticBeanstalkTemplateName());
+					cer.setVersionLabel(version.getVersionLabel());
+					cer.setCNAMEPrefix(environmentCNAME);
+					// Query for it again
+					beanstalkClient.createEnvironment(cer);
+					environment = describeEnvironment(environmentName);
+					log.debug(environment);
+					return environment;
+				}else{
+					log.debug("Environment already exists: "+environmentName+" updating it...");
+					// Lookup the current environment
+					ConfigurationSettingsDescription csd = describeConfigurationSettings(version.getApplicationName(), environmentName);
+					// do the configurations already match?
+					List<ConfigurationOptionSetting> settings = getAllElasticBeanstalkOptions();
+					boolean updated = false;
+					// Should we update the configuration?
+					if(csd == null || !areExpectedSettingsEquals(settings, csd.getOptionSettings())){
+						// First update the configuration
+						log.debug("Environment configurations need to be updated for: "+environmentName+"... updating it...");
+						updateConfigurationOnly(environmentName, environment);
+						// An update was made.
+						updated = true;
+					}
+					// Should we update the version?
+					if(!environment.getVersionLabel().equals(version.getVersionLabel())){
+						log.debug("Environment version need to be updated for: "+environmentName+"... updating it...");
+						// Now update the version.
+						updateEnvironmentVersionOnly(environmentName, version, environment);
+						updated = true;
+					}
+					// If we did not update the environment then we need to restart it.
+					if(!updated){
+						beanstalkClient.restartAppServer(new RestartAppServerRequest().withEnvironmentId(environment.getEnvironmentId()));
+					}
+					// Return the new information.
+					environment = describeEnvironment(environmentName);
+					log.debug(environment);
+					return environment;
+				}
+			}
+		};
+		// Start the worker.
+		return executor.submit(worker);
+	}
+	
+	/**
+	 * Describe Configuration Settings
+	 * @param applicationName
+	 * @param environmentName
+	 * @return
+	 */
+	public ConfigurationSettingsDescription describeConfigurationSettings(String applicationName, String environmentName){
+		DescribeConfigurationSettingsResult results = beanstalkClient.describeConfigurationSettings(new DescribeConfigurationSettingsRequest().withApplicationName(applicationName).withEnvironmentName(environmentName));
+		if(results != null && results.getConfigurationSettings() != null && results.getConfigurationSettings().size() == 1){
+			return results.getConfigurationSettings().get(0);
 		}
+		return null;
+	}
+
+
+	/**
+	 * @param environmentName
+	 * @param version
+	 * @param environment
+	 */
+	public void updateEnvironmentVersionOnly(String environmentName, ApplicationVersionDescription version,
+			EnvironmentDescription environment) {
+		// wait for environment to be ready after this change.
+		waitForEnvironmentReady(environmentName);
+		// The second pass we update the environment template.
+		UpdateEnvironmentRequest uer = new UpdateEnvironmentRequest();
+		uer.setEnvironmentId(environment.getEnvironmentId());
+		uer.setEnvironmentName(environmentName);
+		uer.setVersionLabel(version.getVersionLabel());
+		uer.setTemplateName(config.getElasticBeanstalkTemplateName());
+		UpdateEnvironmentResult result =beanstalkClient.updateEnvironment(uer);
+
+	}
+
+	/**
+	 * @param environmentName
+	 * @param environment
+	 */
+	public void updateConfigurationOnly(String environmentName,	EnvironmentDescription environment) {
+		// We can only update a ready environment.
+		waitForEnvironmentReady(environmentName);
+		// This first pass is just to update the configuration, we do not change the version here.
+		UpdateEnvironmentRequest uer = new UpdateEnvironmentRequest();
+		uer.setEnvironmentId(environment.getEnvironmentId());
+		uer.setEnvironmentName(environmentName);
+		// We re-use the existing version for now.
+		uer.setVersionLabel(environment.getVersionLabel());
+		uer.setTemplateName(config.getElasticBeanstalkTemplateName());
+		UpdateEnvironmentResult result = beanstalkClient.updateEnvironment(uer);
 	}
 	
 	/**
@@ -329,6 +410,62 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			log.debug(config);
 		}
 		return list;
-	}	
+	}
+	
+	/**
+	 * Are all of the expected settings equals to the current settings?
+	 * @param one
+	 * @param two
+	 * @return
+	 */
+	public static boolean areExpectedSettingsEquals(List<ConfigurationOptionSetting> expected, List<ConfigurationOptionSetting> current){
+		for(ConfigurationOptionSetting expectedCon: expected){
+			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), current);
+		
+			if(found == null) {
+				log.debug("Null for "+expectedCon);
+				return false;
+			}
+			if(!expectedCon.getValue().equals(found.getValue())){
+				log.debug("Expected: "+expectedCon+" but found "+found);
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	/**
+	 * Helper to find a configuration with a given namepaces and option name.
+	 * @param namespace
+	 * @param name
+	 * @param list
+	 * @return
+	 */
+	public static ConfigurationOptionSetting find(String namespace, String name, List<ConfigurationOptionSetting> list){
+		for(ConfigurationOptionSetting config: list){
+			if(config.getNamespace().equals(namespace) && config.getOptionName().equals(name)) return config;
+		}
+		return null;
+	}
+	
+	/**
+	 * Get the MD5 of the configuration.
+	 * 
+	 * @return
+	 */
+	public static String createConfigMD5(List<ConfigurationOptionSetting> config){
+		try {
+			String string = config.toString();
+			byte[] bytesOfMessage;
+			bytesOfMessage = string.getBytes("UTF-8");
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			byte[] thedigest = md.digest(bytesOfMessage);
+			return new String(Hex.encodeHex(thedigest));
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 }
