@@ -1,19 +1,22 @@
 package org.sagebionetworks.stack;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.sagebionetworks.factory.MockAmazonClientFactory;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionSetting;
-import org.sagebionetworks.factory.MockAmazonClientFactory;
 
 public class ElasticBeanstalkSetupTest {
 	
@@ -97,6 +100,37 @@ public class ElasticBeanstalkSetupTest {
 			assertNotNull("Failed to find expected configuration: "+expectedCon,found);
 			assertEquals("Values did not match for namespace: "+expectedCon.getNamespace()+" and option name: "+expectedCon.getOptionName(),expectedCon.getValue(), found.getValue());
 		}
+	}
+	
+	@Test
+	public void testMD5(){
+		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions();
+		String md5 = ElasticBeanstalkSetup.createConfigMD5(result);
+		System.out.println(md5);
+		assertNotNull(md5);
+		// get it again should be the same
+		String md5Second = ElasticBeanstalkSetup.createConfigMD5(result);
+		assertEquals(md5, md5Second);
+		// Now a change should be different
+		result.get(0).setValue("abdefg");
+		String md5Thrid = ElasticBeanstalkSetup.createConfigMD5(result);
+		System.out.println(md5Thrid);
+		assertFalse(md5.equals(md5Thrid));
+	}
+	
+	@Test
+	public void testAreSettingsEquals(){
+		List<ConfigurationOptionSetting> one = setup.getAllElasticBeanstalkOptions();
+		List<ConfigurationOptionSetting> two = setup.getAllElasticBeanstalkOptions();
+		// Add some setting to the second that are not in the first.
+		two.add(new ConfigurationOptionSetting("ns", "os", "123"));
+		Collections.shuffle(one);
+		Collections.shuffle(two);
+		assertTrue(ElasticBeanstalkSetup.areExpectedSettingsEquals(one, two));
+		// Now make a change
+		two.get(0).setValue("some crazy value");
+		Collections.shuffle(two);
+		assertFalse(ElasticBeanstalkSetup.areExpectedSettingsEquals(one, two));
 	}
 
 	/**
