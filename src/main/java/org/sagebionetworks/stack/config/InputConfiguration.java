@@ -11,6 +11,8 @@ import org.sagebionetworks.stack.util.PropertyFilter;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -661,5 +663,55 @@ public class InputConfiguration {
 		return validateAndGetProperty("search.index.domain.name");
 	}
 
+	public String getR53Subdomain() {
+		return validateAndGetProperty("r53.subdomain");
+	}
+	
+	public String getAuthServiceGenericSubdomainCNAME() {
+		return validateAndGetProperty("authentication.service.generic.subdomain.cname");
+	}
 
+	public String getRepoServiceGenericSubdomainCNAME() {
+		return validateAndGetProperty("repository.service.generic.subdomain.cname");
+	}
+
+	public String getSearchServiceGenericSubdomainCNAME() {
+		return validateAndGetProperty("search.service.generic.subdomain.cname");
+	}
+
+	public String getPortalEnvironmentGenericSubdomainCNAME() {
+		return validateAndGetProperty("portal.environment.generic.subdomain.cname");
+	}
+	public String getAuthServiceSubdomainCNAME() {
+		return validateAndGetProperty("authentication.service.subdomain.cname");
+	}
+
+	public String getRepoServiceSubdomainCNAME() {
+		return validateAndGetProperty("repository.service.subdomain.cname");
+	}
+
+	public String getSearchServiceSubdomainCNAME() {
+		return validateAndGetProperty("search.service.subdomain.cname");
+	}
+
+	public String getPortalEnvironmentSubdomainCNAME() {
+		return validateAndGetProperty("portal.environment.subdomain.cname");
+	}
+
+	//	NOTE: Add 2 entries here for each service that needs enpoints
+	public Map<String, String> buildCNAMEsMap() {
+		HashMap<String, String> map = new HashMap<String, String>();
+		
+		map.put(getAuthServiceGenericSubdomainCNAME(), getAuthServiceSubdomainCNAME());
+		map.put(getAuthServiceSubdomainCNAME(), getAuthEnvironmentCNAMEPrefix()+".elasticbeanstalk.com");
+		map.put(getPortalEnvironmentGenericSubdomainCNAME(), getPortalEnvironmentSubdomainCNAME());
+		map.put(getPortalEnvironmentSubdomainCNAME(), getPortalEnvironmentCNAMEPrefix()+".elasticbeanstalk.com");
+		map.put(getRepoServiceGenericSubdomainCNAME(), getRepoServiceSubdomainCNAME());
+		map.put(getRepoServiceSubdomainCNAME(), getRepoEnvironmentCNAMEPrefix()+".elasticbeanstalk.com");
+		map.put(getSearchServiceGenericSubdomainCNAME(), getSearchServiceSubdomainCNAME());
+		map.put(getSearchServiceSubdomainCNAME(), getSearchEnvironmentCNAMEPrefix()+".elasticbeanstalk.com");
+
+		return map;
+	}
+	
 }

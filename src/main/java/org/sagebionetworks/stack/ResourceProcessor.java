@@ -23,7 +23,7 @@ public interface ResourceProcessor {
 	/**
 	 * Setup any resources
 	 */
-	public void setupResources();
+	public void setupResources() throws InterruptedException;
 	
 	/**
 	 * Teardown any resources.

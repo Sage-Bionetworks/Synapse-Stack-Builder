@@ -7,6 +7,7 @@ import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.rds.AmazonRDSClient;
+import com.amazonaws.services.route53.AmazonRoute53Client;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.sns.AmazonSNSClient;
 
@@ -74,5 +75,11 @@ public interface AmazonClientFactory {
 	 * @return
 	 */
 	public AmazonCloudSearchClient createCloudSearchClient();
+	
+	/**
+	 * Create a AmazonRoute53Client
+	 * @return
+	 */
+	public AmazonRoute53Client createRoute53Client();
 
 }

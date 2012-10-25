@@ -12,6 +12,16 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.Endpoint;
 import com.amazonaws.services.cloudsearch.model.DomainStatus;
 import com.amazonaws.services.cloudsearch.model.ServiceEndpoint;
+import com.amazonaws.services.route53.model.Change;
+import com.amazonaws.services.route53.model.ListResourceRecordSetsRequest;
+import com.amazonaws.services.route53.model.ListResourceRecordSetsResult;
+import com.amazonaws.services.route53.model.RRType;
+import com.amazonaws.services.route53.model.ResourceRecord;
+import com.amazonaws.services.route53.model.ResourceRecordSet;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.sagebionetworks.stack.Constants.*;
 
@@ -99,6 +109,42 @@ public class TestHelper {
 		resources.setSearchApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getSearchVersionLabel()));
 		resources.setStackKeyPair(new KeyPairInfo().withKeyName(config.getStackKeyPairName()));
 		return resources;
+	}
+	
+	public static InputConfiguration createRoute53TestConfig(String stack) throws IOException {
+		Properties inputProperties = createInputProperties(stack);
+		InputConfiguration config = new InputConfiguration(inputProperties);
+		Properties defaultProperties = createDefaultProperties();
+		Map<String, String> cnameProps = getSvcCNAMEs();
+		defaultProperties.putAll(cnameProps);
+		defaultProperties.put("r53.subdomain", "r53.sagebase.org");
+		config.addPropertiesWithPlaintext(defaultProperties);
+		return config;
+	}
+	
+	public static Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> createListExpectedListResourceRecordSetsRequestAllFound() {
+		Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> m = new HashMap<ListResourceRecordSetsRequest, ListResourceRecordSetsResult>();
+		Map<String, String> map = getSvcCNAMEs();
+		for (String k: map.keySet()) {
+			ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withStartRecordType(RRType.CNAME).withStartRecordName(k);
+			ResourceRecord rr = new ResourceRecord().withValue(map.get(k));
+			ListResourceRecordSetsResult res = new ListResourceRecordSetsResult().withResourceRecordSets(new ResourceRecordSet().withName(k).withTTL(300L).withType(RRType.CNAME).withResourceRecords(rr));
+			m.put(req, res);
+		}
+		return m;
+	}
+	
+	private static Map<String, String> getSvcCNAMEs() {
+		Map<String, String> cnameProps = new HashMap<String, String>();
+		cnameProps.put("authentication.service.generic.subdomain.cname", "auth.r53.sagebase.org");
+		cnameProps.put("authentication.service.subdomain.cname", "auth.dev.x.r53.sagebase.org");
+		cnameProps.put("portal.environment.generic.subdomain.cname", "synapse.r53.sagebase.org");
+		cnameProps.put("portal.environment.subdomain.cname", "synapse.dev.x.r53.sagebase.org");
+		cnameProps.put("repo.service.generic.subdomain.cname", "repo.r53.sagebase.org");
+		cnameProps.put("repo.service.subdomain.cname", "repo.dev.x.r53.sagebase.org");
+		cnameProps.put("search.service.generic.subdomain.cname", "search.r53.sagebase.org");
+		cnameProps.put("search.service.subdomain.cname", "search.dev.x.r53.sagebase.org");
+		return cnameProps;
 	}
 
 }
