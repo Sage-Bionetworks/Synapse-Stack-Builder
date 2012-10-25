@@ -17,6 +17,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
+import static org.sagebionetworks.stack.Constants.*;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
@@ -76,6 +77,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		if(resources.getPortalApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getPortalApplicationVersion() cannot be null");
 		if(resources.getRepoApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getReopApplicationVersion() cannot be null");
 		if(resources.getSearchApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getSearchApplicationVersion() cannot be null");
+		if(resources.getRdsAsynchApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getRdsAsynchApplicationVersion() cannot be null");
 		if(resources.getStackKeyPair() == null) throw new IllegalArgumentException("GeneratedResources.getStackKeyPair() cannot be null");
 		this.beanstalkClient = factory.createBeanstalkClient();
 		this.config = config;
@@ -91,10 +93,11 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	}
 	
 	public void describeResources() {
-		resources.setAuthenticationEnvironment(describeEnvironment(config.getAuthEnvironmentName()));
-		resources.setPortalEnvironment(describeEnvironment(config.getPortalEnvironmentName()));
-		resources.setRepositoryEnvironment(describeEnvironment(config.getRepoEnvironmentName()));
-		resources.setSearchEnvironment(describeEnvironment(config.getSearchEnvironmentName()));
+		resources.setAuthenticationEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_AUTH)));
+		resources.setPortalEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_PORTAL)));
+		resources.setRepositoryEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_REPO)));
+		resources.setSearchEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_SEARCH)));
+		resources.setRdsAsynchEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_RDS)));
 	}
 
 	/**
@@ -105,20 +108,27 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		resources.setElasticBeanstalkConfigurationTemplate(createOrUpdateConfigurationTemplate());
 		// Create the environments
 		// Auth
-		Future<EnvironmentDescription> authFuture = createEnvironment(config.getAuthEnvironmentName(), config.getAuthEnvironmentCNAMEPrefix(), resources.getAuthApplicationVersion());
+		Future<EnvironmentDescription> authFuture = createEnvironment(PREFIX_AUTH, resources.getAuthApplicationVersion());
 		// repo
-		Future<EnvironmentDescription> repoFuture = createEnvironment(config.getRepoEnvironmentName(), config.getRepoEnvironmentCNAMEPrefix(), resources.getRepoApplicationVersion());
+		Future<EnvironmentDescription> repoFuture = createEnvironment(PREFIX_REPO, resources.getRepoApplicationVersion());
 		// search
-		Future<EnvironmentDescription> searchFuture = createEnvironment(config.getSearchEnvironmentName(), config.getSearchEnvironmentCNAMEPrefix(), resources.getSearchApplicationVersion());
+		Future<EnvironmentDescription> searchFuture = createEnvironment(PREFIX_SEARCH, resources.getSearchApplicationVersion());
 		// portal
-		Future<EnvironmentDescription> portalFuture = createEnvironment(config.getPortalEnvironmentName(), config.getPortalEnvironmentCNAMEPrefix(), resources.getPortalApplicationVersion());
-
+		Future<EnvironmentDescription> portalFuture = createEnvironment(PREFIX_PORTAL, resources.getPortalApplicationVersion());
+		// The rds asynch
+		Future<EnvironmentDescription> rdsFuture = createEnvironment(PREFIX_RDS, resources.getRdsAsynchApplicationVersion());
+		// dynamo
+// this will be enabled when dynamo is read to be included in the stack
+//		Future<EnvironmentDescription> dynamoFuture = createEnvironment(PREFIX_DYNAMO, resources.getDynamoApplicationVersion());
 		// Fetch all of the results
 		try {
 			resources.setAuthenticationEnvironment(authFuture.get());
 			resources.setRepositoryEnvironment(repoFuture.get());
 			resources.setSearchEnvironment(searchFuture.get());
 			resources.setPortalEnvironment(portalFuture.get());
+			resources.setRdsAsynchEnvironment(rdsFuture.get());
+// this will be enabled when dynamo is read to be included in the stack			
+//			resources.setDynamoEnvironment(dynamoFuture.get());
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		} catch (ExecutionException e) {
@@ -130,10 +140,12 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * Terminate the environments
 	 */
 	public void terminateAllEnvironments() {
-		this.terminateEnvironment(config.getAuthEnvironmentName(), config.getAuthEnvironmentCNAMEPrefix());
-		this.terminateEnvironment(config.getPortalEnvironmentName(), config.getPortalEnvironmentCNAMEPrefix());
-		this.terminateEnvironment(config.getRepoEnvironmentName(), config.getRepoEnvironmentCNAMEPrefix());
-		this.terminateEnvironment(config.getSearchEnvironmentName(), config.getSearchEnvironmentCNAMEPrefix());
+		this.terminateEnvironment(PREFIX_AUTH);
+		this.terminateEnvironment(PREFIX_REPO);
+		this.terminateEnvironment(PREFIX_SEARCH);
+		this.terminateEnvironment(PREFIX_PORTAL);
+		this.terminateEnvironment(PREFIX_RDS);
+		this.terminateEnvironment(PREFIX_DYNAMO);
 //		this.deleteConfigurationTemplate();
 	}
 	/**
@@ -226,7 +238,9 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * @param version
 	 * @return 
 	 */
-	public Future<EnvironmentDescription> createEnvironment(final String environmentName, final String environmentCNAME,  final ApplicationVersionDescription version){
+	public Future<EnvironmentDescription> createEnvironment(String servicePrefix,  final ApplicationVersionDescription version){
+		final String environmentName = config.getEnvironmentName(servicePrefix);
+		final String environmentCNAME = config.getEnvironmentCNAMEPrefix(servicePrefix);
 		// This work is done on a separate thread.
 		Callable<EnvironmentDescription> worker = new Callable<EnvironmentDescription>() {
 			public EnvironmentDescription call() throws Exception {
@@ -352,7 +366,9 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	/**
 	 * Delete a single environment
 	 */
-	public void terminateEnvironment(String environmentName, String environmentCName) {
+	public void terminateEnvironment(String servicePrefix) {
+		final String environmentName = config.getEnvironmentName(servicePrefix);
+		final String environmentCName = config.getEnvironmentCNAMEPrefix(servicePrefix);
 		EnvironmentDescription environment = describeEnvironment(environmentName);
 		if (environment == null) {
 			// Nothing to do except log

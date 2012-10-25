@@ -73,10 +73,8 @@ public class TestHelper {
 		inputProperties.put(Constants.STACK_ENCRYPTION_KEY, "Encryption key that is long enough");
 		inputProperties.put(Constants.STACK, stack);
 		inputProperties.put(Constants.INSTANCE, "A");
-		inputProperties.put(Constants.PORTAL_VERSION, "2.4.8");
-		inputProperties.put(Constants.AUTHENTICATION_VERSION, "1.2.3");
-		inputProperties.put(Constants.REPOSITORY_VERSION, "7.8.9");
-		inputProperties.put(Constants.SEARCH_VERSION, "10.11.12");
+		inputProperties.put(Constants.SWC_VERSION, "2.4.8");
+		inputProperties.put(Constants.PLFM_VERSION, "1.2.3");
 		return inputProperties;
 	}
 	
@@ -93,10 +91,11 @@ public class TestHelper {
 		resources.setSearchDomain(new DomainStatus().withSearchService(new ServiceEndpoint().withEndpoint("search-service.someplace.com")));
 		resources.getSearchDomain().setDocService(new ServiceEndpoint().withEndpoint("doc-service.someplace.com"));
 		resources.setSslCertificate(new ServerCertificateMetadata().withArn("ssl:arn:123"));
-		resources.setAuthApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getAuthVersionLabel()));
-		resources.setPortalApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getPortalVersionLabel()));
-		resources.setRepoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getRepoVersionLabel()));
-		resources.setSearchApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getSearchVersionLabel()));
+		resources.setAuthApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_AUTH)));
+		resources.setPortalApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_PORTAL)));
+		resources.setRepoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_REPO)));
+		resources.setSearchApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_SEARCH)));
+		resources.setRdsAsynchApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_RDS)));
 		resources.setStackKeyPair(new KeyPairInfo().withKeyName(config.getStackKeyPairName()));
 		return resources;
 	}
