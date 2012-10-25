@@ -43,11 +43,8 @@ public class Constants {
 	/**
 	 * The input keys for the war versions.
 	 */
-	public static final String PORTAL_VERSION = "org.sagebionetworks.portal.war.version";
-	public static final String AUTHENTICATION_VERSION = "org.sagebionetworks.auth.war.version";
-	public static final String REPOSITORY_VERSION = "org.sagebionetworks.repo.war.version";
-	public static final String SEARCH_VERSION = "org.sagebionetworks.search.war.version";
-	public static final String RDS_VERSION = "org.sagebionetworks.rds.war.version";
+	public static final String SWC_VERSION = "org.sagebionetworks.swc.version";
+	public static final String PLFM_VERSION = "org.sagebionetworks.plfm.version";
 	
 	/**
 	 * Properties that requiring encryption should have this as a suffix.
@@ -298,4 +295,14 @@ public class Constants {
 	 * The property key for the SSL certificate ARN.
 	 */
 	public static final String KEY_SSL_CERTIFICATE_ARN = "ssl.certificate.arn";
+	
+	/** 
+	 * Prefixes used for property lookup.
+	 */
+	public static final String PREFIX_RDS = "rds";
+	public static final String PREFIX_SEARCH = "search";
+	public static final String PREFIX_AUTH = "auth";
+	public static final String PREFIX_REPO = "repo";
+	public static final String PREFIX_PORTAL = "portal";
+	public static final String PREFIX_DYNAMO = "dynamo";
 }

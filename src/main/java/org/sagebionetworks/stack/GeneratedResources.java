@@ -39,6 +39,7 @@ public class GeneratedResources {
 	private ApplicationVersionDescription repoApplicationVersion;
 	private ApplicationVersionDescription authApplicationVersion;
 	private ApplicationVersionDescription rdsAsynchApplicationVersion;
+	private ApplicationVersionDescription dynamoApplicationVersion;
 	private ServerCertificateMetadata sslCertificate;
 	private KeyPairInfo stackKeyPair;
 	private DescribeConfigurationOptionsResult elasticBeanstalkConfigurationTemplate;
@@ -46,6 +47,7 @@ public class GeneratedResources {
 	private EnvironmentDescription repositoryEnvironment;
 	private EnvironmentDescription searchEnvironment;
 	private EnvironmentDescription rdsAsynchEnvironment;
+	private EnvironmentDescription dynamoEnvironment;
 	private EnvironmentDescription portalEnvironment;
 	private DomainStatus searchDomain;
 	private DBParameterGroup dbParameterGroup;
@@ -132,6 +134,22 @@ public class GeneratedResources {
 	 */
 	public void setRdsAsynchEnvironment(EnvironmentDescription rdsAsynchEnvironment) {
 		this.rdsAsynchEnvironment = rdsAsynchEnvironment;
+	}
+
+	/**
+	 * The dynamo environment description
+	 * @return
+	 */
+	public EnvironmentDescription getDynamoEnvironment() {
+		return dynamoEnvironment;
+	}
+
+	/**
+	 * The dynamo environment description
+	 * @param dynamoEnvironment
+	 */
+	public void setDynamoEnvironment(EnvironmentDescription dynamoEnvironment) {
+		this.dynamoEnvironment = dynamoEnvironment;
 	}
 
 	/**
@@ -291,6 +309,23 @@ public class GeneratedResources {
 	 */
 	public ApplicationVersionDescription getAuthApplicationVersion() {
 		return authApplicationVersion;
+	}
+
+	/**
+	 * The application version of the dynamo service
+	 * @return
+	 */
+	public ApplicationVersionDescription getDynamoApplicationVersion() {
+		return dynamoApplicationVersion;
+	}
+
+	/**
+	 * The application version of the dynamo service
+	 * @param dynamoApplicationVersion
+	 */
+	public void setDynamoApplicationVersion(
+			ApplicationVersionDescription dynamoApplicationVersion) {
+		this.dynamoApplicationVersion = dynamoApplicationVersion;
 	}
 
 	/**

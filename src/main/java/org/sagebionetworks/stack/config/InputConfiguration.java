@@ -457,123 +457,28 @@ public class InputConfiguration {
 	}
 	
 	/**
-	 * The URL of the portal artifact.
+	 * The URL of the artifact for a given prefix
 	 * @return
 	 */
-	public String getPortalArtifactoryUrl() {
-		return validateAndGetProperty("artifactory.portal.url");
-	}
-	/**
-	 * The version label for the portal war.
-	 * @return
-	 */
-	public String getPortalVersionLabel() {
-		return validateAndGetProperty("portal.version.label");
+	public String getArtifactoryUrl(String prefix) {
+		return validateAndGetProperty(prefix+".artifactory.url");
 	}
 
 	/**
-	 * The S3 path of the portal war.
+	 * The version label for a war for a given prefix.
 	 * @return
 	 */
-	public String getPortalVersionPath() {
-		return validateAndGetProperty("elastic.beanstalk.application.versions.s3.path.portal");
+	public String getVersionLabel(String prefix) {
+		return validateAndGetProperty(prefix+".version.label");
 	}
 	
 	/**
-	 * The URL of the portal artifact.
+	 * Get the version path for a given prefix.
+	 * @param prefix
 	 * @return
 	 */
-	public String getRepoArtifactoryUrl() {
-		return validateAndGetProperty("artifactory.repo.url");
-	}
-	
-	/**
-	 * The URL of the portal artifact.
-	 * @return
-	 */
-	public String getSearchArtifactoryUrl() {
-		return validateAndGetProperty("artifactory.search.url");
-	}
-	
-	/**
-	 * The URL of the portal artifact.
-	 * @return
-	 */
-	public String getRdsAsynchArtifactoryUrl() {
-		return validateAndGetProperty("artifactory.rds.url");
-	}
-	
-	/**
-	 * The version label for the repo war.
-	 * @return
-	 */
-	public String getRepoVersionLabel() {
-		return validateAndGetProperty("repo.version.label");
-	}
-	
-	/**
-	 * The version label for the search war.
-	 * @return
-	 */
-	public String getSearchVersionLabel() {
-		return validateAndGetProperty("search.version.label");
-	}
-	
-	/**
-	 * The version label for the rds asynch war.
-	 * @return
-	 */
-	public String getRdsAsynchVersionLabel() {
-		return validateAndGetProperty("rds.version.label");
-	}
-
-	/**
-	 * The S3 path of the repo war.
-	 * @return
-	 */
-	public String getRepoVersionPath() {
-		return validateAndGetProperty("elastic.beanstalk.application.versions.s3.path.repo");
-	}
-	
-
-	/**
-	 * The S3 path of the repo war.
-	 * @return
-	 */
-	public String getSearchVersionPath() {
-		return validateAndGetProperty("elastic.beanstalk.application.versions.s3.path.search");
-	}
-	
-	/**
-	 * The S3 path of the repo war.
-	 * @return
-	 */
-	public String getRdsAsynchVersionPath() {
-		return validateAndGetProperty("elastic.beanstalk.application.versions.s3.path.rds");
-	}
-	
-	/**
-	 * The URL of the portal artifact.
-	 * @return
-	 */
-	public String getAuthArtifactoryUrl() {
-		return validateAndGetProperty("artifactory.auth.url");
-	}
-	
-	/**
-	 * The version label for the auth war.
-	 * @return
-	 */
-	public String getAuthVersionLabel() {
-		return validateAndGetProperty("auth.version.label");
-	}
-
-	/**
-	 * The S3 path of the auth war.
-	 * @return
-	 */
-	public String getAuthVersionPath() {
-		return validateAndGetProperty("elastic.beanstalk.application.versions.s3.path.auth");
+	public String getVersionPath(String prefix){
+		return validateAndGetProperty(prefix+".elastic.beanstalk.application.versions.s3.path");
 	}
 
 	/**
@@ -607,45 +512,23 @@ public class InputConfiguration {
 	public String getSSLCertificateName() {
 		return validateAndGetProperty("ssl.certificate.name");
 	}
-
-	public String getAuthEnvironmentName() {
-		return validateAndGetProperty("authentication.service.environment.name");
+	
+	/**
+	 * Get the environment name for a given service prefix.
+	 * @param prefix
+	 * @return
+	 */
+	public String getEnvironmentName(String prefix) {
+		return validateAndGetProperty(prefix+".service.environment.name");
 	}
 	
-	public String getAuthEnvironmentCNAMEPrefix() {
-		return validateAndGetProperty("authentication.service.environment.cname.prefix");
-	}
-
-	public String getRepoEnvironmentName() {
-		return validateAndGetProperty("repository.service.environment.name");
-	}
-	
-	public String getRepoEnvironmentCNAMEPrefix() {
-		return validateAndGetProperty("repository.service.environment.cname.prefix");
-	}
-	
-	public String getSearchEnvironmentName() {
-		return validateAndGetProperty("search.service.environment.name");
-	}
-	
-	public String getRdsAsynchEnvironmentName() {
-		return validateAndGetProperty("rds.asynch.service.environment.name");
-	}
-	
-	public String getSearchEnvironmentCNAMEPrefix() {
-		return validateAndGetProperty("search.service.environment.cname.prefix");
-	}
-
-	public String getPortalEnvironmentName() {
-		return validateAndGetProperty("portal.environment.name");
-	}
-	
-	public String getPortalEnvironmentCNAMEPrefix() {
-		return validateAndGetProperty("portal.environment.cname.prefix");
-	}
-	
-	public String getRdsAsynchEnvironmentCNAMEPrefix() {
-		return validateAndGetProperty("rds.asynch.environment.cname.prefix");
+	/**
+	 * Get the environment CNAME prefix for a given service prefix.
+	 * @param prefix
+	 * @return
+	 */
+	public String getEnvironmentCNAMEPrefix(String prefix) {
+		return validateAndGetProperty(prefix+".service.environment.cname.prefix");
 	}
 
 	/**

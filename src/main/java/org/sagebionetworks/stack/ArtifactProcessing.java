@@ -12,7 +12,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
-
+import static org.sagebionetworks.stack.Constants.*;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
@@ -72,39 +72,27 @@ public class ArtifactProcessing {
 		resources.setElasticBeanstalkApplication(createOrGetApplication());
 		
 		// Create the application version for the portal
-		resources.setPortalApplicationVersion(createOrGetApplicationVersion(config.getPortalVersionPath(), config.getPortalVersionLabel(), config.getPortalArtifactoryUrl()));
+		resources.setPortalApplicationVersion(createOrGetApplicationVersion(PREFIX_PORTAL));
 		// Create the application version for the reop
-		resources.setRepoApplicationVersion(createOrGetApplicationVersion(config.getRepoVersionPath(), config.getRepoVersionLabel(), config.getRepoArtifactoryUrl()));
+		resources.setRepoApplicationVersion(createOrGetApplicationVersion(PREFIX_REPO));
 		// Create the application version for the auth
-		resources.setAuthApplicationVersion(createOrGetApplicationVersion(config.getAuthVersionPath(), config.getAuthVersionLabel(), config.getAuthArtifactoryUrl()));
+		resources.setAuthApplicationVersion(createOrGetApplicationVersion(PREFIX_AUTH));
 		// Create the application version for the search
-		resources.setSearchApplicationVersion(createOrGetApplicationVersion(config.getSearchVersionPath(), config.getSearchVersionLabel(), config.getSearchArtifactoryUrl()));
+		resources.setSearchApplicationVersion(createOrGetApplicationVersion(PREFIX_SEARCH));
 		// Create the application version for the rds asynch
-		resources.setRdsAsynchApplicationVersion(createOrGetApplicationVersion(config.getRdsAsynchVersionPath(), config.getRdsAsynchVersionLabel(), config.getRdsAsynchArtifactoryUrl()));
+		resources.setRdsAsynchApplicationVersion(createOrGetApplicationVersion(PREFIX_RDS));
+		// Create the application version for the rds asynch
+		resources.setDynamoApplicationVersion(createOrGetApplicationVersion(PREFIX_DYNAMO));
 	}
 	
 	public void describeResources() {
 		resources.setElasticBeanstalkApplication(describeApplication());
-		resources.setPortalApplicationVersion(describeApplicationVersion(config.getPortalVersionLabel()));
-		resources.setRepoApplicationVersion(describeApplicationVersion(config.getRepoVersionLabel()));
-		resources.setAuthApplicationVersion(describeApplicationVersion(config.getAuthVersionLabel()));
-		if (resources.getElasticBeanstalkApplication() == null) {
-			log.debug("Did not find one and only one Elastic Beanstalk Application with the name: "+ config.getElasticBeanstalkApplicationName());
-		}
-		if (resources.getRepoApplicationVersion() == null) {
-			log.debug(String.format("Could not find version: %1$s...", config.getRepoVersionLabel()));
-
-		}
-		if (resources.getAuthApplicationVersion() == null) {
-			log.debug(String.format("Could not find version: %1$s...", config.getAuthVersionLabel()));
-
-		}
-		if (resources.getPortalApplicationVersion() == null) {
-			log.debug(String.format("Could not find version: %1$s...", config.getPortalVersionLabel()));
-
-		}
-		resources.setSearchApplicationVersion(describeApplicationVersion(config.getSearchVersionLabel()));
-		resources.setRdsAsynchApplicationVersion(describeApplicationVersion(config.getRdsAsynchVersionLabel()));
+		resources.setPortalApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_PORTAL)));
+		resources.setRepoApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_REPO)));
+		resources.setAuthApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_AUTH)));
+		resources.setSearchApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_SEARCH)));
+		resources.setRdsAsynchApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_RDS)));
+		resources.setDynamoApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_DYNAMO)));
 	}
 	
 	/**
@@ -144,7 +132,10 @@ public class ArtifactProcessing {
 	 * @param fileURl
 	 * @throws IOException
 	 */
-	public ApplicationVersionDescription createOrGetApplicationVersion(String s3Path, final String versionLabel, String fileURL) throws IOException{
+	public ApplicationVersionDescription createOrGetApplicationVersion(String appPrfix) throws IOException{
+		String s3Path = config.getVersionPath(appPrfix);
+		final String versionLabel = config.getVersionLabel(appPrfix);
+		String fileURL = config.getArtifactoryUrl(appPrfix);
 		// First determine if this version already exists
 		log.debug(String.format("Creating version: %1$s using: %2$s ", versionLabel, fileURL));
 		DescribeApplicationVersionsResult results = beanstalkClient.describeApplicationVersions(new DescribeApplicationVersionsRequest().withApplicationName(config.getElasticBeanstalkApplicationName()).withVersionLabels(versionLabel));

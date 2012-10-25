@@ -58,12 +58,19 @@ public class StackDefaults {
 	 * @throws IOException 
 	 */
 	public Properties loadStackDefaultsFromS3() throws IOException{
-		// This is the buck where we expect to find the properties.
-		String bucketName = config.getDefaultS3BucketName();
-
+		
+		// Create the config bucket.
+		String bucketName = config.getStackConfigS3BucketName();
 		log.info("Creating S3 Bucket: "+bucketName);
 		// This call is idempotent and will only actually create the bucket if it does not already exist.
 		Bucket bucket = s3Client.createBucket(bucketName);
+		
+		// This is the buck where we expect to find the properties.
+		bucketName = config.getDefaultS3BucketName();
+
+		log.info("Creating S3 Bucket: "+bucketName);
+		// This call is idempotent and will only actually create the bucket if it does not already exist.
+		bucket = s3Client.createBucket(bucketName);
 		String fileName = config.getDefaultPropertiesFileName();
 		File temp = File.createTempFile("DefaultProps", ".properties");
 		FileInputStream in = new FileInputStream(temp);
