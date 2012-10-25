@@ -496,6 +496,14 @@ public class InputConfiguration {
 	}
 	
 	/**
+	 * The URL of the portal artifact.
+	 * @return
+	 */
+	public String getRdsAsynchArtifactoryUrl() {
+		return validateAndGetProperty("artifactory.rds.url");
+	}
+	
+	/**
 	 * The version label for the repo war.
 	 * @return
 	 */
@@ -504,11 +512,19 @@ public class InputConfiguration {
 	}
 	
 	/**
-	 * The version label for the repo war.
+	 * The version label for the search war.
 	 * @return
 	 */
 	public String getSearchVersionLabel() {
 		return validateAndGetProperty("search.version.label");
+	}
+	
+	/**
+	 * The version label for the rds asynch war.
+	 * @return
+	 */
+	public String getRdsAsynchVersionLabel() {
+		return validateAndGetProperty("rds.version.label");
 	}
 
 	/**
@@ -526,6 +542,14 @@ public class InputConfiguration {
 	 */
 	public String getSearchVersionPath() {
 		return validateAndGetProperty("elastic.beanstalk.application.versions.s3.path.search");
+	}
+	
+	/**
+	 * The S3 path of the repo war.
+	 * @return
+	 */
+	public String getRdsAsynchVersionPath() {
+		return validateAndGetProperty("elastic.beanstalk.application.versions.s3.path.rds");
 	}
 	
 	/**
@@ -604,6 +628,10 @@ public class InputConfiguration {
 		return validateAndGetProperty("search.service.environment.name");
 	}
 	
+	public String getRdsAsynchEnvironmentName() {
+		return validateAndGetProperty("rds.asynch.service.environment.name");
+	}
+	
 	public String getSearchEnvironmentCNAMEPrefix() {
 		return validateAndGetProperty("search.service.environment.cname.prefix");
 	}
@@ -614,6 +642,10 @@ public class InputConfiguration {
 	
 	public String getPortalEnvironmentCNAMEPrefix() {
 		return validateAndGetProperty("portal.environment.cname.prefix");
+	}
+	
+	public String getRdsAsynchEnvironmentCNAMEPrefix() {
+		return validateAndGetProperty("rds.asynch.environment.cname.prefix");
 	}
 
 	/**

@@ -76,6 +76,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		if(resources.getPortalApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getPortalApplicationVersion() cannot be null");
 		if(resources.getRepoApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getReopApplicationVersion() cannot be null");
 		if(resources.getSearchApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getSearchApplicationVersion() cannot be null");
+		if(resources.getRdsAsynchApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getRdsAsynchApplicationVersion() cannot be null");
 		if(resources.getStackKeyPair() == null) throw new IllegalArgumentException("GeneratedResources.getStackKeyPair() cannot be null");
 		this.beanstalkClient = factory.createBeanstalkClient();
 		this.config = config;
@@ -95,6 +96,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		resources.setPortalEnvironment(describeEnvironment(config.getPortalEnvironmentName()));
 		resources.setRepositoryEnvironment(describeEnvironment(config.getRepoEnvironmentName()));
 		resources.setSearchEnvironment(describeEnvironment(config.getSearchEnvironmentName()));
+		resources.setRdsAsynchEnvironment(describeEnvironment(config.getRdsAsynchEnvironmentName()));
 	}
 
 	/**
@@ -112,13 +114,15 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		Future<EnvironmentDescription> searchFuture = createEnvironment(config.getSearchEnvironmentName(), config.getSearchEnvironmentCNAMEPrefix(), resources.getSearchApplicationVersion());
 		// portal
 		Future<EnvironmentDescription> portalFuture = createEnvironment(config.getPortalEnvironmentName(), config.getPortalEnvironmentCNAMEPrefix(), resources.getPortalApplicationVersion());
-
+		// The rds asynch
+		Future<EnvironmentDescription> rdsFuture = createEnvironment(config.getRdsAsynchEnvironmentName(), config.getRdsAsynchEnvironmentCNAMEPrefix(), resources.getRdsAsynchApplicationVersion());
 		// Fetch all of the results
 		try {
 			resources.setAuthenticationEnvironment(authFuture.get());
 			resources.setRepositoryEnvironment(repoFuture.get());
 			resources.setSearchEnvironment(searchFuture.get());
 			resources.setPortalEnvironment(portalFuture.get());
+			resources.setRdsAsynchEnvironment(rdsFuture.get());
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		} catch (ExecutionException e) {

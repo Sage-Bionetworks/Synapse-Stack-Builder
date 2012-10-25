@@ -77,6 +77,7 @@ public class TestHelper {
 		inputProperties.put(Constants.AUTHENTICATION_VERSION, "1.2.3");
 		inputProperties.put(Constants.REPOSITORY_VERSION, "7.8.9");
 		inputProperties.put(Constants.SEARCH_VERSION, "10.11.12");
+		inputProperties.put(Constants.RDS_VERSION, "4");
 		return inputProperties;
 	}
 	
@@ -97,6 +98,7 @@ public class TestHelper {
 		resources.setPortalApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getPortalVersionLabel()));
 		resources.setRepoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getRepoVersionLabel()));
 		resources.setSearchApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getSearchVersionLabel()));
+		resources.setRdsAsynchApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getRdsAsynchVersionLabel()));
 		resources.setStackKeyPair(new KeyPairInfo().withKeyName(config.getStackKeyPairName()));
 		return resources;
 	}

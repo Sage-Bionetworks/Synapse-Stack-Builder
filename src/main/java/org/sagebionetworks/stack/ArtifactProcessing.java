@@ -79,6 +79,8 @@ public class ArtifactProcessing {
 		resources.setAuthApplicationVersion(createOrGetApplicationVersion(config.getAuthVersionPath(), config.getAuthVersionLabel(), config.getAuthArtifactoryUrl()));
 		// Create the application version for the search
 		resources.setSearchApplicationVersion(createOrGetApplicationVersion(config.getSearchVersionPath(), config.getSearchVersionLabel(), config.getSearchArtifactoryUrl()));
+		// Create the application version for the rds asynch
+		resources.setRdsAsynchApplicationVersion(createOrGetApplicationVersion(config.getRdsAsynchVersionPath(), config.getRdsAsynchVersionLabel(), config.getRdsAsynchArtifactoryUrl()));
 	}
 	
 	public void describeResources() {
@@ -102,6 +104,7 @@ public class ArtifactProcessing {
 
 		}
 		resources.setSearchApplicationVersion(describeApplicationVersion(config.getSearchVersionLabel()));
+		resources.setRdsAsynchApplicationVersion(describeApplicationVersion(config.getRdsAsynchVersionLabel()));
 	}
 	
 	/**
