@@ -83,7 +83,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		DBInstance idGenInstance = createOrGetDatabaseInstance(request);
 		log.debug("Database instance: ");
 		log.debug(idGenInstance);
-		resources.setIdGeneratorDatabase(idGenInstance);
+
 		// Now create the stack instance database
 		request = buildStackInstancesCreateDBInstanceRequest();
 		
@@ -91,22 +91,26 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		DBInstance stackInstance = createOrGetDatabaseInstance(request);
 		log.debug("Database instance: ");
 		log.debug(stackInstance);
-		resources.setStackInstancesDatabase(stackInstance);
 		
 		// Wait for both to be created
-		waitForDatabase(idGenInstance);
-		waitForDatabase(stackInstance);
+		idGenInstance = waitForDatabase(idGenInstance);
+		stackInstance = waitForDatabase(stackInstance);
+		
+		resources.setIdGeneratorDatabase(idGenInstance);
+		resources.setStackInstancesDatabase(stackInstance);
 	}
 	
 	/**
 	 * Wait for a database to be available
 	 * @param stackInstance
 	 */
-	public void waitForDatabase(DBInstance stackInstance) {
+	public DBInstance waitForDatabase(DBInstance stackInstance) {
 		String status = null;
+		DBInstance instance = null;
 		do{
 			DescribeDBInstancesResult result = client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(stackInstance.getDBInstanceIdentifier()));
-			status = result.getDBInstances().get(0).getDBInstanceStatus();
+			instance = result.getDBInstances().get(0);
+			status = instance.getDBInstanceStatus();
 			log.info(String.format("Waiting for database: instance: %1$s status: %2$s ", stackInstance.getDBInstanceIdentifier(), status));
 			try {
 				Thread.sleep(5000);
@@ -114,6 +118,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 				throw new RuntimeException(e);
 			}
 		}while(!"available".equals(status));
+		return instance;
 	}
 	
 

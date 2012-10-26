@@ -38,12 +38,16 @@ public class GeneratedResources {
 	private ApplicationVersionDescription searchApplicationVersion;
 	private ApplicationVersionDescription repoApplicationVersion;
 	private ApplicationVersionDescription authApplicationVersion;
+	private ApplicationVersionDescription rdsAsynchApplicationVersion;
+	private ApplicationVersionDescription dynamoApplicationVersion;
 	private ServerCertificateMetadata sslCertificate;
 	private KeyPairInfo stackKeyPair;
 	private DescribeConfigurationOptionsResult elasticBeanstalkConfigurationTemplate;
 	private EnvironmentDescription authenticationEnvironment;
 	private EnvironmentDescription repositoryEnvironment;
 	private EnvironmentDescription searchEnvironment;
+	private EnvironmentDescription rdsAsynchEnvironment;
+	private EnvironmentDescription dynamoEnvironment;
 	private EnvironmentDescription portalEnvironment;
 	private DomainStatus searchDomain;
 	private DBParameterGroup dbParameterGroup;
@@ -116,7 +120,38 @@ public class GeneratedResources {
 		this.searchEnvironment = searchEnvironment;
 	}
 
-	
+	/**
+	 * The rds asynch environment description.
+	 * @return
+	 */
+	public EnvironmentDescription getRdsAsynchEnvironment() {
+		return rdsAsynchEnvironment;
+	}
+
+	/**
+	 * The rds asynch environment description.
+	 * @param rdsAsynchEnvironment
+	 */
+	public void setRdsAsynchEnvironment(EnvironmentDescription rdsAsynchEnvironment) {
+		this.rdsAsynchEnvironment = rdsAsynchEnvironment;
+	}
+
+	/**
+	 * The dynamo environment description
+	 * @return
+	 */
+	public EnvironmentDescription getDynamoEnvironment() {
+		return dynamoEnvironment;
+	}
+
+	/**
+	 * The dynamo environment description
+	 * @param dynamoEnvironment
+	 */
+	public void setDynamoEnvironment(EnvironmentDescription dynamoEnvironment) {
+		this.dynamoEnvironment = dynamoEnvironment;
+	}
+
 	/**
 	 * The portal environment description.
 	 * @return
@@ -251,13 +286,46 @@ public class GeneratedResources {
 			ApplicationVersionDescription searchApplication) {
 		this.searchApplicationVersion = searchApplication;
 	}
+	
+	/**
+	 * The application version of the RDS asynchronous works
+	 * @return
+	 */
+	public ApplicationVersionDescription getRdsAsynchApplicationVersion() {
+		return rdsAsynchApplicationVersion;
+	}
 
+	/**
+	 * The application version of the RDS asynchronous works
+	 * @param rdsAsynchApplicationVersion
+	 */
+	public void setRdsAsynchApplicationVersion(
+			ApplicationVersionDescription rdsAsynchApplicationVersion) {
+		this.rdsAsynchApplicationVersion = rdsAsynchApplicationVersion;
+	}
 	/**
 	 * The application version of the authentication service
 	 * @return
 	 */
 	public ApplicationVersionDescription getAuthApplicationVersion() {
 		return authApplicationVersion;
+	}
+
+	/**
+	 * The application version of the dynamo service
+	 * @return
+	 */
+	public ApplicationVersionDescription getDynamoApplicationVersion() {
+		return dynamoApplicationVersion;
+	}
+
+	/**
+	 * The application version of the dynamo service
+	 * @param dynamoApplicationVersion
+	 */
+	public void setDynamoApplicationVersion(
+			ApplicationVersionDescription dynamoApplicationVersion) {
+		this.dynamoApplicationVersion = dynamoApplicationVersion;
 	}
 
 	/**
@@ -276,7 +344,7 @@ public class GeneratedResources {
 	public void setElasticBeanstalkEC2SecurityGroup(SecurityGroup group) {
 		this.elasticBeanstalkEC2SecurityGroup = group;
 	}
-	
+
 	/**
 	 * The elastic beanstalk security group for this stack instance.
 	 * @return
