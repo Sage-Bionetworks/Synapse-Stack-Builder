@@ -114,7 +114,7 @@ public class Route53Setup implements ResourceProcessor {
 		req.setMaxItems("1");
 		ListResourceRecordSetsResult res = route53Client.listResourceRecordSets(req);
 		ResourceRecordSet rrs = null;
-		if (res.getResourceRecordSets().size() > 0) {
+		if ((res.getResourceRecordSets().size() > 0) && (recordName.equals(res.getResourceRecordSets().get(0).getName()))) {
 			rrs = res.getResourceRecordSets().get(0);
 		}
 		return rrs;
@@ -139,66 +139,5 @@ public class Route53Setup implements ResourceProcessor {
 		return changes;
 		
 	}
-//	public List<Change> getChangesList(ChangeAction action) {
-//		List<Change> changes = new ArrayList<Change>();
-//		ResourceRecord rr;
-//		ResourceRecordSet rrs;
-//		Change change;
-//		
-//		// TODO: Handle cases of deleting non-existent record and adding existent record
-//		
-//		// Auth
-//		if ((ChangeAction.CREATE.equals(action) && resources.getAuthR53GenericRecordSet() == null) || (ChangeAction.DELETE.equals(action) && resources.getAuthR53GenericRecordSet() != null)) {
-//			rr = new ResourceRecord().withValue(config.getAuthServiceSubdomainCNAME());
-//			rrs = new ResourceRecordSet().withType(RRType.CNAME).withName(config.getAuthServiceGenericSubdomainCNAME()).withTTL(300L).withResourceRecords(rr);
-//			change = new Change().withAction(action).withResourceRecordSet(rrs);
-//			changes.add(change);
-//		}
-//		if ((ChangeAction.CREATE.equals(action) && resources.getAuthR53RecordSet() == null) || (ChangeAction.DELETE.equals(action) && resources.getAuthR53RecordSet() != null)) {
-//			rr = new ResourceRecord().withValue(config.getAuthEnvironmentCNAMEPrefix()+".elasticbeanstalk.com");
-//			rrs = new ResourceRecordSet().withType(RRType.CNAME).withName(config.getAuthServiceSubdomainCNAME()).withTTL(300L).withResourceRecords(rr);
-//			change = new Change().withAction(action).withResourceRecordSet(rrs);
-//			changes.add(change);
-//		}
-//		// Portal
-//		if ((ChangeAction.CREATE.equals(action) && resources.getPortalR53GenericRecordSet() == null) || (ChangeAction.DELETE.equals(action) && resources.getPortalR53GenericRecordSet() != null)) {
-//			rr = new ResourceRecord().withValue(config.getPortalEnvironmentSubdomainCNAME());
-//			rrs = new ResourceRecordSet().withType(RRType.CNAME).withName(config.getPortalEnvironmentGenericSubdomainCNAME()).withTTL(300L).withResourceRecords(rr);
-//			change = new Change().withAction(action).withResourceRecordSet(rrs);
-//			changes.add(change);
-//		}
-//		if ((ChangeAction.CREATE.equals(action) && resources.getPortalR53RecordSet() == null) || (ChangeAction.DELETE.equals(action) && resources.getPortalR53RecordSet() != null)) {
-//			rr = new ResourceRecord().withValue(config.getPortalEnvironmentCNAMEPrefix()+".elasticbeanstalk.com");
-//			rrs = new ResourceRecordSet().withType(RRType.CNAME).withName(config.getPortalEnvironmentSubdomainCNAME()).withTTL(300L).withResourceRecords(rr);
-//			change = new Change().withAction(action).withResourceRecordSet(rrs);
-//			changes.add(change);
-//		}
-//		// Repo
-//		if ((ChangeAction.CREATE.equals(action) && resources.getRepoR53GenericRecordSet() == null) || (ChangeAction.DELETE.equals(action) && resources.getRepoR53GenericRecordSet() != null)) {
-//			rr = new ResourceRecord().withValue(config.getRepoServiceSubdomainCNAME());
-//			rrs = new ResourceRecordSet().withType(RRType.CNAME).withName(config.getRepoServiceGenericSubdomainCNAME()).withTTL(300L).withResourceRecords(rr);
-//			change = new Change().withAction(action).withResourceRecordSet(rrs);
-//			changes.add(change);
-//		}
-//		if ((ChangeAction.CREATE.equals(action) && resources.getRepoR53RecordSet() == null) || (ChangeAction.DELETE.equals(action) && resources.getRepoR53RecordSet() != null)) {
-//			rr = new ResourceRecord().withValue(config.getRepoEnvironmentCNAMEPrefix()+".elasticbeanstalk.com");
-//			rrs = new ResourceRecordSet().withType(RRType.CNAME).withName(config.getRepoServiceSubdomainCNAME()).withTTL(300L).withResourceRecords(rr);
-//			change = new Change().withAction(action).withResourceRecordSet(rrs);
-//			changes.add(change);
-//		}
-//		// Search
-//		if ((ChangeAction.CREATE.equals(action) && resources.getSearchR53GenericRecordSet() == null) || (ChangeAction.DELETE.equals(action) && resources.getSearchR53GenericRecordSet() != null)) {
-//			rr = new ResourceRecord().withValue(config.getSearchServiceSubdomainCNAME());
-//			rrs = new ResourceRecordSet().withType(RRType.CNAME).withName(config.getSearchServiceGenericSubdomainCNAME()).withTTL(300L).withResourceRecords(rr);
-//			change = new Change().withAction(action).withResourceRecordSet(rrs);
-//			changes.add(change);
-//		}
-//		if ((ChangeAction.CREATE.equals(action) && resources.getSearchR53RecordSet() == null) || (ChangeAction.DELETE.equals(action) && resources.getSearchR53RecordSet() != null)) {
-//			rr = new ResourceRecord().withValue(config.getSearchEnvironmentCNAMEPrefix()+".elasticbeanstalk.com");
-//			rrs = new ResourceRecordSet().withType(RRType.CNAME).withName(config.getSearchServiceSubdomainCNAME()).withTTL(300L).withResourceRecords(rr);
-//			change = new Change().withAction(action).withResourceRecordSet(rrs);
-//			changes.add(change);
-//		}
-//		return changes;
-//	}
+
 }
