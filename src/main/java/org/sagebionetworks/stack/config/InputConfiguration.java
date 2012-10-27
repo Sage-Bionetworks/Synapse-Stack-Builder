@@ -11,6 +11,8 @@ import org.sagebionetworks.stack.util.PropertyFilter;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -576,5 +578,12 @@ public class InputConfiguration {
 		return validateAndGetProperty("search.index.domain.name");
 	}
 
+	public String getR53Subdomain() {
+		return validateAndGetProperty("r53.subdomain");
+	}
+	
+	public String getEnvironmentSubdomainCNAME(String prefix) {
+		return validateAndGetProperty(prefix + ".service.environment.subdomain.cname");
+	}
 
 }

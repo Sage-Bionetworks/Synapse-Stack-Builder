@@ -12,6 +12,17 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.Endpoint;
 import com.amazonaws.services.cloudsearch.model.DomainStatus;
 import com.amazonaws.services.cloudsearch.model.ServiceEndpoint;
+import com.amazonaws.services.route53.model.Change;
+import com.amazonaws.services.route53.model.ListResourceRecordSetsRequest;
+import com.amazonaws.services.route53.model.ListResourceRecordSetsResult;
+import com.amazonaws.services.route53.model.RRType;
+import com.amazonaws.services.route53.model.ResourceRecord;
+import com.amazonaws.services.route53.model.ResourceRecordSet;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.sagebionetworks.stack.Constants.*;
 
@@ -98,6 +109,38 @@ public class TestHelper {
 		resources.setRdsAsynchApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_RDS)));
 		resources.setStackKeyPair(new KeyPairInfo().withKeyName(config.getStackKeyPairName()));
 		return resources;
+	}
+	
+	public static InputConfiguration createRoute53TestConfig(String stack) throws IOException {
+		Properties inputProperties = createInputProperties(stack);
+		InputConfiguration config = new InputConfiguration(inputProperties);
+		Properties defaultProperties = createDefaultProperties();
+		Map<String, String> cnameProps = getSvcCNAMEs(Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH));
+		defaultProperties.putAll(cnameProps);
+		defaultProperties.put("r53.subdomain", "r53.sagebase.org");
+		config.addPropertiesWithPlaintext(defaultProperties);
+		return config;
+	}
+	
+	public static Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> createListExpectedListResourceRecordSetsRequestAllFound() {
+		Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> m = new HashMap<ListResourceRecordSetsRequest, ListResourceRecordSetsResult>();
+		Map<String, String> map = getSvcCNAMEs(Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH));
+		for (String k: map.keySet()) {
+			ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withStartRecordType(RRType.CNAME).withStartRecordName(k);
+			ResourceRecord rr = new ResourceRecord().withValue(map.get(k));
+			ListResourceRecordSetsResult res = new ListResourceRecordSetsResult().withResourceRecordSets(new ResourceRecordSet().withName(k).withTTL(300L).withType(RRType.CNAME).withResourceRecords(rr));
+			m.put(req, res);
+		}
+		return m;
+	}
+	
+	private static Map<String, String> getSvcCNAMEs(List<String> svcPrefixes) {
+		Map<String, String> cnameProps = new HashMap<String, String>();
+		for (String svcPrefix: svcPrefixes) {
+			cnameProps.put(svcPrefix + ".service.environment.subdomain.cname", svcPrefix + ".stack.inst.r53.sagebase.org");
+			cnameProps.put(svcPrefix + ".service.environment.cname.prefix",  svcPrefix + "-stack-inst-sagebase-org");
+		}
+		return cnameProps;
 	}
 
 }
