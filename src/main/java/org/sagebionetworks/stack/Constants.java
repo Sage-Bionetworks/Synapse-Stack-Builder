@@ -309,5 +309,5 @@ public class Constants {
 	public static final String PREFIX_DYNAMO = "dynamo";
 	
 	// List of service prefixes for Route53 setup
-	public static final List<String> SVC_PREFIXES = Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH);
+	public static final List<String> SVC_PREFIXES = Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_DYNAMO, Constants.PREFIX_PORTAL, Constants.PREFIX_RDS, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH);
 }

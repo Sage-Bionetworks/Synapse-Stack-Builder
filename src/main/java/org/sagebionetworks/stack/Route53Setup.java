@@ -89,6 +89,9 @@ public class Route53Setup implements ResourceProcessor {
 	
 	public HostedZone getHostedZone(String hostedZoneDomainName) {
 		HostedZone zone = null;
+		if (! hostedZoneDomainName.endsWith(".")) {
+			hostedZoneDomainName = hostedZoneDomainName + ".";
+		}
 		
 		ListHostedZonesResult res = route53Client.listHostedZones();
 		List<HostedZone> l = res.getHostedZones();
