@@ -67,18 +67,18 @@ public class Route53SetupTest {
 	
 	@Test
 	public void testGetHostedZoneExistentZone() {
-		String hostedZoneDomainName = "r53.sagebase.org";
+		String hostedZoneDomainName = "r53.sagebase.org.";
 		ListHostedZonesResult res = new ListHostedZonesResult();
 		List<HostedZone> expectedHostedZones = new ArrayList<HostedZone>();
 		HostedZone hz = new HostedZone().withName(hostedZoneDomainName);
 		expectedHostedZones.add(hz);
-		hz = new HostedZone().withName("anotherzone.sagebase.org");
+		hz = new HostedZone().withName("anotherzone.sagebase.org.");
 		expectedHostedZones.add(hz);
 		res.setHostedZones(expectedHostedZones);
 		when(mockClient.listHostedZones()).thenReturn(res);
 		
 		Route53Setup r53Setup = new Route53Setup(factory, config, resources);
-		HostedZone z = r53Setup.getHostedZone(hostedZoneDomainName);
+		HostedZone z = r53Setup.getHostedZone("r53.sagebase.org");
 		assertEquals(hostedZoneDomainName, z.getName());
 	
 	}
@@ -86,24 +86,24 @@ public class Route53SetupTest {
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testGetHostedZoneNonExistentZone() {
-		String hostedZoneDomainName = "r53.sagebase.org";
+		String hostedZoneDomainName = "r53.sagebase.org.";
 		ListHostedZonesResult res = new ListHostedZonesResult();
 		List<HostedZone> expectedHostedZones = new ArrayList<HostedZone>();
-		HostedZone hz = new HostedZone().withName("sone1.org");
+		HostedZone hz = new HostedZone().withName("sone1.org.");
 		expectedHostedZones.add(hz);
-		hz = new HostedZone().withName("zone2.org");
+		hz = new HostedZone().withName("zone2.org.");
 		expectedHostedZones.add(hz);
 		res.setHostedZones(expectedHostedZones);
 		when(mockClient.listHostedZones()).thenReturn(res);
 		Route53Setup r53Setup = new Route53Setup(factory, config, resources);
-		HostedZone z = r53Setup.getHostedZone(hostedZoneDomainName);
+		HostedZone z = r53Setup.getHostedZone("r53.sagebase.org");
 	
 	}
 	
 	
 	@Test
 	public void testGetResourceRecordSetForRecordNameAllFound() {
-		String hostedZoneDomainName = "r53.sagebase.org";
+		String hostedZoneDomainName = "r53.sagebase.org.";
 		ListHostedZonesResult res = new ListHostedZonesResult();
 		List<HostedZone> expectedHostedZones = new ArrayList<HostedZone>();
 		HostedZone hz = new HostedZone().withName(hostedZoneDomainName);
@@ -129,7 +129,7 @@ public class Route53SetupTest {
 	
 	@Test
 	public void testGetResourceRecordSetForRecordNameNoneFound() {
-		String hostedZoneDomainName = "r53.sagebase.org";
+		String hostedZoneDomainName = "r53.sagebase.org.";
 		ListHostedZonesResult res = new ListHostedZonesResult();
 		List<HostedZone> expectedHostedZones = new ArrayList<HostedZone>();
 		HostedZone hz = new HostedZone().withName(hostedZoneDomainName);
@@ -154,12 +154,12 @@ public class Route53SetupTest {
 	@Ignore
 	@Test
 	public void testSetupResourcesAllFound() throws Exception {
-		String hostedZoneDomainName = "r53.sagebase.org";
+		String hostedZoneDomainName = "r53.sagebase.org.";
 		ListHostedZonesResult res = new ListHostedZonesResult();
 		List<HostedZone> expectedHostedZones = new ArrayList<HostedZone>();
 		HostedZone hz = new HostedZone().withName(hostedZoneDomainName);
 		expectedHostedZones.add(hz);
-		hz = new HostedZone().withName("anotherzone.sagebase.org");
+		hz = new HostedZone().withName("anotherzone.sagebase.org.");
 		expectedHostedZones.add(hz);
 		res.setHostedZones(expectedHostedZones);
 		Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> expectedResourceRecordSetsResults = TestHelper.createListExpectedListResourceRecordSetsRequestAllFound();
