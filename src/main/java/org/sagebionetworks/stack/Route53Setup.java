@@ -65,24 +65,21 @@ public class Route53Setup implements ResourceProcessor {
 	public void setupResources() throws InterruptedException {
 		
 		HostedZone hz = getHostedZone(config.getR53Subdomain());
-		
-		// Update this list if additional r53 CNAMEs needed
-		List<String> svcPrefixes = Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH);
-		
-		List<Change> changes = buildChangesList(svcPrefixes);
-			if (changes.size() > 0) {
+				
+		List<Change> changes = buildChangesList(Constants.SVC_PREFIXES);
+		if (changes.size() > 0) {
 			ChangeBatch changeBatch = new ChangeBatch().withChanges(changes);
 
 			ChangeResourceRecordSetsRequest cReq = new ChangeResourceRecordSetsRequest().withHostedZoneId(hz.getId()).withChangeBatch(changeBatch);
 			ChangeResourceRecordSetsResult cRes = route53Client.changeResourceRecordSets(cReq);
 			GetChangeRequest gcReq = new GetChangeRequest(cRes.getChangeInfo().getId());
 			GetChangeResult gcRes = route53Client.getChange(gcReq);
+			// TODO: No real need to wait here, could just exit
 			while (! "INSYNC".equals(gcRes.getChangeInfo().getStatus())) {
 				Thread.sleep(1000L);
 				gcRes =route53Client.getChange(gcReq);
 				String s = gcRes.getChangeInfo().getStatus();
 			}
-		
 		}
 	}
 

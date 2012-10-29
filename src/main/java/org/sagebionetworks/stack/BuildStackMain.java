@@ -45,6 +45,7 @@ public class BuildStackMain {
 			log.error("Terminating: ",e);
 		}finally{
 			log.info("Terminating stack builder\n\n\n");
+			System.exit(0);
 		}
 	}
 
@@ -53,7 +54,7 @@ public class BuildStackMain {
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	public static GeneratedResources buildStack(Properties inputProps, AmazonClientFactory factory) throws FileNotFoundException, IOException {
+	public static GeneratedResources buildStack(Properties inputProps, AmazonClientFactory factory) throws FileNotFoundException, IOException, InterruptedException {
 		// First load the configuration properties.
 		InputConfiguration config = new InputConfiguration(inputProps);
 		// Set the credentials
@@ -69,6 +70,9 @@ public class BuildStackMain {
 		
 		// Since the search index can take time to setup, we buid it first.
 		new SearchIndexSetup(factory, config, resources).setupResources();
+		
+		// Setup the Route53 CNAMEs
+		new Route53Setup(factory, config, resources).setupResources();
 		
 		// The first step is to setup the stack security
 		new EC2SecuritySetup(factory, config, resources).setupResources();
