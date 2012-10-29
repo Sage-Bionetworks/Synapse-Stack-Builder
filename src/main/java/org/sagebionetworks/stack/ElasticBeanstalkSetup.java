@@ -412,12 +412,22 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			nameRaw = nameRaw.replaceAll("-", " ");
 			// What is left is the name
 			String name = nameRaw.replaceAll("\\?", ":");
-			if("aws:autoscaling:asg".equals(nameSpace) && "MinSize".equals(name)){
-				// For production we want a  value of 2
-				if(config.isProductionStack()){
-					if(Long.parseLong(value) < 2){
-						log.debug("Overriding aws.autoscaling.asg.MinSize for production to be at least 2");
-						value = "2";
+			// We override some of the auto-scaling values for production.
+			if(config.isProductionStack()){
+				if("aws:autoscaling:asg".equals(nameSpace)){
+					// We a minimum of two instances for production.
+					if("MinSize".equals(name)){
+						if(Long.parseLong(value) < 2){
+							log.debug("Overriding aws.autoscaling.asg.MinSize for production to be at least 2");
+							value = "2";
+						}
+					}
+					// We want our two instances to be in any two zones. See PLFM-1560
+					if("Availability Zones".equals(name)){
+						if(!"Any 2".equals(value)){
+							log.debug("Overriding aws.autoscaling.asg.Availability-Zones for production to be at least 'Any 2'");
+							value = "Any 2";
+						}
 					}
 				}
 			}
