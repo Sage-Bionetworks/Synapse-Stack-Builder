@@ -54,16 +54,6 @@ public class GeneratedResources {
 	private DomainStatus searchDomain;
 	private DBParameterGroup dbParameterGroup;
 	private Bucket mainFileBucket;
-	private HostedZone hostedZone;
-	private ResourceRecordSet authR53GenericRecordSet;
-	private ResourceRecordSet repoR53GenericRecordSet;
-	private ResourceRecordSet searchR53GenericRecordSet;
-	private ResourceRecordSet portalR53GenericRecordSet;
-	private ResourceRecordSet authR53RecordSet;
-	private ResourceRecordSet repoR53RecordSet;
-	private ResourceRecordSet searchR53RecordSet;
-	private ResourceRecordSet portalR53RecordSet;
-
 
 	/**
 	 * The search domain.
@@ -525,75 +515,4 @@ public class GeneratedResources {
 		this.mainFileBucket = mainFileS3Bucket;
 	}
 	
-	public HostedZone getHostedZone() {
-		return hostedZone;
-	}
-	
-	public void setHostedZone(HostedZone hostedZone) {
-		this.hostedZone = hostedZone;
-	}
-	
-	public ResourceRecordSet getAuthR53GenericRecordSet() {
-		return authR53GenericRecordSet;
-	}
-	
-	public void setAuthR53GenericRecordSet(ResourceRecordSet rrs) {
-		this.authR53GenericRecordSet = rrs;
-	}
-
-	public ResourceRecordSet getRepoR53GenericRecordSet() {
-		return repoR53RecordSet;
-	}
-	
-	public void setRepoR53GenericRecordSet(ResourceRecordSet rrs) {
-		this.repoR53RecordSet = rrs;
-	}
-
-	public ResourceRecordSet getSearchR53GenericRecordSet() {
-		return searchR53RecordSet;
-	}
-	
-	public void setSearchR53GenericRecordSet(ResourceRecordSet rrs) {
-		this.searchR53RecordSet = rrs;
-	}
-
-	public ResourceRecordSet getPortalR53GenericRecordSet() {
-		return portalR53RecordSet;
-	}
-	
-	public void setPortalR53GenericRecordSet(ResourceRecordSet rrs) {
-		this.portalR53RecordSet = rrs;
-	}
-
-	public ResourceRecordSet getAuthR53RecordSet() {
-		return authR53GenericRecordSet;
-	}
-	
-	public void setAuthR53RecordSet(ResourceRecordSet rrs) {
-		this.authR53GenericRecordSet = rrs;
-	}
-
-	public ResourceRecordSet getRepoR53RecordSet() {
-		return repoR53RecordSet;
-	}
-	
-	public void setRepoR53RecordSet(ResourceRecordSet rrs) {
-		this.repoR53RecordSet = rrs;
-	}
-
-	public ResourceRecordSet getSearchR53RecordSet() {
-		return searchR53RecordSet;
-	}
-	
-	public void setSearchR53RecordSet(ResourceRecordSet rrs) {
-		this.searchR53RecordSet = rrs;
-	}
-
-	public ResourceRecordSet getPortalR53RecordSet() {
-		return portalR53RecordSet;
-	}
-	
-	public void setPortalR53RecordSet(ResourceRecordSet rrs) {
-		this.portalR53RecordSet = rrs;
-	}
 }
