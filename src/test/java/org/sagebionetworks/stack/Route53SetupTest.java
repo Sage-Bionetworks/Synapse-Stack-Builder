@@ -18,8 +18,10 @@ import com.amazonaws.services.route53.model.HostedZone;
 import com.amazonaws.services.route53.model.ListHostedZonesResult;
 import com.amazonaws.services.route53.model.ListResourceRecordSetsRequest;
 import com.amazonaws.services.route53.model.ListResourceRecordSetsResult;
+import com.amazonaws.services.route53.model.ResourceRecordSet;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.junit.Ignore;
@@ -57,6 +59,7 @@ public class Route53SetupTest {
 //	public void tearDown() {
 //	}
 //
+	
 	@Test
 	public void testGetHostedZoneExistentZone() {
 		String hostedZoneDomainName = "r53.sagebase.org";
@@ -74,6 +77,8 @@ public class Route53SetupTest {
 		assertEquals(hostedZoneDomainName, z.getName());
 	
 	}
+	
+	
 	@Test(expected = IllegalArgumentException.class)
 	public void testGetHostedZoneNonExistentZone() {
 		String hostedZoneDomainName = "r53.sagebase.org";
@@ -90,9 +95,9 @@ public class Route53SetupTest {
 	
 	}
 	
-	@Ignore
+	
 	@Test
-	public void testGetResourceRecordSetForRecordName() {
+	public void testGetResourceRecordSetForRecordNameAllFound() {
 		String hostedZoneDomainName = "r53.sagebase.org";
 		ListHostedZonesResult res = new ListHostedZonesResult();
 		List<HostedZone> expectedHostedZones = new ArrayList<HostedZone>();
@@ -107,11 +112,40 @@ public class Route53SetupTest {
 		for (ListResourceRecordSetsRequest req: expectedResourceRecordSetsResults.keySet()) {
 			when(mockClient.listResourceRecordSets(req)).thenReturn(expectedResourceRecordSetsResults.get(req));
 		}
+
 		Route53Setup r53Setup = new Route53Setup(factory, config, resources);
-		ResourceRecordSet rrs = r53Setup.getResourceRecordSetForRecordName("auth.stack.inst.r53.sagebase.org");
+		for (String svcPrefix: Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH)) {
+			ResourceRecordSet rrs = r53Setup.getResourceRecordSetForRecordName(svcPrefix + ".stack.inst.r53.sagebase.org");
+			assertFalse(rrs == null);
+			assertEquals(rrs.getName(), svcPrefix + ".stack.inst.r53.sagebase.org");
+			assertEquals(rrs.getResourceRecords().get(0).getValue(), svcPrefix + "-stack-inst-sagebase-org.elasticbeanstalk.com");
+		}
 	}
 	
-	@Ignore
+	@Test
+	public void testGetResourceRecordSetForRecordNameNoneFound() {
+		String hostedZoneDomainName = "r53.sagebase.org";
+		ListHostedZonesResult res = new ListHostedZonesResult();
+		List<HostedZone> expectedHostedZones = new ArrayList<HostedZone>();
+		HostedZone hz = new HostedZone().withName(hostedZoneDomainName);
+		expectedHostedZones.add(hz);
+		hz = new HostedZone().withName("anotherzone.sagebase.org");
+		expectedHostedZones.add(hz);
+		res.setHostedZones(expectedHostedZones);
+		Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> expectedResourceRecordSetsResults = TestHelper.createListExpectedListResourceRecordSetsRequestNoneFound();
+		when(mockClient.listHostedZones()).thenReturn(res);
+		// Args for getResourceRecordSetForRecordName().listResourceRecordSets()
+		for (ListResourceRecordSetsRequest req: expectedResourceRecordSetsResults.keySet()) {
+			when(mockClient.listResourceRecordSets(req)).thenReturn(expectedResourceRecordSetsResults.get(req));
+		}
+
+		Route53Setup r53Setup = new Route53Setup(factory, config, resources);
+		for (String svcPrefix: Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH)) {
+			ResourceRecordSet rrs = r53Setup.getResourceRecordSetForRecordName(svcPrefix + ".stack.inst.r53.sagebase.org");
+			assertTrue(rrs == null);
+		}
+	}
+	
 	@Test
 	public void testSetupResourcesAllFound() throws Exception {
 		String hostedZoneDomainName = "r53.sagebase.org";

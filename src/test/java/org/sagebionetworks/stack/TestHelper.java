@@ -115,7 +115,7 @@ public class TestHelper {
 		Properties inputProperties = createInputProperties(stack);
 		InputConfiguration config = new InputConfiguration(inputProperties);
 		Properties defaultProperties = createDefaultProperties();
-		Map<String, String> cnameProps = getSvcCNAMEs(Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH));
+		Map<String, String> cnameProps = getSvcCNAMEsProps(Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH));
 		defaultProperties.putAll(cnameProps);
 		defaultProperties.put("r53.subdomain", "r53.sagebase.org");
 		config.addPropertiesWithPlaintext(defaultProperties);
@@ -124,17 +124,42 @@ public class TestHelper {
 	
 	public static Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> createListExpectedListResourceRecordSetsRequestAllFound() {
 		Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> m = new HashMap<ListResourceRecordSetsRequest, ListResourceRecordSetsResult>();
-		Map<String, String> map = getSvcCNAMEs(Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH));
-		for (String k: map.keySet()) {
-			ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withStartRecordType(RRType.CNAME).withStartRecordName(k);
-			ResourceRecord rr = new ResourceRecord().withValue(map.get(k));
-			ListResourceRecordSetsResult res = new ListResourceRecordSetsResult().withResourceRecordSets(new ResourceRecordSet().withName(k).withTTL(300L).withType(RRType.CNAME).withResourceRecords(rr));
+		List<String> svcPrefixes = Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH);
+		Map<String, String> map = getSvcCNAMEsProps(svcPrefixes);
+		for (String svcPrefix: svcPrefixes) {
+			ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withStartRecordType(RRType.CNAME).withStartRecordName(map.get(svcPrefix + ".service.environment.subdomain.cname")).withMaxItems("1");
+			ResourceRecord rr = new ResourceRecord().withValue(map.get(svcPrefix + ".service.environment.cname.prefix") + ".elasticbeanstalk.com");
+			ListResourceRecordSetsResult res = new ListResourceRecordSetsResult().withResourceRecordSets(new ResourceRecordSet().withName(map.get(svcPrefix + ".service.environment.subdomain.cname")).withTTL(300L).withType(RRType.CNAME).withResourceRecords(rr));
 			m.put(req, res);
 		}
 		return m;
 	}
 	
-	private static Map<String, String> getSvcCNAMEs(List<String> svcPrefixes) {
+	
+	public static Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> createListExpectedListResourceRecordSetsRequestNoneFound() {
+		Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> m = new HashMap<ListResourceRecordSetsRequest, ListResourceRecordSetsResult>();
+		// For Auth and Portal, simulate 'not last' situation i.e. the next record is returned
+		List<String> svcPrefixes = Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL);
+		Map<String, String> map = getSvcCNAMEsProps(svcPrefixes);
+		for (String svcPrefix: svcPrefixes) {
+			ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withStartRecordType(RRType.CNAME).withStartRecordName(map.get(svcPrefix + ".service.environment.subdomain.cname")).withMaxItems("1");
+			ResourceRecord rr = new ResourceRecord().withValue(map.get(svcPrefix + ".service.environment.cname.prefix") + "2.elasticbeanstalk.com");
+			ListResourceRecordSetsResult res = new ListResourceRecordSetsResult().withResourceRecordSets(new ResourceRecordSet().withName(map.get(svcPrefix + ".service.environment.subdomain.cname") + "2").withTTL(300L).withType(RRType.CNAME).withResourceRecords(rr));
+			m.put(req, res);
+		}
+		// For Repo and Search, simulate 'last' situation i.e. no record is returned
+		svcPrefixes = Arrays.asList(Constants.PREFIX_REPO, Constants.PREFIX_SEARCH);
+		map = getSvcCNAMEsProps(svcPrefixes);
+		for (String svcPrefix: svcPrefixes) {
+			ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withStartRecordType(RRType.CNAME).withStartRecordName(map.get(svcPrefix + ".service.environment.subdomain.cname")).withMaxItems("1");
+			ResourceRecord rr = null;
+			ListResourceRecordSetsResult res = new ListResourceRecordSetsResult().withResourceRecordSets(new ArrayList<ResourceRecordSet>());
+			m.put(req, res);
+		}
+		return m;
+	}
+	
+	private static Map<String, String> getSvcCNAMEsProps(List<String> svcPrefixes) {
 		Map<String, String> cnameProps = new HashMap<String, String>();
 		for (String svcPrefix: svcPrefixes) {
 			cnameProps.put(svcPrefix + ".service.environment.subdomain.cname", svcPrefix + ".stack.inst.r53.sagebase.org");
