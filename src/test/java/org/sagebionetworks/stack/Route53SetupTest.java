@@ -8,12 +8,17 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.any;
 
 import org.sagebionetworks.factory.MockAmazonClientFactory;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
 
 import com.amazonaws.services.route53.AmazonRoute53Client;
+import com.amazonaws.services.route53.model.ChangeInfo;
+import com.amazonaws.services.route53.model.ChangeResourceRecordSetsRequest;
+import com.amazonaws.services.route53.model.ChangeResourceRecordSetsResult;
+import com.amazonaws.services.route53.model.ChangeStatus;
 import com.amazonaws.services.route53.model.HostedZone;
 import com.amazonaws.services.route53.model.ListHostedZonesResult;
 import com.amazonaws.services.route53.model.ListResourceRecordSetsRequest;
@@ -146,6 +151,7 @@ public class Route53SetupTest {
 		}
 	}
 	
+	@Ignore
 	@Test
 	public void testSetupResourcesAllFound() throws Exception {
 		String hostedZoneDomainName = "r53.sagebase.org";
@@ -162,6 +168,12 @@ public class Route53SetupTest {
 		for (ListResourceRecordSetsRequest req: expectedResourceRecordSetsResults.keySet()) {
 			when(mockClient.listResourceRecordSets(req)).thenReturn(expectedResourceRecordSetsResults.get(req));
 		}
+		
+		ChangeInfo expectedChangeInfo = new ChangeInfo().withId("changeInfoId").withStatus(ChangeStatus.Deployed);
+		ChangeResourceRecordSetsResult expectedChangeResourceRecordSetsResult = new ChangeResourceRecordSetsResult().withChangeInfo(expectedChangeInfo);
+		when(mockClient.changeResourceRecordSets(any(ChangeResourceRecordSetsRequest.class))).thenReturn(expectedChangeResourceRecordSetsResult);
+		
+		Route53Setup r53Setup = new Route53Setup(factory, config, resources);
 		
 	}
 }
