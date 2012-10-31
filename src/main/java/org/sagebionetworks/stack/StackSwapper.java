@@ -2,12 +2,14 @@ package org.sagebionetworks.stack;
 
 import com.amazonaws.services.route53.AmazonRoute53Client;
 import com.amazonaws.services.route53.model.Change;
+import com.amazonaws.services.route53.model.ChangeAction;
 import com.amazonaws.services.route53.model.GetHostedZoneRequest;
 import com.amazonaws.services.route53.model.HostedZone;
 import com.amazonaws.services.route53.model.ListHostedZonesResult;
 import com.amazonaws.services.route53.model.ListResourceRecordSetsRequest;
 import com.amazonaws.services.route53.model.ListResourceRecordSetsResult;
 import com.amazonaws.services.route53.model.RRType;
+import com.amazonaws.services.route53.model.ResourceRecord;
 import com.amazonaws.services.route53.model.ResourceRecordSet;
 
 import java.io.File;
@@ -34,8 +36,8 @@ public class StackSwapper {
 	 * @param args the command line arguments
 	 */
 	public static void main(String[] args) throws FileNotFoundException, IOException {
+		String srcStack, srcStackInstance, destStack, destStackInstance;
 		try {
-			String srcStack, srcStackInstance, destStack, destStackInstance;
 			String pathConfig;
 			Properties inputProps = null;
 
@@ -55,7 +57,7 @@ public class StackSwapper {
 					inputProps = System.getProperties();
 				}
 				
-				swapStack(inputProps, srcStack, srcStackInstance, destStack, destStackInstance, new AmazonClientFactoryImpl());
+				Swapper swapper = new Swapper(new AmazonClientFactoryImpl(), inputProps, srcStack, srcStackInstance, destStack, destStackInstance);
 			} else {
 				throw new IllegalArgumentException("Wrong number of arguments!");
 			}
@@ -64,7 +66,7 @@ public class StackSwapper {
 		} catch (Throwable e) {
 			log.error("Terminating: ",e);
 		}finally{
-			log.info("Terminating stack builder\n\n\n");
+			log.info("Terminating StackSwapper\n\n\n");
 			System.exit(0);
 		}
 
@@ -85,48 +87,4 @@ public class StackSwapper {
 		}
 	}
 	
-	private static void swapStack(Properties props, String srcStack, String srcStackInstance, String destStack, String destStackInstance, AmazonClientFactory factory) throws IOException {
-		List<String> svcPrefixes = Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH);
-		String r53SubdomainName;
-		
-		InputConfiguration config = new InputConfiguration(props);
-		factory.setCredentials(config.getAWSCredentials());
-		
-		AmazonRoute53Client client = factory.createRoute53Client();
-		
-		// Assume single hosted zone for now
-		ListHostedZonesResult res = client.listHostedZones();
-		HostedZone hz = res.getHostedZones().get(0);
-		r53SubdomainName = hz.getName();
-		
-		for (String svcPrefix: svcPrefixes) {
-			String srcSvcGenericCNAME = svcPrefix + "." + srcStack + "." + r53SubdomainName;
-			String srcSvcCNAME = svcPrefix + "." + srcStack + "." + srcStackInstance + "." + r53SubdomainName;
-			String destSvcGenericCNAME = svcPrefix + "." + destStack + "." + r53SubdomainName;
-			String destSvcCNAME = svcPrefix + "." + destStack + "." + destStackInstance + "." + r53SubdomainName;
-			
-			// Change  srcSvcGenericCNAME record to point to destSvcCNAME
-			ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest();
-			req.setHostedZoneId(hz.getId());
-			req.setStartRecordType(RRType.CNAME);
-			req.setStartRecordName(svcPrefix);
-			req.setMaxItems("1");
-			ListResourceRecordSetsResult lrRes = client.listResourceRecordSets(req);
-			ResourceRecordSet rrs = null;
-			if ((lrRes.getResourceRecordSets().size() > 0) && (svcPrefix.equals(lrRes.getResourceRecordSets().get(0).getName()))) {
-				rrs = lrRes.getResourceRecordSets().get(0);
-			}
-			if (rrs != null) {
-				
-			}
-		}
-	}
-	
-	private static Change CreateChange(HostedZone hz, String resourceRecordName, String newValue) {
-		Change change = null;
-		
-
-		
-		return change;
-	}
 }
