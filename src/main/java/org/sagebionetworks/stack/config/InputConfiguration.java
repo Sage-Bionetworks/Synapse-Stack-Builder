@@ -578,8 +578,8 @@ public class InputConfiguration {
 		return validateAndGetProperty("search.index.domain.name");
 	}
 
-	public String getR53Subdomain() {
-		return validateAndGetProperty("r53.subdomain");
+	public String getStackSubdomain() {
+		return validateAndGetProperty("stack.subdomain");
 	}
 	
 	public String getEnvironmentSubdomainCNAME(String prefix) {

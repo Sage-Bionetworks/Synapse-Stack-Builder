@@ -41,6 +41,8 @@ public class Route53Setup implements ResourceProcessor {
 	public AmazonRoute53Client route53Client;
 	private InputConfiguration config;
 	private GeneratedResources resources;
+	
+	private HostedZone hostedZone;
 
 	public Route53Setup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
 		initialize(factory, config, resources);
@@ -54,7 +56,8 @@ public class Route53Setup implements ResourceProcessor {
 		this.route53Client = factory.createRoute53Client();
 		this.config = config;
 		this.resources = resources;
-
+		
+		this.hostedZone = getHostedZone(config.getStackSubdomain());
 	}
 
 	public void describeResources() {
@@ -64,13 +67,11 @@ public class Route53Setup implements ResourceProcessor {
 	
 	public void setupResources() throws InterruptedException {
 		
-		HostedZone hz = getHostedZone(config.getR53Subdomain());
-				
 		List<Change> changes = buildChangesList(Constants.SVC_PREFIXES);
 		if (changes.size() > 0) {
 			ChangeBatch changeBatch = new ChangeBatch().withChanges(changes);
 
-			ChangeResourceRecordSetsRequest cReq = new ChangeResourceRecordSetsRequest().withHostedZoneId(hz.getId()).withChangeBatch(changeBatch);
+			ChangeResourceRecordSetsRequest cReq = new ChangeResourceRecordSetsRequest().withHostedZoneId(hostedZone.getId()).withChangeBatch(changeBatch);
 			ChangeResourceRecordSetsResult cRes = route53Client.changeResourceRecordSets(cReq);
 			GetChangeRequest gcReq = new GetChangeRequest(cRes.getChangeInfo().getId());
 			GetChangeResult gcRes = route53Client.getChange(gcReq);
@@ -103,16 +104,16 @@ public class Route53Setup implements ResourceProcessor {
 			}
 		}
 		if (zone == null) {
-			throw new IllegalArgumentException("Hosted zone for domain" + hostedZoneDomainName + " could not be found.");
+			throw new IllegalArgumentException("Hosted zone for domain " + hostedZoneDomainName + " could not be found.");
 		}
 		return zone;
 	}
 	
 	// TODO:	See if this could be done with a single call to listResourceRecordSets() to return all the CNAMEs,
 	//			pass in a list of recordNames and getting back a list of ResourceRecordSets
-	public ResourceRecordSet getResourceRecordSetForRecordName(String recordName) {
+	ResourceRecordSet getResourceRecordSetForRecordName(String recordName) {
 		ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest();
-		req.setHostedZoneId(getHostedZone(config.getR53Subdomain()).getId());
+		req.setHostedZoneId(hostedZone.getId());
 		req.setStartRecordType(RRType.CNAME);
 		req.setStartRecordName(recordName);
 		req.setMaxItems("1");
@@ -124,7 +125,7 @@ public class Route53Setup implements ResourceProcessor {
 		return rrs;
 	}
 	
-	public List<Change> buildChangesList(List<String> prefixes) {
+	List<Change> buildChangesList(List<String> prefixes) {
 		List<Change> changes = new ArrayList<Change>();
 		
 		for (String prefix: prefixes) {

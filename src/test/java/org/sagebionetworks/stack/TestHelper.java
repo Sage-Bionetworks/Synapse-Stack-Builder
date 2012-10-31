@@ -115,17 +115,17 @@ public class TestHelper {
 		Properties inputProperties = createInputProperties(stack);
 		InputConfiguration config = new InputConfiguration(inputProperties);
 		Properties defaultProperties = createDefaultProperties();
-		Map<String, String> cnameProps = getSvcCNAMEsProps(Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH));
+		Map<String, String> cnameProps = getSvcCNAMEsProps(stack, Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH));
 		defaultProperties.putAll(cnameProps);
-		defaultProperties.put("r53.subdomain", "r53.sagebase.org");
+		defaultProperties.put("stack.subdomain", stack+".sagebase.org");
 		config.addPropertiesWithPlaintext(defaultProperties);
 		return config;
 	}
 	
-	public static Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> createListExpectedListResourceRecordSetsRequestAllFound() {
+	public static Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> createListExpectedListResourceRecordSetsRequestAllFound(String stack) {
 		Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> m = new HashMap<ListResourceRecordSetsRequest, ListResourceRecordSetsResult>();
 		List<String> svcPrefixes = Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH);
-		Map<String, String> map = getSvcCNAMEsProps(svcPrefixes);
+		Map<String, String> map = getSvcCNAMEsProps(stack, svcPrefixes);
 		for (String svcPrefix: svcPrefixes) {
 			ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withStartRecordType(RRType.CNAME).withStartRecordName(map.get(svcPrefix + ".service.environment.subdomain.cname")).withMaxItems("1");
 			ResourceRecord rr = new ResourceRecord().withValue(map.get(svcPrefix + ".service.environment.cname.prefix") + ".elasticbeanstalk.com");
@@ -136,11 +136,11 @@ public class TestHelper {
 	}
 	
 	
-	public static Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> createListExpectedListResourceRecordSetsRequestNoneFound() {
+	public static Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> createListExpectedListResourceRecordSetsRequestNoneFound(String stack) {
 		Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> m = new HashMap<ListResourceRecordSetsRequest, ListResourceRecordSetsResult>();
 		// For Auth and Portal, simulate 'not last' situation i.e. the next record is returned
 		List<String> svcPrefixes = Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL);
-		Map<String, String> map = getSvcCNAMEsProps(svcPrefixes);
+		Map<String, String> map = getSvcCNAMEsProps(stack, svcPrefixes);
 		for (String svcPrefix: svcPrefixes) {
 			ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withStartRecordType(RRType.CNAME).withStartRecordName(map.get(svcPrefix + ".service.environment.subdomain.cname")).withMaxItems("1");
 			ResourceRecord rr = new ResourceRecord().withValue(map.get(svcPrefix + ".service.environment.cname.prefix") + "2.elasticbeanstalk.com");
@@ -149,7 +149,7 @@ public class TestHelper {
 		}
 		// For Repo and Search, simulate 'last' situation i.e. no record is returned
 		svcPrefixes = Arrays.asList(Constants.PREFIX_REPO, Constants.PREFIX_SEARCH);
-		map = getSvcCNAMEsProps(svcPrefixes);
+		map = getSvcCNAMEsProps(stack, svcPrefixes);
 		for (String svcPrefix: svcPrefixes) {
 			ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withStartRecordType(RRType.CNAME).withStartRecordName(map.get(svcPrefix + ".service.environment.subdomain.cname")).withMaxItems("1");
 			ResourceRecord rr = null;
@@ -159,11 +159,11 @@ public class TestHelper {
 		return m;
 	}
 	
-	private static Map<String, String> getSvcCNAMEsProps(List<String> svcPrefixes) {
+	private static Map<String, String> getSvcCNAMEsProps(String stack, List<String> svcPrefixes) {
 		Map<String, String> cnameProps = new HashMap<String, String>();
 		for (String svcPrefix: svcPrefixes) {
-			cnameProps.put(svcPrefix + ".service.environment.subdomain.cname", svcPrefix + ".stack.inst.r53.sagebase.org");
-			cnameProps.put(svcPrefix + ".service.environment.cname.prefix",  svcPrefix + "-stack-inst-sagebase-org");
+			cnameProps.put(svcPrefix + ".service.environment.subdomain.cname", svcPrefix + "." + stack + ".inst.r53.sagebase.org");
+			cnameProps.put(svcPrefix + ".service.environment.cname.prefix",  svcPrefix + "-" + stack + "-inst-sagebase-org");
 		}
 		return cnameProps;
 	}
