@@ -30,17 +30,16 @@ import org.sagebionetworks.stack.factory.AmazonClientFactory;
 public class Swapper {
 	private AmazonRoute53Client client;
 	private InputConfiguration config;
-	private String srcStack, srcStackInstance, destStack, destStackInstance;
+	private String stack, srcStackInstance, destStackInstance;
 	private HostedZone hostedZone;
 
-	public Swapper(AmazonClientFactory factory, Properties props, String srcStack, String srcStackInstance, String destStack, String destStackInstance) throws IOException {
+	public Swapper(AmazonClientFactory factory, Properties props, String stack, String srcStackInstance, String destStackInstance) throws IOException {
 		config = new InputConfiguration(props);
 		factory.setCredentials(config.getAWSCredentials());
 		
 		this.client = factory.createRoute53Client();
-		this.srcStack = srcStack;
+		this.stack = stack;
 		this.srcStackInstance = srcStackInstance;
-		this.destStack = destStack;
 		this.destStackInstance = destStackInstance;
 	}
 	
@@ -61,7 +60,7 @@ public class Swapper {
 		}
 		
 		// Apply changes
-		String swapComment = "StackSwapper - swapping from" + srcStack + ":" + srcStackInstance + " to " + destStack + ":" + destStackInstance;
+		String swapComment = "StackSwapper - swapping from" + stack + ":" + srcStackInstance + " to " + stack + ":" + destStackInstance;
 		ChangeBatch batch = new ChangeBatch().withChanges(swapChanges).withComment(swapComment);
 		ChangeResourceRecordSetsRequest req = new ChangeResourceRecordSetsRequest().withChangeBatch(batch).withHostedZoneId(hostedZone.getId());
 		ChangeResourceRecordSetsResult cRes = client.changeResourceRecordSets(req);
@@ -82,10 +81,10 @@ public class Swapper {
 	private List<Change> createChangesForSvc(String svcPrefix) {
 		HostedZone hz;
 		List<Change> l = new ArrayList<Change>();
-		String srcSvcGenericCNAME = svcPrefix + "." + srcStack + "." + hostedZone.getName();
-		String srcSvcCNAME = svcPrefix + "." + srcStack + "." + srcStackInstance + "." + hostedZone.getName();
-		String destSvcGenericCNAME = svcPrefix + "." + destStack + "." + hostedZone.getName();
-		String destSvcCNAME = svcPrefix + "." + destStack + "." + destStackInstance + "." + hostedZone.getName();
+		String srcSvcGenericCNAME = svcPrefix + "." + stack + "." + hostedZone.getName();
+		String srcSvcCNAME = svcPrefix + "." + stack + "." + srcStackInstance + "." + hostedZone.getName();
+		String destSvcGenericCNAME = svcPrefix + "." + stack + "." + hostedZone.getName();
+		String destSvcCNAME = svcPrefix + "." + stack + "." + destStackInstance + "." + hostedZone.getName();
 
 		// Change  srcSvcGenericCNAME record to point to destSvcCNAME
 		ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest();

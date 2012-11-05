@@ -36,7 +36,7 @@ public class StackSwapper {
 	 * @param args the command line arguments
 	 */
 	public static void main(String[] args) throws FileNotFoundException, IOException {
-		String srcStack, srcStackInstance, destStack, destStackInstance;
+		String stack, srcStackInstance, destStack, destStackInstance;
 		try {
 			String pathConfig;
 			Properties inputProps = null;
@@ -45,11 +45,10 @@ public class StackSwapper {
 
 			// TODO: Better args checking
 			if ((args != null) && (args.length == 5)) {
-				srcStack = args[0];
+				stack = args[0];
 				srcStackInstance = args[1];
-				destStack = args[2];
-				destStackInstance = args[3];
-				pathConfig = args[4];
+				destStackInstance = args[2];
+				pathConfig = args[3];
 
 				if (pathConfig != null) {
 					inputProps = loadPropertiesFromPath(pathConfig);
@@ -57,7 +56,8 @@ public class StackSwapper {
 					inputProps = System.getProperties();
 				}
 				
-				Swapper swapper = new Swapper(new AmazonClientFactoryImpl(), inputProps, srcStack, srcStackInstance, destStack, destStackInstance);
+				Swapper swapper = new Swapper(new AmazonClientFactoryImpl(), inputProps, stack, srcStackInstance, destStackInstance);
+				swapper.swapStack();
 			} else {
 				throw new IllegalArgumentException("Wrong number of arguments!");
 			}
