@@ -44,7 +44,7 @@ public class StackSwapper {
 			log.info("Staring StackSwapper...");
 
 			// TODO: Better args checking
-			if ((args != null) && (args.length == 5)) {
+			if ((args != null) && (args.length == 4)) {
 				stack = args[0];
 				srcStackInstance = args[1];
 				destStackInstance = args[2];
