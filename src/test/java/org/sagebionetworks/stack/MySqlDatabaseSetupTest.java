@@ -221,7 +221,7 @@ public class MySqlDatabaseSetupTest {
 		expected.setDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL);
 		expected.setDBName(config.getStackInstanceDatabaseSchema());
 		expected.setDBInstanceIdentifier(config	.getStackInstanceDatabaseIdentifier());
-		expected.setAllocatedStorage(new Integer(50));
+		expected.setAllocatedStorage(new Integer(10));
 		expected.setMasterUsername(config.getStackInstanceDatabaseMasterUser());
 		expected.setMasterUserPassword(config.getStackInstanceDatabaseMasterPasswordPlaintext());
 		expected.withDBSecurityGroups(config.getStackDatabaseSecurityGroupName());
