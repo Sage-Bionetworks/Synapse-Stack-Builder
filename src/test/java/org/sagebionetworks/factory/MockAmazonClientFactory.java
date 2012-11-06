@@ -10,6 +10,7 @@ import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.rds.AmazonRDSClient;
+import com.amazonaws.services.route53.AmazonRoute53Client;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.sns.AmazonSNSClient;
 
@@ -29,6 +30,7 @@ public class MockAmazonClientFactory implements AmazonClientFactory {
 	AWSElasticBeanstalkClient mockElasticBeanstalkClient;
 	AmazonIdentityManagementClient mockIdentityManagementClient;
 	AmazonCloudSearchClient mockCloudSearchClient;
+	AmazonRoute53Client mockRoute53Client;
 	AWSCredentials credentials;
 	
 	/**
@@ -43,6 +45,8 @@ public class MockAmazonClientFactory implements AmazonClientFactory {
 		mockElasticBeanstalkClient = Mockito.mock(AWSElasticBeanstalkClient.class);
 		mockIdentityManagementClient = Mockito.mock(AmazonIdentityManagementClient.class);
 		mockCloudSearchClient = Mockito.mock(AmazonCloudSearchClient.class);
+		mockRoute53Client = Mockito.mock(AmazonRoute53Client.class);
+		
 	}
 
 	/**
@@ -97,6 +101,10 @@ public class MockAmazonClientFactory implements AmazonClientFactory {
 
 	public AmazonCloudSearchClient createCloudSearchClient() {
 		return mockCloudSearchClient;
+	}
+	
+	public AmazonRoute53Client createRoute53Client() {
+		return mockRoute53Client;
 	}
 
 }

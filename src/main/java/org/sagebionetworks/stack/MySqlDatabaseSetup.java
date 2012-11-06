@@ -193,18 +193,20 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 			request.setMultiAZ(true);
 			// The production database should be a large
 			request.setDBInstanceClass(DATABASE_INSTANCE_CLASS_LARGE);
+			// The size of the database should be 50GB
+			request.setAllocatedStorage(new Integer(50));
 		}else{
 			// This is not a production stack so we do not want to incur the extra cost of
 			// a backup replicate database in another zone.
 			request.setMultiAZ(false);
 			// All non-production databases should be small
 			request.setDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL);
+			// The size of the database should be 10GB
+			request.setAllocatedStorage(new Integer(10));
 		}
 		// This will be the schema name.
 		request.setDBName(config.getStackInstanceDatabaseSchema());
 		request.setDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier());
-		// This is the main database for the stack so it should have 50 GB
-		request.setAllocatedStorage(new Integer(50));
 		request.setMasterUsername(config.getStackInstanceDatabaseMasterUser());
 		request.setMasterUserPassword(config.getStackInstanceDatabaseMasterPasswordPlaintext());
 		// The security group

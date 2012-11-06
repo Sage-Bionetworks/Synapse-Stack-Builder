@@ -1,6 +1,8 @@
 package org.sagebionetworks.stack;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -305,4 +307,7 @@ public class Constants {
 	public static final String PREFIX_REPO = "repo";
 	public static final String PREFIX_PORTAL = "portal";
 	public static final String PREFIX_DYNAMO = "dynamo";
+	
+	// List of service prefixes for Route53 setup
+	public static final List<String> SVC_PREFIXES = Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_DYNAMO, Constants.PREFIX_PORTAL, Constants.PREFIX_RDS, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH);
 }
