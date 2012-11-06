@@ -125,6 +125,29 @@ public class ElasticBeanstalkSetupTest {
 		}
 	}
 	
+	/**
+	 * This is a test for PLFM-1571.
+	 * 
+	 * @throws IOException
+	 */
+	@Test
+	public void testCustomAvailabilityZonesProduction() throws IOException{
+		List<ConfigurationOptionSetting> expected = new LinkedList<ConfigurationOptionSetting>(); 
+		// For prod the min should be 2
+		config = TestHelper.createTestConfig("prod");
+		resources = TestHelper.createTestResources(config);
+		setup = new ElasticBeanstalkSetup(factory, config, resources);
+		// From the server tab
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("Custom Availability Zones").withValue("us-east-1d, us-east-1e"));
+		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions();
+		// Make sure we can find all of the expected values
+		for(ConfigurationOptionSetting expectedCon: expected){
+			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
+			assertNotNull("Failed to find expected configuration: "+expectedCon,found);
+			assertEquals("Values did not match for namespace: "+expectedCon.getNamespace()+" and option name: "+expectedCon.getOptionName(),expectedCon.getValue(), found.getValue());
+		}
+	}
+	
 	@Test
 	public void testMD5(){
 		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions();
