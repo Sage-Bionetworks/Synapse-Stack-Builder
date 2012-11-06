@@ -429,11 +429,23 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 							value = "Any 2";
 						}
 					}
+//					// We want our two instances to be in 'us-east-1d' and 'us-east-1e' for reserved instances. See PLFM-1571
+//					if("Custom Availability Zones".equals(name)){
+//						if(!"us-east-1d, us-east-1e".equals(value)){
+//							log.debug("Overriding aws.autoscaling.asg.Custom-Availability-Zones for production to be 'us-east-1d, us-east-1e'");
+//							value = "us-east-1d, us-east-1e";
+//						}
+//					}
 				}
 			}
 			ConfigurationOptionSetting config = new ConfigurationOptionSetting(nameSpace, name, value);
 			list.add(config);
 			log.debug(config);
+		}
+		// For production we need one more configuration added. See PLFM-1571
+		if(config.isProductionStack()){
+			ConfigurationOptionSetting config = new ConfigurationOptionSetting("aws:autoscaling:asg", "Custom Availability Zones", "us-east-1d, us-east-1e");
+			list.add(config);
 		}
 		return list;
 	}
