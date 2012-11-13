@@ -30,7 +30,7 @@ import org.sagebionetworks.stack.factory.AmazonClientFactoryImpl;
  *
  * @author xschildw
  */
-public class StackSwapper {
+public class StackActivator {
 	private static Logger log = Logger.getLogger(BuildStackMain.class.getName());
 	/**
 	 * @param args the command line arguments
@@ -56,8 +56,8 @@ public class StackSwapper {
 					inputProps = System.getProperties();
 				}
 				
-				Swapper swapper = new Swapper(new AmazonClientFactoryImpl(), inputProps, stack, srcStackInstance, destStackInstance);
-				swapper.swapStack();
+				Activator swapper = new Activator(new AmazonClientFactoryImpl(), inputProps, stack, srcStackInstance, destStackInstance);
+				swapper.activateStack();
 			} else {
 				throw new IllegalArgumentException("Wrong number of arguments!");
 			}
