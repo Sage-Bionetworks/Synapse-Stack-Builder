@@ -99,9 +99,11 @@ public class DatabaseParameterGroup implements ResourceProcessor {
 		setValueIfNeeded(paramGroup.getDBParameterGroupName(), map, Constants.DB_PARAM_KEY_SLOW_QUERY_LOG, "1");
 		// Set the slow query time (how long a query must be to get recored in the slow query log) in seconds..
 		setValueIfNeeded(paramGroup.getDBParameterGroupName(), map, Constants.DB_PARAM_KEY_LONG_QUERY_TIME, "1");
+		// See PLFM-1526
+		setValueIfNeeded(paramGroup.getDBParameterGroupName(), map, Constants.DB_PARAM_KEY_MAX_ALLOWED_PACKET, ""+Constants.DB_PARAM_VALUE_MAX_ALLOWED_PACKET);
 		// Set any other values...
 		
-		return paramGroup;
+		return createOrGetDatabaseParameterGroup();
 	}
 	
 	/**
