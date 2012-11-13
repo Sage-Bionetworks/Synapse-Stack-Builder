@@ -27,13 +27,13 @@ import org.sagebionetworks.stack.factory.AmazonClientFactory;
  *
  * @author xschildw
  */
-public class Swapper {
+public class Activator {
 	private AmazonRoute53Client client;
 	private InputConfiguration config;
 	private String stack, srcStackInstance, destStackInstance;
 	private HostedZone hostedZone;
 
-	public Swapper(AmazonClientFactory factory, Properties props, String stack, String srcStackInstance, String destStackInstance) throws IOException {
+	public Activator(AmazonClientFactory factory, Properties props, String stack, String srcStackInstance, String destStackInstance) throws IOException {
 		config = new InputConfiguration(props);
 		factory.setCredentials(config.getAWSCredentials());
 		
@@ -43,7 +43,7 @@ public class Swapper {
 		this.destStackInstance = destStackInstance;
 	}
 	
-	public void swapStack() throws IOException {
+	public void activateStack() throws IOException {
 		List<String> svcPrefixes = Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH);
 		String r53SubdomainName;
 		
