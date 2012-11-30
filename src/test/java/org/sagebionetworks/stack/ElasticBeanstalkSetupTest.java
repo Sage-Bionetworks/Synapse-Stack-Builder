@@ -174,7 +174,10 @@ public class ElasticBeanstalkSetupTest {
 		Collections.shuffle(two);
 		assertTrue(ElasticBeanstalkSetup.areExpectedSettingsEquals(one, two));
 		// Now make a change
+		one = setup.getAllElasticBeanstalkOptions();
+		two = setup.getAllElasticBeanstalkOptions();
 		two.get(0).setValue("some crazy value");
+		Collections.shuffle(one);
 		Collections.shuffle(two);
 		assertFalse(ElasticBeanstalkSetup.areExpectedSettingsEquals(one, two));
 	}
