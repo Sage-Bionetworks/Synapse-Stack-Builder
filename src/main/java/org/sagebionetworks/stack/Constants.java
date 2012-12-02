@@ -158,6 +158,16 @@ public class Constants {
 	public static final String DB_PARAM_KEY_LONG_QUERY_TIME = "long_query_time";
 	
 	/**
+	 * The DB parameter key for the max allowed packet.
+	 */
+	public static final String DB_PARAM_KEY_MAX_ALLOWED_PACKET = "max_allowed_packet";
+	
+	/**
+	 * This is currently set to 16 MB per PLFM-1526.
+	 */
+	public static final long DB_PARAM_VALUE_MAX_ALLOWED_PACKET = 1024*1024*16;
+	
+	/**
 	 * Small database instance class
 	 */
 	public static final String DATABASE_INSTANCE_CLASS_SMALL = "db.m1.small";

@@ -79,6 +79,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		if(resources.getSearchApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getSearchApplicationVersion() cannot be null");
 		if(resources.getRdsAsynchApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getRdsAsynchApplicationVersion() cannot be null");
 		if(resources.getStackKeyPair() == null) throw new IllegalArgumentException("GeneratedResources.getStackKeyPair() cannot be null");
+		if(resources.getDynamoApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getDynamoApplicationVersion() cannot be null");
 		this.beanstalkClient = factory.createBeanstalkClient();
 		this.config = config;
 		this.resources = resources;
@@ -98,6 +99,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		resources.setRepositoryEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_REPO)));
 		resources.setSearchEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_SEARCH)));
 		resources.setRdsAsynchEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_RDS)));
+		resources.setDynamoEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_DYNAMO)));
 	}
 
 	/**
@@ -118,8 +120,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		// The rds asynch
 		Future<EnvironmentDescription> rdsFuture = createEnvironment(PREFIX_RDS, resources.getRdsAsynchApplicationVersion());
 		// dynamo
-// this will be enabled when dynamo is read to be included in the stack
-//		Future<EnvironmentDescription> dynamoFuture = createEnvironment(PREFIX_DYNAMO, resources.getDynamoApplicationVersion());
+		Future<EnvironmentDescription> dynamoFuture = createEnvironment(PREFIX_DYNAMO, resources.getDynamoApplicationVersion());
 		// Fetch all of the results
 		try {
 			resources.setAuthenticationEnvironment(authFuture.get());
@@ -127,8 +128,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			resources.setSearchEnvironment(searchFuture.get());
 			resources.setPortalEnvironment(portalFuture.get());
 			resources.setRdsAsynchEnvironment(rdsFuture.get());
-// this will be enabled when dynamo is read to be included in the stack			
-//			resources.setDynamoEnvironment(dynamoFuture.get());
+			resources.setDynamoEnvironment(dynamoFuture.get());
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		} catch (ExecutionException e) {
@@ -434,6 +434,11 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			ConfigurationOptionSetting config = new ConfigurationOptionSetting(nameSpace, name, value);
 			list.add(config);
 			log.debug(config);
+		}
+		// For production we need one more configuration added. See PLFM-1571
+		if(config.isProductionStack()){
+			ConfigurationOptionSetting config = new ConfigurationOptionSetting("aws:autoscaling:asg", "Custom Availability Zones", "us-east-1d, us-east-1e");
+			list.add(config);
 		}
 		return list;
 	}
