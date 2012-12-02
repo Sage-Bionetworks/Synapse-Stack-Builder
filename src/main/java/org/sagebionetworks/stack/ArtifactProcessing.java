@@ -81,7 +81,7 @@ public class ArtifactProcessing {
 		resources.setSearchApplicationVersion(createOrGetApplicationVersion(PREFIX_SEARCH));
 		// Create the application version for the rds asynch
 		resources.setRdsAsynchApplicationVersion(createOrGetApplicationVersion(PREFIX_RDS));
-		// Create the application version for the rds asynch
+		// Create the application version for the dynamo
 		resources.setDynamoApplicationVersion(createOrGetApplicationVersion(PREFIX_DYNAMO));
 	}
 	

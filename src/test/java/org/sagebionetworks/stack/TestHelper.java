@@ -12,7 +12,6 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.Endpoint;
 import com.amazonaws.services.cloudsearch.model.DomainStatus;
 import com.amazonaws.services.cloudsearch.model.ServiceEndpoint;
-import com.amazonaws.services.route53.model.Change;
 import com.amazonaws.services.route53.model.ListResourceRecordSetsRequest;
 import com.amazonaws.services.route53.model.ListResourceRecordSetsResult;
 import com.amazonaws.services.route53.model.RRType;
@@ -107,6 +106,7 @@ public class TestHelper {
 		resources.setRepoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_REPO)));
 		resources.setSearchApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_SEARCH)));
 		resources.setRdsAsynchApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_RDS)));
+		resources.setDynamoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_DYNAMO)));
 		resources.setStackKeyPair(new KeyPairInfo().withKeyName(config.getStackKeyPairName()));
 		return resources;
 	}
