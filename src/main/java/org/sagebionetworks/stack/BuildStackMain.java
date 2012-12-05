@@ -45,6 +45,7 @@ public class BuildStackMain {
 			log.error("Terminating: ",e);
 		}finally{
 			log.info("Terminating stack builder\n\n\n");
+			System.exit(0);
 		}
 	}
 
