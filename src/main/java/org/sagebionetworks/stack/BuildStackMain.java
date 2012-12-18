@@ -72,7 +72,7 @@ public class BuildStackMain {
 		new SearchIndexSetup(factory, config, resources).setupResources();
 		
 		// Setup the Route53 CNAMEs
-		new Route53Setup(factory, config, resources).setupResources();
+		// new Route53Setup(factory, config, resources).setupResources();
 		
 		// The first step is to setup the stack security
 		new EC2SecuritySetup(factory, config, resources).setupResources();
