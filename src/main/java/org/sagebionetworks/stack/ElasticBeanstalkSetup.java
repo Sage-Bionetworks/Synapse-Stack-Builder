@@ -80,7 +80,6 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		if(resources.getRdsAsynchApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getRdsAsynchApplicationVersion() cannot be null");
 		if(resources.getDynamoApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getDynamoApplicationVersion() cannot be null");
 		if(resources.getStackKeyPair() == null) throw new IllegalArgumentException("GeneratedResources.getStackKeyPair() cannot be null");
-		if(resources.getDynamoApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getDynamoApplicationVersion() cannot be null");
 		this.beanstalkClient = factory.createBeanstalkClient();
 		this.config = config;
 		this.resources = resources;
