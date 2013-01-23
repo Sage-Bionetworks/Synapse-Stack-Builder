@@ -135,7 +135,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			resources.setPortalEnvironment(portalFuture.get());
 			resources.setRdsAsynchEnvironment(rdsFuture.get());
 			resources.setDynamoEnvironment(dynamoFuture.get());
-			resources.setFileEnvironment(dynamoFuture.get());
+			resources.setFileEnvironment(fileFuture.get());
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		} catch (ExecutionException e) {
