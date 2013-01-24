@@ -55,7 +55,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	private AWSElasticBeanstalkClient beanstalkClient;
 	private InputConfiguration config;
 	private GeneratedResources resources;
-	private ExecutorService executor = Executors.newFixedThreadPool(4);
+	private ExecutorService executor = Executors.newFixedThreadPool(Constants.SVC_PREFIXES.size());
 	/**
 	 * The IoC constructor.
 	 * 
@@ -364,7 +364,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			if(environment == null) throw new IllegalArgumentException("Environment :"+environmentName+" does not exist");
 			log.info(String.format("Waiting for Environment '%1$s' to be ready.  Status: '%2$s'", environmentName, environment.getStatus()));
 			try {
-				Thread.sleep(2000);
+				Thread.sleep(5000);
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e);
 			}
