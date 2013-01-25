@@ -83,6 +83,8 @@ public class ArtifactProcessing {
 		resources.setRdsAsynchApplicationVersion(createOrGetApplicationVersion(PREFIX_RDS));
 		// Create the application version for the dynamo
 		resources.setDynamoApplicationVersion(createOrGetApplicationVersion(PREFIX_DYNAMO));
+		// Create the application version for the dynamo
+		resources.setFileApplicationVersion(createOrGetApplicationVersion(PREFIX_FILE));
 	}
 	
 	public void describeResources() {
@@ -93,6 +95,7 @@ public class ArtifactProcessing {
 		resources.setSearchApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_SEARCH)));
 		resources.setRdsAsynchApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_RDS)));
 		resources.setDynamoApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_DYNAMO)));
+		resources.setFileApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_FILE)));
 	}
 	
 	/**

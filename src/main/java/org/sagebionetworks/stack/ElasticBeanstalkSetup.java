@@ -55,7 +55,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	private AWSElasticBeanstalkClient beanstalkClient;
 	private InputConfiguration config;
 	private GeneratedResources resources;
-	private ExecutorService executor = Executors.newFixedThreadPool(4);
+	private ExecutorService executor = Executors.newFixedThreadPool(Constants.SVC_PREFIXES.size());
 	/**
 	 * The IoC constructor.
 	 * 
@@ -79,7 +79,9 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		if(resources.getSearchApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getSearchApplicationVersion() cannot be null");
 		if(resources.getRdsAsynchApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getRdsAsynchApplicationVersion() cannot be null");
 		if(resources.getDynamoApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getDynamoApplicationVersion() cannot be null");
+		if(resources.getFileApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getFileApplicationVersion() cannot be null");
 		if(resources.getStackKeyPair() == null) throw new IllegalArgumentException("GeneratedResources.getStackKeyPair() cannot be null");
+		if(resources.getDynamoApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getDynamoApplicationVersion() cannot be null");
 		this.beanstalkClient = factory.createBeanstalkClient();
 		this.config = config;
 		this.resources = resources;
@@ -100,6 +102,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		resources.setSearchEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_SEARCH)));
 		resources.setRdsAsynchEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_RDS)));
 		resources.setDynamoEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_DYNAMO)));
+		resources.setFileEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_FILE)));
 	}
 
 	/**
@@ -121,6 +124,9 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		Future<EnvironmentDescription> rdsFuture = createEnvironment(PREFIX_RDS, resources.getRdsAsynchApplicationVersion());
 		// dynamo
 		Future<EnvironmentDescription> dynamoFuture = createEnvironment(PREFIX_DYNAMO, resources.getDynamoApplicationVersion());
+		// file proxy
+		Future<EnvironmentDescription> fileFuture = createEnvironment(PREFIX_FILE, resources.getFileApplicationVersion());
+		
 		// Fetch all of the results
 		try {
 			resources.setAuthenticationEnvironment(authFuture.get());
@@ -129,6 +135,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			resources.setPortalEnvironment(portalFuture.get());
 			resources.setRdsAsynchEnvironment(rdsFuture.get());
 			resources.setDynamoEnvironment(dynamoFuture.get());
+			resources.setFileEnvironment(fileFuture.get());
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		} catch (ExecutionException e) {
@@ -146,6 +153,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		this.terminateEnvironment(PREFIX_PORTAL);
 		this.terminateEnvironment(PREFIX_RDS);
 		this.terminateEnvironment(PREFIX_DYNAMO);
+		this.terminateEnvironment(PREFIX_FILE);
 //		this.deleteConfigurationTemplate();
 	}
 	/**
@@ -356,7 +364,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			if(environment == null) throw new IllegalArgumentException("Environment :"+environmentName+" does not exist");
 			log.info(String.format("Waiting for Environment '%1$s' to be ready.  Status: '%2$s'", environmentName, environment.getStatus()));
 			try {
-				Thread.sleep(2000);
+				Thread.sleep(5000);
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e);
 			}
