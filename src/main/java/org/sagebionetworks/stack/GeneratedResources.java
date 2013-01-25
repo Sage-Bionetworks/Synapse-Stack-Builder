@@ -42,6 +42,7 @@ public class GeneratedResources {
 	private ApplicationVersionDescription authApplicationVersion;
 	private ApplicationVersionDescription rdsAsynchApplicationVersion;
 	private ApplicationVersionDescription dynamoApplicationVersion;
+	private ApplicationVersionDescription fileApplicationVersion;
 	private ServerCertificateMetadata sslCertificate;
 	private KeyPairInfo stackKeyPair;
 	private DescribeConfigurationOptionsResult elasticBeanstalkConfigurationTemplate;
@@ -51,6 +52,7 @@ public class GeneratedResources {
 	private EnvironmentDescription rdsAsynchEnvironment;
 	private EnvironmentDescription dynamoEnvironment;
 	private EnvironmentDescription portalEnvironment;
+	private EnvironmentDescription fileEnvironment;
 	private DomainStatus searchDomain;
 	private DBParameterGroup dbParameterGroup;
 	private Bucket mainFileBucket;
@@ -168,6 +170,22 @@ public class GeneratedResources {
 	 */
 	public void setPortalEnvironment(EnvironmentDescription portalEnvironment) {
 		this.portalEnvironment = portalEnvironment;
+	}
+
+	/**
+	 * The portal environment description.
+	 * @return
+	 */
+	public EnvironmentDescription getFileEnvironment() {
+		return fileEnvironment;
+	}
+
+	/**
+	 * The portal environment description.
+	 * @param portalEnvironment
+	 */
+	public void setFileEnvironment(EnvironmentDescription fileEnvironment) {
+		this.fileEnvironment = fileEnvironment;
 	}
 
 	/**
@@ -322,6 +340,14 @@ public class GeneratedResources {
 	}
 
 	/**
+	 * The application version of the file proxy service
+	 * @return
+	 */
+	public ApplicationVersionDescription getFileApplicationVersion() {
+		return fileApplicationVersion;
+	}
+
+	/**
 	 * The application version of the dynamo service
 	 * @param dynamoApplicationVersion
 	 */
@@ -337,6 +363,15 @@ public class GeneratedResources {
 	public void setAuthApplicationVersion(
 			ApplicationVersionDescription authApplicationVersion) {
 		this.authApplicationVersion = authApplicationVersion;
+	}
+
+	/**
+	 * The application version of the file proxy service
+	 * @param fileApplicationVersion
+	 */
+	public void setFileApplicationVersion(
+			ApplicationVersionDescription fileApplicationVersion) {
+		this.fileApplicationVersion = fileApplicationVersion;
 	}
 
 	/**
