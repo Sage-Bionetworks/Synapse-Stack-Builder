@@ -85,6 +85,8 @@ public class Constants {
 	public static final String KEY_ORG_SAGEBIONETWORKS_PORTAL_API_LINKEDIN_SECRET_PLAINTEXT = "org.sagebionetworks.portal.api.linkedin.secret.plaintext";
 	public static final String KEY_ORG_SAGEBIONETWORKS_PORTAL_API_GETSATISFACTION_KEY = "org.sagebionetworks.portal.api.getsatisfaction.key";
 	public static final String KEY_ORG_SAGEBIONETWORKS_PORTAL_API_GETSATISFACTION_SECRET_PLAINTEXT = "org.sagebionetworks.portal.api.getsatisfaction.secret.plaintext";
+	public static final String KEY_ORG_SAGEBIONETWORKS_EZID_USERNAME = "org.sagebionetworks.ezid.username";
+	public static final String KEY_ORG_SAGEBIONETWORKS_EZID_PASSWORD_PLAINTEXT = "org.sagebionetworks.ezid.password.plaintext";
 	
 	
 	/**
