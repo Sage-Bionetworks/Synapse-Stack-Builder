@@ -67,6 +67,8 @@ public class TestHelper {
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_PORTAL_API_LINKEDIN_SECRET_PLAINTEXT, "linkedin secret");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_PORTAL_API_GETSATISFACTION_KEY, "getsatisfaction key");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_PORTAL_API_GETSATISFACTION_SECRET_PLAINTEXT, "getsatisfaction secret");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_EZID_USERNAME, "ezid user");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_EZID_PASSWORD_PLAINTEXT, "ezid password");
 		
 		return defaults;
 	}
