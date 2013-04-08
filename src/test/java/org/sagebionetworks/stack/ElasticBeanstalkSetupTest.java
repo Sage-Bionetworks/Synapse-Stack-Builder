@@ -46,7 +46,7 @@ public class ElasticBeanstalkSetupTest {
 		// From the load balancer tab
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("LoadBalancerHTTPPort").withValue("80"));
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("LoadBalancerHTTPSPort").withValue("443"));
-		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("SSLCertificateId").withValue(config.geSSLCertificateARN()));
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("SSLCertificateId").withValue(config.getSSLCertificateARN("generic")));
 		
 		// From the container tab.
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:container:tomcat:jvmoptions").withOptionName("Xmx").withValue("1536m"));

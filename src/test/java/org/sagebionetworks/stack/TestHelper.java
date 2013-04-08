@@ -45,7 +45,7 @@ public class TestHelper {
 		Properties defaults = createDefaultProperties();
 		config.addPropertiesWithPlaintext(defaults);
 		// Add the SSL ARN
-		config.setSSLCertificateARN("ssl:arn:123:456");
+		config.setSSLCertificateARN("generic", "ssl:arn:123:456");
 		return config;
 	}
 
@@ -100,7 +100,8 @@ public class TestHelper {
 		resources.setStackInstancesDatabase(new DBInstance().withDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier()).withEndpoint(new Endpoint().withAddress("stack-instance-db.someplace.com")));
 		resources.setSearchDomain(new DomainStatus().withSearchService(new ServiceEndpoint().withEndpoint("search-service.someplace.com")));
 		resources.getSearchDomain().setDocService(new ServiceEndpoint().withEndpoint("doc-service.someplace.com"));
-		resources.setSslCertificate(new ServerCertificateMetadata().withArn("ssl:arn:123"));
+		resources.setSslCertificate("generic", new ServerCertificateMetadata().withArn("ssl:arn:123"));
+		resources.setSslCertificate("portal", new ServerCertificateMetadata().withArn("ssl:arn:123"));
 		resources.setAuthApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_AUTH)));
 		resources.setPortalApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_PORTAL)));
 		resources.setRepoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_REPO)));

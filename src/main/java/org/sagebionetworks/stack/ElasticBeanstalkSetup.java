@@ -72,7 +72,8 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
 		// There are many dependencies for this setup.
-		if(resources.getSslCertificate() == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate() cannot be null");
+		if(resources.getSslCertificate("generic") == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate() cannot be null");
+		if(resources.getSslCertificate("portal") == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate() cannot be null");
 		if(resources.getAuthApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getAuthApplicationVersion() cannot be null");
 		if(resources.getPortalApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getPortalApplicationVersion() cannot be null");
 		if(resources.getRepoApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getReopApplicationVersion() cannot be null");

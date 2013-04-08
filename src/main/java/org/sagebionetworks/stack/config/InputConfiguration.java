@@ -487,32 +487,32 @@ public class InputConfiguration {
 	 * The name of the SSL certificate private key.
 	 * @return
 	 */
-	public String getSSlCertificatePrivateKeyName() {
-		return validateAndGetProperty("ssl.certificate.privateKey.file.name");
+	public String getSSlCertificatePrivateKeyName(String prefix) {
+		return validateAndGetProperty(prefix + ".ssl.certificate.privateKey.file.name");
 	}
 
 	/**
 	 * The name of the SSL certificate body file.
 	 * @return
 	 */
-	public String getSSLCertificateBodyKeyName() {
-		return validateAndGetProperty("ssl.certificate.body.file.name");
+	public String getSSLCertificateBodyKeyName(String prefix) {
+		return validateAndGetProperty(prefix + ".ssl.certificate.body.file.name");
 	}
 	
 	/**
 	 * The name of the SSL certificate chain file
 	 * @return
 	 */
-	public String getSSLCertificateChainKeyName() {
-		return validateAndGetProperty("ssl.certificate.chain.file.name");
+	public String getSSLCertificateChainKeyName(String prefix) {
+		return validateAndGetProperty(prefix + ".ssl.certificate.chain.file.name");
 	}
 
 	/**
 	 * The name of the SSL certificate
 	 * @return
 	 */
-	public String getSSLCertificateName() {
-		return validateAndGetProperty("ssl.certificate.name");
+	public String getSSLCertificateName(String prefix) {
+		return validateAndGetProperty(prefix + ".ssl.certificate.name");
 	}
 	
 	/**
@@ -558,16 +558,16 @@ public class InputConfiguration {
 		return validateAndGetProperty("elastic.beanstalk.environment.template.name");
 	}
 
-	public void setSSLCertificateARN(String arn) {
-		props.setProperty(Constants.KEY_SSL_CERTIFICATE_ARN, arn);
+	public void setSSLCertificateARN(String prefix, String arn) {
+		props.setProperty(prefix + "." + Constants.KEY_SSL_CERTIFICATE_ARN, arn);
 	}
 	
 	/**
 	 * Get the SSL Certificate ARN
 	 * @return
 	 */
-	public String geSSLCertificateARN(){
-		return validateAndGetProperty(Constants.KEY_SSL_CERTIFICATE_ARN);
+	public String getSSLCertificateARN(String prefix){
+		return validateAndGetProperty(prefix + "." + Constants.KEY_SSL_CERTIFICATE_ARN);
 	}
 
 	/**
