@@ -110,23 +110,25 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * Create the environments
 	 */
 	public void createAllEnvironments(){
-		// First create or update the template using the current data.
-		resources.setElasticBeanstalkConfigurationTemplate(createOrUpdateConfigurationTemplate());
+		// First create or update the templates using the current data.
+		resources.setElasticBeanstalkConfigurationTemplate("genetic", createOrUpdateConfigurationTemplate("generic"));
+		resources.setElasticBeanstalkConfigurationTemplate("portal", createOrUpdateConfigurationTemplate("portal"));
 		// Create the environments
+		// TODO: get the template names from resources
 		// Auth
-		Future<EnvironmentDescription> authFuture = createEnvironment(PREFIX_AUTH, resources.getAuthApplicationVersion());
+		Future<EnvironmentDescription> authFuture = createEnvironment(PREFIX_AUTH, config.getElasticBeanstalkTemplateName() + "-" + "generic", resources.getAuthApplicationVersion());
 		// repo
-		Future<EnvironmentDescription> repoFuture = createEnvironment(PREFIX_REPO, resources.getRepoApplicationVersion());
+		Future<EnvironmentDescription> repoFuture = createEnvironment(PREFIX_REPO, config.getElasticBeanstalkTemplateName() + "-" + "generic", resources.getRepoApplicationVersion());
 		// search
-		Future<EnvironmentDescription> searchFuture = createEnvironment(PREFIX_SEARCH, resources.getSearchApplicationVersion());
+		Future<EnvironmentDescription> searchFuture = createEnvironment(PREFIX_SEARCH, config.getElasticBeanstalkTemplateName() + "-" + "generic", resources.getSearchApplicationVersion());
 		// portal
-		Future<EnvironmentDescription> portalFuture = createEnvironment(PREFIX_PORTAL, resources.getPortalApplicationVersion());
+		Future<EnvironmentDescription> portalFuture = createEnvironment(PREFIX_PORTAL, config.getElasticBeanstalkTemplateName() + "-" + "portal", resources.getPortalApplicationVersion());
 		// The rds asynch
-		Future<EnvironmentDescription> rdsFuture = createEnvironment(PREFIX_RDS, resources.getRdsAsynchApplicationVersion());
+		Future<EnvironmentDescription> rdsFuture = createEnvironment(PREFIX_RDS, config.getElasticBeanstalkTemplateName() + "-" + "generic", resources.getRdsAsynchApplicationVersion());
 		// dynamo
-		Future<EnvironmentDescription> dynamoFuture = createEnvironment(PREFIX_DYNAMO, resources.getDynamoApplicationVersion());
+		Future<EnvironmentDescription> dynamoFuture = createEnvironment(PREFIX_DYNAMO, config.getElasticBeanstalkTemplateName() + "-" + "generic", resources.getDynamoApplicationVersion());
 		// file proxy
-		Future<EnvironmentDescription> fileFuture = createEnvironment(PREFIX_FILE, resources.getFileApplicationVersion());
+		Future<EnvironmentDescription> fileFuture = createEnvironment(PREFIX_FILE, config.getElasticBeanstalkTemplateName() + "-" + "generic", resources.getFileApplicationVersion());
 		
 		// Fetch all of the results
 		try {
@@ -161,24 +163,26 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * Create or get the Configuration template
 	 * @return
 	 */
-	public DescribeConfigurationOptionsResult createOrUpdateConfigurationTemplate(){
+	public DescribeConfigurationOptionsResult createOrUpdateConfigurationTemplate(final String templateSuffix){
+		List<ConfigurationOptionSetting> cfgOptionSettings = getAllElasticBeanstalkOptions(templateSuffix);
+		// Add SSL arn based on templateSuffix
 		DescribeConfigurationOptionsResult desc = describeTemplateConfiguration();
 		if(desc == null){
 			log.debug("Creating Elastic Beanstalk Template for the first time with name: "+config.getElasticBeanstalkTemplateName()+"...");
 			// We need to create it
 			CreateConfigurationTemplateRequest request = new CreateConfigurationTemplateRequest();
 			request.setApplicationName(config.getElasticBeanstalkApplicationName());
-			request.setTemplateName(config.getElasticBeanstalkTemplateName());
+			request.setTemplateName(config.getElasticBeanstalkTemplateName() + "-" + templateSuffix);
 			request.setSolutionStackName(Constants.SOLUTION_STACK_NAME_64BIT_TOMCAT_7);
-			request.setOptionSettings(getAllElasticBeanstalkOptions());
+			request.setOptionSettings(cfgOptionSettings);
 			beanstalkClient.createConfigurationTemplate(request);
 		}else{
 			log.debug("Elastic Beanstalk Template already exists so updating it with name: "+config.getElasticBeanstalkTemplateName()+"...");
 			// If it exists then we want to update it
 			UpdateConfigurationTemplateRequest request = new UpdateConfigurationTemplateRequest();
 			request.setApplicationName(config.getElasticBeanstalkApplicationName());
-			request.setTemplateName(config.getElasticBeanstalkTemplateName());
-			request.setOptionSettings(getAllElasticBeanstalkOptions());
+			request.setTemplateName(config.getElasticBeanstalkTemplateName() + "-" + templateSuffix);
+			request.setOptionSettings(cfgOptionSettings);
 			UpdateConfigurationTemplateResult updateResult = beanstalkClient.updateConfigurationTemplate(request);
 			log.debug(updateResult);
 		}
@@ -247,7 +251,8 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * @param version
 	 * @return 
 	 */
-	public Future<EnvironmentDescription> createEnvironment(String servicePrefix,  final ApplicationVersionDescription version){
+	public Future<EnvironmentDescription> createEnvironment(final String servicePrefix, final String cfgTemplateName, final ApplicationVersionDescription version){
+		//final String templateSuffix = (PREFIX_PORTAL.equals(servicePrefix) ? "portal" : "generic");
 		final String environmentName = config.getEnvironmentName(servicePrefix);
 		final String environmentCNAME = config.getEnvironmentCNAMEPrefix(servicePrefix);
 		// This work is done on a separate thread.
@@ -258,7 +263,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 					// Create it since it does not exist
 					log.debug(String.format("Creating environment name: '%1$s' with CNAME: '%2$s' ",environmentName, environmentCNAME));
 					CreateEnvironmentRequest cer = new CreateEnvironmentRequest(resources.getAuthApplicationVersion().getApplicationName(), environmentName);
-					cer.setTemplateName(config.getElasticBeanstalkTemplateName());
+					cer.setTemplateName(cfgTemplateName);
 					cer.setVersionLabel(version.getVersionLabel());
 					cer.setCNAMEPrefix(environmentCNAME);
 					// Query for it again
@@ -271,10 +276,14 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 					// Lookup the current environment
 					ConfigurationSettingsDescription csd = describeConfigurationSettings(version.getApplicationName(), environmentName);
 					// do the configurations already match?
-					List<ConfigurationOptionSetting> settings = getAllElasticBeanstalkOptions();
+					// Update for generic/portal SSL arn not needed since we don't actually check the need for update
+//					List<ConfigurationOptionSetting> cfgOptionSettings = getAllElasticBeanstalkOptions();
+//					// Add SSL arn
+//					cfgOptionSettings.add(new ConfigurationOptionSetting("aws.elb.loadbalancer", "SSLCertificateId", resources.getSslCertificate(servicePrefix).getArn()));
 					boolean updated = false;
+					
 					// Should we update the configuration?
-//					if(csd == null || !areExpectedSettingsEquals(settings, csd.getOptionSettings())){
+//					if(csd == null || !areExpectedSettingsEquals(cfgOptionSettings, csd.getOptionSettings())){
 						// First update the configuration
 						log.debug("Environment configurations need to be updated for: "+environmentName+"... updating it...");
 						updateConfigurationOnly(environmentName, environment);
@@ -395,7 +404,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * @return
 	 * @throws IOException 
 	 */
-	public List<ConfigurationOptionSetting> getAllElasticBeanstalkOptions() {
+	public List<ConfigurationOptionSetting> getAllElasticBeanstalkOptions(final String templateSuffix) {
 		List<ConfigurationOptionSetting> list = new LinkedList<ConfigurationOptionSetting>();
 		// Load the properties 
 		Properties rawConfig = InputConfiguration.loadPropertyFile(Constants.ELASTIC_BEANSTALK_CONFIG_PROP_FILE_NAME);
@@ -440,6 +449,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 					}
 				}
 			}
+
 			ConfigurationOptionSetting config = new ConfigurationOptionSetting(nameSpace, name, value);
 			list.add(config);
 			log.debug(config);
@@ -449,11 +459,14 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			ConfigurationOptionSetting config = new ConfigurationOptionSetting("aws:autoscaling:asg", "Custom Availability Zones", "us-east-1d, us-east-1e");
 			list.add(config);
 		}
+		// Add SSL arn based on templateSuffix
+		list.add(new ConfigurationOptionSetting("aws.elb.loadbalancer", "SSLCertificateId", resources.getSslCertificate(templateSuffix).getArn()));		
+		
 		return list;
 	}
 	
 	/**
-	 * Are all of the expected settings equals to the current settings?
+	 * Are all of the expected cfgOptionSettings equals to the current cfgOptionSettings?
 	 * @param one
 	 * @param two
 	 * @return

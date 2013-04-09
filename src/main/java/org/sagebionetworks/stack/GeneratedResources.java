@@ -48,7 +48,7 @@ public class GeneratedResources {
 	private ServerCertificateMetadata sslCertificate;
 	private Map<String, ServerCertificateMetadata> sslCertificates;
 	private KeyPairInfo stackKeyPair;
-	private DescribeConfigurationOptionsResult elasticBeanstalkConfigurationTemplate;
+	private Map<String, DescribeConfigurationOptionsResult> elasticBeanstalkConfigurationTemplate;
 	private EnvironmentDescription authenticationEnvironment;
 	private EnvironmentDescription repositoryEnvironment;
 	private EnvironmentDescription searchEnvironment;
@@ -199,8 +199,8 @@ public class GeneratedResources {
 	 * 
 	 * @return
 	 */
-	public DescribeConfigurationOptionsResult getElasticBeanstalkConfigurationTemplate() {
-		return elasticBeanstalkConfigurationTemplate;
+	public DescribeConfigurationOptionsResult getElasticBeanstalkConfigurationTemplate(final String svcPrefix) {
+		return elasticBeanstalkConfigurationTemplate.get(svcPrefix);
 	}
 
 	/**
@@ -209,8 +209,9 @@ public class GeneratedResources {
 	 * @param elasticBeanstalkConfigurationTemplate
 	 */
 	public void setElasticBeanstalkConfigurationTemplate(
+			String svcPrefix,
 			DescribeConfigurationOptionsResult elasticBeanstalkConfigurationTemplate) {
-		this.elasticBeanstalkConfigurationTemplate = elasticBeanstalkConfigurationTemplate;
+		this.elasticBeanstalkConfigurationTemplate.put(svcPrefix, elasticBeanstalkConfigurationTemplate);
 	}
 
 	/**

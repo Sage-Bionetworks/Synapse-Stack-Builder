@@ -45,7 +45,8 @@ public class TestHelper {
 		Properties defaults = createDefaultProperties();
 		config.addPropertiesWithPlaintext(defaults);
 		// Add the SSL ARN
-		config.setSSLCertificateARN("generic", "ssl:arn:123:456");
+//		config.setSSLCertificateARN("generic", "ssl:arn:123:456");
+//		config.setSSLCertificateARN("portal", "ssl:arn:123:456");
 		return config;
 	}
 

@@ -86,8 +86,8 @@ public class SSLSetupTest {
 		when(mockAmznIamClient.listServerCertificates()).thenReturn(expectedLstssr);
 		SSLSetup sslSetup = new SSLSetup(factory, config, resources);
 		sslSetup.describeResources("generic");
-		assertEquals(expectedCertArn, config.getSSLCertificateARN("generic"));
-		//assertEquals(srvCertMeta, resources.getSslCertificate());
+		//assertEquals(expectedCertArn, config.getSSLCertificateARN("generic"));
+		assertEquals(srvCertMeta, resources.getSslCertificate("generic"));
 	}
 
 //	@Test(expected = IllegalArgumentException.class)
