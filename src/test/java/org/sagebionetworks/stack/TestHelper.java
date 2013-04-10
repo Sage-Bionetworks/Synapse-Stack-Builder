@@ -102,7 +102,7 @@ public class TestHelper {
 		resources.setSearchDomain(new DomainStatus().withSearchService(new ServiceEndpoint().withEndpoint("search-service.someplace.com")));
 		resources.getSearchDomain().setDocService(new ServiceEndpoint().withEndpoint("doc-service.someplace.com"));
 		resources.setSslCertificate("generic", new ServerCertificateMetadata().withArn("ssl:arn:123"));
-		resources.setSslCertificate("portal", new ServerCertificateMetadata().withArn("ssl:arn:123"));
+		resources.setSslCertificate("portal", new ServerCertificateMetadata().withArn("ssl:arn:456"));
 		resources.setAuthApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_AUTH)));
 		resources.setPortalApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_PORTAL)));
 		resources.setRepoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_REPO)));

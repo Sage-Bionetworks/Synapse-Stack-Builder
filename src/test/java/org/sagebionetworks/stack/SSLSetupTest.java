@@ -14,6 +14,8 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.identitymanagement.model.ListServerCertificatesResult;
 import com.amazonaws.services.identitymanagement.model.ServerCertificateMetadata;
+import com.amazonaws.services.identitymanagement.model.UploadServerCertificateRequest;
+import com.amazonaws.services.identitymanagement.model.UploadServerCertificateResult;
 import com.amazonaws.services.s3.AmazonS3Client;
 import java.io.IOException;
 import java.util.LinkedList;
@@ -50,21 +52,21 @@ public class SSLSetupTest {
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
-	public void testDescribeResourcesInvalidArg() {
+	public void testDescribeSSLCertiicateInvalidArg() {
 		SSLSetup sslSetup = new SSLSetup(factory, config, resources);
-		sslSetup.describeResources("generics");
+		sslSetup.describeSSLCertificate("generics");
 	}
 	
 	@Test(expected = IllegalStateException.class)
-	public void testDescribeResourcesNoCertificate() {
+	public void testDescribeSSLCertificateNoCertificate() {
 		ListServerCertificatesResult expectedLstssr = new ListServerCertificatesResult();
 		when(mockAmznIamClient.listServerCertificates()).thenReturn(expectedLstssr);
 		SSLSetup sslSetup = new SSLSetup(factory, config, resources);
-		sslSetup.describeResources("generic");
+		sslSetup.describeSSLCertificate("generic");
 	}
 	
 	@Test(expected = IllegalStateException.class)
-	public void testDescribeResourcesCertificateNotFound() {
+	public void testDescribeSSLCertificateCertNotFound() {
 		String certName = "someCertName";
 		ServerCertificateMetadata srvCertMeta = new ServerCertificateMetadata().withServerCertificateName(certName);
 		List<ServerCertificateMetadata> expectedLstSrvCertMetadata = new LinkedList<ServerCertificateMetadata>();
@@ -72,28 +74,59 @@ public class SSLSetupTest {
 		ListServerCertificatesResult expectedLstssr = new ListServerCertificatesResult().withServerCertificateMetadataList(expectedLstSrvCertMetadata);
 		when(mockAmznIamClient.listServerCertificates()).thenReturn(expectedLstssr);
 		SSLSetup sslSetup = new SSLSetup(factory, config, resources);
-		sslSetup.describeResources("generic");
+		sslSetup.describeSSLCertificate("generic");
 	}
 	
 	@Test
 	public void testDescribeResourcesCertificateFound() {
-		String expectedCertName = "wildcard.sagebase.org-2012-2";
-		String expectedCertArn = "arn";
+		String expectedCertName = config.getSSLCertificateName("generic");
+		String expectedCertArn = "expectedCertArn";
 		ServerCertificateMetadata srvCertMeta = new ServerCertificateMetadata().withServerCertificateName(expectedCertName).withArn(expectedCertArn);
 		List<ServerCertificateMetadata> expectedLstSrvCertMetadata = new LinkedList<ServerCertificateMetadata>();
 		expectedLstSrvCertMetadata.add(srvCertMeta);
 		ListServerCertificatesResult expectedLstssr = new ListServerCertificatesResult().withServerCertificateMetadataList(expectedLstSrvCertMetadata);
 		when(mockAmznIamClient.listServerCertificates()).thenReturn(expectedLstssr);
 		SSLSetup sslSetup = new SSLSetup(factory, config, resources);
-		sslSetup.describeResources("generic");
+		sslSetup.describeSSLCertificate("generic");
 		//assertEquals(expectedCertArn, config.getSSLCertificateARN("generic"));
 		assertEquals(srvCertMeta, resources.getSslCertificate("generic"));
+		assertEquals(expectedCertArn, resources.getSslCertificate("generic").getArn());
 	}
 
-//	@Test(expected = IllegalArgumentException.class)
-//	public void testSetupResourcesInvalidArg() {
-//		SSLSetup sslSetup = new SSLSetup(factory, config, resources);
-//		sslSetup.setupResources();
-//	}
+	@Test(expected = IllegalArgumentException.class)
+	public void testSetupSSLCertiicateInvalidArg() {
+		SSLSetup sslSetup = new SSLSetup(factory, config, resources);
+		sslSetup.setupSSLCertificate("generics");
+	}
 	
+	@Test
+	public void testSetupSSLCertificateNoCertificate() {
+		String expectedCertName = config.getSSLCertificateName("generic");
+		String expectedCertArn = "expectedCertArn";
+		// Returned in 1st call to FindCertificate() --> empty
+//		ServerCertificateMetadata scmdList1 = new ServerCertificateMetadata().withServerCertificateName(expectedCertName);
+		List<ServerCertificateMetadata> expectedLstSrvCertMetadata1 = new LinkedList<ServerCertificateMetadata>();
+//		expectedLstSrvCertMetadata1.add(scmdList1);
+		// Returned in 2nd call to FindCertificate()
+		ServerCertificateMetadata scmdList2 = new ServerCertificateMetadata().withServerCertificateName(expectedCertName).withArn(expectedCertArn);
+		List<ServerCertificateMetadata> expectedLstSrvCertMetadata2 = new LinkedList<ServerCertificateMetadata>();
+		expectedLstSrvCertMetadata1.add(scmdList2);
+		// listServerCertificates() should return empty list, then uploaded cert
+		ListServerCertificatesResult expectedLstssr1 = new ListServerCertificatesResult().withServerCertificateMetadataList(expectedLstSrvCertMetadata1);
+		ListServerCertificatesResult expectedLstssr2 = new ListServerCertificatesResult().withServerCertificateMetadataList(expectedLstSrvCertMetadata2);
+		when(mockAmznIamClient.listServerCertificates()).thenReturn(expectedLstssr1, expectedLstssr2);
+		// Call to uploadServerCertificate()
+		ServerCertificateMetadata srvCertMeta = new ServerCertificateMetadata().withServerCertificateName(expectedCertName).withArn(expectedCertArn);
+		UploadServerCertificateRequest uscr = new UploadServerCertificateRequest().withServerCertificateName(expectedCertName);
+		UploadServerCertificateResult expectedUscr = new UploadServerCertificateResult().withServerCertificateMetadata(srvCertMeta);
+		when(mockAmznIamClient.uploadServerCertificate(uscr)).thenReturn(expectedUscr);
+		SSLSetup sslSetup = new SSLSetup(factory, config, resources);
+		sslSetup.setupSSLCertificate("generic");
+		// Meta for upload server cert should be in resources
+		assertEquals(expectedCertName, resources.getSslCertificate("generic").getServerCertificateName());
+		assertEquals(expectedCertArn, resources.getSslCertificate("generic").getArn());
+	}
+	
+	// TODO: Add test to add cert to existing list
+	// TODO: Add test to add existing certificate (update)
 }

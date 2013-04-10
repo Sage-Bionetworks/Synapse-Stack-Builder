@@ -62,10 +62,15 @@ public class SSLSetup implements ResourceProcessor {
 	}
 	
 	public void teardownResources() {
-		
+		throw new RuntimeException("Not implemented");
 	}
 	
 	public void describeResources(String prefix) {
+		describeSSLCertificate("generic");
+		describeSSLCertificate("portal");
+	}
+	
+	public void describeSSLCertificate(String prefix) {
 		if (! (("generic".equals(prefix)) || ("portal".equals(prefix)))) {
 			throw new IllegalArgumentException("Allowed prefixes are 'generic' and 'portal'.");
 		}
@@ -110,6 +115,9 @@ public class SSLSetup implements ResourceProcessor {
 	 * Delete the SSL certificate
 	 */
 	public void deleteSSLCertificate(String prefix) {
+		if (! (("generic".equals(prefix)) || ("portal".equals(prefix)))) {
+			throw new IllegalArgumentException("Allowed prefixes are 'generic' and 'portal'.");
+		}
 		ServerCertificateMetadata meta = findCertificate(config.getSSLCertificateName(prefix));
 		if (meta == null) {
 			// Just log

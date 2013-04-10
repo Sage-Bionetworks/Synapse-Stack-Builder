@@ -41,6 +41,11 @@ import com.amazonaws.services.elasticbeanstalk.model.UpdateConfigurationTemplate
 import com.amazonaws.services.elasticbeanstalk.model.UpdateConfigurationTemplateResult;
 import com.amazonaws.services.elasticbeanstalk.model.UpdateEnvironmentRequest;
 import com.amazonaws.services.elasticbeanstalk.model.UpdateEnvironmentResult;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutorCompletionService;
 
 /**
  * Setup the elastic beanstalk environments.
@@ -50,12 +55,13 @@ import com.amazonaws.services.elasticbeanstalk.model.UpdateEnvironmentResult;
  */
 public class ElasticBeanstalkSetup implements ResourceProcessor {
 	
-	private static Logger log = Logger.getLogger(ElasticBeanstalkSetup.class);
+	private static Logger logger = Logger.getLogger(ElasticBeanstalkSetup.class);
 	
 	private AWSElasticBeanstalkClient beanstalkClient;
 	private InputConfiguration config;
 	private GeneratedResources resources;
 	private ExecutorService executor = Executors.newFixedThreadPool(Constants.SVC_PREFIXES.size());
+	private CompletionService<EnvironmentDescription> completionSvc = new ExecutorCompletionService<EnvironmentDescription>(executor);
 	/**
 	 * The IoC constructor.
 	 * 
@@ -110,39 +116,44 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * Create the environments
 	 */
 	public void createAllEnvironments(){
+		String genericElbTemplateName = config.getElasticBeanstalkTemplateName() + "-generic";
+		String portalElbTemplateName = config.getElasticBeanstalkTemplateName() + "-portal";
 		// First create or update the templates using the current data.
-		resources.setElasticBeanstalkConfigurationTemplate("genetic", createOrUpdateConfigurationTemplate("generic"));
-		resources.setElasticBeanstalkConfigurationTemplate("portal", createOrUpdateConfigurationTemplate("portal"));
+		List<ConfigurationOptionSetting> cfgOptSettings = getAllElasticBeanstalkOptions("generic");
+		resources.setElasticBeanstalkConfigurationTemplate("generic", createOrUpdateConfigurationTemplate(genericElbTemplateName, cfgOptSettings));
+		cfgOptSettings = getAllElasticBeanstalkOptions("portal");
+		resources.setElasticBeanstalkConfigurationTemplate("portal", createOrUpdateConfigurationTemplate(portalElbTemplateName, cfgOptSettings));
 		// Create the environments
-		// TODO: get the template names from resources
 		// Auth
-		Future<EnvironmentDescription> authFuture = createEnvironment(PREFIX_AUTH, config.getElasticBeanstalkTemplateName() + "-" + "generic", resources.getAuthApplicationVersion());
+		createOrUpdateEnvironment(PREFIX_AUTH, genericElbTemplateName, resources.getAuthApplicationVersion());
 		// repo
-		Future<EnvironmentDescription> repoFuture = createEnvironment(PREFIX_REPO, config.getElasticBeanstalkTemplateName() + "-" + "generic", resources.getRepoApplicationVersion());
+		createOrUpdateEnvironment(PREFIX_REPO, genericElbTemplateName, resources.getRepoApplicationVersion());
 		// search
-		Future<EnvironmentDescription> searchFuture = createEnvironment(PREFIX_SEARCH, config.getElasticBeanstalkTemplateName() + "-" + "generic", resources.getSearchApplicationVersion());
+		createOrUpdateEnvironment(PREFIX_SEARCH, genericElbTemplateName, resources.getSearchApplicationVersion());
 		// portal
-		Future<EnvironmentDescription> portalFuture = createEnvironment(PREFIX_PORTAL, config.getElasticBeanstalkTemplateName() + "-" + "portal", resources.getPortalApplicationVersion());
+		createOrUpdateEnvironment(PREFIX_PORTAL, portalElbTemplateName, resources.getPortalApplicationVersion());
 		// The rds asynch
-		Future<EnvironmentDescription> rdsFuture = createEnvironment(PREFIX_RDS, config.getElasticBeanstalkTemplateName() + "-" + "generic", resources.getRdsAsynchApplicationVersion());
+		createOrUpdateEnvironment(PREFIX_RDS, genericElbTemplateName, resources.getRdsAsynchApplicationVersion());
 		// dynamo
-		Future<EnvironmentDescription> dynamoFuture = createEnvironment(PREFIX_DYNAMO, config.getElasticBeanstalkTemplateName() + "-" + "generic", resources.getDynamoApplicationVersion());
+		createOrUpdateEnvironment(PREFIX_DYNAMO, genericElbTemplateName, resources.getDynamoApplicationVersion());
 		// file proxy
-		Future<EnvironmentDescription> fileFuture = createEnvironment(PREFIX_FILE, config.getElasticBeanstalkTemplateName() + "-" + "generic", resources.getFileApplicationVersion());
+		createOrUpdateEnvironment(PREFIX_FILE, genericElbTemplateName, resources.getFileApplicationVersion());
 		
 		// Fetch all of the results
-		try {
-			resources.setAuthenticationEnvironment(authFuture.get());
-			resources.setRepositoryEnvironment(repoFuture.get());
-			resources.setSearchEnvironment(searchFuture.get());
-			resources.setPortalEnvironment(portalFuture.get());
-			resources.setRdsAsynchEnvironment(rdsFuture.get());
-			resources.setDynamoEnvironment(dynamoFuture.get());
-			resources.setFileEnvironment(fileFuture.get());
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		} catch (ExecutionException e) {
-			throw new RuntimeException(e);
+		List<EnvironmentDescription> envDescs = new ArrayList<EnvironmentDescription>();
+		for (int numEnvironments = 0; numEnvironments < Constants.SVC_PREFIXES.size(); numEnvironments++) {
+			try {
+				Future<EnvironmentDescription> futureEnvDesc = completionSvc.take();
+				EnvironmentDescription envDesc = futureEnvDesc.get();
+				envDescs.add(envDesc);
+				logger.info("Environment created for : %s\n".format(envDesc.getApplicationName()));
+			} catch (InterruptedException e) { // Exception in task
+				logger.error("Error: InterruptedException");
+				e.printStackTrace();
+			} catch (ExecutionException e) { // Exception getting result
+				logger.error("Error: ExecutionException");
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -163,39 +174,38 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * Create or get the Configuration template
 	 * @return
 	 */
-	public DescribeConfigurationOptionsResult createOrUpdateConfigurationTemplate(final String templateSuffix){
-		List<ConfigurationOptionSetting> cfgOptionSettings = getAllElasticBeanstalkOptions(templateSuffix);
+	public DescribeConfigurationOptionsResult createOrUpdateConfigurationTemplate(final String templateName, final List<ConfigurationOptionSetting> cfgOptSettings) {
 		// Add SSL arn based on templateSuffix
-		DescribeConfigurationOptionsResult desc = describeTemplateConfiguration();
+		DescribeConfigurationOptionsResult desc = describeConfigurationTemplate(templateName);
 		if(desc == null){
-			log.debug("Creating Elastic Beanstalk Template for the first time with name: "+config.getElasticBeanstalkTemplateName()+"...");
+			logger.debug("Creating Elastic Beanstalk Template for the first time with name: "+templateName+"...");
 			// We need to create it
 			CreateConfigurationTemplateRequest request = new CreateConfigurationTemplateRequest();
 			request.setApplicationName(config.getElasticBeanstalkApplicationName());
-			request.setTemplateName(config.getElasticBeanstalkTemplateName() + "-" + templateSuffix);
+			request.setTemplateName(templateName);
 			request.setSolutionStackName(Constants.SOLUTION_STACK_NAME_64BIT_TOMCAT_7);
-			request.setOptionSettings(cfgOptionSettings);
+			request.setOptionSettings(cfgOptSettings);
 			beanstalkClient.createConfigurationTemplate(request);
 		}else{
-			log.debug("Elastic Beanstalk Template already exists so updating it with name: "+config.getElasticBeanstalkTemplateName()+"...");
+			logger.debug("Elastic Beanstalk Template already exists so updating it with name: "+templateName+"...");
 			// If it exists then we want to update it
 			UpdateConfigurationTemplateRequest request = new UpdateConfigurationTemplateRequest();
 			request.setApplicationName(config.getElasticBeanstalkApplicationName());
-			request.setTemplateName(config.getElasticBeanstalkTemplateName() + "-" + templateSuffix);
-			request.setOptionSettings(cfgOptionSettings);
+			request.setTemplateName(templateName);
+			request.setOptionSettings(cfgOptSettings);
 			UpdateConfigurationTemplateResult updateResult = beanstalkClient.updateConfigurationTemplate(request);
-			log.debug(updateResult);
+			logger.debug(updateResult);
 		}
-		return describeTemplateConfiguration();
+		return describeConfigurationTemplate(templateName);
 	}
 	
 
-	public void deleteConfigurationTemplate() {
-		DescribeConfigurationOptionsResult desc = describeTemplateConfiguration();
+	public void deleteConfigurationTemplate(final String templateName) {
+		DescribeConfigurationOptionsResult desc = describeConfigurationTemplate(templateName);
 		if (desc != null) {
 			DeleteConfigurationTemplateRequest req = new DeleteConfigurationTemplateRequest();
 			req.setApplicationName(config.getElasticBeanstalkApplicationName());
-			req.setTemplateName(config.getElasticBeanstalkTemplateName());
+			req.setTemplateName(templateName);
 			beanstalkClient.deleteConfigurationTemplate(req);
 		}
 	}
@@ -204,11 +214,11 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * Get the description if it exists.
 	 * @return
 	 */
-	public DescribeConfigurationOptionsResult describeTemplateConfiguration(){
+	public DescribeConfigurationOptionsResult describeConfigurationTemplate(final String templateName){
 		try{
-			DescribeConfigurationOptionsResult results = beanstalkClient.describeConfigurationOptions(new DescribeConfigurationOptionsRequest().withApplicationName(config.getElasticBeanstalkApplicationName()).withTemplateName(config.getElasticBeanstalkTemplateName()));
+			DescribeConfigurationOptionsResult results = beanstalkClient.describeConfigurationOptions(new DescribeConfigurationOptionsRequest().withApplicationName(config.getElasticBeanstalkApplicationName()).withTemplateName(templateName));
 			return results;
-		}catch (AmazonServiceException e){
+		} catch (AmazonServiceException e){
 			if("InvalidParameterValue".equals(e.getErrorCode())){
 				return null;
 			}else{
@@ -227,7 +237,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			if(results.getEnvironments().size() < 1) return null;
 			// Find a non-terminated environment
 			for(EnvironmentDescription env: results.getEnvironments()){
-//				log.debug(String.format("Found environment with name: '%1$s' and status: '%2$s'", environmentName, env.getStatus()));
+//				logger.debug(String.format("Found environment with name: '%1$s' and status: '%2$s'", environmentName, env.getStatus()));
 				if("Terminated".equals(env.getStatus()) || "Terminating".equals(env.getStatus())){
 					// Cannot use a terminated environment
 					continue;
@@ -251,8 +261,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * @param version
 	 * @return 
 	 */
-	public Future<EnvironmentDescription> createEnvironment(final String servicePrefix, final String cfgTemplateName, final ApplicationVersionDescription version){
-		//final String templateSuffix = (PREFIX_PORTAL.equals(servicePrefix) ? "portal" : "generic");
+	public Future<EnvironmentDescription> createOrUpdateEnvironment(final String servicePrefix, final String cfgTemplateName, final ApplicationVersionDescription version){
 		final String environmentName = config.getEnvironmentName(servicePrefix);
 		final String environmentCNAME = config.getEnvironmentCNAMEPrefix(servicePrefix);
 		// This work is done on a separate thread.
@@ -261,7 +270,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 				EnvironmentDescription environment = describeEnvironment(environmentName);
 				if(environment == null){
 					// Create it since it does not exist
-					log.debug(String.format("Creating environment name: '%1$s' with CNAME: '%2$s' ",environmentName, environmentCNAME));
+					logger.debug(String.format("Creating environment name: '%1$s' with CNAME: '%2$s' ",environmentName, environmentCNAME));
 					CreateEnvironmentRequest cer = new CreateEnvironmentRequest(resources.getAuthApplicationVersion().getApplicationName(), environmentName);
 					cer.setTemplateName(cfgTemplateName);
 					cer.setVersionLabel(version.getVersionLabel());
@@ -269,10 +278,10 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 					// Query for it again
 					beanstalkClient.createEnvironment(cer);
 					environment = describeEnvironment(environmentName);
-					log.debug(environment);
+					logger.debug(environment);
 					return environment;
 				}else{
-					log.debug("Environment already exists: "+environmentName+" updating it...");
+					logger.debug("Environment already exists: "+environmentName+" updating it...");
 					// Lookup the current environment
 					ConfigurationSettingsDescription csd = describeConfigurationSettings(version.getApplicationName(), environmentName);
 					// do the configurations already match?
@@ -285,14 +294,14 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 					// Should we update the configuration?
 //					if(csd == null || !areExpectedSettingsEquals(cfgOptionSettings, csd.getOptionSettings())){
 						// First update the configuration
-						log.debug("Environment configurations need to be updated for: "+environmentName+"... updating it...");
+						logger.debug("Environment configurations need to be updated for: "+environmentName+"... updating it...");
 						updateConfigurationOnly(environmentName, environment);
 						// An update was made.
 						updated = true;
 //					}
 					// Should we update the version?
 					if(!environment.getVersionLabel().equals(version.getVersionLabel())){
-						log.debug("Environment version need to be updated for: "+environmentName+"... updating it...");
+						logger.debug("Environment version need to be updated for: "+environmentName+"... updating it...");
 						// Now update the version.
 						updateEnvironmentVersionOnly(environmentName, version, environment);
 						updated = true;
@@ -303,13 +312,13 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 					}
 					// Return the new information.
 					environment = describeEnvironment(environmentName);
-					log.debug(environment);
+					logger.debug(environment);
 					return environment;
 				}
 			}
 		};
 		// Start the worker.
-		return executor.submit(worker);
+		return completionSvc.submit(worker);
 	}
 	
 	/**
@@ -372,7 +381,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		do{
 			environment = describeEnvironment(environmentName);
 			if(environment == null) throw new IllegalArgumentException("Environment :"+environmentName+" does not exist");
-			log.info(String.format("Waiting for Environment '%1$s' to be ready.  Status: '%2$s'", environmentName, environment.getStatus()));
+			logger.info(String.format("Waiting for Environment '%1$s' to be ready.  Status: '%2$s'", environmentName, environment.getStatus()));
 			try {
 				Thread.sleep(5000);
 			} catch (InterruptedException e) {
@@ -389,11 +398,11 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		final String environmentCName = config.getEnvironmentCNAMEPrefix(servicePrefix);
 		EnvironmentDescription environment = describeEnvironment(environmentName);
 		if (environment == null) {
-			// Nothing to do except log
-			log.debug(String.format("Environment name: '%1$s' does not exist!!!", environmentName, environmentCName));
+			// Nothing to do except logger
+			logger.debug(String.format("Environment name: '%1$s' does not exist!!!", environmentName, environmentCName));
 		} else {
 			// Delete environment
-			log.debug(String.format("Terminating environment name: '%1$s' with CNAME: '%2$s' ", environmentName, environmentCName));
+			logger.debug(String.format("Terminating environment name: '%1$s' with CNAME: '%2$s' ", environmentName, environmentCName));
 			String environmentId = environment.getEnvironmentId();
 			TerminateEnvironmentRequest ter = new TerminateEnvironmentRequest().withEnvironmentId(environmentId).withTerminateResources(Boolean.TRUE);
 			TerminateEnvironmentResult terminateResult = beanstalkClient.terminateEnvironment(ter);
@@ -405,12 +414,15 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * @throws IOException 
 	 */
 	public List<ConfigurationOptionSetting> getAllElasticBeanstalkOptions(final String templateSuffix) {
+		if (! (("generic".equals(templateSuffix)) || ("portal".equals(templateSuffix)))) {
+			throw new IllegalArgumentException("Allowed values for templateSuffix are 'generic' and 'portal'.");
+		}
 		List<ConfigurationOptionSetting> list = new LinkedList<ConfigurationOptionSetting>();
 		// Load the properties 
 		Properties rawConfig = InputConfiguration.loadPropertyFile(Constants.ELASTIC_BEANSTALK_CONFIG_PROP_FILE_NAME);
 		rawConfig = config.createFilteredProperties(rawConfig);
 		// Process the keys
-		log.debug("Building the following ConfigurationOptionSetting list...");
+		logger.debug("Building the following ConfigurationOptionSetting list...");
 		for(String key: rawConfig.stringPropertyNames()){
 			String value = rawConfig.getProperty(key);
 			// Process the key
@@ -436,14 +448,14 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 					// We a minimum of two instances for production.
 					if("MinSize".equals(name)){
 						if(Long.parseLong(value) < 2){
-							log.debug("Overriding aws.autoscaling.asg.MinSize for production to be at least 2");
+							logger.debug("Overriding aws.autoscaling.asg.MinSize for production to be at least 2");
 							value = "2";
 						}
 					}
 					// We want our two instances to be in any two zones. See PLFM-1560
 					if("Availability Zones".equals(name)){
 						if(!"Any 2".equals(value)){
-							log.debug("Overriding aws.autoscaling.asg.Availability-Zones for production to be at least 'Any 2'");
+							logger.debug("Overriding aws.autoscaling.asg.Availability-Zones for production to be at least 'Any 2'");
 							value = "Any 2";
 						}
 					}
@@ -452,7 +464,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 
 			ConfigurationOptionSetting config = new ConfigurationOptionSetting(nameSpace, name, value);
 			list.add(config);
-			log.debug(config);
+			logger.debug(config);
 		}
 		// For production we need one more configuration added. See PLFM-1571
 		if(config.isProductionStack()){
@@ -460,7 +472,8 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			list.add(config);
 		}
 		// Add SSL arn based on templateSuffix
-		list.add(new ConfigurationOptionSetting("aws.elb.loadbalancer", "SSLCertificateId", resources.getSslCertificate(templateSuffix).getArn()));		
+		String arn = resources.getSslCertificate(templateSuffix).getArn();
+		list.add(new ConfigurationOptionSetting("aws:elb:loadbalancer", "SSLCertificateId", arn));		
 		
 		return list;
 	}
@@ -476,11 +489,11 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), current);
 		
 			if(found == null) {
-				log.debug("Null for "+expectedCon);
+				logger.debug("Null for "+expectedCon);
 				return false;
 			}
 			if(!expectedCon.getValue().equals(found.getValue())){
-				log.debug("Expected: "+expectedCon+" but found "+found);
+				logger.debug("Expected: "+expectedCon+" but found "+found);
 				return false;
 			}
 		}
@@ -520,5 +533,5 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			throw new RuntimeException(e);
 		}
 	}
-
+	
 }

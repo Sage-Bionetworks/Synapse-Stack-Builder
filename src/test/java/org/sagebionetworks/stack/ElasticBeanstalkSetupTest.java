@@ -1,22 +1,40 @@
 package org.sagebionetworks.stack;
 
+import com.amazonaws.AmazonServiceException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
 import org.sagebionetworks.factory.MockAmazonClientFactory;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
+import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionSetting;
+import com.amazonaws.services.elasticbeanstalk.model.CreateConfigurationTemplateRequest;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationOptionsRequest;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationOptionsResult;
+import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
+import com.amazonaws.services.elasticbeanstalk.model.UpdateConfigurationTemplateRequest;
+import java.util.ArrayList;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ElasticBeanstalkSetupTest {
 	
@@ -36,6 +54,73 @@ public class ElasticBeanstalkSetupTest {
 	}
 	
 	@Test
+	public void testDescribeConfigurationTemplateNonExistingtTemplate() {
+		DescribeConfigurationOptionsRequest dcoReq = new DescribeConfigurationOptionsRequest().withApplicationName(config.getElasticBeanstalkApplicationName()).withTemplateName("nonExist");
+		AmazonServiceException expectedAmznException = new AmazonServiceException("Invalid template name");
+		expectedAmznException.setErrorCode("InvalidParameterValue");
+		when(mockClient.describeConfigurationOptions(dcoReq)).thenThrow(expectedAmznException);
+		DescribeConfigurationOptionsResult dcorExpectedRes = setup.describeConfigurationTemplate("nonExist");
+		assertNull(dcorExpectedRes);
+	}
+	
+	@Test
+	public void testDescribeConfigurationTemplateExistingTemplate() {
+		DescribeConfigurationOptionsRequest dcoReq = new DescribeConfigurationOptionsRequest().withApplicationName(config.getElasticBeanstalkApplicationName()).withTemplateName("tempExist");
+		DescribeConfigurationOptionsResult expectedDcoRes = new DescribeConfigurationOptionsResult();
+		when(mockClient.describeConfigurationOptions(dcoReq)).thenReturn(expectedDcoRes);
+		DescribeConfigurationOptionsResult dcoRes = setup.describeConfigurationTemplate("tempExist");
+		assertNotNull(dcoRes);
+	}
+	
+	@Test
+	public void testCreateConfigurationTemplate() {
+		List<ConfigurationOptionSetting> cfgOptSettings = new ArrayList<ConfigurationOptionSetting> ();
+		String templateName = "newTemplate";
+		DescribeConfigurationOptionsRequest dcoReq = new DescribeConfigurationOptionsRequest().withApplicationName(config.getElasticBeanstalkApplicationName()).withTemplateName(templateName);
+		AmazonServiceException expectedAmznException = new AmazonServiceException("Invalid template name");
+		expectedAmznException.setErrorCode("InvalidParameterValue");
+		when(mockClient.describeConfigurationOptions(dcoReq)).thenThrow(expectedAmznException);
+		CreateConfigurationTemplateRequest expectedCctReq = new CreateConfigurationTemplateRequest();
+		expectedCctReq.setApplicationName(config.getElasticBeanstalkApplicationName());
+		expectedCctReq.setOptionSettings(cfgOptSettings);
+		expectedCctReq.setSolutionStackName(Constants.SOLUTION_STACK_NAME_64BIT_TOMCAT_7);
+		expectedCctReq.setTemplateName(templateName);
+		setup.createOrUpdateConfigurationTemplate(templateName, cfgOptSettings);
+		verify(mockClient).createConfigurationTemplate(expectedCctReq);
+	}
+	
+	@Test
+	public void testUpdateConfigurationTemplate() {
+		List<ConfigurationOptionSetting> cfgOptSettings = new ArrayList<ConfigurationOptionSetting> ();
+		String templateName = "existingTemplate";
+		DescribeConfigurationOptionsRequest dcoReq = new DescribeConfigurationOptionsRequest().withApplicationName(config.getElasticBeanstalkApplicationName()).withTemplateName(templateName);
+		DescribeConfigurationOptionsResult expectedDcoRes = new DescribeConfigurationOptionsResult();
+		when(mockClient.describeConfigurationOptions(dcoReq)).thenReturn(expectedDcoRes);
+		UpdateConfigurationTemplateRequest expectedUctReq = new UpdateConfigurationTemplateRequest();
+		expectedUctReq.setApplicationName(config.getElasticBeanstalkApplicationName());
+		expectedUctReq.setOptionSettings(cfgOptSettings);
+		expectedUctReq.setTemplateName(templateName);
+		setup.createOrUpdateConfigurationTemplate(templateName, cfgOptSettings);
+		verify(mockClient).updateConfigurationTemplate(expectedUctReq);
+	}
+	
+//	@Test
+//	public void testCreateEnvironment() {
+//		//TODO: All services
+//		String svcPrefix = Constants.PREFIX_AUTH;
+//		ApplicationVersionDescription appVersionDesc = resources.getAuthApplicationVersion();
+//		String genericElbTemplateName = config.getElasticBeanstalkTemplateName() + "-generic";
+//		List<ConfigurationOptionSetting> cfgOptSettings = setup.getAllElasticBeanstalkOptions("generic");
+//		resources.setElasticBeanstalkConfigurationTemplate("generic", setup.createOrUpdateConfigurationTemplate(genericElbTemplateName, cfgOptSettings));
+//		setup.createOrUpdateEnvironment(svcPrefix, genericElbTemplateName, appVersionDesc);
+//	}
+//	
+	@Test(expected = IllegalArgumentException.class)
+	public void testGetAllElasticBeanstalkOptionsInvalidSuffix() {
+		setup.getAllElasticBeanstalkOptions("badSuffix");
+	}
+	
+	@Test
 	public void testGetAllElasticBeanstalkOptions(){
 		List<ConfigurationOptionSetting> expected = new LinkedList<ConfigurationOptionSetting>(); 
 		// From the server tab
@@ -46,7 +131,6 @@ public class ElasticBeanstalkSetupTest {
 		// From the load balancer tab
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("LoadBalancerHTTPPort").withValue("80"));
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("LoadBalancerHTTPSPort").withValue("443"));
-//		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("SSLCertificateId").withValue(resources.getSslCertificate("generic").getArn()));
 		
 		// From the container tab.
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:container:tomcat:jvmoptions").withOptionName("Xmx").withValue("1536m"));
@@ -57,7 +141,19 @@ public class ElasticBeanstalkSetupTest {
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application:environment").withOptionName("PARAM3").withValue(config.getStack()));
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application:environment").withOptionName("PARAM4").withValue(config.getStackInstance()));
 		
+		// Check if the SSLCertificateID is correctly added for "generic' and "portal" cases
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("SSLCertificateId").withValue(resources.getSslCertificate("generic").getArn()));
 		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("generic");
+		// Make sure we can find all of the expected values
+		for(ConfigurationOptionSetting expectedCon: expected){
+			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
+			assertNotNull("Failed to find expected configuration: "+expectedCon,found);
+			assertEquals("Values did not match for namespace: "+expectedCon.getNamespace()+" and option name: "+expectedCon.getOptionName(),expectedCon.getValue(), found.getValue());
+		}
+		// Change the expected value 
+		expected.remove(expected.size()-1);
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("SSLCertificateId").withValue(resources.getSslCertificate("portal").getArn()));
+		result = setup.getAllElasticBeanstalkOptions("portal");
 		// Make sure we can find all of the expected values
 		for(ConfigurationOptionSetting expectedCon: expected){
 			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
