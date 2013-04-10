@@ -57,65 +57,80 @@ public class SSLSetup implements ResourceProcessor {
 	}
 	
 	public void setupResources() {
-		this.setupSSLCertificate();
+		this.setupSSLCertificate("generic");
+		this.setupSSLCertificate("portal");
 	}
 	
 	public void teardownResources() {
-		
+		throw new RuntimeException("Not implemented");
 	}
 	
-	public void describeResources() {
-		ServerCertificateMetadata meta = findCertificate(config.getSSLCertificateName());
+	public void describeResources(String prefix) {
+		describeSSLCertificate("generic");
+		describeSSLCertificate("portal");
+	}
+	
+	public void describeSSLCertificate(String prefix) {
+		if (! (("generic".equals(prefix)) || ("portal".equals(prefix)))) {
+			throw new IllegalArgumentException("Allowed prefixes are 'generic' and 'portal'.");
+		}
+		String certName = config.getSSLCertificateName(prefix);
+		ServerCertificateMetadata meta = findCertificate(certName);
 		if (meta == null) {
-			throw new IllegalStateException("Failed to find or create the SSL certificate: "+config.getSSLCertificateName());
+			throw new IllegalStateException("Failed to find or create the SSL certificate: " + config.getSSLCertificateName(prefix));
 		} else {
-			config.setSSLCertificateARN(meta.getArn());
-			resources.setSslCertificate(meta);
+			//config.setSSLCertificateARN(prefix, meta.getArn());
+			resources.setSslCertificate(prefix, meta);
 		}		
 	}
 
 	/**
 	 * Setup the SSL certificate.
 	 */
-	public void setupSSLCertificate(){
-		
+	public void setupSSLCertificate(String prefix){
+		if (! (("generic".equals(prefix)) || ("portal".equals(prefix)))) {
+			throw new IllegalArgumentException("Allowed prefixes are 'generic' and 'portal'.");
+		}
 		// First determine if the certificate already exists already exists
-		ServerCertificateMetadata meta = findCertificate(config.getSSLCertificateName());
+		ServerCertificateMetadata meta = findCertificate(config.getSSLCertificateName(prefix));
 		if(meta == null){
 			// Upload the parts of the certificate.
 			UploadServerCertificateRequest request = new UploadServerCertificateRequest();
-			request.setServerCertificateName(config.getSSLCertificateName());
-			request.setPrivateKey(getCertificateStringFromS3(config.getSSlCertificatePrivateKeyName()));
-			request.setCertificateBody(getCertificateStringFromS3(config.getSSLCertificateBodyKeyName()));
-			request.setCertificateChain(getCertificateStringFromS3(config.getSSLCertificateChainKeyName()));
+			request.setServerCertificateName(config.getSSLCertificateName(prefix));
+			request.setPrivateKey(getCertificateStringFromS3(config.getSSlCertificatePrivateKeyName(prefix)));
+			request.setCertificateBody(getCertificateStringFromS3(config.getSSLCertificateBodyKeyName(prefix)));
+			request.setCertificateChain(getCertificateStringFromS3(config.getSSLCertificateChainKeyName(prefix)));
 			UploadServerCertificateResult result = iamClient.uploadServerCertificate(request);
 			log.debug("Created SSL certificate: "+result);
 			// Search for it
-			meta = findCertificate(config.getSSLCertificateName());
+			meta = findCertificate(config.getSSLCertificateName(prefix));
 		}
-		if(meta == null) throw new IllegalStateException("Failed to find or create the SSL certificate: "+config.getSSLCertificateName());
+		if(meta == null) throw new IllegalStateException("Failed to find or create the SSL certificate: "+config.getSSLCertificateName(prefix));
 		// Also set the SSL Cert arn as a property
-		config.setSSLCertificateARN(meta.getArn());
-		resources.setSslCertificate(meta);
+		//config.setSSLCertificateARN(prefix, meta.getArn());
+		resources.setSslCertificate(prefix, meta);
 	}
 
 	/*
 	 * Delete the SSL certificate
 	 */
-	public void deleteSSLCertificate() {
-		ServerCertificateMetadata meta = findCertificate(config.getSSLCertificateName());
+	public void deleteSSLCertificate(String prefix) {
+		if (! (("generic".equals(prefix)) || ("portal".equals(prefix)))) {
+			throw new IllegalArgumentException("Allowed prefixes are 'generic' and 'portal'.");
+		}
+		ServerCertificateMetadata meta = findCertificate(config.getSSLCertificateName(prefix));
 		if (meta == null) {
 			// Just log
 			// TODO: Or throw IllegalStateException?
-			log.debug("Could not find SSL certificate metadata for" + config.getSSLCertificateName());
+			log.debug("Could not find SSL certificate metadata for" + config.getSSLCertificateName(prefix));
 		} else {
 			DeleteServerCertificateRequest request = new DeleteServerCertificateRequest();
-			request.setServerCertificateName(config.getSSLCertificateName());
+			request.setServerCertificateName(config.getSSLCertificateName(prefix));
 			iamClient.deleteServerCertificate(request);
-			meta = findCertificate(config.getSSLCertificateName());
+			meta = findCertificate(config.getSSLCertificateName(prefix));
 		}
 		if (meta != null) {
-			throw new IllegalStateException("Failed to delete the SSL certificate: "+config.getSSLCertificateName());
+			throw new IllegalStateException("Failed to delete the SSL certificate: "+config.getSSLCertificateName(prefix));
 		}
 	}
 	/**

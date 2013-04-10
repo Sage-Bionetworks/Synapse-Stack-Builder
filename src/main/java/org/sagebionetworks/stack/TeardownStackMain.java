@@ -91,7 +91,7 @@ public class TeardownStackMain {
 		new ArtifactProcessing(new DefaultHttpClient(), factory, config, resources).describeResources();
 		
 		// Setup the SSL certificates
-		new SSLSetup(factory, config, resources).describeResources();
+		new SSLSetup(factory, config, resources).describeResources("generic");
 
 		// Setup all environments
 		new ElasticBeanstalkSetup(factory, config, resources).describeResources();

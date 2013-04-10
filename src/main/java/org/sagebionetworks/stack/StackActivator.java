@@ -36,19 +36,18 @@ public class StackActivator {
 	 * @param args the command line arguments
 	 */
 	public static void main(String[] args) throws FileNotFoundException, IOException {
-		String stack, srcStackInstance, destStack, destStackInstance;
+		String stackInstance, instanceRole;
 		try {
 			String pathConfig;
 			Properties inputProps = null;
 
-			log.info("Staring StackSwapper...");
+			log.info("Staring StackActivator...");
 
 			// TODO: Better args checking
-			if ((args != null) && (args.length == 4)) {
-				stack = args[0];
-				srcStackInstance = args[1];
-				destStackInstance = args[2];
-				pathConfig = args[3];
+			if ((args != null) && (args.length == 3)) {
+				stackInstance = args[0];
+				instanceRole = args[1];
+				pathConfig = args[2];
 
 				if (pathConfig != null) {
 					inputProps = loadPropertiesFromPath(pathConfig);
@@ -56,17 +55,24 @@ public class StackActivator {
 					inputProps = System.getProperties();
 				}
 				
-				Activator swapper = new Activator(new AmazonClientFactoryImpl(), inputProps, stack, srcStackInstance, destStackInstance);
-				swapper.activateStack();
+				if (! (("prod".equals(instanceRole)) || ("staging".equals(instanceRole)))) {
+					showUsage();
+					throw new IllegalArgumentException("Valid values for instanceRole are 'prod' or 'staging'.");
+				}
+				
+				Activator activator = new Activator(new AmazonClientFactoryImpl(), inputProps, stackInstance, instanceRole);
+				activator.activateStack();
 			} else {
+				showUsage();
 				throw new IllegalArgumentException("Wrong number of arguments!");
 			}
 
-			log.info("Exiting StackSwapper...");
+			log.info("Exiting StackActivator...");
 		} catch (Throwable e) {
 			log.error("Terminating: ",e);
+			e.printStackTrace();
 		}finally{
-			log.info("Terminating StackSwapper\n\n\n");
+			log.info("Terminating StackActivator\n\n\n");
 			System.exit(0);
 		}
 
@@ -87,4 +93,7 @@ public class StackActivator {
 		}
 	}
 	
+	private static void showUsage() {
+		System.out.println("Usage:\n\tstackActivator <stackInstance> <instanceRole> <pathToConfigFile\n");
+	}
 }
