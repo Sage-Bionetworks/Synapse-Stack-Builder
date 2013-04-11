@@ -70,6 +70,7 @@ public class TestHelper {
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_PORTAL_API_GETSATISFACTION_SECRET_PLAINTEXT, "getsatisfaction secret");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_EZID_USERNAME, "ezid user");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_EZID_PASSWORD_PLAINTEXT, "ezid password");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_EZID_DOI_PREFIX, "doi prefix");
 		
 		return defaults;
 	}
