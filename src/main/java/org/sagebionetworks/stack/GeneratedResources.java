@@ -62,6 +62,7 @@ public class GeneratedResources {
 
 	public GeneratedResources() {
 		this.sslCertificates = new HashMap<String, ServerCertificateMetadata>();
+		this.elasticBeanstalkConfigurationTemplate = new HashMap<String, DescribeConfigurationOptionsResult>();
 	}
 	/**
 	 * The search domain.
