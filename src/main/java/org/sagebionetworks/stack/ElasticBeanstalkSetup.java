@@ -295,7 +295,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 //					if(csd == null || !areExpectedSettingsEquals(cfgOptionSettings, csd.getOptionSettings())){
 						// First update the configuration
 						logger.debug("Environment configurations need to be updated for: "+environmentName+"... updating it...");
-						updateConfigurationOnly(environmentName, environment);
+						updateConfigurationOnly(environmentName, environment, cfgTemplateName);
 						// An update was made.
 						updated = true;
 //					}
@@ -359,7 +359,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * @param environmentName
 	 * @param environment
 	 */
-	public void updateConfigurationOnly(String environmentName,	EnvironmentDescription environment) {
+	public void updateConfigurationOnly(String environmentName,	EnvironmentDescription environment, String cfgTemplateName) {
 		// We can only update a ready environment.
 		waitForEnvironmentReady(environmentName);
 		// This first pass is just to update the configuration, we do not change the version here.
@@ -368,7 +368,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		uer.setEnvironmentName(environmentName);
 		// We re-use the existing version for now.
 		uer.setVersionLabel(environment.getVersionLabel());
-		uer.setTemplateName(config.getElasticBeanstalkTemplateName());
+		uer.setTemplateName(cfgTemplateName);
 		UpdateEnvironmentResult result = beanstalkClient.updateEnvironment(uer);
 	}
 	
