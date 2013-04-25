@@ -34,6 +34,7 @@ import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationSettin
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsResult;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
+import com.amazonaws.services.elasticbeanstalk.model.RebuildEnvironmentRequest;
 import com.amazonaws.services.elasticbeanstalk.model.RestartAppServerRequest;
 import com.amazonaws.services.elasticbeanstalk.model.TerminateEnvironmentRequest;
 import com.amazonaws.services.elasticbeanstalk.model.TerminateEnvironmentResult;
@@ -281,35 +282,29 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 					logger.debug(environment);
 					return environment;
 				}else{
-					logger.debug("Environment already exists: "+environmentName+" updating it...");
-					// Lookup the current environment
-					ConfigurationSettingsDescription csd = describeConfigurationSettings(version.getApplicationName(), environmentName);
-					// do the configurations already match?
-					// Update for generic/portal SSL arn not needed since we don't actually check the need for update
-//					List<ConfigurationOptionSetting> cfgOptionSettings = getAllElasticBeanstalkOptions();
-//					// Add SSL arn
-//					cfgOptionSettings.add(new ConfigurationOptionSetting("aws.elb.loadbalancer", "SSLCertificateId", resources.getSslCertificate(servicePrefix).getArn()));
-					boolean updated = false;
+					//	TODO: Redo the logic here so that:
+					//		- we only update the configuration if it has changed
+					//		- we only update the version if it has changed
+					//		- we restart the environment of configuration updated
+					//		- we rebuild the environment if version updated
+					//
 					
-					// Should we update the configuration?
-//					if(csd == null || !areExpectedSettingsEquals(cfgOptionSettings, csd.getOptionSettings())){
-						// First update the configuration
-						logger.debug("Environment configurations need to be updated for: "+environmentName+"... updating it...");
-						updateConfigurationOnly(environmentName, environment, cfgTemplateName);
-						// An update was made.
-						updated = true;
-//					}
+					logger.debug("Environment already exists: "+environmentName+" updating it...");
+					
+					// First update the configuration
+					logger.debug("Environment configurations need to be updated for: "+environmentName+"... updating it...");
+					updateConfigurationOnly(environmentName, environment, cfgTemplateName);
+
 					// Should we update the version?
 					if(!environment.getVersionLabel().equals(version.getVersionLabel())){
 						logger.debug("Environment version need to be updated for: "+environmentName+"... updating it...");
 						// Now update the version.
 						updateEnvironmentVersionOnly(environmentName, version, environment);
-						updated = true;
 					}
-					// If we did not update the environment then we need to restart it.
-					if(!updated){
-						beanstalkClient.restartAppServer(new RestartAppServerRequest().withEnvironmentId(environment.getEnvironmentId()));
-					}
+					
+					//	For now, always rebuild the environment
+					beanstalkClient.rebuildEnvironment(new RebuildEnvironmentRequest().withEnvironmentId(environment.getEnvironmentId()));
+
 					// Return the new information.
 					environment = describeEnvironment(environmentName);
 					logger.debug(environment);

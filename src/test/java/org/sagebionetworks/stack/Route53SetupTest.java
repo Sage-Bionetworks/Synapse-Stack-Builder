@@ -45,25 +45,12 @@ public class Route53SetupTest {
 	public Route53SetupTest() {
 	}
 	
-//	@BeforeClass
-//	public static void setUpClass() {
-//	}
-//	
-//	@AfterClass
-//	public static void tearDownClass() {
-//	}
-//	
 	@Before
 	public void setUp() throws IOException {
 		config = TestHelper.createRoute53TestConfig("stack");
 		resources = new GeneratedResources();
 		mockClient = factory.createRoute53Client();
 	}
-	
-//	@After
-//	public void tearDown() {
-//	}
-//
 	
 	@Test
 	public void testGetHostedZoneExistentZone() {

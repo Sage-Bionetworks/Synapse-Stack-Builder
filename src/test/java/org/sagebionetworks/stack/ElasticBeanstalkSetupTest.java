@@ -104,17 +104,6 @@ public class ElasticBeanstalkSetupTest {
 		verify(mockClient).updateConfigurationTemplate(expectedUctReq);
 	}
 	
-//	@Test
-//	public void testCreateEnvironment() {
-//		//TODO: All services
-//		String svcPrefix = Constants.PREFIX_AUTH;
-//		ApplicationVersionDescription appVersionDesc = resources.getAuthApplicationVersion();
-//		String genericElbTemplateName = config.getElasticBeanstalkTemplateName() + "-generic";
-//		List<ConfigurationOptionSetting> cfgOptSettings = setup.getAllElasticBeanstalkOptions("generic");
-//		resources.setElasticBeanstalkConfigurationTemplate("generic", setup.createOrUpdateConfigurationTemplate(genericElbTemplateName, cfgOptSettings));
-//		setup.createOrUpdateEnvironment(svcPrefix, genericElbTemplateName, appVersionDesc);
-//	}
-//	
 	@Test(expected = IllegalArgumentException.class)
 	public void testGetAllElasticBeanstalkOptionsInvalidSuffix() {
 		setup.getAllElasticBeanstalkOptions("badSuffix");

@@ -558,18 +558,6 @@ public class InputConfiguration {
 		return validateAndGetProperty("elastic.beanstalk.environment.template.name");
 	}
 
-//	public void setSSLCertificateARN(String prefix, String arn) {
-//		props.setProperty(prefix + "." + Constants.KEY_SSL_CERTIFICATE_ARN, arn);
-//	}
-//	
-//	/**
-//	 * Get the SSL Certificate ARN
-//	 * @return
-//	 */
-//	public String getSSLCertificateARN(String prefix){
-//		return validateAndGetProperty(prefix + "." + Constants.KEY_SSL_CERTIFICATE_ARN);
-//	}
-//
 	/**
 	 * Search index domain name.
 	 * @return
