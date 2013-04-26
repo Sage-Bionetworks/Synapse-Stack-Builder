@@ -310,17 +310,4 @@ public class Constants {
 	 */
 	public static final String KEY_SSL_CERTIFICATE_ARN = "ssl.certificate.arn";
 	
-	/** 
-	 * Prefixes used for property lookup.
-	 */
-	public static final String PREFIX_RDS = "rds";
-	public static final String PREFIX_SEARCH = "search";
-	public static final String PREFIX_AUTH = "auth";
-	public static final String PREFIX_REPO = "repo";
-	public static final String PREFIX_PORTAL = "portal";
-	public static final String PREFIX_DYNAMO = "dynamo";
-	public static final String PREFIX_FILE = "file";
-	
-	// List of service prefixes for Route53 setup
-	public static final List<String> SVC_PREFIXES = Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_DYNAMO, Constants.PREFIX_FILE, Constants.PREFIX_PORTAL, Constants.PREFIX_RDS, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH);
 }

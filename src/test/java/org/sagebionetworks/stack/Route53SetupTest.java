@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.junit.Ignore;
+import org.sagebionetworks.stack.config.ConfigEnvironmentPrefix;
 
 /**
  *
@@ -108,11 +109,11 @@ public class Route53SetupTest {
 		}
 
 		Route53Setup r53Setup = new Route53Setup(factory, config, resources);
-		for (String svcPrefix: Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH)) {
-			ResourceRecordSet rrs = r53Setup.getResourceRecordSetForRecordName(svcPrefix + ".stack.inst.r53.sagebase.org");
+		for (ConfigEnvironmentPrefix svcPrefix: Arrays.asList(ConfigEnvironmentPrefix.AUTH, ConfigEnvironmentPrefix.PORTAL, ConfigEnvironmentPrefix.REPO, ConfigEnvironmentPrefix.SEARCH)) {
+			ResourceRecordSet rrs = r53Setup.getResourceRecordSetForRecordName(svcPrefix.toString() + ".stack.inst.r53.sagebase.org");
 			assertFalse(rrs == null);
-			assertEquals(rrs.getName(), svcPrefix + ".stack.inst.r53.sagebase.org");
-			assertEquals(rrs.getResourceRecords().get(0).getValue(), svcPrefix + "-stack-inst-sagebase-org.elasticbeanstalk.com");
+			assertEquals(rrs.getName(), svcPrefix.toString() + ".stack.inst.r53.sagebase.org");
+			assertEquals(rrs.getResourceRecords().get(0).getValue(), svcPrefix.toString() + "-stack-inst-sagebase-org.elasticbeanstalk.com");
 		}
 	}
 	
@@ -135,8 +136,8 @@ public class Route53SetupTest {
 		}
 
 		Route53Setup r53Setup = new Route53Setup(factory, config, resources);
-		for (String svcPrefix: Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH)) {
-			ResourceRecordSet rrs = r53Setup.getResourceRecordSetForRecordName(svcPrefix + ".stack.inst.r53.sagebase.org");
+		for (ConfigEnvironmentPrefix svcPrefix: Arrays.asList(ConfigEnvironmentPrefix.AUTH, ConfigEnvironmentPrefix.PORTAL, ConfigEnvironmentPrefix.REPO, ConfigEnvironmentPrefix.SEARCH)) {
+			ResourceRecordSet rrs = r53Setup.getResourceRecordSetForRecordName(svcPrefix.toString() + ".stack.inst.r53.sagebase.org");
 			assertTrue(rrs == null);
 		}
 	}

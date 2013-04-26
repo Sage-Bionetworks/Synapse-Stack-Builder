@@ -462,16 +462,16 @@ public class InputConfiguration {
 	 * The URL of the artifact for a given prefix
 	 * @return
 	 */
-	public String getArtifactoryUrl(String prefix) {
-		return validateAndGetProperty(prefix+".artifactory.url");
+	public String getArtifactoryUrl(ConfigEnvironmentPrefix prefix) {
+		return validateAndGetProperty(prefix.toString()+".artifactory.url");
 	}
 
 	/**
 	 * The version label for a war for a given prefix.
 	 * @return
 	 */
-	public String getVersionLabel(String prefix) {
-		return validateAndGetProperty(prefix+".version.label");
+	public String getVersionLabel(ConfigEnvironmentPrefix prefix) {
+		return validateAndGetProperty(prefix.toString()+".version.label");
 	}
 	
 	/**
@@ -479,40 +479,40 @@ public class InputConfiguration {
 	 * @param prefix
 	 * @return
 	 */
-	public String getVersionPath(String prefix){
-		return validateAndGetProperty(prefix+".elastic.beanstalk.application.versions.s3.path");
+	public String getVersionPath(ConfigEnvironmentPrefix prefix){
+		return validateAndGetProperty(prefix.toString()+".elastic.beanstalk.application.versions.s3.path");
 	}
 
 	/**
 	 * The name of the SSL certificate private key.
 	 * @return
 	 */
-	public String getSSlCertificatePrivateKeyName(String prefix) {
-		return validateAndGetProperty(prefix + ".ssl.certificate.privateKey.file.name");
+	public String getSSLCertificatePrivateKeyName(ConfigSslPrefix prefix) {
+		return validateAndGetProperty(prefix.toString() + ".ssl.certificate.privateKey.file.name");
 	}
 
 	/**
 	 * The name of the SSL certificate body file.
 	 * @return
 	 */
-	public String getSSLCertificateBodyKeyName(String prefix) {
-		return validateAndGetProperty(prefix + ".ssl.certificate.body.file.name");
+	public String getSSLCertificateBodyKeyName(ConfigSslPrefix prefix) {
+		return validateAndGetProperty(prefix.toString() + ".ssl.certificate.body.file.name");
 	}
 	
 	/**
 	 * The name of the SSL certificate chain file
 	 * @return
 	 */
-	public String getSSLCertificateChainKeyName(String prefix) {
-		return validateAndGetProperty(prefix + ".ssl.certificate.chain.file.name");
+	public String getSSLCertificateChainKeyName(ConfigSslPrefix prefix) {
+		return validateAndGetProperty(prefix.toString() + ".ssl.certificate.chain.file.name");
 	}
 
 	/**
 	 * The name of the SSL certificate
 	 * @return
 	 */
-	public String getSSLCertificateName(String prefix) {
-		return validateAndGetProperty(prefix + ".ssl.certificate.name");
+	public String getSSLCertificateName(ConfigSslPrefix prefix) {
+		return validateAndGetProperty(prefix.toString() + ".ssl.certificate.name");
 	}
 	
 	/**
@@ -520,8 +520,8 @@ public class InputConfiguration {
 	 * @param prefix
 	 * @return
 	 */
-	public String getEnvironmentName(String prefix) {
-		return validateAndGetProperty(prefix+".service.environment.name");
+	public String getEnvironmentName(ConfigEnvironmentPrefix prefix) {
+		return validateAndGetProperty(prefix.toString() + ".service.environment.name");
 	}
 	
 	/**
@@ -529,8 +529,8 @@ public class InputConfiguration {
 	 * @param prefix
 	 * @return
 	 */
-	public String getEnvironmentCNAMEPrefix(String prefix) {
-		return validateAndGetProperty(prefix+".service.environment.cname.prefix");
+	public String getEnvironmentCNAMEPrefix(ConfigEnvironmentPrefix prefix) {
+		return validateAndGetProperty(prefix.toString() + ".service.environment.cname.prefix");
 	}
 
 	/**
@@ -570,8 +570,8 @@ public class InputConfiguration {
 		return validateAndGetProperty("stack.subdomain");
 	}
 	
-	public String getEnvironmentSubdomainCNAME(String prefix) {
-		return validateAndGetProperty(prefix + ".service.environment.subdomain.cname");
+	public String getEnvironmentSubdomainCNAME(ConfigEnvironmentPrefix prefix) {
+		return validateAndGetProperty(prefix.toString() + ".service.environment.subdomain.cname");
 	}
 
 }
