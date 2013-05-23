@@ -5,16 +5,17 @@ package org.sagebionetworks.stack.config;
  * @author xschildw
  */
 public enum ConfigSslPrefix {
-	GENERIC {
-		@Override
-		public String toString() {
-			return "generic";
-		}
-	},
-	PORTAL {
-		@Override
-		public String toString() {
-			return "portal";
-		}
+	GENERIC("generic") 
+	,
+	PORTAL("portal")
+	;
+	private String prefix;
+	
+	ConfigSslPrefix(String cfg) {
+		this.prefix = cfg;
+	}
+	
+	public String getPrefix() {
+		return this.prefix;
 	}
 }
