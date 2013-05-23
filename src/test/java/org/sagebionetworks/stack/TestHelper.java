@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.sagebionetworks.stack.Constants.*;
+import org.sagebionetworks.stack.config.ConfigEnvironmentPrefix;
+import org.sagebionetworks.stack.config.ConfigSslPrefix;
 
 /**
  * Helper used by tests for setup.
@@ -104,15 +106,15 @@ public class TestHelper {
 		resources.setStackInstancesDatabase(new DBInstance().withDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier()).withEndpoint(new Endpoint().withAddress("stack-instance-db.someplace.com")));
 		resources.setSearchDomain(new DomainStatus().withSearchService(new ServiceEndpoint().withEndpoint("search-service.someplace.com")));
 		resources.getSearchDomain().setDocService(new ServiceEndpoint().withEndpoint("doc-service.someplace.com"));
-		resources.setSslCertificate("generic", new ServerCertificateMetadata().withArn("ssl:arn:123"));
-		resources.setSslCertificate("portal", new ServerCertificateMetadata().withArn("ssl:arn:456"));
-		resources.setAuthApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_AUTH)));
-		resources.setPortalApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_PORTAL)));
-		resources.setRepoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_REPO)));
-		resources.setSearchApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_SEARCH)));
-		resources.setRdsAsynchApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_RDS)));
-		resources.setDynamoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_DYNAMO)));
-		resources.setFileApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_FILE)));
+		resources.setSslCertificate(ConfigSslPrefix.GENERIC, new ServerCertificateMetadata().withArn("ssl:arn:123"));
+		resources.setSslCertificate(ConfigSslPrefix.PORTAL, new ServerCertificateMetadata().withArn("ssl:arn:456"));
+		resources.setAuthApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(ConfigEnvironmentPrefix.AUTH)));
+		resources.setPortalApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(ConfigEnvironmentPrefix.PORTAL)));
+		resources.setRepoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(ConfigEnvironmentPrefix.REPO)));
+		resources.setSearchApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(ConfigEnvironmentPrefix.SEARCH)));
+		resources.setRdsAsynchApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(ConfigEnvironmentPrefix.RDS)));
+		resources.setDynamoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(ConfigEnvironmentPrefix.DYNAMO)));
+		resources.setFileApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(ConfigEnvironmentPrefix.FILE)));
 		resources.setStackKeyPair(new KeyPairInfo().withKeyName(config.getStackKeyPairName()));
 		return resources;
 	}
@@ -121,7 +123,7 @@ public class TestHelper {
 		Properties inputProperties = createInputProperties(stack);
 		InputConfiguration config = new InputConfiguration(inputProperties);
 		Properties defaultProperties = createDefaultProperties();
-		Map<String, String> cnameProps = getSvcCNAMEsProps(stack, Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH));
+		Map<String, String> cnameProps = getSvcCNAMEsProps(stack, Arrays.asList(ConfigEnvironmentPrefix.AUTH, ConfigEnvironmentPrefix.PORTAL, ConfigEnvironmentPrefix.REPO, ConfigEnvironmentPrefix.SEARCH));
 		defaultProperties.putAll(cnameProps);
 		defaultProperties.put("stack.subdomain", stack+".sagebase.org");
 		config.addPropertiesWithPlaintext(defaultProperties);
@@ -130,12 +132,12 @@ public class TestHelper {
 	
 	public static Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> createListExpectedListResourceRecordSetsRequestAllFound(String stack) {
 		Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> m = new HashMap<ListResourceRecordSetsRequest, ListResourceRecordSetsResult>();
-		List<String> svcPrefixes = Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH);
+		List<ConfigEnvironmentPrefix> svcPrefixes = Arrays.asList(ConfigEnvironmentPrefix.AUTH, ConfigEnvironmentPrefix.PORTAL, ConfigEnvironmentPrefix.REPO, ConfigEnvironmentPrefix.SEARCH);
 		Map<String, String> map = getSvcCNAMEsProps(stack, svcPrefixes);
-		for (String svcPrefix: svcPrefixes) {
-			ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withStartRecordType(RRType.CNAME).withStartRecordName(map.get(svcPrefix + ".service.environment.subdomain.cname")).withMaxItems("1");
-			ResourceRecord rr = new ResourceRecord().withValue(map.get(svcPrefix + ".service.environment.cname.prefix") + ".elasticbeanstalk.com");
-			ListResourceRecordSetsResult res = new ListResourceRecordSetsResult().withResourceRecordSets(new ResourceRecordSet().withName(map.get(svcPrefix + ".service.environment.subdomain.cname")).withTTL(300L).withType(RRType.CNAME).withResourceRecords(rr));
+		for (ConfigEnvironmentPrefix svcPrefix: svcPrefixes) {
+			ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withStartRecordType(RRType.CNAME).withStartRecordName(map.get(svcPrefix.toString() + ".service.environment.subdomain.cname")).withMaxItems("1");
+			ResourceRecord rr = new ResourceRecord().withValue(map.get(svcPrefix.toString() + ".service.environment.cname.prefix") + ".elasticbeanstalk.com");
+			ListResourceRecordSetsResult res = new ListResourceRecordSetsResult().withResourceRecordSets(new ResourceRecordSet().withName(map.get(svcPrefix.toString() + ".service.environment.subdomain.cname")).withTTL(300L).withType(RRType.CNAME).withResourceRecords(rr));
 			m.put(req, res);
 		}
 		return m;
@@ -145,19 +147,19 @@ public class TestHelper {
 	public static Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> createListExpectedListResourceRecordSetsRequestNoneFound(String stack) {
 		Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> m = new HashMap<ListResourceRecordSetsRequest, ListResourceRecordSetsResult>();
 		// For Auth and Portal, simulate 'not last' situation i.e. the next record is returned
-		List<String> svcPrefixes = Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL);
+		List<ConfigEnvironmentPrefix> svcPrefixes = Arrays.asList(ConfigEnvironmentPrefix.AUTH, ConfigEnvironmentPrefix.PORTAL);
 		Map<String, String> map = getSvcCNAMEsProps(stack, svcPrefixes);
-		for (String svcPrefix: svcPrefixes) {
-			ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withStartRecordType(RRType.CNAME).withStartRecordName(map.get(svcPrefix + ".service.environment.subdomain.cname")).withMaxItems("1");
-			ResourceRecord rr = new ResourceRecord().withValue(map.get(svcPrefix + ".service.environment.cname.prefix") + "2.elasticbeanstalk.com");
-			ListResourceRecordSetsResult res = new ListResourceRecordSetsResult().withResourceRecordSets(new ResourceRecordSet().withName(map.get(svcPrefix + ".service.environment.subdomain.cname") + "2").withTTL(300L).withType(RRType.CNAME).withResourceRecords(rr));
+		for (ConfigEnvironmentPrefix svcPrefix: svcPrefixes) {
+			ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withStartRecordType(RRType.CNAME).withStartRecordName(map.get(svcPrefix.toString() + ".service.environment.subdomain.cname")).withMaxItems("1");
+			ResourceRecord rr = new ResourceRecord().withValue(map.get(svcPrefix.toString() + ".service.environment.cname.prefix") + "2.elasticbeanstalk.com");
+			ListResourceRecordSetsResult res = new ListResourceRecordSetsResult().withResourceRecordSets(new ResourceRecordSet().withName(map.get(svcPrefix.toString() + ".service.environment.subdomain.cname") + "2").withTTL(300L).withType(RRType.CNAME).withResourceRecords(rr));
 			m.put(req, res);
 		}
 		// For Repo and Search, simulate 'last' situation i.e. no record is returned
-		svcPrefixes = Arrays.asList(Constants.PREFIX_REPO, Constants.PREFIX_SEARCH);
+		svcPrefixes = Arrays.asList(ConfigEnvironmentPrefix.REPO, ConfigEnvironmentPrefix.SEARCH);
 		map = getSvcCNAMEsProps(stack, svcPrefixes);
-		for (String svcPrefix: svcPrefixes) {
-			ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withStartRecordType(RRType.CNAME).withStartRecordName(map.get(svcPrefix + ".service.environment.subdomain.cname")).withMaxItems("1");
+		for (ConfigEnvironmentPrefix svcPrefix: svcPrefixes) {
+			ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withStartRecordType(RRType.CNAME).withStartRecordName(map.get(svcPrefix.toString() + ".service.environment.subdomain.cname")).withMaxItems("1");
 			ResourceRecord rr = null;
 			ListResourceRecordSetsResult res = new ListResourceRecordSetsResult().withResourceRecordSets(new ArrayList<ResourceRecordSet>());
 			m.put(req, res);
@@ -165,11 +167,11 @@ public class TestHelper {
 		return m;
 	}
 	
-	private static Map<String, String> getSvcCNAMEsProps(String stack, List<String> svcPrefixes) {
+	private static Map<String, String> getSvcCNAMEsProps(String stack, List<ConfigEnvironmentPrefix> svcPrefixes) {
 		Map<String, String> cnameProps = new HashMap<String, String>();
-		for (String svcPrefix: svcPrefixes) {
-			cnameProps.put(svcPrefix + ".service.environment.subdomain.cname", svcPrefix + "." + stack + ".inst.r53.sagebase.org");
-			cnameProps.put(svcPrefix + ".service.environment.cname.prefix",  svcPrefix + "-" + stack + "-inst-sagebase-org");
+		for (ConfigEnvironmentPrefix svcPrefix: svcPrefixes) {
+			cnameProps.put(svcPrefix + ".service.environment.subdomain.cname", svcPrefix.toString() + "." + stack + ".inst.r53.sagebase.org");
+			cnameProps.put(svcPrefix + ".service.environment.cname.prefix",  svcPrefix.toString() + "-" + stack + "-inst-sagebase-org");
 		}
 		return cnameProps;
 	}

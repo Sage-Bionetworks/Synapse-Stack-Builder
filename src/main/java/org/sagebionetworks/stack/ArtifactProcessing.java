@@ -28,6 +28,7 @@ import com.amazonaws.services.s3.model.ProgressEvent;
 import com.amazonaws.services.s3.model.ProgressListener;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
+import org.sagebionetworks.stack.config.ConfigEnvironmentPrefix;
 
 /**
  * Downloads artifacts from Artifactory and uploads them as versions to S3.
@@ -72,30 +73,30 @@ public class ArtifactProcessing {
 		resources.setElasticBeanstalkApplication(createOrGetApplication());
 		
 		// Create the application version for the portal
-		resources.setPortalApplicationVersion(createOrGetApplicationVersion(PREFIX_PORTAL));
+		resources.setPortalApplicationVersion(createOrGetApplicationVersion(ConfigEnvironmentPrefix.PORTAL));
 		// Create the application version for the reop
-		resources.setRepoApplicationVersion(createOrGetApplicationVersion(PREFIX_REPO));
+		resources.setRepoApplicationVersion(createOrGetApplicationVersion(ConfigEnvironmentPrefix.REPO));
 		// Create the application version for the auth
-		resources.setAuthApplicationVersion(createOrGetApplicationVersion(PREFIX_AUTH));
+		resources.setAuthApplicationVersion(createOrGetApplicationVersion(ConfigEnvironmentPrefix.AUTH));
 		// Create the application version for the search
-		resources.setSearchApplicationVersion(createOrGetApplicationVersion(PREFIX_SEARCH));
+		resources.setSearchApplicationVersion(createOrGetApplicationVersion(ConfigEnvironmentPrefix.SEARCH));
 		// Create the application version for the rds asynch
-		resources.setRdsAsynchApplicationVersion(createOrGetApplicationVersion(PREFIX_RDS));
+		resources.setRdsAsynchApplicationVersion(createOrGetApplicationVersion(ConfigEnvironmentPrefix.RDS));
 		// Create the application version for the dynamo
-		resources.setDynamoApplicationVersion(createOrGetApplicationVersion(PREFIX_DYNAMO));
+		resources.setDynamoApplicationVersion(createOrGetApplicationVersion(ConfigEnvironmentPrefix.DYNAMO));
 		// Create the application version for the dynamo
-		resources.setFileApplicationVersion(createOrGetApplicationVersion(PREFIX_FILE));
+		resources.setFileApplicationVersion(createOrGetApplicationVersion(ConfigEnvironmentPrefix.FILE));
 	}
 	
 	public void describeResources() {
 		resources.setElasticBeanstalkApplication(describeApplication());
-		resources.setPortalApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_PORTAL)));
-		resources.setRepoApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_REPO)));
-		resources.setAuthApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_AUTH)));
-		resources.setSearchApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_SEARCH)));
-		resources.setRdsAsynchApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_RDS)));
-		resources.setDynamoApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_DYNAMO)));
-		resources.setFileApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_FILE)));
+		resources.setPortalApplicationVersion(describeApplicationVersion(config.getVersionLabel(ConfigEnvironmentPrefix.PORTAL)));
+		resources.setRepoApplicationVersion(describeApplicationVersion(config.getVersionLabel(ConfigEnvironmentPrefix.REPO)));
+		resources.setAuthApplicationVersion(describeApplicationVersion(config.getVersionLabel(ConfigEnvironmentPrefix.AUTH)));
+		resources.setSearchApplicationVersion(describeApplicationVersion(config.getVersionLabel(ConfigEnvironmentPrefix.SEARCH)));
+		resources.setRdsAsynchApplicationVersion(describeApplicationVersion(config.getVersionLabel(ConfigEnvironmentPrefix.RDS)));
+		resources.setDynamoApplicationVersion(describeApplicationVersion(config.getVersionLabel(ConfigEnvironmentPrefix.DYNAMO)));
+		resources.setFileApplicationVersion(describeApplicationVersion(config.getVersionLabel(ConfigEnvironmentPrefix.FILE)));
 	}
 	
 	/**
@@ -135,10 +136,10 @@ public class ArtifactProcessing {
 	 * @param fileURl
 	 * @throws IOException
 	 */
-	public ApplicationVersionDescription createOrGetApplicationVersion(String appPrfix) throws IOException{
-		String s3Path = config.getVersionPath(appPrfix);
-		final String versionLabel = config.getVersionLabel(appPrfix);
-		String fileURL = config.getArtifactoryUrl(appPrfix);
+	public ApplicationVersionDescription createOrGetApplicationVersion(ConfigEnvironmentPrefix appPrefix) throws IOException{
+		String s3Path = config.getVersionPath(appPrefix);
+		final String versionLabel = config.getVersionLabel(appPrefix);
+		String fileURL = config.getArtifactoryUrl(appPrefix);
 		// First determine if this version already exists
 		log.debug(String.format("Creating version: %1$s using: %2$s ", versionLabel, fileURL));
 		DescribeApplicationVersionsResult results = beanstalkClient.describeApplicationVersions(new DescribeApplicationVersionsRequest().withApplicationName(config.getElasticBeanstalkApplicationName()).withVersionLabels(versionLabel));
