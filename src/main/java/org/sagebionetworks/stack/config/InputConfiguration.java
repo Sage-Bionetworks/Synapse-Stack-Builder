@@ -463,7 +463,7 @@ public class InputConfiguration {
 	 * @return
 	 */
 	public String getArtifactoryUrl(ConfigEnvironmentPrefix prefix) {
-		return validateAndGetProperty(prefix.toString()+".artifactory.url");
+		return validateAndGetProperty(prefix.getPrefix()+".artifactory.url");
 	}
 
 	/**
@@ -471,7 +471,7 @@ public class InputConfiguration {
 	 * @return
 	 */
 	public String getVersionLabel(ConfigEnvironmentPrefix prefix) {
-		return validateAndGetProperty(prefix.toString()+".version.label");
+		return validateAndGetProperty(prefix.getPrefix()+".version.label");
 	}
 	
 	/**
@@ -480,7 +480,7 @@ public class InputConfiguration {
 	 * @return
 	 */
 	public String getVersionPath(ConfigEnvironmentPrefix prefix){
-		return validateAndGetProperty(prefix.toString()+".elastic.beanstalk.application.versions.s3.path");
+		return validateAndGetProperty(prefix.getPrefix()+".elastic.beanstalk.application.versions.s3.path");
 	}
 
 	/**
@@ -488,7 +488,7 @@ public class InputConfiguration {
 	 * @return
 	 */
 	public String getSSLCertificatePrivateKeyName(ConfigSslPrefix prefix) {
-		return validateAndGetProperty(prefix.toString() + ".ssl.certificate.privateKey.file.name");
+		return validateAndGetProperty(prefix.getPrefix() + ".ssl.certificate.privateKey.file.name");
 	}
 
 	/**
@@ -496,7 +496,7 @@ public class InputConfiguration {
 	 * @return
 	 */
 	public String getSSLCertificateBodyKeyName(ConfigSslPrefix prefix) {
-		return validateAndGetProperty(prefix.toString() + ".ssl.certificate.body.file.name");
+		return validateAndGetProperty(prefix.getPrefix() + ".ssl.certificate.body.file.name");
 	}
 	
 	/**
@@ -504,7 +504,7 @@ public class InputConfiguration {
 	 * @return
 	 */
 	public String getSSLCertificateChainKeyName(ConfigSslPrefix prefix) {
-		return validateAndGetProperty(prefix.toString() + ".ssl.certificate.chain.file.name");
+		return validateAndGetProperty(prefix.getPrefix() + ".ssl.certificate.chain.file.name");
 	}
 
 	/**
@@ -512,7 +512,7 @@ public class InputConfiguration {
 	 * @return
 	 */
 	public String getSSLCertificateName(ConfigSslPrefix prefix) {
-		return validateAndGetProperty(prefix.toString() + ".ssl.certificate.name");
+		return validateAndGetProperty(prefix.getPrefix() + ".ssl.certificate.name");
 	}
 	
 	/**
@@ -521,7 +521,7 @@ public class InputConfiguration {
 	 * @return
 	 */
 	public String getEnvironmentName(ConfigEnvironmentPrefix prefix) {
-		return validateAndGetProperty(prefix.toString() + ".service.environment.name");
+		return validateAndGetProperty(prefix.getPrefix() + ".service.environment.name");
 	}
 	
 	/**
@@ -530,7 +530,7 @@ public class InputConfiguration {
 	 * @return
 	 */
 	public String getEnvironmentCNAMEPrefix(ConfigEnvironmentPrefix prefix) {
-		return validateAndGetProperty(prefix.toString() + ".service.environment.cname.prefix");
+		return validateAndGetProperty(prefix.getPrefix() + ".service.environment.cname.prefix");
 	}
 
 	/**
@@ -571,7 +571,7 @@ public class InputConfiguration {
 	}
 	
 	public String getEnvironmentSubdomainCNAME(ConfigEnvironmentPrefix prefix) {
-		return validateAndGetProperty(prefix.toString() + ".service.environment.subdomain.cname");
+		return validateAndGetProperty(prefix.getPrefix() + ".service.environment.subdomain.cname");
 	}
 
 }
