@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.sagebionetworks.stack.config.ConfigEnvironmentPrefix;
 
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
@@ -67,7 +68,7 @@ public class Route53Setup implements ResourceProcessor {
 	
 	public void setupResources() throws InterruptedException {
 		
-		List<Change> changes = buildChangesList(Constants.SVC_PREFIXES);
+		List<Change> changes = buildChangesList(ConfigEnvironmentPrefix.values());
 		if (changes.size() > 0) {
 			ChangeBatch changeBatch = new ChangeBatch().withChanges(changes);
 
@@ -125,10 +126,10 @@ public class Route53Setup implements ResourceProcessor {
 		return rrs;
 	}
 	
-	List<Change> buildChangesList(List<String> prefixes) {
+	List<Change> buildChangesList(ConfigEnvironmentPrefix[] prefixes) {
 		List<Change> changes = new ArrayList<Change>();
 		
-		for (String prefix: prefixes) {
+		for (ConfigEnvironmentPrefix prefix: prefixes) {
 			String rName = config.getEnvironmentSubdomainCNAME(prefix);
 			String rValue = config.getEnvironmentCNAMEPrefix(prefix) + ".elasticbeanstalk.com";
 			ResourceRecordSet rrs = getResourceRecordSetForRecordName(rName);

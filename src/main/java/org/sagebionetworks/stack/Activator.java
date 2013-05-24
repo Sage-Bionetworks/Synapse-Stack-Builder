@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import org.sagebionetworks.stack.config.ConfigEnvironmentPrefix;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
@@ -60,10 +61,10 @@ public class Activator {
 		}
 		
 		// BackEnd services
-		List<String> backEndSvcPrefixes = Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_FILE, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH);
+		List<ConfigEnvironmentPrefix> backEndSvcPrefixes = Arrays.asList(ConfigEnvironmentPrefix.AUTH, ConfigEnvironmentPrefix.FILE, ConfigEnvironmentPrefix.REPO, ConfigEnvironmentPrefix.SEARCH);
 		String r53SubdomainName = backEndHostedZone.getName();
 		Map<String, String> genericToInstanceCNAMEMap = new HashMap<String, String>();
-		for (String backEndSvcPrefix :backEndSvcPrefixes) {
+		for (ConfigEnvironmentPrefix backEndSvcPrefix :backEndSvcPrefixes) {
 			genericToInstanceCNAMEMap.put(getBackEndGenericCNAME(backEndSvcPrefix, instanceRole, backEndHostedZone.getName()), getBackEndInstanceCNAME(backEndSvcPrefix, instanceRole, stackInstance, backEndHostedZone.getName()));
 		}
 		
@@ -153,12 +154,12 @@ public class Activator {
 		return hostedZone;
 	}
 	
-	public String getBackEndGenericCNAME(String svcPrefix, String instanceRole, String hostedZoneName) {
-		return "%s-%s.%s".format(svcPrefix, instanceRole, hostedZoneName);
+	public String getBackEndGenericCNAME(ConfigEnvironmentPrefix svcPrefix, String instanceRole, String hostedZoneName) {
+		return "%s-%s.%s".format(svcPrefix.toString(), instanceRole, hostedZoneName);
 	}
 	
-	public String getBackEndInstanceCNAME(String svcPrefix, String instanceRole, String stackInstance, String hostedZoneName) {
-		return "%s-%s-%s.%s".format(svcPrefix, instanceRole, stackInstance, hostedZoneName);
+	public String getBackEndInstanceCNAME(ConfigEnvironmentPrefix svcPrefix, String instanceRole, String stackInstance, String hostedZoneName) {
+		return "%s-%s-%s.%s".format(svcPrefix.toString(), instanceRole, stackInstance, hostedZoneName);
 	}
 	
 	public String getPortalGenericCNAME() {

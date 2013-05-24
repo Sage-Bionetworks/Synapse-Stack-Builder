@@ -22,6 +22,7 @@ import com.amazonaws.services.identitymanagement.model.UploadServerCertificateRe
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
+import org.sagebionetworks.stack.config.ConfigSslPrefix;
 
 /**
  * Setup the SSL certificate
@@ -57,8 +58,8 @@ public class SSLSetup implements ResourceProcessor {
 	}
 	
 	public void setupResources() {
-		this.setupSSLCertificate("generic");
-		this.setupSSLCertificate("portal");
+		this.setupSSLCertificate(ConfigSslPrefix.GENERIC);
+		this.setupSSLCertificate(ConfigSslPrefix.PORTAL);
 	}
 	
 	public void teardownResources() {
@@ -66,14 +67,12 @@ public class SSLSetup implements ResourceProcessor {
 	}
 	
 	public void describeResources(String prefix) {
-		describeSSLCertificate("generic");
-		describeSSLCertificate("portal");
+		describeSSLCertificate(ConfigSslPrefix.GENERIC);
+		describeSSLCertificate(ConfigSslPrefix.PORTAL);
 	}
 	
-	public void describeSSLCertificate(String prefix) {
-		if (! (("generic".equals(prefix)) || ("portal".equals(prefix)))) {
-			throw new IllegalArgumentException("Allowed prefixes are 'generic' and 'portal'.");
-		}
+	public void describeSSLCertificate(ConfigSslPrefix prefix) {
+
 		String certName = config.getSSLCertificateName(prefix);
 		ServerCertificateMetadata meta = findCertificate(certName);
 		if (meta == null) {
@@ -87,17 +86,14 @@ public class SSLSetup implements ResourceProcessor {
 	/**
 	 * Setup the SSL certificate.
 	 */
-	public void setupSSLCertificate(String prefix){
-		if (! (("generic".equals(prefix)) || ("portal".equals(prefix)))) {
-			throw new IllegalArgumentException("Allowed prefixes are 'generic' and 'portal'.");
-		}
+	public void setupSSLCertificate(ConfigSslPrefix prefix){
 		// First determine if the certificate already exists already exists
 		ServerCertificateMetadata meta = findCertificate(config.getSSLCertificateName(prefix));
 		if(meta == null){
 			// Upload the parts of the certificate.
 			UploadServerCertificateRequest request = new UploadServerCertificateRequest();
 			request.setServerCertificateName(config.getSSLCertificateName(prefix));
-			request.setPrivateKey(getCertificateStringFromS3(config.getSSlCertificatePrivateKeyName(prefix)));
+			request.setPrivateKey(getCertificateStringFromS3(config.getSSLCertificatePrivateKeyName(prefix)));
 			request.setCertificateBody(getCertificateStringFromS3(config.getSSLCertificateBodyKeyName(prefix)));
 			request.setCertificateChain(getCertificateStringFromS3(config.getSSLCertificateChainKeyName(prefix)));
 			UploadServerCertificateResult result = iamClient.uploadServerCertificate(request);
@@ -114,10 +110,7 @@ public class SSLSetup implements ResourceProcessor {
 	/*
 	 * Delete the SSL certificate
 	 */
-	public void deleteSSLCertificate(String prefix) {
-		if (! (("generic".equals(prefix)) || ("portal".equals(prefix)))) {
-			throw new IllegalArgumentException("Allowed prefixes are 'generic' and 'portal'.");
-		}
+	public void deleteSSLCertificate(ConfigSslPrefix prefix) {
 		ServerCertificateMetadata meta = findCertificate(config.getSSLCertificateName(prefix));
 		if (meta == null) {
 			// Just log

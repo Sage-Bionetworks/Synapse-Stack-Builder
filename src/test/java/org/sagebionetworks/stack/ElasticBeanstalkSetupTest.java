@@ -35,6 +35,7 @@ import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.sagebionetworks.stack.config.ConfigSslPrefix;
 
 public class ElasticBeanstalkSetupTest {
 	
@@ -104,22 +105,6 @@ public class ElasticBeanstalkSetupTest {
 		verify(mockClient).updateConfigurationTemplate(expectedUctReq);
 	}
 	
-//	@Test
-//	public void testCreateEnvironment() {
-//		//TODO: All services
-//		String svcPrefix = Constants.PREFIX_AUTH;
-//		ApplicationVersionDescription appVersionDesc = resources.getAuthApplicationVersion();
-//		String genericElbTemplateName = config.getElasticBeanstalkTemplateName() + "-generic";
-//		List<ConfigurationOptionSetting> cfgOptSettings = setup.getAllElasticBeanstalkOptions("generic");
-//		resources.setElasticBeanstalkConfigurationTemplate("generic", setup.createOrUpdateConfigurationTemplate(genericElbTemplateName, cfgOptSettings));
-//		setup.createOrUpdateEnvironment(svcPrefix, genericElbTemplateName, appVersionDesc);
-//	}
-//	
-	@Test(expected = IllegalArgumentException.class)
-	public void testGetAllElasticBeanstalkOptionsInvalidSuffix() {
-		setup.getAllElasticBeanstalkOptions("badSuffix");
-	}
-	
 	@Test
 	public void testGetAllElasticBeanstalkOptions(){
 		List<ConfigurationOptionSetting> expected = new LinkedList<ConfigurationOptionSetting>(); 
@@ -142,8 +127,8 @@ public class ElasticBeanstalkSetupTest {
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application:environment").withOptionName("PARAM4").withValue(config.getStackInstance()));
 		
 		// Check if the SSLCertificateID is correctly added for "generic' and "portal" cases
-		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("SSLCertificateId").withValue(resources.getSslCertificate("generic").getArn()));
-		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("generic");
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("SSLCertificateId").withValue(resources.getSslCertificate(ConfigSslPrefix.GENERIC).getArn()));
+		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions(ConfigSslPrefix.GENERIC);
 		// Make sure we can find all of the expected values
 		for(ConfigurationOptionSetting expectedCon: expected){
 			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
@@ -152,8 +137,8 @@ public class ElasticBeanstalkSetupTest {
 		}
 		// Change the expected value 
 		expected.remove(expected.size()-1);
-		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("SSLCertificateId").withValue(resources.getSslCertificate("portal").getArn()));
-		result = setup.getAllElasticBeanstalkOptions("portal");
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("SSLCertificateId").withValue(resources.getSslCertificate(ConfigSslPrefix.PORTAL).getArn()));
+		result = setup.getAllElasticBeanstalkOptions(ConfigSslPrefix.PORTAL);
 		// Make sure we can find all of the expected values
 		for(ConfigurationOptionSetting expectedCon: expected){
 			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
@@ -171,7 +156,7 @@ public class ElasticBeanstalkSetupTest {
 		setup = new ElasticBeanstalkSetup(factory, config, resources);
 		// From the server tab
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("MinSize").withValue("1"));
-		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("generic");
+		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions(ConfigSslPrefix.GENERIC);
 		// Make sure we can find all of the expected values
 		for(ConfigurationOptionSetting expectedCon: expected){
 			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
@@ -189,7 +174,7 @@ public class ElasticBeanstalkSetupTest {
 		setup = new ElasticBeanstalkSetup(factory, config, resources);
 		// From the server tab
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("MinSize").withValue("2"));
-		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("generic");
+		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions(ConfigSslPrefix.GENERIC);
 		// Make sure we can find all of the expected values
 		for(ConfigurationOptionSetting expectedCon: expected){
 			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
@@ -212,7 +197,7 @@ public class ElasticBeanstalkSetupTest {
 		setup = new ElasticBeanstalkSetup(factory, config, resources);
 		// From the server tab
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("Availability Zones").withValue("Any 2"));
-		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("generic");
+		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions(ConfigSslPrefix.GENERIC);
 		// Make sure we can find all of the expected values
 		for(ConfigurationOptionSetting expectedCon: expected){
 			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
@@ -235,7 +220,7 @@ public class ElasticBeanstalkSetupTest {
 		setup = new ElasticBeanstalkSetup(factory, config, resources);
 		// From the server tab
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("Custom Availability Zones").withValue("us-east-1d, us-east-1e"));
-		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("generic");
+		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions(ConfigSslPrefix.GENERIC);
 		// Make sure we can find all of the expected values
 		for(ConfigurationOptionSetting expectedCon: expected){
 			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
@@ -246,7 +231,7 @@ public class ElasticBeanstalkSetupTest {
 	
 	@Test
 	public void testMD5(){
-		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("generic");
+		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions(ConfigSslPrefix.GENERIC);
 		String md5 = ElasticBeanstalkSetup.createConfigMD5(result);
 		System.out.println(md5);
 		assertNotNull(md5);
@@ -262,16 +247,16 @@ public class ElasticBeanstalkSetupTest {
 	
 	@Test
 	public void testAreSettingsEquals(){
-		List<ConfigurationOptionSetting> one = setup.getAllElasticBeanstalkOptions("generic");
-		List<ConfigurationOptionSetting> two = setup.getAllElasticBeanstalkOptions("generic");
+		List<ConfigurationOptionSetting> one = setup.getAllElasticBeanstalkOptions(ConfigSslPrefix.GENERIC);
+		List<ConfigurationOptionSetting> two = setup.getAllElasticBeanstalkOptions(ConfigSslPrefix.GENERIC);
 		// Add some setting to the second that are not in the first.
 		two.add(new ConfigurationOptionSetting("ns", "os", "123"));
 		Collections.shuffle(one);
 		Collections.shuffle(two);
 		assertTrue(ElasticBeanstalkSetup.areExpectedSettingsEquals(one, two));
 		// Now make a change
-		one = setup.getAllElasticBeanstalkOptions("generic");
-		two = setup.getAllElasticBeanstalkOptions("generic");
+		one = setup.getAllElasticBeanstalkOptions(ConfigSslPrefix.GENERIC);
+		two = setup.getAllElasticBeanstalkOptions(ConfigSslPrefix.GENERIC);
 		two.get(0).setValue("some crazy value");
 		Collections.shuffle(one);
 		Collections.shuffle(two);

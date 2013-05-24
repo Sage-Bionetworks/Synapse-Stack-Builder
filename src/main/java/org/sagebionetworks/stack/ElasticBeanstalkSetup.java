@@ -34,6 +34,7 @@ import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationSettin
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsResult;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
+import com.amazonaws.services.elasticbeanstalk.model.RebuildEnvironmentRequest;
 import com.amazonaws.services.elasticbeanstalk.model.RestartAppServerRequest;
 import com.amazonaws.services.elasticbeanstalk.model.TerminateEnvironmentRequest;
 import com.amazonaws.services.elasticbeanstalk.model.TerminateEnvironmentResult;
@@ -46,6 +47,8 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorCompletionService;
+import org.sagebionetworks.stack.config.ConfigEnvironmentPrefix;
+import org.sagebionetworks.stack.config.ConfigSslPrefix;
 
 /**
  * Setup the elastic beanstalk environments.
@@ -60,7 +63,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	private AWSElasticBeanstalkClient beanstalkClient;
 	private InputConfiguration config;
 	private GeneratedResources resources;
-	private ExecutorService executor = Executors.newFixedThreadPool(Constants.SVC_PREFIXES.size());
+	private ExecutorService executor = Executors.newFixedThreadPool(ConfigEnvironmentPrefix.values().length);
 	private CompletionService<EnvironmentDescription> completionSvc = new ExecutorCompletionService<EnvironmentDescription>(executor);
 	/**
 	 * The IoC constructor.
@@ -78,8 +81,8 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
 		// There are many dependencies for this setup.
-		if(resources.getSslCertificate("generic") == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate() cannot be null");
-		if(resources.getSslCertificate("portal") == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate() cannot be null");
+		if(resources.getSslCertificate(ConfigSslPrefix.GENERIC) == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate() cannot be null");
+		if(resources.getSslCertificate(ConfigSslPrefix.PORTAL) == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate() cannot be null");
 		if(resources.getAuthApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getAuthApplicationVersion() cannot be null");
 		if(resources.getPortalApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getPortalApplicationVersion() cannot be null");
 		if(resources.getRepoApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getReopApplicationVersion() cannot be null");
@@ -103,45 +106,45 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	}
 	
 	public void describeResources() {
-		resources.setAuthenticationEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_AUTH)));
-		resources.setPortalEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_PORTAL)));
-		resources.setRepositoryEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_REPO)));
-		resources.setSearchEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_SEARCH)));
-		resources.setRdsAsynchEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_RDS)));
-		resources.setDynamoEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_DYNAMO)));
-		resources.setFileEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_FILE)));
+		resources.setAuthenticationEnvironment(describeEnvironment(config.getEnvironmentName(ConfigEnvironmentPrefix.AUTH)));
+		resources.setPortalEnvironment(describeEnvironment(config.getEnvironmentName(ConfigEnvironmentPrefix.PORTAL)));
+		resources.setRepositoryEnvironment(describeEnvironment(config.getEnvironmentName(ConfigEnvironmentPrefix.REPO)));
+		resources.setSearchEnvironment(describeEnvironment(config.getEnvironmentName(ConfigEnvironmentPrefix.SEARCH)));
+		resources.setRdsAsynchEnvironment(describeEnvironment(config.getEnvironmentName(ConfigEnvironmentPrefix.RDS)));
+		resources.setDynamoEnvironment(describeEnvironment(config.getEnvironmentName(ConfigEnvironmentPrefix.DYNAMO)));
+		resources.setFileEnvironment(describeEnvironment(config.getEnvironmentName(ConfigEnvironmentPrefix.FILE)));
 	}
 
 	/**
 	 * Create the environments
 	 */
 	public void createAllEnvironments(){
-		String genericElbTemplateName = config.getElasticBeanstalkTemplateName() + "-generic";
-		String portalElbTemplateName = config.getElasticBeanstalkTemplateName() + "-portal";
+		String genericElbTemplateName = config.getElasticBeanstalkTemplateName() + "-" + ConfigSslPrefix.GENERIC.toString();
+		String portalElbTemplateName = config.getElasticBeanstalkTemplateName() + "-" + ConfigSslPrefix.PORTAL.toString();
 		// First create or update the templates using the current data.
-		List<ConfigurationOptionSetting> cfgOptSettings = getAllElasticBeanstalkOptions("generic");
-		resources.setElasticBeanstalkConfigurationTemplate("generic", createOrUpdateConfigurationTemplate(genericElbTemplateName, cfgOptSettings));
-		cfgOptSettings = getAllElasticBeanstalkOptions("portal");
-		resources.setElasticBeanstalkConfigurationTemplate("portal", createOrUpdateConfigurationTemplate(portalElbTemplateName, cfgOptSettings));
+		List<ConfigurationOptionSetting> cfgOptSettings = getAllElasticBeanstalkOptions(ConfigSslPrefix.GENERIC);
+		resources.setElasticBeanstalkConfigurationTemplate(ConfigSslPrefix.GENERIC, createOrUpdateConfigurationTemplate(genericElbTemplateName, cfgOptSettings));
+		cfgOptSettings = getAllElasticBeanstalkOptions(ConfigSslPrefix.PORTAL);
+		resources.setElasticBeanstalkConfigurationTemplate(ConfigSslPrefix.PORTAL, createOrUpdateConfigurationTemplate(portalElbTemplateName, cfgOptSettings));
 		// Create the environments
 		// Auth
-		createOrUpdateEnvironment(PREFIX_AUTH, genericElbTemplateName, resources.getAuthApplicationVersion());
+		createOrUpdateEnvironment(ConfigEnvironmentPrefix.AUTH, genericElbTemplateName, resources.getAuthApplicationVersion());
 		// repo
-		createOrUpdateEnvironment(PREFIX_REPO, genericElbTemplateName, resources.getRepoApplicationVersion());
+		createOrUpdateEnvironment(ConfigEnvironmentPrefix.REPO, genericElbTemplateName, resources.getRepoApplicationVersion());
 		// search
-		createOrUpdateEnvironment(PREFIX_SEARCH, genericElbTemplateName, resources.getSearchApplicationVersion());
+		createOrUpdateEnvironment(ConfigEnvironmentPrefix.SEARCH, genericElbTemplateName, resources.getSearchApplicationVersion());
 		// portal
-		createOrUpdateEnvironment(PREFIX_PORTAL, portalElbTemplateName, resources.getPortalApplicationVersion());
+		createOrUpdateEnvironment(ConfigEnvironmentPrefix.PORTAL, portalElbTemplateName, resources.getPortalApplicationVersion());
 		// The rds asynch
-		createOrUpdateEnvironment(PREFIX_RDS, genericElbTemplateName, resources.getRdsAsynchApplicationVersion());
+		createOrUpdateEnvironment(ConfigEnvironmentPrefix.RDS, genericElbTemplateName, resources.getRdsAsynchApplicationVersion());
 		// dynamo
-		createOrUpdateEnvironment(PREFIX_DYNAMO, genericElbTemplateName, resources.getDynamoApplicationVersion());
+		createOrUpdateEnvironment(ConfigEnvironmentPrefix.DYNAMO, genericElbTemplateName, resources.getDynamoApplicationVersion());
 		// file proxy
-		createOrUpdateEnvironment(PREFIX_FILE, genericElbTemplateName, resources.getFileApplicationVersion());
+		createOrUpdateEnvironment(ConfigEnvironmentPrefix.FILE, genericElbTemplateName, resources.getFileApplicationVersion());
 		
 		// Fetch all of the results
 		List<EnvironmentDescription> envDescs = new ArrayList<EnvironmentDescription>();
-		for (int numEnvironments = 0; numEnvironments < Constants.SVC_PREFIXES.size(); numEnvironments++) {
+		for (int numEnvironments = 0; numEnvironments < ConfigEnvironmentPrefix.values().length; numEnvironments++) {
 			try {
 				Future<EnvironmentDescription> futureEnvDesc = completionSvc.take();
 				EnvironmentDescription envDesc = futureEnvDesc.get();
@@ -161,13 +164,13 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * Terminate the environments
 	 */
 	public void terminateAllEnvironments() {
-		this.terminateEnvironment(PREFIX_AUTH);
-		this.terminateEnvironment(PREFIX_REPO);
-		this.terminateEnvironment(PREFIX_SEARCH);
-		this.terminateEnvironment(PREFIX_PORTAL);
-		this.terminateEnvironment(PREFIX_RDS);
-		this.terminateEnvironment(PREFIX_DYNAMO);
-		this.terminateEnvironment(PREFIX_FILE);
+		this.terminateEnvironment(ConfigEnvironmentPrefix.AUTH);
+		this.terminateEnvironment(ConfigEnvironmentPrefix.REPO);
+		this.terminateEnvironment(ConfigEnvironmentPrefix.SEARCH);
+		this.terminateEnvironment(ConfigEnvironmentPrefix.PORTAL);
+		this.terminateEnvironment(ConfigEnvironmentPrefix.RDS);
+		this.terminateEnvironment(ConfigEnvironmentPrefix.DYNAMO);
+		this.terminateEnvironment(ConfigEnvironmentPrefix.FILE);
 //		this.deleteConfigurationTemplate();
 	}
 	/**
@@ -261,7 +264,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * @param version
 	 * @return 
 	 */
-	public Future<EnvironmentDescription> createOrUpdateEnvironment(final String servicePrefix, final String cfgTemplateName, final ApplicationVersionDescription version){
+	public Future<EnvironmentDescription> createOrUpdateEnvironment(final ConfigEnvironmentPrefix servicePrefix, final String cfgTemplateName, final ApplicationVersionDescription version){
 		final String environmentName = config.getEnvironmentName(servicePrefix);
 		final String environmentCNAME = config.getEnvironmentCNAMEPrefix(servicePrefix);
 		// This work is done on a separate thread.
@@ -281,35 +284,29 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 					logger.debug(environment);
 					return environment;
 				}else{
-					logger.debug("Environment already exists: "+environmentName+" updating it...");
-					// Lookup the current environment
-					ConfigurationSettingsDescription csd = describeConfigurationSettings(version.getApplicationName(), environmentName);
-					// do the configurations already match?
-					// Update for generic/portal SSL arn not needed since we don't actually check the need for update
-//					List<ConfigurationOptionSetting> cfgOptionSettings = getAllElasticBeanstalkOptions();
-//					// Add SSL arn
-//					cfgOptionSettings.add(new ConfigurationOptionSetting("aws.elb.loadbalancer", "SSLCertificateId", resources.getSslCertificate(servicePrefix).getArn()));
-					boolean updated = false;
+					//	TODO: Redo the logic here so that:
+					//		- we only update the configuration if it has changed
+					//		- we only update the version if it has changed
+					//		- we restart the environment of configuration updated
+					//		- we rebuild the environment if version updated
+					//
 					
-					// Should we update the configuration?
-//					if(csd == null || !areExpectedSettingsEquals(cfgOptionSettings, csd.getOptionSettings())){
-						// First update the configuration
-						logger.debug("Environment configurations need to be updated for: "+environmentName+"... updating it...");
-						updateConfigurationOnly(environmentName, environment, cfgTemplateName);
-						// An update was made.
-						updated = true;
-//					}
+					logger.debug("Environment already exists: "+environmentName+" updating it...");
+					
+					// First update the configuration
+					logger.debug("Environment configurations need to be updated for: "+environmentName+"... updating it...");
+					updateConfigurationOnly(environmentName, environment, cfgTemplateName);
+
 					// Should we update the version?
 					if(!environment.getVersionLabel().equals(version.getVersionLabel())){
 						logger.debug("Environment version need to be updated for: "+environmentName+"... updating it...");
 						// Now update the version.
 						updateEnvironmentVersionOnly(environmentName, version, environment);
-						updated = true;
 					}
-					// If we did not update the environment then we need to restart it.
-					if(!updated){
-						beanstalkClient.restartAppServer(new RestartAppServerRequest().withEnvironmentId(environment.getEnvironmentId()));
-					}
+					
+					//	For now, always rebuild the environment
+					beanstalkClient.rebuildEnvironment(new RebuildEnvironmentRequest().withEnvironmentId(environment.getEnvironmentId()));
+
 					// Return the new information.
 					environment = describeEnvironment(environmentName);
 					logger.debug(environment);
@@ -393,7 +390,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	/**
 	 * Delete a single environment
 	 */
-	public void terminateEnvironment(String servicePrefix) {
+	public void terminateEnvironment(ConfigEnvironmentPrefix servicePrefix) {
 		final String environmentName = config.getEnvironmentName(servicePrefix);
 		final String environmentCName = config.getEnvironmentCNAMEPrefix(servicePrefix);
 		EnvironmentDescription environment = describeEnvironment(environmentName);
@@ -413,10 +410,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * @return
 	 * @throws IOException 
 	 */
-	public List<ConfigurationOptionSetting> getAllElasticBeanstalkOptions(final String templateSuffix) {
-		if (! (("generic".equals(templateSuffix)) || ("portal".equals(templateSuffix)))) {
-			throw new IllegalArgumentException("Allowed values for templateSuffix are 'generic' and 'portal'.");
-		}
+	public List<ConfigurationOptionSetting> getAllElasticBeanstalkOptions(final ConfigSslPrefix templateSuffix) {
 		List<ConfigurationOptionSetting> list = new LinkedList<ConfigurationOptionSetting>();
 		// Load the properties 
 		Properties rawConfig = InputConfiguration.loadPropertyFile(Constants.ELASTIC_BEANSTALK_CONFIG_PROP_FILE_NAME);
