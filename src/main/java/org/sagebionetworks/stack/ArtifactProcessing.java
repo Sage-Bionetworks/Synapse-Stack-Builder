@@ -45,7 +45,6 @@ public class ArtifactProcessing {
 	AWSElasticBeanstalkClient beanstalkClient;
 	AmazonS3Client s3Client;
 	GeneratedResources resources;
-	
 
 	/**
 	 * The IoC constructor.
@@ -75,27 +74,15 @@ public class ArtifactProcessing {
 		resources.setPortalApplicationVersion(createOrGetApplicationVersion(PREFIX_PORTAL));
 		// Create the application version for the reop
 		resources.setRepoApplicationVersion(createOrGetApplicationVersion(PREFIX_REPO));
-		// Create the application version for the auth
-		resources.setAuthApplicationVersion(createOrGetApplicationVersion(PREFIX_AUTH));
-		// Create the application version for the search
-		resources.setSearchApplicationVersion(createOrGetApplicationVersion(PREFIX_SEARCH));
-		// Create the application version for the rds asynch
-		resources.setRdsAsynchApplicationVersion(createOrGetApplicationVersion(PREFIX_RDS));
-		// Create the application version for the dynamo
-		resources.setDynamoApplicationVersion(createOrGetApplicationVersion(PREFIX_DYNAMO));
-		// Create the application version for the dynamo
-		resources.setFileApplicationVersion(createOrGetApplicationVersion(PREFIX_FILE));
+//		// Create the application version for the workers
+		resources.setWorkersApplicationVersion(createOrGetApplicationVersion(PREFIX_WORKERS));
 	}
 	
 	public void describeResources() {
 		resources.setElasticBeanstalkApplication(describeApplication());
 		resources.setPortalApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_PORTAL)));
 		resources.setRepoApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_REPO)));
-		resources.setAuthApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_AUTH)));
-		resources.setSearchApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_SEARCH)));
-		resources.setRdsAsynchApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_RDS)));
-		resources.setDynamoApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_DYNAMO)));
-		resources.setFileApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_FILE)));
+		resources.setWorkersApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_WORKERS)));
 	}
 	
 	/**

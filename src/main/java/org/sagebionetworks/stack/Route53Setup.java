@@ -8,22 +8,16 @@ import com.amazonaws.services.route53.model.ChangeResourceRecordSetsRequest;
 import com.amazonaws.services.route53.model.ChangeResourceRecordSetsResult;
 import com.amazonaws.services.route53.model.GetChangeRequest;
 import com.amazonaws.services.route53.model.GetChangeResult;
-import com.amazonaws.services.route53.model.GetHostedZoneRequest;
-import com.amazonaws.services.route53.model.GetHostedZoneResult;
 import com.amazonaws.services.route53.model.HostedZone;
 import com.amazonaws.services.route53.model.ListHostedZonesResult;
 import com.amazonaws.services.route53.model.ListResourceRecordSetsRequest;
 import com.amazonaws.services.route53.model.ListResourceRecordSetsResult;
-import com.amazonaws.services.route53.model.NoSuchHostedZoneException;
 import com.amazonaws.services.route53.model.RRType;
 import com.amazonaws.services.route53.model.ResourceRecord;
 import com.amazonaws.services.route53.model.ResourceRecordSet;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -67,7 +61,7 @@ public class Route53Setup implements ResourceProcessor {
 	
 	public void setupResources() throws InterruptedException {
 		
-		List<Change> changes = buildChangesList(Constants.SVC_PREFIXES);
+		List<Change> changes = buildChangesList(Constants.ROUTE53_PREFIXES);
 		if (changes.size() > 0) {
 			ChangeBatch changeBatch = new ChangeBatch().withChanges(changes);
 
