@@ -15,8 +15,6 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBParameterGroup;
 import com.amazonaws.services.rds.model.DBSecurityGroup;
 import com.amazonaws.services.s3.model.Bucket;
-import com.amazonaws.services.route53.model.HostedZone;
-import com.amazonaws.services.route53.model.ResourceRecordSet;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,23 +37,15 @@ public class GeneratedResources {
 	private URL stackConfigurationFileURL;
 	private ApplicationDescription elasticBeanstalkApplication;
 	private ApplicationVersionDescription portalApplicationVersion;
-	private ApplicationVersionDescription searchApplicationVersion;
 	private ApplicationVersionDescription repoApplicationVersion;
-	private ApplicationVersionDescription authApplicationVersion;
-	private ApplicationVersionDescription rdsAsynchApplicationVersion;
-	private ApplicationVersionDescription dynamoApplicationVersion;
-	private ApplicationVersionDescription fileApplicationVersion;
+	private ApplicationVersionDescription workersApplicationVersion;
 	private ServerCertificateMetadata sslCertificate;
 	private Map<String, ServerCertificateMetadata> sslCertificates;
 	private KeyPairInfo stackKeyPair;
 	private Map<String, DescribeConfigurationOptionsResult> elasticBeanstalkConfigurationTemplate;
-	private EnvironmentDescription authenticationEnvironment;
-	private EnvironmentDescription repositoryEnvironment;
-	private EnvironmentDescription searchEnvironment;
-	private EnvironmentDescription rdsAsynchEnvironment;
-	private EnvironmentDescription dynamoEnvironment;
 	private EnvironmentDescription portalEnvironment;
-	private EnvironmentDescription fileEnvironment;
+	private EnvironmentDescription repositoryEnvironment;
+	private EnvironmentDescription workersEnvironment;
 	private DomainStatus searchDomain;
 	private DBParameterGroup dbParameterGroup;
 	private Bucket mainFileBucket;
@@ -81,23 +71,6 @@ public class GeneratedResources {
 	}
 
 	/**
-	 * The authentication environment description.
-	 * @return
-	 */
-	public EnvironmentDescription getAuthenticationEnvironment() {
-		return authenticationEnvironment;
-	}
-
-	/**
-	 * The authentication environment description.
-	 * @param authenticationEnvironment
-	 */
-	public void setAuthenticationEnvironment(
-			EnvironmentDescription authenticationEnvironment) {
-		this.authenticationEnvironment = authenticationEnvironment;
-	}
-
-	/**
 	 * The repository environment description.
 	 * @return
 	 */
@@ -112,55 +85,6 @@ public class GeneratedResources {
 	public void setRepositoryEnvironment(
 			EnvironmentDescription repositoryEnvironment) {
 		this.repositoryEnvironment = repositoryEnvironment;
-	}
-
-	/**
-	 * The repository environment description.
-	 * @return
-	 */
-	public EnvironmentDescription getSearchEnvironment() {
-		return searchEnvironment;
-	}
-
-	/**
-	 * The repository environment description.
-	 * @param repositoryEnvironment
-	 */
-	public void setSearchEnvironment(
-			EnvironmentDescription searchEnvironment) {
-		this.searchEnvironment = searchEnvironment;
-	}
-
-	/**
-	 * The rds asynch environment description.
-	 * @return
-	 */
-	public EnvironmentDescription getRdsAsynchEnvironment() {
-		return rdsAsynchEnvironment;
-	}
-
-	/**
-	 * The rds asynch environment description.
-	 * @param rdsAsynchEnvironment
-	 */
-	public void setRdsAsynchEnvironment(EnvironmentDescription rdsAsynchEnvironment) {
-		this.rdsAsynchEnvironment = rdsAsynchEnvironment;
-	}
-
-	/**
-	 * The dynamo environment description
-	 * @return
-	 */
-	public EnvironmentDescription getDynamoEnvironment() {
-		return dynamoEnvironment;
-	}
-
-	/**
-	 * The dynamo environment description
-	 * @param dynamoEnvironment
-	 */
-	public void setDynamoEnvironment(EnvironmentDescription dynamoEnvironment) {
-		this.dynamoEnvironment = dynamoEnvironment;
 	}
 
 	/**
@@ -180,19 +104,18 @@ public class GeneratedResources {
 	}
 
 	/**
-	 * The portal environment description.
+	 * The workers environment description.
 	 * @return
 	 */
-	public EnvironmentDescription getFileEnvironment() {
-		return fileEnvironment;
+	public EnvironmentDescription getWorkersEnvironment() {
+		return workersEnvironment;
 	}
 
 	/**
-	 * The portal environment description.
-	 * @param portalEnvironment
+	 * @param workersEnvironment
 	 */
-	public void setFileEnvironment(EnvironmentDescription fileEnvironment) {
-		this.fileEnvironment = fileEnvironment;
+	public void setWorkersEnvironment(EnvironmentDescription workersEnvironment) {
+		this.workersEnvironment = workersEnvironment;
 	}
 
 	/**
@@ -299,87 +222,20 @@ public class GeneratedResources {
 	}
 	
 	/**
-	 * The application version of the repository
+	 * The application version of the workers service
 	 * @return
 	 */
-	public ApplicationVersionDescription getSearchApplicationVersion() {
-		return searchApplicationVersion;
+	public ApplicationVersionDescription getWorkersApplicationVersion() {
+		return workersApplicationVersion;
 	}
 
 	/**
-	 * 
-	 * @param reopApplicationVersion
+	 * The application version of the workers service
+	 * @param workersApplicationVersion
 	 */
-	public void setSearchApplicationVersion(
-			ApplicationVersionDescription searchApplication) {
-		this.searchApplicationVersion = searchApplication;
-	}
-	
-	/**
-	 * The application version of the RDS asynchronous works
-	 * @return
-	 */
-	public ApplicationVersionDescription getRdsAsynchApplicationVersion() {
-		return rdsAsynchApplicationVersion;
-	}
-
-	/**
-	 * The application version of the RDS asynchronous works
-	 * @param rdsAsynchApplicationVersion
-	 */
-	public void setRdsAsynchApplicationVersion(
-			ApplicationVersionDescription rdsAsynchApplicationVersion) {
-		this.rdsAsynchApplicationVersion = rdsAsynchApplicationVersion;
-	}
-	/**
-	 * The application version of the authentication service
-	 * @return
-	 */
-	public ApplicationVersionDescription getAuthApplicationVersion() {
-		return authApplicationVersion;
-	}
-
-	/**
-	 * The application version of the dynamo service
-	 * @return
-	 */
-	public ApplicationVersionDescription getDynamoApplicationVersion() {
-		return dynamoApplicationVersion;
-	}
-
-	/**
-	 * The application version of the file proxy service
-	 * @return
-	 */
-	public ApplicationVersionDescription getFileApplicationVersion() {
-		return fileApplicationVersion;
-	}
-
-	/**
-	 * The application version of the dynamo service
-	 * @param dynamoApplicationVersion
-	 */
-	public void setDynamoApplicationVersion(
-			ApplicationVersionDescription dynamoApplicationVersion) {
-		this.dynamoApplicationVersion = dynamoApplicationVersion;
-	}
-
-	/**
-	 * The application version of the authentication service
-	 * @param authApplicationVersion
-	 */
-	public void setAuthApplicationVersion(
-			ApplicationVersionDescription authApplicationVersion) {
-		this.authApplicationVersion = authApplicationVersion;
-	}
-
-	/**
-	 * The application version of the file proxy service
-	 * @param fileApplicationVersion
-	 */
-	public void setFileApplicationVersion(
-			ApplicationVersionDescription fileApplicationVersion) {
-		this.fileApplicationVersion = fileApplicationVersion;
+	public void setWorkersApplicationVersion(
+			ApplicationVersionDescription workersApplicationVersion) {
+		this.workersApplicationVersion = workersApplicationVersion;
 	}
 
 	/**
