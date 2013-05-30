@@ -60,7 +60,7 @@ public class Activator {
 		}
 		
 		// BackEnd services
-		List<String> backEndSvcPrefixes = Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_FILE, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH);
+		List<String> backEndSvcPrefixes = Arrays.asList(Constants.PREFIX_REPO, Constants.PREFIX_WORKERS);
 		String r53SubdomainName = backEndHostedZone.getName();
 		Map<String, String> genericToInstanceCNAMEMap = new HashMap<String, String>();
 		for (String backEndSvcPrefix :backEndSvcPrefixes) {

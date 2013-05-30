@@ -121,7 +121,7 @@ public class Route53SetupTest {
 		}
 
 		Route53Setup r53Setup = new Route53Setup(factory, config, resources);
-		for (String svcPrefix: Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH)) {
+		for (String svcPrefix: Arrays.asList(Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS)) {
 			ResourceRecordSet rrs = r53Setup.getResourceRecordSetForRecordName(svcPrefix + ".stack.inst.r53.sagebase.org");
 			assertFalse(rrs == null);
 			assertEquals(rrs.getName(), svcPrefix + ".stack.inst.r53.sagebase.org");
@@ -148,7 +148,7 @@ public class Route53SetupTest {
 		}
 
 		Route53Setup r53Setup = new Route53Setup(factory, config, resources);
-		for (String svcPrefix: Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH)) {
+		for (String svcPrefix: Arrays.asList(Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS)) {
 			ResourceRecordSet rrs = r53Setup.getResourceRecordSetForRecordName(svcPrefix + ".stack.inst.r53.sagebase.org");
 			assertTrue(rrs == null);
 		}

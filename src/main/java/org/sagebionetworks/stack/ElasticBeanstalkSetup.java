@@ -41,8 +41,6 @@ import com.amazonaws.services.elasticbeanstalk.model.UpdateConfigurationTemplate
 import com.amazonaws.services.elasticbeanstalk.model.UpdateConfigurationTemplateResult;
 import com.amazonaws.services.elasticbeanstalk.model.UpdateEnvironmentRequest;
 import com.amazonaws.services.elasticbeanstalk.model.UpdateEnvironmentResult;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorCompletionService;
@@ -80,15 +78,10 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		// There are many dependencies for this setup.
 		if(resources.getSslCertificate("generic") == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate() cannot be null");
 		if(resources.getSslCertificate("portal") == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate() cannot be null");
-		if(resources.getAuthApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getAuthApplicationVersion() cannot be null");
 		if(resources.getPortalApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getPortalApplicationVersion() cannot be null");
 		if(resources.getRepoApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getReopApplicationVersion() cannot be null");
-		if(resources.getSearchApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getSearchApplicationVersion() cannot be null");
-		if(resources.getRdsAsynchApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getRdsAsynchApplicationVersion() cannot be null");
-		if(resources.getDynamoApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getDynamoApplicationVersion() cannot be null");
-		if(resources.getFileApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getFileApplicationVersion() cannot be null");
+		if(resources.getWorkersApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getWorkersApplicationVersion() cannot be null");
 		if(resources.getStackKeyPair() == null) throw new IllegalArgumentException("GeneratedResources.getStackKeyPair() cannot be null");
-		if(resources.getDynamoApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getDynamoApplicationVersion() cannot be null");
 		this.beanstalkClient = factory.createBeanstalkClient();
 		this.config = config;
 		this.resources = resources;
@@ -103,13 +96,9 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	}
 	
 	public void describeResources() {
-		resources.setAuthenticationEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_AUTH)));
 		resources.setPortalEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_PORTAL)));
 		resources.setRepositoryEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_REPO)));
-		resources.setSearchEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_SEARCH)));
-		resources.setRdsAsynchEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_RDS)));
-		resources.setDynamoEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_DYNAMO)));
-		resources.setFileEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_FILE)));
+		resources.setWorkersEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_WORKERS)));
 	}
 
 	/**
@@ -124,20 +113,12 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		cfgOptSettings = getAllElasticBeanstalkOptions("portal");
 		resources.setElasticBeanstalkConfigurationTemplate("portal", createOrUpdateConfigurationTemplate(portalElbTemplateName, cfgOptSettings));
 		// Create the environments
-		// Auth
-		createOrUpdateEnvironment(PREFIX_AUTH, genericElbTemplateName, resources.getAuthApplicationVersion());
-		// repo
-		createOrUpdateEnvironment(PREFIX_REPO, genericElbTemplateName, resources.getRepoApplicationVersion());
-		// search
-		createOrUpdateEnvironment(PREFIX_SEARCH, genericElbTemplateName, resources.getSearchApplicationVersion());
 		// portal
 		createOrUpdateEnvironment(PREFIX_PORTAL, portalElbTemplateName, resources.getPortalApplicationVersion());
-		// The rds asynch
-		createOrUpdateEnvironment(PREFIX_RDS, genericElbTemplateName, resources.getRdsAsynchApplicationVersion());
-		// dynamo
-		createOrUpdateEnvironment(PREFIX_DYNAMO, genericElbTemplateName, resources.getDynamoApplicationVersion());
-		// file proxy
-		createOrUpdateEnvironment(PREFIX_FILE, genericElbTemplateName, resources.getFileApplicationVersion());
+		// repo
+		createOrUpdateEnvironment(PREFIX_REPO, genericElbTemplateName, resources.getRepoApplicationVersion());
+		// workers svc
+		createOrUpdateEnvironment(PREFIX_WORKERS, genericElbTemplateName, resources.getWorkersApplicationVersion());
 		
 		// Fetch all of the results
 		List<EnvironmentDescription> envDescs = new ArrayList<EnvironmentDescription>();
@@ -161,13 +142,9 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * Terminate the environments
 	 */
 	public void terminateAllEnvironments() {
-		this.terminateEnvironment(PREFIX_AUTH);
-		this.terminateEnvironment(PREFIX_REPO);
-		this.terminateEnvironment(PREFIX_SEARCH);
 		this.terminateEnvironment(PREFIX_PORTAL);
-		this.terminateEnvironment(PREFIX_RDS);
-		this.terminateEnvironment(PREFIX_DYNAMO);
-		this.terminateEnvironment(PREFIX_FILE);
+		this.terminateEnvironment(PREFIX_REPO);
+		this.terminateEnvironment(PREFIX_WORKERS);
 //		this.deleteConfigurationTemplate();
 	}
 	/**
@@ -271,7 +248,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 				if(environment == null){
 					// Create it since it does not exist
 					logger.debug(String.format("Creating environment name: '%1$s' with CNAME: '%2$s' ",environmentName, environmentCNAME));
-					CreateEnvironmentRequest cer = new CreateEnvironmentRequest(resources.getAuthApplicationVersion().getApplicationName(), environmentName);
+					CreateEnvironmentRequest cer = new CreateEnvironmentRequest(resources.getRepoApplicationVersion().getApplicationName(), environmentName);
 					cer.setTemplateName(cfgTemplateName);
 					cer.setVersionLabel(version.getVersionLabel());
 					cer.setCNAMEPrefix(environmentCNAME);

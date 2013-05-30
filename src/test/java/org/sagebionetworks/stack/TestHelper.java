@@ -106,13 +106,9 @@ public class TestHelper {
 		resources.getSearchDomain().setDocService(new ServiceEndpoint().withEndpoint("doc-service.someplace.com"));
 		resources.setSslCertificate("generic", new ServerCertificateMetadata().withArn("ssl:arn:123"));
 		resources.setSslCertificate("portal", new ServerCertificateMetadata().withArn("ssl:arn:456"));
-		resources.setAuthApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_AUTH)));
 		resources.setPortalApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_PORTAL)));
 		resources.setRepoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_REPO)));
-		resources.setSearchApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_SEARCH)));
-		resources.setRdsAsynchApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_RDS)));
-		resources.setDynamoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_DYNAMO)));
-		resources.setFileApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_FILE)));
+		resources.setWorkersApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_WORKERS)));
 		resources.setStackKeyPair(new KeyPairInfo().withKeyName(config.getStackKeyPairName()));
 		return resources;
 	}
@@ -121,7 +117,7 @@ public class TestHelper {
 		Properties inputProperties = createInputProperties(stack);
 		InputConfiguration config = new InputConfiguration(inputProperties);
 		Properties defaultProperties = createDefaultProperties();
-		Map<String, String> cnameProps = getSvcCNAMEsProps(stack, Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH));
+		Map<String, String> cnameProps = getSvcCNAMEsProps(stack, Arrays.asList(Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS));
 		defaultProperties.putAll(cnameProps);
 		defaultProperties.put("stack.subdomain", stack+".sagebase.org");
 		config.addPropertiesWithPlaintext(defaultProperties);
@@ -130,7 +126,7 @@ public class TestHelper {
 	
 	public static Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> createListExpectedListResourceRecordSetsRequestAllFound(String stack) {
 		Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> m = new HashMap<ListResourceRecordSetsRequest, ListResourceRecordSetsResult>();
-		List<String> svcPrefixes = Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_SEARCH);
+		List<String> svcPrefixes = Arrays.asList(Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS);
 		Map<String, String> map = getSvcCNAMEsProps(stack, svcPrefixes);
 		for (String svcPrefix: svcPrefixes) {
 			ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withStartRecordType(RRType.CNAME).withStartRecordName(map.get(svcPrefix + ".service.environment.subdomain.cname")).withMaxItems("1");
@@ -145,7 +141,7 @@ public class TestHelper {
 	public static Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> createListExpectedListResourceRecordSetsRequestNoneFound(String stack) {
 		Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> m = new HashMap<ListResourceRecordSetsRequest, ListResourceRecordSetsResult>();
 		// For Auth and Portal, simulate 'not last' situation i.e. the next record is returned
-		List<String> svcPrefixes = Arrays.asList(Constants.PREFIX_AUTH, Constants.PREFIX_PORTAL);
+		List<String> svcPrefixes = Arrays.asList(Constants.PREFIX_PORTAL);
 		Map<String, String> map = getSvcCNAMEsProps(stack, svcPrefixes);
 		for (String svcPrefix: svcPrefixes) {
 			ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withStartRecordType(RRType.CNAME).withStartRecordName(map.get(svcPrefix + ".service.environment.subdomain.cname")).withMaxItems("1");
@@ -153,8 +149,8 @@ public class TestHelper {
 			ListResourceRecordSetsResult res = new ListResourceRecordSetsResult().withResourceRecordSets(new ResourceRecordSet().withName(map.get(svcPrefix + ".service.environment.subdomain.cname") + "2").withTTL(300L).withType(RRType.CNAME).withResourceRecords(rr));
 			m.put(req, res);
 		}
-		// For Repo and Search, simulate 'last' situation i.e. no record is returned
-		svcPrefixes = Arrays.asList(Constants.PREFIX_REPO, Constants.PREFIX_SEARCH);
+		// For Repo and Workers, simulate 'last' situation i.e. no record is returned
+		svcPrefixes = Arrays.asList(Constants.PREFIX_REPO, Constants.PREFIX_WORKERS);
 		map = getSvcCNAMEsProps(stack, svcPrefixes);
 		for (String svcPrefix: svcPrefixes) {
 			ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withStartRecordType(RRType.CNAME).withStartRecordName(map.get(svcPrefix + ".service.environment.subdomain.cname")).withMaxItems("1");
