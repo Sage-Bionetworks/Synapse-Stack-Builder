@@ -112,17 +112,25 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		resources.setElasticBeanstalkConfigurationTemplate("generic", createOrUpdateConfigurationTemplate(genericElbTemplateName, cfgOptSettings));
 		cfgOptSettings = getAllElasticBeanstalkOptions("portal");
 		resources.setElasticBeanstalkConfigurationTemplate("portal", createOrUpdateConfigurationTemplate(portalElbTemplateName, cfgOptSettings));
+
 		// Create the environments
 		// portal
 		createOrUpdateEnvironment(PREFIX_PORTAL, portalElbTemplateName, resources.getPortalApplicationVersion());
-		// repo
-		createOrUpdateEnvironment(PREFIX_REPO, genericElbTemplateName, resources.getRepoApplicationVersion());
-		// workers svc
-		createOrUpdateEnvironment(PREFIX_WORKERS, genericElbTemplateName, resources.getWorkersApplicationVersion());
+		int installedEnvs = 1;
+		
+		// Only install if normal setup
+		if (! config.hasPortalAlternative()) {
+			// repo
+			createOrUpdateEnvironment(PREFIX_REPO, genericElbTemplateName, resources.getRepoApplicationVersion());
+			installedEnvs++;
+			// workers svc
+			createOrUpdateEnvironment(PREFIX_WORKERS, genericElbTemplateName, resources.getWorkersApplicationVersion());
+			installedEnvs++;
+		}
 		
 		// Fetch all of the results
 		List<EnvironmentDescription> envDescs = new ArrayList<EnvironmentDescription>();
-		for (int numEnvironments = 0; numEnvironments < Constants.SVC_PREFIXES.size(); numEnvironments++) {
+		for (int numEnvironments = 0; numEnvironments < installedEnvs; numEnvironments++) {
 			try {
 				Future<EnvironmentDescription> futureEnvDesc = completionSvc.take();
 				EnvironmentDescription envDesc = futureEnvDesc.get();

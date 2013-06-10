@@ -88,16 +88,22 @@ public class StackConfigurationSetup {
 	 * @throws IOException 
 	 */
 	public void setupAndUploadStackConfig() throws IOException{
-		// Fist make sure the bucket exists
-		String bucketName = config.getStackConfigS3BucketName();
-		log.info("Creating S3 Bucket: "+bucketName);
-		// This call is idempotent and will only actually create the bucket if it does not already exist.
-		Bucket bucket = client.createBucket(bucketName);
-		// This is the final property file that will be uploaded to S3.
-		Properties props = createConfigProperties();
-		// Write to a temp file that will get deleted.
-		File temp = File.createTempFile("TempProps", ".properties");
-		saveUploadDelete(bucketName, props, temp);
+		// Only upload the file if not portal alternative
+		// TODO: Check if S3 resource is used for anything else.
+		// If not then the test can be moved to BuildStackMan()
+		if (! config.hasPortalAlternative()) {
+				// Fist make sure the bucket exists
+			String bucketName = config.getStackConfigS3BucketName();
+			log.info("Creating S3 Bucket: "+bucketName);
+			// This call is idempotent and will only actually create the bucket if it does not already exist.
+			Bucket bucket = client.createBucket(bucketName);
+			// This is the final property file that will be uploaded to S3.
+			Properties props = createConfigProperties();
+			// Write to a temp file that will get deleted.
+			File temp = File.createTempFile("TempProps", ".properties");
+
+			saveUploadDelete(bucketName, props, temp);
+		}
 	}
 
 	/**

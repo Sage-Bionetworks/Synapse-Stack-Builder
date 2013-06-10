@@ -29,6 +29,7 @@ public class InputConfigurationTest {
 	String encryptionKey = "encryption Key that is long enough to work";
 	String stack = "stack";
 	String instance ="instance";
+	String portalAlternative = "";
 	
 	@Before
 	public void before(){
@@ -38,6 +39,7 @@ public class InputConfigurationTest {
 		inputProperties.put(STACK_ENCRYPTION_KEY, encryptionKey);
 		inputProperties.put(STACK, stack);
 		inputProperties.put(INSTANCE, instance);
+		inputProperties.put(PORTAL_ALTERNATIVE, portalAlternative);
 	}
 	
 	@Test
@@ -84,8 +86,8 @@ public class InputConfigurationTest {
 		loaded.put("not.required", "I am not required");
 		InputConfiguration.validateProperties(required, loaded);
 	}
-
-	@Test
+	
+	@Test(expected = IllegalStateException.class)
 	public void testConfig() throws IOException{
 		// Load from the properties 
 		InputConfiguration config = new InputConfiguration(inputProperties);
@@ -96,6 +98,8 @@ public class InputConfigurationTest {
 		assertEquals(encryptionKey, config.getEncryptionKey());
 		assertEquals(stack, config.getStack());
 		assertEquals(instance, config.getStackInstance());
+		// Should trigger IllegalArgument exception
+		String s = config.getPortalAlternative();
 	}
 	
 	@Test
@@ -189,5 +193,15 @@ public class InputConfigurationTest {
 		config = new InputConfiguration(inputProperties);
 		assertFalse(config.isProductionStack());
 		
+	}
+	
+	@Test
+	public void testHasPortalAlternative() throws IOException {
+		InputConfiguration cfg = new InputConfiguration(inputProperties);
+		assertFalse(cfg.hasPortalAlternative());
+		inputProperties.setProperty(Constants.PORTAL_ALTERNATIVE, "-1");
+		cfg = new InputConfiguration(inputProperties);
+		assertTrue(cfg.hasPortalAlternative());
+		assertEquals("-1", cfg.getPortalAlternative());
 	}
 }
