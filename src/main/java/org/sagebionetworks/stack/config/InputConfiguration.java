@@ -586,17 +586,8 @@ public class InputConfiguration {
 		return validateAndGetProperty(prefix + ".service.environment.subdomain.cname");
 	}
 	
-	public String getPortalAlternative() {
-		return validateAndGetProperty(Constants.PORTAL_ALTERNATIVE);
+	public String getPortalBeanstalkNumber() {
+		return validateAndGetProperty(Constants.PORTAL_BEANSTALK_NUMBER);
 	}
 	
-	public boolean hasPortalAlternative() {
-		boolean portalAltKeyExist = props.containsKey(Constants.PORTAL_ALTERNATIVE);
-		if (! portalAltKeyExist) {
-			throw new IllegalStateException("Key " + Constants.PORTAL_ALTERNATIVE + " is missing.");
-		}
-		String s = props.getProperty(Constants.PORTAL_ALTERNATIVE);
-		return (! "".equals(s.trim()));
-	}
-
 }

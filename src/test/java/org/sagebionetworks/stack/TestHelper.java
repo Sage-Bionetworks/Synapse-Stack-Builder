@@ -87,6 +87,7 @@ public class TestHelper {
 		inputProperties.put(Constants.STACK_ENCRYPTION_KEY, "Encryption key that is long enough");
 		inputProperties.put(Constants.STACK, stack);
 		inputProperties.put(Constants.INSTANCE, "A");
+		inputProperties.put(Constants.PORTAL_BEANSTALK_NUMBER, "0");
 		inputProperties.put(Constants.SWC_VERSION, "2.4.8");
 		inputProperties.put(Constants.PLFM_VERSION, "1.2.3");
 		return inputProperties;

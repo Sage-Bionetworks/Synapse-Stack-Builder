@@ -321,5 +321,5 @@ public class Constants {
 	public static final List<String> SVC_PREFIXES = Arrays.asList(Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS);
 	public static final List<String> ROUTE53_PREFIXES = Arrays.asList(Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS);
 	
-	public static final String PORTAL_ALTERNATIVE = "org.sagebionetworks.stack.portal.alternative";
+	public static final String PORTAL_BEANSTALK_NUMBER = "org.sagebionetworks.stack.portal.beanstalk.number";
 }
