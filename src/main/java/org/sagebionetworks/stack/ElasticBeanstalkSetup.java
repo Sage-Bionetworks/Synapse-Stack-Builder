@@ -116,18 +116,15 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		// Create the environments
 		// portal
 		createOrUpdateEnvironment(PREFIX_PORTAL, portalElbTemplateName, resources.getPortalApplicationVersion());
-		int installedEnvs = 1;
 		
 			// repo
 		createOrUpdateEnvironment(PREFIX_REPO, genericElbTemplateName, resources.getRepoApplicationVersion());
-		installedEnvs++;
 		// workers svc
 		createOrUpdateEnvironment(PREFIX_WORKERS, genericElbTemplateName, resources.getWorkersApplicationVersion());
-		installedEnvs++;
 		
 		// Fetch all of the results
 		List<EnvironmentDescription> envDescs = new ArrayList<EnvironmentDescription>();
-		for (int numEnvironments = 0; numEnvironments < installedEnvs; numEnvironments++) {
+		for (int numEnvironments = 0; numEnvironments < Constants.SVC_PREFIXES.size(); numEnvironments++) {
 			try {
 				Future<EnvironmentDescription> futureEnvDesc = completionSvc.take();
 				EnvironmentDescription envDesc = futureEnvDesc.get();
@@ -274,8 +271,6 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 						// Now update the version.
 						updateEnvironmentVersionOnly(environmentName, version, environment);
 					}
-					
-					// If we deployed new version, AMZN should restart it...
 					
 					// Return the new information.
 					environment = describeEnvironment(environmentName);
