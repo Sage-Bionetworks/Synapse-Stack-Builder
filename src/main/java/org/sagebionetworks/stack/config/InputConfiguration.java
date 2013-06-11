@@ -585,5 +585,9 @@ public class InputConfiguration {
 	public String getEnvironmentSubdomainCNAME(String prefix) {
 		return validateAndGetProperty(prefix + ".service.environment.subdomain.cname");
 	}
-
+	
+	public String getPortalBeanstalkNumber() {
+		return validateAndGetProperty(Constants.PORTAL_BEANSTALK_NUMBER);
+	}
+	
 }

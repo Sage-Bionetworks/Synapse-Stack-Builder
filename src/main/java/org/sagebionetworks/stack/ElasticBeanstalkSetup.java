@@ -112,10 +112,12 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		resources.setElasticBeanstalkConfigurationTemplate("generic", createOrUpdateConfigurationTemplate(genericElbTemplateName, cfgOptSettings));
 		cfgOptSettings = getAllElasticBeanstalkOptions("portal");
 		resources.setElasticBeanstalkConfigurationTemplate("portal", createOrUpdateConfigurationTemplate(portalElbTemplateName, cfgOptSettings));
+
 		// Create the environments
 		// portal
 		createOrUpdateEnvironment(PREFIX_PORTAL, portalElbTemplateName, resources.getPortalApplicationVersion());
-		// repo
+		
+			// repo
 		createOrUpdateEnvironment(PREFIX_REPO, genericElbTemplateName, resources.getRepoApplicationVersion());
 		// workers svc
 		createOrUpdateEnvironment(PREFIX_WORKERS, genericElbTemplateName, resources.getWorkersApplicationVersion());
@@ -258,35 +260,18 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 					logger.debug(environment);
 					return environment;
 				}else{
-					logger.debug("Environment already exists: "+environmentName+" updating it...");
-					// Lookup the current environment
-					ConfigurationSettingsDescription csd = describeConfigurationSettings(version.getApplicationName(), environmentName);
-					// do the configurations already match?
-					// Update for generic/portal SSL arn not needed since we don't actually check the need for update
-//					List<ConfigurationOptionSetting> cfgOptionSettings = getAllElasticBeanstalkOptions();
-//					// Add SSL arn
-//					cfgOptionSettings.add(new ConfigurationOptionSetting("aws.elb.loadbalancer", "SSLCertificateId", resources.getSslCertificate(servicePrefix).getArn()));
-					boolean updated = false;
+					// Note: No support for upgrading the environment, should deploy new stack instead
+					// Code deploys are OK
 					
-					// Should we update the configuration?
-//					if(csd == null || !areExpectedSettingsEquals(cfgOptionSettings, csd.getOptionSettings())){
-						// First update the configuration
-						logger.debug("Environment configurations need to be updated for: "+environmentName+"... updating it...");
-						updateConfigurationOnly(environmentName, environment, cfgTemplateName);
-						// An update was made.
-						updated = true;
-//					}
+					logger.debug("Environment already exists: "+environmentName+" updating it...");
+
 					// Should we update the version?
 					if(!environment.getVersionLabel().equals(version.getVersionLabel())){
 						logger.debug("Environment version need to be updated for: "+environmentName+"... updating it...");
 						// Now update the version.
 						updateEnvironmentVersionOnly(environmentName, version, environment);
-						updated = true;
 					}
-					// If we did not update the environment then we need to restart it.
-					if(!updated){
-						beanstalkClient.restartAppServer(new RestartAppServerRequest().withEnvironmentId(environment.getEnvironmentId()));
-					}
+					
 					// Return the new information.
 					environment = describeEnvironment(environmentName);
 					logger.debug(environment);
@@ -332,23 +317,6 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 
 	}
 
-	/**
-	 * @param environmentName
-	 * @param environment
-	 */
-	public void updateConfigurationOnly(String environmentName,	EnvironmentDescription environment, String cfgTemplateName) {
-		// We can only update a ready environment.
-		waitForEnvironmentReady(environmentName);
-		// This first pass is just to update the configuration, we do not change the version here.
-		UpdateEnvironmentRequest uer = new UpdateEnvironmentRequest();
-		uer.setEnvironmentId(environment.getEnvironmentId());
-		uer.setEnvironmentName(environmentName);
-		// We re-use the existing version for now.
-		uer.setVersionLabel(environment.getVersionLabel());
-		uer.setTemplateName(cfgTemplateName);
-		UpdateEnvironmentResult result = beanstalkClient.updateEnvironment(uer);
-	}
-	
 	/**
 	 * Wait for the Environment to be ready
 	 * @throws InterruptedException 

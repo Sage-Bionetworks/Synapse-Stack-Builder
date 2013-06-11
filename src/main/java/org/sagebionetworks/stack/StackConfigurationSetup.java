@@ -97,6 +97,7 @@ public class StackConfigurationSetup {
 		Properties props = createConfigProperties();
 		// Write to a temp file that will get deleted.
 		File temp = File.createTempFile("TempProps", ".properties");
+
 		saveUploadDelete(bucketName, props, temp);
 	}
 
