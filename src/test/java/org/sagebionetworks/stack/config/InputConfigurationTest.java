@@ -29,6 +29,7 @@ public class InputConfigurationTest {
 	String encryptionKey = "encryption Key that is long enough to work";
 	String stack = "stack";
 	String instance ="instance";
+	String portalBeanstalkNumber = "1001";
 	
 	@Before
 	public void before(){
@@ -38,6 +39,7 @@ public class InputConfigurationTest {
 		inputProperties.put(STACK_ENCRYPTION_KEY, encryptionKey);
 		inputProperties.put(STACK, stack);
 		inputProperties.put(INSTANCE, instance);
+		inputProperties.put(PORTAL_BEANSTALK_NUMBER, portalBeanstalkNumber);
 	}
 	
 	@Test
@@ -84,7 +86,7 @@ public class InputConfigurationTest {
 		loaded.put("not.required", "I am not required");
 		InputConfiguration.validateProperties(required, loaded);
 	}
-
+	
 	@Test
 	public void testConfig() throws IOException{
 		// Load from the properties 
@@ -96,6 +98,7 @@ public class InputConfigurationTest {
 		assertEquals(encryptionKey, config.getEncryptionKey());
 		assertEquals(stack, config.getStack());
 		assertEquals(instance, config.getStackInstance());
+		assertEquals(portalBeanstalkNumber, config.getPortalBeanstalkNumber());
 	}
 	
 	@Test

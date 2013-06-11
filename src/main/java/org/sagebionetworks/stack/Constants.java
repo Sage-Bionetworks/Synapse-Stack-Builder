@@ -320,4 +320,6 @@ public class Constants {
 	// List of service prefixes for Route53 setup
 	public static final List<String> SVC_PREFIXES = Arrays.asList(Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS);
 	public static final List<String> ROUTE53_PREFIXES = Arrays.asList(Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS);
+	
+	public static final String PORTAL_BEANSTALK_NUMBER = "org.sagebionetworks.stack.portal.beanstalk.number";
 }
