@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.sagebionetworks</groupId>
 	<artifactId>stack-builder</artifactId>
-	<version>0.0.9-SNAPSHOT</version>
+	<version>0.1.9-SNAPSHOT</version>
 	<name>stack-builder</name>
 	<description>Project to build an entire Synapse stack</description>
 
