@@ -96,6 +96,7 @@ public class EC2SecuritySetup implements ResourceProcessor {
 		
 		// Create the key pair.
 		resources.setStackKeyPair(createOrGetKeyPair());
+		
 	}
 	
 	/*
