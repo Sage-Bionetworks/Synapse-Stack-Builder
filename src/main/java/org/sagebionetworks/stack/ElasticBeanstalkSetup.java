@@ -22,6 +22,7 @@ import static org.sagebionetworks.stack.Constants.*;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
+import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionDescription;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionSetting;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationSettingsDescription;
 import com.amazonaws.services.elasticbeanstalk.model.CreateConfigurationTemplateRequest;
@@ -41,6 +42,18 @@ import com.amazonaws.services.elasticbeanstalk.model.UpdateConfigurationTemplate
 import com.amazonaws.services.elasticbeanstalk.model.UpdateConfigurationTemplateResult;
 import com.amazonaws.services.elasticbeanstalk.model.UpdateEnvironmentRequest;
 import com.amazonaws.services.elasticbeanstalk.model.UpdateEnvironmentResult;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
+import com.amazonaws.services.identitymanagement.model.AddRoleToInstanceProfileRequest;
+import com.amazonaws.services.identitymanagement.model.CreateInstanceProfileRequest;
+import com.amazonaws.services.identitymanagement.model.CreateRoleRequest;
+import com.amazonaws.services.identitymanagement.model.CreateRoleResult;
+import com.amazonaws.services.identitymanagement.model.EntityAlreadyExistsException;
+import com.amazonaws.services.identitymanagement.model.GetInstanceProfileRequest;
+import com.amazonaws.services.identitymanagement.model.GetRoleRequest;
+import com.amazonaws.services.identitymanagement.model.GetRoleResult;
+import com.amazonaws.services.identitymanagement.model.NoSuchEntityException;
+import com.amazonaws.services.identitymanagement.model.PutRolePolicyRequest;
+
 import java.util.ArrayList;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorCompletionService;
@@ -56,10 +69,21 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	private static Logger logger = Logger.getLogger(ElasticBeanstalkSetup.class);
 	
 	private AWSElasticBeanstalkClient beanstalkClient;
+	private AmazonIdentityManagementClient aimClient;
 	private InputConfiguration config;
 	private GeneratedResources resources;
 	private ExecutorService executor = Executors.newFixedThreadPool(Constants.SVC_PREFIXES.size());
 	private CompletionService<EnvironmentDescription> completionSvc = new ExecutorCompletionService<EnvironmentDescription>(executor);
+	
+	/**
+	 * Will grant full access to S3 when applied.
+	 */
+	private static String ROLE_POLICY = "{ \"Version\": \"2012-10-17\",  \"Statement\": [ {  \"Effect\": \"Allow\", \"Action\": \"s3:*\", \"Resource\": \"*\"  }  ]}";
+	
+	/**
+	 * Allows an EC2 instance to assume the role.
+	 */
+	private static String AssumeRolePolicyDocument = "{ \"Version\": \"2008-10-17\",  \"Statement\": [  {  \"Sid\": \"\",  \"Effect\": \"Allow\",   \"Principal\": { \"Service\": [ \"ec2.amazonaws.com\"   ] }, \"Action\": \"sts:AssumeRole\" }  ]}";
 	/**
 	 * The IoC constructor.
 	 * 
@@ -85,6 +109,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		this.beanstalkClient = factory.createBeanstalkClient();
 		this.config = config;
 		this.resources = resources;
+		this.aimClient = factory.createIdentityManagementClient();
 	}
 	
 	public void setupResources() {
@@ -105,6 +130,9 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * Create the environments
 	 */
 	public void createAllEnvironments(){
+		// setup the role, policy, and profile needed for rolling logs to S3.
+		configureInstanceProfileForLogRolingToS3();
+		// Create a profile that will used to enable logging.
 		String genericElbTemplateName = config.getElasticBeanstalkTemplateName() + "-generic";
 		String portalElbTemplateName = config.getElasticBeanstalkTemplateName() + "-portal";
 		// First create or update the templates using the current data.
@@ -140,6 +168,35 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		}
 	}
 
+	/**
+	 * Setup the Role, policy and profile needed for automatic log rolling.
+	 * Note the roleName is the same as the policy name.
+	 * 
+	 */
+	private void configureInstanceProfileForLogRolingToS3() {
+		// Need to grant the EC2 instances access to S3 so our logs can be rotated
+		String roleName = config.getElasticBeanstalkS3RoleName();
+		try{
+			// Try to get the role, if it does not exist then an exception will be thrown.
+			aimClient.getRole(new GetRoleRequest().withRoleName(roleName));
+		}catch (NoSuchEntityException e){
+			// This means the role does not exist so we must create it.
+			aimClient.createRole(new CreateRoleRequest().withRoleName(roleName).withAssumeRolePolicyDocument(AssumeRolePolicyDocument));
+		}
+		// Set the role policy
+		aimClient.putRolePolicy(new PutRolePolicyRequest().withRoleName(roleName).withPolicyDocument(ROLE_POLICY).withPolicyName("AdminAccessToS3"));
+		// Create an instance profile with the same name as the role.
+		try{
+			// Check to see if it already exists
+			aimClient.getInstanceProfile(new GetInstanceProfileRequest().withInstanceProfileName(roleName));
+		}catch(NoSuchEntityException e){
+			// this means it did not exist so we must create it.
+			aimClient.createInstanceProfile(new CreateInstanceProfileRequest().withInstanceProfileName(roleName));
+			// Add the policy to the role
+			aimClient.addRoleToInstanceProfile(new AddRoleToInstanceProfileRequest().withRoleName(roleName).withInstanceProfileName(roleName));
+		}
+	}
+
 	/*
 	 * Terminate the environments
 	 */
@@ -166,6 +223,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			request.setOptionSettings(cfgOptSettings);
 			beanstalkClient.createConfigurationTemplate(request);
 		}else{
+
 			logger.debug("Elastic Beanstalk Template already exists so updating it with name: "+templateName+"...");
 			// If it exists then we want to update it
 			UpdateConfigurationTemplateRequest request = new UpdateConfigurationTemplateRequest();
@@ -270,6 +328,9 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 						logger.debug("Environment version need to be updated for: "+environmentName+"... updating it...");
 						// Now update the version.
 						updateEnvironmentVersionOnly(environmentName, version, environment);
+					}else{
+						// Force a template change
+//						updateEnvironmentTemplateOnly(environmentName, version, environment);
 					}
 					
 					// Return the new information.
@@ -315,6 +376,25 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 //		uer.setTemplateName(config.getElasticBeanstalkTemplateName());
 		UpdateEnvironmentResult result =beanstalkClient.updateEnvironment(uer);
 
+	}
+	
+	/**
+	 * Update the template
+	 * @param environmentName
+	 * @param version
+	 * @param environment
+	 */
+	public void updateEnvironmentTemplateOnly(String environmentName, ApplicationVersionDescription version,
+			EnvironmentDescription environment) {
+		// wait for environment to be ready after this change.
+		waitForEnvironmentReady(environmentName);
+		// The second pass we update the environment template.
+		UpdateEnvironmentRequest uer = new UpdateEnvironmentRequest();
+		uer.setEnvironmentId(environment.getEnvironmentId());
+		uer.setEnvironmentName(environmentName);
+//		uer.setVersionLabel(version.getVersionLabel());
+		uer.setTemplateName(config.getElasticBeanstalkTemplateName());
+		UpdateEnvironmentResult result =beanstalkClient.updateEnvironment(uer);
 	}
 
 	/**

@@ -590,4 +590,12 @@ public class InputConfiguration {
 		return validateAndGetProperty(Constants.PORTAL_BEANSTALK_NUMBER);
 	}
 	
+	/**
+	 * Get the name of the role that grants elasticbeanstalk access to S3 for log rolling.
+	 * @return
+	 */
+	public String getElasticBeanstalkS3RoleName(){
+		return validateAndGetProperty("elastic.beanstalk.s3.role.name");
+	}
+	
 }
