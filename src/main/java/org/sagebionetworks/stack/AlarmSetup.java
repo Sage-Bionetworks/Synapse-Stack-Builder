@@ -112,8 +112,8 @@ public class AlarmSetup implements ResourceProcessor {
 		if(instances == null) throw new IllegalArgumentException("DBInstance cannot be null");
 		if(topicArn == null) throw new IllegalArgumentException("Topic ARN cannot be null");
 		List<PutMetricAlarmRequest> alarms = new LinkedList<PutMetricAlarmRequest>();
-		// Low-Freeable-Memory alarm
-		alarms.add(createLowFreeableMemory(instances, topicArn));
+		// Swap usage
+		alarms.add(createSwapUsage(instances, topicArn));
 		// High-Write-Latency
 		alarms.add(createHighWriteLatency(instances, topicArn));
 		// High CPU
@@ -223,6 +223,19 @@ public class AlarmSetup implements ResourceProcessor {
 		Double tenPercentBytes = tenPercentGB*Constants.BYTES_PER_GIGABYTE;
 		// CPUUtilization >= 90 for 5 minutes
 		alarmRequest.withStatistic(STATISTIC_AVERAGE).withMetricName(METRIC_FREE_STOREAGE_SPACE).withComparisonOperator(ComparisonOperator.LessThanOrEqualToThreshold).withThreshold(tenPercentBytes).withEvaluationPeriods(1).withPeriod(FIVE_MINUTES_IN_SECONDS);	
+		return alarmRequest;
+	}
+	
+	/**
+	 * Low-Free-Storage-Space
+	 */
+	public static PutMetricAlarmRequest createSwapUsage(DBInstance instances, String topicArn){
+		if(instances == null) throw new IllegalArgumentException("DBInstance cannot be null");
+		if(topicArn == null) throw new IllegalArgumentException("Topic ARN cannot be null");
+		PutMetricAlarmRequest alarmRequest = createDefaultPutMetricRequest(instances, topicArn);
+		alarmRequest.setAlarmName(instances.getDBInstanceIdentifier()+SWAP_USAGE);
+		Double swapUsageThreshold = 1024.0 * 1024.0 * 512.0;
+		alarmRequest.withStatistic(STATISTIC_AVERAGE).withMetricName(METRIC_SWAP_USAGE).withComparisonOperator(ComparisonOperator.LessThanOrEqualToThreshold).withThreshold(swapUsageThreshold).withEvaluationPeriods(2).withPeriod(FIVE_MINUTES_IN_SECONDS);	
 		return alarmRequest;
 	}
 	
