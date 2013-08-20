@@ -235,7 +235,7 @@ public class AlarmSetup implements ResourceProcessor {
 		PutMetricAlarmRequest alarmRequest = createDefaultPutMetricRequest(instances, topicArn);
 		alarmRequest.setAlarmName(instances.getDBInstanceIdentifier()+SWAP_USAGE);
 		Double swapUsageThreshold = 1024.0 * 1024.0 * 512.0;
-		alarmRequest.withStatistic(STATISTIC_AVERAGE).withMetricName(METRIC_SWAP_USAGE).withComparisonOperator(ComparisonOperator.LessThanOrEqualToThreshold).withThreshold(swapUsageThreshold).withEvaluationPeriods(2).withPeriod(FIVE_MINUTES_IN_SECONDS);	
+		alarmRequest.withStatistic(STATISTIC_AVERAGE).withMetricName(METRIC_SWAP_USAGE).withComparisonOperator(ComparisonOperator.GreaterThanThreshold).withThreshold(swapUsageThreshold).withEvaluationPeriods(2).withPeriod(FIVE_MINUTES_IN_SECONDS);	
 		return alarmRequest;
 	}
 	
