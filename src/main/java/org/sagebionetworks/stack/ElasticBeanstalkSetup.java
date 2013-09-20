@@ -449,7 +449,18 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		// Process the keys
 		logger.debug("Building the following ConfigurationOptionSetting list...");
 		for(String key: rawConfig.stringPropertyNames()){
-			String value = rawConfig.getProperty(key);
+			String value;
+			// Handle split keys
+			if (key.startsWith("generic.") || key.startsWith("portal.")) {
+				if (key.startsWith(templateSuffix+".")) {
+					value = rawConfig.getProperty(key);
+					key = key.replace(templateSuffix+".", "");
+				} else {
+					continue;
+				}
+			} else {
+				value = rawConfig.getProperty(key);
+			}
 			// Process the key
 			// The last '.' is the start of the name, everything before the last '.' is the namespaces.
 			String[] split = key.split("\\.");
