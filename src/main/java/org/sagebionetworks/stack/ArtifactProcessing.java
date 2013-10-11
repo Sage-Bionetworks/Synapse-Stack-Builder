@@ -221,6 +221,9 @@ public class ArtifactProcessing {
 				// Be nice to the machine.
 				Thread.yield();
 			}
+			if (bytes == 0.0) {
+				throw new IOException("Downloaded artifact was 0 byte long.");
+			}
 			double downloadMB = bytes/BYTES_PER_MB;
 			log.debug(String.format("Finished downloaded:  %10.2f MB total", downloadMB));
 			log.debug("Downloaded: "+fileUrl);
