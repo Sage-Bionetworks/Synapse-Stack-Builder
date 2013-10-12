@@ -72,6 +72,9 @@ public class TestHelper {
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_EZID_PASSWORD_PLAINTEXT, "ezid password");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_EZID_DOI_PREFIX, "doi prefix");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_REPO_MANAGER_JIRA_USER_PASSWORD_PLAINTEXT, "jira password");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_CROWD_DATABASE_CONNECTION_URL, "crowd.database.url");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_CROWD_DATABASE_USERNAME, "crowdUser");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_CROWD_DATABASE_PASSWORD, "crowdPassword");
 		
 		return defaults;
 	}
