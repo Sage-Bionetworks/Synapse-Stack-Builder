@@ -72,6 +72,9 @@ public class TestHelper {
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_EZID_PASSWORD_PLAINTEXT, "ezid password");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_EZID_DOI_PREFIX, "doi prefix");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_REPO_MANAGER_JIRA_USER_PASSWORD_PLAINTEXT, "jira password");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_CROWD_DATABASE_CONNECTION_URL, "crowd.database.url");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_CROWD_DATABASE_USERNAME, "crowdUser");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_CROWD_DATABASE_PASSWORD, "crowdPassword");
 		
 		return defaults;
 	}
@@ -170,6 +173,10 @@ public class TestHelper {
 			cnameProps.put(svcPrefix + ".service.environment.cname.prefix",  svcPrefix + "-" + stack + "-inst-sagebase-org");
 		}
 		return cnameProps;
+	}
+
+	static InputConfiguration createActivatorTestConfig(String stack) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 }
