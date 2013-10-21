@@ -75,6 +75,7 @@ public class TestHelper {
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_CROWD_DATABASE_CONNECTION_URL, "crowd.database.url");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_CROWD_DATABASE_USERNAME, "crowdUser");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_CROWD_DATABASE_PASSWORD, "crowdPassword");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_MIGRATION_API_KEY, "migrationAPIKey");
 		
 		return defaults;
 	}
