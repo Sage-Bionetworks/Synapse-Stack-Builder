@@ -92,6 +92,7 @@ public class Constants {
 	public static final String KEY_ORG_SAGEBIONETWORKS_CROWD_DATABASE_CONNECTION_URL = "org.sagebionetworks.crowd.database.connection.url";
 	public static final String KEY_ORG_SAGEBIONETWORKS_CROWD_DATABASE_USERNAME = "org.sagebionetworks.crowd.database.username";
 	public static final String KEY_ORG_SAGEBIONETWORKS_CROWD_DATABASE_PASSWORD = "org.sagebionetworks.crowd.database.password";
+	public static final String KEY_ORG_SAGEBIONETWORKS_MIGRATION_API_KEY = "org.sagebionetworks.migration.admin.apikey";
 	
 	/**
 	 * Property for the classless inter-domain routing to be used for SSH access
