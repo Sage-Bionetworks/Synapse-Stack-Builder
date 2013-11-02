@@ -80,7 +80,6 @@ public class Constants {
 	public static final String KEY_ORG_SAGEBIONETWORKS_BCC_GOOGLEAPPS_OAUTH_ACCESS_TOKEN_PLAINTEXT = "org.sagebionetworks.bcc.googleapps.oauth.access.token.plaintext";
 	public static final String KEY_ORG_SAGEBIONETWORKS_BCC_GOOGLEAPPS_OAUTH_CONSUMER_SECRET_PLAINTEX = "org.sagebionetworks.bcc.googleapps.oauth.consumer.secret.plaintext";
 	public static final String KEY_ORG_SAGEBIONETWORKS_MAIL_PW_PLAINTEXT = "org.sagebionetworks.mailPW.plaintext";
-	public static final String KEY_ORG_SAGEBIONETWORKS_CROWD_APPLICATION_KEY_PLAINTEXT = "org.sagebionetworks.crowdApplicationKey.plaintext";
 	public static final String KEY_ORG_SAGEBIONETWORKS_PORTAL_API_LINKEDIN_KEY = "org.sagebionetworks.portal.api.linkedin.key";
 	public static final String KEY_ORG_SAGEBIONETWORKS_PORTAL_API_LINKEDIN_SECRET_PLAINTEXT = "org.sagebionetworks.portal.api.linkedin.secret.plaintext";
 	public static final String KEY_ORG_SAGEBIONETWORKS_PORTAL_API_GETSATISFACTION_KEY = "org.sagebionetworks.portal.api.getsatisfaction.key";
@@ -89,10 +88,6 @@ public class Constants {
 	public static final String KEY_ORG_SAGEBIONETWORKS_EZID_PASSWORD_PLAINTEXT = "org.sagebionetworks.ezid.password.plaintext";
 	public static final String KEY_ORG_SAGEBIONETWORKS_EZID_DOI_PREFIX = "org.sagebionetworks.ezid.doi.prefix";
 	public static final String KEY_ORG_SAGEBIONETWORKS_REPO_MANAGER_JIRA_USER_PASSWORD_PLAINTEXT = "org.sagebionetworks.repo.manager.jira.user.password.plaintext";
-	public static final String KEY_ORG_SAGEBIONETWORKS_CROWD_DATABASE_CONNECTION_URL = "org.sagebionetworks.crowd.database.connection.url";
-	public static final String KEY_ORG_SAGEBIONETWORKS_CROWD_DATABASE_USERNAME = "org.sagebionetworks.crowd.database.username";
-	public static final String KEY_ORG_SAGEBIONETWORKS_CROWD_DATABASE_PASSWORD = "org.sagebionetworks.crowd.database.password";
-	public static final String KEY_ORG_SAGEBIONETWORKS_MIGRATION_API_KEY = "org.sagebionetworks.migration.admin.apikey";
 	
 	/**
 	 * Property for the classless inter-domain routing to be used for SSH access
