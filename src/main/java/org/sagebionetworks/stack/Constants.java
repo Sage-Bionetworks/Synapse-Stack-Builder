@@ -88,7 +88,7 @@ public class Constants {
 	public static final String KEY_ORG_SAGEBIONETWORKS_EZID_PASSWORD_PLAINTEXT = "org.sagebionetworks.ezid.password.plaintext";
 	public static final String KEY_ORG_SAGEBIONETWORKS_EZID_DOI_PREFIX = "org.sagebionetworks.ezid.doi.prefix";
 	public static final String KEY_ORG_SAGEBIONETWORKS_REPO_MANAGER_JIRA_USER_PASSWORD_PLAINTEXT = "org.sagebionetworks.repo.manager.jira.user.password.plaintext";
-	
+	public static final String KEY_ORG_SAGEBIONETWORKS_MIGRATION_API_KEY = "org.sagebionetworks.migration.admin.apikey";	
 	/**
 	 * Property for the classless inter-domain routing to be used for SSH access
 	 */
