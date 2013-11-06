@@ -72,6 +72,9 @@ public class TestHelper {
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_EZID_DOI_PREFIX, "doi prefix");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_REPO_MANAGER_JIRA_USER_PASSWORD_PLAINTEXT, "jira password");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_MIGRATION_API_KEY, "migrationAPIKey");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_SEARCH_ENABLED, "true");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_DYNAMO_ENABLED, "true");
+
 		
 		return defaults;
 	}
