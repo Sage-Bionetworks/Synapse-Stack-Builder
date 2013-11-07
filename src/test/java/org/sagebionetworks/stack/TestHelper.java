@@ -59,7 +59,6 @@ public class TestHelper {
 		defaults.put(Constants.KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_PLAIN_TEXT, "stack db password");
 		defaults.put(Constants.KEY_CIDR_FOR_SSH, "255.255.255/1");
 		defaults.put(Constants.KEY_RDS_ALAERT_SUBSCRIPTION_ENDPONT, "dev@sagebaser.org");
-		defaults.put(KEY_ORG_SAGEBIONETWORKS_CROWD_APPLICATION_KEY_PLAINTEXT, "crowd-app-key");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_MAIL_PW_PLAINTEXT, "mail password");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_BCC_GOOGLEAPPS_OAUTH_CONSUMER_SECRET_PLAINTEX, "google consumer oath key");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_BCC_GOOGLEAPPS_OAUTH_ACCESS_TOKEN_PLAINTEXT, "google access token");
@@ -72,6 +71,10 @@ public class TestHelper {
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_EZID_PASSWORD_PLAINTEXT, "ezid password");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_EZID_DOI_PREFIX, "doi prefix");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_REPO_MANAGER_JIRA_USER_PASSWORD_PLAINTEXT, "jira password");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_MIGRATION_API_KEY, "migrationAPIKey");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_SEARCH_ENABLED, "true");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_DYNAMO_ENABLED, "true");
+
 		
 		return defaults;
 	}
