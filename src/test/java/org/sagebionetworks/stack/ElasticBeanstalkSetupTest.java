@@ -163,6 +163,46 @@ public class ElasticBeanstalkSetupTest {
 	}
 	
 	@Test
+	public void testGetAllElasticBeanstalkOptionsPortal() {
+		List<ConfigurationOptionSetting> expected = new LinkedList<ConfigurationOptionSetting>();
+		// From the server tab
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:launchconfiguration").withOptionName("InstanceType").withValue("m1.small"));
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:launchconfiguration").withOptionName("SecurityGroups").withValue(config.getElasticSecurityGroupName()));
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:launchconfiguration").withOptionName("EC2KeyName").withValue(config.getStackKeyPairName()));
+		
+		// From the load balancer tab
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("LoadBalancerHTTPPort").withValue("80"));
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("LoadBalancerHTTPSPort").withValue("443"));
+		
+		// From the container tab.
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:container:tomcat:jvmoptions").withOptionName("Xmx").withValue("1536m"));
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application:environment").withOptionName("AWS_ACCESS_KEY_ID").withValue(config.getAWSAccessKey()));
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application:environment").withOptionName("AWS_SECRET_KEY").withValue(config.getAWSSecretKey()));
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application:environment").withOptionName("PARAM1").withValue(config.getStackConfigurationFileURL()));
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application:environment").withOptionName("PARAM2").withValue(config.getEncryptionKey()));
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application:environment").withOptionName("PARAM3").withValue(config.getStack()));
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application:environment").withOptionName("PARAM4").withValue(config.getStackInstance()));
+		
+		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("generic");
+		for(ConfigurationOptionSetting expectedCon: expected){
+			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
+			assertNotNull("Failed to find expected configuration: "+expectedCon,found);
+			assertEquals("Values did not match for namespace: "+expectedCon.getNamespace()+" and option name: "+expectedCon.getOptionName(),expectedCon.getValue(), found.getValue());
+		}
+		ConfigurationOptionSetting cos = find("aws:autoscaling:launchconfiguration", "ImageId", result);
+		assertNull("Found generic AMI config ", cos);
+		
+		// Check if AMI id is correctly added for 'generic' or 'portal'
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:launchconfiguration").withOptionName("ImageId").withValue("ami-e798d38e"));
+		result = setup.getAllElasticBeanstalkOptions("portal");
+		for(ConfigurationOptionSetting expectedCon: expected){
+			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
+			assertNotNull("Failed to find expected configuration: "+expectedCon,found);
+			assertEquals("Values did not match for namespace: "+expectedCon.getNamespace()+" and option name: "+expectedCon.getOptionName(),expectedCon.getValue(), found.getValue());
+		}
+	}
+	
+	@Test
 	public void testMinAutoScaleSizeDev() throws IOException{
 		List<ConfigurationOptionSetting> expected = new LinkedList<ConfigurationOptionSetting>();
 		// For dev the min should be 1
