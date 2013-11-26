@@ -72,6 +72,8 @@ public class ArtifactProcessing {
 		
 		// Create the application version for the portal
 		resources.setPortalApplicationVersion(createOrGetApplicationVersion(PREFIX_PORTAL));
+		// Create the application version for bridge svc
+		resources.setBridgeApplicationVersion(createOrGetApplicationVersion(PREFIX_BRIDGE));
 		// Create the application version for the reop
 		resources.setRepoApplicationVersion(createOrGetApplicationVersion(PREFIX_REPO));
 //		// Create the application version for the workers
@@ -81,6 +83,7 @@ public class ArtifactProcessing {
 	public void describeResources() {
 		resources.setElasticBeanstalkApplication(describeApplication());
 		resources.setPortalApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_PORTAL)));
+		resources.setBridgeApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_BRIDGE)));
 		resources.setRepoApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_REPO)));
 		resources.setWorkersApplicationVersion(describeApplicationVersion(config.getVersionLabel(PREFIX_WORKERS)));
 	}

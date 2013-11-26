@@ -325,8 +325,8 @@ public class Constants {
 	public static final String PREFIX_BRIDGE = "bridge";
 	
 	// List of service prefixes for Route53 setup
-	public static final List<String> SVC_PREFIXES = Arrays.asList(Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS);
-	public static final List<String> ROUTE53_PREFIXES = Arrays.asList(Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS);
+	public static final List<String> SVC_PREFIXES = Arrays.asList(Constants.PREFIX_BRIDGE, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS);
+	public static final List<String> ROUTE53_PREFIXES = Arrays.asList(Constants.PREFIX_BRIDGE, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS);
 	
 	public static final String PORTAL_BEANSTALK_NUMBER = "org.sagebionetworks.stack.portal.beanstalk.number";
 	public static final String BRIDGE_BEANSTALK_NUMBER = "org.sagebionetworks.stack.bridge.beanstalk.number";
