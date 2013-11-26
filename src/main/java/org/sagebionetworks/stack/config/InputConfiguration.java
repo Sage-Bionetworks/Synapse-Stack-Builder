@@ -598,4 +598,8 @@ public class InputConfiguration {
 		return validateAndGetProperty("elastic.beanstalk.s3.role.name");
 	}
 	
+	
+	public String getBridgeBeanstalkNumber() {
+		return validateAndGetProperty(Constants.BRIDGE_BEANSTALK_NUMBER);
+	}
 }
