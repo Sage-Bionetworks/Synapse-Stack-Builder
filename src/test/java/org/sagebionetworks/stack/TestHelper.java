@@ -114,6 +114,7 @@ public class TestHelper {
 		resources.setSslCertificate("generic", new ServerCertificateMetadata().withArn("ssl:arn:123"));
 		resources.setSslCertificate("portal", new ServerCertificateMetadata().withArn("ssl:arn:456"));
 		resources.setPortalApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_PORTAL)));
+		resources.setBridgeApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_BRIDGE)));
 		resources.setRepoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_REPO)));
 		resources.setWorkersApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_WORKERS)));
 		resources.setStackKeyPair(new KeyPairInfo().withKeyName(config.getStackKeyPairName()));
@@ -124,7 +125,7 @@ public class TestHelper {
 		Properties inputProperties = createInputProperties(stack);
 		InputConfiguration config = new InputConfiguration(inputProperties);
 		Properties defaultProperties = createDefaultProperties();
-		Map<String, String> cnameProps = getSvcCNAMEsProps(stack, Arrays.asList(Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS));
+		Map<String, String> cnameProps = getSvcCNAMEsProps(stack, Arrays.asList(Constants.PREFIX_BRIDGE, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS));
 		defaultProperties.putAll(cnameProps);
 		defaultProperties.put("stack.subdomain", stack+".sagebase.org");
 		config.addPropertiesWithPlaintext(defaultProperties);
@@ -133,7 +134,7 @@ public class TestHelper {
 	
 	public static Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> createListExpectedListResourceRecordSetsRequestAllFound(String stack) {
 		Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> m = new HashMap<ListResourceRecordSetsRequest, ListResourceRecordSetsResult>();
-		List<String> svcPrefixes = Arrays.asList(Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS);
+		List<String> svcPrefixes = Arrays.asList(Constants.PREFIX_BRIDGE, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS);
 		Map<String, String> map = getSvcCNAMEsProps(stack, svcPrefixes);
 		for (String svcPrefix: svcPrefixes) {
 			ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withStartRecordType(RRType.CNAME).withStartRecordName(map.get(svcPrefix + ".service.environment.subdomain.cname")).withMaxItems("1");
