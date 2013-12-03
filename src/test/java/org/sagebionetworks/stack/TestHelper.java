@@ -113,6 +113,7 @@ public class TestHelper {
 		resources.getSearchDomain().setDocService(new ServiceEndpoint().withEndpoint("doc-service.someplace.com"));
 		resources.setSslCertificate("generic", new ServerCertificateMetadata().withArn("ssl:arn:123"));
 		resources.setSslCertificate("portal", new ServerCertificateMetadata().withArn("ssl:arn:456"));
+		resources.setSslCertificate("bridge", new ServerCertificateMetadata().withArn("ssl:arn:456"));
 		resources.setPortalApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_PORTAL)));
 		resources.setBridgeApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_BRIDGE)));
 		resources.setRepoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_REPO)));

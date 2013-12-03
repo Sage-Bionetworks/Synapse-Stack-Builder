@@ -443,8 +443,8 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * @throws IOException 
 	 */
 	public List<ConfigurationOptionSetting> getAllElasticBeanstalkOptions(final String templateSuffix) {
-		if (! (("generic".equals(templateSuffix)) || ("portal".equals(templateSuffix)))) {
-			throw new IllegalArgumentException("Allowed values for templateSuffix are 'generic' and 'portal'.");
+		if (! (("generic".equals(templateSuffix)) || ("portal".equals(templateSuffix)) || ("bridge".equals(templateSuffix)))) {
+			throw new IllegalArgumentException("Allowed values for templateSuffix are 'generic', 'portal' or 'bridge'.");
 		}
 		List<ConfigurationOptionSetting> list = new LinkedList<ConfigurationOptionSetting>();
 		// Load the properties 
@@ -474,18 +474,20 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			// We override some of the auto-scaling values for production.
 			if(config.isProductionStack()){
 				if("aws:autoscaling:asg".equals(nameSpace)){
-					// We a minimum of two instances for production.
-					if("MinSize".equals(name)){
-						if(Long.parseLong(value) < 2){
-							logger.debug("Overriding aws.autoscaling.asg.MinSize for production to be at least 2");
-							value = "2";
+					// We a minimum of two instances for production, except for bridge in early development.
+					if (! ("bridge".equals(templateSuffix))) {
+						if("MinSize".equals(name)){
+							if(Long.parseLong(value) < 2){
+								logger.debug("Overriding aws.autoscaling.asg.MinSize for production to be at least 2");
+								value = "2";
+							}
 						}
-					}
-					// We want our two instances to be in any two zones. See PLFM-1560
-					if("Availability Zones".equals(name)){
-						if(!"Any 2".equals(value)){
-							logger.debug("Overriding aws.autoscaling.asg.Availability-Zones for production to be at least 'Any 2'");
-							value = "Any 2";
+						// We want our two instances to be in any two zones. See PLFM-1560
+						if("Availability Zones".equals(name)){
+							if(!"Any 2".equals(value)){
+								logger.debug("Overriding aws.autoscaling.asg.Availability-Zones for production to be at least 'Any 2'");
+								value = "Any 2";
+							}
 						}
 					}
 				}
