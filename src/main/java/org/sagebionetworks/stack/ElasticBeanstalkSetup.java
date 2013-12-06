@@ -474,7 +474,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			// We override some of the auto-scaling values for production.
 			if(config.isProductionStack()){
 				if("aws:autoscaling:asg".equals(nameSpace)){
-					// We a minimum of two instances for production, except for bridge in early development.
+					// We need a minimum of two instances for production, except for bridge in early development.
 					if (! ("bridge".equals(templateSuffix))) {
 						if("MinSize".equals(name)){
 							if(Long.parseLong(value) < 2){
