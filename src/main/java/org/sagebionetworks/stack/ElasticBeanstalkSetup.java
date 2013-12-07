@@ -103,6 +103,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		if(resources.getSslCertificate("generic") == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate() cannot be null");
 		if(resources.getSslCertificate("portal") == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate() cannot be null");
 		if(resources.getPortalApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getPortalApplicationVersion() cannot be null");
+		if(resources.getBridgeApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getBridgeApplicationVersion() cannot be null");
 		if(resources.getRepoApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getReopApplicationVersion() cannot be null");
 		if(resources.getWorkersApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getWorkersApplicationVersion() cannot be null");
 		if(resources.getStackKeyPair() == null) throw new IllegalArgumentException("GeneratedResources.getStackKeyPair() cannot be null");
@@ -122,6 +123,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	
 	public void describeResources() {
 		resources.setPortalEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_PORTAL)));
+		resources.setBrigeEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_BRIDGE)));
 		resources.setRepositoryEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_REPO)));
 		resources.setWorkersEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_WORKERS)));
 	}
@@ -144,7 +146,8 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		// Create the environments
 		// portal
 		createOrUpdateEnvironment(PREFIX_PORTAL, portalElbTemplateName, resources.getPortalApplicationVersion());
-		
+		// bridge
+		createOrUpdateEnvironment(PREFIX_BRIDGE, portalElbTemplateName, resources.getBridgeApplicationVersion());
 			// repo
 		createOrUpdateEnvironment(PREFIX_REPO, genericElbTemplateName, resources.getRepoApplicationVersion());
 		// workers svc
@@ -202,6 +205,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 */
 	public void terminateAllEnvironments() {
 		this.terminateEnvironment(PREFIX_PORTAL);
+		this.terminateEnvironment(PREFIX_BRIDGE);
 		this.terminateEnvironment(PREFIX_REPO);
 		this.terminateEnvironment(PREFIX_WORKERS);
 //		this.deleteConfigurationTemplate();
@@ -439,8 +443,8 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * @throws IOException 
 	 */
 	public List<ConfigurationOptionSetting> getAllElasticBeanstalkOptions(final String templateSuffix) {
-		if (! (("generic".equals(templateSuffix)) || ("portal".equals(templateSuffix)))) {
-			throw new IllegalArgumentException("Allowed values for templateSuffix are 'generic' and 'portal'.");
+		if (! (("generic".equals(templateSuffix)) || ("portal".equals(templateSuffix)) || ("bridge".equals(templateSuffix)))) {
+			throw new IllegalArgumentException("Allowed values for templateSuffix are 'generic', 'portal' or 'bridge'.");
 		}
 		List<ConfigurationOptionSetting> list = new LinkedList<ConfigurationOptionSetting>();
 		// Load the properties 
@@ -470,18 +474,20 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			// We override some of the auto-scaling values for production.
 			if(config.isProductionStack()){
 				if("aws:autoscaling:asg".equals(nameSpace)){
-					// We a minimum of two instances for production.
-					if("MinSize".equals(name)){
-						if(Long.parseLong(value) < 2){
-							logger.debug("Overriding aws.autoscaling.asg.MinSize for production to be at least 2");
-							value = "2";
+					// We need a minimum of two instances for production, except for bridge in early development.
+					if (! ("bridge".equals(templateSuffix))) {
+						if("MinSize".equals(name)){
+							if(Long.parseLong(value) < 2){
+								logger.debug("Overriding aws.autoscaling.asg.MinSize for production to be at least 2");
+								value = "2";
+							}
 						}
-					}
-					// We want our two instances to be in any two zones. See PLFM-1560
-					if("Availability Zones".equals(name)){
-						if(!"Any 2".equals(value)){
-							logger.debug("Overriding aws.autoscaling.asg.Availability-Zones for production to be at least 'Any 2'");
-							value = "Any 2";
+						// We want our two instances to be in any two zones. See PLFM-1560
+						if("Availability Zones".equals(name)){
+							if(!"Any 2".equals(value)){
+								logger.debug("Overriding aws.autoscaling.asg.Availability-Zones for production to be at least 'Any 2'");
+								value = "Any 2";
+							}
 						}
 					}
 				}

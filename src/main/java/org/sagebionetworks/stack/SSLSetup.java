@@ -71,8 +71,8 @@ public class SSLSetup implements ResourceProcessor {
 	}
 	
 	public void describeSSLCertificate(String prefix) {
-		if (! (("generic".equals(prefix)) || ("portal".equals(prefix)))) {
-			throw new IllegalArgumentException("Allowed prefixes are 'generic' and 'portal'.");
+		if (! (("generic".equals(prefix)) || ("portal".equals(prefix)) || ("bridge".equals(prefix)))) {
+			throw new IllegalArgumentException("Allowed prefixes are 'generic', 'portal' or 'bridge'.");
 		}
 		String certName = config.getSSLCertificateName(prefix);
 		ServerCertificateMetadata meta = findCertificate(certName);
@@ -88,8 +88,8 @@ public class SSLSetup implements ResourceProcessor {
 	 * Setup the SSL certificate.
 	 */
 	public void setupSSLCertificate(String prefix){
-		if (! (("generic".equals(prefix)) || ("portal".equals(prefix)))) {
-			throw new IllegalArgumentException("Allowed prefixes are 'generic' and 'portal'.");
+		if (! (("generic".equals(prefix)) || ("portal".equals(prefix)) || ("bridge".equals(prefix)))) {
+			throw new IllegalArgumentException("Allowed prefixes are 'generic', 'portal' or 'bridge'.");
 		}
 		// First determine if the certificate already exists already exists
 		ServerCertificateMetadata meta = findCertificate(config.getSSLCertificateName(prefix));
