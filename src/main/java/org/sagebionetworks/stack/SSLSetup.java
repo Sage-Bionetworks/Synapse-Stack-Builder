@@ -59,6 +59,7 @@ public class SSLSetup implements ResourceProcessor {
 	public void setupResources() {
 		this.setupSSLCertificate("generic");
 		this.setupSSLCertificate("portal");
+		this.setupSSLCertificate("bridge");
 	}
 	
 	public void teardownResources() {
@@ -68,6 +69,7 @@ public class SSLSetup implements ResourceProcessor {
 	public void describeResources(String prefix) {
 		describeSSLCertificate("generic");
 		describeSSLCertificate("portal");
+		describeSSLCertificate("bridge");
 	}
 	
 	public void describeSSLCertificate(String prefix) {
