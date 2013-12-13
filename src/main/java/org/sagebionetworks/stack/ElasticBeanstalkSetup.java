@@ -137,17 +137,20 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		// Create a profile that will used to enable logging.
 		String genericElbTemplateName = config.getElasticBeanstalkTemplateName() + "-generic";
 		String portalElbTemplateName = config.getElasticBeanstalkTemplateName() + "-portal";
+		String bridgeElbTemplateName = config.getElasticBeanstalkApplicationName() + "-bridge";
 		// First create or update the templates using the current data.
 		List<ConfigurationOptionSetting> cfgOptSettings = getAllElasticBeanstalkOptions("generic");
 		resources.setElasticBeanstalkConfigurationTemplate("generic", createOrUpdateConfigurationTemplate(genericElbTemplateName, cfgOptSettings));
 		cfgOptSettings = getAllElasticBeanstalkOptions("portal");
 		resources.setElasticBeanstalkConfigurationTemplate("portal", createOrUpdateConfigurationTemplate(portalElbTemplateName, cfgOptSettings));
+		cfgOptSettings = getAllElasticBeanstalkOptions("bridge");
+		resources.setElasticBeanstalkConfigurationTemplate("bridge", createOrUpdateConfigurationTemplate(bridgeElbTemplateName, cfgOptSettings));
 
 		// Create the environments
 		// portal
 		createOrUpdateEnvironment(PREFIX_PORTAL, portalElbTemplateName, resources.getPortalApplicationVersion());
 		// bridge
-		createOrUpdateEnvironment(PREFIX_BRIDGE, portalElbTemplateName, resources.getBridgeApplicationVersion());
+		createOrUpdateEnvironment(PREFIX_BRIDGE, bridgeElbTemplateName, resources.getBridgeApplicationVersion());
 			// repo
 		createOrUpdateEnvironment(PREFIX_REPO, genericElbTemplateName, resources.getRepoApplicationVersion());
 		// workers svc
