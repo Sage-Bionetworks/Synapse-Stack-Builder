@@ -278,7 +278,7 @@ public class ElasticBeanstalkSetupTest {
 		resources = TestHelper.createTestResources(config);
 		setup = new ElasticBeanstalkSetup(factory, config, resources);
 		// From the server tab
-		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("Custom Availability Zones").withValue("us-east-1b, us-east-1e"));
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("Custom Availability Zones").withValue("us-east-1d, us-east-1e"));
 		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("generic");
 		// Make sure we can find all of the expected values
 		for(ConfigurationOptionSetting expectedCon: expected){
@@ -296,7 +296,7 @@ public class ElasticBeanstalkSetupTest {
 		resources = TestHelper.createTestResources(config);
 		setup = new ElasticBeanstalkSetup(factory, config, resources);
 		// From the server tab
-		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("Custom Availability Zones").withValue("us-east-1b"));
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("Custom Availability Zones").withValue("us-east-1d"));
 		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("bridge");
 		// Make sure we can find all of the expected values
 		for(ConfigurationOptionSetting expectedCon: expected){
