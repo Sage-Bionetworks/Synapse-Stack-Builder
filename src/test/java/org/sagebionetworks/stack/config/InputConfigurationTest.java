@@ -30,6 +30,7 @@ public class InputConfigurationTest {
 	String stack = "stack";
 	String instance ="instance";
 	String portalBeanstalkNumber = "1001";
+	String bridgeBeanstalkNumber = "2002";
 	
 	@Before
 	public void before(){
@@ -40,6 +41,7 @@ public class InputConfigurationTest {
 		inputProperties.put(STACK, stack);
 		inputProperties.put(INSTANCE, instance);
 		inputProperties.put(PORTAL_BEANSTALK_NUMBER, portalBeanstalkNumber);
+		inputProperties.put(BRIDGE_BEANSTALK_NUMBER, bridgeBeanstalkNumber);
 	}
 	
 	@Test
@@ -99,6 +101,7 @@ public class InputConfigurationTest {
 		assertEquals(stack, config.getStack());
 		assertEquals(instance, config.getStackInstance());
 		assertEquals(portalBeanstalkNumber, config.getPortalBeanstalkNumber());
+		assertEquals(bridgeBeanstalkNumber, config.getBridgeBeanstalkNumber());
 	}
 	
 	@Test
