@@ -39,6 +39,7 @@ public class GeneratedResources {
 	private ApplicationVersionDescription portalApplicationVersion;
 	private ApplicationVersionDescription repoApplicationVersion;
 	private ApplicationVersionDescription workersApplicationVersion;
+	private ApplicationVersionDescription bridgeApplicationVersion;
 	private ServerCertificateMetadata sslCertificate;
 	private Map<String, ServerCertificateMetadata> sslCertificates;
 	private KeyPairInfo stackKeyPair;
@@ -46,6 +47,7 @@ public class GeneratedResources {
 	private EnvironmentDescription portalEnvironment;
 	private EnvironmentDescription repositoryEnvironment;
 	private EnvironmentDescription workersEnvironment;
+	private EnvironmentDescription bridgeEnvironment;
 	private DomainStatus searchDomain;
 	private DBParameterGroup dbParameterGroup;
 	private Bucket mainFileBucket;
@@ -116,6 +118,18 @@ public class GeneratedResources {
 	 */
 	public void setWorkersEnvironment(EnvironmentDescription workersEnvironment) {
 		this.workersEnvironment = workersEnvironment;
+	}
+	
+	/**
+	 * The bridge environment description
+	 * 
+	 */
+	public EnvironmentDescription getBridgeEnvironment() {
+		return this.bridgeEnvironment;
+	}
+	
+	public void setBrigeEnvironment(EnvironmentDescription bridgeEnvironment) {
+		this.bridgeEnvironment = bridgeEnvironment;
 	}
 
 	/**
@@ -202,6 +216,14 @@ public class GeneratedResources {
 	public void setPortalApplicationVersion(
 			ApplicationVersionDescription portalApplicationVersion) {
 		this.portalApplicationVersion = portalApplicationVersion;
+	}
+	
+	public ApplicationVersionDescription getBridgeApplicationVersion() {
+		return this.bridgeApplicationVersion;
+	}
+	
+	public void setBridgeApplicationVersion(ApplicationVersionDescription bridgeApplicationVersion) {
+		this.bridgeApplicationVersion = bridgeApplicationVersion;
 	}
 
 	/**

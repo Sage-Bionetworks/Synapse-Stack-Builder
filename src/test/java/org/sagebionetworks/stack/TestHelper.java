@@ -74,6 +74,7 @@ public class TestHelper {
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_MIGRATION_API_KEY, "migrationAPIKey");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_SEARCH_ENABLED, "true");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_DYNAMO_ENABLED, "true");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_NOTIFICATION_EMAIL_ADDRESS, "email@address.com");
 
 		
 		return defaults;
@@ -92,8 +93,10 @@ public class TestHelper {
 		inputProperties.put(Constants.STACK, stack);
 		inputProperties.put(Constants.INSTANCE, "A");
 		inputProperties.put(Constants.PORTAL_BEANSTALK_NUMBER, "0");
+		inputProperties.put(Constants.BRIDGE_BEANSTALK_NUMBER, "1");
 		inputProperties.put(Constants.SWC_VERSION, "2.4.8");
 		inputProperties.put(Constants.PLFM_VERSION, "1.2.3");
+		inputProperties.put(Constants.BRIDGE_VERSION, "7.8.9");
 		return inputProperties;
 	}
 	
@@ -111,7 +114,9 @@ public class TestHelper {
 		resources.getSearchDomain().setDocService(new ServiceEndpoint().withEndpoint("doc-service.someplace.com"));
 		resources.setSslCertificate("generic", new ServerCertificateMetadata().withArn("ssl:arn:123"));
 		resources.setSslCertificate("portal", new ServerCertificateMetadata().withArn("ssl:arn:456"));
+		resources.setSslCertificate("bridge", new ServerCertificateMetadata().withArn("ssl:arn:456"));
 		resources.setPortalApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_PORTAL)));
+		resources.setBridgeApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_BRIDGE)));
 		resources.setRepoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_REPO)));
 		resources.setWorkersApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_WORKERS)));
 		resources.setStackKeyPair(new KeyPairInfo().withKeyName(config.getStackKeyPairName()));
@@ -122,7 +127,7 @@ public class TestHelper {
 		Properties inputProperties = createInputProperties(stack);
 		InputConfiguration config = new InputConfiguration(inputProperties);
 		Properties defaultProperties = createDefaultProperties();
-		Map<String, String> cnameProps = getSvcCNAMEsProps(stack, Arrays.asList(Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS));
+		Map<String, String> cnameProps = getSvcCNAMEsProps(stack, Arrays.asList(Constants.PREFIX_BRIDGE, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS));
 		defaultProperties.putAll(cnameProps);
 		defaultProperties.put("stack.subdomain", stack+".sagebase.org");
 		config.addPropertiesWithPlaintext(defaultProperties);
@@ -131,7 +136,7 @@ public class TestHelper {
 	
 	public static Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> createListExpectedListResourceRecordSetsRequestAllFound(String stack) {
 		Map<ListResourceRecordSetsRequest, ListResourceRecordSetsResult> m = new HashMap<ListResourceRecordSetsRequest, ListResourceRecordSetsResult>();
-		List<String> svcPrefixes = Arrays.asList(Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS);
+		List<String> svcPrefixes = Arrays.asList(Constants.PREFIX_BRIDGE, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS);
 		Map<String, String> map = getSvcCNAMEsProps(stack, svcPrefixes);
 		for (String svcPrefix: svcPrefixes) {
 			ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withStartRecordType(RRType.CNAME).withStartRecordName(map.get(svcPrefix + ".service.environment.subdomain.cname")).withMaxItems("1");
