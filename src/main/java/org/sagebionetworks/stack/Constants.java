@@ -331,4 +331,6 @@ public class Constants {
 	
 	public static final String PORTAL_BEANSTALK_NUMBER = "org.sagebionetworks.stack.portal.beanstalk.number";
 	public static final String BRIDGE_BEANSTALK_NUMBER = "org.sagebionetworks.stack.bridge.beanstalk.number";
+	
+	public static final String NUMBER_TABLE_INSTANCES = "org.sagebionetworks.number.table.instances";
 }

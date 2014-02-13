@@ -31,6 +31,7 @@ public class InputConfigurationTest {
 	String instance ="instance";
 	String portalBeanstalkNumber = "1001";
 	String bridgeBeanstalkNumber = "2002";
+	String numberTableInstances = "2";
 	
 	@Before
 	public void before(){
@@ -42,6 +43,7 @@ public class InputConfigurationTest {
 		inputProperties.put(INSTANCE, instance);
 		inputProperties.put(PORTAL_BEANSTALK_NUMBER, portalBeanstalkNumber);
 		inputProperties.put(BRIDGE_BEANSTALK_NUMBER, bridgeBeanstalkNumber);
+		inputProperties.put(NUMBER_TABLE_INSTANCES, numberTableInstances);
 	}
 	
 	@Test
@@ -102,6 +104,7 @@ public class InputConfigurationTest {
 		assertEquals(instance, config.getStackInstance());
 		assertEquals(portalBeanstalkNumber, config.getPortalBeanstalkNumber());
 		assertEquals(bridgeBeanstalkNumber, config.getBridgeBeanstalkNumber());
+		assertEquals(numberTableInstances, config.getNumberTableInstances());
 	}
 	
 	@Test
@@ -124,6 +127,14 @@ public class InputConfigurationTest {
 		assertEquals(expectedStackDBIdentifier, config.getStackInstanceDatabaseIdentifier());
 		assertEquals(stack+instance, config.getStackInstanceDatabaseSchema());
 		assertEquals(stack+instance+"user", config.getStackInstanceDatabaseMasterUser());
+		// Table instance databases
+		int numTableInstances = Integer.parseInt(config.getNumberTableInstances());
+		for (int instNum = 0; instNum < numTableInstances; instNum++) {
+			String expectedStackTableInstanceIdentifier = stack + "-" + instance + "-table-" + instNum;
+			assertEquals(expectedStackTableInstanceIdentifier, config.getStackTableInstanceDBIdentifier() + instNum);
+			assertEquals(stack+instance, config.getStackTableInstanceDBSchema());
+			assertEquals(stack+instance+"user", config.getStackTableInstanceDBMasterUser());
+		}
 		// The database security groups
 		assertEquals(expectedIdGenIdentifier+"-security-group", config.getIdGeneratorDatabaseSecurityGroupName());
 		assertEquals("The database security group used by the "+expectedIdGenIdentifier+".", config.getIdGeneratorDatabaseSecurityGroupDescription());

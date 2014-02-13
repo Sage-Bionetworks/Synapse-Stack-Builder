@@ -602,4 +602,19 @@ public class InputConfiguration {
 	public String getBridgeBeanstalkNumber() {
 		return validateAndGetProperty(Constants.BRIDGE_BEANSTALK_NUMBER);
 	}
+	
+	public String getNumberTableInstances() {
+		return validateAndGetProperty(Constants.NUMBER_TABLE_INSTANCES);
+	}
+	
+	public String getStackTableInstanceDBIdentifier() {
+		return validateAndGetProperty("stack.table.instance.database.identifier");
+	}
+	public String getStackTableInstanceDBSchema() {
+		return validateAndGetProperty("stack.table.instance.database.schema");
+	}
+	public String getStackTableInstanceDBMasterUser() {
+		return validateAndGetProperty("stack.table.instance.database.master.user");
+	}
+	
 }
