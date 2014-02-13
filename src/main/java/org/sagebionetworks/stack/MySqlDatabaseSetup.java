@@ -241,6 +241,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		request.setDBInstanceIdentifier(config.getStackTableInstanceDBIdentifier()+instNum);
 		request.setMasterUsername(config.getStackInstanceDatabaseMasterUser());
 		request.setMasterUserPassword(config.getStackInstanceDatabaseMasterPasswordPlaintext());
+		request.setBackupRetentionPeriod(0);
 		// The security group
 		request.withDBSecurityGroups(config.getStackDatabaseSecurityGroupName());
 		// The parameters.

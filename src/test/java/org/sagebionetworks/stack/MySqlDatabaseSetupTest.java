@@ -242,6 +242,7 @@ public class MySqlDatabaseSetupTest {
 		expectedReq.setMasterUserPassword(config.getStackInstanceDatabaseMasterPasswordPlaintext());
 		expectedReq.withDBSecurityGroups(config.getStackDatabaseSecurityGroupName());
 		expectedReq.setDBParameterGroupName(config.getDatabaseParameterGroupName());
+		expectedReq.setBackupRetentionPeriod(0);
 		CreateDBInstanceRequest request = databaseSetup.buildStackTableInstanceCreateDBInstanceRequest(0);
 		assertEquals(expectedReq, request);
 	}
