@@ -79,7 +79,7 @@ public class MySqlDatabaseSetupTest {
 	public void testGetDefaultCreateDBInstanceRequest(){
 		// There are the current expected defaults.
 		CreateDBInstanceRequest expected = new CreateDBInstanceRequest();
-		expected.setAllocatedStorage(new Integer(5));
+		expected.setAllocatedStorage(new Integer(10));
 		expected.setDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL);
 		expected.setEngine(DATABASE_ENGINE_MYSQL);
 //		expected.setAvailabilityZone(EC2_AVAILABILITY_ZONE_US_EAST_1D);
@@ -229,6 +229,21 @@ public class MySqlDatabaseSetupTest {
 		// Test against expected
 		CreateDBInstanceRequest request = databaseSetup.buildStackInstancesCreateDBInstanceRequest();
 		assertEquals(expected, request);
+	}
+	
+	@Test
+	public void testBuildStackTableInstanceCreateDBInstanceRequest() throws IOException {
+		setupProductionConfig();
+		CreateDBInstanceRequest expectedReq = MySqlDatabaseSetup.getDefaultCreateDBInstanceRequest();
+		expectedReq.setDBName(config.getStackTableInstanceDBSchema());
+		expectedReq.setDBInstanceIdentifier(config.getStackTableInstanceDBIdentifier()+"0");
+		expectedReq.setAllocatedStorage(new Integer(10));
+		expectedReq.setMasterUsername(config.getStackInstanceDatabaseMasterUser());
+		expectedReq.setMasterUserPassword(config.getStackInstanceDatabaseMasterPasswordPlaintext());
+		expectedReq.withDBSecurityGroups(config.getStackDatabaseSecurityGroupName());
+		expectedReq.setDBParameterGroupName(config.getDatabaseParameterGroupName());
+		CreateDBInstanceRequest request = databaseSetup.buildStackTableInstanceCreateDBInstanceRequest(0);
+		assertEquals(expectedReq, request);
 	}
 	
 	@Test

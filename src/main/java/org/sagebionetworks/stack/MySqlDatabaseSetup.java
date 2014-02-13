@@ -216,6 +216,21 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		// if this is a production stack
 		return request;
 	}
+	
+	CreateDBInstanceRequest buildStackTableInstanceCreateDBInstanceRequest(int instNum) {
+		CreateDBInstanceRequest request = getDefaultCreateDBInstanceRequest();
+		// This will be the schema name.
+		request.setDBName(config.getStackTableInstanceDBSchema());
+		request.setDBInstanceIdentifier(config.getStackTableInstanceDBIdentifier()+instNum);
+		request.setMasterUsername(config.getStackInstanceDatabaseMasterUser());
+		request.setMasterUserPassword(config.getStackInstanceDatabaseMasterPasswordPlaintext());
+		// The security group
+		request.withDBSecurityGroups(config.getStackDatabaseSecurityGroupName());
+		// The parameters.
+		request.setDBParameterGroupName(config.getDatabaseParameterGroupName());
+		// if this is a production stack
+		return request;
+	}
 
 	/*
 	 * NOTE: Do not call unless deleting shared resources!!!
@@ -289,7 +304,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 	 */
 	public static CreateDBInstanceRequest getDefaultCreateDBInstanceRequest(){
 		CreateDBInstanceRequest request = new CreateDBInstanceRequest();
-		request.setAllocatedStorage(new Integer(5));
+		request.setAllocatedStorage(new Integer(10));
 		request.setDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL);
 		request.setEngine(DATABASE_ENGINE_MYSQL);
 //		request.setAvailabilityZone(EC2_AVAILABILITY_ZONE_US_EAST_1D);
