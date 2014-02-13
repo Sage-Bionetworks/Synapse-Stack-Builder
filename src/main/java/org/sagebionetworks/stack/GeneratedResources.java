@@ -15,7 +15,9 @@ import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBParameterGroup;
 import com.amazonaws.services.rds.model.DBSecurityGroup;
 import com.amazonaws.services.s3.model.Bucket;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -32,6 +34,7 @@ public class GeneratedResources {
 	private DBSecurityGroup stackInstancesDatabaseSecurityGroup;
 	private DBInstance idGeneratorDatabase;
 	private DBInstance stackInstancesDatabase;
+	private List<DBInstance> stackTableInstancesDatabases;
 	private DescribeAlarmsResult idGeneratorDatabaseAlarms;
 	private DescribeAlarmsResult stackInstancesDatabaseAlarms;
 	private URL stackConfigurationFileURL;
@@ -55,6 +58,7 @@ public class GeneratedResources {
 	public GeneratedResources() {
 		this.sslCertificates = new HashMap<String, ServerCertificateMetadata>();
 		this.elasticBeanstalkConfigurationTemplate = new HashMap<String, DescribeConfigurationOptionsResult>();
+		this.stackTableInstancesDatabases = new ArrayList<DBInstance>();
 	}
 	/**
 	 * The search domain.
@@ -356,6 +360,14 @@ public class GeneratedResources {
 	 */
 	public void setStackInstancesDatabase(DBInstance stackInstancesDatabase) {
 		this.stackInstancesDatabase = stackInstancesDatabase;
+	}
+	
+	public List<DBInstance> getStackTableInstancesDatabases() {
+		return this.stackTableInstancesDatabases;
+	}
+	
+	public void setStackTableInstancesDatabases(List<DBInstance> stiDbs) {
+		this.stackTableInstancesDatabases.addAll(stiDbs);
 	}
 
 	/**
