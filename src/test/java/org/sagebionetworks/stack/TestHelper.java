@@ -97,6 +97,7 @@ public class TestHelper {
 		inputProperties.put(Constants.SWC_VERSION, "2.4.8");
 		inputProperties.put(Constants.PLFM_VERSION, "1.2.3");
 		inputProperties.put(Constants.BRIDGE_VERSION, "7.8.9");
+		inputProperties.put(Constants.NUMBER_TABLE_INSTANCES, "2");
 		return inputProperties;
 	}
 	

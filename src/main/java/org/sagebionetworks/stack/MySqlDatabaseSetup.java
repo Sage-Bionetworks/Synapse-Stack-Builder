@@ -10,6 +10,8 @@ import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
 import com.amazonaws.services.rds.model.DeleteDBInstanceRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.sagebionetworks.stack.Constants.*;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
@@ -92,12 +94,27 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		log.debug("Database instance: ");
 		log.debug(stackInstance);
 		
+		
+		// Create the table instances databases
+		int numTableInstances = Integer.parseInt(config.getNumberTableInstances());
+		List<DBInstance> stackTableInstances = new ArrayList<DBInstance>();
+		for (int inst = 0; inst < numTableInstances; inst++) {
+			request = buildStackTableInstanceCreateDBInstanceRequest(inst);
+			DBInstance dbInst = createOrGetDatabaseInstance(request);
+			log.debug("Database instance: " + dbInst);
+			stackTableInstances.add(dbInst);
+		}
 		// Wait for both to be created
 		idGenInstance = waitForDatabase(idGenInstance);
 		stackInstance = waitForDatabase(stackInstance);
 		
+		for (DBInstance ti: stackTableInstances) {
+			ti = waitForDatabase(ti);
+		}
+		
 		resources.setIdGeneratorDatabase(idGenInstance);
 		resources.setStackInstancesDatabase(stackInstance);
+		resources.setStackTableInstancesDatabases(stackTableInstances);
 	}
 	
 	/**
@@ -216,6 +233,22 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		// if this is a production stack
 		return request;
 	}
+	
+	CreateDBInstanceRequest buildStackTableInstanceCreateDBInstanceRequest(int instNum) {
+		CreateDBInstanceRequest request = getDefaultCreateDBInstanceRequest();
+		// This will be the schema name.
+		request.setDBName(config.getStackTableInstanceDBSchema());
+		request.setDBInstanceIdentifier(config.getStackTableInstanceDBIdentifier()+instNum);
+		request.setMasterUsername(config.getStackInstanceDatabaseMasterUser());
+		request.setMasterUserPassword(config.getStackInstanceDatabaseMasterPasswordPlaintext());
+		request.setBackupRetentionPeriod(0);
+		// The security group
+		request.withDBSecurityGroups(config.getStackDatabaseSecurityGroupName());
+		// The parameters.
+		request.setDBParameterGroupName(config.getDatabaseParameterGroupName());
+		// if this is a production stack
+		return request;
+	}
 
 	/*
 	 * NOTE: Do not call unless deleting shared resources!!!
@@ -289,7 +322,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 	 */
 	public static CreateDBInstanceRequest getDefaultCreateDBInstanceRequest(){
 		CreateDBInstanceRequest request = new CreateDBInstanceRequest();
-		request.setAllocatedStorage(new Integer(5));
+		request.setAllocatedStorage(new Integer(10));
 		request.setDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL);
 		request.setEngine(DATABASE_ENGINE_MYSQL);
 //		request.setAvailabilityZone(EC2_AVAILABILITY_ZONE_US_EAST_1D);
