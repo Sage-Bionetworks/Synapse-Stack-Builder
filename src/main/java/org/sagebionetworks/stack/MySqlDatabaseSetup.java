@@ -108,13 +108,15 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		idGenInstance = waitForDatabase(idGenInstance);
 		stackInstance = waitForDatabase(stackInstance);
 		
+		List<DBInstance> updStackTableInstances = new ArrayList<DBInstance>();
 		for (DBInstance ti: stackTableInstances) {
 			ti = waitForDatabase(ti);
+			updStackTableInstances.add(ti);
 		}
 		
 		resources.setIdGeneratorDatabase(idGenInstance);
 		resources.setStackInstancesDatabase(stackInstance);
-		resources.setStackTableInstancesDatabases(stackTableInstances);
+		resources.setStackTableInstancesDatabases(updStackTableInstances);
 	}
 	
 	/**
