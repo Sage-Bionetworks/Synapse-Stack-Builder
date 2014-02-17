@@ -504,7 +504,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		if(config.isProductionStack()){
 			ConfigurationOptionSetting cfg;
 			if (! ("bridge".equals(templateSuffix))) {
-				cfg = new ConfigurationOptionSetting("aws:autoscaling:asg", "Custom Availability Zones", "us-east-1d, us-east-1e");
+				cfg = new ConfigurationOptionSetting("aws:autoscaling:asg", "Custom Availability Zones", "us-east-1a, us-east-1e");
 			} else {
 				cfg = new ConfigurationOptionSetting("aws:autoscaling:asg", "Custom Availability Zones", "us-east-1d");
 			}
