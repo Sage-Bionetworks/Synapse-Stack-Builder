@@ -74,6 +74,7 @@ public class TestHelper {
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_MIGRATION_API_KEY, "migrationAPIKey");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_SEARCH_ENABLED, "true");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_DYNAMO_ENABLED, "true");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_TABLE_ENABLED, "true");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_NOTIFICATION_EMAIL_ADDRESS, "email@address.com");
 
 		

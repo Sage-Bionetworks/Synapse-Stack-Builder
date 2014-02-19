@@ -92,6 +92,7 @@ public class Constants {
 	public static final String KEY_ORG_SAGEBIONETWORKS_MIGRATION_API_KEY = "org.sagebionetworks.migration.admin.apikey";
 	public static final String KEY_ORG_SAGEBIONETWORKS_SEARCH_ENABLED = "org.sagebionetworks.search.enabled";
 	public static final String KEY_ORG_SAGEBIONETWORKS_DYNAMO_ENABLED = "org.sagebionetworks.dynamo.enabled";
+	public static final String KEY_ORG_SAGEBIONETWORKS_TABLE_ENABLED = "org.sagebionetworks.table.enabled";
 	public static final String KEY_ORG_SAGEBIONETWORKS_NOTIFICATION_EMAIL_ADDRESS = "org.sagebionetworks.notification.email.address";
 	
 	/**
