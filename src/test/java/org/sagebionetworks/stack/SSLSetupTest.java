@@ -62,7 +62,7 @@ public class SSLSetupTest {
 		ListServerCertificatesResult expectedLstssr = new ListServerCertificatesResult();
 		when(mockAmznIamClient.listServerCertificates()).thenReturn(expectedLstssr);
 		SSLSetup sslSetup = new SSLSetup(factory, config, resources);
-		sslSetup.describeSSLCertificate("generic");
+		sslSetup.describeSSLCertificate("plfm");
 	}
 	
 	@Test(expected = IllegalStateException.class)
@@ -74,12 +74,12 @@ public class SSLSetupTest {
 		ListServerCertificatesResult expectedLstssr = new ListServerCertificatesResult().withServerCertificateMetadataList(expectedLstSrvCertMetadata);
 		when(mockAmznIamClient.listServerCertificates()).thenReturn(expectedLstssr);
 		SSLSetup sslSetup = new SSLSetup(factory, config, resources);
-		sslSetup.describeSSLCertificate("generic");
+		sslSetup.describeSSLCertificate("plfm");
 	}
 	
 	@Test
 	public void testDescribeResourcesCertificateFound() {
-		String expectedCertName = config.getSSLCertificateName("generic");
+		String expectedCertName = config.getSSLCertificateName("plfm");
 		String expectedCertArn = "expectedCertArn";
 		ServerCertificateMetadata srvCertMeta = new ServerCertificateMetadata().withServerCertificateName(expectedCertName).withArn(expectedCertArn);
 		List<ServerCertificateMetadata> expectedLstSrvCertMetadata = new LinkedList<ServerCertificateMetadata>();
@@ -87,10 +87,10 @@ public class SSLSetupTest {
 		ListServerCertificatesResult expectedLstssr = new ListServerCertificatesResult().withServerCertificateMetadataList(expectedLstSrvCertMetadata);
 		when(mockAmznIamClient.listServerCertificates()).thenReturn(expectedLstssr);
 		SSLSetup sslSetup = new SSLSetup(factory, config, resources);
-		sslSetup.describeSSLCertificate("generic");
+		sslSetup.describeSSLCertificate("plfm");
 		//assertEquals(expectedCertArn, config.getSSLCertificateARN("generic"));
-		assertEquals(srvCertMeta, resources.getSslCertificate("generic"));
-		assertEquals(expectedCertArn, resources.getSslCertificate("generic").getArn());
+		assertEquals(srvCertMeta, resources.getSslCertificate("plfm"));
+		assertEquals(expectedCertArn, resources.getSslCertificate("plfm").getArn());
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -101,7 +101,7 @@ public class SSLSetupTest {
 	
 	@Test
 	public void testSetupSSLCertificateNoCertificate() {
-		String expectedCertName = config.getSSLCertificateName("generic");
+		String expectedCertName = config.getSSLCertificateName("plfm");
 		String expectedCertArn = "expectedCertArn";
 		// Returned in 1st call to FindCertificate() --> empty
 //		ServerCertificateMetadata scmdList1 = new ServerCertificateMetadata().withServerCertificateName(expectedCertName);
@@ -121,10 +121,10 @@ public class SSLSetupTest {
 		UploadServerCertificateResult expectedUscr = new UploadServerCertificateResult().withServerCertificateMetadata(srvCertMeta);
 		when(mockAmznIamClient.uploadServerCertificate(uscr)).thenReturn(expectedUscr);
 		SSLSetup sslSetup = new SSLSetup(factory, config, resources);
-		sslSetup.setupSSLCertificate("generic");
+		sslSetup.setupSSLCertificate("plfm");
 		// Meta for upload server cert should be in resources
-		assertEquals(expectedCertName, resources.getSslCertificate("generic").getServerCertificateName());
-		assertEquals(expectedCertArn, resources.getSslCertificate("generic").getArn());
+		assertEquals(expectedCertName, resources.getSslCertificate("plfm").getServerCertificateName());
+		assertEquals(expectedCertArn, resources.getSslCertificate("plfm").getArn());
 	}
 	
 	// TODO: Add test to add cert to existing list

@@ -115,7 +115,8 @@ public class TestHelper {
 		resources.setStackInstancesDatabase(new DBInstance().withDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier()).withEndpoint(new Endpoint().withAddress("stack-instance-db.someplace.com")));
 		resources.setSearchDomain(new DomainStatus().withSearchService(new ServiceEndpoint().withEndpoint("search-service.someplace.com")));
 		resources.getSearchDomain().setDocService(new ServiceEndpoint().withEndpoint("doc-service.someplace.com"));
-		resources.setSslCertificate("generic", new ServerCertificateMetadata().withArn("ssl:arn:123"));
+		resources.setSslCertificate("plfm", new ServerCertificateMetadata().withArn("ssl:arn:123"));
+		resources.setSslCertificate("worker", new ServerCertificateMetadata().withArn("ssl:arn:123"));
 		resources.setSslCertificate("portal", new ServerCertificateMetadata().withArn("ssl:arn:456"));
 		resources.setSslCertificate("bridge", new ServerCertificateMetadata().withArn("ssl:arn:456"));
 		resources.setPortalApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_PORTAL)));

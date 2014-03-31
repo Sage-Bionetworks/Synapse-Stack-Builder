@@ -100,8 +100,9 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
 		// There are many dependencies for this setup.
-		if(resources.getSslCertificate("generic") == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate() cannot be null");
-		if(resources.getSslCertificate("portal") == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate() cannot be null");
+		if(resources.getSslCertificate("plfm") == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate('plfm') cannot be null");
+		if(resources.getSslCertificate("worker") == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate('worker') cannot be null");
+		if(resources.getSslCertificate("portal") == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate('portal') cannot be null");
 		if(resources.getPortalApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getPortalApplicationVersion() cannot be null");
 		if(resources.getBridgeApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getBridgeApplicationVersion() cannot be null");
 		if(resources.getRepoApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getReopApplicationVersion() cannot be null");
@@ -135,12 +136,15 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		// setup the role, policy, and profile needed for rolling logs to S3.
 		configureInstanceProfileForLogRolingToS3();
 		// Create a profile that will used to enable logging.
-		String genericElbTemplateName = config.getElasticBeanstalkTemplateName() + "-generic";
+		String plfmElbTemplateName = config.getElasticBeanstalkTemplateName() + "-plfm";
+		String workerElbTemplateName = config.getElasticBeanstalkTemplateName() + "-worker";
 		String portalElbTemplateName = config.getElasticBeanstalkTemplateName() + "-portal";
 		String bridgeElbTemplateName = config.getElasticBeanstalkApplicationName() + "-bridge";
 		// First create or update the templates using the current data.
-		List<ConfigurationOptionSetting> cfgOptSettings = getAllElasticBeanstalkOptions("generic");
-		resources.setElasticBeanstalkConfigurationTemplate("generic", createOrUpdateConfigurationTemplate(genericElbTemplateName, cfgOptSettings));
+		List<ConfigurationOptionSetting> cfgOptSettings = getAllElasticBeanstalkOptions("plfm");
+		resources.setElasticBeanstalkConfigurationTemplate("plfm", createOrUpdateConfigurationTemplate(plfmElbTemplateName, cfgOptSettings));
+		cfgOptSettings = getAllElasticBeanstalkOptions("worker");
+		resources.setElasticBeanstalkConfigurationTemplate("worker", createOrUpdateConfigurationTemplate(workerElbTemplateName, cfgOptSettings));
 		cfgOptSettings = getAllElasticBeanstalkOptions("portal");
 		resources.setElasticBeanstalkConfigurationTemplate("portal", createOrUpdateConfigurationTemplate(portalElbTemplateName, cfgOptSettings));
 		cfgOptSettings = getAllElasticBeanstalkOptions("bridge");
@@ -152,9 +156,9 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		// bridge
 		createOrUpdateEnvironment(PREFIX_BRIDGE, bridgeElbTemplateName, resources.getBridgeApplicationVersion());
 			// repo
-		createOrUpdateEnvironment(PREFIX_REPO, genericElbTemplateName, resources.getRepoApplicationVersion());
+		createOrUpdateEnvironment(PREFIX_REPO, plfmElbTemplateName, resources.getRepoApplicationVersion());
 		// workers svc
-		createOrUpdateEnvironment(PREFIX_WORKERS, genericElbTemplateName, resources.getWorkersApplicationVersion());
+		createOrUpdateEnvironment(PREFIX_WORKERS, workerElbTemplateName, resources.getWorkersApplicationVersion());
 		
 		// Fetch all of the results
 		List<EnvironmentDescription> envDescs = new ArrayList<EnvironmentDescription>();
@@ -446,8 +450,8 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * @throws IOException 
 	 */
 	public List<ConfigurationOptionSetting> getAllElasticBeanstalkOptions(final String templateSuffix) {
-		if (! (("generic".equals(templateSuffix)) || ("portal".equals(templateSuffix)) || ("bridge".equals(templateSuffix)))) {
-			throw new IllegalArgumentException("Allowed values for templateSuffix are 'generic', 'portal' or 'bridge'.");
+		if (! (("plfm".equals(templateSuffix)) || ("worker".equals(templateSuffix)) || ("portal".equals(templateSuffix)) || ("bridge".equals(templateSuffix)))) {
+			throw new IllegalArgumentException("Allowed values for templateSuffix are 'plfm', 'worker', portal' or 'bridge'.");
 		}
 		List<ConfigurationOptionSetting> list = new LinkedList<ConfigurationOptionSetting>();
 		// Load the properties 
@@ -493,6 +497,13 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 							}
 						}
 					}
+				}
+			}
+			// Override health check URL for plfm and bridge
+			if ("aws.elasticbeanstalk.application.Application-Healthcheck-URL".equals(key)) {
+				if (("plfm".equals(templateSuffix)) || ("bridge".equals(templateSuffix))) {
+					logger.debug("Overriding aws.elasticbeanstalk.application.Application Healthcheck URL to '/repo/v1/version'");
+					value = "/repo/v1/version";
 				}
 			}
 
