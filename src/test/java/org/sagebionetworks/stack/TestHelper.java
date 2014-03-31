@@ -95,6 +95,7 @@ public class TestHelper {
 		inputProperties.put(Constants.INSTANCE, "A");
 		inputProperties.put(Constants.PORTAL_BEANSTALK_NUMBER, "0");
 		inputProperties.put(Constants.BRIDGE_BEANSTALK_NUMBER, "1");
+		inputProperties.put(Constants.PLFM_BEANSTALK_NUMBER, "1");
 		inputProperties.put(Constants.SWC_VERSION, "2.4.8");
 		inputProperties.put(Constants.PLFM_VERSION, "1.2.3");
 		inputProperties.put(Constants.BRIDGE_VERSION, "7.8.9");
