@@ -484,9 +484,15 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 					// We need a minimum of two instances for production, except for bridge in early development.
 					if (! ("bridge".equals(templateSuffix))) {
 						if("MinSize".equals(name)){
-							if(Long.parseLong(value) < 2){
-								logger.debug("Overriding aws.autoscaling.asg.MinSize for production to be at least 2");
-								value = "2";
+							if(Long.parseLong(value) < 4){
+								logger.debug("Overriding aws.autoscaling.asg.MinSize for production to be at least 4");
+								value = "4";
+							}
+						}
+						if("MaxSize".equals(name)){
+							if(Long.parseLong(value) < 8){
+								logger.debug("Overriding aws.autoscaling.asg.MaxSize for production to be at least 8");
+								value = "8";
 							}
 						}
 						// We want our two instances to be in any two zones. See PLFM-1560
