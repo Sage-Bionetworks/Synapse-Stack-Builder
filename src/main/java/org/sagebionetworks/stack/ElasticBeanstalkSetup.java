@@ -147,14 +147,14 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		resources.setElasticBeanstalkConfigurationTemplate("worker", createOrUpdateConfigurationTemplate(workerElbTemplateName, cfgOptSettings));
 		cfgOptSettings = getAllElasticBeanstalkOptions("portal");
 		resources.setElasticBeanstalkConfigurationTemplate("portal", createOrUpdateConfigurationTemplate(portalElbTemplateName, cfgOptSettings));
-		cfgOptSettings = getAllElasticBeanstalkOptions("bridge");
-		resources.setElasticBeanstalkConfigurationTemplate("bridge", createOrUpdateConfigurationTemplate(bridgeElbTemplateName, cfgOptSettings));
+		//cfgOptSettings = getAllElasticBeanstalkOptions("bridge");
+		//resources.setElasticBeanstalkConfigurationTemplate("bridge", createOrUpdateConfigurationTemplate(bridgeElbTemplateName, cfgOptSettings));
 
 		// Create the environments
 		// portal
 		createOrUpdateEnvironment(PREFIX_PORTAL, portalElbTemplateName, resources.getPortalApplicationVersion());
 		// bridge
-		createOrUpdateEnvironment(PREFIX_BRIDGE, bridgeElbTemplateName, resources.getBridgeApplicationVersion());
+		//createOrUpdateEnvironment(PREFIX_BRIDGE, bridgeElbTemplateName, resources.getBridgeApplicationVersion());
 			// repo
 		createOrUpdateEnvironment(PREFIX_REPO, plfmElbTemplateName, resources.getRepoApplicationVersion());
 		// workers svc
@@ -162,7 +162,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		
 		// Fetch all of the results
 		List<EnvironmentDescription> envDescs = new ArrayList<EnvironmentDescription>();
-		for (int numEnvironments = 0; numEnvironments < Constants.SVC_PREFIXES.size(); numEnvironments++) {
+		for (int numEnvironments = 0; numEnvironments < Constants.SVC_PREFIXES.size()-1; numEnvironments++) {
 			try {
 				Future<EnvironmentDescription> futureEnvDesc = completionSvc.take();
 				EnvironmentDescription envDesc = futureEnvDesc.get();
@@ -484,9 +484,15 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 					// We need a minimum of two instances for production, except for bridge in early development.
 					if (! ("bridge".equals(templateSuffix))) {
 						if("MinSize".equals(name)){
-							if(Long.parseLong(value) < 2){
-								logger.debug("Overriding aws.autoscaling.asg.MinSize for production to be at least 2");
-								value = "2";
+							if(Long.parseLong(value) < 4){
+								logger.debug("Overriding aws.autoscaling.asg.MinSize for production to be at least 4");
+								value = "4";
+							}
+						}
+						if("MaxSize".equals(name)){
+							if(Long.parseLong(value) < 8){
+								logger.debug("Overriding aws.autoscaling.asg.MaxSize for production to be at least 8");
+								value = "8";
 							}
 						}
 						// We want our two instances to be in any two zones. See PLFM-1560

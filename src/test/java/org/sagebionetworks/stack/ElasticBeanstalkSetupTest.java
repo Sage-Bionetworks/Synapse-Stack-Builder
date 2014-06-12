@@ -200,7 +200,7 @@ public class ElasticBeanstalkSetupTest {
 		resources = TestHelper.createTestResources(config);
 		setup = new ElasticBeanstalkSetup(factory, config, resources);
 		// From the server tab
-		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("MinSize").withValue("2"));
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("MinSize").withValue("4"));
 		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("plfm");
 		// Make sure we can find all of the expected values
 		for(ConfigurationOptionSetting expectedCon: expected){

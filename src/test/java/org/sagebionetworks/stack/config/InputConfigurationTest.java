@@ -141,7 +141,7 @@ public class InputConfigurationTest {
 		assertEquals(expectedStackDBIdentifier+"-security-group", config.getStackDatabaseSecurityGroupName());
 		assertEquals("The database security group used by the "+expectedStackDBIdentifier+".", config.getStackDatabaseSecurityGroupDescription());
 		// the alert topic
-		assertEquals(stack+"-RDS-Alert", config.getRDSAlertTopicName());
+		assertEquals(stack+"-"+instance+"-RDS-Alert", config.getRDSAlertTopicName());
 		// Main file S3 bucket
 		assertEquals(stack+"data.sagebase.org", config.getMainFileS3BucketName());
 	}
