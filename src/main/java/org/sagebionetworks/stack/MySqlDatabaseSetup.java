@@ -71,7 +71,8 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		}
 		//	TODO: Describe table DB instances
 		List<DBInstance> descDbInstResults = new ArrayList<DBInstance>();
-		for (int i = 0; i < this.config.getNumberTableInstances(); i++) {
+		int numTableInstances = Integer.parseInt(this.config.getNumberTableInstances());
+		for (int i = 0; i < numTableInstances; i++) {
 			req = buildStackTableDBInstanceDescribeDBInstanceRequest(i);
 			res = client.describeDBInstances(req);
 			if ((res.getDBInstances() != null) && (res.getDBInstances().size() == 1)) {
@@ -106,7 +107,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		
 		
 		// Create the table instances databases
-		int numTableInstances = config.getNumberTableInstances();
+		int numTableInstances = Integer.parseInt(config.getNumberTableInstances());
 		List<DBInstance> stackTableInstances = new ArrayList<DBInstance>();
 		for (int inst = 0; inst < numTableInstances; inst++) {
 			request = buildStackTableDBInstanceCreateDBInstanceRequest(inst);

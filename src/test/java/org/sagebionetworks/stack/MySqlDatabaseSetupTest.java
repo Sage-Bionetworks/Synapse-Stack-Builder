@@ -325,7 +325,8 @@ public class MySqlDatabaseSetupTest {
 	
 	@Test
 	public void testbuildStackTableDBInstanceDescribeDBInstanceRequest() {
-		for (int i = 0; i < config.getNumberTableInstances(); i++) {
+		int numTableInstances = Integer.parseInt(config.getNumberTableInstances());
+		for (int i = 0; i < numTableInstances; i++) {
 			DescribeDBInstancesRequest expectedReq = new DescribeDBInstancesRequest().withDBInstanceIdentifier(config.getStackTableDBInstanceDatabaseIdentifier(i));
 			DescribeDBInstancesRequest req = databaseSetup.buildStackTableDBInstanceDescribeDBInstanceRequest(i);
 			assertEquals(expectedReq, req);
