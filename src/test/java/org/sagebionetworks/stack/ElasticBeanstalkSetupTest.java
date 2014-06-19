@@ -182,14 +182,6 @@ public class ElasticBeanstalkSetupTest {
 			assertNotNull("Failed to find expected configuration: "+expectedCon,found);
 			assertEquals("Values did not match for namespace: "+expectedCon.getNamespace()+" and option name: "+expectedCon.getOptionName(),expectedCon.getValue(), found.getValue());
 		}
-		// Now try for bridge, should behave the same
-		result = setup.getAllElasticBeanstalkOptions("bridge");
-		// Make sure we can find all of the expected values
-		for(ConfigurationOptionSetting expectedCon: expected){
-			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
-			assertNotNull("Failed to find expected configuration: "+expectedCon,found);
-			assertEquals("Values did not match for namespace: "+expectedCon.getNamespace()+" and option name: "+expectedCon.getOptionName(),expectedCon.getValue(), found.getValue());
-		}
 	}
 	
 	@Test
@@ -202,24 +194,6 @@ public class ElasticBeanstalkSetupTest {
 		// From the server tab
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("MinSize").withValue("4"));
 		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("plfm");
-		// Make sure we can find all of the expected values
-		for(ConfigurationOptionSetting expectedCon: expected){
-			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
-			assertNotNull("Failed to find expected configuration: "+expectedCon,found);
-			assertEquals("Values did not match for namespace: "+expectedCon.getNamespace()+" and option name: "+expectedCon.getOptionName(),expectedCon.getValue(), found.getValue());
-		}
-	}
-	
-	@Test
-	public void testMinAutoScaleSizeProductionBridge() throws IOException{
-		List<ConfigurationOptionSetting> expected = new LinkedList<ConfigurationOptionSetting>(); 
-		// For prod the min should be 2
-		config = TestHelper.createTestConfig("prod");
-		resources = TestHelper.createTestResources(config);
-		setup = new ElasticBeanstalkSetup(factory, config, resources);
-		// From the server tab
-		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("MinSize").withValue("1"));
-		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("bridge");
 		// Make sure we can find all of the expected values
 		for(ConfigurationOptionSetting expectedCon: expected){
 			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
@@ -251,24 +225,6 @@ public class ElasticBeanstalkSetupTest {
 		}
 	}
 	
-	@Test
-	public void testAutoScaleMultiZoneProductionBridge() throws IOException{
-		List<ConfigurationOptionSetting> expected = new LinkedList<ConfigurationOptionSetting>(); 
-		// For prod the min should be 2
-		config = TestHelper.createTestConfig("prod");
-		resources = TestHelper.createTestResources(config);
-		setup = new ElasticBeanstalkSetup(factory, config, resources);
-		// From the server tab
-		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("Availability Zones").withValue("Any 1"));
-		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("bridge");
-		// Make sure we can find all of the expected values
-		for(ConfigurationOptionSetting expectedCon: expected){
-			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
-			assertNotNull("Failed to find expected configuration: "+expectedCon,found);
-			assertEquals("Values did not match for namespace: "+expectedCon.getNamespace()+" and option name: "+expectedCon.getOptionName(),expectedCon.getValue(), found.getValue());
-		}
-	}
-	
 	/**
 	 * This is a test for PLFM-1571.
 	 * 
@@ -284,24 +240,6 @@ public class ElasticBeanstalkSetupTest {
 		// From the server tab
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("Custom Availability Zones").withValue("us-east-1a, us-east-1e"));
 		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("plfm");
-		// Make sure we can find all of the expected values
-		for(ConfigurationOptionSetting expectedCon: expected){
-			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
-			assertNotNull("Failed to find expected configuration: "+expectedCon,found);
-			assertEquals("Values did not match for namespace: "+expectedCon.getNamespace()+" and option name: "+expectedCon.getOptionName(),expectedCon.getValue(), found.getValue());
-		}
-	}
-	
-	@Test
-	public void testCustomAvailabilityZonesProductionBridge() throws IOException{
-		List<ConfigurationOptionSetting> expected = new LinkedList<ConfigurationOptionSetting>(); 
-		// For prod the min should be 2
-		config = TestHelper.createTestConfig("prod");
-		resources = TestHelper.createTestResources(config);
-		setup = new ElasticBeanstalkSetup(factory, config, resources);
-		// From the server tab
-		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("Custom Availability Zones").withValue("us-east-1d"));
-		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("bridge");
 		// Make sure we can find all of the expected values
 		for(ConfigurationOptionSetting expectedCon: expected){
 			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
