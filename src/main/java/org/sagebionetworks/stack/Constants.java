@@ -47,7 +47,6 @@ public class Constants {
 	 */
 	public static final String SWC_VERSION = "org.sagebionetworks.swc.version";
 	public static final String PLFM_VERSION = "org.sagebionetworks.plfm.version";
-	public static final String BRIDGE_VERSION = "org.sagebionetworks.bridge.version";
 	
 	/**
 	 * Properties that requiring encryption should have this as a suffix.
@@ -324,14 +323,12 @@ public class Constants {
 	public static final String PREFIX_REPO = "repo";
 	public static final String PREFIX_PORTAL = "portal";
 	public static final String PREFIX_WORKERS = "workers";
-	public static final String PREFIX_BRIDGE = "bridge";
 	
 	// List of service prefixes for Route53 setup
-	public static final List<String> SVC_PREFIXES = Arrays.asList(Constants.PREFIX_BRIDGE, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS);
-	public static final List<String> ROUTE53_PREFIXES = Arrays.asList(Constants.PREFIX_BRIDGE, Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS);
+	public static final List<String> SVC_PREFIXES = Arrays.asList(Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS);
+	public static final List<String> ROUTE53_PREFIXES = Arrays.asList(Constants.PREFIX_PORTAL, Constants.PREFIX_REPO, Constants.PREFIX_WORKERS);
 	
 	public static final String PORTAL_BEANSTALK_NUMBER = "org.sagebionetworks.stack.portal.beanstalk.number";
-	public static final String BRIDGE_BEANSTALK_NUMBER = "org.sagebionetworks.stack.bridge.beanstalk.number";
 	public static final String PLFM_BEANSTALK_NUMBER = "org.sagebionetworks.stack.plfm.beanstalk.number";
 	
 	public static final String NUMBER_TABLE_INSTANCES = "org.sagebionetworks.number.table.instances";

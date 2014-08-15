@@ -104,7 +104,6 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		if(resources.getSslCertificate("worker") == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate('worker') cannot be null");
 		if(resources.getSslCertificate("portal") == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate('portal') cannot be null");
 		if(resources.getPortalApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getPortalApplicationVersion() cannot be null");
-		if(resources.getBridgeApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getBridgeApplicationVersion() cannot be null");
 		if(resources.getRepoApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getReopApplicationVersion() cannot be null");
 		if(resources.getWorkersApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getWorkersApplicationVersion() cannot be null");
 		if(resources.getStackKeyPair() == null) throw new IllegalArgumentException("GeneratedResources.getStackKeyPair() cannot be null");
@@ -124,7 +123,6 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	
 	public void describeResources() {
 		resources.setPortalEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_PORTAL)));
-		resources.setBrigeEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_BRIDGE)));
 		resources.setRepositoryEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_REPO)));
 		resources.setWorkersEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_WORKERS)));
 	}
@@ -139,7 +137,6 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		String plfmElbTemplateName = config.getElasticBeanstalkTemplateName() + "-plfm";
 		String workerElbTemplateName = config.getElasticBeanstalkTemplateName() + "-worker";
 		String portalElbTemplateName = config.getElasticBeanstalkTemplateName() + "-portal";
-		String bridgeElbTemplateName = config.getElasticBeanstalkApplicationName() + "-bridge";
 		// First create or update the templates using the current data.
 		List<ConfigurationOptionSetting> cfgOptSettings = getAllElasticBeanstalkOptions("plfm");
 		resources.setElasticBeanstalkConfigurationTemplate("plfm", createOrUpdateConfigurationTemplate(plfmElbTemplateName, cfgOptSettings));
@@ -147,14 +144,10 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		resources.setElasticBeanstalkConfigurationTemplate("worker", createOrUpdateConfigurationTemplate(workerElbTemplateName, cfgOptSettings));
 		cfgOptSettings = getAllElasticBeanstalkOptions("portal");
 		resources.setElasticBeanstalkConfigurationTemplate("portal", createOrUpdateConfigurationTemplate(portalElbTemplateName, cfgOptSettings));
-		//cfgOptSettings = getAllElasticBeanstalkOptions("bridge");
-		//resources.setElasticBeanstalkConfigurationTemplate("bridge", createOrUpdateConfigurationTemplate(bridgeElbTemplateName, cfgOptSettings));
 
 		// Create the environments
 		// portal
 		createOrUpdateEnvironment(PREFIX_PORTAL, portalElbTemplateName, resources.getPortalApplicationVersion());
-		// bridge
-		//createOrUpdateEnvironment(PREFIX_BRIDGE, bridgeElbTemplateName, resources.getBridgeApplicationVersion());
 			// repo
 		createOrUpdateEnvironment(PREFIX_REPO, plfmElbTemplateName, resources.getRepoApplicationVersion());
 		// workers svc
@@ -162,7 +155,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		
 		// Fetch all of the results
 		List<EnvironmentDescription> envDescs = new ArrayList<EnvironmentDescription>();
-		for (int numEnvironments = 0; numEnvironments < Constants.SVC_PREFIXES.size()-1; numEnvironments++) {
+		for (int numEnvironments = 0; numEnvironments < Constants.SVC_PREFIXES.size(); numEnvironments++) {
 			try {
 				Future<EnvironmentDescription> futureEnvDesc = completionSvc.take();
 				EnvironmentDescription envDesc = futureEnvDesc.get();
@@ -212,7 +205,6 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 */
 	public void terminateAllEnvironments() {
 		this.terminateEnvironment(PREFIX_PORTAL);
-		this.terminateEnvironment(PREFIX_BRIDGE);
 		this.terminateEnvironment(PREFIX_REPO);
 		this.terminateEnvironment(PREFIX_WORKERS);
 //		this.deleteConfigurationTemplate();
@@ -450,8 +442,8 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * @throws IOException 
 	 */
 	public List<ConfigurationOptionSetting> getAllElasticBeanstalkOptions(final String templateSuffix) {
-		if (! (("plfm".equals(templateSuffix)) || ("worker".equals(templateSuffix)) || ("portal".equals(templateSuffix)) || ("bridge".equals(templateSuffix)))) {
-			throw new IllegalArgumentException("Allowed values for templateSuffix are 'plfm', 'worker', portal' or 'bridge'.");
+		if (! (("plfm".equals(templateSuffix)) || ("worker".equals(templateSuffix)) || ("portal".equals(templateSuffix)))) {
+			throw new IllegalArgumentException("Allowed values for templateSuffix are 'plfm', 'worker', portal'.");
 		}
 		List<ConfigurationOptionSetting> list = new LinkedList<ConfigurationOptionSetting>();
 		// Load the properties 
@@ -481,33 +473,31 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			// We override some of the auto-scaling values for production.
 			if(config.isProductionStack()){
 				if("aws:autoscaling:asg".equals(nameSpace)){
-					// We need a minimum of two instances for production, except for bridge in early development.
-					if (! ("bridge".equals(templateSuffix))) {
-						if("MinSize".equals(name)){
-							if(Long.parseLong(value) < 4){
-								logger.debug("Overriding aws.autoscaling.asg.MinSize for production to be at least 4");
-								value = "4";
-							}
+					// We need a minimum of two instances for production.
+					if("MinSize".equals(name)){
+						if(Long.parseLong(value) < 4){
+							logger.debug("Overriding aws.autoscaling.asg.MinSize for production to be at least 4");
+							value = "4";
 						}
-						if("MaxSize".equals(name)){
-							if(Long.parseLong(value) < 8){
-								logger.debug("Overriding aws.autoscaling.asg.MaxSize for production to be at least 8");
-								value = "8";
-							}
+					}
+					if("MaxSize".equals(name)){
+						if(Long.parseLong(value) < 8){
+							logger.debug("Overriding aws.autoscaling.asg.MaxSize for production to be at least 8");
+							value = "8";
 						}
-						// We want our two instances to be in any two zones. See PLFM-1560
-						if("Availability Zones".equals(name)){
-							if(!"Any 2".equals(value)){
-								logger.debug("Overriding aws.autoscaling.asg.Availability-Zones for production to be at least 'Any 2'");
-								value = "Any 2";
-							}
+					}
+					// We want our two instances to be in any two zones. See PLFM-1560
+					if("Availability Zones".equals(name)){
+						if(!"Any 2".equals(value)){
+							logger.debug("Overriding aws.autoscaling.asg.Availability-Zones for production to be at least 'Any 2'");
+							value = "Any 2";
 						}
 					}
 				}
 			}
-			// Override health check URL for plfm and bridge
+			// Override health check URL for plfm
 			if ("aws.elasticbeanstalk.application.Application-Healthcheck-URL".equals(key)) {
-				if (("plfm".equals(templateSuffix)) || ("bridge".equals(templateSuffix))) {
+				if ("plfm".equals(templateSuffix)) {
 					logger.debug("Overriding aws.elasticbeanstalk.application.Application Healthcheck URL to '/repo/v1/version'");
 					value = "/repo/v1/version";
 				}
@@ -520,11 +510,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		// For production we need one more configuration added. See PLFM-1571
 		if(config.isProductionStack()){
 			ConfigurationOptionSetting cfg;
-			if (! ("bridge".equals(templateSuffix))) {
-				cfg = new ConfigurationOptionSetting("aws:autoscaling:asg", "Custom Availability Zones", "us-east-1a, us-east-1e");
-			} else {
-				cfg = new ConfigurationOptionSetting("aws:autoscaling:asg", "Custom Availability Zones", "us-east-1d");
-			}
+			cfg = new ConfigurationOptionSetting("aws:autoscaling:asg", "Custom Availability Zones", "us-east-1a, us-east-1e");
 			list.add(cfg);
 		}
 		// Add SSL arn based on templateSuffix
