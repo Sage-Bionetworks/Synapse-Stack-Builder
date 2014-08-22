@@ -1,11 +1,13 @@
 package org.sagebionetworks.stack;
 
-
-
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
 import java.io.IOException;
+
 import org.junit.Before;
 import org.junit.Test;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+
 import org.sagebionetworks.factory.MockAmazonClientFactory;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
@@ -27,7 +29,18 @@ public class ArtifactProcessingTest {
 //	}
 	
 	@Test
-	public void test() {
-		
+	public void testIsArtifactoryError404Response() throws IOException {
+		String resp = "{\n  \"errors\" : [ {\n    \"status\" : 404,\n    \"message\" : \"File not found.\"\n  } ]}";
+		boolean rc = ArtifactProcessing.isArtifactoryError404Response(resp);
+		assertTrue(rc);
+		resp = "{\n  \"errors\" : [ {\n    \"status\" : 403,\n    \"message\" : \"File not found.\"\n  } ]}";
+		rc = ArtifactProcessing.isArtifactoryError404Response(resp);
+		assertFalse(rc);
+		resp = "{\n  \"errors\" : [ {\n    \"status\" : 403,\n  } ]}";
+		rc = ArtifactProcessing.isArtifactoryError404Response(resp);
+		assertFalse(rc);
+		resp = "not JSON";
+		rc = ArtifactProcessing.isArtifactoryError404Response(resp);
+		assertFalse(rc);
 	}
 }
