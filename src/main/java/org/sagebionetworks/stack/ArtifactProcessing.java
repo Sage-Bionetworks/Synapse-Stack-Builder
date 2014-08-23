@@ -206,11 +206,11 @@ public class ArtifactProcessing {
 		InputStream input = null;
 		OutputStream output = null;
 		byte[] buffer = new byte[1024];
-		double bytes = 0.0;
 		try {
 			input = response.getEntity().getContent();
 			File ouptFile = File.createTempFile("Artifact", ".tmp");
 			output = new FileOutputStream(ouptFile);
+			double bytes = 0.0;
 			long start = System.currentTimeMillis();
 			for (int length; (length = input.read(buffer)) > 0;) {
 				output.write(buffer, 0, length);
