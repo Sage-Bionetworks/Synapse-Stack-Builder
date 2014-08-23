@@ -15,25 +15,16 @@ import com.amazonaws.services.s3.model.ProgressEvent;
 import com.amazonaws.services.s3.model.ProgressListener;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
-import com.amazonaws.util.json.JSONObject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Iterator;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+
 import org.apache.log4j.Logger;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.map.ObjectMapper;
 import static org.sagebionetworks.stack.Constants.*;
 
 import org.sagebionetworks.stack.config.InputConfiguration;
@@ -209,6 +200,9 @@ public class ArtifactProcessing {
 		log.debug(fileUrl);
 		HttpGet get = new HttpGet(fileUrl);
 		HttpResponse response = httpClient.execute(get);
+		if (response.getStatusLine().getStatusCode() == 404) {
+			throw new IllegalArgumentException("Could not find " + fileUrl + " on Artifactory");
+		}
 		InputStream input = null;
 		OutputStream output = null;
 		byte[] buffer = new byte[1024];
@@ -244,16 +238,7 @@ public class ArtifactProcessing {
 			if (output != null){
 				try {
 					output.close();
-					if (bytes < 1024*1024) {// Check if error 404 from Artifactory
-						byte[] b = Files.readAllBytes(Paths.get("./Artifact.tmp"));
-						String s = new String(b, StandardCharsets.UTF_8);
-						if (ArtifactProcessing.isArtifactoryError404Response(s)) {
-							throw new IOException("Artifact not found on Artifactory");
-						}
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				} catch (IOException e) {}
 			}
 			if (input != null){
 				try {
@@ -261,36 +246,6 @@ public class ArtifactProcessing {
 				} catch (IOException e) {}
 			}
 
-		}
-	}
-	
-	public static boolean isArtifactoryError404Response(String jsonString) throws IOException {
-		boolean rc = false;
-		ObjectMapper mapper = new ObjectMapper();
-		JsonFactory factory = mapper.getJsonFactory();
-		JsonParser parser = factory.createJsonParser(jsonString);
-		try {
-			JsonNode root = parser.readValueAsTree();
-			JsonNode errorsNode = null;
-			if (root.has("errors")) {
-				errorsNode = root.get("errors");
-				if ((errorsNode.isArray()) && (errorsNode.size() == 1)) {
-					JsonNode errorNode = errorsNode.get(0);
-					if (errorNode.has("status") && errorNode.has("message")) {
-						JsonNode statusNode = errorNode.get("status");
-						int status = statusNode.getIntValue();
-						if (status == 404) {
-							rc = true;
-						}
-					}
-				}
-				
-			}
-			
-		} catch (JsonParseException e) {
-			throw new IOException("Error parsing JSON from Artifactory");
-		} finally {
-			return rc;
 		}
 	}
 

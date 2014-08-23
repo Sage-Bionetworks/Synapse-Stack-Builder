@@ -21,10 +21,6 @@
 			<url>http://sagebionetworks.artifactoryonline.com/sagebionetworks/ext-releases-local
 			</url>
 		</repository>
-		<repository>
-			<id>codehaus</id>
-			<url>http://repository.codehaus.org/org/codehaus</url>
-		</repository>
 	</repositories>
 
 	<dependencies>
@@ -69,11 +65,6 @@
 			<artifactId>mockito-all</artifactId>
 			<version>1.8.5</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.codehaus.jackson</groupId>
-			<artifactId>jackson-mapper-asl</artifactId>
-			<version>1.8.5</version>
 		</dependency>
 	</dependencies>
 	<build>
