@@ -1,18 +1,5 @@
 package org.sagebionetworks.stack;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.log4j.Logger;
-import org.sagebionetworks.stack.config.InputConfiguration;
-import org.sagebionetworks.stack.factory.AmazonClientFactory;
-import static org.sagebionetworks.stack.Constants.*;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
@@ -28,6 +15,21 @@ import com.amazonaws.services.s3.model.ProgressEvent;
 import com.amazonaws.services.s3.model.ProgressListener;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+
+import org.apache.log4j.Logger;
+import static org.sagebionetworks.stack.Constants.*;
+
+import org.sagebionetworks.stack.config.InputConfiguration;
+import org.sagebionetworks.stack.factory.AmazonClientFactory;
+
 
 /**
  * Downloads artifacts from Artifactory and uploads them as versions to S3.
@@ -198,6 +200,9 @@ public class ArtifactProcessing {
 		log.debug(fileUrl);
 		HttpGet get = new HttpGet(fileUrl);
 		HttpResponse response = httpClient.execute(get);
+		if (response.getStatusLine().getStatusCode() == 404) {
+			throw new IllegalArgumentException("Could not find " + fileUrl + " on Artifactory");
+		}
 		InputStream input = null;
 		OutputStream output = null;
 		byte[] buffer = new byte[1024];
