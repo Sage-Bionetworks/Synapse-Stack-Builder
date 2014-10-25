@@ -31,7 +31,7 @@ import org.sagebionetworks.stack.factory.AmazonClientFactoryImpl;
  * @author xschildw
  */
 public class StackActivator {
-	private static Logger log = Logger.getLogger(BuildStackMain.class.getName());
+	private static Logger log = Logger.getLogger(StackActivator.class.getName());
 	/**
 	 * @param args the command line arguments
 	 */
@@ -59,8 +59,9 @@ public class StackActivator {
 					showUsage();
 					throw new IllegalArgumentException("Valid values for instanceRole are 'prod' or 'staging'.");
 				}
-				
-				Activator activator = new Activator(new AmazonClientFactoryImpl(), inputProps, stackInstance, instanceRole);
+				InputConfiguration config = new InputConfiguration(inputProps);
+
+				Activator activator = new Activator(new AmazonClientFactoryImpl(), config, stackInstance, instanceRole);
 				activator.activateStack();
 			} else {
 				showUsage();

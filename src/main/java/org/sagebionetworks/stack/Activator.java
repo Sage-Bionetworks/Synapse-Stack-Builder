@@ -36,8 +36,8 @@ public class Activator {
 	private String stackInstance, instanceRole;
 	private HostedZone backEndHostedZone, portalHostedZone;
 
-	public Activator(AmazonClientFactory factory, Properties props, String stackInstance, String instanceRole) throws IOException {
-		config = new InputConfiguration(props);
+	public Activator(AmazonClientFactory factory, InputConfiguration inputConfig, String stackInstance, String instanceRole) throws IOException {
+		config = inputConfig;
 		factory.setCredentials(config.getAWSCredentials());
 		
 		this.client = factory.createRoute53Client();
@@ -59,33 +59,21 @@ public class Activator {
 			throw new IllegalStateException("Invalid hosted zones setup!");
 		}
 		
-		// BackEnd services
-		List<String> backEndSvcPrefixes = Arrays.asList(Constants.PREFIX_REPO, Constants.PREFIX_WORKERS);
-		String r53SubdomainName = backEndHostedZone.getName();
-		Map<String, String> genericToInstanceCNAMEMap = new HashMap<String, String>();
-		for (String backEndSvcPrefix :backEndSvcPrefixes) {
-			genericToInstanceCNAMEMap.put(getBackEndGenericCNAME(backEndSvcPrefix, instanceRole, backEndHostedZone.getName()), getBackEndInstanceCNAME(backEndSvcPrefix, instanceRole, stackInstance, backEndHostedZone.getName()));
-		}
+		// BackEnd services CNAMEs map
+		Map<String, String> genericToInstanceCNAMEMap = mapBackendGenericCNAMEToInstanceCNAME();
 		
 		// For each map entry, append append delete/create to list of changes
-		List<Change> changes = new ArrayList<Change>();
-		for (String k :genericToInstanceCNAMEMap.keySet()) {
-			List<Change> lc = createChangesForCNAME(k, genericToInstanceCNAMEMap.get(k));
-			changes.addAll(lc);
-		}
+		List<Change> changes = createChangesForCNAMEs(genericToInstanceCNAMEMap);
 		
 		// Apply changes
 		applyChanges(changes);
 		
 		// Portal
-		String r53DomainName = portalHostedZone.getName();
-		if ("staging".equals(instanceRole)) {
-			// Point CNAME to new target
-			List<Change> portalChanges = createChangesForCNAME(getPortalGenericCNAME(), getPortalInstanceCNAME(instanceRole, stackInstance, backEndHostedZone.getName()));
-			applyChanges(portalChanges);
-		} else {
-			// Point the A-record for synapse.org to the elb of the target portal
-		}
+
+		// Portal service CNAMEs map
+		Map<String, String> portalGenericToInstanceCNAMEMap = mapPortalGenericCNAMEToInstanceCNAME();
+		changes = createChangesForCNAMEs(portalGenericToInstanceCNAMEMap);
+		applyChanges(changes);
 	}
 	
 	public List<Change> createChangesForCNAME(String cName, String newTarget) {
@@ -105,6 +93,15 @@ public class Activator {
 			lc = createChangeList(backEndHostedZone, rrs, newTarget);
 		}
 		return lc;
+	}
+	
+	public List<Change> createChangesForCNAMEs(Map<String, String> map) {
+		List<Change> changes = new ArrayList<Change>();
+		for (String k :map.keySet()) {
+			List<Change> lc = createChangesForCNAME(k, map.get(k));
+			changes.addAll(lc);
+		}
+		return changes;
 	}
 	
 	public List<Change> createChangeList(HostedZone hz, ResourceRecordSet rrs, String newValue) {
@@ -153,19 +150,59 @@ public class Activator {
 		return hostedZone;
 	}
 	
+	public Map<String, String> mapBackendGenericCNAMEToInstanceCNAME() {
+		Map<String, String> mapGenericToInstanceNames = new HashMap<String, String>();
+		List<String> backEndSvcPrefixes = Arrays.asList(Constants.PREFIX_REPO);
+		String r53DomainName = backEndHostedZone.getName();
+		for (String backEndSvcPrefix :backEndSvcPrefixes) {
+			mapGenericToInstanceNames.put(getBackEndGenericCNAME(backEndSvcPrefix, instanceRole, r53DomainName), getBackEndInstanceCNAME(backEndSvcPrefix, instanceRole, "prod", r53DomainName));
+		}
+		return mapGenericToInstanceNames;
+	}
+	
+	public Map<String, String> mapPortalGenericCNAMEToInstanceCNAME() {
+		Map<String, String> mapGenericToInstanceNames = new HashMap<String, String>();
+		List<String> portalSvcPrefixes = Arrays.asList(Constants.PREFIX_PORTAL);
+		String r53GenericSubdomainName = portalHostedZone.getName();
+		String r53InstanceSubdomainName = backEndHostedZone.getName();
+		for (String portalSvcPrefix: portalSvcPrefixes) {
+			mapGenericToInstanceNames.put(getPortalGenericCNAME(portalSvcPrefix, instanceRole, r53GenericSubdomainName), getPortalInstanceCNAME(portalSvcPrefix, instanceRole, "prod", r53InstanceSubdomainName));
+		}
+		return mapGenericToInstanceNames;
+	}
+	
 	public String getBackEndGenericCNAME(String svcPrefix, String instanceRole, String hostedZoneName) {
-		return "%s-%s.%s".format(svcPrefix, instanceRole, hostedZoneName);
+		String s = String.format("%s-%s.%s", svcPrefix, instanceRole, hostedZoneName);
+		return s;
 	}
 	
 	public String getBackEndInstanceCNAME(String svcPrefix, String instanceRole, String stackInstance, String hostedZoneName) {
-		return "%s-%s-%s.%s".format(svcPrefix, instanceRole, stackInstance, hostedZoneName);
+		return String.format("%s-%s-%s.%s", svcPrefix, instanceRole, stackInstance, hostedZoneName);
 	}
 	
-	public String getPortalGenericCNAME() {
-		return "staging.synapse.org";
+	public String getPortalGenericCNAME(String svcPrefix, String instanceRole, String hostedZoneName) {
+		if (! "portal".equals(svcPrefix)) {
+			throw new IllegalArgumentException("SvcPrefix must be 'portal'.");
+		}
+		if ((!"prod".equals(instanceRole)) | (!"staging".equals(instanceRole))) {
+			throw new IllegalArgumentException("InstanceRole must be 'prod' or 'staging'.");
+		}
+		String r53Subdomain = null;
+		if ("prod".equals(instanceRole)) {
+			r53Subdomain = "www";
+		} else {
+			r53Subdomain = "staging";
+		}
+		return String.format("%s.%s", r53Subdomain, hostedZoneName);
 	}
 	
-	public String getPortalInstanceCNAME(String instanceRole, String stackInstance, String hostedZoneName) {
-		return "portal-%s-%s.%s".format(instanceRole, stackInstance, instanceRole, hostedZoneName);
+	public String getPortalInstanceCNAME(String svcPrefix, String instanceRole, String stackInstance, String hostedZoneName) {
+		if (! "portal".equals(svcPrefix)) {
+			throw new IllegalArgumentException("SvcPrefix must be 'portal'.");
+		}
+		if ((!"prod".equals(instanceRole)) | (!"staging".equals(instanceRole))) {
+			throw new IllegalArgumentException("InstanceRole must be 'prod' or 'staging'.");
+		}
+		return String.format("%s-%s-%s.%s", svcPrefix, instanceRole, stackInstance, instanceRole, hostedZoneName);
 	}
 }
