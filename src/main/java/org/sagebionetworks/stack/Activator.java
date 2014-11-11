@@ -8,7 +8,6 @@ import com.amazonaws.services.route53.model.ChangeResourceRecordSetsRequest;
 import com.amazonaws.services.route53.model.ChangeResourceRecordSetsResult;
 import com.amazonaws.services.route53.model.GetChangeRequest;
 import com.amazonaws.services.route53.model.GetChangeResult;
-import com.amazonaws.services.route53.model.GetHostedZoneRequest;
 import com.amazonaws.services.route53.model.HostedZone;
 import com.amazonaws.services.route53.model.ListHostedZonesResult;
 import com.amazonaws.services.route53.model.ListResourceRecordSetsRequest;
@@ -22,7 +21,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
@@ -34,7 +32,6 @@ public class Activator {
 	private AmazonRoute53Client client;
 	private InputConfiguration config;
 	private String stackInstance, instanceRole;
-	private HostedZone backEndHostedZone, portalHostedZone;
 
 	public Activator(AmazonClientFactory factory, InputConfiguration inputConfig, String stackInstance, String instanceRole) throws IOException {
 		config = inputConfig;
@@ -53,11 +50,6 @@ public class Activator {
 	 *	ActivateStack changes these CNAMEs to point to a new stack instance
 	 */
 	public void activateStack() throws IOException {
-		backEndHostedZone = getHostedZoneByName("sagebase.org");
-		portalHostedZone = getHostedZoneByName("synapse.org");
-		if ((null == backEndHostedZone) || (null == portalHostedZone)) {
-			throw new IllegalStateException("Invalid hosted zones setup!");
-		}
 		
 		// BackEnd services CNAMEs map
 		Map<String, String> genericToInstanceCNAMEMap = mapBackendGenericCNAMEToInstanceCNAME();
@@ -80,7 +72,7 @@ public class Activator {
 		List<Change> lc = new ArrayList<Change>();
 		// Change  srcSvcGenericCNAME record to point to destSvcCNAME
 		ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest();
-		req.setHostedZoneId(backEndHostedZone.getId());
+		req.setHostedZoneId(getHostedZoneByName(Constants.R53_BACKEND_HOSTEDZONE_NAME).getId());
 		req.setStartRecordType(RRType.CNAME);
 		req.setStartRecordName(cName);
 		req.setMaxItems("1");
@@ -90,7 +82,7 @@ public class Activator {
 			rrs = lrRes.getResourceRecordSets().get(0);
 		}
 		if (rrs != null) { // Generate a delete and a create request
-			lc = createChangeList(backEndHostedZone, rrs, newTarget);
+			lc = createChangeList(getHostedZoneByName(Constants.R53_BACKEND_HOSTEDZONE_NAME), rrs, newTarget);
 		}
 		return lc;
 	}
@@ -121,7 +113,7 @@ public class Activator {
 	public void applyChanges(List<Change> changes) {
 		String swapComment = "StackActivator - making stack:" + stackInstance + " to " + instanceRole + ".";
 		ChangeBatch batch = new ChangeBatch().withChanges(changes).withComment(swapComment);
-		ChangeResourceRecordSetsRequest req = new ChangeResourceRecordSetsRequest().withChangeBatch(batch).withHostedZoneId(backEndHostedZone.getId());
+		ChangeResourceRecordSetsRequest req = new ChangeResourceRecordSetsRequest().withChangeBatch(batch).withHostedZoneId(getHostedZoneByName(Constants.R53_BACKEND_HOSTEDZONE_NAME).getId());
 		ChangeResourceRecordSetsResult cRes = client.changeResourceRecordSets(req);
 		GetChangeRequest gcReq = new GetChangeRequest(cRes.getChangeInfo().getId());
 		GetChangeResult gcRes = client.getChange(gcReq);
@@ -153,9 +145,8 @@ public class Activator {
 	public Map<String, String> mapBackendGenericCNAMEToInstanceCNAME() {
 		Map<String, String> mapGenericToInstanceNames = new HashMap<String, String>();
 		List<String> backEndSvcPrefixes = Arrays.asList(Constants.PREFIX_REPO);
-		String r53DomainName = backEndHostedZone.getName();
 		for (String backEndSvcPrefix :backEndSvcPrefixes) {
-			mapGenericToInstanceNames.put(getBackEndGenericCNAME(backEndSvcPrefix, instanceRole, r53DomainName), getBackEndInstanceCNAME(backEndSvcPrefix, instanceRole, "prod", r53DomainName));
+			mapGenericToInstanceNames.put(getBackEndGenericCNAME(backEndSvcPrefix, instanceRole, Constants.R53_SUBDOMAIN_NAME, Constants.R53_BACKEND_HOSTEDZONE_NAME), getBackEndInstanceCNAME(backEndSvcPrefix, instanceRole, stackInstance, "prod", Constants.R53_BACKEND_HOSTEDZONE_NAME));
 		}
 		return mapGenericToInstanceNames;
 	}
@@ -163,46 +154,58 @@ public class Activator {
 	public Map<String, String> mapPortalGenericCNAMEToInstanceCNAME() {
 		Map<String, String> mapGenericToInstanceNames = new HashMap<String, String>();
 		List<String> portalSvcPrefixes = Arrays.asList(Constants.PREFIX_PORTAL);
-		String r53GenericSubdomainName = portalHostedZone.getName();
-		String r53InstanceSubdomainName = backEndHostedZone.getName();
 		for (String portalSvcPrefix: portalSvcPrefixes) {
-			mapGenericToInstanceNames.put(getPortalGenericCNAME(portalSvcPrefix, instanceRole, r53GenericSubdomainName), getPortalInstanceCNAME(portalSvcPrefix, instanceRole, "prod", r53InstanceSubdomainName));
+			mapGenericToInstanceNames.put(
+				getPortalGenericCNAME(instanceRole),
+				getPortalInstanceCNAME(stackInstance));
 		}
 		return mapGenericToInstanceNames;
 	}
 	
-	public String getBackEndGenericCNAME(String svcPrefix, String instanceRole, String hostedZoneName) {
-		String s = String.format("%s-%s.%s", svcPrefix, instanceRole, hostedZoneName);
+	public String getBackEndGenericCNAME(String svcPrefix, String instanceRole, String subDomainName, String domainName) {
+		String s = String.format("%s-%s.%s.%s", svcPrefix, instanceRole, subDomainName, domainName);
 		return s;
 	}
 	
-	public String getBackEndInstanceCNAME(String svcPrefix, String instanceRole, String stackInstance, String hostedZoneName) {
-		return String.format("%s-%s-%s.%s", svcPrefix, instanceRole, stackInstance, hostedZoneName);
+	/**
+	 *	Backend instance is always 'repo-prod-<instance>.prod.sagebase.org'
+	 *		where <instance> is <instance_num>-<beanstalk_num>
+	 *	Keeping subdomain and domain as parameters for now
+	 *	Independent of instanceRole
+	 * 
+	 * @param svcPrefix
+	 * @param instanceRole
+	 * @param stackInstance
+	 * @param subDomainName
+	 * @param domainName
+	 * @return 
+	 */
+	public String getBackEndInstanceCNAME(String svcPrefix, String instanceRole, String stackInstance, String subDomainName, String domainName) {
+		return String.format("%s-%s-%s.%s.%s", svcPrefix, instanceRole, stackInstance, subDomainName, domainName);
 	}
 	
-	public String getPortalGenericCNAME(String svcPrefix, String instanceRole, String hostedZoneName) {
-		if (! "portal".equals(svcPrefix)) {
-			throw new IllegalArgumentException("SvcPrefix must be 'portal'.");
-		}
-		if ((!"prod".equals(instanceRole)) | (!"staging".equals(instanceRole))) {
+	/**
+	 * Portal generic name is either 'synapse-prod.synapse.org' (prod) or 'synapse-staging.synapse.org' (staging)
+	 * @param instanceRole
+	 * @return 
+	 */
+	public String getPortalGenericCNAME(String instanceRole) {
+		if ((!"prod".equals(instanceRole)) && (!"staging".equals(instanceRole))) {
 			throw new IllegalArgumentException("InstanceRole must be 'prod' or 'staging'.");
 		}
-		String r53Subdomain = null;
-		if ("prod".equals(instanceRole)) {
-			r53Subdomain = "www";
-		} else {
-			r53Subdomain = "staging";
-		}
-		return String.format("%s.%s", r53Subdomain, hostedZoneName);
+		return String.format("synapse-%s.synapse.org", instanceRole);
 	}
 	
-	public String getPortalInstanceCNAME(String svcPrefix, String instanceRole, String stackInstance, String hostedZoneName) {
-		if (! "portal".equals(svcPrefix)) {
-			throw new IllegalArgumentException("SvcPrefix must be 'portal'.");
-		}
-		if ((!"prod".equals(instanceRole)) | (!"staging".equals(instanceRole))) {
-			throw new IllegalArgumentException("InstanceRole must be 'prod' or 'staging'.");
-		}
-		return String.format("%s-%s-%s.%s", svcPrefix, instanceRole, stackInstance, instanceRole, hostedZoneName);
+	/**
+	 * Portal instance CNAME is always 'portal-prod-<instance>.prod.sagebase.org'
+	 *	where <instance> is <stack_number>-<beanstalk_number>
+	 * 
+	 * @param svcPrefix
+	 * @param stackInstance
+	 * @param domainName
+	 * @return 
+	 */
+	public String getPortalInstanceCNAME(String stackInstance) {
+		return String.format("portal-prod-%s.prod.sagebase.org", stackInstance);
 	}
 }

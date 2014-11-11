@@ -337,4 +337,9 @@ public class Constants {
 	public static final String PLFM_BEANSTALK_NUMBER = "org.sagebionetworks.stack.plfm.beanstalk.number";
 	
 	public static final String NUMBER_TABLE_INSTANCES = "org.sagebionetworks.number.table.instances";
+	
+	// For the stack activator
+	public static final String R53_SUBDOMAIN_NAME = "prod";
+	public static final String R53_BACKEND_HOSTEDZONE_NAME = "sagebase.org";
+	public static final String R53_PORTAL_HOSTEDZONE_NAME = "synapse.org";
 }
