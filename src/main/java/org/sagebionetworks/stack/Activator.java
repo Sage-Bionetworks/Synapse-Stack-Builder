@@ -6,6 +6,7 @@ import com.amazonaws.services.route53.model.ChangeAction;
 import com.amazonaws.services.route53.model.ChangeBatch;
 import com.amazonaws.services.route53.model.ChangeResourceRecordSetsRequest;
 import com.amazonaws.services.route53.model.ChangeResourceRecordSetsResult;
+import com.amazonaws.services.route53.model.ChangeStatus;
 import com.amazonaws.services.route53.model.GetChangeRequest;
 import com.amazonaws.services.route53.model.GetChangeResult;
 import com.amazonaws.services.route53.model.HostedZone;
@@ -50,53 +51,37 @@ public class Activator {
 	 *	ActivateStack changes these CNAMEs to point to a new stack instance
 	 */
 	public void activateStack() throws IOException {
-		
-		// BackEnd services CNAMEs map
+		String hostedZoneId = getHostedZoneByName(Constants.R53_BACKEND_HOSTEDZONE_NAME).getId();
 		Map<String, String> genericToInstanceCNAMEMap = mapBackendGenericCNAMEToInstanceCNAME();
-		
-		// For each map entry, append append delete/create to list of changes
-		List<Change> changes = createChangesForCNAMEs(genericToInstanceCNAMEMap);
-		
-		// Apply changes
-		applyChanges(changes);
+		List<Change> changes = createChangesForCNAMEs(hostedZoneId, genericToInstanceCNAMEMap);
+		applyChanges(hostedZoneId, changes);
 		
 		// Portal
-
-		// Portal service CNAMEs map
+		hostedZoneId = getHostedZoneByName(Constants.R53_PORTAL_HOSTEDZONE_NAME).getId();
 		Map<String, String> portalGenericToInstanceCNAMEMap = mapPortalGenericCNAMEToInstanceCNAME();
-		changes = createChangesForCNAMEs(portalGenericToInstanceCNAMEMap);
-		applyChanges(changes);
+		changes = createChangesForCNAMEs(hostedZoneId, portalGenericToInstanceCNAMEMap);
+		applyChanges(hostedZoneId, changes);
 	}
 	
-	public List<Change> createChangesForCNAME(String cName, String newTarget) {
-		List<Change> lc = new ArrayList<Change>();
-		// Change  srcSvcGenericCNAME record to point to destSvcCNAME
-		ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest();
-		req.setHostedZoneId(getHostedZoneByName(Constants.R53_BACKEND_HOSTEDZONE_NAME).getId());
-		req.setStartRecordType(RRType.CNAME);
-		req.setStartRecordName(cName);
-		req.setMaxItems("1");
-		ListResourceRecordSetsResult lrRes = client.listResourceRecordSets(req);
-		ResourceRecordSet rrs = null;
-		if ((lrRes.getResourceRecordSets().size() > 0) && (cName.equals(lrRes.getResourceRecordSets().get(0).getName()))) {
-			rrs = lrRes.getResourceRecordSets().get(0);
-		}
-		if (rrs != null) { // Generate a delete and a create request
-			lc = createChangeList(getHostedZoneByName(Constants.R53_BACKEND_HOSTEDZONE_NAME), rrs, newTarget);
-		}
+	public List<Change> createChangesForCNAME(String hostedZoneId, String cName, String newTarget) {
+		List<Change> lc = null;
+		ResourceRecordSet rrs = getResourceRecordSetByCNAME(hostedZoneId, cName);
+		lc = createChangeList(rrs, newTarget);
+		
 		return lc;
 	}
 	
-	public List<Change> createChangesForCNAMEs(Map<String, String> map) {
+	
+	public List<Change> createChangesForCNAMEs(String hostedZoneId, Map<String, String> map) {
 		List<Change> changes = new ArrayList<Change>();
 		for (String k :map.keySet()) {
-			List<Change> lc = createChangesForCNAME(k, map.get(k));
+			List<Change> lc = createChangesForCNAME(hostedZoneId, k, map.get(k));
 			changes.addAll(lc);
 		}
 		return changes;
 	}
 	
-	public List<Change> createChangeList(HostedZone hz, ResourceRecordSet rrs, String newValue) {
+	public List<Change> createChangeList(ResourceRecordSet rrs, String newValue) {
 		List<Change> changeList = new ArrayList<Change>();
 		Change c;
 		
@@ -110,19 +95,18 @@ public class Activator {
 		return changeList;
 	}
 	
-	public void applyChanges(List<Change> changes) {
-		String swapComment = "StackActivator - making stack:" + stackInstance + " to " + instanceRole + ".";
+	public void applyChanges(String hostedZoneId, List<Change> changes) {
+		String swapComment = "StackActivator - making stack: " + stackInstance + " to " + instanceRole + ".";
 		ChangeBatch batch = new ChangeBatch().withChanges(changes).withComment(swapComment);
-		ChangeResourceRecordSetsRequest req = new ChangeResourceRecordSetsRequest().withChangeBatch(batch).withHostedZoneId(getHostedZoneByName(Constants.R53_BACKEND_HOSTEDZONE_NAME).getId());
+		ChangeResourceRecordSetsRequest req = new ChangeResourceRecordSetsRequest().withChangeBatch(batch).withHostedZoneId(hostedZoneId);
 		ChangeResourceRecordSetsResult cRes = client.changeResourceRecordSets(req);
 		GetChangeRequest gcReq = new GetChangeRequest(cRes.getChangeInfo().getId());
 		GetChangeResult gcRes = client.getChange(gcReq);
 		// TODO: No real need to wait here, could just exit
-		while (! "INSYNC".equals(gcRes.getChangeInfo().getStatus())) {
+		while (! ChangeStatus.Deployed.name().equals(gcRes.getChangeInfo().getStatus())) {
 			try {
 				Thread.sleep(1000L);
 				gcRes = client.getChange(gcReq);
-				String s = gcRes.getChangeInfo().getStatus();
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e);
 			}
@@ -142,11 +126,29 @@ public class Activator {
 		return hostedZone;
 	}
 	
+	public ResourceRecordSet getResourceRecordSetByCNAME(String hostedZoneId, String cName) {
+		ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest();
+		req.setHostedZoneId(hostedZoneId);
+		req.setStartRecordType(RRType.CNAME);
+		req.setStartRecordName(cName);
+		req.setMaxItems("1");
+		ListResourceRecordSetsResult lrRes = client.listResourceRecordSets(req);
+		ResourceRecordSet rrs = null;
+		if ((lrRes.getResourceRecordSets() != null) && (lrRes.getResourceRecordSets().size() > 0) && (cName.equals(lrRes.getResourceRecordSets().get(0).getName()))) {
+			rrs = lrRes.getResourceRecordSets().get(0);
+		} else {
+			throw new IllegalArgumentException("CNAME {0} not found in zone".format(cName));
+		}
+		return rrs;
+	}
+
 	public Map<String, String> mapBackendGenericCNAMEToInstanceCNAME() {
 		Map<String, String> mapGenericToInstanceNames = new HashMap<String, String>();
 		List<String> backEndSvcPrefixes = Arrays.asList(Constants.PREFIX_REPO);
 		for (String backEndSvcPrefix :backEndSvcPrefixes) {
-			mapGenericToInstanceNames.put(getBackEndGenericCNAME(backEndSvcPrefix, instanceRole, Constants.R53_SUBDOMAIN_NAME, Constants.R53_BACKEND_HOSTEDZONE_NAME), getBackEndInstanceCNAME(backEndSvcPrefix, instanceRole, stackInstance, "prod", Constants.R53_BACKEND_HOSTEDZONE_NAME));
+			mapGenericToInstanceNames.put(
+				getBackEndGenericCNAME(backEndSvcPrefix, instanceRole, Constants.R53_SUBDOMAIN_NAME, Constants.R53_BACKEND_HOSTEDZONE_NAME),
+				getBackEndInstanceCNAME(backEndSvcPrefix, instanceRole, stackInstance, "prod", Constants.R53_BACKEND_HOSTEDZONE_NAME));
 		}
 		return mapGenericToInstanceNames;
 	}
@@ -162,6 +164,16 @@ public class Activator {
 		return mapGenericToInstanceNames;
 	}
 	
+	/**
+	 * Backend generic CNAME is always 'repo-<role>.prod.sagebase.org'
+	 *		where <role> is either 'staging' or 'prod'
+	 * 
+	 * @param svcPrefix
+	 * @param instanceRole
+	 * @param subDomainName
+	 * @param domainName
+	 * @return 
+	 */
 	public String getBackEndGenericCNAME(String svcPrefix, String instanceRole, String subDomainName, String domainName) {
 		String s = String.format("%s-%s.%s.%s", svcPrefix, instanceRole, subDomainName, domainName);
 		return s;
@@ -181,7 +193,7 @@ public class Activator {
 	 * @return 
 	 */
 	public String getBackEndInstanceCNAME(String svcPrefix, String instanceRole, String stackInstance, String subDomainName, String domainName) {
-		return String.format("%s-%s-%s.%s.%s", svcPrefix, instanceRole, stackInstance, subDomainName, domainName);
+		return String.format("%s-prod-%s.%s.%s", svcPrefix, stackInstance, subDomainName, domainName);
 	}
 	
 	/**
