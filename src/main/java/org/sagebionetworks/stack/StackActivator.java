@@ -1,29 +1,14 @@
 package org.sagebionetworks.stack;
 
-import com.amazonaws.services.route53.AmazonRoute53Client;
-import com.amazonaws.services.route53.model.Change;
-import com.amazonaws.services.route53.model.ChangeAction;
-import com.amazonaws.services.route53.model.GetHostedZoneRequest;
-import com.amazonaws.services.route53.model.HostedZone;
-import com.amazonaws.services.route53.model.ListHostedZonesResult;
-import com.amazonaws.services.route53.model.ListResourceRecordSetsRequest;
-import com.amazonaws.services.route53.model.ListResourceRecordSetsResult;
-import com.amazonaws.services.route53.model.RRType;
-import com.amazonaws.services.route53.model.ResourceRecord;
-import com.amazonaws.services.route53.model.ResourceRecordSet;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
 import org.apache.log4j.Logger;
 
 import org.sagebionetworks.stack.config.InputConfiguration;
-import org.sagebionetworks.stack.factory.AmazonClientFactory;
 import org.sagebionetworks.stack.factory.AmazonClientFactoryImpl;
 
 /**
@@ -63,6 +48,12 @@ public class StackActivator {
 
 				Activator activator = new Activator(new AmazonClientFactoryImpl(), config, stackInstance, instanceRole);
 				activator.activateStack();
+				
+				Long activationTime = System.currentTimeMillis()/1000L;
+				if ("prod".equals(instanceRole)) {
+					activator.saveActivationRecord(activationTime);
+				}
+				
 			} else {
 				showUsage();
 				throw new IllegalArgumentException("Wrong number of arguments!");

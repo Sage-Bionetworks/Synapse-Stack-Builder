@@ -16,6 +16,7 @@ import com.amazonaws.services.route53.model.ListResourceRecordSetsResult;
 import com.amazonaws.services.route53.model.RRType;
 import com.amazonaws.services.route53.model.ResourceRecord;
 import com.amazonaws.services.route53.model.ResourceRecordSet;
+import com.amazonaws.services.s3.AmazonS3Client;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +31,8 @@ import org.sagebionetworks.stack.factory.AmazonClientFactory;
  * @author xschildw
  */
 public class Activator {
-	private AmazonRoute53Client client;
+	private AmazonRoute53Client route53Client;
+	private AmazonS3Client s3Client;
 	private InputConfiguration config;
 	private String stackInstance, instanceRole;
 
@@ -38,7 +40,8 @@ public class Activator {
 		config = inputConfig;
 		factory.setCredentials(config.getAWSCredentials());
 		
-		this.client = factory.createRoute53Client();
+		this.route53Client = factory.createRoute53Client();
+		this.s3Client = factory.createS3Client();
 		this.stackInstance = stackInstance;
 		this.instanceRole = instanceRole;
 
@@ -61,6 +64,10 @@ public class Activator {
 		Map<String, String> portalGenericToInstanceCNAMEMap = mapPortalGenericCNAMEToInstanceCNAME();
 		changes = createChangesForCNAMEs(hostedZoneId, portalGenericToInstanceCNAMEMap);
 		applyChanges(hostedZoneId, changes);
+	}
+	
+	public void saveActivationRecord(Long activationTime) {
+		
 	}
 	
 	public List<Change> createChangesForCNAME(String hostedZoneId, String cName, String newTarget) {
@@ -99,14 +106,14 @@ public class Activator {
 		String swapComment = "StackActivator - making stack: " + stackInstance + " to " + instanceRole + ".";
 		ChangeBatch batch = new ChangeBatch().withChanges(changes).withComment(swapComment);
 		ChangeResourceRecordSetsRequest req = new ChangeResourceRecordSetsRequest().withChangeBatch(batch).withHostedZoneId(hostedZoneId);
-		ChangeResourceRecordSetsResult cRes = client.changeResourceRecordSets(req);
+		ChangeResourceRecordSetsResult cRes = route53Client.changeResourceRecordSets(req);
 		GetChangeRequest gcReq = new GetChangeRequest(cRes.getChangeInfo().getId());
-		GetChangeResult gcRes = client.getChange(gcReq);
+		GetChangeResult gcRes = route53Client.getChange(gcReq);
 		// TODO: No real need to wait here, could just exit
 		while (! ChangeStatus.Deployed.name().equals(gcRes.getChangeInfo().getStatus())) {
 			try {
 				Thread.sleep(1000L);
-				gcRes = client.getChange(gcReq);
+				gcRes = route53Client.getChange(gcReq);
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e);
 			}
@@ -115,7 +122,7 @@ public class Activator {
 	
 	public HostedZone getHostedZoneByName(String hostedZoneName) {
 		HostedZone hostedZone = null;
-		ListHostedZonesResult lhzRes = client.listHostedZones();
+		ListHostedZonesResult lhzRes = route53Client.listHostedZones();
 		List<HostedZone> hostedZones = lhzRes.getHostedZones();
 		for (HostedZone hz :hostedZones) {
 			if (hostedZoneName.equals(hz.getName())) {
@@ -132,7 +139,7 @@ public class Activator {
 		req.setStartRecordType(RRType.CNAME);
 		req.setStartRecordName(cName);
 		req.setMaxItems("1");
-		ListResourceRecordSetsResult lrRes = client.listResourceRecordSets(req);
+		ListResourceRecordSetsResult lrRes = route53Client.listResourceRecordSets(req);
 		ResourceRecordSet rrs = null;
 		if ((lrRes.getResourceRecordSets() != null) && (lrRes.getResourceRecordSets().size() > 0) && (cName.equals(lrRes.getResourceRecordSets().get(0).getName()))) {
 			rrs = lrRes.getResourceRecordSets().get(0);
