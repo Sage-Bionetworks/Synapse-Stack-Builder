@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.sagebionetworks.stack;
 
 import com.amazonaws.services.route53.AmazonRoute53Client;
@@ -75,46 +70,6 @@ public class ActivatorTest {
 	}
 	
 	@Test
-	public void testGetBackEndGenericCNAME() throws IOException {
-		activator = new Activator(factory, config, "123-0", "prod");
-		String expectedCNAME = "repo-prod.prod.sagebase.org";
-		String cname = activator.getBackEndGenericCNAME("repo", "prod", "prod", "sagebase.org");
-		assertEquals(expectedCNAME, cname);
-	}
-	
-	@Test
-	public void testGetBackEndInstanceCNAME() throws IOException {
-		activator = new Activator(factory, config, "123-0", "prod");
-		String expectedCNAME = "repo-prod-123-0.prod.sagebase.org";
-		String cname = activator.getBackEndInstanceCNAME("repo", "prod", "123-0", "prod", "sagebase.org");
-		assertEquals(expectedCNAME, cname);
-	}
-	
-	@Test
-	public void testGetProdPortalGenericCNAME() throws IOException {
-		activator = new Activator(factory, config, "123-0", "prod");
-		String expectedCNAME = "synapse-prod.synapse.org";
-		String cname = activator.getPortalGenericCNAME("prod");
-		assertEquals(expectedCNAME, cname);
-	}
-	
-	@Test
-	public void testGetStagingPortalGenericCNAME() throws IOException {
-		activator = new Activator(factory, config, "123-0", "staging");
-		String expectedCNAME = "synapse-staging.synapse.org";
-		String cname = activator.getPortalGenericCNAME("staging");
-		assertEquals(expectedCNAME, cname);
-	}
-	
-	@Test
-	public void testGetProdPortalInstanceCNAME() throws IOException {
-		activator = new Activator(factory, config, "123-0", "staging");
-		String expectedCNAME = "portal-prod-123-0.prod.sagebase.org";
-		String cname = activator.getPortalInstanceCNAME("123-0");
-		assertEquals(expectedCNAME, cname);
-	}
-
-	@Test
 	public void testGetHostedZoneByName() throws IOException {
 		activator = new Activator(factory, config, "123-0", "staging");
 		List<HostedZone> expectedListHostedZones = new ArrayList<HostedZone>();
@@ -129,42 +84,6 @@ public class ActivatorTest {
 		HostedZone actualHostedZone = activator.getHostedZoneByName("hostedZone1");
 		assertNotNull(actualHostedZone);
 		assertEquals("hostedZone1", actualHostedZone.getName());
-	}
-	
-	@Test
-	public void testMapbackendGenericCNAMEToInstanceCNAME() throws IOException {
-		activator = new Activator(factory, config, "123-0", "staging");
-		Map<String, String> map = activator.mapBackendGenericCNAMEToInstanceCNAME();
-		assertNotNull(map);
-		assertEquals(1, map.size());
-		assertTrue(map.containsKey("repo-staging.prod.sagebase.org"));
-		String s = map.get("repo-staging.prod.sagebase.org");
-		assertEquals("repo-prod-123-0.prod.sagebase.org", s);
-		activator = new Activator(factory, config, "456-1", "prod");
-		map = activator.mapBackendGenericCNAMEToInstanceCNAME();
-		assertNotNull(map);
-		assertEquals(1, map.size());
-		assertTrue(map.containsKey("repo-prod.prod.sagebase.org"));
-		s = map.get("repo-prod.prod.sagebase.org");
-		assertEquals("repo-prod-456-1.prod.sagebase.org", s);
-	}
-	
-	@Test
-	public void testMapPortalGenericCNAMEToInstanceCNAME() throws IOException {
-		activator = new Activator(factory, config, "123-0", "staging");
-		Map<String, String> map = activator.mapPortalGenericCNAMEToInstanceCNAME();
-		assertNotNull(map);
-		assertEquals(1, map.size());
-		assertTrue(map.containsKey("synapse-staging.synapse.org"));
-		String s = map.get("synapse-staging.synapse.org");
-		assertEquals("portal-prod-123-0.prod.sagebase.org", s);
-		activator = new Activator(factory, config, "456-1", "prod");
-		map = activator.mapPortalGenericCNAMEToInstanceCNAME();
-		assertNotNull(map);
-		assertEquals(1, map.size());
-		assertTrue(map.containsKey("synapse-prod.synapse.org"));
-		s = map.get("synapse-prod.synapse.org");
-		assertEquals("portal-prod-456-1.prod.sagebase.org", s);
 	}
 	
 	@Test

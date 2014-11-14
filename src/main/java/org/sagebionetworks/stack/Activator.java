@@ -55,13 +55,13 @@ public class Activator {
 	 */
 	public void activateStack() throws IOException {
 		String hostedZoneId = getHostedZoneByName(Constants.R53_BACKEND_HOSTEDZONE_NAME).getId();
-		Map<String, String> genericToInstanceCNAMEMap = mapBackendGenericCNAMEToInstanceCNAME();
+		Map<String, String> genericToInstanceCNAMEMap = ActivatorUtils.mapBackendGenericCNAMEToInstanceCNAME(instanceRole, stackInstance);
 		List<Change> changes = createChangesForCNAMEs(hostedZoneId, genericToInstanceCNAMEMap);
 		applyChanges(hostedZoneId, changes);
 		
 		// Portal
 		hostedZoneId = getHostedZoneByName(Constants.R53_PORTAL_HOSTEDZONE_NAME).getId();
-		Map<String, String> portalGenericToInstanceCNAMEMap = mapPortalGenericCNAMEToInstanceCNAME();
+		Map<String, String> portalGenericToInstanceCNAMEMap = ActivatorUtils.mapPortalGenericCNAMEToInstanceCNAME(instanceRole, stackInstance);
 		changes = createChangesForCNAMEs(hostedZoneId, portalGenericToInstanceCNAMEMap);
 		applyChanges(hostedZoneId, changes);
 	}
@@ -149,82 +149,5 @@ public class Activator {
 		return rrs;
 	}
 
-	public Map<String, String> mapBackendGenericCNAMEToInstanceCNAME() {
-		Map<String, String> mapGenericToInstanceNames = new HashMap<String, String>();
-		List<String> backEndSvcPrefixes = Arrays.asList(Constants.PREFIX_REPO);
-		for (String backEndSvcPrefix :backEndSvcPrefixes) {
-			mapGenericToInstanceNames.put(
-				getBackEndGenericCNAME(backEndSvcPrefix, instanceRole, Constants.R53_SUBDOMAIN_NAME, Constants.R53_BACKEND_HOSTEDZONE_NAME),
-				getBackEndInstanceCNAME(backEndSvcPrefix, instanceRole, stackInstance, "prod", Constants.R53_BACKEND_HOSTEDZONE_NAME));
-		}
-		return mapGenericToInstanceNames;
-	}
 	
-	public Map<String, String> mapPortalGenericCNAMEToInstanceCNAME() {
-		Map<String, String> mapGenericToInstanceNames = new HashMap<String, String>();
-		List<String> portalSvcPrefixes = Arrays.asList(Constants.PREFIX_PORTAL);
-		for (String portalSvcPrefix: portalSvcPrefixes) {
-			mapGenericToInstanceNames.put(
-				getPortalGenericCNAME(instanceRole),
-				getPortalInstanceCNAME(stackInstance));
-		}
-		return mapGenericToInstanceNames;
-	}
-	
-	/**
-	 * Backend generic CNAME is always 'repo-<role>.prod.sagebase.org'
-	 *		where <role> is either 'staging' or 'prod'
-	 * 
-	 * @param svcPrefix
-	 * @param instanceRole
-	 * @param subDomainName
-	 * @param domainName
-	 * @return 
-	 */
-	public String getBackEndGenericCNAME(String svcPrefix, String instanceRole, String subDomainName, String domainName) {
-		String s = String.format("%s-%s.%s.%s", svcPrefix, instanceRole, subDomainName, domainName);
-		return s;
-	}
-	
-	/**
-	 *	Backend instance is always 'repo-prod-<instance>.prod.sagebase.org'
-	 *		where <instance> is <instance_num>-<beanstalk_num>
-	 *	Keeping subdomain and domain as parameters for now
-	 *	Independent of instanceRole
-	 * 
-	 * @param svcPrefix
-	 * @param instanceRole
-	 * @param stackInstance
-	 * @param subDomainName
-	 * @param domainName
-	 * @return 
-	 */
-	public String getBackEndInstanceCNAME(String svcPrefix, String instanceRole, String stackInstance, String subDomainName, String domainName) {
-		return String.format("%s-prod-%s.%s.%s", svcPrefix, stackInstance, subDomainName, domainName);
-	}
-	
-	/**
-	 * Portal generic name is either 'synapse-prod.synapse.org' (prod) or 'synapse-staging.synapse.org' (staging)
-	 * @param instanceRole
-	 * @return 
-	 */
-	public String getPortalGenericCNAME(String instanceRole) {
-		if ((!"prod".equals(instanceRole)) && (!"staging".equals(instanceRole))) {
-			throw new IllegalArgumentException("InstanceRole must be 'prod' or 'staging'.");
-		}
-		return String.format("synapse-%s.synapse.org", instanceRole);
-	}
-	
-	/**
-	 * Portal instance CNAME is always 'portal-prod-<instance>.prod.sagebase.org'
-	 *	where <instance> is <stack_number>-<beanstalk_number>
-	 * 
-	 * @param svcPrefix
-	 * @param stackInstance
-	 * @param domainName
-	 * @return 
-	 */
-	public String getPortalInstanceCNAME(String stackInstance) {
-		return String.format("portal-prod-%s.prod.sagebase.org", stackInstance);
-	}
 }
