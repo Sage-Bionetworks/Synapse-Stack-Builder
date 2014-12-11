@@ -1,5 +1,6 @@
 package org.sagebionetworks.stack;
 
+import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.route53.AmazonRoute53Client;
 import com.amazonaws.services.route53.model.Change;
 import com.amazonaws.services.route53.model.ChangeAction;
@@ -17,12 +18,21 @@ import com.amazonaws.services.route53.model.RRType;
 import com.amazonaws.services.route53.model.ResourceRecord;
 import com.amazonaws.services.route53.model.ResourceRecordSet;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.PutObjectResult;
+import java.io.BufferedWriter;
+import java.io.File;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.io.FileWriter;
+import java.io.IOException;
+
+import org.json.simple.JSONObject;
+
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
@@ -66,8 +76,39 @@ public class Activator {
 		applyChanges(hostedZoneId, changes);
 	}
 	
-	public void saveActivationRecord(Long activationTime) {
-		
+	public void saveActivationRecord(Long activationTime, String instance) throws IOException {
+		JSONObject json = createJSONActivationRecord(activationTime, instance);
+		File temp = saveJSONActivationRecord(instance, json);
+		uploadJSONActivationRecordFile(temp);
+	}
+
+	public void uploadJSONActivationRecordFile(File temp) throws AmazonClientException {
+		// Upload file to S3
+		String stackActivationBucketName = config.getStackActivationLogS3BucketName();
+		String stackActivationFileName = config.getStackActivationLogFileName();
+		PutObjectResult res = s3Client.putObject(stackActivationBucketName, stackActivationFileName, temp);
+	}
+
+	public File saveJSONActivationRecord(String instance, JSONObject json) throws IOException {
+		// Save to temp file
+		File temp = File.createTempFile("stack-"+instance, ".json");
+		BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
+		try {
+			bw.write(json.toJSONString());
+		} finally {
+			bw.flush();
+			bw.close();
+		}
+		temp.deleteOnExit();
+		return temp;
+	}
+
+	public JSONObject createJSONActivationRecord(Long activationTime, String instance) {
+		// Make JSON object
+		JSONObject json = new JSONObject();
+		json.put("activationtime", activationTime.toString());
+		json.put("instance", instance);
+		return json;
 	}
 	
 	public List<Change> createChangesForCNAME(String hostedZoneId, String cName, String newTarget) {

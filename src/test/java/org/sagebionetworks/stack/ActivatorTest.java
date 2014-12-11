@@ -17,12 +17,19 @@ import com.amazonaws.services.route53.model.ListResourceRecordSetsResult;
 import com.amazonaws.services.route53.model.RRType;
 import com.amazonaws.services.route53.model.ResourceRecord;
 import com.amazonaws.services.route53.model.ResourceRecordSet;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.PutObjectResult;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
@@ -47,6 +54,7 @@ public class ActivatorTest {
 	Properties props;
 	MockAmazonClientFactory factory = new MockAmazonClientFactory();
 	AmazonRoute53Client mockClient;
+	AmazonS3Client mockS3Client;
 	
 	public ActivatorTest() {
 	}
@@ -63,6 +71,7 @@ public class ActivatorTest {
 	public void setUp() throws IOException {
 		config = TestHelper.createActivatorTestConfiguration();
 		mockClient = factory.createRoute53Client();
+		mockS3Client = factory.createS3Client();
 	}
 	
 	@After
@@ -157,5 +166,44 @@ public class ActivatorTest {
 		activator = new Activator(factory, config, "123-0", "staging");
 		activator.applyChanges(hostedZoneId, changes);
 		verify(mockClient, times(3)).getChange(creq);
+	}
+	
+	@Test
+	public void testCreateJSONStackActivationRecord() throws IOException {
+		activator = new Activator(factory, config, "1234-0", "prod");
+		long time = System.currentTimeMillis();
+		String activationTime = Long.toString(time);
+		String instance = "1234-0";
+		JSONObject expectedJSON = new JSONObject();
+		expectedJSON.put("activationtime", activationTime);
+		expectedJSON.put("instance", instance);
+		JSONObject actualJSON = activator.createJSONActivationRecord(time, instance);
+		assertEquals(expectedJSON, actualJSON);
+	}
+	
+	@Test
+	public void testSaveJSONStackActivationRecord() throws IOException, ParseException {
+		JSONObject inputJSON = new JSONObject();
+		inputJSON.put("somekey", "somevalue");
+		activator = new Activator(factory, config, "1234-0", "prod");
+		File tmp = activator.saveJSONActivationRecord("1234-0", inputJSON);
+		assertNotNull(tmp);
+		assertTrue(tmp.exists());
+		assertTrue(tmp.isFile());
+		JSONParser parser = new JSONParser();
+		Object obj = parser.parse(new FileReader(tmp.getAbsolutePath()));
+		JSONObject outputJSON = (JSONObject) obj;
+		assertEquals(inputJSON, outputJSON);
+	}
+	
+	@Test
+	public void uploadJSONActivationRecordFile() throws IOException {
+		activator = new Activator(factory, config, "1234-0", "prod");
+		File tmp = File.createTempFile("file", ".json");
+		PutObjectResult expectedRes = new PutObjectResult();
+		//when(mockS3Client.putObject(config.getStackActivationLogS3BucketName(), config.getStackActivationLogFileName(), tmp)).thenReturn(expectedRes);
+		activator.uploadJSONActivationRecordFile(tmp);
+		verify(mockS3Client).putObject(config.getStackActivationLogS3BucketName(), config.getStackActivationLogFileName(), tmp);
+		tmp.delete();
 	}
 }

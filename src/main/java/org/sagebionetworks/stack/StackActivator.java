@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
+
 import org.apache.log4j.Logger;
 
 import org.sagebionetworks.stack.config.InputConfiguration;
@@ -51,7 +52,7 @@ public class StackActivator {
 				
 				Long activationTime = System.currentTimeMillis()/1000L;
 				if ("prod".equals(instanceRole)) {
-					activator.saveActivationRecord(activationTime);
+					activator.saveActivationRecord(activationTime, stackInstance);
 				}
 				
 			} else {

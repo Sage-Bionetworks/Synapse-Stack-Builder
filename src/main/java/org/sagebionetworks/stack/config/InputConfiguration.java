@@ -431,6 +431,20 @@ public class InputConfiguration {
 	public String getStackConfigS3BucketName() {
 		return validateAndGetProperty("stack.config.s3.bucket.name");
 	}
+	
+	/**
+	 * The bucket where the stack activation records can be found
+	 */
+	public String getStackActivationLogS3BucketName() {
+		return validateAndGetProperty("stack.activation.record.s3.bucket");
+	}
+	
+	/**
+	 * The bucket where the stack activation records can be found
+	 */
+	public String getStackActivationLogFileName() {
+		return validateAndGetProperty("stack.activation.record.file.name");
+	}
 
 	/**
 	 * The path relative to the bucket of the stack configuration file.
