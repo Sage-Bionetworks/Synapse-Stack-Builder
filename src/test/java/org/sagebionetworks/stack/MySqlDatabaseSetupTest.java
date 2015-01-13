@@ -236,7 +236,7 @@ public class MySqlDatabaseSetupTest {
 		setupProductionConfig();
 		CreateDBInstanceRequest expectedReq = MySqlDatabaseSetup.getDefaultCreateDBInstanceRequest();
 		expectedReq.setDBName(config.getStackInstanceTablesDBSchema());
-		expectedReq.setDBInstanceIdentifier(config.getStackInstanceTablesDatabaseIdentifierBase()+"0");
+		expectedReq.setDBInstanceIdentifier(config.getStackTableDBInstanceDatabaseIdentifier(0));
 		expectedReq.setMasterUsername(config.getStackInstanceDatabaseMasterUser());
 		expectedReq.setMasterUserPassword(config.getStackInstanceDatabaseMasterPasswordPlaintext());
 		expectedReq.withDBSecurityGroups(config.getStackDatabaseSecurityGroupName());
@@ -254,7 +254,7 @@ public class MySqlDatabaseSetupTest {
 		setupDevelopmentConfig();
 		CreateDBInstanceRequest expectedReq = MySqlDatabaseSetup.getDefaultCreateDBInstanceRequest();
 		expectedReq.setDBName(config.getStackInstanceTablesDBSchema());
-		expectedReq.setDBInstanceIdentifier(config.getStackInstanceTablesDatabaseIdentifierBase()+"0");
+		expectedReq.setDBInstanceIdentifier(config.getStackTableDBInstanceDatabaseIdentifier(0));
 		expectedReq.setAllocatedStorage(new Integer(10));
 		expectedReq.setMasterUsername(config.getStackInstanceDatabaseMasterUser());
 		expectedReq.setMasterUserPassword(config.getStackInstanceDatabaseMasterPasswordPlaintext());
@@ -325,8 +325,8 @@ public class MySqlDatabaseSetupTest {
 	
 	@Test
 	public void testbuildStackTableDBInstanceDescribeDBInstanceRequest() {
-		for (int i = 0; i < Integer.parseInt(config.getNumberTableInstances()); i++) {
-			DescribeDBInstancesRequest expectedReq = new DescribeDBInstancesRequest().withDBInstanceIdentifier(config.getStackInstanceTablesDatabaseIdentifierBase()+i);
+		for (int i = 0; i < config.getNumberTableInstances(); i++) {
+			DescribeDBInstancesRequest expectedReq = new DescribeDBInstancesRequest().withDBInstanceIdentifier(config.getStackTableDBInstanceDatabaseIdentifier(i));
 			DescribeDBInstancesRequest req = databaseSetup.buildStackTableDBInstanceDescribeDBInstanceRequest(i);
 			assertEquals(expectedReq, req);
 		}
