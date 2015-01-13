@@ -91,6 +91,15 @@ public class AlarmSetup implements ResourceProcessor {
 		l = createAllAlarmsForDatabase(instance, topicArn);
 		r = describeAllAlarmsForDatabase(instance);
 		resources.setStackInstancesDatabaseAlarms(r);
+		// setup the alarms for the stack table databases.
+		List<DescribeAlarmsResult> lr = new ArrayList<DescribeAlarmsResult>();
+		List<DBInstance> tblInstances = resources.getStackInstanceTablesDatabases();
+		for (DBInstance i:tblInstances) {
+			l = createAllAlarmsForDatabase(i, topicArn);
+			r = describeAllAlarmsForDatabase(i);
+			lr.add(r);
+		}
+		resources.setStackInstanceTablesDatabaseAlarms(lr);
 	}
 
 	/**

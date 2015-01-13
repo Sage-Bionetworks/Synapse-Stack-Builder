@@ -131,9 +131,9 @@ public class InputConfigurationTest {
 		int numTableInstances = Integer.parseInt(config.getNumberTableInstances());
 		for (int instNum = 0; instNum < numTableInstances; instNum++) {
 			String expectedStackTableInstanceIdentifier = stack + "-" + instance + "-table-" + instNum;
-			assertEquals(expectedStackTableInstanceIdentifier, config.getStackTableInstanceDBIdentifier() + instNum);
-			assertEquals(stack+instance, config.getStackTableInstanceDBSchema());
-			assertEquals(stack+instance+"user", config.getStackTableInstanceDBMasterUser());
+			assertEquals(expectedStackTableInstanceIdentifier, config.getStackInstanceTablesDatabaseIdentifierBase() + instNum);
+			assertEquals(stack+instance, config.getStackInstanceTablesDBSchema());
+			assertEquals(stack+instance+"user", config.getStackInstanceTablesDBMasterUser());
 		}
 		// The database security groups
 		assertEquals(expectedIdGenIdentifier+"-security-group", config.getIdGeneratorDatabaseSecurityGroupName());

@@ -232,18 +232,38 @@ public class MySqlDatabaseSetupTest {
 	}
 	
 	@Test
-	public void testBuildStackTableInstanceCreateDBInstanceRequest() throws IOException {
+	public void testBuildStackTableDBInstanceCreateDBInstanceRequestProduction() throws IOException {
 		setupProductionConfig();
 		CreateDBInstanceRequest expectedReq = MySqlDatabaseSetup.getDefaultCreateDBInstanceRequest();
-		expectedReq.setDBName(config.getStackTableInstanceDBSchema());
-		expectedReq.setDBInstanceIdentifier(config.getStackTableInstanceDBIdentifier()+"0");
+		expectedReq.setDBName(config.getStackInstanceTablesDBSchema());
+		expectedReq.setDBInstanceIdentifier(config.getStackInstanceTablesDatabaseIdentifierBase()+"0");
+		expectedReq.setMasterUsername(config.getStackInstanceDatabaseMasterUser());
+		expectedReq.setMasterUserPassword(config.getStackInstanceDatabaseMasterPasswordPlaintext());
+		expectedReq.withDBSecurityGroups(config.getStackDatabaseSecurityGroupName());
+		expectedReq.setDBParameterGroupName(config.getDatabaseParameterGroupName());
+		expectedReq.setBackupRetentionPeriod(0);
+		expectedReq.setMultiAZ(Boolean.FALSE);
+		expectedReq.setAllocatedStorage(250);
+		expectedReq.setDBInstanceClass(DATABASE_INSTANCE_CLASS_LARGE);
+		CreateDBInstanceRequest request = databaseSetup.buildStackTableDBInstanceCreateDBInstanceRequest(0);
+		assertEquals(expectedReq, request);
+	}
+	
+	@Test
+	public void testBuildStackTableDBInstanceCreateDBInstanceRequestNonProduction() throws IOException {
+		setupDevelopmentConfig();
+		CreateDBInstanceRequest expectedReq = MySqlDatabaseSetup.getDefaultCreateDBInstanceRequest();
+		expectedReq.setDBName(config.getStackInstanceTablesDBSchema());
+		expectedReq.setDBInstanceIdentifier(config.getStackInstanceTablesDatabaseIdentifierBase()+"0");
 		expectedReq.setAllocatedStorage(new Integer(10));
 		expectedReq.setMasterUsername(config.getStackInstanceDatabaseMasterUser());
 		expectedReq.setMasterUserPassword(config.getStackInstanceDatabaseMasterPasswordPlaintext());
 		expectedReq.withDBSecurityGroups(config.getStackDatabaseSecurityGroupName());
 		expectedReq.setDBParameterGroupName(config.getDatabaseParameterGroupName());
 		expectedReq.setBackupRetentionPeriod(0);
-		CreateDBInstanceRequest request = databaseSetup.buildStackTableInstanceCreateDBInstanceRequest(0);
+		expectedReq.setMultiAZ(Boolean.FALSE);
+		expectedReq.setDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL);
+		CreateDBInstanceRequest request = databaseSetup.buildStackTableDBInstanceCreateDBInstanceRequest(0);
 		assertEquals(expectedReq, request);
 	}
 	
@@ -287,6 +307,29 @@ public class MySqlDatabaseSetupTest {
 		expectedReq.setSkipFinalSnapshot(Boolean.TRUE);
 		DeleteDBInstanceRequest req = databaseSetup.buildStackInstanceDeleteDBInstanceRequest();
 		assertEquals(expectedReq, req);
+	}
+	
+	@Test
+	public void testbuildIdGeneratorDescribeDBInstanceRequest() {
+		DescribeDBInstancesRequest expectedReq = new DescribeDBInstancesRequest().withDBInstanceIdentifier(config.getIdGeneratorDatabaseIdentifier());
+		DescribeDBInstancesRequest req = databaseSetup.buildIdGeneratorDescribeDBInstanceRequest();
+		assertEquals(expectedReq, req);
+	}
+	
+	@Test
+	public void testbuildStackInstanceDescribeDBInstanceRequest() {
+		DescribeDBInstancesRequest expectedReq = new DescribeDBInstancesRequest().withDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier());
+		DescribeDBInstancesRequest req = databaseSetup.buildStackInstanceDescribeDBInstanceRequest();
+		assertEquals(expectedReq, req);
+	}
+	
+	@Test
+	public void testbuildStackTableDBInstanceDescribeDBInstanceRequest() {
+		for (int i = 0; i < Integer.parseInt(config.getNumberTableInstances()); i++) {
+			DescribeDBInstancesRequest expectedReq = new DescribeDBInstancesRequest().withDBInstanceIdentifier(config.getStackInstanceTablesDatabaseIdentifierBase()+i);
+			DescribeDBInstancesRequest req = databaseSetup.buildStackTableDBInstanceDescribeDBInstanceRequest(i);
+			assertEquals(expectedReq, req);
+		}
 	}
 	
 	@Test
