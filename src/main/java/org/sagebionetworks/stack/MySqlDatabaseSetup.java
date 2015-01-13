@@ -71,7 +71,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		}
 		//	TODO: Describe table DB instances
 		List<DBInstance> descDbInstResults = new ArrayList<DBInstance>();
-		for (int i = 0; i < Integer.parseInt(this.config.getNumberTableInstances()); i++) {
+		for (int i = 0; i < this.config.getNumberTableInstances(); i++) {
 			req = buildStackTableDBInstanceDescribeDBInstanceRequest(i);
 			res = client.describeDBInstances(req);
 			if ((res.getDBInstances() != null) && (res.getDBInstances().size() == 1)) {
@@ -106,7 +106,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		
 		
 		// Create the table instances databases
-		int numTableInstances = Integer.parseInt(config.getNumberTableInstances());
+		int numTableInstances = config.getNumberTableInstances();
 		List<DBInstance> stackTableInstances = new ArrayList<DBInstance>();
 		for (int inst = 0; inst < numTableInstances; inst++) {
 			request = buildStackTableDBInstanceCreateDBInstanceRequest(inst);
@@ -257,7 +257,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		}
 		// This will be the schema name.
 		request.setDBName(config.getStackInstanceTablesDBSchema());
-		request.setDBInstanceIdentifier(config.getStackInstanceTablesDatabaseIdentifierBase()+instNum);
+		request.setDBInstanceIdentifier(config.getStackTableDBInstanceDatabaseIdentifier(instNum));
 		request.setMasterUsername(config.getStackInstanceDatabaseMasterUser());
 		request.setMasterUserPassword(config.getStackInstanceDatabaseMasterPasswordPlaintext());
 		request.setBackupRetentionPeriod(0);
@@ -314,7 +314,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 	
 	DescribeDBInstancesRequest buildStackTableDBInstanceDescribeDBInstanceRequest(int inst) {
 		DescribeDBInstancesRequest req = new DescribeDBInstancesRequest();
-		req.setDBInstanceIdentifier(config.getStackInstanceTablesDatabaseIdentifierBase()+inst);
+		req.setDBInstanceIdentifier(config.getStackTableDBInstanceDatabaseIdentifier(inst));
 		return req;
 	}
 	/**

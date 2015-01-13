@@ -55,8 +55,8 @@ public class AlarmSetupTest {
 		resources.setStackInstancesDatabase(new DBInstance().withAllocatedStorage(50).withDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL).withDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier()));
 		resources.setIdGeneratorDatabase(new DBInstance().withAllocatedStorage(10).withDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL).withDBInstanceIdentifier(config.getIdGeneratorDatabaseIdentifier()));
 		List<DBInstance> stackInstanceTablesDatabases = new ArrayList<DBInstance>();
-		for (int i = 0; i < Integer.parseInt(config.getNumberTableInstances()); i++) {
-			DBInstance stackInstanceDatabase = new DBInstance().withAllocatedStorage(10).withDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL).withDBInstanceIdentifier(config.getStackInstanceTablesDatabaseIdentifierBase()+i);
+		for (int i = 0; i < config.getNumberTableInstances(); i++) {
+			DBInstance stackInstanceDatabase = new DBInstance().withAllocatedStorage(10).withDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL).withDBInstanceIdentifier(config.getStackTableDBInstanceDatabaseIdentifier(i));
 			stackInstanceTablesDatabases.add(stackInstanceDatabase);
 		}
 		resources.setStackInstanceTablesDatabases(stackInstanceTablesDatabases);
@@ -150,8 +150,8 @@ public class AlarmSetupTest {
 		// Are they all there?
 		validateExpectedAlarms(config.getIdGeneratorDatabaseIdentifier(), resources.getIdGeneratorDatabaseAlarms());
 		validateExpectedAlarms(config.getStackInstanceDatabaseIdentifier(), resources.getStackInstancesDatabaseAlarms());
-		for (int i = 0; i < Integer.parseInt(config.getNumberTableInstances()); i++) {
-			validateExpectedAlarms(config.getStackInstanceTablesDatabaseIdentifierBase()+i, resources.getStackInstanceTablesDatabaseAlarms().get(i));
+		for (int i = 0; i < config.getNumberTableInstances(); i++) {
+			validateExpectedAlarms(config.getStackTableDBInstanceDatabaseIdentifier(i), resources.getStackInstanceTablesDatabaseAlarms().get(i));
 		}
 	}
 

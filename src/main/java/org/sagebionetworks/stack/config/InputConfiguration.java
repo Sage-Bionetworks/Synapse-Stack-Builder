@@ -603,8 +603,8 @@ public class InputConfiguration {
 		return validateAndGetProperty(Constants.BRIDGE_BEANSTALK_NUMBER);
 	}
 	
-	public String getNumberTableInstances() {
-		return validateAndGetProperty(Constants.NUMBER_TABLE_INSTANCES);
+	public Integer getNumberTableInstances() {
+		return Integer.parseInt(validateAndGetProperty(Constants.NUMBER_TABLE_INSTANCES));
 	}
 	
 	public String getStackInstanceTablesDatabaseIdentifierBase() {
@@ -615,6 +615,10 @@ public class InputConfiguration {
 	}
 	public String getStackInstanceTablesDBMasterUser() {
 		return validateAndGetProperty("stack.table.instance.database.master.user");
+	}
+	
+	public String getStackTableDBInstanceDatabaseIdentifier(int inst) {
+		return validateAndGetProperty("stack.table.instance.database.identifier")+inst;
 	}
 	
 }
