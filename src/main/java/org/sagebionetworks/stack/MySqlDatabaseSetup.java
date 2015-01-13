@@ -69,6 +69,16 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		if ((res.getDBInstances() != null) && (res.getDBInstances().size() == 1)) {
 			resources.setStackInstancesDatabase(res.getDBInstances().get(0));
 		}
+		//	TODO: Describe table DB instances
+		List<DBInstance> descDbInstResults = new ArrayList<DBInstance>();
+		for (int i = 0; i < Integer.parseInt(this.config.getNumberTableInstances()); i++) {
+			req = buildStackTableDBInstanceDescribeDBInstanceRequest(i);
+			res = client.describeDBInstances(req);
+			if ((res.getDBInstances() != null) && (res.getDBInstances().size() == 1)) {
+				descDbInstResults.add(res.getDBInstances().get(0));
+			}
+		}
+		resources.setStackInstanceTablesDatabases(descDbInstResults);
 	}
 
 	/**
@@ -295,6 +305,11 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		return req;
 	}
 	
+	DescribeDBInstancesRequest buildStackTableDBInstanceDescribeDBInstanceRequest(int inst) {
+		DescribeDBInstancesRequest req = new DescribeDBInstancesRequest();
+		req.setDBInstanceIdentifier(config.getStackInstanceTablesDatabaseIdentifierBase()+inst);
+		return req;
+	}
 	/**
 	 * If this database instances does not already exist it will be created, otherwise the instance information will be returned.
 	 * 

@@ -290,6 +290,29 @@ public class MySqlDatabaseSetupTest {
 	}
 	
 	@Test
+	public void testbuildIdGeneratorDescribeDBInstanceRequest() {
+		DescribeDBInstancesRequest expectedReq = new DescribeDBInstancesRequest().withDBInstanceIdentifier(config.getIdGeneratorDatabaseIdentifier());
+		DescribeDBInstancesRequest req = databaseSetup.buildIdGeneratorDescribeDBInstanceRequest();
+		assertEquals(expectedReq, req);
+	}
+	
+	@Test
+	public void testbuildStackInstanceDescribeDBInstanceRequest() {
+		DescribeDBInstancesRequest expectedReq = new DescribeDBInstancesRequest().withDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier());
+		DescribeDBInstancesRequest req = databaseSetup.buildStackInstanceDescribeDBInstanceRequest();
+		assertEquals(expectedReq, req);
+	}
+	
+	@Test
+	public void testbuildStackTableDBInstanceDescribeDBInstanceRequest() {
+		for (int i = 0; i < Integer.parseInt(config.getNumberTableInstances()); i++) {
+			DescribeDBInstancesRequest expectedReq = new DescribeDBInstancesRequest().withDBInstanceIdentifier(config.getStackInstanceTablesDatabaseIdentifierBase()+i);
+			DescribeDBInstancesRequest req = databaseSetup.buildStackTableDBInstanceDescribeDBInstanceRequest(i);
+			assertEquals(expectedReq, req);
+		}
+	}
+	
+	@Test
 	public void testDeleteDatabaseInstanceDoesNotExist() {
 		// Should just be a no-op
 		DeleteDBInstanceRequest req = new DeleteDBInstanceRequest();
