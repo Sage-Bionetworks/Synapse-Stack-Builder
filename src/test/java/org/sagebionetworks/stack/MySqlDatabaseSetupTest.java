@@ -235,8 +235,8 @@ public class MySqlDatabaseSetupTest {
 	public void testBuildStackTableInstanceCreateDBInstanceRequest() throws IOException {
 		setupProductionConfig();
 		CreateDBInstanceRequest expectedReq = MySqlDatabaseSetup.getDefaultCreateDBInstanceRequest();
-		expectedReq.setDBName(config.getStackTableInstanceDBSchema());
-		expectedReq.setDBInstanceIdentifier(config.getStackTableInstanceDBIdentifier()+"0");
+		expectedReq.setDBName(config.getStackInstanceTablesDBSchema());
+		expectedReq.setDBInstanceIdentifier(config.getStackInstanceTablesDatabaseIdentifierBase()+"0");
 		expectedReq.setAllocatedStorage(new Integer(10));
 		expectedReq.setMasterUsername(config.getStackInstanceDatabaseMasterUser());
 		expectedReq.setMasterUserPassword(config.getStackInstanceDatabaseMasterPasswordPlaintext());

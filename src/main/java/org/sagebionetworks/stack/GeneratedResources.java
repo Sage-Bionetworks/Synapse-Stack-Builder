@@ -34,9 +34,10 @@ public class GeneratedResources {
 	private DBSecurityGroup stackInstancesDatabaseSecurityGroup;
 	private DBInstance idGeneratorDatabase;
 	private DBInstance stackInstancesDatabase;
-	private List<DBInstance> stackTableInstancesDatabases;
+	private List<DBInstance> stackInstanceTablesDatabases;
 	private DescribeAlarmsResult idGeneratorDatabaseAlarms;
 	private DescribeAlarmsResult stackInstancesDatabaseAlarms;
+	private List<DescribeAlarmsResult> stackInstanceTablesDatabaseAlarms;
 	private URL stackConfigurationFileURL;
 	private ApplicationDescription elasticBeanstalkApplication;
 	private ApplicationVersionDescription portalApplicationVersion;
@@ -58,7 +59,7 @@ public class GeneratedResources {
 	public GeneratedResources() {
 		this.sslCertificates = new HashMap<String, ServerCertificateMetadata>();
 		this.elasticBeanstalkConfigurationTemplate = new HashMap<String, DescribeConfigurationOptionsResult>();
-		this.stackTableInstancesDatabases = new ArrayList<DBInstance>();
+		this.stackInstanceTablesDatabases = new ArrayList<DBInstance>();
 	}
 	/**
 	 * The search domain.
@@ -362,12 +363,12 @@ public class GeneratedResources {
 		this.stackInstancesDatabase = stackInstancesDatabase;
 	}
 	
-	public List<DBInstance> getStackTableInstancesDatabases() {
-		return this.stackTableInstancesDatabases;
+	public List<DBInstance> getStackInstanceTablesDatabases() {
+		return this.stackInstanceTablesDatabases;
 	}
 	
-	public void setStackTableInstancesDatabases(List<DBInstance> stiDbs) {
-		this.stackTableInstancesDatabases.addAll(stiDbs);
+	public void setStackInstanceTablesDatabases(List<DBInstance> stiDbs) {
+		this.stackInstanceTablesDatabases.addAll(stiDbs);
 	}
 
 	/**
@@ -393,7 +394,7 @@ public class GeneratedResources {
 	public DescribeAlarmsResult getStackInstancesDatabaseAlarms() {
 		return stackInstancesDatabaseAlarms;
 	}
-
+	
 	/**
 	 * The list of Alarms applied to the stack instances database.
 	 * @param stackInstancesDatabaseAlarms
@@ -401,6 +402,20 @@ public class GeneratedResources {
 	public void setStackInstancesDatabaseAlarms(
 			DescribeAlarmsResult stackInstancesDatabaseAlarms) {
 		this.stackInstancesDatabaseAlarms = stackInstancesDatabaseAlarms;
+	}
+
+	/**
+	 * 
+	 */
+	public void setStackInstanceTablesDatabaseAlarms(List<DescribeAlarmsResult> stackInstanceTablesDatabasesAlarms) {
+		this.stackInstanceTablesDatabaseAlarms = stackInstanceTablesDatabasesAlarms;
+	}
+	
+	/**
+	 * 
+	 */
+	public List<DescribeAlarmsResult> getStackInstanceTablesDatabaseAlarms() {
+		return this.stackInstanceTablesDatabaseAlarms;
 	}
 
 	/**

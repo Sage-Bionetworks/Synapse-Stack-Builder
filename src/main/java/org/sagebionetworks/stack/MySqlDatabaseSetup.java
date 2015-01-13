@@ -116,7 +116,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		
 		resources.setIdGeneratorDatabase(idGenInstance);
 		resources.setStackInstancesDatabase(stackInstance);
-		resources.setStackTableInstancesDatabases(updStackTableInstances);
+		resources.setStackInstanceTablesDatabases(updStackTableInstances);
 	}
 	
 	/**
@@ -239,8 +239,8 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 	CreateDBInstanceRequest buildStackTableInstanceCreateDBInstanceRequest(int instNum) {
 		CreateDBInstanceRequest request = getDefaultCreateDBInstanceRequest();
 		// This will be the schema name.
-		request.setDBName(config.getStackTableInstanceDBSchema());
-		request.setDBInstanceIdentifier(config.getStackTableInstanceDBIdentifier()+instNum);
+		request.setDBName(config.getStackInstanceTablesDBSchema());
+		request.setDBInstanceIdentifier(config.getStackInstanceTablesDatabaseIdentifierBase()+instNum);
 		request.setMasterUsername(config.getStackInstanceDatabaseMasterUser());
 		request.setMasterUserPassword(config.getStackInstanceDatabaseMasterPasswordPlaintext());
 		request.setBackupRetentionPeriod(0);

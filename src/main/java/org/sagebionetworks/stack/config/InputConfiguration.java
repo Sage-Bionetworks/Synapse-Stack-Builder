@@ -607,13 +607,13 @@ public class InputConfiguration {
 		return validateAndGetProperty(Constants.NUMBER_TABLE_INSTANCES);
 	}
 	
-	public String getStackTableInstanceDBIdentifier() {
+	public String getStackInstanceTablesDatabaseIdentifierBase() {
 		return validateAndGetProperty("stack.table.instance.database.identifier");
 	}
-	public String getStackTableInstanceDBSchema() {
+	public String getStackInstanceTablesDBSchema() {
 		return validateAndGetProperty("stack.table.instance.database.schema");
 	}
-	public String getStackTableInstanceDBMasterUser() {
+	public String getStackInstanceTablesDBMasterUser() {
 		return validateAndGetProperty("stack.table.instance.database.master.user");
 	}
 	

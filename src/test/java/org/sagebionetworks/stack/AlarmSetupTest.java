@@ -19,6 +19,7 @@ import com.amazonaws.services.cloudwatch.model.MetricAlarm;
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
 import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.sns.model.CreateTopicResult;
+import java.util.ArrayList;
 import org.junit.Ignore;
 import org.sagebionetworks.factory.MockAmazonClientFactory;
 
@@ -53,6 +54,12 @@ public class AlarmSetupTest {
 		resources.setRdsAlertTopicArn(topicArn);
 		resources.setStackInstancesDatabase(new DBInstance().withAllocatedStorage(50).withDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL).withDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier()));
 		resources.setIdGeneratorDatabase(new DBInstance().withAllocatedStorage(10).withDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL).withDBInstanceIdentifier(config.getIdGeneratorDatabaseIdentifier()));
+		List<DBInstance> stackInstanceTablesDatabases = new ArrayList<DBInstance>();
+		for (int i = 0; i < Integer.parseInt(config.getNumberTableInstances()); i++) {
+			DBInstance stackInstanceDatabase = new DBInstance().withAllocatedStorage(10).withDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL).withDBInstanceIdentifier(config.getStackInstanceTablesDatabaseIdentifierBase()+i);
+			stackInstanceTablesDatabases.add(stackInstanceDatabase);
+		}
+		resources.setStackInstanceTablesDatabases(stackInstanceTablesDatabases);
 		setup = new AlarmSetup(factory, config, resources);
 	}
 	
@@ -139,9 +146,13 @@ public class AlarmSetupTest {
 		setup.setupAllAlarms();
 		assertNotNull(resources.getIdGeneratorDatabaseAlarms());
 		assertNotNull(resources.getStackInstancesDatabaseAlarms());
+		assertNotNull(resources.getStackInstanceTablesDatabaseAlarms());
 		// Are they all there?
 		validateExpectedAlarms(config.getIdGeneratorDatabaseIdentifier(), resources.getIdGeneratorDatabaseAlarms());
 		validateExpectedAlarms(config.getStackInstanceDatabaseIdentifier(), resources.getStackInstancesDatabaseAlarms());
+		for (int i = 0; i < Integer.parseInt(config.getNumberTableInstances()); i++) {
+			validateExpectedAlarms(config.getStackInstanceTablesDatabaseIdentifierBase()+i, resources.getStackInstanceTablesDatabaseAlarms().get(i));
+		}
 	}
 
 	@Ignore
