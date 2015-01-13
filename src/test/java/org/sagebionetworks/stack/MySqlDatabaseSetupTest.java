@@ -232,8 +232,26 @@ public class MySqlDatabaseSetupTest {
 	}
 	
 	@Test
-	public void testBuildStackTableInstanceCreateDBInstanceRequest() throws IOException {
+	public void testBuildStackTableDBInstanceCreateDBInstanceRequestProduction() throws IOException {
 		setupProductionConfig();
+		CreateDBInstanceRequest expectedReq = MySqlDatabaseSetup.getDefaultCreateDBInstanceRequest();
+		expectedReq.setDBName(config.getStackInstanceTablesDBSchema());
+		expectedReq.setDBInstanceIdentifier(config.getStackInstanceTablesDatabaseIdentifierBase()+"0");
+		expectedReq.setMasterUsername(config.getStackInstanceDatabaseMasterUser());
+		expectedReq.setMasterUserPassword(config.getStackInstanceDatabaseMasterPasswordPlaintext());
+		expectedReq.withDBSecurityGroups(config.getStackDatabaseSecurityGroupName());
+		expectedReq.setDBParameterGroupName(config.getDatabaseParameterGroupName());
+		expectedReq.setBackupRetentionPeriod(0);
+		expectedReq.setMultiAZ(Boolean.FALSE);
+		expectedReq.setAllocatedStorage(250);
+		expectedReq.setDBInstanceClass(DATABASE_INSTANCE_CLASS_LARGE);
+		CreateDBInstanceRequest request = databaseSetup.buildStackTableDBInstanceCreateDBInstanceRequest(0);
+		assertEquals(expectedReq, request);
+	}
+	
+	@Test
+	public void testBuildStackTableDBInstanceCreateDBInstanceRequestNonProduction() throws IOException {
+		setupDevelopmentConfig();
 		CreateDBInstanceRequest expectedReq = MySqlDatabaseSetup.getDefaultCreateDBInstanceRequest();
 		expectedReq.setDBName(config.getStackInstanceTablesDBSchema());
 		expectedReq.setDBInstanceIdentifier(config.getStackInstanceTablesDatabaseIdentifierBase()+"0");
@@ -243,7 +261,9 @@ public class MySqlDatabaseSetupTest {
 		expectedReq.withDBSecurityGroups(config.getStackDatabaseSecurityGroupName());
 		expectedReq.setDBParameterGroupName(config.getDatabaseParameterGroupName());
 		expectedReq.setBackupRetentionPeriod(0);
-		CreateDBInstanceRequest request = databaseSetup.buildStackTableInstanceCreateDBInstanceRequest(0);
+		expectedReq.setMultiAZ(Boolean.FALSE);
+		expectedReq.setDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL);
+		CreateDBInstanceRequest request = databaseSetup.buildStackTableDBInstanceCreateDBInstanceRequest(0);
 		assertEquals(expectedReq, request);
 	}
 	

@@ -109,7 +109,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		int numTableInstances = Integer.parseInt(config.getNumberTableInstances());
 		List<DBInstance> stackTableInstances = new ArrayList<DBInstance>();
 		for (int inst = 0; inst < numTableInstances; inst++) {
-			request = buildStackTableInstanceCreateDBInstanceRequest(inst);
+			request = buildStackTableDBInstanceCreateDBInstanceRequest(inst);
 			DBInstance dbInst = createOrGetDatabaseInstance(request);
 			log.debug("Database instance: " + dbInst);
 			stackTableInstances.add(dbInst);
@@ -246,8 +246,15 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		return request;
 	}
 	
-	CreateDBInstanceRequest buildStackTableInstanceCreateDBInstanceRequest(int instNum) {
+	CreateDBInstanceRequest buildStackTableDBInstanceCreateDBInstanceRequest(int instNum) {
 		CreateDBInstanceRequest request = getDefaultCreateDBInstanceRequest();
+		if (config.isProductionStack()) {
+			request.setDBInstanceClass(DATABASE_INSTANCE_CLASS_LARGE);
+			request.setAllocatedStorage(new Integer(250));
+		} else {
+			request.setDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL);
+			request.setAllocatedStorage(new Integer(10));
+		}
 		// This will be the schema name.
 		request.setDBName(config.getStackInstanceTablesDBSchema());
 		request.setDBInstanceIdentifier(config.getStackInstanceTablesDatabaseIdentifierBase()+instNum);
