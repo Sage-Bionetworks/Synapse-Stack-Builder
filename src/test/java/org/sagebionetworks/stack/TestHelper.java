@@ -76,7 +76,8 @@ public class TestHelper {
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_DYNAMO_ENABLED, "true");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_TABLE_ENABLED, "true");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_NOTIFICATION_EMAIL_ADDRESS, "email@address.com");
-
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_OAUTH2_GOOGLE_CLIENT_ID, "oaauth2id");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_OAUTH2_GOOGLE_CLIENT_SECRET, "oauth2secret");
 		
 		return defaults;
 	}
