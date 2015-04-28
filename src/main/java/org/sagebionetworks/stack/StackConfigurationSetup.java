@@ -168,7 +168,7 @@ public class StackConfigurationSetup {
 			// add two properties for each instance.
 			DBInstance instance = list.get(i);
 			template.put(Constants.KEY_TABLE_CLUSTER_DATABASE_ENDPOINT_PREFIX+i, instance.getEndpoint().getAddress());
-			template.put(Constants.KEY_TABLE_CLUSTER_DATABASE_SCHEMA_PREFIX+i, config.getStackInstanceDatabaseSchema());
+			template.put(Constants.KEY_TABLE_CLUSTER_DATABASE_SCHEMA_PREFIX+i, config.getStackInstanceTablesDBSchema());
 		}
 		return template;
 	}
