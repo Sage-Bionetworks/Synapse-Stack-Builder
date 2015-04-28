@@ -337,4 +337,8 @@ public class Constants {
 	public static final String PLFM_BEANSTALK_NUMBER = "org.sagebionetworks.stack.plfm.beanstalk.number";
 	
 	public static final String NUMBER_TABLE_INSTANCES = "org.sagebionetworks.number.table.instances";
+	
+	public static final String KEY_TABLE_CLUSTER_DATABASE_COUNT = "org.sagebionetworks.table.cluster.database.count";
+	public static final String KEY_TABLE_CLUSTER_DATABASE_ENDPOINT_PREFIX = "org.sagebionetworks.table.cluster.endpoint.";
+	public static final String KEY_TABLE_CLUSTER_DATABASE_SCHEMA_PREFIX = "org.sagebionetworks.table.cluster.schema.";
 }

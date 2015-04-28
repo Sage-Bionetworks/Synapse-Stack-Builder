@@ -17,9 +17,11 @@ import com.amazonaws.services.route53.model.ListResourceRecordSetsResult;
 import com.amazonaws.services.route53.model.RRType;
 import com.amazonaws.services.route53.model.ResourceRecord;
 import com.amazonaws.services.route53.model.ResourceRecordSet;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -125,6 +127,11 @@ public class TestHelper {
 		resources.setRepoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_REPO)));
 		resources.setWorkersApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_WORKERS)));
 		resources.setStackKeyPair(new KeyPairInfo().withKeyName(config.getStackKeyPairName()));
+		// Add tables database instances
+		List<DBInstance> tablesInstances = new LinkedList<DBInstance>();
+		tablesInstances.add(new DBInstance().withEndpoint(new Endpoint().withAddress("tables.endpoint.one")));
+		tablesInstances.add(new DBInstance().withEndpoint(new Endpoint().withAddress("tables.endpoint.two")));
+		resources.setStackInstanceTablesDatabases(tablesInstances);
 		return resources;
 	}
 	

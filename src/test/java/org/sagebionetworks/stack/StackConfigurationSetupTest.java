@@ -43,7 +43,7 @@ public class StackConfigurationSetupTest {
 		Properties template = InputConfiguration.loadPropertyFile(Constants.FILE_STACK_CONFIG_TEMPLATE);
 		Properties results = setup.createConfigProperties();
 		assertNotNull(results);
-		assertEquals(template.size(), results.size());
+		assertEquals(template.size()+(resources.getStackInstanceTablesDatabases().size()*2)+1, results.size());
 		// Are all of the values set
 		for(String key: template.stringPropertyNames()){
 			String value = results.getProperty(key);
@@ -81,4 +81,18 @@ public class StackConfigurationSetupTest {
 		assertNotNull(resources.getMainFileS3Bucket());
 		assertEquals(mockBucket, resources.getMainFileS3Bucket());
 	}
+	
+	@Test
+	public void testTablesDatabaseStackConfig() throws IOException{
+		Properties results = setup.createConfigProperties();
+		assertEquals("2", results.get(Constants.KEY_TABLE_CLUSTER_DATABASE_COUNT));
+		// one
+		assertEquals("tables.endpoint.one", results.get(Constants.KEY_TABLE_CLUSTER_DATABASE_ENDPOINT_PREFIX+0));
+		assertEquals("devA", results.get(Constants.KEY_TABLE_CLUSTER_DATABASE_SCHEMA_PREFIX+0));
+		// two
+		// one
+		assertEquals("tables.endpoint.two", results.get(Constants.KEY_TABLE_CLUSTER_DATABASE_ENDPOINT_PREFIX+1));
+		assertEquals("devA", results.get(Constants.KEY_TABLE_CLUSTER_DATABASE_SCHEMA_PREFIX+1));
+	}
+	
 }

@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -12,9 +13,11 @@ import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.util.PropertyFilter;
 
 import com.amazonaws.services.cloudsearch.model.DomainStatus;
+import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.PutObjectResult;
+
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 /**
@@ -144,7 +147,7 @@ public class StackConfigurationSetup {
 		// Search index search endpoint
 		union.put(Constants.KEY_STACK_INSTANCE_SEARCH_INDEX_SEARCH_ENDPOINT, resources.getSearchDomain().getSearchService().getEndpoint());
 		// Search index document endpoint
-		union.put(Constants.KEY_STACK_INSTANCE_SEARCH_INDEX_DOCUMENT_ENDPOINT, resources.getSearchDomain().getDocService().getEndpoint());
+		union.put(Constants.KEY_STACK_INSTANCE_SEARCH_INDEX_DOCUMENT_ENDPOINT, resources.getSearchDomain().getDocService().getEndpoint());		
 		// Add the urls for searach
 		// Apply the filter to replace all regular expression with the final values
 		PropertyFilter.replaceAllRegularExp(union);
@@ -155,6 +158,17 @@ public class StackConfigurationSetup {
 			String value = union.getProperty(key);
 			if(value == null) throw new IllegalArgumentException("Failed to find a final value for the property key: "+key);
 			template.setProperty(key, value);
+		}
+		
+		// Add the table's database instance properties.
+		List<DBInstance> list = resources.getStackInstanceTablesDatabases();
+		// The database count.
+		template.put(Constants.KEY_TABLE_CLUSTER_DATABASE_COUNT, ""+list.size());
+		for(int i=0; i<list.size(); i++){
+			// add two properties for each instance.
+			DBInstance instance = list.get(i);
+			template.put(Constants.KEY_TABLE_CLUSTER_DATABASE_ENDPOINT_PREFIX+i, instance.getEndpoint().getAddress());
+			template.put(Constants.KEY_TABLE_CLUSTER_DATABASE_SCHEMA_PREFIX+i, config.getStackInstanceDatabaseSchema());
 		}
 		return template;
 	}
