@@ -74,7 +74,7 @@ public class SSLSetup implements ResourceProcessor {
 	
 	public void describeSSLCertificate(String prefix) {
 		if (! (("plfm".equals(prefix)) || ("worker".equals(prefix)) || ("portal".equals(prefix)))) {
-			throw new IllegalArgumentException("Allowed prefixes are 'plfm', 'worker', portal'.");
+			throw new IllegalArgumentException("Allowed prefixes are 'plfm', 'worker', or 'portal'.");
 		}
 		String certName = config.getSSLCertificateName(prefix);
 		ServerCertificateMetadata meta = findCertificate(certName);
@@ -91,7 +91,7 @@ public class SSLSetup implements ResourceProcessor {
 	 */
 	public void setupSSLCertificate(String prefix){
 		if (! (("plfm".equals(prefix)) || ("worker".equals(prefix)) || ("portal".equals(prefix)))) {
-			throw new IllegalArgumentException("Allowed prefixes are 'plfm', 'worker', portal'.");
+			throw new IllegalArgumentException("Allowed prefixes are 'plfm', 'worker', or 'portal'.");
 		}
 		// First determine if the certificate already exists already exists
 		ServerCertificateMetadata meta = findCertificate(config.getSSLCertificateName(prefix));
@@ -118,7 +118,7 @@ public class SSLSetup implements ResourceProcessor {
 	 */
 	public void deleteSSLCertificate(String prefix) {
 		if (! (("plfm".equals(prefix)) || ("worker".equals(prefix)) || ("portal".equals(prefix)))) {
-			throw new IllegalArgumentException("Allowed prefixes are 'plfm', 'worker', portal'.");
+			throw new IllegalArgumentException("Allowed prefixes are 'plfm', 'worker', or 'portal'.");
 		}
 		ServerCertificateMetadata meta = findCertificate(config.getSSLCertificateName(prefix));
 		if (meta == null) {
