@@ -17,9 +17,11 @@ import com.amazonaws.services.route53.model.ListResourceRecordSetsResult;
 import com.amazonaws.services.route53.model.RRType;
 import com.amazonaws.services.route53.model.ResourceRecord;
 import com.amazonaws.services.route53.model.ResourceRecordSet;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -76,7 +78,10 @@ public class TestHelper {
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_DYNAMO_ENABLED, "true");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_TABLE_ENABLED, "true");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_NOTIFICATION_EMAIL_ADDRESS, "email@address.com");
-
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_OAUTH2_GOOGLE_CLIENT_ID, "oaauth2id");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_OAUTH2_GOOGLE_CLIENT_SECRET, "oauth2secret");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_CLOUDMAILIN_USR_PLAINTEXT, "cloudmalinuser");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_CLOUDMAILIN_PW_PLAINTEXT, "cloudmailinpwd");
 		
 		return defaults;
 	}
@@ -120,6 +125,11 @@ public class TestHelper {
 		resources.setRepoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_REPO)));
 		resources.setWorkersApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_WORKERS)));
 		resources.setStackKeyPair(new KeyPairInfo().withKeyName(config.getStackKeyPairName()));
+		// Add tables database instances
+		List<DBInstance> tablesInstances = new LinkedList<DBInstance>();
+		tablesInstances.add(new DBInstance().withEndpoint(new Endpoint().withAddress("tables.endpoint.one")));
+		tablesInstances.add(new DBInstance().withEndpoint(new Endpoint().withAddress("tables.endpoint.two")));
+		resources.setStackInstanceTablesDatabases(tablesInstances);
 		return resources;
 	}
 	

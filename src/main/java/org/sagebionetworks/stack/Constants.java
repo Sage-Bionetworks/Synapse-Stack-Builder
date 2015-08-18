@@ -93,6 +93,10 @@ public class Constants {
 	public static final String KEY_ORG_SAGEBIONETWORKS_DYNAMO_ENABLED = "org.sagebionetworks.dynamo.enabled";
 	public static final String KEY_ORG_SAGEBIONETWORKS_TABLE_ENABLED = "org.sagebionetworks.table.enabled";
 	public static final String KEY_ORG_SAGEBIONETWORKS_NOTIFICATION_EMAIL_ADDRESS = "org.sagebionetworks.notification.email.address";
+	public static final String KEY_ORG_SAGEBIONETWORKS_OAUTH2_GOOGLE_CLIENT_ID = "org.sagebionetworks.oauth2.google.client.id";
+	public static final String KEY_ORG_SAGEBIONETWORKS_OAUTH2_GOOGLE_CLIENT_SECRET = "org.sagebionetworks.oauth2.google.client.secret.plaintext";
+	public static final String KEY_ORG_SAGEBIONETWORKS_CLOUDMAILIN_USR_PLAINTEXT = "org.sagebionetworks.email.cloudmailin.user.plaintext";
+	public static final String KEY_ORG_SAGEBIONETWORKS_CLOUDMAILIN_PW_PLAINTEXT = "org.sagebionetworks.email.cloudmailin.password.plaintext";
 	
 	/**
 	 * Property for the classless inter-domain routing to be used for SSH access
@@ -223,7 +227,7 @@ public class Constants {
 	/**
 	 * MySQL version.
 	 */
-	public static final String DATABASE_ENGINE_MYSQL_VERSION = "5.5.12";
+	public static final String DATABASE_ENGINE_MYSQL_VERSION = "5.5.40";
 	/**
 	 * us-east-1d
 	 */
@@ -337,4 +341,8 @@ public class Constants {
 	public static final String PLFM_BEANSTALK_NUMBER = "org.sagebionetworks.stack.plfm.beanstalk.number";
 	
 	public static final String NUMBER_TABLE_INSTANCES = "org.sagebionetworks.number.table.instances";
+	
+	public static final String KEY_TABLE_CLUSTER_DATABASE_COUNT = "org.sagebionetworks.table.cluster.database.count";
+	public static final String KEY_TABLE_CLUSTER_DATABASE_ENDPOINT_PREFIX = "org.sagebionetworks.table.cluster.endpoint.";
+	public static final String KEY_TABLE_CLUSTER_DATABASE_SCHEMA_PREFIX = "org.sagebionetworks.table.cluster.schema.";
 }

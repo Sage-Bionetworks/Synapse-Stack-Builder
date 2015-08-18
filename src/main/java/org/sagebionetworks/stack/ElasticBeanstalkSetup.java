@@ -510,7 +510,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		// For production we need one more configuration added. See PLFM-1571
 		if(config.isProductionStack()){
 			ConfigurationOptionSetting cfg;
-			cfg = new ConfigurationOptionSetting("aws:autoscaling:asg", "Custom Availability Zones", "us-east-1a, us-east-1e");
+			cfg = new ConfigurationOptionSetting("aws:autoscaling:asg", "Custom Availability Zones", "us-east-1c, us-east-1e");
 			list.add(cfg);
 		}
 		// Add SSL arn based on templateSuffix
