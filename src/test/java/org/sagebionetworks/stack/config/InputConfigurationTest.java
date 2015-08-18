@@ -30,8 +30,7 @@ public class InputConfigurationTest {
 	String stack = "stack";
 	String instance ="instance";
 	String portalBeanstalkNumber = "1001";
-	String bridgeBeanstalkNumber = "2002";
-	Integer numberTableInstances = 2;
+	String numberTableInstances = "2";
 	
 	@Before
 	public void before(){
@@ -42,8 +41,7 @@ public class InputConfigurationTest {
 		inputProperties.put(STACK, stack);
 		inputProperties.put(INSTANCE, instance);
 		inputProperties.put(PORTAL_BEANSTALK_NUMBER, portalBeanstalkNumber);
-		inputProperties.put(BRIDGE_BEANSTALK_NUMBER, bridgeBeanstalkNumber);
-		inputProperties.put(NUMBER_TABLE_INSTANCES, numberTableInstances.toString());
+		inputProperties.put(NUMBER_TABLE_INSTANCES, numberTableInstances);
 	}
 	
 	@Test
@@ -103,7 +101,6 @@ public class InputConfigurationTest {
 		assertEquals(stack, config.getStack());
 		assertEquals(instance, config.getStackInstance());
 		assertEquals(portalBeanstalkNumber, config.getPortalBeanstalkNumber());
-		assertEquals(bridgeBeanstalkNumber, config.getBridgeBeanstalkNumber());
 		assertEquals(numberTableInstances, config.getNumberTableInstances());
 	}
 	
@@ -128,7 +125,7 @@ public class InputConfigurationTest {
 		assertEquals(stack+instance, config.getStackInstanceDatabaseSchema());
 		assertEquals(stack+instance+"user", config.getStackInstanceDatabaseMasterUser());
 		// Table instance databases
-		int numTableInstances = config.getNumberTableInstances();
+		int numTableInstances = Integer.parseInt(config.getNumberTableInstances());
 		for (int instNum = 0; instNum < numTableInstances; instNum++) {
 			String expectedStackTableInstanceIdentifier = stack + "-" + instance + "-table-" + instNum;
 			assertEquals(expectedStackTableInstanceIdentifier, config.getStackTableDBInstanceDatabaseIdentifier(instNum));

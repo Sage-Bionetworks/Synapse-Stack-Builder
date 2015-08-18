@@ -597,14 +597,9 @@ public class InputConfiguration {
 	public String getElasticBeanstalkS3RoleName(){
 		return validateAndGetProperty("elastic.beanstalk.s3.role.name");
 	}
-	
-	
-	public String getBridgeBeanstalkNumber() {
-		return validateAndGetProperty(Constants.BRIDGE_BEANSTALK_NUMBER);
-	}
-	
-	public Integer getNumberTableInstances() {
-		return Integer.parseInt(validateAndGetProperty(Constants.NUMBER_TABLE_INSTANCES));
+
+	public String getNumberTableInstances() {
+		return validateAndGetProperty(Constants.NUMBER_TABLE_INSTANCES);
 	}
 	
 	public String getStackInstanceTablesDatabaseIdentifierBase() {
