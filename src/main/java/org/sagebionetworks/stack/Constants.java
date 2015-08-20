@@ -92,6 +92,7 @@ public class Constants {
 	public static final String KEY_ORG_SAGEBIONETWORKS_SEARCH_ENABLED = "org.sagebionetworks.search.enabled";
 	public static final String KEY_ORG_SAGEBIONETWORKS_DYNAMO_ENABLED = "org.sagebionetworks.dynamo.enabled";
 	public static final String KEY_ORG_SAGEBIONETWORKS_TABLE_ENABLED = "org.sagebionetworks.table.enabled";
+	public static final String KEY_ORG_SAGEBIONETWORKS_PREVIEW_OPENOFFICE_ENABLED = "org.sagebionetworks.preview.open.office.enabled";
 	public static final String KEY_ORG_SAGEBIONETWORKS_NOTIFICATION_EMAIL_ADDRESS = "org.sagebionetworks.notification.email.address";
 	public static final String KEY_ORG_SAGEBIONETWORKS_OAUTH2_GOOGLE_CLIENT_ID = "org.sagebionetworks.oauth2.google.client.id";
 	public static final String KEY_ORG_SAGEBIONETWORKS_OAUTH2_GOOGLE_CLIENT_SECRET = "org.sagebionetworks.oauth2.google.client.secret.plaintext";
