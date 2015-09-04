@@ -179,5 +179,11 @@ public class TestHelper {
 		}
 		return cnameProps;
 	}
+	
+	public static InputConfiguration createActivatorTestConfiguration() throws IOException {
+		Properties props = createInputProperties("prod");
+		InputConfiguration config = new InputConfiguration(props);
+		return config;
+	}
 
 }
