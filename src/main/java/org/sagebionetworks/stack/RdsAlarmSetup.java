@@ -24,10 +24,10 @@ import org.sagebionetworks.stack.factory.AmazonClientFactory;
  * @author John
  *
  */
-public class AlarmSetup implements ResourceProcessor {
+public class RdsAlarmSetup implements ResourceProcessor {
 	
 
-	private static Logger log = Logger.getLogger(AlarmSetup.class.getName());
+	private static Logger log = Logger.getLogger(RdsAlarmSetup.class.getName());
 	
 	AmazonCloudWatchClient client;
 	InputConfiguration config;
@@ -38,7 +38,7 @@ public class AlarmSetup implements ResourceProcessor {
 	 * @param client
 	 * @param config
 	 */
-	public AlarmSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+	public RdsAlarmSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
 		this.initialize(factory, config, resources);
 	}
 	
@@ -161,7 +161,7 @@ public class AlarmSetup implements ResourceProcessor {
 	 */
 	static PutMetricAlarmRequest createDefaultPutMetricRequest(DBInstance instances, String topicArn) {
 		PutMetricAlarmRequest alarmRequest = new PutMetricAlarmRequest();
-		alarmRequest.setAlarmDescription("Setup by: "+AlarmSetup.class.getName());
+		alarmRequest.setAlarmDescription("Setup by: "+RdsAlarmSetup.class.getName());
 		alarmRequest.setActionsEnabled(true);
 		alarmRequest.withAlarmActions(topicArn);
 		alarmRequest.setNamespace(NAME_SPACES_AWS_RDS);

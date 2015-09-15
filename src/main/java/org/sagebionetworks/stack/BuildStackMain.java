@@ -90,7 +90,7 @@ public class BuildStackMain {
 		new MySqlDatabaseSetup(factory, config, resources).setupResources();
 		
 		// Add all of the the alarms
-		new AlarmSetup(factory, config, resources).setupResources();
+		new RdsAlarmSetup(factory, config, resources).setupResources();
 				
 		// Create the configuration file and upload it S3
 		new StackConfigurationSetup(factory, config, resources).setupResources();

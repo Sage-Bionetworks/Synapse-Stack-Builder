@@ -82,7 +82,7 @@ public class TeardownStackMain {
 		new MySqlDatabaseSetup(factory, config, resources).describeResources();
 
 		// Add all of the the alarms
-		new AlarmSetup(factory, config, resources).describeResources();
+		new RdsAlarmSetup(factory, config, resources).describeResources();
 
 //		// Create the configuration file and upload it S3
 //		new StackConfigurationSetup(factory, config, resources).describeResources();
