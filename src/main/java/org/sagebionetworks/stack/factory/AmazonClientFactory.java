@@ -5,6 +5,7 @@ import com.amazonaws.services.cloudsearch.AmazonCloudSearchClient;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
+import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClient;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.route53.AmazonRoute53Client;
@@ -81,5 +82,11 @@ public interface AmazonClientFactory {
 	 * @return
 	 */
 	public AmazonRoute53Client createRoute53Client();
-
+	
+	/**
+	 * Create a AmazonElasticLoadBalancingClient
+	 * @return 
+	 */
+	public AmazonElasticLoadBalancingClient createElasticLoadBalancingClient();
+	
 }
