@@ -154,12 +154,11 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		createOrUpdateEnvironment(PREFIX_WORKERS, workerElbTemplateName, resources.getWorkersApplicationVersion());
 		
 		// Fetch all of the results
-		List<EnvironmentDescription> envDescs = new ArrayList<EnvironmentDescription>();
 		for (int numEnvironments = 0; numEnvironments < Constants.SVC_PREFIXES.size(); numEnvironments++) {
 			try {
 				Future<EnvironmentDescription> futureEnvDesc = completionSvc.take();
 				EnvironmentDescription envDesc = futureEnvDesc.get();
-				envDescs.add(envDesc);
+				addCreatedEnvironmentDescriptionToResources(envDesc);
 				logger.info("Environment created for : %s\n".format(envDesc.getApplicationName()));
 			} catch (InterruptedException e) { // Exception in task
 				logger.error("Error: InterruptedException");
@@ -168,6 +167,24 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 				logger.error("Error: ExecutionException");
 				e.printStackTrace();
 			}
+		}
+	}
+	
+	public void addCreatedEnvironmentDescriptionToResources(EnvironmentDescription ed) {
+		if (ed == null) {
+			throw new IllegalArgumentException("EnvironmentDescription cannot be null.");
+		}
+		if (! config.getEnvironmentName(PREFIX_REPO).equals(ed.getApplicationName()) &&
+			(! config.getEnvironmentName(PREFIX_WORKERS).equals(ed.getApplicationName())) &&
+			(! config.getEnvironmentName(PREFIX_PORTAL).equals(ed.getApplicationName()))) {
+			throw new IllegalArgumentException("Invalid application name.");
+		}
+		if (config.getEnvironmentName(PREFIX_REPO).equals(ed.getApplicationName())) {
+			resources.setRepositoryEnvironment(ed);
+		} else if (! config.getEnvironmentName(PREFIX_WORKERS).equals(ed.getApplicationName())) {
+			resources.setWorkersEnvironment(ed);
+		} else {
+			resources.setPortalEnvironment(ed);
 		}
 	}
 
