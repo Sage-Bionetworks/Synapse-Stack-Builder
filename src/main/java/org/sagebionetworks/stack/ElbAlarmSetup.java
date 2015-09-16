@@ -1,6 +1,8 @@
 package org.sagebionetworks.stack;
 
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
+import com.amazonaws.services.cloudwatch.model.ComparisonOperator;
+import com.amazonaws.services.cloudwatch.model.Dimension;
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentResourcesRequest;
@@ -10,8 +12,15 @@ import com.amazonaws.services.elasticbeanstalk.model.EnvironmentResourceDescript
 import com.amazonaws.services.elasticbeanstalk.model.LoadBalancer;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClient;
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest;
+import com.amazonaws.services.rds.model.DBInstance;
 import java.util.ArrayList;
 import java.util.List;
+import static org.sagebionetworks.stack.Constants.DB_INSTANCE_IDENTIFIER;
+import static org.sagebionetworks.stack.Constants.ELB_INSTANCE_NAME;
+import static org.sagebionetworks.stack.Constants.FIVE_MINUTES_IN_SECONDS;
+import static org.sagebionetworks.stack.Constants.METRIC_UNHEALTHY_COUNT;
+import static org.sagebionetworks.stack.Constants.NAME_SPACES_AWS_RDS;
+import static org.sagebionetworks.stack.Constants.STATISTIC_MAX;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
@@ -47,14 +56,24 @@ public class ElbAlarmSetup implements ResourceProcessor {
 
 	@Override
 	public void setupResources() throws InterruptedException {
-		String topicArn = resources.getRdsAlertTopicArn();
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            this.createAlarms(this.repoEd);
+            this.createAlarms(this.workersEd);
+            this.createAlarms(this.portalEd);
 	}
 
 	@Override
 	public void teardownResources() {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
+        
+        public void createAlarms(EnvironmentDescription ed) {
+            String topicArn = resources.getRdsAlertTopicArn();
+            LoadBalancer loadBalancer = getLoadBalancerFromEnvironmentName(ed.getEnvironmentName());
+            List<PutMetricAlarmRequest> reqs = createAllAlarmRequestsForLoadBalancer(loadBalancer, topicArn);
+            for (PutMetricAlarmRequest req: reqs) {
+                this.cloudWatchClient.putMetricAlarm(req);
+            }
+        }
 	
 	public LoadBalancer getLoadBalancerFromEnvironmentName(String envName) {
 		DescribeEnvironmentResourcesRequest req = new DescribeEnvironmentResourcesRequest();
@@ -74,11 +93,25 @@ public class ElbAlarmSetup implements ResourceProcessor {
 		return l;
 	}
 	
+	static PutMetricAlarmRequest createDefaultPutMetricRequest(LoadBalancer loadBalancer, String topicArn) {
+		PutMetricAlarmRequest alarmRequest = new PutMetricAlarmRequest();
+		alarmRequest.setAlarmDescription("Setup by: "+ElbAlarmSetup.class.getName());
+		alarmRequest.setActionsEnabled(true);
+		alarmRequest.withAlarmActions(topicArn);
+		alarmRequest.setNamespace(NAME_SPACES_AWS_RDS);
+		alarmRequest.withDimensions(new Dimension().withName(ELB_INSTANCE_NAME).withValue(loadBalancer.getName()));
+		return alarmRequest;
+	}
+	
 	public PutMetricAlarmRequest createUnhealthyInstancesAlarmForLoadBalancer(LoadBalancer loadBalancer, String topicArn) {
-		PutMetricAlarmRequest req = new PutMetricAlarmRequest();
+		PutMetricAlarmRequest req = createDefaultPutMetricRequest(loadBalancer, topicArn);
 		req.setAlarmName(loadBalancer.getName() + "-unlhealthy-instance-count-alarm");
-		req.setAlarmDescription("Setup by " + ElbAlarmSetup.class);
-		
+		req.setStatistic(STATISTIC_MAX);
+                req.setMetricName(METRIC_UNHEALTHY_COUNT);
+                req.setComparisonOperator(ComparisonOperator.GreaterThanThreshold);
+                req.setThreshold(new Double(0));
+                req.setEvaluationPeriods(2);
+                req.setPeriod(FIVE_MINUTES_IN_SECONDS);
 		return req;
 	}
 }
