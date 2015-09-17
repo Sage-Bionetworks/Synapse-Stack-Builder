@@ -2,6 +2,8 @@ package org.sagebionetworks.stack;
 
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 import com.amazonaws.services.cloudwatch.model.ComparisonOperator;
+import com.amazonaws.services.cloudwatch.model.DescribeAlarmsRequest;
+import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult;
 import com.amazonaws.services.cloudwatch.model.Dimension;
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
@@ -69,10 +71,22 @@ public class ElbAlarmSetup implements ResourceProcessor {
 	public void createAlarms(EnvironmentDescription ed) {
 		String topicArn = resources.getRdsAlertTopicArn();
 		LoadBalancer loadBalancer = getLoadBalancerFromEnvironmentName(ed.getEnvironmentName());
-		List<PutMetricAlarmRequest> reqs = createAllAlarmRequestsForLoadBalancer(ed.getEnvironmentName(), loadBalancer, topicArn);
+		List<PutMetricAlarmRequest> reqs = createAllPutMetricAlarmRequests(ed.getEnvironmentName(), loadBalancer, topicArn);
 		for (PutMetricAlarmRequest req: reqs) {
 			this.cloudWatchClient.putMetricAlarm(req);
 		}
+	}
+	
+	public List<DescribeAlarmsResult> describeAlarms(EnvironmentDescription ed) {
+		String topicArn = resources.getRdsAlertTopicArn();
+		LoadBalancer loadBalancer = getLoadBalancerFromEnvironmentName(ed.getEnvironmentName());
+		List<DescribeAlarmsRequest> reqs = createAllDescribeAlarmsRequests(ed.getEnvironmentName(), loadBalancer, topicArn);
+		List<DescribeAlarmsResult> l = new ArrayList<>();
+		for (DescribeAlarmsRequest req: reqs) {
+			DescribeAlarmsResult res = this.cloudWatchClient.describeAlarms(req);
+			l.add(res);
+		}
+		return l;
 	}
 	
 	public LoadBalancer getLoadBalancerFromEnvironmentName(String envName) {
@@ -89,13 +103,13 @@ public class ElbAlarmSetup implements ResourceProcessor {
 		return loadBalancers.get(0);
 	}
 	
-	public static List<PutMetricAlarmRequest> createAllAlarmRequestsForLoadBalancer(String alarmNamePrefix, LoadBalancer loadBalancer, String topicArn) {
+	public static List<PutMetricAlarmRequest> createAllPutMetricAlarmRequests(String alarmNamePrefix, LoadBalancer loadBalancer, String topicArn) {
 		List<PutMetricAlarmRequest> l = new ArrayList<>();
-		l.add(createUnhealthyInstancesAlarmRequest(alarmNamePrefix, loadBalancer, topicArn));
+		l.add(createUnhealthyInstancesPutMetricAlarmRequest(alarmNamePrefix, loadBalancer, topicArn));
 		return l;
 	}
 	
-	public static PutMetricAlarmRequest createDefaultPutMetricRequest(LoadBalancer loadBalancer, String topicArn) {
+	public static PutMetricAlarmRequest createDefaultPutMetricAlarmRequest(LoadBalancer loadBalancer, String topicArn) {
 		if (loadBalancer == null) throw new IllegalArgumentException("Load balancer cannot be null");
 		if (topicArn == null) throw new IllegalArgumentException("Topic ARN cannot be null");
 		
@@ -108,8 +122,8 @@ public class ElbAlarmSetup implements ResourceProcessor {
 		return alarmRequest;
 	}
 	
-	public static PutMetricAlarmRequest createUnhealthyInstancesAlarmRequest(String prefix, LoadBalancer loadBalancer, String topicArn) {
-		PutMetricAlarmRequest req = createDefaultPutMetricRequest(loadBalancer, topicArn);
+	public static PutMetricAlarmRequest createUnhealthyInstancesPutMetricAlarmRequest(String prefix, LoadBalancer loadBalancer, String topicArn) {
+		PutMetricAlarmRequest req = createDefaultPutMetricAlarmRequest(loadBalancer, topicArn);
 		req.setAlarmName(prefix + "-unlhealthy-instance-count-alarm");
 		req.setStatistic(STATISTIC_MAX);
 		req.setMetricName(METRIC_UNHEALTHY_COUNT);
@@ -119,4 +133,10 @@ public class ElbAlarmSetup implements ResourceProcessor {
 		req.setPeriod(FIVE_MINUTES_IN_SECONDS);
 		return req;
 	}
+
+	private List<DescribeAlarmsRequest> createAllDescribeAlarmsRequests(String environmentName, LoadBalancer loadBalancer, String topicArn) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+	
+	
 }

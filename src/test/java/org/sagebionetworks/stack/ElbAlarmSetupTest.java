@@ -1,5 +1,6 @@
 package org.sagebionetworks.stack;
 
+import com.amazonaws.services.cloudwatch.model.ComparisonOperator;
 import com.amazonaws.services.cloudwatch.model.Dimension;
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
@@ -24,7 +25,10 @@ import static org.mockito.Mockito.when;
 
 import org.sagebionetworks.factory.MockAmazonClientFactory;
 import static org.sagebionetworks.stack.Constants.DIMENSION_NAME_LOAD_BALANCER;
+import static org.sagebionetworks.stack.Constants.FIVE_MINUTES_IN_SECONDS;
+import static org.sagebionetworks.stack.Constants.METRIC_UNHEALTHY_COUNT;
 import static org.sagebionetworks.stack.Constants.NAMESPACE_ELB;
+import static org.sagebionetworks.stack.Constants.STATISTIC_MAX;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
 public class ElbAlarmSetupTest {
@@ -114,7 +118,7 @@ public class ElbAlarmSetupTest {
 	//	TODO: Add tests for error cases
 	
 	@Test
-	public void testcreateDefaultPutMetricRequest() {
+	public void testCreateDefaultPutMetricAlarmRequest() {
 		final String prefix = "prefix";
 		final String expectedAlarmName = prefix + "-unlhealthy-instance-count-alarm";
 		final String expectedDesc = "Setup by Stack Builder: "+ElbAlarmSetup.class.getName();
@@ -135,11 +139,87 @@ public class ElbAlarmSetupTest {
 		
 		LoadBalancer loadBalancer = new LoadBalancer().withName("loadBalancer");
 
-		PutMetricAlarmRequest req = ElbAlarmSetup.createDefaultPutMetricRequest(loadBalancer, resources.getRdsAlertTopicArn());
+		PutMetricAlarmRequest req = ElbAlarmSetup.createDefaultPutMetricAlarmRequest(loadBalancer, resources.getRdsAlertTopicArn());
 		
 		assertEquals(expectedReq, req);
 		assertEquals(expectedReq.getAlarmDescription(), req.getAlarmDescription());
 		assertEquals(expectedReq.getActionsEnabled(), req.getActionsEnabled());
 	}
+	
+	@Test
+	public void testCreateUnhealthyInstancesPutMetricAlarmRequest() {
+		final String prefix = "prefix";
+		final String expectedAlarmName = prefix + "-unlhealthy-instance-count-alarm";
+		final String expectedDesc = "Setup by Stack Builder: "+ElbAlarmSetup.class.getName();
+		final boolean expectedActionsEnabled = true;
+		final Collection<String> expectedAlarmActions = new ArrayList<String>();
+		expectedAlarmActions.add(resources.getRdsAlertTopicArn());
+		final String expectedNameSpace = NAMESPACE_ELB;
+		Dimension expectedDimension = new Dimension().withName(DIMENSION_NAME_LOAD_BALANCER).withValue("loadBalancer");
+		Collection<Dimension> expectedDimensions = new ArrayList<Dimension>();
+		expectedDimensions.add(expectedDimension);
 
+		PutMetricAlarmRequest expectedReq = new PutMetricAlarmRequest();
+		expectedReq.setAlarmDescription(expectedDesc);
+		expectedReq.setActionsEnabled(expectedActionsEnabled);
+		expectedReq.setAlarmActions(expectedAlarmActions);
+		expectedReq.setNamespace(expectedNameSpace);
+		expectedReq.setDimensions(expectedDimensions);
+		expectedReq.setAlarmName(expectedAlarmName);
+		expectedReq.setStatistic(STATISTIC_MAX);
+		expectedReq.setMetricName(METRIC_UNHEALTHY_COUNT);
+		expectedReq.setComparisonOperator(ComparisonOperator.GreaterThanThreshold);
+		expectedReq.setThreshold(new Double(0));
+		expectedReq.setEvaluationPeriods(2);
+		expectedReq.setPeriod(FIVE_MINUTES_IN_SECONDS);
+
+		
+		LoadBalancer loadBalancer = new LoadBalancer().withName("loadBalancer");
+
+		PutMetricAlarmRequest req = ElbAlarmSetup.createUnhealthyInstancesPutMetricAlarmRequest(prefix, loadBalancer, resources.getRdsAlertTopicArn());
+		
+		assertEquals(expectedReq, req);
+	}
+
+	@Test
+	public void testCreateAllPutMetricAlarmRequests() {
+		final String prefix = "prefix";
+		final String expectedAlarmName = prefix + "-unlhealthy-instance-count-alarm";
+		final String expectedDesc = "Setup by Stack Builder: "+ElbAlarmSetup.class.getName();
+		final boolean expectedActionsEnabled = true;
+		final Collection<String> expectedAlarmActions = new ArrayList<String>();
+		expectedAlarmActions.add(resources.getRdsAlertTopicArn());
+		final String expectedNameSpace = NAMESPACE_ELB;
+		Dimension expectedDimension = new Dimension().withName(DIMENSION_NAME_LOAD_BALANCER).withValue("loadBalancer");
+		Collection<Dimension> expectedDimensions = new ArrayList<Dimension>();
+		expectedDimensions.add(expectedDimension);
+
+		PutMetricAlarmRequest expectedReq = new PutMetricAlarmRequest();
+		expectedReq.setAlarmDescription(expectedDesc);
+		expectedReq.setActionsEnabled(expectedActionsEnabled);
+		expectedReq.setAlarmActions(expectedAlarmActions);
+		expectedReq.setNamespace(expectedNameSpace);
+		expectedReq.setDimensions(expectedDimensions);
+		expectedReq.setAlarmName(expectedAlarmName);
+		expectedReq.setStatistic(STATISTIC_MAX);
+		expectedReq.setMetricName(METRIC_UNHEALTHY_COUNT);
+		expectedReq.setComparisonOperator(ComparisonOperator.GreaterThanThreshold);
+		expectedReq.setThreshold(new Double(0));
+		expectedReq.setEvaluationPeriods(2);
+		expectedReq.setPeriod(FIVE_MINUTES_IN_SECONDS);
+		
+		List<PutMetricAlarmRequest> expectedReqs = new ArrayList<>();
+		expectedReqs.add(expectedReq);
+
+		LoadBalancer loadBalancer = new LoadBalancer().withName("loadBalancer");
+
+		List<PutMetricAlarmRequest> reqs = ElbAlarmSetup.createAllPutMetricAlarmRequests(prefix, loadBalancer, resources.getRdsAlertTopicArn());
+		
+		assertEquals(expectedReqs, reqs);
+	}
+	
+	@Test
+	public void testCreateAlarms() {
+		
+	}
 }
