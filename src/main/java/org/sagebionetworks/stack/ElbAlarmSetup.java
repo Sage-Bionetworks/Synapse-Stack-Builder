@@ -11,15 +11,12 @@ import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentResourceDescription;
 import com.amazonaws.services.elasticbeanstalk.model.LoadBalancer;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClient;
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest;
-import com.amazonaws.services.rds.model.DBInstance;
 import java.util.ArrayList;
 import java.util.List;
-import static org.sagebionetworks.stack.Constants.DB_INSTANCE_IDENTIFIER;
-import static org.sagebionetworks.stack.Constants.ELB_INSTANCE_NAME;
+import static org.sagebionetworks.stack.Constants.DIMENSION_NAME_LOAD_BALANCER;
 import static org.sagebionetworks.stack.Constants.FIVE_MINUTES_IN_SECONDS;
 import static org.sagebionetworks.stack.Constants.METRIC_UNHEALTHY_COUNT;
-import static org.sagebionetworks.stack.Constants.NAME_SPACES_AWS_RDS;
+import static org.sagebionetworks.stack.Constants.NAMESPACE_ELB;
 import static org.sagebionetworks.stack.Constants.STATISTIC_MAX;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
@@ -34,6 +31,10 @@ public class ElbAlarmSetup implements ResourceProcessor {
 	AmazonCloudWatchClient cloudWatchClient;
 	AmazonElasticLoadBalancingClient loadBalancingClient;
 	AWSElasticBeanstalkClient beanstalkClient;
+	
+	public ElbAlarmSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+		this.initialize(factory, config, resources);
+	}
 	
 	@Override
 	public void initialize(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
@@ -51,67 +52,71 @@ public class ElbAlarmSetup implements ResourceProcessor {
 		cloudWatchClient = factory.createCloudWatchClient();
 		loadBalancingClient = factory.createElasticLoadBalancingClient();
 		beanstalkClient = factory.createBeanstalkClient();
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public void setupResources() throws InterruptedException {
-            this.createAlarms(this.repoEd);
-            this.createAlarms(this.workersEd);
-            this.createAlarms(this.portalEd);
+		this.createAlarms(this.repoEd);
+		this.createAlarms(this.workersEd);
+		this.createAlarms(this.portalEd);
 	}
 
 	@Override
 	public void teardownResources() {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
-        
-        public void createAlarms(EnvironmentDescription ed) {
-            String topicArn = resources.getRdsAlertTopicArn();
-            LoadBalancer loadBalancer = getLoadBalancerFromEnvironmentName(ed.getEnvironmentName());
-            List<PutMetricAlarmRequest> reqs = createAllAlarmRequestsForLoadBalancer(loadBalancer, topicArn);
-            for (PutMetricAlarmRequest req: reqs) {
-                this.cloudWatchClient.putMetricAlarm(req);
-            }
-        }
+		
+	public void createAlarms(EnvironmentDescription ed) {
+		String topicArn = resources.getRdsAlertTopicArn();
+		LoadBalancer loadBalancer = getLoadBalancerFromEnvironmentName(ed.getEnvironmentName());
+		List<PutMetricAlarmRequest> reqs = createAllAlarmRequestsForLoadBalancer(ed.getEnvironmentName(), loadBalancer, topicArn);
+		for (PutMetricAlarmRequest req: reqs) {
+			this.cloudWatchClient.putMetricAlarm(req);
+		}
+	}
 	
 	public LoadBalancer getLoadBalancerFromEnvironmentName(String envName) {
+		if (envName == null) throw new IllegalArgumentException("Environment name cannot be null.");
+		
 		DescribeEnvironmentResourcesRequest req = new DescribeEnvironmentResourcesRequest();
 		req.setEnvironmentName(envName);
 		DescribeEnvironmentResourcesResult res = beanstalkClient.describeEnvironmentResources(req);
 		EnvironmentResourceDescription erd = res.getEnvironmentResources();
 		List<LoadBalancer> loadBalancers = erd.getLoadBalancers();
-		if (loadBalancers.size() > 1) {
-			throw new IllegalArgumentException("Found more than one load balancer for environment " + envName);
+		if ((loadBalancers != null) && (loadBalancers.size() != 1)) {
+			throw new IllegalArgumentException("Environment " + envName + " should contain exactly one load balancer.");
 		}
 		return loadBalancers.get(0);
 	}
 	
-	public List<PutMetricAlarmRequest> createAllAlarmRequestsForLoadBalancer(LoadBalancer loadBalancer, String topicArn) {
-		List<PutMetricAlarmRequest> l = new ArrayList<PutMetricAlarmRequest>();
-		l.add(createUnhealthyInstancesAlarmForLoadBalancer(loadBalancer, topicArn));
+	public static List<PutMetricAlarmRequest> createAllAlarmRequestsForLoadBalancer(String alarmNamePrefix, LoadBalancer loadBalancer, String topicArn) {
+		List<PutMetricAlarmRequest> l = new ArrayList<>();
+		l.add(createUnhealthyInstancesAlarmRequest(alarmNamePrefix, loadBalancer, topicArn));
 		return l;
 	}
 	
-	static PutMetricAlarmRequest createDefaultPutMetricRequest(LoadBalancer loadBalancer, String topicArn) {
+	public static PutMetricAlarmRequest createDefaultPutMetricRequest(LoadBalancer loadBalancer, String topicArn) {
+		if (loadBalancer == null) throw new IllegalArgumentException("Load balancer cannot be null");
+		if (topicArn == null) throw new IllegalArgumentException("Topic ARN cannot be null");
+		
 		PutMetricAlarmRequest alarmRequest = new PutMetricAlarmRequest();
-		alarmRequest.setAlarmDescription("Setup by: "+ElbAlarmSetup.class.getName());
+		alarmRequest.setAlarmDescription("Setup by Stack Builder: "+ElbAlarmSetup.class.getName());
 		alarmRequest.setActionsEnabled(true);
 		alarmRequest.withAlarmActions(topicArn);
-		alarmRequest.setNamespace(NAME_SPACES_AWS_RDS);
-		alarmRequest.withDimensions(new Dimension().withName(ELB_INSTANCE_NAME).withValue(loadBalancer.getName()));
+		alarmRequest.setNamespace(NAMESPACE_ELB);
+		alarmRequest.withDimensions(new Dimension().withName(DIMENSION_NAME_LOAD_BALANCER).withValue(loadBalancer.getName()));
 		return alarmRequest;
 	}
 	
-	public PutMetricAlarmRequest createUnhealthyInstancesAlarmForLoadBalancer(LoadBalancer loadBalancer, String topicArn) {
+	public static PutMetricAlarmRequest createUnhealthyInstancesAlarmRequest(String prefix, LoadBalancer loadBalancer, String topicArn) {
 		PutMetricAlarmRequest req = createDefaultPutMetricRequest(loadBalancer, topicArn);
-		req.setAlarmName(loadBalancer.getName() + "-unlhealthy-instance-count-alarm");
+		req.setAlarmName(prefix + "-unlhealthy-instance-count-alarm");
 		req.setStatistic(STATISTIC_MAX);
-                req.setMetricName(METRIC_UNHEALTHY_COUNT);
-                req.setComparisonOperator(ComparisonOperator.GreaterThanThreshold);
-                req.setThreshold(new Double(0));
-                req.setEvaluationPeriods(2);
-                req.setPeriod(FIVE_MINUTES_IN_SECONDS);
+		req.setMetricName(METRIC_UNHEALTHY_COUNT);
+		req.setComparisonOperator(ComparisonOperator.GreaterThanThreshold);
+		req.setThreshold(new Double(0));
+		req.setEvaluationPeriods(2);
+		req.setPeriod(FIVE_MINUTES_IN_SECONDS);
 		return req;
 	}
 }

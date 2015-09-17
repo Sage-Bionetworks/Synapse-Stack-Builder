@@ -267,7 +267,6 @@ public class Constants {
 	public static final String METRIC_FREE_STOREAGE_SPACE = "FreeStorageSpace";
 	public static final String METRIC_SWAP_USAGE = "SwapUsage";
 	public static final String DB_INSTANCE_IDENTIFIER = "DBInstanceIdentifier";
-        public static final String ELB_INSTANCE_NAME = "ElbInstanceName";
 	public static final String NAME_SPACES_AWS_RDS = "AWS/RDS";
 	public static final String LOW_FREEABLE_MEMORY_NAME = "-Low-Freeable-Memory";
 	public static final String HIGH_WRITE_LATENCY = "High-Write-Latency";
@@ -276,8 +275,11 @@ public class Constants {
 	public static final String SWAP_USAGE = "Swap Usage";
 	public static final int FIVE_MINUTES_IN_SECONDS = 5*60;
 	public static final String STATISTIC_AVERAGE = "Average";
-        public static final String STATISTIC_MAX = "Max";
-        public static final String METRIC_UNHEALTHY_COUNT = "";
+	
+	public static final String NAMESPACE_ELB = "AWS/ELB";
+	public static final String STATISTIC_MAX = "Maximum";
+	public static final String DIMENSION_NAME_LOAD_BALANCER = "LoadBalancerName";
+	public static final String METRIC_UNHEALTHY_COUNT = "UnHealthyHostCount";
 	
 	
 	/**

@@ -1,0 +1,145 @@
+package org.sagebionetworks.stack;
+
+import com.amazonaws.services.cloudwatch.model.Dimension;
+import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
+import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
+import static com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionValueType.List;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentResourcesRequest;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentResourcesResult;
+import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
+import com.amazonaws.services.elasticbeanstalk.model.EnvironmentResourceDescription;
+import com.amazonaws.services.elasticbeanstalk.model.LoadBalancer;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
+
+import org.sagebionetworks.factory.MockAmazonClientFactory;
+import static org.sagebionetworks.stack.Constants.DIMENSION_NAME_LOAD_BALANCER;
+import static org.sagebionetworks.stack.Constants.NAMESPACE_ELB;
+import org.sagebionetworks.stack.config.InputConfiguration;
+
+public class ElbAlarmSetupTest {
+	
+	private InputConfiguration config;
+	private GeneratedResources resources;
+	private final MockAmazonClientFactory mockFactory  = new MockAmazonClientFactory();
+	private ElbAlarmSetup setup;
+	private AWSElasticBeanstalkClient beanstalkClient;
+	
+	public ElbAlarmSetupTest() {
+	}
+	
+	@Before
+	public void setUp() throws Exception{
+		//	Config
+		config = TestHelper.createTestConfig("dev");
+		//	SNS topic
+		resources = new GeneratedResources();
+		resources.setRdsAlertTopicArn("topicArn");
+		//	Beanstalk environments
+		EnvironmentDescription repoEnvDesc = new EnvironmentDescription().withEnvironmentName("repoEnvName");
+		resources.setRepositoryEnvironment(repoEnvDesc);
+		EnvironmentDescription workersEnvDesc = new EnvironmentDescription().withEnvironmentName("workersEnvName");
+		resources.setWorkersEnvironment(workersEnvDesc);
+		EnvironmentDescription portalEnvDesc = new EnvironmentDescription().withEnvironmentName("portalEnvName");
+		resources.setPortalEnvironment(portalEnvDesc);
+		//	Clients
+		beanstalkClient = mockFactory.createBeanstalkClient();
+
+		setup = new ElbAlarmSetup(mockFactory, config, resources);
+	}
+	
+	@After
+	public void tearDown() {
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void testGetLoadBalancerFromEnvironmentNameNullName() {
+		setup.getLoadBalancerFromEnvironmentName(null);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testGetLoadBalancerFromEnvironmentNameNullLoadBalancers() {
+		EnvironmentResourceDescription erd = new EnvironmentResourceDescription();
+		DescribeEnvironmentResourcesResult expectedRes = new DescribeEnvironmentResourcesResult().withEnvironmentResources(erd);
+		when(beanstalkClient.describeEnvironmentResources(any(DescribeEnvironmentResourcesRequest.class))).thenReturn(expectedRes);
+		setup.getLoadBalancerFromEnvironmentName("repoEnvName");
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testGetLoadBalancerFromEnvironmentNameNoLoadBalancer() {
+		//	Return empty list
+		EnvironmentResourceDescription erd = new EnvironmentResourceDescription().withLoadBalancers(new ArrayList<LoadBalancer>());
+		DescribeEnvironmentResourcesResult expectedRes = new DescribeEnvironmentResourcesResult().withEnvironmentResources(erd);
+		when(beanstalkClient.describeEnvironmentResources(any(DescribeEnvironmentResourcesRequest.class))).thenReturn(expectedRes);
+		setup.getLoadBalancerFromEnvironmentName("repoEnvName");
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testGetLoadBalancerFromEnvironmentNameTwoLoadBalancers() {
+		//	Return 2 load balancers
+		List<LoadBalancer> loadBalancers = new ArrayList<LoadBalancer>();
+		LoadBalancer lb = new LoadBalancer();
+		loadBalancers.add(lb);
+		loadBalancers.add(lb);
+		EnvironmentResourceDescription erd = new EnvironmentResourceDescription().withLoadBalancers(loadBalancers);
+		DescribeEnvironmentResourcesResult expectedRes = new DescribeEnvironmentResourcesResult().withEnvironmentResources(erd);
+		when(beanstalkClient.describeEnvironmentResources(any(DescribeEnvironmentResourcesRequest.class))).thenReturn(expectedRes);
+		setup.getLoadBalancerFromEnvironmentName("repoEnvName");
+	}
+	
+	@Test
+	public void testGetLoadBalancerFromEnvironmentNameOneLoadBalancer() {
+		//	Return 1 load balancers
+		List<LoadBalancer> loadBalancers = new ArrayList<LoadBalancer>();
+		LoadBalancer lb = new LoadBalancer().withName("loadBalancer");
+		loadBalancers.add(lb);
+		EnvironmentResourceDescription erd = new EnvironmentResourceDescription().withLoadBalancers(loadBalancers);
+		DescribeEnvironmentResourcesResult expectedRes = new DescribeEnvironmentResourcesResult().withEnvironmentResources(erd);
+		when(beanstalkClient.describeEnvironmentResources(any(DescribeEnvironmentResourcesRequest.class))).thenReturn(expectedRes);
+		LoadBalancer b = setup.getLoadBalancerFromEnvironmentName("repoEnvName");
+		//	Should have same name
+		assertEquals(lb.getName(), b.getName());
+	}
+	
+	//	TODO: Add tests for error cases
+	
+	@Test
+	public void testcreateDefaultPutMetricRequest() {
+		final String prefix = "prefix";
+		final String expectedAlarmName = prefix + "-unlhealthy-instance-count-alarm";
+		final String expectedDesc = "Setup by Stack Builder: "+ElbAlarmSetup.class.getName();
+		final boolean expectedActionsEnabled = true;
+		final Collection<String> expectedAlarmActions = new ArrayList<String>();
+		expectedAlarmActions.add(resources.getRdsAlertTopicArn());
+		final String expectedNameSpace = NAMESPACE_ELB;
+		Dimension expectedDimension = new Dimension().withName(DIMENSION_NAME_LOAD_BALANCER).withValue("loadBalancer");
+		Collection<Dimension> expectedDimensions = new ArrayList<Dimension>();
+		expectedDimensions.add(expectedDimension);
+
+		PutMetricAlarmRequest expectedReq = new PutMetricAlarmRequest();
+		expectedReq.setAlarmDescription(expectedDesc);
+		expectedReq.setActionsEnabled(expectedActionsEnabled);
+		expectedReq.setAlarmActions(expectedAlarmActions);
+		expectedReq.setNamespace(expectedNameSpace);
+		expectedReq.setDimensions(expectedDimensions);
+		
+		LoadBalancer loadBalancer = new LoadBalancer().withName("loadBalancer");
+
+		PutMetricAlarmRequest req = ElbAlarmSetup.createDefaultPutMetricRequest(loadBalancer, resources.getRdsAlertTopicArn());
+		
+		assertEquals(expectedReq, req);
+		assertEquals(expectedReq.getAlarmDescription(), req.getAlarmDescription());
+		assertEquals(expectedReq.getActionsEnabled(), req.getActionsEnabled());
+	}
+
+}
