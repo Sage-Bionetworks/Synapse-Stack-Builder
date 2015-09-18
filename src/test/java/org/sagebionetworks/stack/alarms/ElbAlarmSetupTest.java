@@ -40,6 +40,7 @@ public class ElbAlarmSetupTest {
 	private final MockAmazonClientFactory mockFactory  = new MockAmazonClientFactory();
 	private ElbAlarmSetup setup;
 	private AWSElasticBeanstalkClient beanstalkClient;
+	private PutMetricAlarmRequest expectedPutMetricAlarmRequest;
 	
 	public ElbAlarmSetupTest() {
 	}
@@ -67,7 +68,7 @@ public class ElbAlarmSetupTest {
 	@After
 	public void tearDown() {
 	}
-
+	
 	@Test(expected=IllegalArgumentException.class)
 	public void testGetLoadBalancerFromEnvironmentNameNullName() {
 		setup.getLoadBalancerFromEnvironmentName(null);
@@ -144,8 +145,6 @@ public class ElbAlarmSetupTest {
 		PutMetricAlarmRequest req = ElbAlarmSetup.createDefaultPutMetricAlarmRequest(loadBalancer, resources.getRdsAlertTopicArn());
 		
 		assertEquals(expectedReq, req);
-		assertEquals(expectedReq.getAlarmDescription(), req.getAlarmDescription());
-		assertEquals(expectedReq.getActionsEnabled(), req.getActionsEnabled());
 	}
 	
 	@Test

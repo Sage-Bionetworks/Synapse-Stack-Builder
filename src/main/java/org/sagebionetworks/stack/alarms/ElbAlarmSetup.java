@@ -64,6 +64,12 @@ public class ElbAlarmSetup implements ResourceProcessor {
 		this.createAlarms(this.workersEd);
 		this.createAlarms(this.portalEd);
 	}
+	
+	public void describeResources() {
+		resources.setRepoElbAlarms(this.describeAlarms(repoEd));
+		resources.setRepoElbAlarms(this.describeAlarms(workersEd));
+		resources.setRepoElbAlarms(this.describeAlarms(portalEd));
+	}
 
 	@Override
 	public void teardownResources() {
@@ -79,16 +85,13 @@ public class ElbAlarmSetup implements ResourceProcessor {
 		}
 	}
 	
-	public List<DescribeAlarmsResult> describeAlarms(EnvironmentDescription ed) {
+	public DescribeAlarmsResult describeAlarms(EnvironmentDescription ed) {
 		String topicArn = resources.getRdsAlertTopicArn();
 		LoadBalancer loadBalancer = getLoadBalancerFromEnvironmentName(ed.getEnvironmentName());
-		List<DescribeAlarmsRequest> reqs = createAllDescribeAlarmsRequests(ed.getEnvironmentName(), loadBalancer, topicArn);
+		DescribeAlarmsRequest req = createDescribeAlarmsRequest(ed.getEnvironmentName(), loadBalancer, topicArn);
 		List<DescribeAlarmsResult> l = new ArrayList<>();
-		for (DescribeAlarmsRequest req: reqs) {
-			DescribeAlarmsResult res = this.cloudWatchClient.describeAlarms(req);
-			l.add(res);
-		}
-		return l;
+		DescribeAlarmsResult res = this.cloudWatchClient.describeAlarms(req);
+		return res;
 	}
 	
 	public LoadBalancer getLoadBalancerFromEnvironmentName(String envName) {
@@ -136,8 +139,12 @@ public class ElbAlarmSetup implements ResourceProcessor {
 		return req;
 	}
 
-	private List<DescribeAlarmsRequest> createAllDescribeAlarmsRequests(String environmentName, LoadBalancer loadBalancer, String topicArn) {
-		throw new UnsupportedOperationException("Not supported yet.");
+	public static DescribeAlarmsRequest createDescribeAlarmsRequest(String prefix, LoadBalancer loadBalancer, String topicArn) {
+		DescribeAlarmsRequest req = new DescribeAlarmsRequest();
+		req.setAlarmNamePrefix(prefix);
+		req.setActionPrefix(topicArn);
+		req.setMaxRecords(100);
+		return req;
 	}
 
 }
