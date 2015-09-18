@@ -1,4 +1,4 @@
-package org.sagebionetworks.stack;
+package org.sagebionetworks.stack.alarms;
 
 import java.io.IOException;
 import java.util.List;
@@ -22,6 +22,9 @@ import com.amazonaws.services.sns.model.CreateTopicResult;
 import java.util.ArrayList;
 import org.junit.Ignore;
 import org.sagebionetworks.factory.MockAmazonClientFactory;
+import org.sagebionetworks.stack.Constants;
+import org.sagebionetworks.stack.GeneratedResources;
+import org.sagebionetworks.stack.TestHelper;
 
 /**
  * Test for the RdsAlarmSetup.

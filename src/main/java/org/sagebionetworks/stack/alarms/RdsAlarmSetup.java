@@ -1,4 +1,4 @@
-package org.sagebionetworks.stack;
+package org.sagebionetworks.stack.alarms;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -16,6 +16,9 @@ import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
 import com.amazonaws.services.rds.model.DBInstance;
 import java.util.ArrayList;
 import java.util.Arrays;
+import org.sagebionetworks.stack.Constants;
+import org.sagebionetworks.stack.GeneratedResources;
+import org.sagebionetworks.stack.ResourceProcessor;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 /**
