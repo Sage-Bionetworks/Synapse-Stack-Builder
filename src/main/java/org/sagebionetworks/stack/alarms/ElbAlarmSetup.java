@@ -33,7 +33,6 @@ public class ElbAlarmSetup implements ResourceProcessor {
 	EnvironmentDescription workersEd;
 	EnvironmentDescription portalEd;
 	AmazonCloudWatchClient cloudWatchClient;
-	AmazonElasticLoadBalancingClient loadBalancingClient;
 	AWSElasticBeanstalkClient beanstalkClient;
 	
 	public ElbAlarmSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
@@ -54,7 +53,6 @@ public class ElbAlarmSetup implements ResourceProcessor {
 		workersEd = resources.getWorkersEnvironment();
 		portalEd = resources.getPortalEnvironment();
 		cloudWatchClient = factory.createCloudWatchClient();
-		loadBalancingClient = factory.createElasticLoadBalancingClient();
 		beanstalkClient = factory.createBeanstalkClient();
 	}
 
@@ -89,7 +87,6 @@ public class ElbAlarmSetup implements ResourceProcessor {
 		String topicArn = resources.getRdsAlertTopicArn();
 		LoadBalancer loadBalancer = getLoadBalancerFromEnvironmentName(ed.getEnvironmentName());
 		DescribeAlarmsRequest req = createDescribeAlarmsRequest(ed.getEnvironmentName(), loadBalancer, topicArn);
-		List<DescribeAlarmsResult> l = new ArrayList<>();
 		DescribeAlarmsResult res = this.cloudWatchClient.describeAlarms(req);
 		return res;
 	}
@@ -146,5 +143,4 @@ public class ElbAlarmSetup implements ResourceProcessor {
 		req.setMaxRecords(100);
 		return req;
 	}
-
 }
