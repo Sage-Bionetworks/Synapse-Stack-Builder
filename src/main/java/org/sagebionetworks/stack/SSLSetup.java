@@ -180,11 +180,7 @@ public class SSLSetup implements ResourceProcessor {
             // Go right to string.
             return new String(outputStream.toByteArray(), "UTF-8");
         } catch (IOException e) {
-            try {
                 s3Object.getObjectContent().abort();
-            } catch ( IOException abortException ) {
-                log.warn("Couldn't abort stream", e);
-            }
             throw new AmazonClientException("Unable to store object contents to disk: " + e.getMessage(), e);
         } finally {
             try {outputStream.close();} catch (Exception e) {}

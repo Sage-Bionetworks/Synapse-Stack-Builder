@@ -45,7 +45,6 @@ public class ElbAlarmSetupTest {
 	private ElbAlarmSetup setup;
 	private AWSElasticBeanstalkClient beanstalkClient;
 	private AmazonCloudWatchClient mockCwClient;
-	private PutMetricAlarmRequest expectedPutMetricAlarmRequest;
 	
 	public ElbAlarmSetupTest() {
 	}
@@ -130,9 +129,9 @@ public class ElbAlarmSetupTest {
 	public void testCreateDefaultPutMetricAlarmRequest() {
 		PutMetricAlarmRequest expectedReq = ElbAlarmTestHelper.getExpectedBasePutMetricAlarmRequest();
 		
-		LoadBalancer loadBalancer = new LoadBalancer().withName("loadBalancer");
+		String loadBalancerName = "loadBalancer";
 
-		PutMetricAlarmRequest req = ElbAlarmSetup.createDefaultPutMetricAlarmRequest(loadBalancer, resources.getRdsAlertTopicArn());
+		PutMetricAlarmRequest req = ElbAlarmSetup.createDefaultPutMetricAlarmRequest(loadBalancerName, resources.getRdsAlertTopicArn());
 		
 		assertEquals(expectedReq, req);
 	}
@@ -141,9 +140,9 @@ public class ElbAlarmSetupTest {
 	public void testCreateUnhealthyInstancesPutMetricAlarmRequest() {
 		PutMetricAlarmRequest expectedReq = ElbAlarmTestHelper.getExpectedPutMetricAlarmRequest();
 		
-		LoadBalancer loadBalancer = new LoadBalancer().withName("loadBalancer");
+		String loadBalancerName = "loadBalancer";
 
-		PutMetricAlarmRequest req = ElbAlarmSetup.createUnhealthyInstancesPutMetricAlarmRequest("prefix", loadBalancer, resources.getRdsAlertTopicArn());
+		PutMetricAlarmRequest req = ElbAlarmSetup.createUnhealthyInstancesPutMetricAlarmRequest("prefix", loadBalancerName, resources.getRdsAlertTopicArn());
 		
 		assertEquals(expectedReq, req);
 	}
@@ -154,9 +153,9 @@ public class ElbAlarmSetupTest {
 		List<PutMetricAlarmRequest> expectedReqs = new ArrayList<>();
 		expectedReqs.add(expectedReq);
 		
-		LoadBalancer loadBalancer = new LoadBalancer().withName("loadBalancer");
+		String loadBalancerName = "loadBalancer";
 
-		List<PutMetricAlarmRequest> reqs = ElbAlarmSetup.createAllPutMetricAlarmRequests("prefix", loadBalancer, resources.getRdsAlertTopicArn());
+		List<PutMetricAlarmRequest> reqs = ElbAlarmSetup.createAllPutMetricAlarmRequests("prefix", loadBalancerName, resources.getRdsAlertTopicArn());
 		
 		assertEquals(expectedReqs, reqs);
 	}
@@ -164,8 +163,8 @@ public class ElbAlarmSetupTest {
 	@Test
 	public void testCreateDescribeAlarmsRequest() {
 		DescribeAlarmsRequest expectedReq = ElbAlarmTestHelper.getExpectedDescribeAlarmsRequest();
-		LoadBalancer loadBalancer = new LoadBalancer().withName("loadBalancer");
-		DescribeAlarmsRequest req = ElbAlarmSetup.createDescribeAlarmsRequest("prefix", loadBalancer, resources.getRdsAlertTopicArn());
+		String loadBalancerName = "loadBalancer";
+		DescribeAlarmsRequest req = ElbAlarmSetup.createDescribeAlarmsRequest("prefix", loadBalancerName, resources.getRdsAlertTopicArn());
 		assertEquals(expectedReq, req);
 	}
 	

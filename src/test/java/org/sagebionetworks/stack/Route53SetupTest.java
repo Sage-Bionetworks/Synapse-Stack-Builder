@@ -173,7 +173,7 @@ public class Route53SetupTest {
 			when(mockClient.listResourceRecordSets(req)).thenReturn(expectedResourceRecordSetsResults.get(req));
 		}
 		
-		ChangeInfo expectedChangeInfo = new ChangeInfo().withId("changeInfoId").withStatus(ChangeStatus.Deployed);
+		ChangeInfo expectedChangeInfo = new ChangeInfo().withId("changeInfoId").withStatus(ChangeStatus.INSYNC);
 		ChangeResourceRecordSetsResult expectedChangeResourceRecordSetsResult = new ChangeResourceRecordSetsResult().withChangeInfo(expectedChangeInfo);
 		when(mockClient.changeResourceRecordSets(any(ChangeResourceRecordSetsRequest.class))).thenReturn(expectedChangeResourceRecordSetsResult);
 		

@@ -14,6 +14,7 @@ import com.amazonaws.services.elasticbeanstalk.model.EnvironmentResourceDescript
 import com.amazonaws.services.elasticbeanstalk.model.LoadBalancer;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClient;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import static org.sagebionetworks.stack.Constants.DIMENSION_NAME_LOAD_BALANCER;
 import static org.sagebionetworks.stack.Constants.FIVE_MINUTES_IN_SECONDS;
@@ -77,7 +78,7 @@ public class ElbAlarmSetup implements ResourceProcessor {
 	public void createAlarms(EnvironmentDescription ed) {
 		String topicArn = resources.getRdsAlertTopicArn();
 		LoadBalancer loadBalancer = getLoadBalancerFromEnvironmentName(ed.getEnvironmentName());
-		List<PutMetricAlarmRequest> reqs = createAllPutMetricAlarmRequests(ed.getEnvironmentName(), loadBalancer, topicArn);
+		List<PutMetricAlarmRequest> reqs = createAllPutMetricAlarmRequests(ed.getEnvironmentName(), loadBalancer.getName(), topicArn);
 		for (PutMetricAlarmRequest req: reqs) {
 			this.cloudWatchClient.putMetricAlarm(req);
 		}
@@ -86,7 +87,7 @@ public class ElbAlarmSetup implements ResourceProcessor {
 	public DescribeAlarmsResult describeAlarms(EnvironmentDescription ed) {
 		String topicArn = resources.getRdsAlertTopicArn();
 		LoadBalancer loadBalancer = getLoadBalancerFromEnvironmentName(ed.getEnvironmentName());
-		DescribeAlarmsRequest req = createDescribeAlarmsRequest(ed.getEnvironmentName(), loadBalancer, topicArn);
+		DescribeAlarmsRequest req = createDescribeAlarmsRequest(ed.getEnvironmentName(), loadBalancer.getName(), topicArn);
 		DescribeAlarmsResult res = this.cloudWatchClient.describeAlarms(req);
 		return res;
 	}
@@ -105,27 +106,30 @@ public class ElbAlarmSetup implements ResourceProcessor {
 		return loadBalancers.get(0);
 	}
 	
-	public static List<PutMetricAlarmRequest> createAllPutMetricAlarmRequests(String alarmNamePrefix, LoadBalancer loadBalancer, String topicArn) {
+	public static List<PutMetricAlarmRequest> createAllPutMetricAlarmRequests(String alarmNamePrefix, String loadBalancerName, String topicArn) {
 		List<PutMetricAlarmRequest> l = new ArrayList<>();
-		l.add(createUnhealthyInstancesPutMetricAlarmRequest(alarmNamePrefix, loadBalancer, topicArn));
+		l.add(createUnhealthyInstancesPutMetricAlarmRequest(alarmNamePrefix, loadBalancerName, topicArn));
 		return l;
 	}
 	
-	public static PutMetricAlarmRequest createDefaultPutMetricAlarmRequest(LoadBalancer loadBalancer, String topicArn) {
-		if (loadBalancer == null) throw new IllegalArgumentException("Load balancer cannot be null");
+	public static PutMetricAlarmRequest createDefaultPutMetricAlarmRequest(String loadBalancerName, String topicArn) {
+		if (loadBalancerName == null) throw new IllegalArgumentException("Load balancer name cannot be null");
 		if (topicArn == null) throw new IllegalArgumentException("Topic ARN cannot be null");
 		
 		PutMetricAlarmRequest alarmRequest = new PutMetricAlarmRequest();
-		alarmRequest.setAlarmDescription("Setup by Stack Builder: "+ElbAlarmSetup.class.getName());
+		alarmRequest.setAlarmDescription("Setup by Stack Builder: " + ElbAlarmSetup.class.getName());
 		alarmRequest.setActionsEnabled(true);
 		alarmRequest.withAlarmActions(topicArn);
 		alarmRequest.setNamespace(NAMESPACE_ELB);
-		alarmRequest.withDimensions(new Dimension().withName(DIMENSION_NAME_LOAD_BALANCER).withValue(loadBalancer.getName()));
+		Collection<Dimension> dimensions = new ArrayList<Dimension>();
+		dimensions.add(new Dimension().withName(DIMENSION_NAME_LOAD_BALANCER).withValue(loadBalancerName));
+		alarmRequest.setDimensions(dimensions);
+		alarmRequest.withDimensions();
 		return alarmRequest;
 	}
 	
-	public static PutMetricAlarmRequest createUnhealthyInstancesPutMetricAlarmRequest(String prefix, LoadBalancer loadBalancer, String topicArn) {
-		PutMetricAlarmRequest req = createDefaultPutMetricAlarmRequest(loadBalancer, topicArn);
+	public static PutMetricAlarmRequest createUnhealthyInstancesPutMetricAlarmRequest(String prefix, String loadBalancerName, String topicArn) {
+		PutMetricAlarmRequest req = createDefaultPutMetricAlarmRequest(loadBalancerName, topicArn);
 		req.setAlarmName(prefix + "-unlhealthy-instance-count-alarm");
 		req.setStatistic(STATISTIC_MAX);
 		req.setMetricName(METRIC_UNHEALTHY_COUNT);
@@ -136,7 +140,7 @@ public class ElbAlarmSetup implements ResourceProcessor {
 		return req;
 	}
 
-	public static DescribeAlarmsRequest createDescribeAlarmsRequest(String prefix, LoadBalancer loadBalancer, String topicArn) {
+	public static DescribeAlarmsRequest createDescribeAlarmsRequest(String prefix, String loadBalancerName, String topicArn) {
 		DescribeAlarmsRequest req = new DescribeAlarmsRequest();
 		req.setAlarmNamePrefix(prefix);
 		req.setActionPrefix(topicArn);
