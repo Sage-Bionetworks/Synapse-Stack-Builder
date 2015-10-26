@@ -98,6 +98,8 @@ public class Constants {
 	public static final String KEY_ORG_SAGEBIONETWORKS_OAUTH2_GOOGLE_CLIENT_SECRET = "org.sagebionetworks.oauth2.google.client.secret.plaintext";
 	public static final String KEY_ORG_SAGEBIONETWORKS_CLOUDMAILIN_USR_PLAINTEXT = "org.sagebionetworks.email.cloudmailin.user.plaintext";
 	public static final String KEY_ORG_SAGEBIONETWORKS_CLOUDMAILIN_PW_PLAINTEXT = "org.sagebionetworks.email.cloudmailin.password.plaintext";
+	public static final String KEY_ORG_SAGEBIONETWORKS_OAUTH2_ORCID_CLIENT_ID="org.sagebionetworks.oauth2.orcid.client.id";
+	public static final String KEY_ORG_SAGEBIONETWORKS_OAUTH2_ORCID_CLIENT_SECRET="org.sagebionetworks.oauth2.orcid.client.secret.plaintext";
 	
 	/**
 	 * Property for the classless inter-domain routing to be used for SSH access
