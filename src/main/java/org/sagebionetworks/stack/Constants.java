@@ -161,6 +161,7 @@ public class Constants {
 	 * Part of setting up a database parameter group.
 	 */
 	public static final String MYSQL_5_5_DB_PARAMETER_GROUP_FAMILY = "mysql5.5";
+	public static final String MYSQL_5_6_DB_PARAMETER_GROUP_FAMILY = "mysql5.6";
 		
 	/**
 	 * The DB parameter key for the slow query log.
