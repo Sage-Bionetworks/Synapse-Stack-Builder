@@ -2,6 +2,7 @@ package org.sagebionetworks.stack;
 
 import static org.sagebionetworks.stack.Constants.ERROR_CODE_DB_PARAMETER_GROUP_NOT_FOUND;
 import static org.sagebionetworks.stack.Constants.MYSQL_5_5_DB_PARAMETER_GROUP_FAMILY;
+import static org.sagebionetworks.stack.Constants.MYSQL_5_6_DB_PARAMETER_GROUP_FAMILY;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -154,7 +155,7 @@ public class DatabaseParameterGroup implements ResourceProcessor {
 				log.info("Creating DB parameter group: '"+groupName+"' for the first time...");
 				// We need to create it since it does not exist
 				CreateDBParameterGroupRequest request = new CreateDBParameterGroupRequest();
-				request.setDBParameterGroupFamily(MYSQL_5_5_DB_PARAMETER_GROUP_FAMILY);
+				request.setDBParameterGroupFamily(MYSQL_5_6_DB_PARAMETER_GROUP_FAMILY);
 				request.setDBParameterGroupName(groupName);
 				request.setDescription(config.getDatabaseParameterGroupDescription());
 				return client.createDBParameterGroup(request);
