@@ -75,13 +75,16 @@ public class TestHelper {
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_REPO_MANAGER_JIRA_USER_PASSWORD_PLAINTEXT, "jira password");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_MIGRATION_API_KEY, "migrationAPIKey");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_SEARCH_ENABLED, "true");
-		defaults.put(KEY_ORG_SAGEBIONETWORKS_DYNAMO_ENABLED, "true");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_DYNAMO_ENABLED, "false");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_TABLE_ENABLED, "true");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_PREVIEW_OPENOFFICE_ENABLED, "true");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_NOTIFICATION_EMAIL_ADDRESS, "email@address.com");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_OAUTH2_GOOGLE_CLIENT_ID, "oaauth2id");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_OAUTH2_GOOGLE_CLIENT_SECRET, "oauth2secret");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_CLOUDMAILIN_USR_PLAINTEXT, "cloudmalinuser");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_CLOUDMAILIN_PW_PLAINTEXT, "cloudmailinpwd");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_OAUTH2_ORCID_CLIENT_ID, "oauth2orcidid");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_OAUTH2_ORCID_CLIENT_SECRET, "oauth2orcidsecret");
 		
 		return defaults;
 	}

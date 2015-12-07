@@ -92,11 +92,14 @@ public class Constants {
 	public static final String KEY_ORG_SAGEBIONETWORKS_SEARCH_ENABLED = "org.sagebionetworks.search.enabled";
 	public static final String KEY_ORG_SAGEBIONETWORKS_DYNAMO_ENABLED = "org.sagebionetworks.dynamo.enabled";
 	public static final String KEY_ORG_SAGEBIONETWORKS_TABLE_ENABLED = "org.sagebionetworks.table.enabled";
+	public static final String KEY_ORG_SAGEBIONETWORKS_PREVIEW_OPENOFFICE_ENABLED = "org.sagebionetworks.preview.open.office.enabled";
 	public static final String KEY_ORG_SAGEBIONETWORKS_NOTIFICATION_EMAIL_ADDRESS = "org.sagebionetworks.notification.email.address";
 	public static final String KEY_ORG_SAGEBIONETWORKS_OAUTH2_GOOGLE_CLIENT_ID = "org.sagebionetworks.oauth2.google.client.id";
 	public static final String KEY_ORG_SAGEBIONETWORKS_OAUTH2_GOOGLE_CLIENT_SECRET = "org.sagebionetworks.oauth2.google.client.secret.plaintext";
 	public static final String KEY_ORG_SAGEBIONETWORKS_CLOUDMAILIN_USR_PLAINTEXT = "org.sagebionetworks.email.cloudmailin.user.plaintext";
 	public static final String KEY_ORG_SAGEBIONETWORKS_CLOUDMAILIN_PW_PLAINTEXT = "org.sagebionetworks.email.cloudmailin.password.plaintext";
+	public static final String KEY_ORG_SAGEBIONETWORKS_OAUTH2_ORCID_CLIENT_ID="org.sagebionetworks.oauth2.orcid.client.id";
+	public static final String KEY_ORG_SAGEBIONETWORKS_OAUTH2_ORCID_CLIENT_SECRET="org.sagebionetworks.oauth2.orcid.client.secret.plaintext";
 	
 	/**
 	 * Property for the classless inter-domain routing to be used for SSH access
@@ -227,7 +230,7 @@ public class Constants {
 	/**
 	 * MySQL version.
 	 */
-	public static final String DATABASE_ENGINE_MYSQL_VERSION = "5.5.40";
+	public static final String DATABASE_ENGINE_MYSQL_VERSION = "5.6.23";
 	/**
 	 * us-east-1d
 	 */
