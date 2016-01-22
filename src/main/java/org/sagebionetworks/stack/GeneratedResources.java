@@ -37,6 +37,9 @@ public class GeneratedResources {
 	private List<DBInstance> stackInstanceTablesDatabases;
 	private DescribeAlarmsResult idGeneratorDatabaseAlarms;
 	private DescribeAlarmsResult stackInstancesDatabaseAlarms;
+	private DescribeAlarmsResult repoElbAlarms;
+	private DescribeAlarmsResult workersElbAlarms;
+	private DescribeAlarmsResult portalElbAlarms;
 	private List<DescribeAlarmsResult> stackInstanceTablesDatabaseAlarms;
 	private URL stackConfigurationFileURL;
 	private ApplicationDescription elasticBeanstalkApplication;
@@ -424,6 +427,30 @@ public class GeneratedResources {
 	 */
 	public URL getStackConfigurationFileURL() {
 		return stackConfigurationFileURL;
+	}
+
+	public DescribeAlarmsResult getRepoElbAlarms() {
+		return repoElbAlarms;
+	}
+
+	public void setRepoElbAlarms(DescribeAlarmsResult repoElbAlarms) {
+		this.repoElbAlarms = repoElbAlarms;
+	}
+
+	public DescribeAlarmsResult getWorkersElbAlarms() {
+		return workersElbAlarms;
+	}
+
+	public void setWorkersElbAlarms(DescribeAlarmsResult workersElbAlarms) {
+		this.workersElbAlarms = workersElbAlarms;
+	}
+
+	public DescribeAlarmsResult getPortalElbAlarms() {
+		return portalElbAlarms;
+	}
+
+	public void setPortalElbAlarms(DescribeAlarmsResult portalElbAlarms) {
+		this.portalElbAlarms = portalElbAlarms;
 	}
 
 	/**

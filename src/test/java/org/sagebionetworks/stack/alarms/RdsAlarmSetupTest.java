@@ -1,4 +1,4 @@
-package org.sagebionetworks.stack;
+package org.sagebionetworks.stack.alarms;
 
 import java.io.IOException;
 import java.util.List;
@@ -22,21 +22,24 @@ import com.amazonaws.services.sns.model.CreateTopicResult;
 import java.util.ArrayList;
 import org.junit.Ignore;
 import org.sagebionetworks.factory.MockAmazonClientFactory;
+import org.sagebionetworks.stack.Constants;
+import org.sagebionetworks.stack.GeneratedResources;
+import org.sagebionetworks.stack.TestHelper;
 
 /**
- * Test for the AlarmSetup.
+ * Test for the RdsAlarmSetup.
  * 
  * @author John
  *
  */
-public class AlarmSetupTest {
+public class RdsAlarmSetupTest {
 	
 	String databaseIdentifer;
 	DBInstance dbInstance;
 	String topicArn;
 	InputConfiguration config;
 	AmazonCloudWatchClient mockClient;
-	AlarmSetup setup;
+	RdsAlarmSetup setup;
 	GeneratedResources resources;
 	MockAmazonClientFactory factory = new MockAmazonClientFactory();
 	
@@ -61,18 +64,18 @@ public class AlarmSetupTest {
 			stackInstanceTablesDatabases.add(stackInstanceDatabase);
 		}
 		resources.setStackInstanceTablesDatabases(stackInstanceTablesDatabases);
-		setup = new AlarmSetup(factory, config, resources);
+		setup = new RdsAlarmSetup(factory, config, resources);
 	}
 	
 	@Test
 	public void testCreateDefaultPutMetricRequest(){
 		PutMetricAlarmRequest expected = new PutMetricAlarmRequest();
-		expected.setAlarmDescription("Setup by: "+AlarmSetup.class.getName());
+		expected.setAlarmDescription("Setup by: "+RdsAlarmSetup.class.getName());
 		expected.setActionsEnabled(true);
 		expected.withAlarmActions(topicArn);
 		expected.setNamespace(NAME_SPACES_AWS_RDS);
 		expected.withDimensions(new Dimension().withName(DB_INSTANCE_IDENTIFIER).withValue(databaseIdentifer));
-		PutMetricAlarmRequest result = AlarmSetup.createDefaultPutMetricRequest(dbInstance, topicArn);
+		PutMetricAlarmRequest result = RdsAlarmSetup.createDefaultPutMetricRequest(dbInstance, topicArn);
 		assertEquals(expected, result);
 	}
 
@@ -81,13 +84,13 @@ public class AlarmSetupTest {
 		// the free able memory alarm is a function of the instances size
 		Double totalMemory = Constants.getDatabaseClassMemrorySizeBytes(DATABASE_INSTANCE_CLASS_SMALL);
 		System.out.println("Small memory total: "+totalMemory+" bytes");
-		PutMetricAlarmRequest expected = AlarmSetup.createDefaultPutMetricRequest(dbInstance, topicArn);
+		PutMetricAlarmRequest expected = RdsAlarmSetup.createDefaultPutMetricRequest(dbInstance, topicArn);
 		expected.setAlarmName(databaseIdentifer+"-Low-Freeable-Memory");
 
 		Double eightPercent = totalMemory - (totalMemory*0.8);
 		// Average FreeableMemory < 80% for 1 consecutive period of 5 minutes
 		expected.withStatistic("Average").withMetricName(METRIC_FREEABLE_MEMORY).withComparisonOperator(ComparisonOperator.LessThanThreshold).withThreshold(eightPercent).withEvaluationPeriods(1).withPeriod(FIVE_MINUTES_IN_SECONDS);	
-		PutMetricAlarmRequest result = AlarmSetup.createLowFreeableMemory(dbInstance, topicArn);
+		PutMetricAlarmRequest result = RdsAlarmSetup.createLowFreeableMemory(dbInstance, topicArn);
 		assertEquals(expected, result);
 	}
 	
@@ -98,42 +101,42 @@ public class AlarmSetupTest {
 		dbInstance.setDBInstanceClass(DATABASE_INSTANCE_CLASS_LARGE);
 		Double totalMemory = Constants.getDatabaseClassMemrorySizeBytes(DATABASE_INSTANCE_CLASS_LARGE);
 		System.out.println("Large memory total: "+totalMemory+" bytes");
-		PutMetricAlarmRequest expected = AlarmSetup.createDefaultPutMetricRequest(dbInstance, topicArn);
+		PutMetricAlarmRequest expected = RdsAlarmSetup.createDefaultPutMetricRequest(dbInstance, topicArn);
 		expected.setAlarmName(databaseIdentifer+"-Low-Freeable-Memory");
 		Double eightPercent = totalMemory - (totalMemory*0.8);
 		// Average FreeableMemory < 80% for 1 consecutive period of 5 minutes
 		expected.withStatistic("Average").withMetricName(METRIC_FREEABLE_MEMORY).withComparisonOperator(ComparisonOperator.LessThanThreshold).withThreshold(eightPercent).withEvaluationPeriods(1).withPeriod(FIVE_MINUTES_IN_SECONDS);	
-		PutMetricAlarmRequest result = AlarmSetup.createLowFreeableMemory(dbInstance, topicArn);
+		PutMetricAlarmRequest result = RdsAlarmSetup.createLowFreeableMemory(dbInstance, topicArn);
 		assertEquals(expected, result);
 	}
 	
 	@Test
 	public void testHightWriteLatency(){
-		PutMetricAlarmRequest expected = AlarmSetup.createDefaultPutMetricRequest(dbInstance, topicArn);
+		PutMetricAlarmRequest expected = RdsAlarmSetup.createDefaultPutMetricRequest(dbInstance, topicArn);
 		expected.setAlarmName(databaseIdentifer+HIGH_WRITE_LATENCY);
 		expected.withStatistic("Average").withMetricName(METRIC_WRITE_LATENCY).withComparisonOperator(ComparisonOperator.GreaterThanOrEqualToThreshold).withThreshold(0.1).withEvaluationPeriods(1).withPeriod(FIVE_MINUTES_IN_SECONDS);	
-		PutMetricAlarmRequest result = AlarmSetup.createHighWriteLatency(dbInstance, topicArn);
+		PutMetricAlarmRequest result = RdsAlarmSetup.createHighWriteLatency(dbInstance, topicArn);
 		assertEquals(expected, result);
 	}
 	
 	@Test
 	public void testHightCPU(){
-		PutMetricAlarmRequest expected = AlarmSetup.createDefaultPutMetricRequest(dbInstance, topicArn);
+		PutMetricAlarmRequest expected = RdsAlarmSetup.createDefaultPutMetricRequest(dbInstance, topicArn);
 		expected.setAlarmName(databaseIdentifer+HIGH_CPU_UTILIZATION);
 		expected.withStatistic("Average").withMetricName(METRIC_HIGH_CPU_UTILIZATION).withComparisonOperator(ComparisonOperator.GreaterThanOrEqualToThreshold).withThreshold(90.0).withEvaluationPeriods(1).withPeriod(FIVE_MINUTES_IN_SECONDS);	
-		PutMetricAlarmRequest result = AlarmSetup.createHighCPUUtilization(dbInstance, topicArn);
+		PutMetricAlarmRequest result = RdsAlarmSetup.createHighCPUUtilization(dbInstance, topicArn);
 		assertEquals(expected, result);
 	}
 	
 	@Test
 	public void testLowFreeStorage(){
-		PutMetricAlarmRequest expected = AlarmSetup.createDefaultPutMetricRequest(dbInstance, topicArn);
+		PutMetricAlarmRequest expected = RdsAlarmSetup.createDefaultPutMetricRequest(dbInstance, topicArn);
 		expected.setAlarmName(databaseIdentifer+LOW_FREE_STOREAGE_SPACE);
 		Double tenPercentGB = ((double)dbInstance.getAllocatedStorage()) * 0.1;
 		Double tenPercentBytes = tenPercentGB*Constants.BYTES_PER_GIGABYTE;
 		System.out.println("10% = "+tenPercentBytes+" bytes");
 		expected.withStatistic("Average").withMetricName(METRIC_FREE_STOREAGE_SPACE).withComparisonOperator(ComparisonOperator.LessThanOrEqualToThreshold).withThreshold(tenPercentBytes).withEvaluationPeriods(1).withPeriod(FIVE_MINUTES_IN_SECONDS);	
-		PutMetricAlarmRequest result = AlarmSetup.createLowFreeStorage(dbInstance, topicArn);
+		PutMetricAlarmRequest result = RdsAlarmSetup.createLowFreeStorage(dbInstance, topicArn);
 		assertEquals(expected, result);
 	}
 	

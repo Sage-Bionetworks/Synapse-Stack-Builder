@@ -8,6 +8,7 @@ import java.util.Properties;
 
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Logger;
+import org.sagebionetworks.stack.alarms.RdsAlarmSetup;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 import org.sagebionetworks.stack.factory.AmazonClientFactoryImpl;
@@ -90,7 +91,7 @@ public class BuildStackMain {
 		new MySqlDatabaseSetup(factory, config, resources).setupResources();
 		
 		// Add all of the the alarms
-		new AlarmSetup(factory, config, resources).setupResources();
+		new RdsAlarmSetup(factory, config, resources).setupResources();
 				
 		// Create the configuration file and upload it S3
 		new StackConfigurationSetup(factory, config, resources).setupResources();

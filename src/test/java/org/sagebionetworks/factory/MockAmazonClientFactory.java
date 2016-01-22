@@ -8,6 +8,7 @@ import com.amazonaws.services.cloudsearch.AmazonCloudSearchClient;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
+import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClient;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.route53.AmazonRoute53Client;
@@ -31,6 +32,7 @@ public class MockAmazonClientFactory implements AmazonClientFactory {
 	AmazonIdentityManagementClient mockIdentityManagementClient;
 	AmazonCloudSearchClient mockCloudSearchClient;
 	AmazonRoute53Client mockRoute53Client;
+	AmazonElasticLoadBalancingClient mockLoadBalancingClient;
 	AWSCredentials credentials;
 	
 	/**
@@ -46,6 +48,7 @@ public class MockAmazonClientFactory implements AmazonClientFactory {
 		mockIdentityManagementClient = Mockito.mock(AmazonIdentityManagementClient.class);
 		mockCloudSearchClient = Mockito.mock(AmazonCloudSearchClient.class);
 		mockRoute53Client = Mockito.mock(AmazonRoute53Client.class);
+		mockLoadBalancingClient = Mockito.mock(AmazonElasticLoadBalancingClient.class);
 		
 	}
 
@@ -105,6 +108,11 @@ public class MockAmazonClientFactory implements AmazonClientFactory {
 	
 	public AmazonRoute53Client createRoute53Client() {
 		return mockRoute53Client;
+	}
+	
+	@Override
+	public AmazonElasticLoadBalancingClient createElasticLoadBalancingClient() {
+		return mockLoadBalancingClient;
 	}
 
 }

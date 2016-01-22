@@ -279,6 +279,11 @@ public class Constants {
 	public static final int FIVE_MINUTES_IN_SECONDS = 5*60;
 	public static final String STATISTIC_AVERAGE = "Average";
 	
+	public static final String NAMESPACE_ELB = "AWS/ELB";
+	public static final String STATISTIC_MAX = "Maximum";
+	public static final String DIMENSION_NAME_LOAD_BALANCER = "LoadBalancerName";
+	public static final String METRIC_UNHEALTHY_COUNT = "UnHealthyHostCount";
+	
 	
 	/**
 	 * The stack config template file.
