@@ -112,8 +112,8 @@ public class InputConfigurationTest {
 		assertEquals(stack+"-default.properties", config.getDefaultPropertiesFileName());
 		assertEquals("elastic-beanstalk-"+stack+"-"+instance, config.getElasticSecurityGroupName());
 		assertEquals("All elastic beanstalk instances of stack:'"+stack+"' instance:'"+instance+"' belong to this EC2 security group", config.getElasticSecurityGroupDescription());
-		assertEquals("mysql5-5-"+stack+"-params", config.getDatabaseParameterGroupName());
-		assertEquals("Custom MySQL 5.5 database parameters (including slow query log enabled) used by all database instances belonging to stack: "+stack, config.getDatabaseParameterGroupDescription());
+		assertEquals("mysql5-6-"+stack+"-params", config.getDatabaseParameterGroupName());
+		assertEquals("Custom MySQL 5.6 database parameters (including slow query log enabled) used by all database instances belonging to stack: "+stack, config.getDatabaseParameterGroupDescription());
 		// Id gen database
 		String expectedIdGenIdentifier = stack+"-id-generator-db";
 		assertEquals(expectedIdGenIdentifier, config.getIdGeneratorDatabaseIdentifier());

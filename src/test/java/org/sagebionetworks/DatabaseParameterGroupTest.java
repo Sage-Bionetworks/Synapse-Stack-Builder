@@ -5,7 +5,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.stack.Constants.ERROR_CODE_DB_PARAMETER_GROUP_NOT_FOUND;
-import static org.sagebionetworks.stack.Constants.MYSQL_5_5_DB_PARAMETER_GROUP_FAMILY;
+import static org.sagebionetworks.stack.Constants.MYSQL_5_6_DB_PARAMETER_GROUP_FAMILY;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -66,7 +66,7 @@ public class DatabaseParameterGroupTest {
 		DBParameterGroup expected = new DBParameterGroup();
 		expected.setDBParameterGroupName(config.getDatabaseParameterGroupName());
 		expected.setDescription(config.getDatabaseParameterGroupDescription());
-		expected.setDBParameterGroupFamily(MYSQL_5_5_DB_PARAMETER_GROUP_FAMILY);
+		expected.setDBParameterGroupFamily(MYSQL_5_6_DB_PARAMETER_GROUP_FAMILY);
 		CreateDBParameterGroupRequest request = new CreateDBParameterGroupRequest();
 		request.setDBParameterGroupFamily(expected.getDBParameterGroupFamily());
 		request.setDBParameterGroupName(expected.getDBParameterGroupName());
