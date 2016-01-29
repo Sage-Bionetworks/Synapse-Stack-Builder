@@ -174,14 +174,14 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		if (ed == null) {
 			throw new IllegalArgumentException("EnvironmentDescription cannot be null.");
 		}
-		if (! config.getEnvironmentName(PREFIX_REPO).equals(ed.getApplicationName()) &&
-			(! config.getEnvironmentName(PREFIX_WORKERS).equals(ed.getApplicationName())) &&
-			(! config.getEnvironmentName(PREFIX_PORTAL).equals(ed.getApplicationName()))) {
+		if (! config.getEnvironmentName(PREFIX_REPO).equals(ed.getEnvironmentName()) &&
+			(! config.getEnvironmentName(PREFIX_WORKERS).equals(ed.getEnvironmentName())) &&
+			(! config.getEnvironmentName(PREFIX_PORTAL).equals(ed.getEnvironmentName()))) {
 			throw new IllegalArgumentException("Invalid application name.");
 		}
-		if (config.getEnvironmentName(PREFIX_REPO).equals(ed.getApplicationName())) {
+		if (config.getEnvironmentName(PREFIX_REPO).equals(ed.getEnvironmentName())) {
 			resources.setRepositoryEnvironment(ed);
-		} else if (! config.getEnvironmentName(PREFIX_WORKERS).equals(ed.getApplicationName())) {
+		} else if (! config.getEnvironmentName(PREFIX_WORKERS).equals(ed.getEnvironmentName())) {
 			resources.setWorkersEnvironment(ed);
 		} else {
 			resources.setPortalEnvironment(ed);
