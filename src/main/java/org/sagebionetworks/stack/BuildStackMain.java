@@ -8,6 +8,7 @@ import java.util.Properties;
 
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Logger;
+import org.sagebionetworks.stack.alarms.ElbAlarmSetup;
 import org.sagebionetworks.stack.alarms.RdsAlarmSetup;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
@@ -104,6 +105,9 @@ public class BuildStackMain {
 		
 		// Setup all environments
 		new ElasticBeanstalkSetup(factory, config, resources).setupResources();
+		
+		// Setup the alarm for unhealthy instances on load balancer
+		new ElbAlarmSetup(factory, config, resources).setupResources();
 		
 		// Return all of the generated objects
 		return resources;
