@@ -40,18 +40,20 @@ public class SearchIndexSetup implements ResourceProcessor {
 	public void setupResources() {
 		String domainName = config.getSearchIndexDomainName();
 		// Does this search domain exist?
-		DomainStatus domain = describeDomains();
+		DomainStatus domain = getDomainStatus(domainName);
 		if(domain == null){
 			// We need to create it.
 			log.debug(String.format("Search index domain: '%1$s' does not exist, so creating it...",domainName));
 			CreateDomainResult result = client.createDomain(new CreateDomainRequest().withDomainName(domainName));
-			domain = describeDomains();
+			domain = getDomainStatus(domainName);
 			this.resources.setSearchDomain(domain);
 		}else{
 			// It already exists
 			log.debug(String.format("Search index domain: '%1$s' already exists.", domainName));
 			this.resources.setSearchDomain(domain);
-		}		
+		}
+
+        waitForDomain();
 	}
 	
 	public void teardownResources() {
@@ -69,7 +71,7 @@ public class SearchIndexSetup implements ResourceProcessor {
 	
 	public void describeResources() {
 		String domainName = config.getSearchIndexDomainName();
-		DomainStatus domain = describeDomains();
+		DomainStatus domain = getDomainStatus(domainName);
 		if (domain != null) {
 			this.resources.setSearchDomain(domain);
 		}
@@ -78,10 +80,17 @@ public class SearchIndexSetup implements ResourceProcessor {
 	public void setupSearch(){
 	}
 	
-	private DomainStatus describeDomains(){
-		DescribeDomainsResult result = client.describeDomains(new DescribeDomainsRequest().withDomainNames(config.getSearchIndexDomainName()));
-		if((result != null) && (result.getDomainStatusList().size() == 1)) return result.getDomainStatusList().get(0);
-		return null;
+	private DomainStatus getDomainStatus(String domainName){
+		DescribeDomainsResult result = client.describeDomains(new DescribeDomainsRequest().withDomainNames(domainName));
+		if ((result != null) && (result.getDomainStatusList().size() == 1)) {
+            return result.getDomainStatusList().get(0);
+        } else {
+            return null;
+        }
 	}
+    
+    private void waitForDomain() {
+        
+    }
 
 }

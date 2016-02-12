@@ -137,17 +137,31 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 	public DBInstance waitForDatabase(DBInstance stackInstance) {
 		String status = null;
 		DBInstance instance = null;
-		do{
-			DescribeDBInstancesResult result = client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(stackInstance.getDBInstanceIdentifier()));
-			instance = result.getDBInstances().get(0);
-			status = instance.getDBInstanceStatus();
-			log.info(String.format("Waiting for database: instance: %1$s status: %2$s ", stackInstance.getDBInstanceIdentifier(), status));
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-		}while(!"available".equals(status));
+        // Try to minimize risk of bouncing available status
+        boolean available = false;
+        int numSuccesses = 0;
+        for (int i = 0; i < 3; i++) {
+            try {
+            Thread.sleep(30000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            do {
+                DescribeDBInstancesResult result = client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(stackInstance.getDBInstanceIdentifier()));
+                instance = result.getDBInstances().get(0);
+                status = instance.getDBInstanceStatus();
+                log.info(String.format("Waiting for database: instance: %1$s status: %2$s ", stackInstance.getDBInstanceIdentifier(), status));
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                available = "available".equals(status);
+            } while(! available);
+            if (available) {
+                numSuccesses++;
+            }
+        }
 		return instance;
 	}
 	
