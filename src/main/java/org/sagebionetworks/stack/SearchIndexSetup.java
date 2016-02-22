@@ -53,7 +53,10 @@ public class SearchIndexSetup implements ResourceProcessor {
 			this.resources.setSearchDomain(domain);
 		}
 
-        waitForDomain();
+		DomainStatus ds = waitForSearchDomain(domainName);
+		if (ds == null) {
+			throw new RuntimeException("Search domain not available yet");
+		}
 	}
 	
 	public void teardownResources() {
@@ -83,14 +86,33 @@ public class SearchIndexSetup implements ResourceProcessor {
 	private DomainStatus getDomainStatus(String domainName){
 		DescribeDomainsResult result = client.describeDomains(new DescribeDomainsRequest().withDomainNames(domainName));
 		if ((result != null) && (result.getDomainStatusList().size() == 1)) {
-            return result.getDomainStatusList().get(0);
-        } else {
-            return null;
-        }
+			return result.getDomainStatusList().get(0);
+		} else {
+			return null;
+		}
 	}
-    
-    private void waitForDomain() {
-        
-    }
+	
+	private DomainStatus waitForSearchDomain(String domainName) {
+		DomainStatus domainStatus = null;
+		boolean available = false;
+		int numSuccesses = 0;		
+		for (int i =0; i < 3; i++) {
+			try {
+				Thread.sleep(30000);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+			domainStatus = getDomainStatus(domainName);
+			available = domainStatus.isCreated() && (!domainStatus.isProcessing());
+			if (available) {
+				numSuccesses++;
+			}
+		}
+		if (available && (numSuccesses >= 2)) {
+			return domainStatus;
+		} else {
+			return null;
+		}
+	}
 
 }
