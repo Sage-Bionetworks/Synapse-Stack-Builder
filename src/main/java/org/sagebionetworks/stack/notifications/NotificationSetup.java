@@ -1,4 +1,4 @@
-package org.sagebionetworks.stack;
+package org.sagebionetworks.stack.notifications;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -17,6 +17,9 @@ import com.amazonaws.services.sns.model.SubscribeRequest;
 import com.amazonaws.services.sns.model.SubscribeResult;
 import com.amazonaws.services.sns.model.Subscription;
 import com.amazonaws.services.sns.model.Topic;
+import org.sagebionetworks.stack.Constants;
+import org.sagebionetworks.stack.GeneratedResources;
+import org.sagebionetworks.stack.ResourceProcessor;
 
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 

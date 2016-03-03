@@ -13,6 +13,7 @@ import org.sagebionetworks.stack.alarms.RdsAlarmSetup;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 import org.sagebionetworks.stack.factory.AmazonClientFactoryImpl;
+import org.sagebionetworks.stack.notifications.NotificationSetup;
 
 /**
  * The main class to start the stack builder

@@ -1,4 +1,4 @@
-package org.sagebionetworks.stack;
+package org.sagebionetworks.stack.notifications;
 
 import java.io.IOException;
 
@@ -18,6 +18,9 @@ import com.amazonaws.services.sns.model.ListSubscriptionsByTopicResult;
 import com.amazonaws.services.sns.model.SubscribeRequest;
 import com.amazonaws.services.sns.model.Subscription;
 import org.sagebionetworks.factory.MockAmazonClientFactory;
+import org.sagebionetworks.stack.Constants;
+import org.sagebionetworks.stack.GeneratedResources;
+import org.sagebionetworks.stack.TestHelper;
 
 public class NotificationSetupTest {
 	
