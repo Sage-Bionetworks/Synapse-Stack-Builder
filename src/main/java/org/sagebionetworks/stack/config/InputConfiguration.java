@@ -423,6 +423,15 @@ public class InputConfiguration {
 	public String getRDSAlertSubscriptionEndpoint() {
 		return validateAndGetProperty(Constants.KEY_RDS_ALAERT_SUBSCRIPTION_ENDPONT);
 	}
+	
+	public String getEnvironmentInstanceNotificationTopicName(String prefix) {
+		return validateAndGetProperty(prefix + ".stack.instance.notification.topic.name");
+	}
+	
+	public String getEnvironmentInstanceNotificationEndpoint() {
+		String s = validateAndGetProperty("stack.instance.notification.endpoint");
+		return s;
+	}
 
 	/**
 	 * The bucket where all stack instance configuration can be found.
