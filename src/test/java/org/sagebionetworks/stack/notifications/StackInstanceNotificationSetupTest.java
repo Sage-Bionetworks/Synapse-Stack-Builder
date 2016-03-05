@@ -22,20 +22,20 @@ import org.sagebionetworks.stack.Constants;
 import org.sagebionetworks.stack.GeneratedResources;
 import org.sagebionetworks.stack.TestHelper;
 
-public class NotificationSetupTest {
+public class StackInstanceNotificationSetupTest {
 	
 	AmazonSNSClient mockClient;
 	MockAmazonClientFactory factory = new MockAmazonClientFactory();
 	InputConfiguration config;
 	GeneratedResources resources;
-	NotificationSetup setup;
+	StackInstanceNotificationSetup setup;
 	
 	@Before
 	public void before() throws IOException{
 		config = TestHelper.createTestConfig("dev");
 		mockClient = factory.createSNSClient();
 		resources = new GeneratedResources();
-		setup = new NotificationSetup(factory, config, resources);
+		setup = new StackInstanceNotificationSetup(factory, config, resources);
 	}
 	
 	@Test

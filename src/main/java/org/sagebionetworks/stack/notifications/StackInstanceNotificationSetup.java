@@ -23,9 +23,9 @@ import org.sagebionetworks.stack.factory.AmazonClientFactory;
  * @author John
  *
  */
-public class NotificationSetup implements ResourceProcessor {
+public class StackInstanceNotificationSetup implements ResourceProcessor {
 	
-	private static Logger log = Logger.getLogger(NotificationSetup.class.getName());
+	private static Logger log = Logger.getLogger(StackInstanceNotificationSetup.class.getName());
 	
 	private AmazonSNSClient client;
 	private InputConfiguration config;
@@ -37,7 +37,7 @@ public class NotificationSetup implements ResourceProcessor {
 	 * @param client
 	 * @param config
 	 */
-	public NotificationSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+	public StackInstanceNotificationSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
 		initialize(factory, config, resources);
 	}
 	
