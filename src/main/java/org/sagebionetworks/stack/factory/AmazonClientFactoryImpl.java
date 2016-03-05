@@ -1,6 +1,7 @@
 package org.sagebionetworks.stack.factory;
 
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.services.certificatemanager.AWSCertificateManagerClient;
 import com.amazonaws.services.cloudsearch.AmazonCloudSearchClient;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 import com.amazonaws.services.ec2.AmazonEC2Client;
@@ -65,6 +66,11 @@ public class AmazonClientFactoryImpl implements AmazonClientFactory {
 	@Override
 	public AmazonElasticLoadBalancingClient createElasticLoadBalancingClient() {
 		return new AmazonElasticLoadBalancingClient(credentials);
+	}
+
+	@Override
+	public AWSCertificateManagerClient createCertificateManagerClient() {
+		return new AWSCertificateManagerClient(credentials);
 	}
 
 }
