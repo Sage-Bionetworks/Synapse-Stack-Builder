@@ -25,7 +25,7 @@ import org.sagebionetworks.stack.factory.AmazonClientFactory;
  */
 public class StackInstanceNotificationSetup implements ResourceProcessor {
 	
-	private static Logger log = Logger.getLogger(StackInstanceNotificationSetup.class.getName());
+	private static Logger logger = Logger.getLogger(StackInstanceNotificationSetup.class.getName());
 	
 	private AmazonSNSClient client;
 	private InputConfiguration config;
@@ -84,7 +84,7 @@ public class StackInstanceNotificationSetup implements ResourceProcessor {
 		request.setName(config.getRDSAlertTopicName());
 		CreateTopicResult result = client.createTopic(request);
 		resources.setRdsAlertTopicArn(result.getTopicArn());
-		log.debug("Topic: "+result);
+		logger.debug("Topic: "+result);
 		// Create the RDS alert subscription
 		Subscription sub = NotificationUtils.createSubScription(client, result.getTopicArn(), Constants.TOPIC_SUBSCRIBE_PROTOCOL_EMAIL, config.getRDSAlertSubscriptionEndpoint());
 		return result;
