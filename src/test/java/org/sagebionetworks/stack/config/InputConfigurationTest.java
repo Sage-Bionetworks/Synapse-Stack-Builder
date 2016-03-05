@@ -30,6 +30,7 @@ public class InputConfigurationTest {
 	String stack = "stack";
 	String instance ="instance";
 	String portalBeanstalkNumber = "1001";
+	String plfmBeanstalkNumber = "2002";
 	String numberTableInstances = "2";
 	
 	@Before
@@ -42,6 +43,7 @@ public class InputConfigurationTest {
 		inputProperties.put(INSTANCE, instance);
 		inputProperties.put(PORTAL_BEANSTALK_NUMBER, portalBeanstalkNumber);
 		inputProperties.put(NUMBER_TABLE_INSTANCES, numberTableInstances);
+		inputProperties.put(PLFM_BEANSTALK_NUMBER, plfmBeanstalkNumber);
 	}
 	
 	@Test
@@ -139,6 +141,9 @@ public class InputConfigurationTest {
 		assertEquals("The database security group used by the "+expectedStackDBIdentifier+".", config.getStackDatabaseSecurityGroupDescription());
 		// the alert topic
 		assertEquals(stack+"-"+instance+"-RDS-Alert", config.getRDSAlertTopicName());
+		// environment instance alerts
+		assertEquals("portal-"+stack+"-"+instance+"-"+portalBeanstalkNumber+"-notification", config.getEnvironmentInstanceNotificationTopicName("portal"));
+		assertEquals("repo-"+stack+"-"+instance+"-"+plfmBeanstalkNumber+"-notification", config.getEnvironmentInstanceNotificationTopicName("repo"));
 		// Main file S3 bucket
 		assertEquals(stack+"data.sagebase.org", config.getMainFileS3BucketName());
 	}
