@@ -47,7 +47,7 @@ public class NotificationSetupTest {
 		ListSubscriptionsByTopicResult result = new ListSubscriptionsByTopicResult().withSubscriptions( new Subscription().withEndpoint("nomatch").withProtocol("noMatch"));
 		when(mockClient.listSubscriptionsByTopic(tRequest)).thenReturn(result);
 		// For this case it should not be found
-		Subscription sub = setup.findSubscription(topicArn, protocol, endpoint);
+		Subscription sub = NotificationUtils.findSubscription(mockClient, topicArn, protocol, endpoint);
 		assertNull(sub);
 	}
 	
@@ -61,7 +61,7 @@ public class NotificationSetupTest {
 		ListSubscriptionsByTopicResult result = new ListSubscriptionsByTopicResult().withSubscriptions(expected);
 		when(mockClient.listSubscriptionsByTopic(tRequest)).thenReturn(result);
 		// For this case it should not be found
-		Subscription sub = setup.findSubscription(topicArn, protocol, endpoint);
+		Subscription sub = NotificationUtils.findSubscription(mockClient, topicArn, protocol, endpoint);
 		assertEquals(expected, sub);
 	}
 	
@@ -79,7 +79,7 @@ public class NotificationSetupTest {
 		expectedRequest.setTopicArn(topicArn);
 		expectedRequest.setProtocol(protocol);
 		expectedRequest.setEndpoint(endpoint);
-		Subscription sub = setup.createSubScription(topicArn, protocol, endpoint);
+		Subscription sub = NotificationUtils.createSubScription(mockClient, topicArn, protocol, endpoint);
 		assertNull(sub);
 		verify(mockClient, times(1)).subscribe(expectedRequest);
 	}
@@ -100,7 +100,7 @@ public class NotificationSetupTest {
 		expectedRequest.setTopicArn(topicArn);
 		expectedRequest.setProtocol(protocol);
 		expectedRequest.setEndpoint(endpoint);
-		Subscription sub = setup.createSubScription(topicArn, protocol, endpoint);
+		Subscription sub = NotificationUtils.createSubScription(mockClient, topicArn, protocol, endpoint);
 		assertEquals(expected, sub);
 		// Subscribe should not have been called!
 		verify(mockClient, times(0)).subscribe(expectedRequest);
