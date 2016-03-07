@@ -76,7 +76,7 @@ public class ElbAlarmSetup implements ResourceProcessor {
 	}
 		
 	public void createAlarms(EnvironmentDescription ed) {
-		String topicArn = resources.getRdsAlertTopicArn();
+		String topicArn = resources.getStackInstanceNotificationTopicArn();
 		LoadBalancer loadBalancer = getLoadBalancerFromEnvironmentName(ed.getEnvironmentName());
 		List<PutMetricAlarmRequest> reqs = createAllPutMetricAlarmRequests(ed.getEnvironmentName(), loadBalancer.getName(), topicArn);
 		for (PutMetricAlarmRequest req: reqs) {
@@ -85,7 +85,7 @@ public class ElbAlarmSetup implements ResourceProcessor {
 	}
 	
 	public DescribeAlarmsResult describeAlarms(EnvironmentDescription ed) {
-		String topicArn = resources.getRdsAlertTopicArn();
+		String topicArn = resources.getStackInstanceNotificationTopicArn();
 		LoadBalancer loadBalancer = getLoadBalancerFromEnvironmentName(ed.getEnvironmentName());
 		DescribeAlarmsRequest req = createDescribeAlarmsRequest(ed.getEnvironmentName(), loadBalancer.getName(), topicArn);
 		DescribeAlarmsResult res = this.cloudWatchClient.describeAlarms(req);

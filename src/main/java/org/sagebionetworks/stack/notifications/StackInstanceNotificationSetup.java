@@ -70,7 +70,7 @@ public class StackInstanceNotificationSetup implements ResourceProcessor {
 		topics = res.getTopics(); // TopicArn ends with topic name
 		for (Topic topic:topics) {
 			if (topic.getTopicArn().endsWith(topicName)) {
-				resources.setRdsAlertTopicArn(topic.getTopicArn());
+				resources.setStackInstanceNotificationTopicArn(topic.getTopicArn());
 				break;
 			}
 		}		
@@ -83,7 +83,7 @@ public class StackInstanceNotificationSetup implements ResourceProcessor {
 		CreateTopicRequest request = new CreateTopicRequest();
 		request.setName(config.getRDSAlertTopicName());
 		CreateTopicResult result = client.createTopic(request);
-		resources.setRdsAlertTopicArn(result.getTopicArn());
+		resources.setStackInstanceNotificationTopicArn(result.getTopicArn());
 		logger.debug("Topic: "+result);
 		// Create the RDS alert subscription
 		Subscription sub = NotificationUtils.createSubScription(client, result.getTopicArn(), Constants.TOPIC_SUBSCRIBE_PROTOCOL_EMAIL, config.getRDSAlertSubscriptionEndpoint());

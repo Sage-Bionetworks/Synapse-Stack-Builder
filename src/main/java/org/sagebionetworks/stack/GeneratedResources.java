@@ -28,7 +28,8 @@ import java.util.Map;
  */
 public class GeneratedResources {
 
-	private String rdsAlertTopicArn;
+	private String stackInstanceNotificationTopicArn;
+	private Map<String, String> environmentInstanceNotificationTopicArns;
 	private SecurityGroup elasticBeanstalkEC2SecurityGroup;
 	private DBSecurityGroup idGeneratorDatabaseSecurityGroup;
 	private DBSecurityGroup stackInstancesDatabaseSecurityGroup;
@@ -63,6 +64,7 @@ public class GeneratedResources {
 		this.sslCertificates = new HashMap<String, ServerCertificateMetadata>();
 		this.elasticBeanstalkConfigurationTemplate = new HashMap<String, DescribeConfigurationOptionsResult>();
 		this.stackInstanceTablesDatabases = new ArrayList<DBInstance>();
+		this.environmentInstanceNotificationTopicArns = new HashMap<String, String>();
 	}
 	/**
 	 * The search domain.
@@ -288,16 +290,35 @@ public class GeneratedResources {
 	 * The topic used to notify when RDS alarms are triggered.
 	 * @return
 	 */
-	public String getRdsAlertTopicArn() {
-		return rdsAlertTopicArn;
+	public String getStackInstanceNotificationTopicArn() {
+		return stackInstanceNotificationTopicArn;
 	}
 
 	/**
-	 * The topic used to notify when RDS alarms are triggered.
-	 * @param rdsAlertTopic
+	 * The topic used to notify for stack instance events (alerts).
+	 * @param topicArn
 	 */
-	public void setRdsAlertTopicArn(String rdsAlertTopicArn) {
-		this.rdsAlertTopicArn = rdsAlertTopicArn;
+	public void setStackInstanceNotificationTopicArn(String topicArn) {
+		this.stackInstanceNotificationTopicArn = topicArn;
+	}
+	
+	/**
+	 * The topic used to notify for environment events (one of portal, repo or worker)
+	 * @return 
+	 */
+	public String getEnvironmentInstanceNotificationTopicArn(String key) {
+		return this.environmentInstanceNotificationTopicArns.get(key);
+	}
+	
+	/**
+	 * The topic used to notify for environment events (one of portal, repo or worker)
+	 * @return 
+	 */
+	public void setEnvironmentInstanceNotificationTopicArn(String envKey, String topicArn) {
+		if (("portal".equals(envKey)) && ("repo".equals(envKey)) && ("worker".equals(envKey))) {
+			throw new IllegalArgumentException("Environment must be 'portal', 'repo' or 'worker'");
+		}
+		this.environmentInstanceNotificationTopicArns.put(envKey, topicArn);
 	}
 
 	/**

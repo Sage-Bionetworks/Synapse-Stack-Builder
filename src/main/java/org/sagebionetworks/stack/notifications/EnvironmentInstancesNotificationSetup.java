@@ -46,20 +46,20 @@ public class EnvironmentInstancesNotificationSetup implements ResourceProcessor 
 		String endpoint = config.getEnvironmentInstanceNotificationEndpoint();
 		CreateTopicResult result = setupNotificationTopicAndSubscription(topicName, endpoint);
 		// TODO: CHANGE generated resource
-		resources.setRdsAlertTopicArn(result.getTopicArn());
+		resources.setEnvironmentInstanceNotificationTopicArn("portal", result.getTopicArn());
 		
 		// Plfm environments (repo/worker)
 		topicName = config.getEnvironmentInstanceNotificationTopicName("repo");
 		endpoint = config.getEnvironmentInstanceNotificationEndpoint();
 		result = setupNotificationTopicAndSubscription(topicName, endpoint);
 		// TODO: CHANGE generated resource
-		resources.setRdsAlertTopicArn(result.getTopicArn());
+		resources.setEnvironmentInstanceNotificationTopicArn("repo", result.getTopicArn());
 		
 		topicName = config.getEnvironmentInstanceNotificationTopicName("worker");
 		endpoint = config.getEnvironmentInstanceNotificationEndpoint();
 		result = setupNotificationTopicAndSubscription(topicName, endpoint);
 		// TODO: CHANGE generated resource
-		resources.setRdsAlertTopicArn(result.getTopicArn());
+		resources.setEnvironmentInstanceNotificationTopicArn("worker", result.getTopicArn());
 	}
 
 	@Override

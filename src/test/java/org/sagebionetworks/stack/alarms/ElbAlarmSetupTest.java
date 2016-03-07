@@ -55,7 +55,7 @@ public class ElbAlarmSetupTest {
 		config = TestHelper.createTestConfig("dev");
 		//	SNS topic
 		resources = new GeneratedResources();
-		resources.setRdsAlertTopicArn("topicArn");
+		resources.setStackInstanceNotificationTopicArn("topicArn");
 		//	Beanstalk environments
 		EnvironmentDescription repoEnvDesc = new EnvironmentDescription().withEnvironmentName("repoEnvName");
 		resources.setRepositoryEnvironment(repoEnvDesc);
@@ -131,7 +131,7 @@ public class ElbAlarmSetupTest {
 		
 		String loadBalancerName = "loadBalancer";
 
-		PutMetricAlarmRequest req = ElbAlarmSetup.createDefaultPutMetricAlarmRequest(loadBalancerName, resources.getRdsAlertTopicArn());
+		PutMetricAlarmRequest req = ElbAlarmSetup.createDefaultPutMetricAlarmRequest(loadBalancerName, resources.getStackInstanceNotificationTopicArn());
 		
 		assertEquals(expectedReq, req);
 	}
@@ -142,7 +142,7 @@ public class ElbAlarmSetupTest {
 		
 		String loadBalancerName = "loadBalancer";
 
-		PutMetricAlarmRequest req = ElbAlarmSetup.createUnhealthyInstancesPutMetricAlarmRequest("prefix", loadBalancerName, resources.getRdsAlertTopicArn());
+		PutMetricAlarmRequest req = ElbAlarmSetup.createUnhealthyInstancesPutMetricAlarmRequest("prefix", loadBalancerName, resources.getStackInstanceNotificationTopicArn());
 		
 		assertEquals(expectedReq, req);
 	}
@@ -155,7 +155,7 @@ public class ElbAlarmSetupTest {
 		
 		String loadBalancerName = "loadBalancer";
 
-		List<PutMetricAlarmRequest> reqs = ElbAlarmSetup.createAllPutMetricAlarmRequests("prefix", loadBalancerName, resources.getRdsAlertTopicArn());
+		List<PutMetricAlarmRequest> reqs = ElbAlarmSetup.createAllPutMetricAlarmRequests("prefix", loadBalancerName, resources.getStackInstanceNotificationTopicArn());
 		
 		assertEquals(expectedReqs, reqs);
 	}
@@ -164,7 +164,7 @@ public class ElbAlarmSetupTest {
 	public void testCreateDescribeAlarmsRequest() {
 		DescribeAlarmsRequest expectedReq = ElbAlarmTestHelper.getExpectedDescribeAlarmsRequest();
 		String loadBalancerName = "loadBalancer";
-		DescribeAlarmsRequest req = ElbAlarmSetup.createDescribeAlarmsRequest("prefix", loadBalancerName, resources.getRdsAlertTopicArn());
+		DescribeAlarmsRequest req = ElbAlarmSetup.createDescribeAlarmsRequest("prefix", loadBalancerName, resources.getStackInstanceNotificationTopicArn());
 		assertEquals(expectedReq, req);
 	}
 	
