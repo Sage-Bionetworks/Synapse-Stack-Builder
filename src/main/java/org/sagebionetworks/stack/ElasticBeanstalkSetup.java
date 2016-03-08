@@ -122,9 +122,9 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	}
 	
 	public void describeResources() {
-		resources.setPortalEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_PORTAL)));
-		resources.setRepositoryEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_REPO)));
-		resources.setWorkersEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_WORKERS)));
+		resources.setEnvironment(StackEnvironment.PORTAL, describeEnvironment(config.getEnvironmentName(PREFIX_PORTAL)));
+		resources.setEnvironment(StackEnvironment.REPO, describeEnvironment(config.getEnvironmentName(PREFIX_REPO)));
+		resources.setEnvironment(StackEnvironment.WORKERS, describeEnvironment(config.getEnvironmentName(PREFIX_WORKERS)));
 	}
 
 	/**
@@ -180,11 +180,11 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			throw new IllegalArgumentException("Invalid application name.");
 		}
 		if (config.getEnvironmentName(PREFIX_REPO).equals(ed.getEnvironmentName())) {
-			resources.setRepositoryEnvironment(ed);
+			resources.setEnvironment(StackEnvironment.REPO, ed);
 		} else if (! config.getEnvironmentName(PREFIX_WORKERS).equals(ed.getEnvironmentName())) {
-			resources.setWorkersEnvironment(ed);
+			resources.setEnvironment(StackEnvironment.WORKERS, ed);
 		} else {
-			resources.setPortalEnvironment(ed);
+			resources.setEnvironment(StackEnvironment.PORTAL, ed);
 		}
 	}
 

@@ -15,6 +15,7 @@ import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.util.EncryptionUtils;
 
 import com.amazonaws.auth.AWSCredentials;
+import org.sagebionetworks.stack.StackEnvironment;
 
 /**
  * Test for the Configuration class.
@@ -139,11 +140,13 @@ public class InputConfigurationTest {
 		assertEquals("The database security group used by the "+expectedIdGenIdentifier+".", config.getIdGeneratorDatabaseSecurityGroupDescription());
 		assertEquals(expectedStackDBIdentifier+"-security-group", config.getStackDatabaseSecurityGroupName());
 		assertEquals("The database security group used by the "+expectedStackDBIdentifier+".", config.getStackDatabaseSecurityGroupDescription());
+		
 		// the alert topic
 		assertEquals(stack+"-"+instance+"-RDS-Alert", config.getRDSAlertTopicName());
 		// environment instance alerts
-		assertEquals("portal-"+stack+"-"+instance+"-"+portalBeanstalkNumber+"-notification", config.getEnvironmentInstanceNotificationTopicName("portal"));
-		assertEquals("repo-"+stack+"-"+instance+"-"+plfmBeanstalkNumber+"-notification", config.getEnvironmentInstanceNotificationTopicName("repo"));
+		assertEquals("PORTAL-"+stack+"-"+instance+"-"+portalBeanstalkNumber+"-notification", config.getEnvironmentInstanceNotificationTopicName(StackEnvironment.PORTAL));
+		assertEquals("REPO-"+stack+"-"+instance+"-"+plfmBeanstalkNumber+"-notification", config.getEnvironmentInstanceNotificationTopicName(StackEnvironment.REPO));
+		
 		// Main file S3 bucket
 		assertEquals(stack+"data.sagebase.org", config.getMainFileS3BucketName());
 	}

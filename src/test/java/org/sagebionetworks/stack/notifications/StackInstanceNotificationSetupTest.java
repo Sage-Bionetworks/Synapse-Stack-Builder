@@ -39,75 +39,7 @@ public class StackInstanceNotificationSetupTest {
 	}
 	
 	@Test
-	public void testfindSubscriptionDoesNotExist(){
-		String topicArn = "arn:123";
-		String protocol = "email";
-		String endpoint = "testing@domain.com";
-		ListSubscriptionsByTopicRequest tRequest = new ListSubscriptionsByTopicRequest().withTopicArn(topicArn);
-		ListSubscriptionsByTopicResult result = new ListSubscriptionsByTopicResult().withSubscriptions( new Subscription().withEndpoint("nomatch").withProtocol("noMatch"));
-		when(mockClient.listSubscriptionsByTopic(tRequest)).thenReturn(result);
-		// For this case it should not be found
-		Subscription sub = NotificationUtils.findSubscription(mockClient, topicArn, protocol, endpoint);
-		assertNull(sub);
-	}
-	
-	@Test
-	public void testfindSubscriptionFound(){
-		String topicArn = "arn:123";
-		String protocol = "email";
-		String endpoint = "testing@domain.com";
-		ListSubscriptionsByTopicRequest tRequest = new ListSubscriptionsByTopicRequest().withTopicArn(topicArn);
-		Subscription expected = new Subscription().withEndpoint(endpoint).withProtocol(protocol);
-		ListSubscriptionsByTopicResult result = new ListSubscriptionsByTopicResult().withSubscriptions(expected);
-		when(mockClient.listSubscriptionsByTopic(tRequest)).thenReturn(result);
-		// For this case it should not be found
-		Subscription sub = NotificationUtils.findSubscription(mockClient, topicArn, protocol, endpoint);
-		assertEquals(expected, sub);
-	}
-	
-	@Test
-	public void testCreateSubscriptionDoesNotExist(){
-		String topicArn = "arn:123";
-		String protocol = "email";
-		String endpoint = "testing@domain.com";
-		ListSubscriptionsByTopicRequest tRequest = new ListSubscriptionsByTopicRequest().withTopicArn(topicArn);
-		ListSubscriptionsByTopicResult result = new ListSubscriptionsByTopicResult().withSubscriptions( new Subscription().withEndpoint("nomatch").withProtocol("noMatch"));
-		when(mockClient.listSubscriptionsByTopic(tRequest)).thenReturn(result);
-		
-		// This should call create
-		SubscribeRequest expectedRequest = new SubscribeRequest();
-		expectedRequest.setTopicArn(topicArn);
-		expectedRequest.setProtocol(protocol);
-		expectedRequest.setEndpoint(endpoint);
-		Subscription sub = NotificationUtils.createSubScription(mockClient, topicArn, protocol, endpoint);
-		assertNull(sub);
-		verify(mockClient, times(1)).subscribe(expectedRequest);
-	}
-
-	
-	@Test
-	public void testCreateSubscriptionAlreadyExists(){
-		String topicArn = "arn:123";
-		String protocol = "email";
-		String endpoint = "testing@domain.com";
-		ListSubscriptionsByTopicRequest tRequest = new ListSubscriptionsByTopicRequest().withTopicArn(topicArn);
-		Subscription expected = new Subscription().withEndpoint(endpoint).withProtocol(protocol);
-		ListSubscriptionsByTopicResult result = new ListSubscriptionsByTopicResult().withSubscriptions(expected);
-		when(mockClient.listSubscriptionsByTopic(tRequest)).thenReturn(result);
-		
-		// This should not call create because it already exists
-		SubscribeRequest expectedRequest = new SubscribeRequest();
-		expectedRequest.setTopicArn(topicArn);
-		expectedRequest.setProtocol(protocol);
-		expectedRequest.setEndpoint(endpoint);
-		Subscription sub = NotificationUtils.createSubScription(mockClient, topicArn, protocol, endpoint);
-		assertEquals(expected, sub);
-		// Subscribe should not have been called!
-		verify(mockClient, times(0)).subscribe(expectedRequest);
-	}
-	
-	@Test
-	public void testSetupNotificationTopics(){		
+	public void testSetupNotificationTopics() {
 		String topicArn = "arn:123";
 		String protocol = Constants.TOPIC_SUBSCRIBE_PROTOCOL_EMAIL;
 		String endpoint = config.getRDSAlertSubscriptionEndpoint();
@@ -123,7 +55,7 @@ public class StackInstanceNotificationSetupTest {
 		when(mockClient.listSubscriptionsByTopic(tRequest)).thenReturn(result);
 		
 		// Make the call
-		setup.setupNotificationTopics();
+		setup.setupResources();
 
 		verify(mockClient, times(1)).createTopic(expectedTopic);
 		

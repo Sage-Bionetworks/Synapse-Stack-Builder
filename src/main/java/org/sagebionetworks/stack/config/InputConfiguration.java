@@ -13,6 +13,7 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import java.util.HashMap;
 import java.util.Map;
+import org.sagebionetworks.stack.StackEnvironment;
 
 
 /**
@@ -424,12 +425,13 @@ public class InputConfiguration {
 		return validateAndGetProperty(Constants.KEY_RDS_ALAERT_SUBSCRIPTION_ENDPONT);
 	}
 	
-	public String getEnvironmentInstanceNotificationTopicName(String prefix) {
-		return validateAndGetProperty(prefix + ".stack.instance.notification.topic.name");
+	public String getEnvironmentInstanceNotificationTopicName(StackEnvironment env) {
+		return validateAndGetProperty(env.name() + ".stack.instance.notification.topic.name");
 	}
 	
-	public String getEnvironmentInstanceNotificationEndpoint() {
-		String s = validateAndGetProperty("stack.instance.notification.endpoint");
+	//	All share the same endpoint for now
+	public String getEnvironmentInstanceNotificationEndpoint(StackEnvironment env) {
+		String s = validateAndGetProperty(Constants.KEY_ORG_SAGEBIONETWORKS_ENVIRONMENT_NOTIFICATION_ENDPOINT);
 		return s;
 	}
 

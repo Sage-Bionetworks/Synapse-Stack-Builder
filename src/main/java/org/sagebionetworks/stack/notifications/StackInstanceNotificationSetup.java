@@ -51,11 +51,13 @@ public class StackInstanceNotificationSetup implements ResourceProcessor {
 	}
 	
 	public void setupResources() {
-		setupNotificationTopics();
+		String topicName = config.getRDSAlertTopicName();
+		String endpoint = config.getRDSAlertSubscriptionEndpoint();
+		CreateTopicResult result = NotificationUtils.setupNotificationTopicAndSubscription(client, topicName, endpoint);
+		resources.setStackInstanceNotificationTopicArn(result.getTopicArn());
 	}
 	
 	public void teardownResources() {
-		
 	}
 	
 	public void describeResources() {
@@ -75,21 +77,5 @@ public class StackInstanceNotificationSetup implements ResourceProcessor {
 			}
 		}		
 	}
-	/**
-	 * Create The Notification topic.
-	 */
-	public CreateTopicResult setupNotificationTopics(){
-		// Create the RDS alert topic
-		CreateTopicRequest request = new CreateTopicRequest();
-		request.setName(config.getRDSAlertTopicName());
-		CreateTopicResult result = client.createTopic(request);
-		resources.setStackInstanceNotificationTopicArn(result.getTopicArn());
-		logger.debug("Topic: "+result);
-		// Create the RDS alert subscription
-		Subscription sub = NotificationUtils.createSubScription(client, result.getTopicArn(), Constants.TOPIC_SUBSCRIBE_PROTOCOL_EMAIL, config.getRDSAlertSubscriptionEndpoint());
-		return result;
-	}
-	
-	
 
 }

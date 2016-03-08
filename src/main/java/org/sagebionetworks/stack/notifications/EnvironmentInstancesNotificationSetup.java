@@ -1,13 +1,11 @@
 package org.sagebionetworks.stack.notifications;
 
 import com.amazonaws.services.sns.AmazonSNSClient;
-import com.amazonaws.services.sns.model.CreateTopicRequest;
 import com.amazonaws.services.sns.model.CreateTopicResult;
-import com.amazonaws.services.sns.model.Subscription;
 import org.apache.log4j.Logger;
-import org.sagebionetworks.stack.Constants;
 import org.sagebionetworks.stack.GeneratedResources;
 import org.sagebionetworks.stack.ResourceProcessor;
+import org.sagebionetworks.stack.StackEnvironment;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
@@ -42,24 +40,24 @@ public class EnvironmentInstancesNotificationSetup implements ResourceProcessor 
 	@Override
 	public void setupResources() throws InterruptedException {
 		// Portal environment
-		String topicName = config.getEnvironmentInstanceNotificationTopicName("portal");
-		String endpoint = config.getEnvironmentInstanceNotificationEndpoint();
-		CreateTopicResult result = setupNotificationTopicAndSubscription(topicName, endpoint);
+		String topicName = config.getEnvironmentInstanceNotificationTopicName(StackEnvironment.PORTAL);
+		String endpoint = config.getEnvironmentInstanceNotificationEndpoint(StackEnvironment.PORTAL);
+		CreateTopicResult result = NotificationUtils.setupNotificationTopicAndSubscription(client, topicName, endpoint);
 		// TODO: CHANGE generated resource
-		resources.setEnvironmentInstanceNotificationTopicArn("portal", result.getTopicArn());
+		resources.setEnvironmentInstanceNotificationTopicArn(StackEnvironment.PORTAL, result.getTopicArn());
 		
 		// Plfm environments (repo/worker)
-		topicName = config.getEnvironmentInstanceNotificationTopicName("repo");
-		endpoint = config.getEnvironmentInstanceNotificationEndpoint();
-		result = setupNotificationTopicAndSubscription(topicName, endpoint);
+		topicName = config.getEnvironmentInstanceNotificationTopicName(StackEnvironment.REPO);
+		endpoint = config.getEnvironmentInstanceNotificationEndpoint(StackEnvironment.REPO);
+		result = NotificationUtils.setupNotificationTopicAndSubscription(client, topicName, endpoint);
 		// TODO: CHANGE generated resource
-		resources.setEnvironmentInstanceNotificationTopicArn("repo", result.getTopicArn());
+		resources.setEnvironmentInstanceNotificationTopicArn(StackEnvironment.REPO, result.getTopicArn());
 		
-		topicName = config.getEnvironmentInstanceNotificationTopicName("worker");
-		endpoint = config.getEnvironmentInstanceNotificationEndpoint();
-		result = setupNotificationTopicAndSubscription(topicName, endpoint);
+		topicName = config.getEnvironmentInstanceNotificationTopicName(StackEnvironment.WORKERS);
+		endpoint = config.getEnvironmentInstanceNotificationEndpoint(StackEnvironment.WORKERS);
+		result = NotificationUtils.setupNotificationTopicAndSubscription(client, topicName, endpoint);
 		// TODO: CHANGE generated resource
-		resources.setEnvironmentInstanceNotificationTopicArn("worker", result.getTopicArn());
+		resources.setEnvironmentInstanceNotificationTopicArn(StackEnvironment.WORKERS, result.getTopicArn());
 	}
 
 	@Override
@@ -67,14 +65,4 @@ public class EnvironmentInstancesNotificationSetup implements ResourceProcessor 
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 	
-	private CreateTopicResult setupNotificationTopicAndSubscription(String topicName, String endpoint) {
-		// Create the topic
-		CreateTopicRequest request = new CreateTopicRequest();
-		request.setName(topicName);
-		CreateTopicResult result = client.createTopic(request);
-
-		// Create the subscription
-		Subscription sub = NotificationUtils.createSubScription(client, result.getTopicArn(), Constants.TOPIC_SUBSCRIBE_PROTOCOL_EMAIL, endpoint);
-		return result;
-	}
 }

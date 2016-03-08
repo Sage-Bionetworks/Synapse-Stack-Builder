@@ -57,10 +57,11 @@ public class TestHelper {
 	 */
 	public static Properties createDefaultProperties() {
 		Properties defaults = new Properties();
-		defaults.put(Constants.KEY_DEFAULT_ID_GEN_PASSWORD_PLAIN_TEXT, "id gen password");
-		defaults.put(Constants.KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_PLAIN_TEXT, "stack db password");
-		defaults.put(Constants.KEY_CIDR_FOR_SSH, "255.255.255/1");
-		defaults.put(Constants.KEY_RDS_ALAERT_SUBSCRIPTION_ENDPONT, "dev@sagebaser.org");
+		defaults.put(KEY_DEFAULT_ID_GEN_PASSWORD_PLAIN_TEXT, "id gen password");
+		defaults.put(KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_PLAIN_TEXT, "stack db password");
+		defaults.put(KEY_CIDR_FOR_SSH, "255.255.255/1");
+		defaults.put(KEY_RDS_ALAERT_SUBSCRIPTION_ENDPONT, "dev@sagebase.org");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_ENVIRONMENT_NOTIFICATION_ENDPOINT, "ops@sagebase.org");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_MAIL_PW_PLAINTEXT, "mail password");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_BCC_GOOGLEAPPS_OAUTH_CONSUMER_SECRET_PLAINTEX, "google consumer oath key");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_BCC_GOOGLEAPPS_OAUTH_ACCESS_TOKEN_PLAINTEXT, "google access token");

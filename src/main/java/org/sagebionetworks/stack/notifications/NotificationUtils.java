@@ -1,6 +1,8 @@
 package org.sagebionetworks.stack.notifications;
 
 import com.amazonaws.services.sns.AmazonSNSClient;
+import com.amazonaws.services.sns.model.CreateTopicRequest;
+import com.amazonaws.services.sns.model.CreateTopicResult;
 import com.amazonaws.services.sns.model.ListSubscriptionsByTopicRequest;
 import com.amazonaws.services.sns.model.ListSubscriptionsByTopicResult;
 import com.amazonaws.services.sns.model.SubscribeRequest;
@@ -9,6 +11,7 @@ import com.amazonaws.services.sns.model.Subscription;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.log4j.Logger;
+import org.sagebionetworks.stack.Constants;
 
 public class NotificationUtils {
 	private static Logger logger = Logger.getLogger(NotificationUtils.class.getName());
@@ -58,6 +61,17 @@ public class NotificationUtils {
 		}
 		// Did not find it
 		return null;
+	}
+	
+	public static CreateTopicResult setupNotificationTopicAndSubscription(AmazonSNSClient client, String topicName, String endpoint) {
+		// Create the topic
+		CreateTopicRequest request = new CreateTopicRequest();
+		request.setName(topicName);
+		CreateTopicResult result = client.createTopic(request);
+
+		// Create the subscription
+		Subscription sub = NotificationUtils.createSubScription(client, result.getTopicArn(), Constants.TOPIC_SUBSCRIBE_PROTOCOL_EMAIL, endpoint);
+		return result;
 	}
 	
 }
