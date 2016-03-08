@@ -15,7 +15,7 @@ import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.util.EncryptionUtils;
 
 import com.amazonaws.auth.AWSCredentials;
-import org.sagebionetworks.stack.StackEnvironment;
+import org.sagebionetworks.stack.StackEnvironmentType;
 
 /**
  * Test for the Configuration class.
@@ -144,8 +144,8 @@ public class InputConfigurationTest {
 		// the alert topic
 		assertEquals(stack+"-"+instance+"-RDS-Alert", config.getRDSAlertTopicName());
 		// environment instance alerts
-		assertEquals("PORTAL-"+stack+"-"+instance+"-"+portalBeanstalkNumber+"-notification", config.getEnvironmentInstanceNotificationTopicName(StackEnvironment.PORTAL));
-		assertEquals("REPO-"+stack+"-"+instance+"-"+plfmBeanstalkNumber+"-notification", config.getEnvironmentInstanceNotificationTopicName(StackEnvironment.REPO));
+		assertEquals("PORTAL-"+stack+"-"+instance+"-"+portalBeanstalkNumber+"-notification", config.getEnvironmentInstanceNotificationTopicName(StackEnvironmentType.PORTAL));
+		assertEquals("REPO-"+stack+"-"+instance+"-"+plfmBeanstalkNumber+"-notification", config.getEnvironmentInstanceNotificationTopicName(StackEnvironmentType.REPO));
 		
 		// Main file S3 bucket
 		assertEquals(stack+"data.sagebase.org", config.getMainFileS3BucketName());

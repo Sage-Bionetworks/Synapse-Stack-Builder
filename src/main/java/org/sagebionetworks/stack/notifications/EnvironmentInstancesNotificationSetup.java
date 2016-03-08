@@ -5,7 +5,7 @@ import com.amazonaws.services.sns.model.CreateTopicResult;
 import org.apache.log4j.Logger;
 import org.sagebionetworks.stack.GeneratedResources;
 import org.sagebionetworks.stack.ResourceProcessor;
-import org.sagebionetworks.stack.StackEnvironment;
+import org.sagebionetworks.stack.StackEnvironmentType;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
@@ -40,24 +40,24 @@ public class EnvironmentInstancesNotificationSetup implements ResourceProcessor 
 	@Override
 	public void setupResources() throws InterruptedException {
 		// Portal environment
-		String topicName = config.getEnvironmentInstanceNotificationTopicName(StackEnvironment.PORTAL);
-		String endpoint = config.getEnvironmentInstanceNotificationEndpoint(StackEnvironment.PORTAL);
+		String topicName = config.getEnvironmentInstanceNotificationTopicName(StackEnvironmentType.PORTAL);
+		String endpoint = config.getEnvironmentInstanceNotificationEndpoint(StackEnvironmentType.PORTAL);
 		CreateTopicResult result = NotificationUtils.setupNotificationTopicAndSubscription(client, topicName, endpoint);
 		// TODO: CHANGE generated resource
-		resources.setEnvironmentInstanceNotificationTopicArn(StackEnvironment.PORTAL, result.getTopicArn());
+		resources.setEnvironmentInstanceNotificationTopicArn(StackEnvironmentType.PORTAL, result.getTopicArn());
 		
 		// Plfm environments (repo/worker)
-		topicName = config.getEnvironmentInstanceNotificationTopicName(StackEnvironment.REPO);
-		endpoint = config.getEnvironmentInstanceNotificationEndpoint(StackEnvironment.REPO);
+		topicName = config.getEnvironmentInstanceNotificationTopicName(StackEnvironmentType.REPO);
+		endpoint = config.getEnvironmentInstanceNotificationEndpoint(StackEnvironmentType.REPO);
 		result = NotificationUtils.setupNotificationTopicAndSubscription(client, topicName, endpoint);
 		// TODO: CHANGE generated resource
-		resources.setEnvironmentInstanceNotificationTopicArn(StackEnvironment.REPO, result.getTopicArn());
+		resources.setEnvironmentInstanceNotificationTopicArn(StackEnvironmentType.REPO, result.getTopicArn());
 		
-		topicName = config.getEnvironmentInstanceNotificationTopicName(StackEnvironment.WORKERS);
-		endpoint = config.getEnvironmentInstanceNotificationEndpoint(StackEnvironment.WORKERS);
+		topicName = config.getEnvironmentInstanceNotificationTopicName(StackEnvironmentType.WORKERS);
+		endpoint = config.getEnvironmentInstanceNotificationEndpoint(StackEnvironmentType.WORKERS);
 		result = NotificationUtils.setupNotificationTopicAndSubscription(client, topicName, endpoint);
 		// TODO: CHANGE generated resource
-		resources.setEnvironmentInstanceNotificationTopicArn(StackEnvironment.WORKERS, result.getTopicArn());
+		resources.setEnvironmentInstanceNotificationTopicArn(StackEnvironmentType.WORKERS, result.getTopicArn());
 	}
 
 	@Override

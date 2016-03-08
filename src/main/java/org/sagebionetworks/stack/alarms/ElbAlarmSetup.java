@@ -23,7 +23,7 @@ import static org.sagebionetworks.stack.Constants.NAMESPACE_ELB;
 import static org.sagebionetworks.stack.Constants.STATISTIC_MAX;
 import org.sagebionetworks.stack.GeneratedResources;
 import org.sagebionetworks.stack.ResourceProcessor;
-import org.sagebionetworks.stack.StackEnvironment;
+import org.sagebionetworks.stack.StackEnvironmentType;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
@@ -46,16 +46,16 @@ public class ElbAlarmSetup implements ResourceProcessor {
 		if(factory == null) throw new IllegalArgumentException("AmazonClientFactory cannot be null");
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
-		for (StackEnvironment env: StackEnvironment.values()) {
+		for (StackEnvironmentType env: StackEnvironmentType.values()) {
 			if (resources.getEnvironment(env) == null) {
 				throw new IllegalStateException("All environments must be created before setting alarms up.");
 			}
 		}
 		this.resources = resources;
 		this.config = config;
-		repoEd = resources.getEnvironment(StackEnvironment.REPO);
-		workersEd = resources.getEnvironment(StackEnvironment.WORKERS);
-		portalEd = resources.getEnvironment(StackEnvironment.PORTAL);
+		repoEd = resources.getEnvironment(StackEnvironmentType.REPO);
+		workersEd = resources.getEnvironment(StackEnvironmentType.WORKERS);
+		portalEd = resources.getEnvironment(StackEnvironmentType.PORTAL);
 		cloudWatchClient = factory.createCloudWatchClient();
 		beanstalkClient = factory.createBeanstalkClient();
 	}
@@ -68,9 +68,9 @@ public class ElbAlarmSetup implements ResourceProcessor {
 	}
 	
 	public void describeResources() {
-		resources.setEnvironmentELBAlarms(StackEnvironment.REPO, this.describeAlarms(repoEd));
-		resources.setEnvironmentELBAlarms(StackEnvironment.WORKERS, this.describeAlarms(workersEd));
-		resources.setEnvironmentELBAlarms(StackEnvironment.PORTAL, this.describeAlarms(portalEd));
+		resources.setEnvironmentELBAlarms(StackEnvironmentType.REPO, this.describeAlarms(repoEd));
+		resources.setEnvironmentELBAlarms(StackEnvironmentType.WORKERS, this.describeAlarms(workersEd));
+		resources.setEnvironmentELBAlarms(StackEnvironmentType.PORTAL, this.describeAlarms(portalEd));
 	}
 
 	@Override

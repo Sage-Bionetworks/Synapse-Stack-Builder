@@ -14,7 +14,7 @@ import static org.mockito.Mockito.when;
 import org.sagebionetworks.factory.MockAmazonClientFactory;
 import org.sagebionetworks.stack.Constants;
 import org.sagebionetworks.stack.GeneratedResources;
-import org.sagebionetworks.stack.StackEnvironment;
+import org.sagebionetworks.stack.StackEnvironmentType;
 import org.sagebionetworks.stack.TestHelper;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import static org.mockito.Mockito.verify;
@@ -38,12 +38,12 @@ public class EnvironmentInstancesNotificationSetupTest {
 	@Test
 	public void testSetupResources() throws InterruptedException {
 		
-		CreateTopicRequest expectedReqPortal = expectedReq(StackEnvironment.PORTAL, config.getEnvironmentInstanceNotificationTopicName(StackEnvironment.PORTAL));
-		CreateTopicResult expectedResPortal = setupExpectedRes(StackEnvironment.PORTAL, expectedReqPortal);
-		CreateTopicRequest expectedReqRepo = expectedReq(StackEnvironment.REPO, config.getEnvironmentInstanceNotificationTopicName(StackEnvironment.REPO));
-		CreateTopicResult expectedResRepo = setupExpectedRes(StackEnvironment.REPO, expectedReqRepo);
-		CreateTopicRequest expectedReqWorkers = expectedReq(StackEnvironment.WORKERS, config.getEnvironmentInstanceNotificationTopicName(StackEnvironment.WORKERS));
-		CreateTopicResult expectedResWorkers = setupExpectedRes(StackEnvironment.WORKERS, expectedReqWorkers);
+		CreateTopicRequest expectedReqPortal = expectedReq(StackEnvironmentType.PORTAL, config.getEnvironmentInstanceNotificationTopicName(StackEnvironmentType.PORTAL));
+		CreateTopicResult expectedResPortal = setupExpectedRes(StackEnvironmentType.PORTAL, expectedReqPortal);
+		CreateTopicRequest expectedReqRepo = expectedReq(StackEnvironmentType.REPO, config.getEnvironmentInstanceNotificationTopicName(StackEnvironmentType.REPO));
+		CreateTopicResult expectedResRepo = setupExpectedRes(StackEnvironmentType.REPO, expectedReqRepo);
+		CreateTopicRequest expectedReqWorkers = expectedReq(StackEnvironmentType.WORKERS, config.getEnvironmentInstanceNotificationTopicName(StackEnvironmentType.WORKERS));
+		CreateTopicResult expectedResWorkers = setupExpectedRes(StackEnvironmentType.WORKERS, expectedReqWorkers);
 		
 		// Make the call
 		setup.setupResources();
@@ -53,19 +53,19 @@ public class EnvironmentInstancesNotificationSetupTest {
 		verify(mockClient).createTopic(expectedReqWorkers);
 		
 		// Make sure it was set the resources
-		assertEquals("The expected topic was not set in the resoruces", expectedResPortal.getTopicArn(), resources.getEnvironmentInstanceNotificationTopicArn(StackEnvironment.PORTAL));
-		assertEquals("The expected topic was not set in the resoruces", expectedResRepo.getTopicArn(), resources.getEnvironmentInstanceNotificationTopicArn(StackEnvironment.REPO));
-		assertEquals("The expected topic was not set in the resoruces", expectedResWorkers.getTopicArn(), resources.getEnvironmentInstanceNotificationTopicArn(StackEnvironment.WORKERS));
+		assertEquals("The expected topic was not set in the resoruces", expectedResPortal.getTopicArn(), resources.getEnvironmentInstanceNotificationTopicArn(StackEnvironmentType.PORTAL));
+		assertEquals("The expected topic was not set in the resoruces", expectedResRepo.getTopicArn(), resources.getEnvironmentInstanceNotificationTopicArn(StackEnvironmentType.REPO));
+		assertEquals("The expected topic was not set in the resoruces", expectedResWorkers.getTopicArn(), resources.getEnvironmentInstanceNotificationTopicArn(StackEnvironmentType.WORKERS));
 	}
 	
-	private CreateTopicRequest expectedReq(StackEnvironment env, String topicName) {
+	private CreateTopicRequest expectedReq(StackEnvironmentType env, String topicName) {
 		
 		CreateTopicRequest expectedReq = new CreateTopicRequest();
 		expectedReq.setName(topicName);
 		return expectedReq;
 	}
 	
-	private CreateTopicResult setupExpectedRes(StackEnvironment env, CreateTopicRequest req) {
+	private CreateTopicResult setupExpectedRes(StackEnvironmentType env, CreateTopicRequest req) {
 		String topicArn = "arn:" + req.getName();
 		String protocol = Constants.TOPIC_SUBSCRIBE_PROTOCOL_EMAIL;
 		String endpoint = config.getEnvironmentInstanceNotificationEndpoint(env);

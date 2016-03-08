@@ -29,7 +29,7 @@ import java.util.Map;
 public class GeneratedResources {
 
 	private String stackInstanceNotificationTopicArn;
-	private Map<StackEnvironment, String> environmentInstanceNotificationTopicArns;
+	private Map<StackEnvironmentType, String> environmentInstanceNotificationTopicArns;
 	private SecurityGroup elasticBeanstalkEC2SecurityGroup;
 	private DBSecurityGroup idGeneratorDatabaseSecurityGroup;
 	private DBSecurityGroup stackInstancesDatabaseSecurityGroup;
@@ -38,7 +38,7 @@ public class GeneratedResources {
 	private List<DBInstance> stackInstanceTablesDatabases;
 	private DescribeAlarmsResult idGeneratorDatabaseAlarms;
 	private DescribeAlarmsResult stackInstancesDatabaseAlarms;
-	private Map<StackEnvironment, DescribeAlarmsResult> environmentELBsAlarms;
+	private Map<StackEnvironmentType, DescribeAlarmsResult> environmentELBsAlarms;
 	private List<DescribeAlarmsResult> stackInstanceTablesDatabaseAlarms;
 	private URL stackConfigurationFileURL;
 	private ApplicationDescription elasticBeanstalkApplication;
@@ -46,21 +46,21 @@ public class GeneratedResources {
 	private ApplicationVersionDescription repoApplicationVersion;
 	private ApplicationVersionDescription workersApplicationVersion;
 	private ServerCertificateMetadata sslCertificate;
-	private Map<String, ServerCertificateMetadata> sslCertificates;
+	private Map<StackEnvironmentType, ServerCertificateMetadata> sslCertificates;
 	private KeyPairInfo stackKeyPair;
 	private Map<String, DescribeConfigurationOptionsResult> elasticBeanstalkConfigurationTemplate;
-	private Map<StackEnvironment, EnvironmentDescription> environmentDescriptions;
+	private Map<StackEnvironmentType, EnvironmentDescription> environmentDescriptions;
 	private DomainStatus searchDomain;
 	private DBParameterGroup dbParameterGroup;
 	private Bucket mainFileBucket;
 
 	public GeneratedResources() {
-		this.sslCertificates = new HashMap<String, ServerCertificateMetadata>();
+		this.sslCertificates = new HashMap<StackEnvironmentType, ServerCertificateMetadata>();
 		this.elasticBeanstalkConfigurationTemplate = new HashMap<String, DescribeConfigurationOptionsResult>();
 		this.stackInstanceTablesDatabases = new ArrayList<DBInstance>();
-		this.environmentInstanceNotificationTopicArns = new HashMap<StackEnvironment, String>();
-		this.environmentELBsAlarms = new HashMap<StackEnvironment, DescribeAlarmsResult>();
-		this.environmentDescriptions = new HashMap<StackEnvironment, EnvironmentDescription>();
+		this.environmentInstanceNotificationTopicArns = new HashMap<StackEnvironmentType, String>();
+		this.environmentELBsAlarms = new HashMap<StackEnvironmentType, DescribeAlarmsResult>();
+		this.environmentDescriptions = new HashMap<StackEnvironmentType, EnvironmentDescription>();
 	}
 	/**
 	 * The search domain.
@@ -78,11 +78,11 @@ public class GeneratedResources {
 		this.searchDomain = searchDomain;
 	}
 
-	public EnvironmentDescription getEnvironment(StackEnvironment env) {
+	public EnvironmentDescription getEnvironment(StackEnvironmentType env) {
 		return this.environmentDescriptions.get(env);
 	}
 	
-	public void setEnvironment(StackEnvironment env, EnvironmentDescription envDesc) {
+	public void setEnvironment(StackEnvironmentType env, EnvironmentDescription envDesc) {
 		this.environmentDescriptions.put(env, envDesc);
 	}
 	
@@ -126,16 +126,16 @@ public class GeneratedResources {
 	 * The SSL certificate.
 	 * @return
 	 */
-	public ServerCertificateMetadata getSslCertificate(String prefix) {
-		return sslCertificates.get(prefix);
+	public ServerCertificateMetadata getSslCertificate(StackEnvironmentType env) {
+		return sslCertificates.get(env);
 	}
 
 	/**
 	 * The SSL certificate
 	 * @param sslCertificate
 	 */
-	public void setSslCertificate(String prefix, ServerCertificateMetadata sslCertificate) {
-		this.sslCertificates.put(prefix, sslCertificate);
+	public void setSslCertificate(StackEnvironmentType env, ServerCertificateMetadata sslCertificate) {
+		this.sslCertificates.put(env, sslCertificate);
 	}
 
 	/**
@@ -242,7 +242,7 @@ public class GeneratedResources {
 	 * The topic used to notify for environment events (one of portal, repo or worker)
 	 * @return 
 	 */
-	public String getEnvironmentInstanceNotificationTopicArn(StackEnvironment env) {
+	public String getEnvironmentInstanceNotificationTopicArn(StackEnvironmentType env) {
 		return this.environmentInstanceNotificationTopicArns.get(env);
 	}
 	
@@ -250,7 +250,7 @@ public class GeneratedResources {
 	 * The topic used to notify for environment events (one of portal, repo or worker)
 	 * @return 
 	 */
-	public void setEnvironmentInstanceNotificationTopicArn(StackEnvironment env, String topicArn) {
+	public void setEnvironmentInstanceNotificationTopicArn(StackEnvironmentType env, String topicArn) {
 		this.environmentInstanceNotificationTopicArns.put(env, topicArn);
 	}
 
@@ -383,11 +383,11 @@ public class GeneratedResources {
 		return stackConfigurationFileURL;
 	}
 
-	public DescribeAlarmsResult getEnvironmentELBAlarms(StackEnvironment env) {
+	public DescribeAlarmsResult getEnvironmentELBAlarms(StackEnvironmentType env) {
 		return this.environmentELBsAlarms.get(env);
 	}
 	
-	public void setEnvironmentELBAlarms(StackEnvironment env, DescribeAlarmsResult alarm) {
+	public void setEnvironmentELBAlarms(StackEnvironmentType env, DescribeAlarmsResult alarm) {
 		this.environmentELBsAlarms.put(env, alarm);
 	}
 

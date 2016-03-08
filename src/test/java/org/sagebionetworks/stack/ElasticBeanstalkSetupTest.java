@@ -115,11 +115,6 @@ public class ElasticBeanstalkSetupTest {
 //		setup.createOrUpdateEnvironment(svcPrefix, genericElbTemplateName, appVersionDesc);
 //	}
 //	
-	@Test(expected = IllegalArgumentException.class)
-	public void testGetAllElasticBeanstalkOptionsInvalidSuffix() {
-		setup.getAllElasticBeanstalkOptions("badSuffix");
-	}
-	
 	@Test
 	public void testGetAllElasticBeanstalkOptions(){
 		List<ConfigurationOptionSetting> expected = new LinkedList<ConfigurationOptionSetting>(); 
@@ -142,22 +137,31 @@ public class ElasticBeanstalkSetupTest {
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application:environment").withOptionName("PARAM4").withValue(config.getStackInstance()));
 		
 		// Check if the SSLCertificateID is correctly added for "plfm' and "portal" cases
-		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("SSLCertificateId").withValue(resources.getSslCertificate("plfm").getArn()));
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("SSLCertificateId").withValue(resources.getSslCertificate(StackEnvironmentType.REPO).getArn()));
 		// Also check if healthcheck url has been overriden
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application").withOptionName("Application Healthcheck URL").withValue("/repo/v1/version"));
-		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("plfm");
+
+		// Check if SNS topic set properly
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:sns:topics").withOptionName("Notification Topic Name").withValue(config.getEnvironmentInstanceNotificationTopicName(StackEnvironmentType.REPO)));
+		
+		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions(StackEnvironmentType.REPO);
 		// Make sure we can find all of the expected values
 		for(ConfigurationOptionSetting expectedCon: expected){
 			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
 			assertNotNull("Failed to find expected configuration: "+expectedCon,found);
 			assertEquals("Values did not match for namespace: "+expectedCon.getNamespace()+" and option name: "+expectedCon.getOptionName(),expectedCon.getValue(), found.getValue());
 		}
+
 		// Change the expected values for portal
 		expected.remove(expected.size()-1);
 		expected.remove(expected.size()-1);
-		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("SSLCertificateId").withValue(resources.getSslCertificate("portal").getArn()));
+		expected.remove(expected.size()-1);
+		
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("SSLCertificateId").withValue(resources.getSslCertificate(StackEnvironmentType.PORTAL).getArn()));
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application").withOptionName("Application Healthcheck URL").withValue("/"));
-		result = setup.getAllElasticBeanstalkOptions("portal");
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:sns:topics").withOptionName("Notification Topic Name").withValue(config.getEnvironmentInstanceNotificationTopicName(StackEnvironmentType.PORTAL)));
+	
+		result = setup.getAllElasticBeanstalkOptions(StackEnvironmentType.PORTAL);
 		// Make sure we can find all of the expected values
 		for(ConfigurationOptionSetting expectedCon: expected){
 			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
@@ -175,7 +179,7 @@ public class ElasticBeanstalkSetupTest {
 		setup = new ElasticBeanstalkSetup(factory, config, resources);
 		// From the server tab
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("MinSize").withValue("1"));
-		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("plfm");
+		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions(StackEnvironmentType.REPO);
 		// Make sure we can find all of the expected values
 		for(ConfigurationOptionSetting expectedCon: expected){
 			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
@@ -193,7 +197,7 @@ public class ElasticBeanstalkSetupTest {
 		setup = new ElasticBeanstalkSetup(factory, config, resources);
 		// From the server tab
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("MinSize").withValue("4"));
-		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("plfm");
+		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions(StackEnvironmentType.REPO);
 		// Make sure we can find all of the expected values
 		for(ConfigurationOptionSetting expectedCon: expected){
 			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
@@ -216,7 +220,7 @@ public class ElasticBeanstalkSetupTest {
 		setup = new ElasticBeanstalkSetup(factory, config, resources);
 		// From the server tab
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("Availability Zones").withValue("Any 2"));
-		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("plfm");
+		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions(StackEnvironmentType.REPO);
 		// Make sure we can find all of the expected values
 		for(ConfigurationOptionSetting expectedCon: expected){
 			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
@@ -239,7 +243,7 @@ public class ElasticBeanstalkSetupTest {
 		setup = new ElasticBeanstalkSetup(factory, config, resources);
 		// From the server tab
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("Custom Availability Zones").withValue("us-east-1c, us-east-1e"));
-		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("plfm");
+		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions(StackEnvironmentType.REPO);
 		// Make sure we can find all of the expected values
 		for(ConfigurationOptionSetting expectedCon: expected){
 			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
@@ -250,7 +254,7 @@ public class ElasticBeanstalkSetupTest {
 	
 	@Test
 	public void testMD5(){
-		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions("plfm");
+		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions(StackEnvironmentType.REPO);
 		String md5 = ElasticBeanstalkSetup.createConfigMD5(result);
 		System.out.println(md5);
 		assertNotNull(md5);
@@ -266,16 +270,16 @@ public class ElasticBeanstalkSetupTest {
 	
 	@Test
 	public void testAreSettingsEquals(){
-		List<ConfigurationOptionSetting> one = setup.getAllElasticBeanstalkOptions("plfm");
-		List<ConfigurationOptionSetting> two = setup.getAllElasticBeanstalkOptions("plfm");
+		List<ConfigurationOptionSetting> one = setup.getAllElasticBeanstalkOptions(StackEnvironmentType.REPO);
+		List<ConfigurationOptionSetting> two = setup.getAllElasticBeanstalkOptions(StackEnvironmentType.REPO);
 		// Add some setting to the second that are not in the first.
 		two.add(new ConfigurationOptionSetting("ns", "os", "123"));
 		Collections.shuffle(one);
 		Collections.shuffle(two);
 		assertTrue(ElasticBeanstalkSetup.areExpectedSettingsEquals(one, two));
 		// Now make a change
-		one = setup.getAllElasticBeanstalkOptions("plfm");
-		two = setup.getAllElasticBeanstalkOptions("plfm");
+		one = setup.getAllElasticBeanstalkOptions(StackEnvironmentType.REPO);
+		two = setup.getAllElasticBeanstalkOptions(StackEnvironmentType.REPO);
 		two.get(0).setValue("some crazy value");
 		Collections.shuffle(one);
 		Collections.shuffle(two);

@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 import org.sagebionetworks.factory.MockAmazonClientFactory;
 import org.sagebionetworks.stack.GeneratedResources;
-import org.sagebionetworks.stack.StackEnvironment;
+import org.sagebionetworks.stack.StackEnvironmentType;
 import org.sagebionetworks.stack.TestHelper;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
@@ -49,11 +49,11 @@ public class ElbAlarmSetupTest {
 		resources.setStackInstanceNotificationTopicArn("topicArn");
 		//	Beanstalk environments
 		EnvironmentDescription repoEnvDesc = new EnvironmentDescription().withEnvironmentName("repoEnvName");
-		resources.setEnvironment(StackEnvironment.REPO, repoEnvDesc);
+		resources.setEnvironment(StackEnvironmentType.REPO, repoEnvDesc);
 		EnvironmentDescription workersEnvDesc = new EnvironmentDescription().withEnvironmentName("workersEnvName");
-		resources.setEnvironment(StackEnvironment.WORKERS, workersEnvDesc);
+		resources.setEnvironment(StackEnvironmentType.WORKERS, workersEnvDesc);
 		EnvironmentDescription portalEnvDesc = new EnvironmentDescription().withEnvironmentName("portalEnvName");
-		resources.setEnvironment(StackEnvironment.PORTAL, portalEnvDesc);
+		resources.setEnvironment(StackEnvironmentType.PORTAL, portalEnvDesc);
 		//	Clients
 		beanstalkClient = mockFactory.createBeanstalkClient();
 		mockCwClient = mockFactory.createCloudWatchClient();
@@ -164,7 +164,7 @@ public class ElbAlarmSetupTest {
 		EnvironmentResourceDescription erd = new EnvironmentResourceDescription().withLoadBalancers(new LoadBalancer().withName("loadBalancer"));
 		DescribeEnvironmentResourcesResult expectedErr = new DescribeEnvironmentResourcesResult().withEnvironmentResources(erd);
 		when(beanstalkClient.describeEnvironmentResources(any(DescribeEnvironmentResourcesRequest.class))).thenReturn(expectedErr);
-		setup.createAlarms(resources.getEnvironment(StackEnvironment.REPO));
+		setup.createAlarms(resources.getEnvironment(StackEnvironmentType.REPO));
 		verify(mockCwClient).putMetricAlarm(any(PutMetricAlarmRequest.class));
 	}
 	
