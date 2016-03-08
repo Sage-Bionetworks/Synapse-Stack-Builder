@@ -13,6 +13,7 @@ import org.sagebionetworks.stack.alarms.RdsAlarmSetup;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 import org.sagebionetworks.stack.factory.AmazonClientFactoryImpl;
+import org.sagebionetworks.stack.notifications.EnvironmentInstancesNotificationSetup;
 import org.sagebionetworks.stack.notifications.StackInstanceNotificationSetup;
 
 /**
@@ -82,6 +83,7 @@ public class BuildStackMain {
 		
 		// Setup the notification topic.
 		new StackInstanceNotificationSetup(factory, config, resources).setupResources();
+		new EnvironmentInstancesNotificationSetup(factory, config, resources).setupResources();
 		
 		// Setup the Database Parameter group
 		new DatabaseParameterGroup(factory, config, resources).setupResources();
