@@ -1,4 +1,4 @@
-package org.sagebionetworks.stack;
+package org.sagebionetworks.stack.ssl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -12,6 +12,7 @@ import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.services.certificatemanager.AWSCertificateManagerClient;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.identitymanagement.model.DeleteServerCertificateRequest;
 import com.amazonaws.services.identitymanagement.model.ListServerCertificatesRequest;
@@ -22,6 +23,8 @@ import com.amazonaws.services.identitymanagement.model.UploadServerCertificateRe
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
+import org.sagebionetworks.stack.GeneratedResources;
+import org.sagebionetworks.stack.ResourceProcessor;
 
 /**
  * Setup the SSL certificate
@@ -35,6 +38,7 @@ public class SSLSetup implements ResourceProcessor {
 	
 	private AmazonIdentityManagementClient iamClient;
 	private AmazonS3Client s3Client;
+	private AWSCertificateManagerClient acmClient;
 	private InputConfiguration config;
 	private GeneratedResources resources;
 	
@@ -186,6 +190,10 @@ public class SSLSetup implements ResourceProcessor {
             try {outputStream.close();} catch (Exception e) {}
             try {s3Object.getObjectContent().close();} catch (Exception e) {}
         }
+	}
+	
+	public String getCertificateStringFromACM() {
+		return null;
 	}
 	
 	

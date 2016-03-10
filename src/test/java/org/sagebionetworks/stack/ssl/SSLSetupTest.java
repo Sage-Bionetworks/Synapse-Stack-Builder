@@ -1,5 +1,6 @@
-package org.sagebionetworks.stack;
+package org.sagebionetworks.stack.ssl;
 
+import org.sagebionetworks.stack.ssl.SSLSetup;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -22,6 +23,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.sagebionetworks.factory.MockAmazonClientFactory;
+import org.sagebionetworks.stack.GeneratedResources;
+import org.sagebionetworks.stack.TestHelper;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
 /**
