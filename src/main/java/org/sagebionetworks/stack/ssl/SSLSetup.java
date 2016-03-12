@@ -61,9 +61,9 @@ public class SSLSetup implements ResourceProcessor {
 	}
 	
 	public void setupResources() {
-		this.setupSSLCertificate("plfm");
-		this.setupSSLCertificate("worker");
-		this.setupSSLCertificate("portal");
+		this.setupSSLCertificate(StackEnvironmentType.REPO);
+		this.setupSSLCertificate(StackEnvironmentType.WORKERS);
+		this.setupSSLCertificate(StackEnvironmentType.PORTAL);
 	}
 	
 	public void teardownResources() {
@@ -71,72 +71,63 @@ public class SSLSetup implements ResourceProcessor {
 	}
 	
 	public void describeResources(String prefix) {
-		describeSSLCertificate("plfm");
-		describeSSLCertificate("worker");
-		describeSSLCertificate("portal");
+		describeSSLCertificate(StackEnvironmentType.REPO);
+		describeSSLCertificate(StackEnvironmentType.WORKERS);
+		describeSSLCertificate(StackEnvironmentType.PORTAL);
 	}
 	
-	public void describeSSLCertificate(String prefix) {
-		if (! (("plfm".equals(prefix)) || ("worker".equals(prefix)) || ("portal".equals(prefix)))) {
-			throw new IllegalArgumentException("Allowed prefixes are 'plfm', 'worker', or 'portal'.");
-		}
-		String certName = config.getSSLCertificateName(prefix);
+	public void describeSSLCertificate(StackEnvironmentType env) {
+		String certName = config.getSSLCertificateName(env);
 		ServerCertificateMetadata meta = findCertificate(certName);
 		if (meta == null) {
-			throw new IllegalStateException("Failed to find or create the SSL certificate: " + config.getSSLCertificateName(prefix));
+			throw new IllegalStateException("Failed to find or create the SSL certificate: " + config.getSSLCertificateName(env));
 		} else {
 			//config.setSSLCertificateARN(prefix, meta.getArn());
-			resources.setSslCertificate(prefix, meta);
+			resources.setSslCertificate(env, meta);
 		}		
 	}
 
 	/**
 	 * Setup the SSL certificate.
 	 */
-	public void setupSSLCertificate(String prefix){
-		if (! (("plfm".equals(prefix)) || ("worker".equals(prefix)) || ("portal".equals(prefix)))) {
-			throw new IllegalArgumentException("Allowed prefixes are 'plfm', 'worker', or 'portal'.");
-		}
+	public void setupSSLCertificate(StackEnvironmentType env){
 		// First determine if the certificate already exists already exists
-		ServerCertificateMetadata meta = findCertificate(config.getSSLCertificateName(prefix));
+		ServerCertificateMetadata meta = findCertificate(config.getSSLCertificateName(env));
 		if(meta == null){
 			// Upload the parts of the certificate.
 			UploadServerCertificateRequest request = new UploadServerCertificateRequest();
-			request.setServerCertificateName(config.getSSLCertificateName(prefix));
-			request.setPrivateKey(getCertificateStringFromS3(config.getSSlCertificatePrivateKeyName(prefix)));
-			request.setCertificateBody(getCertificateStringFromS3(config.getSSLCertificateBodyKeyName(prefix)));
-			request.setCertificateChain(getCertificateStringFromS3(config.getSSLCertificateChainKeyName(prefix)));
+			request.setServerCertificateName(config.getSSLCertificateName(env));
+			request.setPrivateKey(getCertificateStringFromS3(config.getSSlCertificatePrivateKeyName(env)));
+			request.setCertificateBody(getCertificateStringFromS3(config.getSSLCertificateBodyKeyName(env)));
+			request.setCertificateChain(getCertificateStringFromS3(config.getSSLCertificateChainKeyName(env)));
 			UploadServerCertificateResult result = iamClient.uploadServerCertificate(request);
 			log.debug("Created SSL certificate: "+result);
 			// Search for it
-			meta = findCertificate(config.getSSLCertificateName(prefix));
+			meta = findCertificate(config.getSSLCertificateName(env));
 		}
-		if(meta == null) throw new IllegalStateException("Failed to find or create the SSL certificate: "+config.getSSLCertificateName(prefix));
+		if(meta == null) throw new IllegalStateException("Failed to find or create the SSL certificate: "+config.getSSLCertificateName(env));
 		// Also set the SSL Cert arn as a property
 		//config.setSSLCertificateARN(prefix, meta.getArn());
-		resources.setSslCertificate(prefix, meta);
+		resources.setSslCertificate(env, meta);
 	}
 
 	/*
 	 * Delete the SSL certificate
 	 */
-	public void deleteSSLCertificate(String prefix) {
-		if (! (("plfm".equals(prefix)) || ("worker".equals(prefix)) || ("portal".equals(prefix)))) {
-			throw new IllegalArgumentException("Allowed prefixes are 'plfm', 'worker', or 'portal'.");
-		}
-		ServerCertificateMetadata meta = findCertificate(config.getSSLCertificateName(prefix));
+	public void deleteSSLCertificate(StackEnvironmentType env) {
+		ServerCertificateMetadata meta = findCertificate(config.getSSLCertificateName(env));
 		if (meta == null) {
 			// Just log
 			// TODO: Or throw IllegalStateException?
-			log.debug("Could not find SSL certificate metadata for" + config.getSSLCertificateName(prefix));
+			log.debug("Could not find SSL certificate metadata for" + config.getSSLCertificateName(env));
 		} else {
 			DeleteServerCertificateRequest request = new DeleteServerCertificateRequest();
-			request.setServerCertificateName(config.getSSLCertificateName(prefix));
+			request.setServerCertificateName(config.getSSLCertificateName(env));
 			iamClient.deleteServerCertificate(request);
-			meta = findCertificate(config.getSSLCertificateName(prefix));
+			meta = findCertificate(config.getSSLCertificateName(env));
 		}
 		if (meta != null) {
-			throw new IllegalStateException("Failed to delete the SSL certificate: "+config.getSSLCertificateName(prefix));
+			throw new IllegalStateException("Failed to delete the SSL certificate: "+config.getSSLCertificateName(env));
 		}
 	}
 	/**

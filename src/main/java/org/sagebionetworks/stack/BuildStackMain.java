@@ -14,6 +14,8 @@ import org.sagebionetworks.stack.alarms.RdsAlarmSetup;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 import org.sagebionetworks.stack.factory.AmazonClientFactoryImpl;
+import org.sagebionetworks.stack.notifications.EnvironmentInstancesNotificationSetup;
+import org.sagebionetworks.stack.notifications.StackInstanceNotificationSetup;
 
 /**
  * The main class to start the stack builder
@@ -81,7 +83,8 @@ public class BuildStackMain {
 		new EC2SecuritySetup(factory, config, resources).setupResources();
 		
 		// Setup the notification topic.
-		new NotificationSetup(factory, config, resources).setupResources();
+		new StackInstanceNotificationSetup(factory, config, resources).setupResources();
+		new EnvironmentInstancesNotificationSetup(factory, config, resources).setupResources();
 		
 		// Setup the Database Parameter group
 		new DatabaseParameterGroup(factory, config, resources).setupResources();

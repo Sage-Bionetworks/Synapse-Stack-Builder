@@ -28,7 +28,8 @@ import java.util.Map;
  */
 public class GeneratedResources {
 
-	private String rdsAlertTopicArn;
+	private String stackInstanceNotificationTopicArn;
+	private Map<StackEnvironmentType, String> environmentInstanceNotificationTopicArns;
 	private SecurityGroup elasticBeanstalkEC2SecurityGroup;
 	private DBSecurityGroup idGeneratorDatabaseSecurityGroup;
 	private DBSecurityGroup stackInstancesDatabaseSecurityGroup;
@@ -37,32 +38,29 @@ public class GeneratedResources {
 	private List<DBInstance> stackInstanceTablesDatabases;
 	private DescribeAlarmsResult idGeneratorDatabaseAlarms;
 	private DescribeAlarmsResult stackInstancesDatabaseAlarms;
-	private DescribeAlarmsResult repoElbAlarms;
-	private DescribeAlarmsResult workersElbAlarms;
-	private DescribeAlarmsResult portalElbAlarms;
+	private Map<StackEnvironmentType, DescribeAlarmsResult> environmentELBsAlarms;
 	private List<DescribeAlarmsResult> stackInstanceTablesDatabaseAlarms;
 	private URL stackConfigurationFileURL;
 	private ApplicationDescription elasticBeanstalkApplication;
 	private ApplicationVersionDescription portalApplicationVersion;
 	private ApplicationVersionDescription repoApplicationVersion;
 	private ApplicationVersionDescription workersApplicationVersion;
-	private ApplicationVersionDescription bridgeApplicationVersion;
 	private ServerCertificateMetadata sslCertificate;
-	private Map<String, ServerCertificateMetadata> sslCertificates;
+	private Map<StackEnvironmentType, ServerCertificateMetadata> sslCertificates;
 	private KeyPairInfo stackKeyPair;
 	private Map<String, DescribeConfigurationOptionsResult> elasticBeanstalkConfigurationTemplate;
-	private EnvironmentDescription portalEnvironment;
-	private EnvironmentDescription repositoryEnvironment;
-	private EnvironmentDescription workersEnvironment;
-	private EnvironmentDescription bridgeEnvironment;
+	private Map<StackEnvironmentType, EnvironmentDescription> environmentDescriptions;
 	private DomainStatus searchDomain;
 	private DBParameterGroup dbParameterGroup;
 	private Bucket mainFileBucket;
 
 	public GeneratedResources() {
-		this.sslCertificates = new HashMap<String, ServerCertificateMetadata>();
+		this.sslCertificates = new HashMap<StackEnvironmentType, ServerCertificateMetadata>();
 		this.elasticBeanstalkConfigurationTemplate = new HashMap<String, DescribeConfigurationOptionsResult>();
 		this.stackInstanceTablesDatabases = new ArrayList<DBInstance>();
+		this.environmentInstanceNotificationTopicArns = new HashMap<StackEnvironmentType, String>();
+		this.environmentELBsAlarms = new HashMap<StackEnvironmentType, DescribeAlarmsResult>();
+		this.environmentDescriptions = new HashMap<StackEnvironmentType, EnvironmentDescription>();
 	}
 	/**
 	 * The search domain.
@@ -80,66 +78,14 @@ public class GeneratedResources {
 		this.searchDomain = searchDomain;
 	}
 
-	/**
-	 * The repository environment description.
-	 * @return
-	 */
-	public EnvironmentDescription getRepositoryEnvironment() {
-		return repositoryEnvironment;
-	}
-
-	/**
-	 * The repository environment description.
-	 * @param repositoryEnvironment
-	 */
-	public void setRepositoryEnvironment(
-			EnvironmentDescription repositoryEnvironment) {
-		this.repositoryEnvironment = repositoryEnvironment;
-	}
-
-	/**
-	 * The portal environment description.
-	 * @return
-	 */
-	public EnvironmentDescription getPortalEnvironment() {
-		return portalEnvironment;
-	}
-
-	/**
-	 * The portal environment description.
-	 * @param portalEnvironment
-	 */
-	public void setPortalEnvironment(EnvironmentDescription portalEnvironment) {
-		this.portalEnvironment = portalEnvironment;
-	}
-
-	/**
-	 * The workers environment description.
-	 * @return
-	 */
-	public EnvironmentDescription getWorkersEnvironment() {
-		return workersEnvironment;
-	}
-
-	/**
-	 * @param workersEnvironment
-	 */
-	public void setWorkersEnvironment(EnvironmentDescription workersEnvironment) {
-		this.workersEnvironment = workersEnvironment;
+	public EnvironmentDescription getEnvironment(StackEnvironmentType env) {
+		return this.environmentDescriptions.get(env);
 	}
 	
-	/**
-	 * The bridge environment description
-	 * 
-	 */
-	public EnvironmentDescription getBridgeEnvironment() {
-		return this.bridgeEnvironment;
+	public void setEnvironment(StackEnvironmentType env, EnvironmentDescription envDesc) {
+		this.environmentDescriptions.put(env, envDesc);
 	}
 	
-	public void setBrigeEnvironment(EnvironmentDescription bridgeEnvironment) {
-		this.bridgeEnvironment = bridgeEnvironment;
-	}
-
 	/**
 	 * Elastic Beanstalk Configuration Template used to create environments.
 	 * 
@@ -180,16 +126,16 @@ public class GeneratedResources {
 	 * The SSL certificate.
 	 * @return
 	 */
-	public ServerCertificateMetadata getSslCertificate(String prefix) {
-		return sslCertificates.get(prefix);
+	public ServerCertificateMetadata getSslCertificate(StackEnvironmentType env) {
+		return sslCertificates.get(env);
 	}
 
 	/**
 	 * The SSL certificate
 	 * @param sslCertificate
 	 */
-	public void setSslCertificate(String prefix, ServerCertificateMetadata sslCertificate) {
-		this.sslCertificates.put(prefix, sslCertificate);
+	public void setSslCertificate(StackEnvironmentType env, ServerCertificateMetadata sslCertificate) {
+		this.sslCertificates.put(env, sslCertificate);
 	}
 
 	/**
@@ -226,14 +172,6 @@ public class GeneratedResources {
 		this.portalApplicationVersion = portalApplicationVersion;
 	}
 	
-	public ApplicationVersionDescription getBridgeApplicationVersion() {
-		return this.bridgeApplicationVersion;
-	}
-	
-	public void setBridgeApplicationVersion(ApplicationVersionDescription bridgeApplicationVersion) {
-		this.bridgeApplicationVersion = bridgeApplicationVersion;
-	}
-
 	/**
 	 * The application version of the repository
 	 * @return
@@ -288,16 +226,32 @@ public class GeneratedResources {
 	 * The topic used to notify when RDS alarms are triggered.
 	 * @return
 	 */
-	public String getRdsAlertTopicArn() {
-		return rdsAlertTopicArn;
+	public String getStackInstanceNotificationTopicArn() {
+		return stackInstanceNotificationTopicArn;
 	}
 
 	/**
-	 * The topic used to notify when RDS alarms are triggered.
-	 * @param rdsAlertTopic
+	 * The topic used to notify for stack instance events (alerts).
+	 * @param topicArn
 	 */
-	public void setRdsAlertTopicArn(String rdsAlertTopicArn) {
-		this.rdsAlertTopicArn = rdsAlertTopicArn;
+	public void setStackInstanceNotificationTopicArn(String topicArn) {
+		this.stackInstanceNotificationTopicArn = topicArn;
+	}
+	
+	/**
+	 * The topic used to notify for environment events (one of portal, repo or worker)
+	 * @return 
+	 */
+	public String getEnvironmentInstanceNotificationTopicArn(StackEnvironmentType env) {
+		return this.environmentInstanceNotificationTopicArns.get(env);
+	}
+	
+	/**
+	 * The topic used to notify for environment events (one of portal, repo or worker)
+	 * @return 
+	 */
+	public void setEnvironmentInstanceNotificationTopicArn(StackEnvironmentType env, String topicArn) {
+		this.environmentInstanceNotificationTopicArns.put(env, topicArn);
 	}
 
 	/**
@@ -429,28 +383,12 @@ public class GeneratedResources {
 		return stackConfigurationFileURL;
 	}
 
-	public DescribeAlarmsResult getRepoElbAlarms() {
-		return repoElbAlarms;
+	public DescribeAlarmsResult getEnvironmentELBAlarms(StackEnvironmentType env) {
+		return this.environmentELBsAlarms.get(env);
 	}
-
-	public void setRepoElbAlarms(DescribeAlarmsResult repoElbAlarms) {
-		this.repoElbAlarms = repoElbAlarms;
-	}
-
-	public DescribeAlarmsResult getWorkersElbAlarms() {
-		return workersElbAlarms;
-	}
-
-	public void setWorkersElbAlarms(DescribeAlarmsResult workersElbAlarms) {
-		this.workersElbAlarms = workersElbAlarms;
-	}
-
-	public DescribeAlarmsResult getPortalElbAlarms() {
-		return portalElbAlarms;
-	}
-
-	public void setPortalElbAlarms(DescribeAlarmsResult portalElbAlarms) {
-		this.portalElbAlarms = portalElbAlarms;
+	
+	public void setEnvironmentELBAlarms(StackEnvironmentType env, DescribeAlarmsResult alarm) {
+		this.environmentELBsAlarms.put(env, alarm);
 	}
 
 	/**

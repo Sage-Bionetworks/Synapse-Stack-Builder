@@ -1,13 +1,9 @@
 package org.sagebionetworks.stack.alarms;
 
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
-import com.amazonaws.services.cloudwatch.model.ComparisonOperator;
 import com.amazonaws.services.cloudwatch.model.DescribeAlarmsRequest;
-import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult;
-import com.amazonaws.services.cloudwatch.model.Dimension;
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
-import static com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionValueType.List;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentResourcesRequest;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentResourcesResult;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
@@ -15,7 +11,6 @@ import com.amazonaws.services.elasticbeanstalk.model.EnvironmentResourceDescript
 import com.amazonaws.services.elasticbeanstalk.model.LoadBalancer;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.junit.After;
@@ -28,12 +23,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.sagebionetworks.factory.MockAmazonClientFactory;
-import static org.sagebionetworks.stack.Constants.DIMENSION_NAME_LOAD_BALANCER;
-import static org.sagebionetworks.stack.Constants.FIVE_MINUTES_IN_SECONDS;
-import static org.sagebionetworks.stack.Constants.METRIC_UNHEALTHY_COUNT;
-import static org.sagebionetworks.stack.Constants.NAMESPACE_ELB;
-import static org.sagebionetworks.stack.Constants.STATISTIC_MAX;
 import org.sagebionetworks.stack.GeneratedResources;
+import org.sagebionetworks.stack.StackEnvironmentType;
 import org.sagebionetworks.stack.TestHelper;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
@@ -55,14 +46,14 @@ public class ElbAlarmSetupTest {
 		config = TestHelper.createTestConfig("dev");
 		//	SNS topic
 		resources = new GeneratedResources();
-		resources.setRdsAlertTopicArn("topicArn");
+		resources.setStackInstanceNotificationTopicArn("topicArn");
 		//	Beanstalk environments
 		EnvironmentDescription repoEnvDesc = new EnvironmentDescription().withEnvironmentName("repoEnvName");
-		resources.setRepositoryEnvironment(repoEnvDesc);
+		resources.setEnvironment(StackEnvironmentType.REPO, repoEnvDesc);
 		EnvironmentDescription workersEnvDesc = new EnvironmentDescription().withEnvironmentName("workersEnvName");
-		resources.setWorkersEnvironment(workersEnvDesc);
+		resources.setEnvironment(StackEnvironmentType.WORKERS, workersEnvDesc);
 		EnvironmentDescription portalEnvDesc = new EnvironmentDescription().withEnvironmentName("portalEnvName");
-		resources.setPortalEnvironment(portalEnvDesc);
+		resources.setEnvironment(StackEnvironmentType.PORTAL, portalEnvDesc);
 		//	Clients
 		beanstalkClient = mockFactory.createBeanstalkClient();
 		mockCwClient = mockFactory.createCloudWatchClient();
@@ -131,7 +122,7 @@ public class ElbAlarmSetupTest {
 		
 		String loadBalancerName = "loadBalancer";
 
-		PutMetricAlarmRequest req = ElbAlarmSetup.createDefaultPutMetricAlarmRequest(loadBalancerName, resources.getRdsAlertTopicArn());
+		PutMetricAlarmRequest req = ElbAlarmSetup.createDefaultPutMetricAlarmRequest(loadBalancerName, resources.getStackInstanceNotificationTopicArn());
 		
 		assertEquals(expectedReq, req);
 	}
@@ -142,7 +133,7 @@ public class ElbAlarmSetupTest {
 		
 		String loadBalancerName = "loadBalancer";
 
-		PutMetricAlarmRequest req = ElbAlarmSetup.createUnhealthyInstancesPutMetricAlarmRequest("prefix", loadBalancerName, resources.getRdsAlertTopicArn());
+		PutMetricAlarmRequest req = ElbAlarmSetup.createUnhealthyInstancesPutMetricAlarmRequest("prefix", loadBalancerName, resources.getStackInstanceNotificationTopicArn());
 		
 		assertEquals(expectedReq, req);
 	}
@@ -155,7 +146,7 @@ public class ElbAlarmSetupTest {
 		
 		String loadBalancerName = "loadBalancer";
 
-		List<PutMetricAlarmRequest> reqs = ElbAlarmSetup.createAllPutMetricAlarmRequests("prefix", loadBalancerName, resources.getRdsAlertTopicArn());
+		List<PutMetricAlarmRequest> reqs = ElbAlarmSetup.createAllPutMetricAlarmRequests("prefix", loadBalancerName, resources.getStackInstanceNotificationTopicArn());
 		
 		assertEquals(expectedReqs, reqs);
 	}
@@ -164,7 +155,7 @@ public class ElbAlarmSetupTest {
 	public void testCreateDescribeAlarmsRequest() {
 		DescribeAlarmsRequest expectedReq = ElbAlarmTestHelper.getExpectedDescribeAlarmsRequest();
 		String loadBalancerName = "loadBalancer";
-		DescribeAlarmsRequest req = ElbAlarmSetup.createDescribeAlarmsRequest("prefix", loadBalancerName, resources.getRdsAlertTopicArn());
+		DescribeAlarmsRequest req = ElbAlarmSetup.createDescribeAlarmsRequest("prefix", loadBalancerName, resources.getStackInstanceNotificationTopicArn());
 		assertEquals(expectedReq, req);
 	}
 	
@@ -173,7 +164,7 @@ public class ElbAlarmSetupTest {
 		EnvironmentResourceDescription erd = new EnvironmentResourceDescription().withLoadBalancers(new LoadBalancer().withName("loadBalancer"));
 		DescribeEnvironmentResourcesResult expectedErr = new DescribeEnvironmentResourcesResult().withEnvironmentResources(erd);
 		when(beanstalkClient.describeEnvironmentResources(any(DescribeEnvironmentResourcesRequest.class))).thenReturn(expectedErr);
-		setup.createAlarms(resources.getRepositoryEnvironment());
+		setup.createAlarms(resources.getEnvironment(StackEnvironmentType.REPO));
 		verify(mockCwClient).putMetricAlarm(any(PutMetricAlarmRequest.class));
 	}
 	
