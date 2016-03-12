@@ -12,6 +12,7 @@ import org.sagebionetworks.stack.alarms.RdsAlarmSetup;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 import org.sagebionetworks.stack.factory.AmazonClientFactoryImpl;
+import org.sagebionetworks.stack.notifications.StackInstanceNotificationSetup;
 
 /**
  *
@@ -71,7 +72,7 @@ public class TeardownStackMain {
 		new EC2SecuritySetup(factory, config, resources).describeResources();
 
 		// Setup the notification topic.
-		new NotificationSetup(factory, config, resources).describeResources();
+		new StackInstanceNotificationSetup(factory, config, resources).describeResources();
 
 		// Setup the Database Parameter group
 		new DatabaseParameterGroup(factory, config, resources).describeResources();

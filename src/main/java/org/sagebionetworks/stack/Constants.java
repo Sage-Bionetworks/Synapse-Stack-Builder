@@ -261,7 +261,7 @@ public class Constants {
 	 * The property key used for the RDS alert topic subscription endpoint
 	 */
 	public static final String KEY_RDS_ALAERT_SUBSCRIPTION_ENDPONT = "org.sagebionetworks.stack.rds.alert.topic.subscription.endpoint";
-	
+	public static final String KEY_ORG_SAGEBIONETWORKS_ENVIRONMENT_NOTIFICATION_ENDPOINT = "org.sagebionetworks.environment.instance.notification.endpoint";
 	/** 
 	 * Alarm constants.
 	 */

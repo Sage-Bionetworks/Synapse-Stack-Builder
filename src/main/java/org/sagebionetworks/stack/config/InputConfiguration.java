@@ -13,6 +13,7 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import java.util.HashMap;
 import java.util.Map;
+import org.sagebionetworks.stack.StackEnvironmentType;
 
 
 /**
@@ -423,6 +424,16 @@ public class InputConfiguration {
 	public String getRDSAlertSubscriptionEndpoint() {
 		return validateAndGetProperty(Constants.KEY_RDS_ALAERT_SUBSCRIPTION_ENDPONT);
 	}
+	
+	public String getEnvironmentInstanceNotificationTopicName(StackEnvironmentType env) {
+		return validateAndGetProperty(env.name() + ".stack.instance.notification.topic.name");
+	}
+	
+	//	All share the same endpoint for now
+	public String getEnvironmentInstanceNotificationEndpoint(StackEnvironmentType env) {
+		String s = validateAndGetProperty(Constants.KEY_ORG_SAGEBIONETWORKS_ENVIRONMENT_NOTIFICATION_ENDPOINT);
+		return s;
+	}
 
 	/**
 	 * The bucket where all stack instance configuration can be found.
@@ -487,32 +498,32 @@ public class InputConfiguration {
 	 * The name of the SSL certificate private key.
 	 * @return
 	 */
-	public String getSSlCertificatePrivateKeyName(String prefix) {
-		return validateAndGetProperty(prefix + ".ssl.certificate.privateKey.file.name");
+	public String getSSlCertificatePrivateKeyName(StackEnvironmentType env) {
+		return validateAndGetProperty(env.name() + ".ssl.certificate.privateKey.file.name");
 	}
 
 	/**
 	 * The name of the SSL certificate body file.
 	 * @return
 	 */
-	public String getSSLCertificateBodyKeyName(String prefix) {
-		return validateAndGetProperty(prefix + ".ssl.certificate.body.file.name");
+	public String getSSLCertificateBodyKeyName(StackEnvironmentType env) {
+		return validateAndGetProperty(env.name() + ".ssl.certificate.body.file.name");
 	}
 	
 	/**
 	 * The name of the SSL certificate chain file
 	 * @return
 	 */
-	public String getSSLCertificateChainKeyName(String prefix) {
-		return validateAndGetProperty(prefix + ".ssl.certificate.chain.file.name");
+	public String getSSLCertificateChainKeyName(StackEnvironmentType env) {
+		return validateAndGetProperty(env.name() + ".ssl.certificate.chain.file.name");
 	}
 
 	/**
 	 * The name of the SSL certificate
 	 * @return
 	 */
-	public String getSSLCertificateName(String prefix) {
-		return validateAndGetProperty(prefix + ".ssl.certificate.name");
+	public String getSSLCertificateName(StackEnvironmentType env) {
+		return validateAndGetProperty(env.name() + ".ssl.certificate.name");
 	}
 	
 	/**
