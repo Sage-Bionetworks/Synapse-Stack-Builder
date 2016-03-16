@@ -47,6 +47,7 @@ public class GeneratedResources {
 	private ApplicationVersionDescription workersApplicationVersion;
 	private ServerCertificateMetadata sslCertificate;
 	private Map<StackEnvironmentType, ServerCertificateMetadata> sslCertificates;
+	private Map<StackEnvironmentType, String> acmCertificateArns;
 	private KeyPairInfo stackKeyPair;
 	private Map<String, DescribeConfigurationOptionsResult> elasticBeanstalkConfigurationTemplate;
 	private Map<StackEnvironmentType, EnvironmentDescription> environmentDescriptions;
@@ -56,6 +57,7 @@ public class GeneratedResources {
 
 	public GeneratedResources() {
 		this.sslCertificates = new HashMap<StackEnvironmentType, ServerCertificateMetadata>();
+		this.acmCertificateArns = new HashMap<StackEnvironmentType, String>();
 		this.elasticBeanstalkConfigurationTemplate = new HashMap<String, DescribeConfigurationOptionsResult>();
 		this.stackInstanceTablesDatabases = new ArrayList<DBInstance>();
 		this.environmentInstanceNotificationTopicArns = new HashMap<StackEnvironmentType, String>();
@@ -136,6 +138,24 @@ public class GeneratedResources {
 	 */
 	public void setSslCertificate(StackEnvironmentType env, ServerCertificateMetadata sslCertificate) {
 		this.sslCertificates.put(env, sslCertificate);
+	}
+	
+	/**
+	 * The ARN for the ACM certificate for a given environment type
+	 * @param env
+	 * @return 
+	 */
+	public String getACMCertificateArn(StackEnvironmentType env) {
+		return this.acmCertificateArns.get(env);
+	}
+	
+	/**
+	 * Set the ARN for the ACM certificate for a given environment type
+	 * @param env
+	 * @param arn 
+	 */
+	public void setACMCertificateArn(StackEnvironmentType env, String arn) {
+		this.acmCertificateArns.put(env, arn);
 	}
 
 	/**

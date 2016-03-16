@@ -149,6 +149,12 @@ public class InputConfigurationTest {
 		
 		// Main file S3 bucket
 		assertEquals(stack+"data.sagebase.org", config.getMainFileS3BucketName());
+		
+		// ACM certs
+		assertEquals("arn:aws:acm:us-east1:123456789012:certificate/12345678-1234-1234-1234-123456789012", config.getACMCertificateArn(StackEnvironmentType.PORTAL));
+		assertEquals("arn:aws:acm:us-east1:123456789012:certificate/12345678-1234-1234-1234-223456789012", config.getACMCertificateArn(StackEnvironmentType.REPO));
+		assertEquals("arn:aws:acm:us-east1:123456789012:certificate/12345678-1234-1234-1234-323456789012", config.getACMCertificateArn(StackEnvironmentType.WORKERS));
+		
 	}
 	
 	

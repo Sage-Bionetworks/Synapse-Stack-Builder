@@ -526,6 +526,10 @@ public class InputConfiguration {
 		return validateAndGetProperty(env.name() + ".ssl.certificate.name");
 	}
 	
+	public String getACMCertificateArn(StackEnvironmentType env) {
+		return validateAndGetProperty(env.name() + ".acm.certificate.arn");
+	}
+	
 	/**
 	 * Get the environment name for a given service prefix.
 	 * @param prefix

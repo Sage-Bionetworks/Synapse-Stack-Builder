@@ -25,6 +25,7 @@ import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import org.sagebionetworks.stack.GeneratedResources;
 import org.sagebionetworks.stack.ResourceProcessor;
+import org.sagebionetworks.stack.StackEnvironmentType;
 
 /**
  * Setup the SSL certificate

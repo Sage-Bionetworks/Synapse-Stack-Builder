@@ -1,17 +1,12 @@
 package org.sagebionetworks.stack.ssl;
 
-import org.sagebionetworks.stack.ssl.SSLSetup;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.any;
 
-import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.identitymanagement.model.ListServerCertificatesResult;
 import com.amazonaws.services.identitymanagement.model.ServerCertificateMetadata;
@@ -24,6 +19,7 @@ import java.util.List;
 
 import org.sagebionetworks.factory.MockAmazonClientFactory;
 import org.sagebionetworks.stack.GeneratedResources;
+import org.sagebionetworks.stack.StackEnvironmentType;
 import org.sagebionetworks.stack.TestHelper;
 import org.sagebionetworks.stack.config.InputConfiguration;
 

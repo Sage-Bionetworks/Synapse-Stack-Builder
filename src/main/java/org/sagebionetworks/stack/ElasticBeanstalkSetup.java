@@ -93,18 +93,34 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		if(factory == null) throw new IllegalArgumentException("AWSClientFactory cannot be null");
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
+
+		//TODO: Move all checks to private methods
+		
 		// There are many dependencies for this setup.
-		if(resources.getSslCertificate(StackEnvironmentType.REPO) == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate('plfm') cannot be null");
-		if(resources.getSslCertificate(StackEnvironmentType.WORKERS) == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate('worker') cannot be null");
-		if(resources.getSslCertificate(StackEnvironmentType.PORTAL) == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate('portal') cannot be null");
+//		if(resources.getSslCertificate(StackEnvironmentType.REPO) == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate('plfm') cannot be null");
+//		if(resources.getSslCertificate(StackEnvironmentType.WORKERS) == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate('worker') cannot be null");
+//		if(resources.getSslCertificate(StackEnvironmentType.PORTAL) == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate('portal') cannot be null");
+		
+		checkACMCertificateARNs(resources);
+		
 		if(resources.getPortalApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getPortalApplicationVersion() cannot be null");
 		if(resources.getRepoApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getReopApplicationVersion() cannot be null");
 		if(resources.getWorkersApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getWorkersApplicationVersion() cannot be null");
+		
 		if(resources.getStackKeyPair() == null) throw new IllegalArgumentException("GeneratedResources.getStackKeyPair() cannot be null");
+		
 		this.beanstalkClient = factory.createBeanstalkClient();
 		this.config = config;
 		this.resources = resources;
 		this.aimClient = factory.createIdentityManagementClient();
+	}
+	
+	private void checkACMCertificateARNs(GeneratedResources resources) {
+		for (StackEnvironmentType t: StackEnvironmentType.values()) {
+			if(resources.getACMCertificateArn(t)== null){
+				throw new IllegalArgumentException("Missing generated resource for ACM certificate ARN for environment: " + t.name());
+			}
+		}
 	}
 	
 	public void setupResources() {
@@ -525,9 +541,9 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			cfg = new ConfigurationOptionSetting("aws:autoscaling:asg", "Custom Availability Zones", "us-east-1c, us-east-1e");
 			list.add(cfg);
 		}
-		// Add SSL arn based on templateSuffix
-		String arn = resources.getSslCertificate(env).getArn();
-		list.add(new ConfigurationOptionSetting("aws:elb:loadbalancer", "SSLCertificateId", arn));		
+		// Add ACM cert ARNs based on templateSuffix
+		String arn = config.getACMCertificateArn(env);
+		list.add(new ConfigurationOptionSetting("aws:elb:loadbalancer", "SSLCertificateId", arn));
 		
 		return list;
 	}
