@@ -5,14 +5,11 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.print.attribute.standard.Fidelity;
-
 import org.apache.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 import com.amazonaws.AmazonClientException;
-import com.amazonaws.services.certificatemanager.AWSCertificateManagerClient;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.identitymanagement.model.DeleteServerCertificateRequest;
 import com.amazonaws.services.identitymanagement.model.ListServerCertificatesRequest;
@@ -39,7 +36,6 @@ public class SSLSetup implements ResourceProcessor {
 	
 	private AmazonIdentityManagementClient iamClient;
 	private AmazonS3Client s3Client;
-	private AWSCertificateManagerClient acmClient;
 	private InputConfiguration config;
 	private GeneratedResources resources;
 	
@@ -183,10 +179,4 @@ public class SSLSetup implements ResourceProcessor {
             try {s3Object.getObjectContent().close();} catch (Exception e) {}
         }
 	}
-	
-	public String getCertificateStringFromACM() {
-		return null;
-	}
-	
-	
 }

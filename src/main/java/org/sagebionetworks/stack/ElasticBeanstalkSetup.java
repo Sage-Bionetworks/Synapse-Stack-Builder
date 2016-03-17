@@ -542,7 +542,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			list.add(cfg);
 		}
 		// Add ACM cert ARNs based on templateSuffix
-		String arn = config.getACMCertificateArn(env);
+		String arn = resources.getACMCertificateArn(env);
 		list.add(new ConfigurationOptionSetting("aws:elb:loadbalancer", "SSLCertificateId", arn));
 		
 		return list;
