@@ -107,6 +107,9 @@ public class TestHelper {
 		inputProperties.put(Constants.SWC_VERSION, "2.4.8");
 		inputProperties.put(Constants.PLFM_VERSION, "1.2.3");
 		inputProperties.put(Constants.NUMBER_TABLE_INSTANCES, "2");
+		inputProperties.put(KEY_ORG_SAGEBIONETWORKS_PORTAL_ACM_CERT_ARN, "arn:aws:acm:us-east1:123456789012:certificate/12345678-1234-1234-1234-123456789012");
+		inputProperties.put(KEY_ORG_SAGEBIONETWORKS_REPO_ACM_CERT_ARN, "arn:aws:acm:us-east1:123456789012:certificate/12345678-1234-1234-1234-223456789012");
+		inputProperties.put(KEY_ORG_SAGEBIONETWORKS_WORKERS_ACM_CERT_ARN, "arn:aws:acm:us-east1:123456789012:certificate/12345678-1234-1234-1234-323456789012");
 		return inputProperties;
 	}
 	
@@ -125,6 +128,9 @@ public class TestHelper {
 		resources.setSslCertificate(StackEnvironmentType.REPO, new ServerCertificateMetadata().withArn("ssl:arn:123"));
 		resources.setSslCertificate(StackEnvironmentType.WORKERS, new ServerCertificateMetadata().withArn("ssl:arn:123"));
 		resources.setSslCertificate(StackEnvironmentType.PORTAL, new ServerCertificateMetadata().withArn("ssl:arn:456"));
+		resources.setACMCertificateArn(StackEnvironmentType.PORTAL, "arn:aws:acm:us-east1:123456789012:certificate/12345678-1234-1234-1234-123456789012");
+		resources.setACMCertificateArn(StackEnvironmentType.REPO, "arn:aws:acm:us-east1:123456789012:certificate/12345678-1234-1234-1234-223456789012");
+		resources.setACMCertificateArn(StackEnvironmentType.WORKERS, "arn:aws:acm:us-east1:123456789012:certificate/12345678-1234-1234-1234-323456789012");
 		resources.setPortalApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_PORTAL)));
 		resources.setRepoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_REPO)));
 		resources.setWorkersApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_WORKERS)));

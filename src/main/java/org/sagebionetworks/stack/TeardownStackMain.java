@@ -1,5 +1,6 @@
 package org.sagebionetworks.stack;
 
+import org.sagebionetworks.stack.ssl.SSLSetup;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

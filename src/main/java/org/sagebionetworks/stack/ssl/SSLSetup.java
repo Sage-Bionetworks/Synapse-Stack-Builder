@@ -1,11 +1,9 @@
-package org.sagebionetworks.stack;
+package org.sagebionetworks.stack.ssl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-
-import javax.print.attribute.standard.Fidelity;
 
 import org.apache.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
@@ -22,6 +20,9 @@ import com.amazonaws.services.identitymanagement.model.UploadServerCertificateRe
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
+import org.sagebionetworks.stack.GeneratedResources;
+import org.sagebionetworks.stack.ResourceProcessor;
+import org.sagebionetworks.stack.StackEnvironmentType;
 
 /**
  * Setup the SSL certificate
@@ -178,6 +179,4 @@ public class SSLSetup implements ResourceProcessor {
             try {s3Object.getObjectContent().close();} catch (Exception e) {}
         }
 	}
-	
-	
 }

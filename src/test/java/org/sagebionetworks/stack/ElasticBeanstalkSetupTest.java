@@ -137,7 +137,7 @@ public class ElasticBeanstalkSetupTest {
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application:environment").withOptionName("PARAM4").withValue(config.getStackInstance()));
 		
 		// Check if the SSLCertificateID is correctly added for "plfm' and "portal" cases
-		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("SSLCertificateId").withValue(resources.getSslCertificate(StackEnvironmentType.REPO).getArn()));
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("SSLCertificateId").withValue(resources.getACMCertificateArn(StackEnvironmentType.REPO)));
 		// Also check if healthcheck url has been overriden
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application").withOptionName("Application Healthcheck URL").withValue("/repo/v1/version"));
 
@@ -157,7 +157,7 @@ public class ElasticBeanstalkSetupTest {
 		expected.remove(expected.size()-1);
 		expected.remove(expected.size()-1);
 		
-		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("SSLCertificateId").withValue(resources.getSslCertificate(StackEnvironmentType.PORTAL).getArn()));
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("SSLCertificateId").withValue(resources.getACMCertificateArn(StackEnvironmentType.PORTAL)));
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application").withOptionName("Application Healthcheck URL").withValue("/"));
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:sns:topics").withOptionName("Notification Topic Name").withValue(config.getEnvironmentInstanceNotificationTopicName(StackEnvironmentType.PORTAL)));
 	
