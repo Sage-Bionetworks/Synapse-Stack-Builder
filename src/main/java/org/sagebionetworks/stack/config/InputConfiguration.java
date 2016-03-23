@@ -527,7 +527,7 @@ public class InputConfiguration {
 	}
 	
 	public String getACMCertificateArn(StackEnvironmentType env) {
-		return validateAndGetProperty(env.name() + ".acm.certificate.arn");
+		return validateAndGetProperty("org.sagebionetworks." + env.name() + ".acm.certificate.arn");
 	}
 	
 	/**
