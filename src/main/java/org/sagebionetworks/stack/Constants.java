@@ -100,6 +100,10 @@ public class Constants {
 	public static final String KEY_ORG_SAGEBIONETWORKS_CLOUDMAILIN_PW_PLAINTEXT = "org.sagebionetworks.email.cloudmailin.password.plaintext";
 	public static final String KEY_ORG_SAGEBIONETWORKS_OAUTH2_ORCID_CLIENT_ID="org.sagebionetworks.oauth2.orcid.client.id";
 	public static final String KEY_ORG_SAGEBIONETWORKS_OAUTH2_ORCID_CLIENT_SECRET="org.sagebionetworks.oauth2.orcid.client.secret.plaintext";
+
+	public static final String KEY_ORG_SAGEBIONETWORKS_PORTAL_ACM_CERT_ARN="org.sagebionetworks.PORTAL.acm.certificate.arn";
+	public static final String KEY_ORG_SAGEBIONETWORKS_REPO_ACM_CERT_ARN="org.sagebionetworks.REPO.acm.certificate.arn";
+	public static final String KEY_ORG_SAGEBIONETWORKS_WORKERS_ACM_CERT_ARN="org.sagebionetworks.WORKERS.acm.certificate.arn";
 	
 	/**
 	 * Property for the classless inter-domain routing to be used for SSH access
@@ -261,7 +265,7 @@ public class Constants {
 	 * The property key used for the RDS alert topic subscription endpoint
 	 */
 	public static final String KEY_RDS_ALAERT_SUBSCRIPTION_ENDPONT = "org.sagebionetworks.stack.rds.alert.topic.subscription.endpoint";
-	
+	public static final String KEY_ORG_SAGEBIONETWORKS_ENVIRONMENT_NOTIFICATION_ENDPOINT = "org.sagebionetworks.environment.instance.notification.endpoint";
 	/** 
 	 * Alarm constants.
 	 */
@@ -354,4 +358,12 @@ public class Constants {
 	public static final String KEY_TABLE_CLUSTER_DATABASE_COUNT = "org.sagebionetworks.table.cluster.database.count";
 	public static final String KEY_TABLE_CLUSTER_DATABASE_ENDPOINT_PREFIX = "org.sagebionetworks.table.cluster.endpoint.";
 	public static final String KEY_TABLE_CLUSTER_DATABASE_SCHEMA_PREFIX = "org.sagebionetworks.table.cluster.schema.";
+	
+	public static String encryptKeyName(String key) {
+		return key+".encrypted";
+	}
+	
+	public static String plaintextKeyName(String key) {
+		return key+".plaintext";
+	}
 }

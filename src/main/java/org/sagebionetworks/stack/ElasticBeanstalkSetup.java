@@ -22,7 +22,6 @@ import static org.sagebionetworks.stack.Constants.*;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
-import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionDescription;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionSetting;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationSettingsDescription;
 import com.amazonaws.services.elasticbeanstalk.model.CreateConfigurationTemplateRequest;
@@ -35,7 +34,6 @@ import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationSettin
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsResult;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
-import com.amazonaws.services.elasticbeanstalk.model.RestartAppServerRequest;
 import com.amazonaws.services.elasticbeanstalk.model.TerminateEnvironmentRequest;
 import com.amazonaws.services.elasticbeanstalk.model.TerminateEnvironmentResult;
 import com.amazonaws.services.elasticbeanstalk.model.UpdateConfigurationTemplateRequest;
@@ -46,15 +44,11 @@ import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.identitymanagement.model.AddRoleToInstanceProfileRequest;
 import com.amazonaws.services.identitymanagement.model.CreateInstanceProfileRequest;
 import com.amazonaws.services.identitymanagement.model.CreateRoleRequest;
-import com.amazonaws.services.identitymanagement.model.CreateRoleResult;
-import com.amazonaws.services.identitymanagement.model.EntityAlreadyExistsException;
 import com.amazonaws.services.identitymanagement.model.GetInstanceProfileRequest;
 import com.amazonaws.services.identitymanagement.model.GetRoleRequest;
-import com.amazonaws.services.identitymanagement.model.GetRoleResult;
 import com.amazonaws.services.identitymanagement.model.NoSuchEntityException;
 import com.amazonaws.services.identitymanagement.model.PutRolePolicyRequest;
 
-import java.util.ArrayList;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorCompletionService;
 
@@ -99,18 +93,34 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		if(factory == null) throw new IllegalArgumentException("AWSClientFactory cannot be null");
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
+
+		//TODO: Move all checks to private methods
+		
 		// There are many dependencies for this setup.
-		if(resources.getSslCertificate("plfm") == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate('plfm') cannot be null");
-		if(resources.getSslCertificate("worker") == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate('worker') cannot be null");
-		if(resources.getSslCertificate("portal") == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate('portal') cannot be null");
+//		if(resources.getSslCertificate(StackEnvironmentType.REPO) == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate('plfm') cannot be null");
+//		if(resources.getSslCertificate(StackEnvironmentType.WORKERS) == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate('worker') cannot be null");
+//		if(resources.getSslCertificate(StackEnvironmentType.PORTAL) == null) throw new IllegalArgumentException("GeneratedResources.getSslCertificate('portal') cannot be null");
+		
+		checkACMCertificateARNs(resources);
+		
 		if(resources.getPortalApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getPortalApplicationVersion() cannot be null");
 		if(resources.getRepoApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getReopApplicationVersion() cannot be null");
 		if(resources.getWorkersApplicationVersion() == null) throw new IllegalArgumentException("GeneratedResources.getWorkersApplicationVersion() cannot be null");
+		
 		if(resources.getStackKeyPair() == null) throw new IllegalArgumentException("GeneratedResources.getStackKeyPair() cannot be null");
+		
 		this.beanstalkClient = factory.createBeanstalkClient();
 		this.config = config;
 		this.resources = resources;
 		this.aimClient = factory.createIdentityManagementClient();
+	}
+	
+	private void checkACMCertificateARNs(GeneratedResources resources) {
+		for (StackEnvironmentType t: StackEnvironmentType.values()) {
+			if(resources.getACMCertificateArn(t)== null){
+				throw new IllegalArgumentException("Missing generated resource for ACM certificate ARN for environment: " + t.name());
+			}
+		}
 	}
 	
 	public void setupResources() {
@@ -122,9 +132,9 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	}
 	
 	public void describeResources() {
-		resources.setPortalEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_PORTAL)));
-		resources.setRepositoryEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_REPO)));
-		resources.setWorkersEnvironment(describeEnvironment(config.getEnvironmentName(PREFIX_WORKERS)));
+		resources.setEnvironment(StackEnvironmentType.PORTAL, describeEnvironment(config.getEnvironmentName(PREFIX_PORTAL)));
+		resources.setEnvironment(StackEnvironmentType.REPO, describeEnvironment(config.getEnvironmentName(PREFIX_REPO)));
+		resources.setEnvironment(StackEnvironmentType.WORKERS, describeEnvironment(config.getEnvironmentName(PREFIX_WORKERS)));
 	}
 
 	/**
@@ -138,11 +148,11 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 		String workerElbTemplateName = config.getElasticBeanstalkTemplateName() + "-worker";
 		String portalElbTemplateName = config.getElasticBeanstalkTemplateName() + "-portal";
 		// First create or update the templates using the current data.
-		List<ConfigurationOptionSetting> cfgOptSettings = getAllElasticBeanstalkOptions("plfm");
+		List<ConfigurationOptionSetting> cfgOptSettings = getAllElasticBeanstalkOptions(StackEnvironmentType.REPO);
 		resources.setElasticBeanstalkConfigurationTemplate("plfm", createOrUpdateConfigurationTemplate(plfmElbTemplateName, cfgOptSettings));
-		cfgOptSettings = getAllElasticBeanstalkOptions("worker");
+		cfgOptSettings = getAllElasticBeanstalkOptions(StackEnvironmentType.WORKERS);
 		resources.setElasticBeanstalkConfigurationTemplate("worker", createOrUpdateConfigurationTemplate(workerElbTemplateName, cfgOptSettings));
-		cfgOptSettings = getAllElasticBeanstalkOptions("portal");
+		cfgOptSettings = getAllElasticBeanstalkOptions(StackEnvironmentType.PORTAL);
 		resources.setElasticBeanstalkConfigurationTemplate("portal", createOrUpdateConfigurationTemplate(portalElbTemplateName, cfgOptSettings));
 
 		// Create the environments
@@ -180,11 +190,11 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			throw new IllegalArgumentException("Invalid application name.");
 		}
 		if (config.getEnvironmentName(PREFIX_REPO).equals(ed.getEnvironmentName())) {
-			resources.setRepositoryEnvironment(ed);
+			resources.setEnvironment(StackEnvironmentType.REPO, ed);
 		} else if (! config.getEnvironmentName(PREFIX_WORKERS).equals(ed.getEnvironmentName())) {
-			resources.setWorkersEnvironment(ed);
+			resources.setEnvironment(StackEnvironmentType.WORKERS, ed);
 		} else {
-			resources.setPortalEnvironment(ed);
+			resources.setEnvironment(StackEnvironmentType.PORTAL, ed);
 		}
 	}
 
@@ -458,10 +468,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	 * @return
 	 * @throws IOException 
 	 */
-	public List<ConfigurationOptionSetting> getAllElasticBeanstalkOptions(final String templateSuffix) {
-		if (! (("plfm".equals(templateSuffix)) || ("worker".equals(templateSuffix)) || ("portal".equals(templateSuffix)))) {
-			throw new IllegalArgumentException("Allowed values for templateSuffix are 'plfm', 'worker', portal'.");
-		}
+	public List<ConfigurationOptionSetting> getAllElasticBeanstalkOptions(StackEnvironmentType env) {
 		List<ConfigurationOptionSetting> list = new LinkedList<ConfigurationOptionSetting>();
 		// Load the properties 
 		Properties rawConfig = InputConfiguration.loadPropertyFile(Constants.ELASTIC_BEANSTALK_CONFIG_PROP_FILE_NAME);
@@ -514,10 +521,14 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			}
 			// Override health check URL for plfm
 			if ("aws.elasticbeanstalk.application.Application-Healthcheck-URL".equals(key)) {
-				if ("plfm".equals(templateSuffix)) {
+				if (env.equals(StackEnvironmentType.REPO)) {
 					logger.debug("Overriding aws.elasticbeanstalk.application.Application Healthcheck URL to '/repo/v1/version'");
 					value = "/repo/v1/version";
 				}
+			}
+			// The SNS topic now dependendent on the environment
+			if ("aws.elasticbeanstalk.sns.topics.Notification-Topic-Name".equals(key)) {
+				value = config.getEnvironmentInstanceNotificationTopicName(env);
 			}
 
 			ConfigurationOptionSetting config = new ConfigurationOptionSetting(nameSpace, name, value);
@@ -530,9 +541,9 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			cfg = new ConfigurationOptionSetting("aws:autoscaling:asg", "Custom Availability Zones", "us-east-1c, us-east-1e");
 			list.add(cfg);
 		}
-		// Add SSL arn based on templateSuffix
-		String arn = resources.getSslCertificate(templateSuffix).getArn();
-		list.add(new ConfigurationOptionSetting("aws:elb:loadbalancer", "SSLCertificateId", arn));		
+		// Add ACM cert ARNs based on templateSuffix
+		String arn = resources.getACMCertificateArn(env);
+		list.add(new ConfigurationOptionSetting("aws:elb:loadbalancer", "SSLCertificateId", arn));
 		
 		return list;
 	}

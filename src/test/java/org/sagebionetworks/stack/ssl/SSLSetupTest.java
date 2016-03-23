@@ -1,16 +1,12 @@
-package org.sagebionetworks.stack;
+package org.sagebionetworks.stack.ssl;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.any;
 
-import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.identitymanagement.model.ListServerCertificatesResult;
 import com.amazonaws.services.identitymanagement.model.ServerCertificateMetadata;
@@ -22,6 +18,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.sagebionetworks.factory.MockAmazonClientFactory;
+import org.sagebionetworks.stack.GeneratedResources;
+import org.sagebionetworks.stack.StackEnvironmentType;
+import org.sagebionetworks.stack.TestHelper;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
 /**
@@ -51,18 +50,12 @@ public class SSLSetupTest {
 	public void tearDown() {
 	}
 	
-	@Test(expected = IllegalArgumentException.class)
-	public void testDescribeSSLCertiicateInvalidArg() {
-		SSLSetup sslSetup = new SSLSetup(factory, config, resources);
-		sslSetup.describeSSLCertificate("generics");
-	}
-	
 	@Test(expected = IllegalStateException.class)
 	public void testDescribeSSLCertificateNoCertificate() {
 		ListServerCertificatesResult expectedLstssr = new ListServerCertificatesResult();
 		when(mockAmznIamClient.listServerCertificates()).thenReturn(expectedLstssr);
 		SSLSetup sslSetup = new SSLSetup(factory, config, resources);
-		sslSetup.describeSSLCertificate("plfm");
+		sslSetup.describeSSLCertificate(StackEnvironmentType.REPO);
 	}
 	
 	@Test(expected = IllegalStateException.class)
@@ -74,12 +67,12 @@ public class SSLSetupTest {
 		ListServerCertificatesResult expectedLstssr = new ListServerCertificatesResult().withServerCertificateMetadataList(expectedLstSrvCertMetadata);
 		when(mockAmznIamClient.listServerCertificates()).thenReturn(expectedLstssr);
 		SSLSetup sslSetup = new SSLSetup(factory, config, resources);
-		sslSetup.describeSSLCertificate("plfm");
+		sslSetup.describeSSLCertificate(StackEnvironmentType.REPO);
 	}
 	
 	@Test
 	public void testDescribeResourcesCertificateFound() {
-		String expectedCertName = config.getSSLCertificateName("plfm");
+		String expectedCertName = config.getSSLCertificateName(StackEnvironmentType.REPO);
 		String expectedCertArn = "expectedCertArn";
 		ServerCertificateMetadata srvCertMeta = new ServerCertificateMetadata().withServerCertificateName(expectedCertName).withArn(expectedCertArn);
 		List<ServerCertificateMetadata> expectedLstSrvCertMetadata = new LinkedList<ServerCertificateMetadata>();
@@ -87,21 +80,15 @@ public class SSLSetupTest {
 		ListServerCertificatesResult expectedLstssr = new ListServerCertificatesResult().withServerCertificateMetadataList(expectedLstSrvCertMetadata);
 		when(mockAmznIamClient.listServerCertificates()).thenReturn(expectedLstssr);
 		SSLSetup sslSetup = new SSLSetup(factory, config, resources);
-		sslSetup.describeSSLCertificate("plfm");
+		sslSetup.describeSSLCertificate(StackEnvironmentType.REPO);
 		//assertEquals(expectedCertArn, config.getSSLCertificateARN("generic"));
-		assertEquals(srvCertMeta, resources.getSslCertificate("plfm"));
-		assertEquals(expectedCertArn, resources.getSslCertificate("plfm").getArn());
+		assertEquals(srvCertMeta, resources.getSslCertificate(StackEnvironmentType.REPO));
+		assertEquals(expectedCertArn, resources.getSslCertificate(StackEnvironmentType.REPO).getArn());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testSetupSSLCertiicateInvalidArg() {
-		SSLSetup sslSetup = new SSLSetup(factory, config, resources);
-		sslSetup.setupSSLCertificate("generics");
-	}
-	
 	@Test
 	public void testSetupSSLCertificateNoCertificate() {
-		String expectedCertName = config.getSSLCertificateName("plfm");
+		String expectedCertName = config.getSSLCertificateName(StackEnvironmentType.REPO);
 		String expectedCertArn = "expectedCertArn";
 		// Returned in 1st call to FindCertificate() --> empty
 //		ServerCertificateMetadata scmdList1 = new ServerCertificateMetadata().withServerCertificateName(expectedCertName);
@@ -121,10 +108,10 @@ public class SSLSetupTest {
 		UploadServerCertificateResult expectedUscr = new UploadServerCertificateResult().withServerCertificateMetadata(srvCertMeta);
 		when(mockAmznIamClient.uploadServerCertificate(uscr)).thenReturn(expectedUscr);
 		SSLSetup sslSetup = new SSLSetup(factory, config, resources);
-		sslSetup.setupSSLCertificate("plfm");
+		sslSetup.setupSSLCertificate(StackEnvironmentType.REPO);
 		// Meta for upload server cert should be in resources
-		assertEquals(expectedCertName, resources.getSslCertificate("plfm").getServerCertificateName());
-		assertEquals(expectedCertArn, resources.getSslCertificate("plfm").getArn());
+		assertEquals(expectedCertName, resources.getSslCertificate(StackEnvironmentType.REPO).getServerCertificateName());
+		assertEquals(expectedCertArn, resources.getSslCertificate(StackEnvironmentType.REPO).getArn());
 	}
 	
 	// TODO: Add test to add cert to existing list

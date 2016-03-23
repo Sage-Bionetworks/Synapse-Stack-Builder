@@ -124,7 +124,7 @@ public class Route53Setup implements ResourceProcessor {
 		
 		for (String prefix: prefixes) {
 			String rName = config.getEnvironmentSubdomainCNAME(prefix);
-			String rValue = config.getEnvironmentCNAMEPrefix(prefix) + ".elasticbeanstalk.com";
+			String rValue = config.getEnvironmentCNAMEPrefix(prefix) + ".us-east-1.elasticbeanstalk.com";
 			ResourceRecordSet rrs = getResourceRecordSetForRecordName(rName);
 			if (rrs == null) {
 				ResourceRecord rr = new ResourceRecord().withValue(rValue);

@@ -57,10 +57,11 @@ public class TestHelper {
 	 */
 	public static Properties createDefaultProperties() {
 		Properties defaults = new Properties();
-		defaults.put(Constants.KEY_DEFAULT_ID_GEN_PASSWORD_PLAIN_TEXT, "id gen password");
-		defaults.put(Constants.KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_PLAIN_TEXT, "stack db password");
-		defaults.put(Constants.KEY_CIDR_FOR_SSH, "255.255.255/1");
-		defaults.put(Constants.KEY_RDS_ALAERT_SUBSCRIPTION_ENDPONT, "dev@sagebaser.org");
+		defaults.put(KEY_DEFAULT_ID_GEN_PASSWORD_PLAIN_TEXT, "id gen password");
+		defaults.put(KEY_DEFAULT_STACK_INSTANCES_DB_PASSWORD_PLAIN_TEXT, "stack db password");
+		defaults.put(KEY_CIDR_FOR_SSH, "255.255.255/1");
+		defaults.put(KEY_RDS_ALAERT_SUBSCRIPTION_ENDPONT, "dev@sagebase.org");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_ENVIRONMENT_NOTIFICATION_ENDPOINT, "ops@sagebase.org");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_MAIL_PW_PLAINTEXT, "mail password");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_BCC_GOOGLEAPPS_OAUTH_CONSUMER_SECRET_PLAINTEX, "google consumer oath key");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_BCC_GOOGLEAPPS_OAUTH_ACCESS_TOKEN_PLAINTEXT, "google access token");
@@ -106,6 +107,9 @@ public class TestHelper {
 		inputProperties.put(Constants.SWC_VERSION, "2.4.8");
 		inputProperties.put(Constants.PLFM_VERSION, "1.2.3");
 		inputProperties.put(Constants.NUMBER_TABLE_INSTANCES, "2");
+		inputProperties.put(KEY_ORG_SAGEBIONETWORKS_PORTAL_ACM_CERT_ARN, "arn:aws:acm:us-east1:123456789012:certificate/12345678-1234-1234-1234-123456789012");
+		inputProperties.put(KEY_ORG_SAGEBIONETWORKS_REPO_ACM_CERT_ARN, "arn:aws:acm:us-east1:123456789012:certificate/12345678-1234-1234-1234-223456789012");
+		inputProperties.put(KEY_ORG_SAGEBIONETWORKS_WORKERS_ACM_CERT_ARN, "arn:aws:acm:us-east1:123456789012:certificate/12345678-1234-1234-1234-323456789012");
 		return inputProperties;
 	}
 	
@@ -121,9 +125,12 @@ public class TestHelper {
 		resources.setStackInstancesDatabase(new DBInstance().withDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier()).withEndpoint(new Endpoint().withAddress("stack-instance-db.someplace.com")));
 		resources.setSearchDomain(new DomainStatus().withSearchService(new ServiceEndpoint().withEndpoint("search-service.someplace.com")));
 		resources.getSearchDomain().setDocService(new ServiceEndpoint().withEndpoint("doc-service.someplace.com"));
-		resources.setSslCertificate("plfm", new ServerCertificateMetadata().withArn("ssl:arn:123"));
-		resources.setSslCertificate("worker", new ServerCertificateMetadata().withArn("ssl:arn:123"));
-		resources.setSslCertificate("portal", new ServerCertificateMetadata().withArn("ssl:arn:456"));
+		resources.setSslCertificate(StackEnvironmentType.REPO, new ServerCertificateMetadata().withArn("ssl:arn:123"));
+		resources.setSslCertificate(StackEnvironmentType.WORKERS, new ServerCertificateMetadata().withArn("ssl:arn:123"));
+		resources.setSslCertificate(StackEnvironmentType.PORTAL, new ServerCertificateMetadata().withArn("ssl:arn:456"));
+		resources.setACMCertificateArn(StackEnvironmentType.PORTAL, "arn:aws:acm:us-east1:123456789012:certificate/12345678-1234-1234-1234-123456789012");
+		resources.setACMCertificateArn(StackEnvironmentType.REPO, "arn:aws:acm:us-east1:123456789012:certificate/12345678-1234-1234-1234-223456789012");
+		resources.setACMCertificateArn(StackEnvironmentType.WORKERS, "arn:aws:acm:us-east1:123456789012:certificate/12345678-1234-1234-1234-323456789012");
 		resources.setPortalApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_PORTAL)));
 		resources.setRepoApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_REPO)));
 		resources.setWorkersApplicationVersion(new ApplicationVersionDescription().withVersionLabel(config.getVersionLabel(PREFIX_WORKERS)));

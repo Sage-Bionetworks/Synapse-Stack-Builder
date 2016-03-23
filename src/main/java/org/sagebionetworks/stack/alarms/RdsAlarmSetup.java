@@ -49,7 +49,7 @@ public class RdsAlarmSetup implements ResourceProcessor {
 		if(factory == null) throw new IllegalArgumentException("AmazonClientFactory cannot be null");
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
-		if(resources.getRdsAlertTopicArn() == null) throw new IllegalArgumentException("GeneratedResources.getRdsAlertTopic() cannot be null");
+		if(resources.getStackInstanceNotificationTopicArn() == null) throw new IllegalArgumentException("GeneratedResources.getRdsAlertTopic() cannot be null");
 		if(resources.getIdGeneratorDatabase() == null) throw new IllegalArgumentException("GeneratedResources.getIdGeneratorDatabase() cannot be null");
 		if(resources.getStackInstancesDatabase() == null) throw new IllegalArgumentException("GeneratedResources.getStackInstancesDatabase() cannot be null");
 		this.client = factory.createCloudWatchClient();
@@ -67,7 +67,7 @@ public class RdsAlarmSetup implements ResourceProcessor {
 	
 	public void describeResources() {
 		// This is the topic where all alarm notification are sent
-		String topicArn = resources.getRdsAlertTopicArn();
+		String topicArn = resources.getStackInstanceNotificationTopicArn();
 		// setup the alarms for the id generator
 		DBInstance instance = resources.getIdGeneratorDatabase();
 		resources.setIdGeneratorDatabaseAlarms(describeAllAlarmsForDatabase(instance));
@@ -83,7 +83,7 @@ public class RdsAlarmSetup implements ResourceProcessor {
 		List<PutMetricAlarmRequest> l;
 		DescribeAlarmsResult r;
 		// This is the topic where all alarm notification are sent
-		String topicArn = resources.getRdsAlertTopicArn();
+		String topicArn = resources.getStackInstanceNotificationTopicArn();
 		// setup the alarms for the id generator
 		DBInstance instance = resources.getIdGeneratorDatabase();
 		l = createAllAlarmsForDatabase(instance, topicArn);

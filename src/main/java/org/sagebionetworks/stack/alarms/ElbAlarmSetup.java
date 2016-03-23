@@ -23,6 +23,7 @@ import static org.sagebionetworks.stack.Constants.NAMESPACE_ELB;
 import static org.sagebionetworks.stack.Constants.STATISTIC_MAX;
 import org.sagebionetworks.stack.GeneratedResources;
 import org.sagebionetworks.stack.ResourceProcessor;
+import org.sagebionetworks.stack.StackEnvironmentType;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
@@ -45,14 +46,16 @@ public class ElbAlarmSetup implements ResourceProcessor {
 		if(factory == null) throw new IllegalArgumentException("AmazonClientFactory cannot be null");
 		if(config == null) throw new IllegalArgumentException("Config cannot be null");
 		if(resources == null) throw new IllegalArgumentException("GeneratedResources cannot be null");
-		if (resources.getRepositoryEnvironment() == null) throw new IllegalArgumentException("resources.getRepositoryEnvironment() cannot be null");
-		if (resources.getWorkersEnvironment() == null) throw new IllegalArgumentException("resources.getWorkersEnvironment() cannot be null");
-		if (resources.getPortalEnvironment() == null) throw new IllegalArgumentException("resources.getPortalEnvironment() cannot be null");
+		for (StackEnvironmentType env: StackEnvironmentType.values()) {
+			if (resources.getEnvironment(env) == null) {
+				throw new IllegalStateException("All environments must be created before setting alarms up.");
+			}
+		}
 		this.resources = resources;
 		this.config = config;
-		repoEd = resources.getRepositoryEnvironment();
-		workersEd = resources.getWorkersEnvironment();
-		portalEd = resources.getPortalEnvironment();
+		repoEd = resources.getEnvironment(StackEnvironmentType.REPO);
+		workersEd = resources.getEnvironment(StackEnvironmentType.WORKERS);
+		portalEd = resources.getEnvironment(StackEnvironmentType.PORTAL);
 		cloudWatchClient = factory.createCloudWatchClient();
 		beanstalkClient = factory.createBeanstalkClient();
 	}
@@ -65,9 +68,9 @@ public class ElbAlarmSetup implements ResourceProcessor {
 	}
 	
 	public void describeResources() {
-		resources.setRepoElbAlarms(this.describeAlarms(repoEd));
-		resources.setRepoElbAlarms(this.describeAlarms(workersEd));
-		resources.setRepoElbAlarms(this.describeAlarms(portalEd));
+		resources.setEnvironmentELBAlarms(StackEnvironmentType.REPO, this.describeAlarms(repoEd));
+		resources.setEnvironmentELBAlarms(StackEnvironmentType.WORKERS, this.describeAlarms(workersEd));
+		resources.setEnvironmentELBAlarms(StackEnvironmentType.PORTAL, this.describeAlarms(portalEd));
 	}
 
 	@Override
@@ -76,7 +79,7 @@ public class ElbAlarmSetup implements ResourceProcessor {
 	}
 		
 	public void createAlarms(EnvironmentDescription ed) {
-		String topicArn = resources.getRdsAlertTopicArn();
+		String topicArn = resources.getStackInstanceNotificationTopicArn();
 		LoadBalancer loadBalancer = getLoadBalancerFromEnvironmentName(ed.getEnvironmentName());
 		List<PutMetricAlarmRequest> reqs = createAllPutMetricAlarmRequests(ed.getEnvironmentName(), loadBalancer.getName(), topicArn);
 		for (PutMetricAlarmRequest req: reqs) {
@@ -85,7 +88,7 @@ public class ElbAlarmSetup implements ResourceProcessor {
 	}
 	
 	public DescribeAlarmsResult describeAlarms(EnvironmentDescription ed) {
-		String topicArn = resources.getRdsAlertTopicArn();
+		String topicArn = resources.getStackInstanceNotificationTopicArn();
 		LoadBalancer loadBalancer = getLoadBalancerFromEnvironmentName(ed.getEnvironmentName());
 		DescribeAlarmsRequest req = createDescribeAlarmsRequest(ed.getEnvironmentName(), loadBalancer.getName(), topicArn);
 		DescribeAlarmsResult res = this.cloudWatchClient.describeAlarms(req);

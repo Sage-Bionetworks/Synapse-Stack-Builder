@@ -4,6 +4,7 @@ import org.mockito.Mockito;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.services.certificatemanager.AWSCertificateManagerClient;
 import com.amazonaws.services.cloudsearch.AmazonCloudSearchClient;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 import com.amazonaws.services.ec2.AmazonEC2Client;
@@ -33,6 +34,7 @@ public class MockAmazonClientFactory implements AmazonClientFactory {
 	AmazonCloudSearchClient mockCloudSearchClient;
 	AmazonRoute53Client mockRoute53Client;
 	AmazonElasticLoadBalancingClient mockLoadBalancingClient;
+	AWSCertificateManagerClient mockCertificateManagerClient;
 	AWSCredentials credentials;
 	
 	/**
@@ -49,7 +51,7 @@ public class MockAmazonClientFactory implements AmazonClientFactory {
 		mockCloudSearchClient = Mockito.mock(AmazonCloudSearchClient.class);
 		mockRoute53Client = Mockito.mock(AmazonRoute53Client.class);
 		mockLoadBalancingClient = Mockito.mock(AmazonElasticLoadBalancingClient.class);
-		
+		mockCertificateManagerClient = Mockito.mock(AWSCertificateManagerClient.class);
 	}
 
 	/**
@@ -113,6 +115,11 @@ public class MockAmazonClientFactory implements AmazonClientFactory {
 	@Override
 	public AmazonElasticLoadBalancingClient createElasticLoadBalancingClient() {
 		return mockLoadBalancingClient;
+	}
+
+	@Override
+	public AWSCertificateManagerClient createCertificateManagerClient() {
+		return mockCertificateManagerClient;
 	}
 
 }

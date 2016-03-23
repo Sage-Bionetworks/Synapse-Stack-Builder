@@ -15,6 +15,7 @@ import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.util.EncryptionUtils;
 
 import com.amazonaws.auth.AWSCredentials;
+import org.sagebionetworks.stack.StackEnvironmentType;
 
 /**
  * Test for the Configuration class.
@@ -30,6 +31,7 @@ public class InputConfigurationTest {
 	String stack = "stack";
 	String instance ="instance";
 	String portalBeanstalkNumber = "1001";
+	String plfmBeanstalkNumber = "2002";
 	String numberTableInstances = "2";
 	
 	@Before
@@ -42,6 +44,7 @@ public class InputConfigurationTest {
 		inputProperties.put(INSTANCE, instance);
 		inputProperties.put(PORTAL_BEANSTALK_NUMBER, portalBeanstalkNumber);
 		inputProperties.put(NUMBER_TABLE_INSTANCES, numberTableInstances);
+		inputProperties.put(PLFM_BEANSTALK_NUMBER, plfmBeanstalkNumber);
 	}
 	
 	@Test
@@ -137,10 +140,21 @@ public class InputConfigurationTest {
 		assertEquals("The database security group used by the "+expectedIdGenIdentifier+".", config.getIdGeneratorDatabaseSecurityGroupDescription());
 		assertEquals(expectedStackDBIdentifier+"-security-group", config.getStackDatabaseSecurityGroupName());
 		assertEquals("The database security group used by the "+expectedStackDBIdentifier+".", config.getStackDatabaseSecurityGroupDescription());
+		
 		// the alert topic
 		assertEquals(stack+"-"+instance+"-RDS-Alert", config.getRDSAlertTopicName());
+		// environment instance alerts
+		assertEquals("PORTAL-"+stack+"-"+instance+"-"+portalBeanstalkNumber+"-notification", config.getEnvironmentInstanceNotificationTopicName(StackEnvironmentType.PORTAL));
+		assertEquals("REPO-"+stack+"-"+instance+"-"+plfmBeanstalkNumber+"-notification", config.getEnvironmentInstanceNotificationTopicName(StackEnvironmentType.REPO));
+		
 		// Main file S3 bucket
 		assertEquals(stack+"data.sagebase.org", config.getMainFileS3BucketName());
+		
+		// ACM certs
+		assertEquals("arn:aws:acm:us-east1:123456789012:certificate/12345678-1234-1234-1234-123456789012", config.getACMCertificateArn(StackEnvironmentType.PORTAL));
+		assertEquals("arn:aws:acm:us-east1:123456789012:certificate/12345678-1234-1234-1234-223456789012", config.getACMCertificateArn(StackEnvironmentType.REPO));
+		assertEquals("arn:aws:acm:us-east1:123456789012:certificate/12345678-1234-1234-1234-323456789012", config.getACMCertificateArn(StackEnvironmentType.WORKERS));
+		
 	}
 	
 	
