@@ -67,7 +67,7 @@ public class ElbAlarmSetup implements ResourceProcessor {
 		this.createAlarms(this.portalEd);
 	}
 	
-	public void describeResources() {
+	public void describeResources() throws InterruptedException {
 		resources.setEnvironmentELBAlarms(StackEnvironmentType.REPO, this.describeAlarms(repoEd));
 		resources.setEnvironmentELBAlarms(StackEnvironmentType.WORKERS, this.describeAlarms(workersEd));
 		resources.setEnvironmentELBAlarms(StackEnvironmentType.PORTAL, this.describeAlarms(portalEd));
@@ -78,7 +78,7 @@ public class ElbAlarmSetup implements ResourceProcessor {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 		
-	public void createAlarms(EnvironmentDescription ed) {
+	public void createAlarms(EnvironmentDescription ed) throws InterruptedException {
 		String topicArn = resources.getStackInstanceNotificationTopicArn();
 		LoadBalancer loadBalancer = getLoadBalancerFromEnvironmentName(ed.getEnvironmentName());
 		List<PutMetricAlarmRequest> reqs = createAllPutMetricAlarmRequests(ed.getEnvironmentName(), loadBalancer.getName(), topicArn);
@@ -87,7 +87,7 @@ public class ElbAlarmSetup implements ResourceProcessor {
 		}
 	}
 	
-	public DescribeAlarmsResult describeAlarms(EnvironmentDescription ed) {
+	public DescribeAlarmsResult describeAlarms(EnvironmentDescription ed) throws InterruptedException {
 		String topicArn = resources.getStackInstanceNotificationTopicArn();
 		LoadBalancer loadBalancer = getLoadBalancerFromEnvironmentName(ed.getEnvironmentName());
 		DescribeAlarmsRequest req = createDescribeAlarmsRequest(ed.getEnvironmentName(), loadBalancer.getName(), topicArn);
@@ -95,7 +95,7 @@ public class ElbAlarmSetup implements ResourceProcessor {
 		return res;
 	}
 	
-	public LoadBalancer getLoadBalancerFromEnvironmentName(String envName) {
+	public LoadBalancer getLoadBalancerFromEnvironmentName(String envName) throws InterruptedException {
 		if (envName == null) throw new IllegalArgumentException("Environment name cannot be null.");
 		
 		DescribeEnvironmentResourcesRequest req = new DescribeEnvironmentResourcesRequest();
@@ -103,8 +103,18 @@ public class ElbAlarmSetup implements ResourceProcessor {
 		DescribeEnvironmentResourcesResult res = beanstalkClient.describeEnvironmentResources(req);
 		EnvironmentResourceDescription erd = res.getEnvironmentResources();
 		List<LoadBalancer> loadBalancers = erd.getLoadBalancers();
+		int count = 0;
+		while ((loadBalancers != null) && (loadBalancers.size() == 0)) {
+			count += 1;
+			if (count == 10) {
+				throw new IllegalStateException("Load balancer for environment " + envName + " did not come up within 5 minutes");
+			}
+			Thread.sleep(30000L);
+			loadBalancers = erd.getLoadBalancers();
+		}
+		// In case loadBalancers was null to start with, should not happen
 		if ((loadBalancers != null) && (loadBalancers.size() != 1)) {
-			throw new IllegalArgumentException("Environment " + envName + " should contain exactly one load balancer.");
+			throw new IllegalStateException("Should only be one load balancer for environment " + envName);
 		}
 		return loadBalancers.get(0);
 	}
