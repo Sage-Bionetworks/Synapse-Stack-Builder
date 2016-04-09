@@ -95,8 +95,8 @@ public class SearchIndexSetup implements ResourceProcessor {
 	private DomainStatus waitForSearchDomain(String domainName) {
 		DomainStatus domainStatus = null;
 		boolean available = false;
-		int numSuccesses = 0;		
-		for (int i =0; i < 3; i++) {
+		int numSuccesses = 0;
+		for (int i =0; i < 10; i++) {
 			try {
 				Thread.sleep(30000);
 			} catch (InterruptedException e) {
@@ -106,6 +106,9 @@ public class SearchIndexSetup implements ResourceProcessor {
 			available = domainStatus.isCreated() && (!domainStatus.isProcessing());
 			if (available) {
 				numSuccesses++;
+			}
+			if (numSuccesses > 3) {
+				break;
 			}
 		}
 		if (available && (numSuccesses >= 2)) {
