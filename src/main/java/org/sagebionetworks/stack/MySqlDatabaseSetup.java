@@ -15,6 +15,7 @@ import java.util.List;
 
 import static org.sagebionetworks.stack.Constants.*;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
+import org.sagebionetworks.stack.util.Sleeper;
 
 /**
  * Setup the MySQL database
@@ -29,13 +30,15 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 	private AmazonRDSClient client;
 	private InputConfiguration config;
 	private GeneratedResources resources;
+	private Sleeper sleeper;
 	/**
 	 * The IoC constructor.
 	 * @param client
 	 * @param config
 	 */
-	public MySqlDatabaseSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+	public MySqlDatabaseSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources, Sleeper sleeper) {
 		this.initialize(factory, config, resources);
+		this.sleeper = sleeper;
 	}
 
 	public void initialize(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
@@ -141,11 +144,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		boolean available = false;
 		int numSuccesses = 0;
 		for (int i = 0; i < 10; i++) {
-			try {
-			Thread.sleep(30000);
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
+			sleeper.sleep(30000);
 			DescribeDBInstancesResult result = client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(stackInstance.getDBInstanceIdentifier()));
 			instance = result.getDBInstances().get(0);
 			status = instance.getDBInstanceStatus();

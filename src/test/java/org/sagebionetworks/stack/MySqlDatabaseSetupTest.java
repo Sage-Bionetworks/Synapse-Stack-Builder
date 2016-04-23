@@ -29,6 +29,7 @@ import com.amazonaws.services.rds.model.DeleteDBInstanceRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 import org.sagebionetworks.factory.MockAmazonClientFactory;
+import org.sagebionetworks.stack.util.Sleeper;
 
 public class MySqlDatabaseSetupTest {
 	
@@ -37,6 +38,7 @@ public class MySqlDatabaseSetupTest {
 	GeneratedResources resources;
 	MySqlDatabaseSetup databaseSetup;
 	MockAmazonClientFactory factory = new MockAmazonClientFactory();
+	Sleeper mockSleeper = Mockito.mock(Sleeper.class);
 	
 	@Before
 	public void before() throws IOException{
@@ -44,7 +46,7 @@ public class MySqlDatabaseSetupTest {
 		config = TestHelper.createTestConfig("dev");
 		resources = new GeneratedResources();
 		// Create the creator
-		databaseSetup = new MySqlDatabaseSetup(factory, config, resources);
+		databaseSetup = new MySqlDatabaseSetup(factory, config, resources, mockSleeper);
 	}
 	
 	/**
@@ -72,7 +74,7 @@ public class MySqlDatabaseSetupTest {
 	private void setConfigForStack(String stack) throws IOException {
 		config = TestHelper.createTestConfig(stack);
 		// Create the creator
-		databaseSetup = new MySqlDatabaseSetup(factory, config, resources);
+		databaseSetup = new MySqlDatabaseSetup(factory, config, resources, mockSleeper);
 	}
 	
 	@Test

@@ -17,8 +17,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.mockito.Matchers;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import org.mockito.Mockito;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -27,6 +31,7 @@ import org.sagebionetworks.stack.GeneratedResources;
 import org.sagebionetworks.stack.StackEnvironmentType;
 import org.sagebionetworks.stack.TestHelper;
 import org.sagebionetworks.stack.config.InputConfiguration;
+import org.sagebionetworks.stack.util.Sleeper;
 
 public class ElbAlarmSetupTest {
 	
@@ -36,6 +41,7 @@ public class ElbAlarmSetupTest {
 	private ElbAlarmSetup setup;
 	private AWSElasticBeanstalkClient beanstalkClient;
 	private AmazonCloudWatchClient mockCwClient;
+	private Sleeper mockSleeper;
 	
 	public ElbAlarmSetupTest() {
 	}
@@ -57,8 +63,9 @@ public class ElbAlarmSetupTest {
 		//	Clients
 		beanstalkClient = mockFactory.createBeanstalkClient();
 		mockCwClient = mockFactory.createCloudWatchClient();
+		mockSleeper = Mockito.mock(Sleeper.class);
 
-		setup = new ElbAlarmSetup(mockFactory, config, resources);
+		setup = new ElbAlarmSetup(mockFactory, config, resources, mockSleeper);
 	}
 	
 	@After
@@ -66,29 +73,31 @@ public class ElbAlarmSetupTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testGetLoadBalancerFromEnvironmentNameNullName() {
+	public void testGetLoadBalancerFromEnvironmentNameNullName() throws Exception {
 		setup.getLoadBalancerFromEnvironmentName(null);
 	}
 	
-	@Test(expected=IllegalArgumentException.class)
-	public void testGetLoadBalancerFromEnvironmentNameNullLoadBalancers() {
+	@Test(expected=IllegalStateException.class)
+	public void testGetLoadBalancerFromEnvironmentNameNullLoadBalancers() throws Exception {
 		EnvironmentResourceDescription erd = new EnvironmentResourceDescription();
 		DescribeEnvironmentResourcesResult expectedRes = new DescribeEnvironmentResourcesResult().withEnvironmentResources(erd);
 		when(beanstalkClient.describeEnvironmentResources(any(DescribeEnvironmentResourcesRequest.class))).thenReturn(expectedRes);
+		doNothing().when(mockSleeper).sleep(anyLong());
 		setup.getLoadBalancerFromEnvironmentName("repoEnvName");
 	}
 	
-	@Test(expected=IllegalArgumentException.class)
-	public void testGetLoadBalancerFromEnvironmentNameNoLoadBalancer() {
+	@Test(expected=IllegalStateException.class)
+	public void testGetLoadBalancerFromEnvironmentNameNoLoadBalancer() throws Exception {
 		//	Return empty list
 		EnvironmentResourceDescription erd = new EnvironmentResourceDescription().withLoadBalancers(new ArrayList<LoadBalancer>());
 		DescribeEnvironmentResourcesResult expectedRes = new DescribeEnvironmentResourcesResult().withEnvironmentResources(erd);
 		when(beanstalkClient.describeEnvironmentResources(any(DescribeEnvironmentResourcesRequest.class))).thenReturn(expectedRes);
+		doNothing().when(mockSleeper).sleep(anyLong());
 		setup.getLoadBalancerFromEnvironmentName("repoEnvName");
 	}
 	
-	@Test(expected=IllegalArgumentException.class)
-	public void testGetLoadBalancerFromEnvironmentNameTwoLoadBalancers() {
+	@Test(expected=IllegalStateException.class)
+	public void testGetLoadBalancerFromEnvironmentNameTwoLoadBalancers() throws Exception {
 		//	Return 2 load balancers
 		List<LoadBalancer> loadBalancers = new ArrayList<>();
 		LoadBalancer lb = new LoadBalancer();
@@ -97,11 +106,12 @@ public class ElbAlarmSetupTest {
 		EnvironmentResourceDescription erd = new EnvironmentResourceDescription().withLoadBalancers(loadBalancers);
 		DescribeEnvironmentResourcesResult expectedRes = new DescribeEnvironmentResourcesResult().withEnvironmentResources(erd);
 		when(beanstalkClient.describeEnvironmentResources(any(DescribeEnvironmentResourcesRequest.class))).thenReturn(expectedRes);
+		doNothing().when(mockSleeper).sleep(anyLong());
 		setup.getLoadBalancerFromEnvironmentName("repoEnvName");
 	}
 	
 	@Test
-	public void testGetLoadBalancerFromEnvironmentNameOneLoadBalancer() {
+	public void testGetLoadBalancerFromEnvironmentNameOneLoadBalancer() throws Exception {
 		//	Return 1 load balancers
 		List<LoadBalancer> loadBalancers = new ArrayList<>();
 		LoadBalancer lb = new LoadBalancer().withName("loadBalancer");
@@ -109,6 +119,7 @@ public class ElbAlarmSetupTest {
 		EnvironmentResourceDescription erd = new EnvironmentResourceDescription().withLoadBalancers(loadBalancers);
 		DescribeEnvironmentResourcesResult expectedRes = new DescribeEnvironmentResourcesResult().withEnvironmentResources(erd);
 		when(beanstalkClient.describeEnvironmentResources(any(DescribeEnvironmentResourcesRequest.class))).thenReturn(expectedRes);
+		doNothing().when(mockSleeper).sleep(anyLong());
 		LoadBalancer b = setup.getLoadBalancerFromEnvironmentName("repoEnvName");
 		//	Should have same name
 		assertEquals(lb.getName(), b.getName());
@@ -160,7 +171,7 @@ public class ElbAlarmSetupTest {
 	}
 	
 	@Test
-	public void testCreateAlarms() {
+	public void testCreateAlarms() throws Exception {
 		EnvironmentResourceDescription erd = new EnvironmentResourceDescription().withLoadBalancers(new LoadBalancer().withName("loadBalancer"));
 		DescribeEnvironmentResourcesResult expectedErr = new DescribeEnvironmentResourcesResult().withEnvironmentResources(erd);
 		when(beanstalkClient.describeEnvironmentResources(any(DescribeEnvironmentResourcesRequest.class))).thenReturn(expectedErr);

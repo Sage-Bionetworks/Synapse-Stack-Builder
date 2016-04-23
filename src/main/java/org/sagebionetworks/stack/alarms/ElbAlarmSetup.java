@@ -26,6 +26,8 @@ import org.sagebionetworks.stack.ResourceProcessor;
 import org.sagebionetworks.stack.StackEnvironmentType;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
+import org.sagebionetworks.stack.util.Sleeper;
+import org.sagebionetworks.stack.util.SleeperImpl;
 
 public class ElbAlarmSetup implements ResourceProcessor {
 	
@@ -36,9 +38,11 @@ public class ElbAlarmSetup implements ResourceProcessor {
 	EnvironmentDescription portalEd;
 	AmazonCloudWatchClient cloudWatchClient;
 	AWSElasticBeanstalkClient beanstalkClient;
+	Sleeper sleeper;
 	
-	public ElbAlarmSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+	public ElbAlarmSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources, Sleeper sleeper) {
 		this.initialize(factory, config, resources);
+		this.sleeper = sleeper;
 	}
 	
 	@Override
@@ -109,7 +113,7 @@ public class ElbAlarmSetup implements ResourceProcessor {
 			if (count == 10) {
 				throw new IllegalStateException("Load balancer for environment " + envName + " did not come up within 5 minutes");
 			}
-			Thread.sleep(30000L);
+			sleeper.sleep(30000L);
 			loadBalancers = erd.getLoadBalancers();
 		}
 		// In case loadBalancers was null to start with, should not happen

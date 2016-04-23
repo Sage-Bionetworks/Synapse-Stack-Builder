@@ -12,6 +12,7 @@ import com.amazonaws.services.cloudsearch.model.DescribeDomainsRequest;
 import com.amazonaws.services.cloudsearch.model.DescribeDomainsResult;
 import com.amazonaws.services.cloudsearch.model.DomainStatus;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
+import org.sagebionetworks.stack.util.Sleeper;
 
 /**
  * Setup the Cloud search index for this stack isntance.
@@ -25,10 +26,13 @@ public class SearchIndexSetup implements ResourceProcessor {
 	AmazonCloudSearchClient client;
 	InputConfiguration config;
 	GeneratedResources resources;
+	private Sleeper sleeper;
+	
 	public SearchIndexSetup(AmazonClientFactory factory,
-			InputConfiguration config, GeneratedResources resources) {
+			InputConfiguration config, GeneratedResources resources, Sleeper sleeper) {
 		super();
 		this.initialize(factory, config, resources);
+		this.sleeper = sleeper;
 	}
 	
 	public void initialize(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
@@ -97,11 +101,7 @@ public class SearchIndexSetup implements ResourceProcessor {
 		boolean available = false;
 		int numSuccesses = 0;
 		for (int i =0; i < 10; i++) {
-			try {
-				Thread.sleep(30000);
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
+			this.sleeper.sleep(30000);
 			domainStatus = getDomainStatus(domainName);
 			available = domainStatus.isCreated() && (!domainStatus.isProcessing());
 			if (available) {
