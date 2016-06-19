@@ -86,6 +86,8 @@ public class TestHelper {
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_CLOUDMAILIN_PW_PLAINTEXT, "cloudmailinpwd");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_OAUTH2_ORCID_CLIENT_ID, "oauth2orcidid");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_OAUTH2_ORCID_CLIENT_SECRET, "oauth2orcidsecret");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_DOCKER_AUTHORIZATION_PRIVATE_KEY_PLAINTEXT, "privateKey");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_DOCKER_AUTHORIZATION_CERTIFICATE, "certificate");
 		
 		return defaults;
 	}

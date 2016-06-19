@@ -100,6 +100,9 @@ public class Constants {
 	public static final String KEY_ORG_SAGEBIONETWORKS_CLOUDMAILIN_PW_PLAINTEXT = "org.sagebionetworks.email.cloudmailin.password.plaintext";
 	public static final String KEY_ORG_SAGEBIONETWORKS_OAUTH2_ORCID_CLIENT_ID="org.sagebionetworks.oauth2.orcid.client.id";
 	public static final String KEY_ORG_SAGEBIONETWORKS_OAUTH2_ORCID_CLIENT_SECRET="org.sagebionetworks.oauth2.orcid.client.secret.plaintext";
+	public static final String KEY_ORG_SAGEBIONETWORKS_DOCKER_AUTHORIZATION_PRIVATE_KEY_PLAINTEXT="org.sagebionetworks.docker.authorization.private.key.plaintext";
+	public static final String KEY_ORG_SAGEBIONETWORKS_DOCKER_AUTHORIZATION_CERTIFICATE="org.sagebionetworks.docker.authorization.certificate";
+	
 
 	public static final String KEY_ORG_SAGEBIONETWORKS_PORTAL_ACM_CERT_ARN="org.sagebionetworks.PORTAL.acm.certificate.arn";
 	public static final String KEY_ORG_SAGEBIONETWORKS_REPO_ACM_CERT_ARN="org.sagebionetworks.REPO.acm.certificate.arn";
