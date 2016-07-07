@@ -331,7 +331,8 @@ public class Constants {
 	/**
 	 * Stack solution name for "64bit Amazon Linux 2014.03 v1.0.3 running Tomcat 7 Java 7"
 	 */
-	public static final String SOLUTION_STACK_NAME_64BIT_TOMCAT7_JAVA7_2014_03_AMI = "64bit Amazon Linux 2014.03 v1.0.3 running Tomcat 7 Java 7";
+	public static final String SOLUTION_STACK_NAME_64BIT_TOMCAT7_JAVA7_2016_03_AMI = "64bit Amazon Linux 2016.03 v2.1.3 running Tomcat 7 Java 7";
+	
 	/**
 	 * Properties file of all of the beanstalk config values.
 	 */
