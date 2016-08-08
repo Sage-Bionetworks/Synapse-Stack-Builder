@@ -88,6 +88,8 @@ public class TestHelper {
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_OAUTH2_ORCID_CLIENT_SECRET, "oauth2orcidsecret");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_DOCKER_AUTHORIZATION_PRIVATE_KEY_PLAINTEXT, "privateKey");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_DOCKER_AUTHORIZATION_CERTIFICATE, "certificate");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_DOCKER_REGISTRY_USER, "dockerreguser");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_DOCKER_REGISTRY_PASSWORD_PLAINTEXT, "dockerregpwd");
 		
 		return defaults;
 	}
