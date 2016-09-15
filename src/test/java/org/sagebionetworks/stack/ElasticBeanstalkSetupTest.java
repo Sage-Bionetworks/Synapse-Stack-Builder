@@ -135,6 +135,7 @@ public class ElasticBeanstalkSetupTest {
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application:environment").withOptionName("PARAM2").withValue(config.getEncryptionKey()));
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application:environment").withOptionName("PARAM3").withValue(config.getStack()));
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application:environment").withOptionName("PARAM4").withValue(config.getStackInstance()));
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:hostmanager").withOptionName("LogPublicationControl").withValue("false"));
 		
 		// Check if the SSLCertificateID is correctly added for "plfm' and "portal" cases
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("SSLCertificateId").withValue(resources.getACMCertificateArn(StackEnvironmentType.REPO)));
