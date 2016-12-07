@@ -197,7 +197,7 @@ public class ElasticBeanstalkSetupTest {
 		resources = TestHelper.createTestResources(config);
 		setup = new ElasticBeanstalkSetup(factory, config, resources);
 		// From the server tab
-		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("MinSize").withValue("4"));
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("MinSize").withValue("8"));
 		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions(StackEnvironmentType.REPO);
 		// Make sure we can find all of the expected values
 		for(ConfigurationOptionSetting expectedCon: expected){
