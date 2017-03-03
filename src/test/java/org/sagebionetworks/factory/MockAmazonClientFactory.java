@@ -5,7 +5,7 @@ import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.certificatemanager.AWSCertificateManagerClient;
-import com.amazonaws.services.cloudsearch.AmazonCloudSearchClient;
+import com.amazonaws.services.cloudsearchv2.AmazonCloudSearchClient;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;

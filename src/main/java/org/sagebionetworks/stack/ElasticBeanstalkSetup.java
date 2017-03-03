@@ -81,7 +81,6 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 	/**
 	 * The IoC constructor.
 	 * 
-	 * @param beanstalkClient
 	 * @param config
 	 * @param resources
 	 */
@@ -499,15 +498,15 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 				if("aws:autoscaling:asg".equals(nameSpace)){
 					// We need a minimum of two instances for production.
 					if("MinSize".equals(name)){
-						if(Long.parseLong(value) < 4){
+						if(Long.parseLong(value) < 8){
 							logger.debug("Overriding aws.autoscaling.asg.MinSize for production to be at least 4");
-							value = "4";
+							value = (env.equals(StackEnvironmentType.REPO)) ? "8" : "4";
 						}
 					}
 					if("MaxSize".equals(name)){
-						if(Long.parseLong(value) < 8){
+						if(Long.parseLong(value) < 12){
 							logger.debug("Overriding aws.autoscaling.asg.MaxSize for production to be at least 8");
-							value = "8";
+							value = (env.equals(StackEnvironmentType.REPO)) ? "12" : "8";
 						}
 					}
 					// We want our two instances to be in any two zones. See PLFM-1560
