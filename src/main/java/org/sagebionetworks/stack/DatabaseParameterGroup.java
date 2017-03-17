@@ -102,6 +102,8 @@ public class DatabaseParameterGroup implements ResourceProcessor {
 		setValueIfNeeded(paramGroup.getDBParameterGroupName(), map, Constants.DB_PARAM_KEY_LONG_QUERY_TIME, "1");
 		// See PLFM-1526
 		setValueIfNeeded(paramGroup.getDBParameterGroupName(), map, Constants.DB_PARAM_KEY_MAX_ALLOWED_PACKET, ""+Constants.DB_PARAM_VALUE_MAX_ALLOWED_PACKET);
+		// See PLFM-4276
+		setValueIfNeeded(paramGroup.getDBParameterGroupName(), map, Constants.DB_PARAM_KEY_LOG_BIN_TRUST_FUNCTION_CREATORS, "1");
 		// Set any other values...
 		
 		return createOrGetDatabaseParameterGroup();
