@@ -186,7 +186,12 @@ public class Constants {
 	 * The DB parameter key for the max allowed packet.
 	 */
 	public static final String DB_PARAM_KEY_MAX_ALLOWED_PACKET = "max_allowed_packet";
-	
+
+	/**
+	 * The DB paramater key for log_bin_trust_function_creators (see PLFM-4276)
+	 */
+	public static final String DB_PARAM_KEY_LOG_BIN_TRUST_FUNCTION_CREATORS = "log_bin_trust_function_creators";
+
 	/**
 	 * This is currently set to 16 MB per PLFM-1526.
 	 */
