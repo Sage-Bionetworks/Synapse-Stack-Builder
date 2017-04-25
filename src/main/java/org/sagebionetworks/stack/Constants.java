@@ -198,15 +198,20 @@ public class Constants {
 	public static final long DB_PARAM_VALUE_MAX_ALLOWED_PACKET = 1024*1024*16;
 	
 	/**
-	 * Small database instance class
+	 * Small m1 database instance class
 	 */
-	public static final String DATABASE_INSTANCE_CLASS_SMALL = "db.m1.small";
+	public static final String DATABASE_INSTANCE_CLASS_M1_SMALL = "db.m1.small";
 	
 	
 	/**
-	 * Small database instance class
+	 * Large m1 database instance class
 	 */
-	public static final String DATABASE_INSTANCE_CLASS_LARGE = "db.m1.large";
+	public static final String DATABASE_INSTANCE_CLASS_M1_LARGE = "db.m1.large";
+
+	/**
+	 * Large r3 database instance class
+	 */
+	public static final String DATABASE_INSTANCE_CLASS_R3_LARGE = "db.r3.large";
 	
 	/**
 	 * 1 GB = 2^30 Bytes
@@ -219,10 +224,12 @@ public class Constants {
 	 */
 	private static final Map<String, Double> INSTANCE_MEMORY_MAP = new HashMap<String, Double>();
 	static{
-		// small 1.7 GB as of July 2012
-		INSTANCE_MEMORY_MAP.put(DATABASE_INSTANCE_CLASS_SMALL, 1.7*BYTES_PER_GIGABYTE);
-		// Large 7.5 GB as of July 2012
-		INSTANCE_MEMORY_MAP.put(DATABASE_INSTANCE_CLASS_LARGE, 7.5*BYTES_PER_GIGABYTE);
+		// m1.small 1.7 GB as of July 2012
+		INSTANCE_MEMORY_MAP.put(DATABASE_INSTANCE_CLASS_M1_SMALL, 1.7*BYTES_PER_GIGABYTE);
+		// m1.arge 7.5 GB as of July 2012
+		INSTANCE_MEMORY_MAP.put(DATABASE_INSTANCE_CLASS_M1_LARGE, 7.5*BYTES_PER_GIGABYTE);
+		// r3.large 15GB as of April 2017
+		INSTANCE_MEMORY_MAP.put(DATABASE_INSTANCE_CLASS_R3_LARGE, 15.0*BYTES_PER_GIGABYTE);
 	}
 	
 	/**
