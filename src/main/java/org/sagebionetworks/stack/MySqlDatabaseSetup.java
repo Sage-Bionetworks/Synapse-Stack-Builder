@@ -222,7 +222,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 			// zone at all times!
 			request.setMultiAZ(true);
 			// The production database should be a large
-			request.setDBInstanceClass(DATABASE_INSTANCE_CLASS_LARGE);
+			request.setDBInstanceClass(DATABASE_INSTANCE_CLASS_R3_LARGE);
 			// The size of the database should be 50GB
 			request.setAllocatedStorage(new Integer(50));
 		}else{
@@ -230,7 +230,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 			// a backup replicate database in another zone.
 			request.setMultiAZ(false);
 			// All non-production databases should be small
-			request.setDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL);
+			request.setDBInstanceClass(DATABASE_INSTANCE_CLASS_M1_SMALL);
 			// The size of the database should be 10GB
 			request.setAllocatedStorage(new Integer(10));
 		}
@@ -250,10 +250,10 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 	CreateDBInstanceRequest buildStackTableDBInstanceCreateDBInstanceRequest(int instNum) {
 		CreateDBInstanceRequest request = getDefaultCreateDBInstanceRequest();
 		if (config.isProductionStack()) {
-			request.setDBInstanceClass(DATABASE_INSTANCE_CLASS_LARGE);
+			request.setDBInstanceClass(DATABASE_INSTANCE_CLASS_R3_LARGE);
 			request.setAllocatedStorage(new Integer(250));
 		} else {
-			request.setDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL);
+			request.setDBInstanceClass(DATABASE_INSTANCE_CLASS_M1_SMALL);
 			request.setAllocatedStorage(new Integer(10));
 		}
 		// This will be the schema name.
@@ -348,7 +348,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 	public static CreateDBInstanceRequest getDefaultCreateDBInstanceRequest(){
 		CreateDBInstanceRequest request = new CreateDBInstanceRequest();
 		request.setAllocatedStorage(new Integer(10));
-		request.setDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL);
+		request.setDBInstanceClass(DATABASE_INSTANCE_CLASS_M1_SMALL);
 		request.setEngine(DATABASE_ENGINE_MYSQL);
 //		request.setAvailabilityZone(EC2_AVAILABILITY_ZONE_US_EAST_1D);
 		request.setPreferredMaintenanceWindow(PREFERRED_DATABASE_MAINTENANCE_WINDOW_SUNDAY_NIGHT_PDT);
