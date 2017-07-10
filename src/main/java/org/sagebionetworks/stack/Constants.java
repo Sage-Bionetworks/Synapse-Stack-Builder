@@ -251,7 +251,7 @@ public class Constants {
 	/**
 	 * MySQL version.
 	 */
-	public static final String DATABASE_ENGINE_MYSQL_VERSION = "5.6.23";
+	public static final String DATABASE_ENGINE_MYSQL_VERSION = "5.6.34";
 	/**
 	 * us-east-1d
 	 */
