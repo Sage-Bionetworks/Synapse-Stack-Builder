@@ -208,7 +208,25 @@ public class ElasticBeanstalkSetupTest {
 	}
 
 	@Test
-	public void testMinAutoScaleSizeProductionNonRepo() throws IOException{
+	public void testMinAutoScaleSizeProductionWorkers() throws IOException{
+		List<ConfigurationOptionSetting> expected = new LinkedList<ConfigurationOptionSetting>();
+		// For prod the min should be 2
+		config = TestHelper.createTestConfig("prod");
+		resources = TestHelper.createTestResources(config);
+		setup = new ElasticBeanstalkSetup(factory, config, resources);
+		// From the server tab
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("MinSize").withValue("8"));
+		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions(StackEnvironmentType.WORKERS);
+		// Make sure we can find all of the expected values
+		for(ConfigurationOptionSetting expectedCon: expected){
+			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
+			assertNotNull("Failed to find expected configuration: "+expectedCon,found);
+			assertEquals("Values did not match for namespace: "+expectedCon.getNamespace()+" and option name: "+expectedCon.getOptionName(),expectedCon.getValue(), found.getValue());
+		}
+	}
+
+	@Test
+	public void testMinAutoScaleSizeProductionPortal() throws IOException{
 		List<ConfigurationOptionSetting> expected = new LinkedList<ConfigurationOptionSetting>();
 		// For prod the min should be 2
 		config = TestHelper.createTestConfig("prod");
@@ -216,7 +234,7 @@ public class ElasticBeanstalkSetupTest {
 		setup = new ElasticBeanstalkSetup(factory, config, resources);
 		// From the server tab
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("MinSize").withValue("4"));
-		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions(StackEnvironmentType.WORKERS);
+		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions(StackEnvironmentType.PORTAL);
 		// Make sure we can find all of the expected values
 		for(ConfigurationOptionSetting expectedCon: expected){
 			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
