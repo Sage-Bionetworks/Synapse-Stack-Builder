@@ -500,13 +500,19 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 					if("MinSize".equals(name)){
 						if(Long.parseLong(value) < 8){
 							logger.debug("Overriding aws.autoscaling.asg.MinSize for production to be at least 4");
-							value = (env.equals(StackEnvironmentType.REPO)) ? "8" : "4";
+							value = "4";
+							if ((env.equals(StackEnvironmentType.REPO)) || (env.equals(StackEnvironmentType.WORKERS))) {
+								value = "8";
+							}
 						}
 					}
 					if("MaxSize".equals(name)){
 						if(Long.parseLong(value) < 12){
 							logger.debug("Overriding aws.autoscaling.asg.MaxSize for production to be at least 8");
-							value = (env.equals(StackEnvironmentType.REPO)) ? "12" : "8";
+							value = "8";
+							if ((env.equals(StackEnvironmentType.REPO)) || (env.equals(StackEnvironmentType.WORKERS))) {
+								value = "12";
+							}
 						}
 					}
 					// We want our two instances to be in any two zones. See PLFM-1560
