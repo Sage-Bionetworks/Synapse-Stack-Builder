@@ -83,7 +83,7 @@ public class ElasticBeanstalkSetupTest {
 		CreateConfigurationTemplateRequest expectedCctReq = new CreateConfigurationTemplateRequest();
 		expectedCctReq.setApplicationName(config.getElasticBeanstalkApplicationName());
 		expectedCctReq.setOptionSettings(cfgOptSettings);
-		expectedCctReq.setSolutionStackName(Constants.SOLUTION_STACK_NAME_64BIT_TOMCAT7_JAVA7_2016_03_AMI);
+		expectedCctReq.setSolutionStackName(Constants.SOLUTION_STACK_NAME_64BIT_TOMCAT8_JAVA8_2017_03_AMI);
 		expectedCctReq.setTemplateName(templateName);
 		setup.createOrUpdateConfigurationTemplate(templateName, cfgOptSettings);
 		verify(mockClient).createConfigurationTemplate(expectedCctReq);

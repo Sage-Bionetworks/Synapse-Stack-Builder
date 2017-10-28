@@ -332,19 +332,9 @@ public class Constants {
 	public static String KEY_STACK_INSTANCE_SEARCH_INDEX_DOCUMENT_ENDPOINT = "stack.instance.search.index.document.endpoint";
 	
 	/**
-	 * Stack solution name for "32bit Amazon Linux running Tomcat 7"
+	 * Stack solution for "64bit Amazon Linux 2017.03 v2.5.5 running Tomcat 8 Java 8"
 	 */
-	public static final String SOLUTION_STACK_NAME_32BIT_TOMCAT_7 = "32bit Amazon Linux running Tomcat 7";
-
-	/**
-	 * Stack solution name for "64bit Amazon Linux running Tomcat 7"
-	 */
-	public static final String SOLUTION_STACK_NAME_64BIT_TOMCAT_7 = "64bit Amazon Linux running Tomcat 7";
-	
-	/**
-	 * Stack solution name for "64bit Amazon Linux 2014.03 v1.0.3 running Tomcat 7 Java 7"
-	 */
-	public static final String SOLUTION_STACK_NAME_64BIT_TOMCAT7_JAVA7_2016_03_AMI = "64bit Amazon Linux 2016.03 v2.1.3 running Tomcat 7 Java 7";
+	public static final String SOLUTION_STACK_NAME_64BIT_TOMCAT8_JAVA8_2017_03_AMI = "64bit Amazon Linux 2017.03 v2.6.5 running Tomcat 8 Java 8";
 	
 	/**
 	 * Properties file of all of the beanstalk config values.
