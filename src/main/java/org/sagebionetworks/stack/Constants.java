@@ -332,7 +332,7 @@ public class Constants {
 	public static String KEY_STACK_INSTANCE_SEARCH_INDEX_DOCUMENT_ENDPOINT = "stack.instance.search.index.document.endpoint";
 	
 	/**
-	 * Stack solution for "64bit Amazon Linux 2017.03 v2.5.5 running Tomcat 8 Java 8"
+	 * Stack solution for "64bit Amazon Linux 2017.03 v2.6.5 running Tomcat 8 Java 8"
 	 */
 	public static final String SOLUTION_STACK_NAME_64BIT_TOMCAT8_JAVA8_2017_03_AMI = "64bit Amazon Linux 2017.03 v2.6.5 running Tomcat 8 Java 8";
 	
