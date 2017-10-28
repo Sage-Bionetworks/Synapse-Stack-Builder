@@ -248,7 +248,7 @@ public class ElasticBeanstalkSetup implements ResourceProcessor {
 			CreateConfigurationTemplateRequest request = new CreateConfigurationTemplateRequest();
 			request.setApplicationName(config.getElasticBeanstalkApplicationName());
 			request.setTemplateName(templateName);
-			request.setSolutionStackName(Constants.SOLUTION_STACK_NAME_64BIT_TOMCAT7_JAVA7_2016_03_AMI);
+			request.setSolutionStackName(Constants.SOLUTION_STACK_NAME_64BIT_TOMCAT8_JAVA8_2017_03_AMI);
 			request.setOptionSettings(cfgOptSettings);
 			beanstalkClient.createConfigurationTemplate(request);
 		}else{
