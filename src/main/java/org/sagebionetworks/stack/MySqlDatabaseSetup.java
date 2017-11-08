@@ -15,6 +15,7 @@ import java.util.List;
 
 import static org.sagebionetworks.stack.Constants.*;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
+import org.sagebionetworks.stack.util.Sleeper;
 
 /**
  * Setup the MySQL database
@@ -29,13 +30,15 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 	private AmazonRDSClient client;
 	private InputConfiguration config;
 	private GeneratedResources resources;
+	private Sleeper sleeper;
 	/**
 	 * The IoC constructor.
 	 * @param client
 	 * @param config
 	 */
-	public MySqlDatabaseSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
+	public MySqlDatabaseSetup(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources, Sleeper sleeper) {
 		this.initialize(factory, config, resources);
+		this.sleeper = sleeper;
 	}
 
 	public void initialize(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
@@ -47,7 +50,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		this.resources = resources;
 	}
 	
-	public void setupResources() {
+	public void setupResources() throws InterruptedException {
 		this.setupAllDatabaseInstances();
 	}
 	
@@ -88,7 +91,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 	 * @param client
 	 * @param config
 	 */
-	public void setupAllDatabaseInstances(){
+	public void setupAllDatabaseInstances() throws InterruptedException {
 		// Build the request to create the ID generator database.
 		CreateDBInstanceRequest request = buildIdGeneratorCreateDBInstanceRequest();
 		
@@ -134,21 +137,31 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 	 * Wait for a database to be available
 	 * @param stackInstance
 	 */
-	public DBInstance waitForDatabase(DBInstance stackInstance) {
+	public DBInstance waitForDatabase(DBInstance stackInstance) throws InterruptedException {
 		String status = null;
 		DBInstance instance = null;
-		do{
+		// Try to minimize risk of bouncing available status
+		boolean available = false;
+		int numSuccesses = 0;
+		for (int i = 0; i < 10; i++) {
+			sleeper.sleep(30000);
 			DescribeDBInstancesResult result = client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(stackInstance.getDBInstanceIdentifier()));
 			instance = result.getDBInstances().get(0);
 			status = instance.getDBInstanceStatus();
 			log.info(String.format("Waiting for database: instance: %1$s status: %2$s ", stackInstance.getDBInstanceIdentifier(), status));
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
+			available = "available".equals(status.toLowerCase());
+			if (available) {
+				numSuccesses++;
 			}
-		}while(!"available".equals(status));
-		return instance;
+			if (numSuccesses > 3) {
+				break;
+			}
+		}
+		if (available && (numSuccesses >= 2)) {
+			return instance;
+		} else {
+			return null;
+		}
 	}
 	
 

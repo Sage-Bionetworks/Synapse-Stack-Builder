@@ -17,6 +17,8 @@ import org.sagebionetworks.stack.factory.AmazonClientFactoryImpl;
 import org.sagebionetworks.stack.notifications.EnvironmentInstancesNotificationSetup;
 import org.sagebionetworks.stack.notifications.StackInstanceNotificationSetup;
 import org.sagebionetworks.stack.ssl.ACMSetup;
+import org.sagebionetworks.stack.util.Sleeper;
+import org.sagebionetworks.stack.util.SleeperImpl;
 
 /**
  * The main class to start the stack builder
@@ -31,6 +33,8 @@ public class BuildStackMain {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		SleeperImpl sleeper = new SleeperImpl();
+		
 		try{
 			// Log the args.
 			logArgs(args);
@@ -45,7 +49,7 @@ public class BuildStackMain {
 				input = System.getProperties();
 			}
 			// Load the configuration
-			buildStack(input, new AmazonClientFactoryImpl());
+			buildStack(input, new AmazonClientFactoryImpl(), sleeper);
 
 		}catch(Throwable e){
 			log.error("Terminating: ",e);
@@ -60,7 +64,7 @@ public class BuildStackMain {
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	public static GeneratedResources buildStack(Properties inputProps, AmazonClientFactory factory) throws FileNotFoundException, IOException, InterruptedException {
+	public static GeneratedResources buildStack(Properties inputProps, AmazonClientFactory factory, Sleeper sleeper) throws FileNotFoundException, IOException, InterruptedException {
 		// First load the configuration properties.
 		InputConfiguration config = new InputConfiguration(inputProps);
 		// Set the credentials
@@ -75,7 +79,7 @@ public class BuildStackMain {
 		GeneratedResources resources = new GeneratedResources();
 		
 		// Since the search index can take time to setup, we buid it first.
-		new SearchIndexSetup(factory, config, resources).setupResources();
+		new SearchIndexSetup(factory, config, resources, sleeper).setupResources();
 		
 		// Setup the Route53 CNAMEs
 		new Route53Setup(factory, config, resources).setupResources();
@@ -94,7 +98,7 @@ public class BuildStackMain {
 		new DatabaseSecuritySetup(factory, config, resources).setupResources();
 		
 		// We are ready to create the database instances
-		new MySqlDatabaseSetup(factory, config, resources).setupResources();
+		new MySqlDatabaseSetup(factory, config, resources, sleeper).setupResources();
 		
 		// Add all of the the alarms
 		new RdsAlarmSetup(factory, config, resources).setupResources();
@@ -115,7 +119,7 @@ public class BuildStackMain {
 		new ElasticBeanstalkSetup(factory, config, resources).setupResources();
 		
 		// Setup the alarm for unhealthy instances on load balancer
-		new ElbAlarmSetup(factory, config, resources).setupResources();
+		new ElbAlarmSetup(factory, config, resources, sleeper).setupResources();
 		
 		// Return all of the generated objects
 		return resources;

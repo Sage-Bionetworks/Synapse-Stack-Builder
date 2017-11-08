@@ -12,6 +12,7 @@ import com.amazonaws.services.cloudsearchv2.model.DescribeDomainsRequest;
 import com.amazonaws.services.cloudsearchv2.model.DescribeDomainsResult;
 import com.amazonaws.services.cloudsearchv2.model.DomainStatus;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
+import org.sagebionetworks.stack.util.Sleeper;
 
 /**
  * Setup the Cloud search index for this stack isntance.
@@ -25,10 +26,13 @@ public class SearchIndexSetup implements ResourceProcessor {
 	AmazonCloudSearchClient client;
 	InputConfiguration config;
 	GeneratedResources resources;
+	private Sleeper sleeper;
+	
 	public SearchIndexSetup(AmazonClientFactory factory,
-			InputConfiguration config, GeneratedResources resources) {
+			InputConfiguration config, GeneratedResources resources, Sleeper sleeper) {
 		super();
 		this.initialize(factory, config, resources);
+		this.sleeper = sleeper;
 	}
 	
 	public void initialize(AmazonClientFactory factory, InputConfiguration config, GeneratedResources resources) {
@@ -37,21 +41,26 @@ public class SearchIndexSetup implements ResourceProcessor {
 		this.resources = resources;
 	}
 	
-	public void setupResources() {
+	public void setupResources() throws InterruptedException {
 		String domainName = config.getSearchIndexDomainName();
 		// Does this search domain exist?
-		DomainStatus domain = describeDomains();
+		DomainStatus domain = getDomainStatus(domainName);
 		if(domain == null){
 			// We need to create it.
 			log.debug(String.format("Search index domain: '%1$s' does not exist, so creating it...",domainName));
 			CreateDomainResult result = client.createDomain(new CreateDomainRequest().withDomainName(domainName));
-			domain = describeDomains();
+			domain = getDomainStatus(domainName);
 			this.resources.setSearchDomain(domain);
 		}else{
 			// It already exists
 			log.debug(String.format("Search index domain: '%1$s' already exists.", domainName));
 			this.resources.setSearchDomain(domain);
-		}		
+		}
+
+		DomainStatus ds = waitForSearchDomain(domainName);
+		if (ds == null) {
+			throw new RuntimeException("Search domain not available yet");
+		}
 	}
 	
 	public void teardownResources() {
@@ -69,7 +78,7 @@ public class SearchIndexSetup implements ResourceProcessor {
 	
 	public void describeResources() {
 		String domainName = config.getSearchIndexDomainName();
-		DomainStatus domain = describeDomains();
+		DomainStatus domain = getDomainStatus(domainName);
 		if (domain != null) {
 			this.resources.setSearchDomain(domain);
 		}
@@ -78,10 +87,35 @@ public class SearchIndexSetup implements ResourceProcessor {
 	public void setupSearch(){
 	}
 	
-	private DomainStatus describeDomains(){
-		DescribeDomainsResult result = client.describeDomains(new DescribeDomainsRequest().withDomainNames(config.getSearchIndexDomainName()));
-		if((result != null) && (result.getDomainStatusList().size() == 1)) return result.getDomainStatusList().get(0);
-		return null;
+	private DomainStatus getDomainStatus(String domainName){
+		DescribeDomainsResult result = client.describeDomains(new DescribeDomainsRequest().withDomainNames(domainName));
+		if ((result != null) && (result.getDomainStatusList().size() == 1)) {
+			return result.getDomainStatusList().get(0);
+		} else {
+			return null;
+		}
+	}
+	
+	private DomainStatus waitForSearchDomain(String domainName) throws InterruptedException {
+		DomainStatus domainStatus = null;
+		boolean available = false;
+		int numSuccesses = 0;
+		for (int i =0; i < 10; i++) {
+			this.sleeper.sleep(30000);
+			domainStatus = getDomainStatus(domainName);
+			available = domainStatus.isCreated() && (!domainStatus.isProcessing());
+			if (available) {
+				numSuccesses++;
+			}
+			if (numSuccesses > 3) {
+				break;
+			}
+		}
+		if (available && (numSuccesses >= 2)) {
+			return domainStatus;
+		} else {
+			return null;
+		}
 	}
 
 }
