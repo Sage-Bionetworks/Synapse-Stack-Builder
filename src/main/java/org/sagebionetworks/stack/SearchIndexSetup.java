@@ -41,7 +41,7 @@ public class SearchIndexSetup implements ResourceProcessor {
 		this.resources = resources;
 	}
 	
-	public void setupResources() {
+	public void setupResources() throws InterruptedException {
 		String domainName = config.getSearchIndexDomainName();
 		// Does this search domain exist?
 		DomainStatus domain = getDomainStatus(domainName);
@@ -96,7 +96,7 @@ public class SearchIndexSetup implements ResourceProcessor {
 		}
 	}
 	
-	private DomainStatus waitForSearchDomain(String domainName) {
+	private DomainStatus waitForSearchDomain(String domainName) throws InterruptedException {
 		DomainStatus domainStatus = null;
 		boolean available = false;
 		int numSuccesses = 0;

@@ -15,11 +15,12 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import static org.mockito.Mockito.when;
+
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.*;
+
 import org.mockito.Mockito;
-import static org.mockito.Mockito.doNothing;
 
 
 import org.sagebionetworks.factory.MockAmazonClientFactory;
@@ -46,55 +47,109 @@ public class SearchIndexSetupTest {
 	}
 	
 	@Test
-	public void testSetupResourcesExistentDomain() {
+	public void testSetupResourcesExistentDomain() throws Exception {
 		String expectedDomainName = config.getSearchIndexDomainName();
 		SearchIndexSetup idx = new SearchIndexSetup(factory, config, resources, mockSleeper);
 		DomainStatus domainStatus = new DomainStatus().withDomainName(expectedDomainName).withCreated(Boolean.TRUE).withProcessing(Boolean.FALSE);
 		DescribeDomainsResult expectedRes = new DescribeDomainsResult().withDomainStatusList(domainStatus);
-		when(mockClient.describeDomains(any(DescribeDomainsRequest.class))).thenReturn(expectedRes, expectedRes);
+		when(mockClient.describeDomains(any(DescribeDomainsRequest.class))).thenReturn(expectedRes);
 		when(mockClient.createDomain(any(CreateDomainRequest.class))).thenReturn(new CreateDomainResult().withDomainStatus(domainStatus));
-		doNothing().when(mockSleeper).sleep(anyLong());
+
+		// Call under test
 		idx.setupResources();
+
 		assertNotNull(resources.getSearchDomain());
 		assertEquals(expectedDomainName, resources.getSearchDomain().getDomainName());
+		verify(mockClient, times(5)).describeDomains(any(DescribeDomainsRequest.class));
+		verify(mockSleeper, times(4)).sleep(anyLong());
 	}
-	
+
 	@Test
-	public void testSetupResourcesNonExistentDomain() {
+	public void testSetupResourcesExistentDomainNotActive() throws Exception {
+		String expectedDomainName = config.getSearchIndexDomainName();
+		SearchIndexSetup idx = new SearchIndexSetup(factory, config, resources, mockSleeper);
+		DomainStatus domainStatusProcessing = new DomainStatus().withDomainName(expectedDomainName).withCreated(Boolean.TRUE).withProcessing(Boolean.TRUE);
+		DescribeDomainsResult expectedRes1 = new DescribeDomainsResult().withDomainStatusList(domainStatusProcessing);
+		DomainStatus domainStatusActive = new DomainStatus().withDomainName(expectedDomainName).withCreated(Boolean.TRUE).withProcessing(Boolean.FALSE);
+		DescribeDomainsResult expectedRes2 = new DescribeDomainsResult().withDomainStatusList(domainStatusActive);
+		when(mockClient.describeDomains(any(DescribeDomainsRequest.class))).thenReturn(expectedRes1, expectedRes1, expectedRes2);
+		when(mockClient.createDomain(any(CreateDomainRequest.class))).thenReturn(new CreateDomainResult().withDomainStatus(domainStatusProcessing));
+
+		// Call under test
+		idx.setupResources();
+
+		assertNotNull(resources.getSearchDomain());
+		assertEquals(expectedDomainName, resources.getSearchDomain().getDomainName());
+		verify(mockClient, times(6)).describeDomains(any(DescribeDomainsRequest.class));
+		verify(mockSleeper, times(5)).sleep(anyLong());
+	}
+
+	@Test(expected=RuntimeException.class)
+	public void testSetupResourcesExistentDomainNeverActive() throws Exception {
+		String expectedDomainName = config.getSearchIndexDomainName();
+		SearchIndexSetup idx = new SearchIndexSetup(factory, config, resources, mockSleeper);
+		DomainStatus domainStatusProcessing = new DomainStatus().withDomainName(expectedDomainName).withCreated(Boolean.TRUE).withProcessing(Boolean.TRUE);
+		DescribeDomainsResult expectedRes1 = new DescribeDomainsResult().withDomainStatusList(domainStatusProcessing);
+		DomainStatus domainStatusActive = new DomainStatus().withDomainName(expectedDomainName).withCreated(Boolean.TRUE).withProcessing(Boolean.FALSE);
+		DescribeDomainsResult expectedRes2 = new DescribeDomainsResult().withDomainStatusList(domainStatusActive);
+		when(mockClient.describeDomains(any(DescribeDomainsRequest.class))).thenReturn(expectedRes1);
+		when(mockClient.createDomain(any(CreateDomainRequest.class))).thenReturn(new CreateDomainResult().withDomainStatus(domainStatusProcessing));
+
+		// Call under test
+		idx.setupResources();
+
+		assertNotNull(resources.getSearchDomain());
+		assertEquals(expectedDomainName, resources.getSearchDomain().getDomainName());
+		verify(mockClient, times(11)).describeDomains(any(DescribeDomainsRequest.class));
+		verify(mockSleeper, times(10)).sleep(anyLong());
+	}
+
+	@Test
+	public void testSetupResourcesNonExistentDomain() throws Exception {
 		String expectedDomainName = config.getSearchIndexDomainName();
 		SearchIndexSetup idx = new SearchIndexSetup(factory, config, resources, mockSleeper);
 		DomainStatus domainStatus = new DomainStatus().withDomainName(expectedDomainName).withCreated(Boolean.TRUE).withProcessing(Boolean.FALSE);
 		DescribeDomainsResult expectedRes = new DescribeDomainsResult().withDomainStatusList(domainStatus);
-		when(mockClient.describeDomains(any(DescribeDomainsRequest.class))).thenReturn(null, expectedRes, expectedRes);
+		when(mockClient.describeDomains(any(DescribeDomainsRequest.class))).thenReturn(null, expectedRes);
 		when(mockClient.createDomain(any(CreateDomainRequest.class))).thenReturn(new CreateDomainResult().withDomainStatus(domainStatus));
 		DescribeDomainsResult expectedDescribeRes = new DescribeDomainsResult().withDomainStatusList(domainStatus);
-		doNothing().when(mockSleeper).sleep(anyLong());
+
+		// Call under test
 		idx.setupResources();
+
 		assertNotNull(resources.getSearchDomain());
 		assertEquals(expectedDomainName, resources.getSearchDomain().getDomainName());
+		verify(mockClient, times(6)).describeDomains(any(DescribeDomainsRequest.class));
+		verify(mockSleeper, times(4)).sleep(anyLong());
 	}
 	
 	@Test
-	public void testDescribeResourcesExistentDomain() {
+	public void testDescribeResourcesExistentDomain() throws Exception {
 		String expectedDomainName = config.getSearchIndexDomainName();
 		SearchIndexSetup idx = new SearchIndexSetup(factory, config, resources, mockSleeper);
 		DomainStatus domainStatus = new DomainStatus().withDomainName(expectedDomainName);
 		DescribeDomainsResult expectedRes = new DescribeDomainsResult().withDomainStatusList(domainStatus);
 		when(mockClient.describeDomains(any(DescribeDomainsRequest.class))).thenReturn(expectedRes);
-		doNothing().when(mockSleeper).sleep(anyLong());
+
+		// Call under test
 		idx.describeResources();
+
 		assertNotNull(resources.getSearchDomain());
 		assertEquals(expectedDomainName, resources.getSearchDomain().getDomainName());
+		verify(mockSleeper, never()).sleep(anyLong());
 	}
 	
 	@Test
-	public void testDescribeResourcesNonExistentDomain() {
+	public void testDescribeResourcesNonExistentDomain() throws Exception {
 		String expectedDomainName = config.getSearchIndexDomainName();
 		SearchIndexSetup idx = new SearchIndexSetup(factory, config, resources, mockSleeper);
 		DomainStatus domainStatus = new DomainStatus().withDomainName(expectedDomainName);
 		when(mockClient.describeDomains(any(DescribeDomainsRequest.class))).thenReturn(null);
-		doNothing().when(mockSleeper).sleep(anyLong());
+
+		// Call under test
 		idx.describeResources();
+
 		assertNull(resources.getSearchDomain());
+		verify(mockSleeper, never()).sleep(anyLong());
 	}
 }

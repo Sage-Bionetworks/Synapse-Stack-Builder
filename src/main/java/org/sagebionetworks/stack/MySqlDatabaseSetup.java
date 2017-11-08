@@ -50,7 +50,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		this.resources = resources;
 	}
 	
-	public void setupResources() {
+	public void setupResources() throws InterruptedException {
 		this.setupAllDatabaseInstances();
 	}
 	
@@ -91,7 +91,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 	 * @param client
 	 * @param config
 	 */
-	public void setupAllDatabaseInstances(){
+	public void setupAllDatabaseInstances() throws InterruptedException {
 		// Build the request to create the ID generator database.
 		CreateDBInstanceRequest request = buildIdGeneratorCreateDBInstanceRequest();
 		
@@ -137,7 +137,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 	 * Wait for a database to be available
 	 * @param stackInstance
 	 */
-	public DBInstance waitForDatabase(DBInstance stackInstance) {
+	public DBInstance waitForDatabase(DBInstance stackInstance) throws InterruptedException {
 		String status = null;
 		DBInstance instance = null;
 		// Try to minimize risk of bouncing available status
