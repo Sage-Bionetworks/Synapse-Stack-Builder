@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
 import static org.junit.Assert.*;
@@ -18,7 +17,7 @@ import com.amazonaws.services.cloudwatch.model.Dimension;
 import com.amazonaws.services.cloudwatch.model.MetricAlarm;
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
 import com.amazonaws.services.rds.model.DBInstance;
-import com.amazonaws.services.sns.model.CreateTopicResult;
+
 import java.util.ArrayList;
 import org.junit.Ignore;
 import org.sagebionetworks.factory.MockAmazonClientFactory;
@@ -47,7 +46,7 @@ public class RdsAlarmSetupTest {
 	@Before
 	public void before() throws IOException{
 		databaseIdentifer = "db-id-foo";
-		dbInstance = new DBInstance().withDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL).withDBInstanceIdentifier(databaseIdentifer);
+		dbInstance = new DBInstance().withDBInstanceClass(DATABASE_INSTANCE_CLASS_M1_SMALL).withDBInstanceIdentifier(databaseIdentifer);
 		// Give this 10 GB
 		dbInstance.setAllocatedStorage(10);
 		topicArn = "arn:123:456";
@@ -55,12 +54,12 @@ public class RdsAlarmSetupTest {
 		mockClient = factory.createCloudWatchClient();
 		resources = new GeneratedResources();
 		resources.setStackInstanceNotificationTopicArn(topicArn);
-		resources.setStackInstancesDatabase(new DBInstance().withAllocatedStorage(50).withDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL).withDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier()));
-		resources.setIdGeneratorDatabase(new DBInstance().withAllocatedStorage(10).withDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL).withDBInstanceIdentifier(config.getIdGeneratorDatabaseIdentifier()));
+		resources.setStackInstancesDatabase(new DBInstance().withAllocatedStorage(50).withDBInstanceClass(DATABASE_INSTANCE_CLASS_M1_SMALL).withDBInstanceIdentifier(config.getStackInstanceDatabaseIdentifier()));
+		resources.setIdGeneratorDatabase(new DBInstance().withAllocatedStorage(10).withDBInstanceClass(DATABASE_INSTANCE_CLASS_M1_SMALL).withDBInstanceIdentifier(config.getIdGeneratorDatabaseIdentifier()));
 		List<DBInstance> stackInstanceTablesDatabases = new ArrayList<DBInstance>();
 		int numTableInstances = Integer.parseInt(config.getNumberTableInstances());
 		for (int i = 0; i < numTableInstances; i++) {
-			DBInstance stackInstanceDatabase = new DBInstance().withAllocatedStorage(10).withDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL).withDBInstanceIdentifier(config.getStackTableDBInstanceDatabaseIdentifier(i));
+			DBInstance stackInstanceDatabase = new DBInstance().withAllocatedStorage(10).withDBInstanceClass(DATABASE_INSTANCE_CLASS_M1_SMALL).withDBInstanceIdentifier(config.getStackTableDBInstanceDatabaseIdentifier(i));
 			stackInstanceTablesDatabases.add(stackInstanceDatabase);
 		}
 		resources.setStackInstanceTablesDatabases(stackInstanceTablesDatabases);
@@ -82,7 +81,7 @@ public class RdsAlarmSetupTest {
 	@Test
 	public void testCreateLowFreeableMemorySmallInstances(){
 		// the free able memory alarm is a function of the instances size
-		Double totalMemory = Constants.getDatabaseClassMemrorySizeBytes(DATABASE_INSTANCE_CLASS_SMALL);
+		Double totalMemory = Constants.getDatabaseClassMemrorySizeBytes(DATABASE_INSTANCE_CLASS_M1_SMALL);
 		System.out.println("Small memory total: "+totalMemory+" bytes");
 		PutMetricAlarmRequest expected = RdsAlarmSetup.createDefaultPutMetricRequest(dbInstance, topicArn);
 		expected.setAlarmName(databaseIdentifer+"-Low-Freeable-Memory");
@@ -98,8 +97,8 @@ public class RdsAlarmSetupTest {
 	public void testCreateLowFreeableMemoryLargeInstances(){
 		// the free able memory alarm is a function of the instances size
 		// Set the size to large
-		dbInstance.setDBInstanceClass(DATABASE_INSTANCE_CLASS_LARGE);
-		Double totalMemory = Constants.getDatabaseClassMemrorySizeBytes(DATABASE_INSTANCE_CLASS_LARGE);
+		dbInstance.setDBInstanceClass(DATABASE_INSTANCE_CLASS_M1_LARGE);
+		Double totalMemory = Constants.getDatabaseClassMemrorySizeBytes(DATABASE_INSTANCE_CLASS_M1_LARGE);
 		System.out.println("Large memory total: "+totalMemory+" bytes");
 		PutMetricAlarmRequest expected = RdsAlarmSetup.createDefaultPutMetricRequest(dbInstance, topicArn);
 		expected.setAlarmName(databaseIdentifer+"-Low-Freeable-Memory");

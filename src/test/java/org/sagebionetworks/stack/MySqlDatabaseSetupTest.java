@@ -7,9 +7,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.stack.Constants.DATABASE_ENGINE_MYSQL;
 import static org.sagebionetworks.stack.Constants.DATABASE_ENGINE_MYSQL_VERSION;
-import static org.sagebionetworks.stack.Constants.DATABASE_INSTANCE_CLASS_LARGE;
-import static org.sagebionetworks.stack.Constants.DATABASE_INSTANCE_CLASS_SMALL;
-import static org.sagebionetworks.stack.Constants.EC2_AVAILABILITY_ZONE_US_EAST_1D;
+import static org.sagebionetworks.stack.Constants.DATABASE_INSTANCE_CLASS_M1_LARGE;
+import static org.sagebionetworks.stack.Constants.DATABASE_INSTANCE_CLASS_R3_LARGE;
+import static org.sagebionetworks.stack.Constants.DATABASE_INSTANCE_CLASS_M1_SMALL;
 import static org.sagebionetworks.stack.Constants.LICENSE_MODEL_GENERAL_PUBLIC;
 import static org.sagebionetworks.stack.Constants.PREFERRED_DATABASE_BACKUP_WINDOW_MIDNIGHT;
 import static org.sagebionetworks.stack.Constants.PREFERRED_DATABASE_MAINTENANCE_WINDOW_SUNDAY_NIGHT_PDT;
@@ -18,7 +18,6 @@ import java.io.IOException;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.services.rds.AmazonRDSClient;
@@ -82,7 +81,7 @@ public class MySqlDatabaseSetupTest {
 		// There are the current expected defaults.
 		CreateDBInstanceRequest expected = new CreateDBInstanceRequest();
 		expected.setAllocatedStorage(new Integer(10));
-		expected.setDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL);
+		expected.setDBInstanceClass(DATABASE_INSTANCE_CLASS_M1_SMALL);
 		expected.setEngine(DATABASE_ENGINE_MYSQL);
 //		expected.setAvailabilityZone(EC2_AVAILABILITY_ZONE_US_EAST_1D);
 		expected.setPreferredMaintenanceWindow(PREFERRED_DATABASE_MAINTENANCE_WINDOW_SUNDAY_NIGHT_PDT);
@@ -194,7 +193,7 @@ public class MySqlDatabaseSetupTest {
 		// another zone at all times!
 		expected.setMultiAZ(true);
 		// The production database should be a large
-		expected.setDBInstanceClass(DATABASE_INSTANCE_CLASS_LARGE);
+		expected.setDBInstanceClass(DATABASE_INSTANCE_CLASS_R3_LARGE);
 		expected.setDBName(config.getStackInstanceDatabaseSchema());
 		expected.setDBInstanceIdentifier(config	.getStackInstanceDatabaseIdentifier());
 		expected.setAllocatedStorage(new Integer(50));
@@ -220,7 +219,7 @@ public class MySqlDatabaseSetupTest {
 		// A development database must have Multi-AZ backup replication truned off!!!!
 		expected.setMultiAZ(false);
 		// The development database must be on a small.
-		expected.setDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL);
+		expected.setDBInstanceClass(DATABASE_INSTANCE_CLASS_M1_SMALL);
 		expected.setDBName(config.getStackInstanceDatabaseSchema());
 		expected.setDBInstanceIdentifier(config	.getStackInstanceDatabaseIdentifier());
 		expected.setAllocatedStorage(new Integer(10));
@@ -246,7 +245,7 @@ public class MySqlDatabaseSetupTest {
 		expectedReq.setBackupRetentionPeriod(0);
 		expectedReq.setMultiAZ(Boolean.FALSE);
 		expectedReq.setAllocatedStorage(250);
-		expectedReq.setDBInstanceClass(DATABASE_INSTANCE_CLASS_LARGE);
+		expectedReq.setDBInstanceClass(DATABASE_INSTANCE_CLASS_R3_LARGE);
 		CreateDBInstanceRequest request = databaseSetup.buildStackTableDBInstanceCreateDBInstanceRequest(0);
 		assertEquals(expectedReq, request);
 	}
@@ -264,7 +263,7 @@ public class MySqlDatabaseSetupTest {
 		expectedReq.setDBParameterGroupName(config.getDatabaseParameterGroupName());
 		expectedReq.setBackupRetentionPeriod(0);
 		expectedReq.setMultiAZ(Boolean.FALSE);
-		expectedReq.setDBInstanceClass(DATABASE_INSTANCE_CLASS_SMALL);
+		expectedReq.setDBInstanceClass(DATABASE_INSTANCE_CLASS_M1_SMALL);
 		CreateDBInstanceRequest request = databaseSetup.buildStackTableDBInstanceCreateDBInstanceRequest(0);
 		assertEquals(expectedReq, request);
 	}

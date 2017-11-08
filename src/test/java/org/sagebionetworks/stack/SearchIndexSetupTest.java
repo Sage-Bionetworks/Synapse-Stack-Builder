@@ -1,13 +1,13 @@
 package org.sagebionetworks.stack;
 
-import com.amazonaws.services.cloudsearch.AmazonCloudSearchClient;
-import com.amazonaws.services.cloudsearch.model.CreateDomainRequest;
-import com.amazonaws.services.cloudsearch.model.CreateDomainResult;
-import com.amazonaws.services.cloudsearch.model.DeleteDomainRequest;
-import com.amazonaws.services.cloudsearch.model.DeleteDomainResult;
-import com.amazonaws.services.cloudsearch.model.DescribeDomainsRequest;
-import com.amazonaws.services.cloudsearch.model.DescribeDomainsResult;
-import com.amazonaws.services.cloudsearch.model.DomainStatus;
+import com.amazonaws.services.cloudsearchv2.AmazonCloudSearchClient;
+import com.amazonaws.services.cloudsearchv2.model.CreateDomainRequest;
+import com.amazonaws.services.cloudsearchv2.model.CreateDomainResult;
+import com.amazonaws.services.cloudsearchv2.model.DeleteDomainRequest;
+import com.amazonaws.services.cloudsearchv2.model.DeleteDomainResult;
+import com.amazonaws.services.cloudsearchv2.model.DescribeDomainsRequest;
+import com.amazonaws.services.cloudsearchv2.model.DescribeDomainsResult;
+import com.amazonaws.services.cloudsearchv2.model.DomainStatus;
 import com.amazonaws.services.simpleworkflow.model.DescribeDomainRequest;
 import java.io.IOException;
 

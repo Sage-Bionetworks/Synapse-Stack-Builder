@@ -2,7 +2,7 @@ package org.sagebionetworks.stack;
 
 import java.net.URL;
 
-import com.amazonaws.services.cloudsearch.model.DomainStatus;
+import com.amazonaws.services.cloudsearchv2.model.DomainStatus;
 import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult;
 import com.amazonaws.services.ec2.model.KeyPairInfo;
 import com.amazonaws.services.ec2.model.SecurityGroup;

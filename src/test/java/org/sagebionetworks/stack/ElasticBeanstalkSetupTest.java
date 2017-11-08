@@ -83,7 +83,7 @@ public class ElasticBeanstalkSetupTest {
 		CreateConfigurationTemplateRequest expectedCctReq = new CreateConfigurationTemplateRequest();
 		expectedCctReq.setApplicationName(config.getElasticBeanstalkApplicationName());
 		expectedCctReq.setOptionSettings(cfgOptSettings);
-		expectedCctReq.setSolutionStackName(Constants.SOLUTION_STACK_NAME_64BIT_TOMCAT_7);
+		expectedCctReq.setSolutionStackName(Constants.SOLUTION_STACK_NAME_64BIT_TOMCAT8_JAVA8_2017_03_AMI);
 		expectedCctReq.setTemplateName(templateName);
 		setup.createOrUpdateConfigurationTemplate(templateName, cfgOptSettings);
 		verify(mockClient).createConfigurationTemplate(expectedCctReq);
@@ -128,13 +128,14 @@ public class ElasticBeanstalkSetupTest {
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("LoadBalancerHTTPSPort").withValue("443"));
 		
 		// From the container tab.
-		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:container:tomcat:jvmoptions").withOptionName("Xmx").withValue("1536m"));
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:container:tomcat:jvmoptions").withOptionName("Xmx").withValue("1024m"));
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application:environment").withOptionName("AWS_ACCESS_KEY_ID").withValue(config.getAWSAccessKey()));
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application:environment").withOptionName("AWS_SECRET_KEY").withValue(config.getAWSSecretKey()));
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application:environment").withOptionName("PARAM1").withValue(config.getStackConfigurationFileURL()));
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application:environment").withOptionName("PARAM2").withValue(config.getEncryptionKey()));
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application:environment").withOptionName("PARAM3").withValue(config.getStack()));
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:application:environment").withOptionName("PARAM4").withValue(config.getStackInstance()));
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elasticbeanstalk:hostmanager").withOptionName("LogPublicationControl").withValue("false"));
 		
 		// Check if the SSLCertificateID is correctly added for "plfm' and "portal" cases
 		expected.add(new ConfigurationOptionSetting().withNamespace("aws:elb:loadbalancer").withOptionName("SSLCertificateId").withValue(resources.getACMCertificateArn(StackEnvironmentType.REPO)));
@@ -189,14 +190,14 @@ public class ElasticBeanstalkSetupTest {
 	}
 	
 	@Test
-	public void testMinAutoScaleSizeProduction() throws IOException{
+	public void testMinAutoScaleSizeProductionRepo() throws IOException{
 		List<ConfigurationOptionSetting> expected = new LinkedList<ConfigurationOptionSetting>(); 
 		// For prod the min should be 2
 		config = TestHelper.createTestConfig("prod");
 		resources = TestHelper.createTestResources(config);
 		setup = new ElasticBeanstalkSetup(factory, config, resources);
 		// From the server tab
-		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("MinSize").withValue("4"));
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("MinSize").withValue("8"));
 		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions(StackEnvironmentType.REPO);
 		// Make sure we can find all of the expected values
 		for(ConfigurationOptionSetting expectedCon: expected){
@@ -205,7 +206,43 @@ public class ElasticBeanstalkSetupTest {
 			assertEquals("Values did not match for namespace: "+expectedCon.getNamespace()+" and option name: "+expectedCon.getOptionName(),expectedCon.getValue(), found.getValue());
 		}
 	}
-	
+
+	@Test
+	public void testMinAutoScaleSizeProductionWorkers() throws IOException{
+		List<ConfigurationOptionSetting> expected = new LinkedList<ConfigurationOptionSetting>();
+		// For prod the min should be 2
+		config = TestHelper.createTestConfig("prod");
+		resources = TestHelper.createTestResources(config);
+		setup = new ElasticBeanstalkSetup(factory, config, resources);
+		// From the server tab
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("MinSize").withValue("8"));
+		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions(StackEnvironmentType.WORKERS);
+		// Make sure we can find all of the expected values
+		for(ConfigurationOptionSetting expectedCon: expected){
+			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
+			assertNotNull("Failed to find expected configuration: "+expectedCon,found);
+			assertEquals("Values did not match for namespace: "+expectedCon.getNamespace()+" and option name: "+expectedCon.getOptionName(),expectedCon.getValue(), found.getValue());
+		}
+	}
+
+	@Test
+	public void testMinAutoScaleSizeProductionPortal() throws IOException{
+		List<ConfigurationOptionSetting> expected = new LinkedList<ConfigurationOptionSetting>();
+		// For prod the min should be 2
+		config = TestHelper.createTestConfig("prod");
+		resources = TestHelper.createTestResources(config);
+		setup = new ElasticBeanstalkSetup(factory, config, resources);
+		// From the server tab
+		expected.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:asg").withOptionName("MinSize").withValue("4"));
+		List<ConfigurationOptionSetting> result = setup.getAllElasticBeanstalkOptions(StackEnvironmentType.PORTAL);
+		// Make sure we can find all of the expected values
+		for(ConfigurationOptionSetting expectedCon: expected){
+			ConfigurationOptionSetting found = find(expectedCon.getNamespace(), expectedCon.getOptionName(), result);
+			assertNotNull("Failed to find expected configuration: "+expectedCon,found);
+			assertEquals("Values did not match for namespace: "+expectedCon.getNamespace()+" and option name: "+expectedCon.getOptionName(),expectedCon.getValue(), found.getValue());
+		}
+	}
+
 	/**
 	 * This is a test for PLFM-1560.
 	 * 

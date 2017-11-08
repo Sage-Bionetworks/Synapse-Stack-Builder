@@ -10,8 +10,8 @@ import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescripti
 import com.amazonaws.services.identitymanagement.model.ServerCertificateMetadata;
 import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.Endpoint;
-import com.amazonaws.services.cloudsearch.model.DomainStatus;
-import com.amazonaws.services.cloudsearch.model.ServiceEndpoint;
+import com.amazonaws.services.cloudsearchv2.model.DomainStatus;
+import com.amazonaws.services.cloudsearchv2.model.ServiceEndpoint;
 import com.amazonaws.services.route53.model.ListResourceRecordSetsRequest;
 import com.amazonaws.services.route53.model.ListResourceRecordSetsResult;
 import com.amazonaws.services.route53.model.RRType;
@@ -86,6 +86,10 @@ public class TestHelper {
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_CLOUDMAILIN_PW_PLAINTEXT, "cloudmailinpwd");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_OAUTH2_ORCID_CLIENT_ID, "oauth2orcidid");
 		defaults.put(KEY_ORG_SAGEBIONETWORKS_OAUTH2_ORCID_CLIENT_SECRET, "oauth2orcidsecret");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_DOCKER_AUTHORIZATION_PRIVATE_KEY_PLAINTEXT, "privateKey");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_DOCKER_AUTHORIZATION_CERTIFICATE, "certificate");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_DOCKER_REGISTRY_USER_PLAINTEXT, "dockerreguser");
+		defaults.put(KEY_ORG_SAGEBIONETWORKS_DOCKER_REGISTRY_PASSWORD_PLAINTEXT, "dockerregpwd");
 		
 		return defaults;
 	}

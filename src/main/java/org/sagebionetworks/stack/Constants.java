@@ -100,6 +100,10 @@ public class Constants {
 	public static final String KEY_ORG_SAGEBIONETWORKS_CLOUDMAILIN_PW_PLAINTEXT = "org.sagebionetworks.email.cloudmailin.password.plaintext";
 	public static final String KEY_ORG_SAGEBIONETWORKS_OAUTH2_ORCID_CLIENT_ID="org.sagebionetworks.oauth2.orcid.client.id";
 	public static final String KEY_ORG_SAGEBIONETWORKS_OAUTH2_ORCID_CLIENT_SECRET="org.sagebionetworks.oauth2.orcid.client.secret.plaintext";
+	public static final String KEY_ORG_SAGEBIONETWORKS_DOCKER_AUTHORIZATION_PRIVATE_KEY_PLAINTEXT="org.sagebionetworks.docker.authorization.private.key.plaintext";
+	public static final String KEY_ORG_SAGEBIONETWORKS_DOCKER_AUTHORIZATION_CERTIFICATE="org.sagebionetworks.docker.authorization.certificate";
+	public static final String KEY_ORG_SAGEBIONETWORKS_DOCKER_REGISTRY_USER_PLAINTEXT="org.sagebionetworks.docker.registry.user.plaintext";
+	public static final String KEY_ORG_SAGEBIONETWORKS_DOCKER_REGISTRY_PASSWORD_PLAINTEXT="org.sagebionetworks.docker.registry.password.plaintext";
 
 	public static final String KEY_ORG_SAGEBIONETWORKS_PORTAL_ACM_CERT_ARN="org.sagebionetworks.PORTAL.acm.certificate.arn";
 	public static final String KEY_ORG_SAGEBIONETWORKS_REPO_ACM_CERT_ARN="org.sagebionetworks.REPO.acm.certificate.arn";
@@ -182,22 +186,32 @@ public class Constants {
 	 * The DB parameter key for the max allowed packet.
 	 */
 	public static final String DB_PARAM_KEY_MAX_ALLOWED_PACKET = "max_allowed_packet";
-	
+
+	/**
+	 * The DB paramater key for log_bin_trust_function_creators (see PLFM-4276)
+	 */
+	public static final String DB_PARAM_KEY_LOG_BIN_TRUST_FUNCTION_CREATORS = "log_bin_trust_function_creators";
+
 	/**
 	 * This is currently set to 16 MB per PLFM-1526.
 	 */
 	public static final long DB_PARAM_VALUE_MAX_ALLOWED_PACKET = 1024*1024*16;
 	
 	/**
-	 * Small database instance class
+	 * Small m1 database instance class
 	 */
-	public static final String DATABASE_INSTANCE_CLASS_SMALL = "db.m1.small";
+	public static final String DATABASE_INSTANCE_CLASS_M1_SMALL = "db.m1.small";
 	
 	
 	/**
-	 * Small database instance class
+	 * Large m1 database instance class
 	 */
-	public static final String DATABASE_INSTANCE_CLASS_LARGE = "db.m1.large";
+	public static final String DATABASE_INSTANCE_CLASS_M1_LARGE = "db.m1.large";
+
+	/**
+	 * Large r3 database instance class
+	 */
+	public static final String DATABASE_INSTANCE_CLASS_R3_LARGE = "db.r3.large";
 	
 	/**
 	 * 1 GB = 2^30 Bytes
@@ -210,10 +224,12 @@ public class Constants {
 	 */
 	private static final Map<String, Double> INSTANCE_MEMORY_MAP = new HashMap<String, Double>();
 	static{
-		// small 1.7 GB as of July 2012
-		INSTANCE_MEMORY_MAP.put(DATABASE_INSTANCE_CLASS_SMALL, 1.7*BYTES_PER_GIGABYTE);
-		// Large 7.5 GB as of July 2012
-		INSTANCE_MEMORY_MAP.put(DATABASE_INSTANCE_CLASS_LARGE, 7.5*BYTES_PER_GIGABYTE);
+		// m1.small 1.7 GB as of July 2012
+		INSTANCE_MEMORY_MAP.put(DATABASE_INSTANCE_CLASS_M1_SMALL, 1.7*BYTES_PER_GIGABYTE);
+		// m1.arge 7.5 GB as of July 2012
+		INSTANCE_MEMORY_MAP.put(DATABASE_INSTANCE_CLASS_M1_LARGE, 7.5*BYTES_PER_GIGABYTE);
+		// r3.large 15GB as of April 2017
+		INSTANCE_MEMORY_MAP.put(DATABASE_INSTANCE_CLASS_R3_LARGE, 15.0*BYTES_PER_GIGABYTE);
 	}
 	
 	/**
@@ -235,7 +251,7 @@ public class Constants {
 	/**
 	 * MySQL version.
 	 */
-	public static final String DATABASE_ENGINE_MYSQL_VERSION = "5.6.23";
+	public static final String DATABASE_ENGINE_MYSQL_VERSION = "5.6.34";
 	/**
 	 * us-east-1d
 	 */
@@ -316,19 +332,10 @@ public class Constants {
 	public static String KEY_STACK_INSTANCE_SEARCH_INDEX_DOCUMENT_ENDPOINT = "stack.instance.search.index.document.endpoint";
 	
 	/**
-	 * Stack solution name for "32bit Amazon Linux running Tomcat 7"
+	 * Stack solution for "64bit Amazon Linux 2017.03 v2.6.5 running Tomcat 8 Java 8"
 	 */
-	public static final String SOLUTION_STACK_NAME_32BIT_TOMCAT_7 = "32bit Amazon Linux running Tomcat 7";
-
-	/**
-	 * Stack solution name for "64bit Amazon Linux running Tomcat 7"
-	 */
-	public static final String SOLUTION_STACK_NAME_64BIT_TOMCAT_7 = "64bit Amazon Linux running Tomcat 7";
+	public static final String SOLUTION_STACK_NAME_64BIT_TOMCAT8_JAVA8_2017_03_AMI = "64bit Amazon Linux 2017.03 v2.6.5 running Tomcat 8 Java 8";
 	
-	/**
-	 * Stack solution name for "64bit Amazon Linux 2014.03 v1.0.3 running Tomcat 7 Java 7"
-	 */
-	public static final String SOLUTION_STACK_NAME_64BIT_TOMCAT7_JAVA7_2014_03_AMI = "64bit Amazon Linux 2014.03 v1.0.3 running Tomcat 7 Java 7";
 	/**
 	 * Properties file of all of the beanstalk config values.
 	 */

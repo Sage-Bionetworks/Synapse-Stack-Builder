@@ -12,7 +12,7 @@ import org.apache.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.util.PropertyFilter;
 
-import com.amazonaws.services.cloudsearch.model.DomainStatus;
+import com.amazonaws.services.cloudsearchv2.model.DomainStatus;
 import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.Bucket;
