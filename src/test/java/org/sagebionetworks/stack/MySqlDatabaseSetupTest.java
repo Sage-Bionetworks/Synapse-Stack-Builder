@@ -245,7 +245,7 @@ public class MySqlDatabaseSetupTest {
 		expectedReq.setDBParameterGroupName(config.getDatabaseParameterGroupName());
 		expectedReq.setBackupRetentionPeriod(0);
 		expectedReq.setMultiAZ(Boolean.FALSE);
-		expectedReq.setAllocatedStorage(250);
+		expectedReq.setAllocatedStorage(500);
 		expectedReq.setDBInstanceClass(DATABASE_INSTANCE_CLASS_R3_LARGE);
 		CreateDBInstanceRequest request = databaseSetup.buildStackTableDBInstanceCreateDBInstanceRequest(0);
 		assertEquals(expectedReq, request);

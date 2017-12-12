@@ -264,7 +264,7 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		CreateDBInstanceRequest request = getDefaultCreateDBInstanceRequest();
 		if (config.isProductionStack()) {
 			request.setDBInstanceClass(DATABASE_INSTANCE_CLASS_R3_LARGE);
-			request.setAllocatedStorage(new Integer(250));
+			request.setAllocatedStorage(new Integer(500));
 		} else {
 			request.setDBInstanceClass(DATABASE_INSTANCE_CLASS_M1_SMALL);
 			request.setAllocatedStorage(new Integer(10));
