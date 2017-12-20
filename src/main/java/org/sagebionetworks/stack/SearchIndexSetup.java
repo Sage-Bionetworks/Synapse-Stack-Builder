@@ -1,16 +1,10 @@
 package org.sagebionetworks.stack;
 
+import com.amazonaws.services.cloudsearchv2.model.*;
 import org.apache.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.services.cloudsearchv2.AmazonCloudSearchClient;
-import com.amazonaws.services.cloudsearchv2.model.CreateDomainRequest;
-import com.amazonaws.services.cloudsearchv2.model.CreateDomainResult;
-import com.amazonaws.services.cloudsearchv2.model.DeleteDomainRequest;
-import com.amazonaws.services.cloudsearchv2.model.DeleteDomainResult;
-import com.amazonaws.services.cloudsearchv2.model.DescribeDomainsRequest;
-import com.amazonaws.services.cloudsearchv2.model.DescribeDomainsResult;
-import com.amazonaws.services.cloudsearchv2.model.DomainStatus;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 import org.sagebionetworks.stack.util.Sleeper;
 
@@ -57,10 +51,9 @@ public class SearchIndexSetup implements ResourceProcessor {
 			this.resources.setSearchDomain(domain);
 		}
 
-		DomainStatus ds = waitForSearchDomain(domainName);
-		if (ds == null) {
-			throw new RuntimeException("Search domain not available yet");
-		}
+		// Now we should have a search domain
+		updateSearchDomainScaling(domainName);
+
 	}
 	
 	public void teardownResources() {
@@ -84,9 +77,6 @@ public class SearchIndexSetup implements ResourceProcessor {
 		}
 	}
 	
-	public void setupSearch(){
-	}
-	
 	private DomainStatus getDomainStatus(String domainName){
 		DescribeDomainsResult result = client.describeDomains(new DescribeDomainsRequest().withDomainNames(domainName));
 		if ((result != null) && (result.getDomainStatusList().size() == 1)) {
@@ -96,7 +86,7 @@ public class SearchIndexSetup implements ResourceProcessor {
 		}
 	}
 	
-	private DomainStatus waitForSearchDomain(String domainName) throws InterruptedException {
+	public DomainStatus waitForSearchDomain(String domainName) throws InterruptedException {
 		DomainStatus domainStatus = null;
 		boolean available = false;
 		int numSuccesses = 0;
@@ -116,6 +106,14 @@ public class SearchIndexSetup implements ResourceProcessor {
 		} else {
 			return null;
 		}
+	}
+
+	private void updateSearchDomainScaling(String domainName) {
+		UpdateScalingParametersRequest req = new UpdateScalingParametersRequest().withDomainName(domainName);
+		// TODO: get params from configuration
+		ScalingParameters scalingParams = new ScalingParameters().withDesiredInstanceType(PartitionInstanceType.SearchM3Large).withDesiredReplicationCount(1);
+		req.setScalingParameters(scalingParams);
+		UpdateScalingParametersResult res = client.updateScalingParameters(req);
 	}
 
 }
