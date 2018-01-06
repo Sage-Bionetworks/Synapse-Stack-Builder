@@ -110,7 +110,6 @@ public class SearchIndexSetup implements ResourceProcessor {
 
 	private void updateSearchDomainScaling(String domainName) {
 		UpdateScalingParametersRequest req = new UpdateScalingParametersRequest().withDomainName(domainName);
-		// TODO: get params from configuration
 		ScalingParameters scalingParams = new ScalingParameters().withDesiredInstanceType(PartitionInstanceType.SearchM3Large).withDesiredReplicationCount(1);
 		req.setScalingParameters(scalingParams);
 		UpdateScalingParametersResult res = client.updateScalingParameters(req);
