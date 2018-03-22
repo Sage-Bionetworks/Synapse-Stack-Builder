@@ -1,6 +1,8 @@
 package org.sagebionetworks.factory;
 
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 import com.amazonaws.auth.AWSCredentials;
@@ -24,34 +26,36 @@ import com.amazonaws.services.sns.AmazonSNSClient;
  */
 public class MockAmazonClientFactory implements AmazonClientFactory {
 	
+	@Mock
 	AmazonS3Client mockS3Client;
+	@Mock
 	AmazonEC2Client mockEC2Client;
+	@Mock
 	AmazonSNSClient mockSNSClient;
+	@Mock
 	AmazonRDSClient mockRDSClient;
+	@Mock
 	AmazonCloudWatchClient mockCloudWatchClient;
+	@Mock
 	AWSElasticBeanstalkClient mockElasticBeanstalkClient;
+	@Mock
 	AmazonIdentityManagementClient mockIdentityManagementClient;
+	@Mock
 	AmazonCloudSearchClient mockCloudSearchClient;
+	@Mock
 	AmazonRoute53Client mockRoute53Client;
+	@Mock
 	AmazonElasticLoadBalancingClient mockLoadBalancingClient;
+	@Mock
 	AWSCertificateManagerClient mockCertificateManagerClient;
+	@Mock
 	AWSCredentials credentials;
 	
 	/**
 	 * This will setup all mocks.
 	 */
 	public MockAmazonClientFactory(){
-		mockS3Client = Mockito.mock(AmazonS3Client.class);
-		mockEC2Client = Mockito.mock(AmazonEC2Client.class);
-		mockSNSClient = Mockito.mock(AmazonSNSClient.class);
-		mockRDSClient = Mockito.mock(AmazonRDSClient.class);
-		mockCloudWatchClient = Mockito.mock(AmazonCloudWatchClient.class);
-		mockElasticBeanstalkClient = Mockito.mock(AWSElasticBeanstalkClient.class);
-		mockIdentityManagementClient = Mockito.mock(AmazonIdentityManagementClient.class);
-		mockCloudSearchClient = Mockito.mock(AmazonCloudSearchClient.class);
-		mockRoute53Client = Mockito.mock(AmazonRoute53Client.class);
-		mockLoadBalancingClient = Mockito.mock(AmazonElasticLoadBalancingClient.class);
-		mockCertificateManagerClient = Mockito.mock(AWSCertificateManagerClient.class);
+		MockitoAnnotations.initMocks(this);
 	}
 
 	/**
