@@ -142,22 +142,19 @@ public class MySqlDatabaseSetup implements ResourceProcessor {
 		DBInstance instance = null;
 		// Try to minimize risk of bouncing available status
 		boolean available = false;
-		int numSuccesses = 0;
 		for (int i = 0; i < 10; i++) {
 			sleeper.sleep(30000);
 			DescribeDBInstancesResult result = client.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(stackInstance.getDBInstanceIdentifier()));
-			instance = result.getDBInstances().get(0);
-			status = instance.getDBInstanceStatus();
-			log.info(String.format("Waiting for database: instance: %1$s status: %2$s ", stackInstance.getDBInstanceIdentifier(), status));
-			available = "available".equals(status.toLowerCase());
-			if (available) {
-				numSuccesses++;
-			}
-			if (numSuccesses > 3) {
-				break;
+			if ((result != null) && (result.getDBInstances() != null) && (result.getDBInstances().size() >= 1)) {
+				instance = result.getDBInstances().get(0);
+				status = instance.getDBInstanceStatus();
+				log.info(String.format("Waiting for database: instance: %1$s status: %2$s ", stackInstance.getDBInstanceIdentifier(), status));
+				if (available = "available".equals(status.toLowerCase())) {
+					break;
+				}
 			}
 		}
-		if (available && (numSuccesses >= 2)) {
+		if (available) {
 			return instance;
 		} else {
 			return null;

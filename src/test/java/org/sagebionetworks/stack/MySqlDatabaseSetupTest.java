@@ -1,10 +1,17 @@
 package org.sagebionetworks.stack;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
+
 import static org.sagebionetworks.stack.Constants.DATABASE_ENGINE_MYSQL;
 import static org.sagebionetworks.stack.Constants.DATABASE_ENGINE_MYSQL_VERSION;
 import static org.sagebionetworks.stack.Constants.DATABASE_INSTANCE_CLASS_M1_LARGE;
@@ -15,10 +22,11 @@ import static org.sagebionetworks.stack.Constants.PREFERRED_DATABASE_BACKUP_WIND
 import static org.sagebionetworks.stack.Constants.PREFERRED_DATABASE_MAINTENANCE_WINDOW_SUNDAY_NIGHT_PDT;
 
 import java.io.IOException;
+import java.util.*;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.mockito.internal.progress.ArgumentMatcherStorageImpl;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.services.rds.AmazonRDSClient;
@@ -28,23 +36,34 @@ import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
 import com.amazonaws.services.rds.model.DeleteDBInstanceRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
+
 import org.sagebionetworks.factory.MockAmazonClientFactory;
 import org.sagebionetworks.stack.util.Sleeper;
 
 public class MySqlDatabaseSetupTest {
 	
-	InputConfiguration config;	
+	InputConfiguration config;
+
 	AmazonRDSClient mockClient = null;
 	GeneratedResources resources;
 	MySqlDatabaseSetup databaseSetup;
 	MockAmazonClientFactory factory = new MockAmazonClientFactory();
-	Sleeper mockSleeper = Mockito.mock(Sleeper.class);
+
+	@Mock
+	Sleeper mockSleeper;
+	@Mock
+	DBInstance mockDbInstance;
+	@Mock
+	DescribeDBInstancesResult mockDBInstancesResult;
 	
 	@Before
-	public void before() throws IOException{
+	public void before() throws IOException {
+		MockitoAnnotations.initMocks(this);
+
 		mockClient = factory.createRDSClient();
 		config = TestHelper.createTestConfig("dev");
 		resources = new GeneratedResources();
+
 		// Create the creator
 		databaseSetup = new MySqlDatabaseSetup(factory, config, resources, mockSleeper);
 	}
@@ -352,4 +371,47 @@ public class MySqlDatabaseSetupTest {
 		DBInstance inst = databaseSetup.deleteDatabaseInstance(req);
 		assertEquals(inst.getDBInstanceIdentifier(), "someDB");
 	}
+
+	@Test
+	public void testWaitForDatabaseAvailable() throws Exception {
+		when(mockDbInstance.getDBInstanceStatus()).thenReturn("available");
+		when(mockDbInstance.getDBInstanceIdentifier()).thenReturn("dbInstanceId");
+		List<DBInstance> expectedDBInstances = Arrays.asList(mockDbInstance);
+		when(mockDBInstancesResult.getDBInstances()).thenReturn(expectedDBInstances);
+		ArgumentCaptor<DescribeDBInstancesRequest> captor = new ArgumentCaptor<>();
+		when(mockClient.describeDBInstances(captor.capture())).thenReturn(mockDBInstancesResult);
+		DBInstance instance = databaseSetup.waitForDatabase(mockDbInstance);
+		DescribeDBInstancesRequest actualRequest = captor.getValue();
+		assertEquals(mockDbInstance.getDBInstanceIdentifier(), actualRequest.getDBInstanceIdentifier());
+		assertNotNull(instance);
+	}
+
+	@Test
+	public void testWaitForDatabaseNotAvailable() throws Exception {
+		when(mockDbInstance.getDBInstanceStatus()).thenReturn("busy");
+		when(mockDbInstance.getDBInstanceIdentifier()).thenReturn("dbInstanceId");
+		List<DBInstance> expectedDBInstances = Arrays.asList(mockDbInstance);
+		when(mockDBInstancesResult.getDBInstances()).thenReturn(expectedDBInstances);
+		ArgumentCaptor<DescribeDBInstancesRequest> captor = new ArgumentCaptor<>();
+		when(mockClient.describeDBInstances(captor.capture())).thenReturn(mockDBInstancesResult);
+		DBInstance instance = databaseSetup.waitForDatabase(mockDbInstance);
+		List<DescribeDBInstancesRequest> actualRequests = captor.getAllValues();
+		assertEquals(10, actualRequests.size());
+		assertNull(instance);
+	}
+
+	@Test
+	public void testWaitForDatabaseBecomesAvailable() throws Exception {
+		when(mockDbInstance.getDBInstanceStatus()).thenReturn("busy", "busy", "available");
+		when(mockDbInstance.getDBInstanceIdentifier()).thenReturn("dbInstanceId");
+		List<DBInstance> expectedDBInstances = Arrays.asList(mockDbInstance);
+		when(mockDBInstancesResult.getDBInstances()).thenReturn(expectedDBInstances);
+		ArgumentCaptor<DescribeDBInstancesRequest> captor = new ArgumentCaptor<>();
+		when(mockClient.describeDBInstances(captor.capture())).thenReturn(mockDBInstancesResult);
+		DBInstance instance = databaseSetup.waitForDatabase(mockDbInstance);
+		List<DescribeDBInstancesRequest> actualRequests = captor.getAllValues();
+		assertEquals(3, actualRequests.size());
+		assertNotNull(instance);
+	}
+
 }
