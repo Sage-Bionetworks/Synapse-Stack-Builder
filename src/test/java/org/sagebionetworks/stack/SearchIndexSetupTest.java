@@ -1,13 +1,7 @@
 package org.sagebionetworks.stack;
 
 import com.amazonaws.services.cloudsearchv2.AmazonCloudSearchClient;
-import com.amazonaws.services.cloudsearchv2.model.CreateDomainRequest;
-import com.amazonaws.services.cloudsearchv2.model.CreateDomainResult;
-import com.amazonaws.services.cloudsearchv2.model.DeleteDomainRequest;
-import com.amazonaws.services.cloudsearchv2.model.DeleteDomainResult;
-import com.amazonaws.services.cloudsearchv2.model.DescribeDomainsRequest;
-import com.amazonaws.services.cloudsearchv2.model.DescribeDomainsResult;
-import com.amazonaws.services.cloudsearchv2.model.DomainStatus;
+import com.amazonaws.services.cloudsearchv2.model.*;
 import com.amazonaws.services.simpleworkflow.model.DescribeDomainRequest;
 import java.io.IOException;
 
@@ -20,7 +14,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.*;
 
-import org.mockito.Mockito;
+import org.mockito.*;
 
 
 import org.sagebionetworks.factory.MockAmazonClientFactory;
@@ -34,60 +28,90 @@ public class SearchIndexSetupTest {
 	
 	InputConfiguration config;
 	GeneratedResources resources;
+
 	MockAmazonClientFactory factory = new MockAmazonClientFactory();
+
 	AmazonCloudSearchClient mockClient;
+
+	@Mock
 	private Sleeper mockSleeper;
 
+	@Captor
+	private ArgumentCaptor<UpdateScalingParametersRequest> scalingParamsReqCaptor;
+
+	@Captor
+	private ArgumentCaptor<CreateDomainRequest> createDomainReqCaptor;
+
 	@Before
-	public void before() throws IOException{
+	public void before() throws IOException {
+		MockitoAnnotations.initMocks(this);
+
 		config = TestHelper.createTestConfig("dev");
 		mockClient = factory.createCloudSearchClient();
 		resources = new GeneratedResources();
-		mockSleeper = Mockito.mock(Sleeper.class);
 	}
 	
 	@Test
 	public void testSetupResourcesExistentDomain() throws Exception {
 		String expectedDomainName = config.getSearchIndexDomainName();
 		SearchIndexSetup idx = new SearchIndexSetup(factory, config, resources, mockSleeper);
+		// Return a domain that is active
 		DomainStatus domainStatus = new DomainStatus().withDomainName(expectedDomainName).withCreated(Boolean.TRUE).withProcessing(Boolean.FALSE);
 		DescribeDomainsResult expectedRes = new DescribeDomainsResult().withDomainStatusList(domainStatus);
 		when(mockClient.describeDomains(any(DescribeDomainsRequest.class))).thenReturn(expectedRes);
-		when(mockClient.createDomain(any(CreateDomainRequest.class))).thenReturn(new CreateDomainResult().withDomainStatus(domainStatus));
+		// Expected scaling params request
+		ScalingParameters expectedScalingParams = new ScalingParameters().withDesiredInstanceType(PartitionInstanceType.SearchM3Large).withDesiredReplicationCount(1);
+		UpdateScalingParametersRequest expectedReq = new UpdateScalingParametersRequest().withDomainName(expectedDomainName).withScalingParameters(expectedScalingParams);
+		// Return the scaling params
+		ScalingParametersStatus expectedScalingParamsStatus = new ScalingParametersStatus().withOptions(expectedScalingParams);
+		when(mockClient.updateScalingParameters(any(UpdateScalingParametersRequest.class))).thenReturn(new UpdateScalingParametersResult().withScalingParameters(expectedScalingParamsStatus));
 
 		// Call under test
 		idx.setupResources();
 
 		assertNotNull(resources.getSearchDomain());
 		assertEquals(expectedDomainName, resources.getSearchDomain().getDomainName());
-		verify(mockClient, times(5)).describeDomains(any(DescribeDomainsRequest.class));
-		verify(mockSleeper, times(4)).sleep(anyLong());
+		verify(mockClient).describeDomains(any(DescribeDomainsRequest.class));
+		verify(mockClient).updateScalingParameters(scalingParamsReqCaptor.capture());
+		assertEquals(expectedReq, scalingParamsReqCaptor.getValue());
+		verify(mockSleeper, never()).sleep(anyLong());
 	}
 
+	// TODO: Delete this test or modify if it turns out one cannot update the scaling params while the domain is processing
+	@Ignore
 	@Test
 	public void testSetupResourcesExistentDomainNotActive() throws Exception {
 		String expectedDomainName = config.getSearchIndexDomainName();
 		SearchIndexSetup idx = new SearchIndexSetup(factory, config, resources, mockSleeper);
+		// Return a domain that's processing
 		DomainStatus domainStatusProcessing = new DomainStatus().withDomainName(expectedDomainName).withCreated(Boolean.TRUE).withProcessing(Boolean.TRUE);
-		DescribeDomainsResult expectedRes1 = new DescribeDomainsResult().withDomainStatusList(domainStatusProcessing);
-		DomainStatus domainStatusActive = new DomainStatus().withDomainName(expectedDomainName).withCreated(Boolean.TRUE).withProcessing(Boolean.FALSE);
-		DescribeDomainsResult expectedRes2 = new DescribeDomainsResult().withDomainStatusList(domainStatusActive);
-		when(mockClient.describeDomains(any(DescribeDomainsRequest.class))).thenReturn(expectedRes1, expectedRes1, expectedRes2);
-		when(mockClient.createDomain(any(CreateDomainRequest.class))).thenReturn(new CreateDomainResult().withDomainStatus(domainStatusProcessing));
+		DescribeDomainsResult ddRes = new DescribeDomainsResult().withDomainStatusList(domainStatusProcessing);
+		when(mockClient.describeDomains(any(DescribeDomainsRequest.class))).thenReturn(ddRes);
+		// Expected scaling params request
+		ScalingParameters expectedScalingParams = new ScalingParameters().withDesiredInstanceType(PartitionInstanceType.SearchM3Large).withDesiredReplicationCount(1);
+		UpdateScalingParametersRequest expectedReq = new UpdateScalingParametersRequest().withDomainName(expectedDomainName).withScalingParameters(expectedScalingParams);
+		// Return the scaling params
+		ScalingParametersStatus expectedScalingParamsStatus = new ScalingParametersStatus().withOptions(expectedScalingParams);
+		when(mockClient.updateScalingParameters(any(UpdateScalingParametersRequest.class))).thenReturn(new UpdateScalingParametersResult().withScalingParameters(expectedScalingParamsStatus));
 
 		// Call under test
 		idx.setupResources();
 
 		assertNotNull(resources.getSearchDomain());
 		assertEquals(expectedDomainName, resources.getSearchDomain().getDomainName());
-		verify(mockClient, times(6)).describeDomains(any(DescribeDomainsRequest.class));
-		verify(mockSleeper, times(5)).sleep(anyLong());
+		verify(mockClient).describeDomains(any(DescribeDomainsRequest.class));
+		verify(mockClient).updateScalingParameters(scalingParamsReqCaptor.capture());
+		assertEquals(expectedReq, scalingParamsReqCaptor.getValue());
+		verify(mockSleeper, never()).sleep(anyLong());
 	}
 
+	// TODO: This test was to check if we were getting out of waiting for domain. Not needed anymore
+	@Ignore
 	@Test(expected=RuntimeException.class)
 	public void testSetupResourcesExistentDomainNeverActive() throws Exception {
 		String expectedDomainName = config.getSearchIndexDomainName();
 		SearchIndexSetup idx = new SearchIndexSetup(factory, config, resources, mockSleeper);
+
 		DomainStatus domainStatusProcessing = new DomainStatus().withDomainName(expectedDomainName).withCreated(Boolean.TRUE).withProcessing(Boolean.TRUE);
 		DescribeDomainsResult expectedRes1 = new DescribeDomainsResult().withDomainStatusList(domainStatusProcessing);
 		DomainStatus domainStatusActive = new DomainStatus().withDomainName(expectedDomainName).withCreated(Boolean.TRUE).withProcessing(Boolean.FALSE);
@@ -108,19 +132,33 @@ public class SearchIndexSetupTest {
 	public void testSetupResourcesNonExistentDomain() throws Exception {
 		String expectedDomainName = config.getSearchIndexDomainName();
 		SearchIndexSetup idx = new SearchIndexSetup(factory, config, resources, mockSleeper);
+		// Eventually return a domain that's active
 		DomainStatus domainStatus = new DomainStatus().withDomainName(expectedDomainName).withCreated(Boolean.TRUE).withProcessing(Boolean.FALSE);
 		DescribeDomainsResult expectedRes = new DescribeDomainsResult().withDomainStatusList(domainStatus);
 		when(mockClient.describeDomains(any(DescribeDomainsRequest.class))).thenReturn(null, expectedRes);
+		// Expected CreateDomainRequest
+		CreateDomainRequest expectedCdReq = new CreateDomainRequest().withDomainName(expectedDomainName);
 		when(mockClient.createDomain(any(CreateDomainRequest.class))).thenReturn(new CreateDomainResult().withDomainStatus(domainStatus));
 		DescribeDomainsResult expectedDescribeRes = new DescribeDomainsResult().withDomainStatusList(domainStatus);
+
+		// Expected scaling params request
+		ScalingParameters expectedScalingParams = new ScalingParameters().withDesiredInstanceType(PartitionInstanceType.SearchM3Large).withDesiredReplicationCount(1);
+		UpdateScalingParametersRequest expectedReq = new UpdateScalingParametersRequest().withDomainName(expectedDomainName).withScalingParameters(expectedScalingParams);
+		// Return the scaling params
+		ScalingParametersStatus expectedScalingParamsStatus = new ScalingParametersStatus().withOptions(expectedScalingParams);
+		when(mockClient.updateScalingParameters(any(UpdateScalingParametersRequest.class))).thenReturn(new UpdateScalingParametersResult().withScalingParameters(expectedScalingParamsStatus));
 
 		// Call under test
 		idx.setupResources();
 
 		assertNotNull(resources.getSearchDomain());
 		assertEquals(expectedDomainName, resources.getSearchDomain().getDomainName());
-		verify(mockClient, times(6)).describeDomains(any(DescribeDomainsRequest.class));
-		verify(mockSleeper, times(4)).sleep(anyLong());
+		verify(mockClient, times(2)).describeDomains(any(DescribeDomainsRequest.class));
+		verify(mockClient).createDomain(createDomainReqCaptor.capture());
+		assertEquals(expectedCdReq, createDomainReqCaptor.getValue());
+		verify(mockClient).updateScalingParameters(scalingParamsReqCaptor.capture());
+		assertEquals(expectedReq, scalingParamsReqCaptor.getValue());
+		verify(mockSleeper, never()).sleep(anyLong());
 	}
 	
 	@Test

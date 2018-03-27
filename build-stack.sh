@@ -4,4 +4,4 @@
 if [ -z "$CMD_PROPS" ] ;
   then $CMD_PROPS=""
 fi
-java -cp target/stack-builder-0.1.0-SNAPSHOT-jar-with-dependencies.jar $CMD_PROPS org.sagebionetworks.stack.BuildStackMain "$@"
+java -cp target/stack-builder-0.2.0-SNAPSHOT-jar-with-dependencies.jar $CMD_PROPS org.sagebionetworks.stack.BuildStackMain "$@"
