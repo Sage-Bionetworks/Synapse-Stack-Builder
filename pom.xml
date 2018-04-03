@@ -47,6 +47,11 @@
 			<artifactId>aws-java-sdk</artifactId>
 			<version>1.11.250</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.velocity</groupId>
+			<artifactId>velocity</artifactId>
+			<version>1.7</version>
+		</dependency>
 		<!-- Testing -->
 		<dependency>
 			<groupId>junit</groupId>
@@ -70,7 +75,7 @@
 				<filtering>false</filtering>
 			</resource>
 		</resources>
-		
+
 		<plugins>
 			<!-- Bundles all dependencies with the jar -->
 			<plugin>
