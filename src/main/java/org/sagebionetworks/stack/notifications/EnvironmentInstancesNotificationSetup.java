@@ -2,7 +2,8 @@ package org.sagebionetworks.stack.notifications;
 
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.CreateTopicResult;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.stack.GeneratedResources;
 import org.sagebionetworks.stack.ResourceProcessor;
 import org.sagebionetworks.stack.StackEnvironmentType;
@@ -10,7 +11,7 @@ import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
 public class EnvironmentInstancesNotificationSetup implements ResourceProcessor {
-	private static Logger logger = Logger.getLogger(StackInstanceNotificationSetup.class.getName());
+	private static Logger logger = LogManager.getLogger(StackInstanceNotificationSetup.class.getName());
 	
 	private AmazonSNSClient client;
 	private InputConfiguration config;

@@ -5,7 +5,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.AmazonClientException;
@@ -22,7 +23,7 @@ import com.amazonaws.services.s3.model.GetObjectRequest;
  */
 public class StackDefaults {
 	
-	private static Logger log = Logger.getLogger(StackDefaults.class.getName());
+	private static Logger log = LogManager.getLogger(StackDefaults.class.getName());
 	
 	/**
 	 * The property keys we expect to find the default properties file.

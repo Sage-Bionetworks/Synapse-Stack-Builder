@@ -10,11 +10,12 @@ import com.amazonaws.services.sns.model.SubscribeResult;
 import com.amazonaws.services.sns.model.Subscription;
 import java.util.LinkedList;
 import java.util.List;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.stack.Constants;
 
 public class NotificationUtils {
-	private static Logger logger = Logger.getLogger(NotificationUtils.class.getName());
+	private static Logger logger = LogManager.getLogger(NotificationUtils.class.getName());
 	
 	/**
 	 * Create the subscription if it does not exist.

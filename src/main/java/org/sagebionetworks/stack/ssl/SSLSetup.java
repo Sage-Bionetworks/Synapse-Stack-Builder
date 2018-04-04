@@ -5,7 +5,8 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
@@ -32,7 +33,7 @@ import org.sagebionetworks.stack.StackEnvironmentType;
  */
 public class SSLSetup implements ResourceProcessor {
 	
-	private static Logger log = Logger.getLogger(SSLSetup.class);
+	private static Logger log = LogManager.getLogger(SSLSetup.class);
 	
 	private AmazonIdentityManagementClient iamClient;
 	private AmazonS3Client s3Client;

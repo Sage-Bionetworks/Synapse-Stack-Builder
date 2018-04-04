@@ -9,7 +9,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.AmazonServiceException;
@@ -34,7 +35,7 @@ import org.sagebionetworks.stack.factory.AmazonClientFactory;
  */
 public class DatabaseParameterGroup implements ResourceProcessor {
 
-	private static Logger log = Logger.getLogger(DatabaseParameterGroup.class);
+	private static Logger log = LogManager.getLogger(DatabaseParameterGroup.class);
 	
 	AmazonRDSClient client;
 	InputConfiguration config;

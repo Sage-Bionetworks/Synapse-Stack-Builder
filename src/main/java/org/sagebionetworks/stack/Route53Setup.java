@@ -1,5 +1,13 @@
 package org.sagebionetworks.stack;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.sagebionetworks.stack.config.InputConfiguration;
+import org.sagebionetworks.stack.factory.AmazonClientFactory;
+
 import com.amazonaws.services.route53.AmazonRoute53Client;
 import com.amazonaws.services.route53.model.Change;
 import com.amazonaws.services.route53.model.ChangeAction;
@@ -16,21 +24,13 @@ import com.amazonaws.services.route53.model.RRType;
 import com.amazonaws.services.route53.model.ResourceRecord;
 import com.amazonaws.services.route53.model.ResourceRecordSet;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.log4j.Logger;
-
-import org.sagebionetworks.stack.config.InputConfiguration;
-import org.sagebionetworks.stack.factory.AmazonClientFactory;
-
 /**
  *
  * @author xschildw
  */
 public class Route53Setup implements ResourceProcessor {
 	
-	private static Logger log = Logger.getLogger(Route53Setup.class);
+	private static Logger log = LogManager.getLogger(Route53Setup.class);
 	
 	public AmazonRoute53Client route53Client;
 	private InputConfiguration config;

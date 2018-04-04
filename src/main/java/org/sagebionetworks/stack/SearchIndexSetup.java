@@ -1,7 +1,8 @@
 package org.sagebionetworks.stack;
 
 import com.amazonaws.services.cloudsearchv2.model.*;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.services.cloudsearchv2.AmazonCloudSearchClient;
@@ -15,7 +16,7 @@ import org.sagebionetworks.stack.util.Sleeper;
  */
 public class SearchIndexSetup implements ResourceProcessor {
 	
-	private static Logger log = Logger.getLogger(SearchIndexSetup.class.getName());
+	private static Logger log = LogManager.getLogger(SearchIndexSetup.class.getName());
 	
 	AmazonCloudSearchClient client;
 	InputConfiguration config;
