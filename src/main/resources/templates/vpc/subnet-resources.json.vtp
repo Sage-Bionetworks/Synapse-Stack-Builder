@@ -1,0 +1,267 @@
+		#foreach( $color in $colors )
+		,
+		"${color}Public1Subnet": {
+			"Type": "AWS::EC2::Subnet",
+			"Properties": {
+				"MapPublicIpOnLaunch": true,
+				"VpcId": {
+					"Ref": "VPC"
+				},
+				"CidrBlock": {
+					"Fn::Join": [
+						".",
+						[
+							{
+								"Ref": "VpcSubnetPrefix"
+							},
+							{
+								"Fn::FindInMap": [
+									"SubnetConfig",
+									"${color}Public1",
+									"CIDR"
+								]
+							}
+						]
+					]
+				},
+				"AvailabilityZone": {
+					"Fn::Select": [
+						0,
+						{
+							"Ref": "PublicSubnetZones"
+						}
+					]
+				},
+				"Tags": [
+					{
+						"Key": "Application",
+						"Value": {
+							"Ref": "AWS::StackName"
+						}
+					},
+					{
+						"Key": "Network",
+						"Value": "${color}Public1"
+					},
+					{
+						"Key": "Name",
+						"Value": "${color}Public1"
+					}
+				]
+			}
+		},
+		"${color}Public2Subnet": {
+			"Type": "AWS::EC2::Subnet",
+			"Properties": {
+				"MapPublicIpOnLaunch": true,
+				"VpcId": {
+					"Ref": "VPC"
+				},
+				"CidrBlock": {
+					"Fn::Join": [
+						".",
+						[
+							{
+								"Ref": "VpcSubnetPrefix"
+							},
+							{
+								"Fn::FindInMap": [
+									"SubnetConfig",
+									"${color}Public2",
+									"CIDR"
+								]
+							}
+						]
+					]
+				},
+				"AvailabilityZone": {
+					"Fn::Select": [
+						1,
+						{
+							"Ref": "PublicSubnetZones"
+						}
+					]
+				},
+				"Tags": [
+					{
+						"Key": "Application",
+						"Value": {
+							"Ref": "AWS::StackName"
+						}
+					},
+					{
+						"Key": "Network",
+						"Value": "${color}Public2"
+					},
+					{
+						"Key": "Name",
+						"Value": "${color}Public2"
+					}
+				]
+			}
+		},
+		"${color}Private1Subnet": {
+			"Type": "AWS::EC2::Subnet",
+			"Properties": {
+				"VpcId": {
+					"Ref": "VPC"
+				},
+				"CidrBlock": {
+					"Fn::Join": [
+						".",
+						[
+							{
+								"Ref": "VpcSubnetPrefix"
+							},
+							{
+								"Fn::FindInMap": [
+									"SubnetConfig",
+									"${color}Private1",
+									"CIDR"
+								]
+							}
+						]
+					]
+				},
+				"AvailabilityZone": {
+					"Fn::Select": [
+						0,
+						{
+							"Ref": "PrivateSubnetZones"
+						}
+					]
+				},
+				"Tags": [
+					{
+						"Key": "Application",
+						"Value": {
+							"Ref": "AWS::StackName"
+						}
+					},
+					{
+						"Key": "Network",
+						"Value": "${color}Private1"
+					},
+					{
+						"Key": "Name",
+						"Value": "${color}Private1"
+					}
+				]
+			}
+		},
+		"${color}Private2Subnet": {
+			"Type": "AWS::EC2::Subnet",
+			"Properties": {
+				"VpcId": {
+					"Ref": "VPC"
+				},
+				"CidrBlock": {
+					"Fn::Join": [
+						".",
+						[
+							{
+								"Ref": "VpcSubnetPrefix"
+							},
+							{
+								"Fn::FindInMap": [
+									"SubnetConfig",
+									"${color}Private2",
+									"CIDR"
+								]
+							}
+						]
+					]
+				},
+				"AvailabilityZone": {
+					"Fn::Select": [
+						1,
+						{
+							"Ref": "PrivateSubnetZones"
+						}
+					]
+				},
+				"Tags": [
+					{
+						"Key": "Application",
+						"Value": {
+							"Ref": "AWS::StackName"
+						}
+					},
+					{
+						"Key": "Network",
+						"Value": "${color}Private2"
+					},
+					{
+						"Key": "Name",
+						"Value": "${color}Private2"
+					}
+				]
+			}
+		},
+		"${color}Public1SubnetRouteTableAssociation": {
+			"Type": "AWS::EC2::SubnetRouteTableAssociation",
+			"Properties": {
+				"SubnetId": {
+					"Ref": "${color}Public1Subnet"
+				},
+				"RouteTableId": {
+					"Ref": "PublicRouteTable"
+				}
+			}
+		},
+		"${color}Public2SubnetRouteTableAssociation": {
+			"Type": "AWS::EC2::SubnetRouteTableAssociation",
+			"Properties": {
+				"SubnetId": {
+					"Ref": "${color}Public2Subnet"
+				},
+				"RouteTableId": {
+					"Ref": "PublicRouteTable"
+				}
+			}
+		},
+		"${color}Public1SubnetNetworkAclAssociation": {
+			"Type": "AWS::EC2::SubnetNetworkAclAssociation",
+			"Properties": {
+				"SubnetId": {
+					"Ref": "${color}Public1Subnet"
+				},
+				"NetworkAclId": {
+					"Ref": "PublicNetworkAcl"
+				}
+			}
+		},
+		"${color}Public2SubnetNetworkAclAssociation": {
+			"Type": "AWS::EC2::SubnetNetworkAclAssociation",
+			"Properties": {
+				"SubnetId": {
+					"Ref": "${color}Public2Subnet"
+				},
+				"NetworkAclId": {
+					"Ref": "PublicNetworkAcl"
+				}
+			}
+		},
+		"${color}Private1SubnetRouteTableAssociation": {
+			"Type": "AWS::EC2::SubnetRouteTableAssociation",
+			"Properties": {
+				"SubnetId": {
+					"Ref": "${color}Private1Subnet"
+				},
+				"RouteTableId": {
+					"Ref": "PrivateRouteTable"
+				}
+			}
+		},
+		"${color}Private2SubnetRouteTableAssociation": {
+			"Type": "AWS::EC2::SubnetRouteTableAssociation",
+			"Properties": {
+				"SubnetId": {
+					"Ref": "${color}Private2Subnet"
+				},
+				"RouteTableId": {
+					"Ref": "PrivateRouteTable"
+				}
+			}
+		}
+		#end

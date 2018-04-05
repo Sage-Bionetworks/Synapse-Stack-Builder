@@ -24,7 +24,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import static org.sagebionetworks.stack.Constants.*;
 
 import org.sagebionetworks.stack.config.InputConfiguration;
@@ -38,7 +39,7 @@ import org.sagebionetworks.stack.factory.AmazonClientFactory;
  */
 public class ArtifactProcessing {
 
-	private static Logger log = Logger.getLogger(ArtifactProcessing.class.getName());
+	private static Logger log = LogManager.getLogger(ArtifactProcessing.class.getName());
 	
 	private static double BYTES_PER_MB = Math.pow(2,20);
 	

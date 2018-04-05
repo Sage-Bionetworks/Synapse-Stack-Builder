@@ -6,7 +6,8 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 
@@ -39,7 +40,7 @@ import java.util.Arrays;
  */
 public class EC2SecuritySetup implements ResourceProcessor {
 	
-	private static Logger log = Logger.getLogger(EC2SecuritySetup.class.getName());
+	private static Logger log = LogManager.getLogger(EC2SecuritySetup.class.getName());
 	
 	private AmazonEC2Client ec2Client;
 	private AmazonS3Client s3Client;

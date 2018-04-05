@@ -8,7 +8,8 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.stack.alarms.ElbAlarmSetup;
 import org.sagebionetworks.stack.alarms.RdsAlarmSetup;
 import org.sagebionetworks.stack.config.InputConfiguration;
@@ -27,7 +28,7 @@ import org.sagebionetworks.stack.util.SleeperImpl;
  */
 public class BuildStackMain {
 
-	private static Logger log = Logger.getLogger(BuildStackMain.class.getName());
+	private static Logger log = LogManager.getLogger(BuildStackMain.class.getName());
 	/**
 	 * This is the main script that builds the configuration.
 	 * @param args

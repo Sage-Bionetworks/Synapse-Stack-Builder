@@ -1,6 +1,7 @@
 package org.sagebionetworks.stack;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.services.rds.AmazonRDSClient;
@@ -25,7 +26,7 @@ import org.sagebionetworks.stack.util.Sleeper;
  */
 public class MySqlDatabaseSetup implements ResourceProcessor {
 	
-	private static Logger log = Logger.getLogger(MySqlDatabaseSetup.class.getName());
+	private static Logger log = LogManager.getLogger(MySqlDatabaseSetup.class.getName());
 	
 	private AmazonRDSClient client;
 	private InputConfiguration config;

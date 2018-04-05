@@ -3,7 +3,8 @@ package org.sagebionetworks.stack;
 import static org.sagebionetworks.stack.Constants.ERROR_CODE_AUTHORIZATION_ALREADY_EXITS;
 import static org.sagebionetworks.stack.Constants.ERROR_CODE_DB_SECURITY_GROUP_ALREADY_EXISTS;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
 
 import com.amazonaws.AmazonServiceException;
@@ -25,7 +26,7 @@ import org.sagebionetworks.stack.factory.AmazonClientFactory;
  */
 public class DatabaseSecuritySetup implements ResourceProcessor {
 	
-	private static Logger log = Logger.getLogger(DatabaseSecuritySetup.class.getName());
+	private static Logger log = LogManager.getLogger(DatabaseSecuritySetup.class.getName());
 	
 	private AmazonRDSClient rdsClient;
 	private InputConfiguration config;

@@ -14,7 +14,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.commons.codec.binary.Hex;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.factory.AmazonClientFactory;
 import static org.sagebionetworks.stack.Constants.*;
@@ -60,7 +61,7 @@ import java.util.concurrent.ExecutorCompletionService;
  */
 public class ElasticBeanstalkSetup implements ResourceProcessor {
 	
-	private static Logger logger = Logger.getLogger(ElasticBeanstalkSetup.class);
+	private static Logger logger = LogManager.getLogger(ElasticBeanstalkSetup.class);
 	
 	private AWSElasticBeanstalkClient beanstalkClient;
 	private AmazonIdentityManagementClient aimClient;

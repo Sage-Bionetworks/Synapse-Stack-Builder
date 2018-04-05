@@ -8,7 +8,8 @@ import java.net.URL;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import org.sagebionetworks.stack.util.PropertyFilter;
 
@@ -27,7 +28,7 @@ import org.sagebionetworks.stack.factory.AmazonClientFactory;
  */
 public class StackConfigurationSetup {
 	
-	private static Logger log = Logger.getLogger(StackConfigurationSetup.class.getName());
+	private static Logger log = LogManager.getLogger(StackConfigurationSetup.class.getName());
 	
 	private AmazonS3Client client;
 	private InputConfiguration config;

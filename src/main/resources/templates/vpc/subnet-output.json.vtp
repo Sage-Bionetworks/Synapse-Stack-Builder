@@ -1,0 +1,93 @@
+		#foreach( $color in $colors )
+		,
+		"${color}Public1Subnet": {
+			"Description": "SubnetId of the public subnet ${color}Public1",
+			"Value": {
+				"Ref": "${color}Public1Subnet"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"${color}Public1Subnet"
+						]
+					]
+				}
+			}
+		},
+		"${color}Public2Subnet": {
+			"Description": "SubnetId of the public subnet ${color}Public2",
+			"Value": {
+				"Ref": "${color}Public2Subnet"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"${color}Public2Subnet"
+						]
+					]
+				}
+			}
+		},
+
+		"${color}Private1Subnet": {
+			"Description": "SubnetId of the private subnet ${color}Private1",
+			"Value": {
+				"Ref": "${color}Private1Subnet"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"${color}Private1Subnet"
+						]
+					]
+				}
+			}
+		},
+		"${color}Private2Subnet": {
+			"Description": "SubnetId of the private subnet 2",
+			"Value": {
+				"Ref": "${color}Private2Subnet"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"${color}Private2Subnet"
+						]
+					]
+				}
+			}
+		}
+	
+	 #end	

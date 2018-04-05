@@ -3,7 +3,8 @@ package org.sagebionetworks.stack.alarms;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.stack.config.InputConfiguration;
 import static org.sagebionetworks.stack.Constants.*;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
@@ -30,7 +31,7 @@ import org.sagebionetworks.stack.factory.AmazonClientFactory;
 public class RdsAlarmSetup implements ResourceProcessor {
 	
 
-	private static Logger log = Logger.getLogger(RdsAlarmSetup.class.getName());
+	private static Logger log = LogManager.getLogger(RdsAlarmSetup.class.getName());
 	
 	AmazonCloudWatchClient client;
 	InputConfiguration config;
