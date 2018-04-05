@@ -1,5 +1,20 @@
 package org.sagebionetworks.template.vpc;
 
+import static org.sagebionetworks.template.Constants.COLORS;
+import static org.sagebionetworks.template.Constants.JSON_INDENT;
+import static org.sagebionetworks.template.Constants.PARAMETER_PRIVATE_SUBNET_ZONES;
+import static org.sagebionetworks.template.Constants.PARAMETER_PUBLIC_SUBNET_ZONES;
+import static org.sagebionetworks.template.Constants.PARAMETER_VPC_NAME;
+import static org.sagebionetworks.template.Constants.PARAMETER_VPC_SUBNET_PREFIX;
+import static org.sagebionetworks.template.Constants.PARAMETER_VPN_CIDR;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_COLORS;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_PRIVATE_SUBNET_ZONES;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_PUBLIC_SUBNET_ZONES;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_PREFIX;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_VPN_CIDR;
+import static org.sagebionetworks.template.Constants.TEMPLATES_VPC_MAIN_VPC_JSON_VTP;
+import static org.sagebionetworks.template.Constants.VPC_STACK_NAME;
+
 import java.io.StringWriter;
 
 import org.apache.logging.log4j.Logger;
@@ -21,18 +36,14 @@ import com.google.inject.Inject;
  */
 public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 
-	private static final int JSON_INDENT = 3;
-	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
-	public static final String COLORS = "colors";
-	public static final String PROPERTY_KEY_COLORS = "org.sagebionetworks.vpc.colors.csv";
-	
 	CloudFormationClient cloudFormationClient;
 	VelocityEngine velocityEngine;
 	PropertyProvider propertyProvider;
 	Logger logger;
-	
+
 	@Inject
-	public VpcTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine, PropertyProvider propertyProvider, LoggerFactory loggerFactory) {
+	public VpcTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
+			PropertyProvider propertyProvider, LoggerFactory loggerFactory) {
 		this.cloudFormationClient = cloudFormationClient;
 		this.velocityEngine = velocityEngine;
 		this.propertyProvider = propertyProvider;
@@ -44,7 +55,7 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 		// Create the context from the input
 		VelocityContext context = createContex();
 		// Merge the context with the template
-		Template template = this.velocityEngine.getTemplate(TEMPLATES_VPC_MAIN_VPC_JSON_VTP);;
+		Template template = this.velocityEngine.getTemplate(TEMPLATES_VPC_MAIN_VPC_JSON_VTP);
 		StringWriter stringWriter = new StringWriter();
 		template.merge(context, stringWriter);
 		// Parse the resulting template
@@ -57,37 +68,40 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 		// create or update the template
 		this.cloudFormationClient.createOrUpdateStack(Constants.VPC_STACK_NAME, resultJSON, params);
 	}
-	
+
 	/**
 	 * Create the context for this template.
+	 * 
 	 * @return
 	 */
-	 VelocityContext createContex() {
+	VelocityContext createContex() {
 		VelocityContext context = new VelocityContext();
 		// Lookup the colors property
 		String colorsCSV = propertyProvider.getProperty(PROPERTY_KEY_COLORS);
 		String[] colors = colorsCSV.split(",");
 		// trim
-		for(int i=0; i < colors.length; i++) {
+		for (int i = 0; i < colors.length; i++) {
 			colors[i] = colors[i].trim();
 		}
 		context.put(COLORS, colors);
 		return context;
 	}
-	 /**
-	  * Create the parameters for the template.
-	  * @return
-	  */
+
+	/**
+	 * Create the parameters for the template.
+	 * 
+	 * @return
+	 */
 	public Parameter[] createParameters() {
-		Parameter VpcName = new Parameter().withParameterKey("VpcName").withParameterValue(Constants.VPC_STACK_NAME);
-		Parameter VpcSubnetPrefix = new Parameter().withParameterKey("VpcSubnetPrefix")
-				.withParameterValue(propertyProvider.getProperty("org.sagebionetworks.vpc.subnet.prefix"));
-		Parameter PrivateSubnetZones = new Parameter().withParameterKey("PrivateSubnetZones")
-				.withParameterValue(propertyProvider.getProperty("org.sagebionetworks.vpc.private.subnet.zones"));
-		Parameter PublicSubnetZones = new Parameter().withParameterKey("PublicSubnetZones")
-				.withParameterValue(propertyProvider.getProperty("org.sagebionetworks.vpc.public.subnet.zones"));
-		Parameter VpnCidr = new Parameter().withParameterKey("VpnCidr")
-				.withParameterValue(propertyProvider.getProperty("org.sagebionetworks.vpc.vpn.cidr"));
-		return new Parameter[] { VpcName, VpcSubnetPrefix, PrivateSubnetZones,PublicSubnetZones, VpnCidr };
+		Parameter VpcName = new Parameter().withParameterKey(PARAMETER_VPC_NAME).withParameterValue(VPC_STACK_NAME);
+		Parameter VpcSubnetPrefix = new Parameter().withParameterKey(PARAMETER_VPC_SUBNET_PREFIX)
+				.withParameterValue(propertyProvider.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX));
+		Parameter PrivateSubnetZones = new Parameter().withParameterKey(PARAMETER_PRIVATE_SUBNET_ZONES)
+				.withParameterValue(propertyProvider.getProperty(PROPERTY_KEY_VPC_PRIVATE_SUBNET_ZONES));
+		Parameter PublicSubnetZones = new Parameter().withParameterKey(PARAMETER_PUBLIC_SUBNET_ZONES)
+				.withParameterValue(propertyProvider.getProperty(PROPERTY_KEY_VPC_PUBLIC_SUBNET_ZONES));
+		Parameter VpnCidr = new Parameter().withParameterKey(PARAMETER_VPN_CIDR)
+				.withParameterValue(propertyProvider.getProperty(PROPERTY_KEY_VPC_VPN_CIDR));
+		return new Parameter[] { VpcName, VpcSubnetPrefix, PrivateSubnetZones, PublicSubnetZones, VpnCidr };
 	}
 }

@@ -67,6 +67,9 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 		}
 	}
 
+	/**
+	 * Describe the stack with the given name
+	 */
 	@Override
 	public Stack describeStack(String stackName) throws AmazonCloudFormationException {
 		DescribeStacksRequest request = new DescribeStacksRequest().withStackName(stackName);
