@@ -151,7 +151,7 @@ public class VpcTemplateBuilderImplTest {
 	@Test
 	public void testCreateContext() {
 		// call under test
-		VelocityContext context = builder.createContex();
+		VelocityContext context = builder.createContext();
 		assertNotNull(context);
 		String[] colors = (String[]) context.get(COLORS);;
 		assertEquals(2, colors.length);

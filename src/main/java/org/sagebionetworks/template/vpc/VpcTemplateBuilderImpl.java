@@ -53,7 +53,7 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 	@Override
 	public void buildAndDeploy() {
 		// Create the context from the input
-		VelocityContext context = createContex();
+		VelocityContext context = createContext();
 		// Merge the context with the template
 		Template template = this.velocityEngine.getTemplate(TEMPLATES_VPC_MAIN_VPC_JSON_VTP);
 		StringWriter stringWriter = new StringWriter();
@@ -74,7 +74,7 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 	 * 
 	 * @return
 	 */
-	VelocityContext createContex() {
+	VelocityContext createContext() {
 		VelocityContext context = new VelocityContext();
 		// Lookup the colors property
 		String colorsCSV = propertyProvider.getProperty(PROPERTY_KEY_COLORS);
