@@ -1,4 +1,4 @@
-package org.sagebionetworks.template.vpc;
+package org.sagebionetworks.template.repo;
 
 import org.sagebionetworks.template.TemplateGuiceModule;
 
@@ -6,14 +6,14 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 /**
- * Main to build the VPC stack.
+ * Main to build all repository stacks.
  *
  */
-public class VpcBuilderMain {
+public class RepositoryBuilderMain {
 
 	public static void main(String[] args) {
 		Injector injector = Guice.createInjector(new TemplateGuiceModule());
-		VpcTemplateBuilder builder = injector.getInstance(VpcTemplateBuilder.class);
+		RepositoryTemplateBuilder builder = injector.getInstance(RepositoryTemplateBuilder.class);
 		builder.buildAndDeploy();
 	}
 

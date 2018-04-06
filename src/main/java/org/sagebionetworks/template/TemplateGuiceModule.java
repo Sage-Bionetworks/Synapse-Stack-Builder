@@ -3,6 +3,8 @@ package org.sagebionetworks.template;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
+import org.sagebionetworks.template.repo.RepositoryTemplateBuilderImpl;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilder;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilderImpl;
 
@@ -25,6 +27,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(VpcTemplateBuilder.class).to(VpcTemplateBuilderImpl.class);
 		bind(PropertyProvider.class).to(SystemPropertyProvider.class);
 		bind(LoggerFactory.class).to(LoggerFactoryImpl.class);
+		bind(RepositoryTemplateBuilder.class).to(RepositoryTemplateBuilderImpl.class);
 	}
 	
 	/**

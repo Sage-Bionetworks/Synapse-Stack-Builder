@@ -1,0 +1,48 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Resources": {
+		"${stack}${instance}DBSubnetGroup": {
+			"Type": "AWS::RDS::DBSubnetGroup",
+			"Properties": {
+				"DBSubnetGroupDescription": "Repository database subnet group defines where RDS instances can be deployed.",
+				"SubnetIds": [
+					{
+						"Fn::ImportValue": "us-east-1-synapse-stack-vpc-${vpc-subnet-color}Private1Subnet"
+					},
+					{
+						"Fn::ImportValue": "us-east-1-synapse-stack-vpc-${vpc-subnet-color}Private2Subnet"
+					}
+				]
+			}
+		},
+		"${stack}${instance}DBSecurityGroup": {
+			"DependsOn": "VPC",
+			"Type": "AWS::EC2::SecurityGroup",
+			"Properties": {
+				"GroupDescription": "VPC Security Group for ${stack}-${instance}",
+				"VpcId": {
+					"Ref": "VPC"
+				},
+				"SecurityGroupIngress": [
+					{
+						"CidrIp": {
+							"Ref": "VpnCidr"
+						},
+						"FromPort": "-1",
+						"ToPort": "-1",
+						"IpProtocol": "-1",
+						"Description": "Allow all VPN traffic"
+					}
+				],
+				"SecurityGroupEgress": [
+					{
+						"CidrIp": "0.0.0.0/0",
+						"FromPort": "-1",
+						"ToPort": "-1",
+						"IpProtocol": "-1"
+					}
+				]
+			}
+		}
+	}
+}
