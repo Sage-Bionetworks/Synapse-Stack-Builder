@@ -346,6 +346,28 @@
 				}
 			}
 		},
+		"VpnCidr": {
+			"Description": "VPN CIDR used to create this VPC",
+			"Value": {
+				"Ref": "VpnCidr"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"VpnCidr"
+						]
+					]
+				}
+			}
+		},
 		"PublicRouteTable": {
 			"Description": "Route table Id for public subnets",
 			"Value": {

@@ -16,8 +16,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_COLORS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_PRIVATE_SUBNET_ZONES;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_PUBLIC_SUBNET_ZONES;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_PREFIX;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_VPN_CIDR;
-import static org.sagebionetworks.template.Constants.VPC_STACK_NAME;
+import static org.sagebionetworks.template.Constants.*;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.VelocityContext;
@@ -56,6 +55,7 @@ public class VpcTemplateBuilderImplTest {
 	String privateZones;
 	String publicZones;
 	String vpnCider;
+	String stack;
 
 	@Before
 	public void before() {
@@ -66,15 +66,24 @@ public class VpcTemplateBuilderImplTest {
 		
 		builder = new VpcTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, mockPropertyProvider, mockLoggerFactory);
 		colors = " Orange , Green ";
-		when(mockPropertyProvider.getProperty(PROPERTY_KEY_COLORS)).thenReturn(colors);
 		subnetPrefix = "10.21";
-		when(mockPropertyProvider.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX)).thenReturn(subnetPrefix);
 		privateZones = "us-east-1a,us-east-1b";
-		when(mockPropertyProvider.getProperty(PROPERTY_KEY_VPC_PRIVATE_SUBNET_ZONES)).thenReturn(privateZones);
 		publicZones = "us-east-1c,us-east-1e";
-		when(mockPropertyProvider.getProperty(PROPERTY_KEY_VPC_PUBLIC_SUBNET_ZONES)).thenReturn(publicZones);
 		vpnCider = "10.1.0.0/16";
+		stack = "dev";
+		when(mockPropertyProvider.getProperty(PROPERTY_KEY_COLORS)).thenReturn(colors);
+		when(mockPropertyProvider.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX)).thenReturn(subnetPrefix);
+		when(mockPropertyProvider.getProperty(PROPERTY_KEY_VPC_PRIVATE_SUBNET_ZONES)).thenReturn(privateZones);
+		when(mockPropertyProvider.getProperty(PROPERTY_KEY_VPC_PUBLIC_SUBNET_ZONES)).thenReturn(publicZones);
 		when(mockPropertyProvider.getProperty(PROPERTY_KEY_VPC_VPN_CIDR)).thenReturn(vpnCider);
+		when(mockPropertyProvider.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+	}
+	
+	@Test
+	public void testStackName() {
+		// Call under test
+		String name = builder.createStackName();
+		assertEquals("synapse-dev-vpc", name);
 	}
 
 	@Test
@@ -85,7 +94,7 @@ public class VpcTemplateBuilderImplTest {
 		ArgumentCaptor<String> bodyCapture = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<Parameter[]> parameterCatpure = ArgumentCaptor.forClass(Parameter[].class);
 		verify(mockCloudFormationClient).createOrUpdateStack(nameCapture.capture(), bodyCapture.capture(), parameterCatpure.capture());
-		assertEquals(VPC_STACK_NAME, nameCapture.getValue());
+		assertEquals("synapse-dev-vpc", nameCapture.getValue());
 		assertNotNull(parameterCatpure.getValue());
 //		System.out.println(bodyCapture.getValue());
 		JSONObject templateJson = new JSONObject(bodyCapture.getValue());
@@ -130,8 +139,9 @@ public class VpcTemplateBuilderImplTest {
 	
 	@Test
 	public void testCreateParameters() {
+		String stackName = "stackName";
 		// call under test
-		Parameter[] parameters = builder.createParameters();
+		Parameter[] parameters = builder.createParameters(stackName);
 		assertNotNull(parameters);
 		assertEquals(5, parameters.length);
 		// keys
@@ -141,7 +151,7 @@ public class VpcTemplateBuilderImplTest {
 		assertEquals(PARAMETER_PUBLIC_SUBNET_ZONES,parameters[3].getParameterKey());
 		assertEquals(PARAMETER_VPN_CIDR,parameters[4].getParameterKey());
 		// values
-		assertEquals(VPC_STACK_NAME, parameters[0].getParameterValue());
+		assertEquals(stackName, parameters[0].getParameterValue());
 		assertEquals(subnetPrefix, parameters[1].getParameterValue());
 		assertEquals(privateZones, parameters[2].getParameterValue());
 		assertEquals(publicZones, parameters[3].getParameterValue());

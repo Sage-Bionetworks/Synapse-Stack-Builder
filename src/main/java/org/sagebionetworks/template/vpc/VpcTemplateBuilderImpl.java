@@ -13,7 +13,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_PUBLIC_SUB
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_PREFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_VPN_CIDR;
 import static org.sagebionetworks.template.Constants.TEMPLATES_VPC_MAIN_VPC_JSON_VTP;
-import static org.sagebionetworks.template.Constants.VPC_STACK_NAME;
+import static org.sagebionetworks.template.Constants.*;
 
 import java.io.StringWriter;
 
@@ -52,6 +52,7 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 
 	@Override
 	public void buildAndDeploy() {
+		String stackName = createStackName();
 		// Create the context from the input
 		VelocityContext context = createContext();
 		// Merge the context with the template
@@ -64,9 +65,9 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 		// Format the JSON
 		resultJSON = templateJson.toString(JSON_INDENT);
 		this.logger.info(resultJSON);
-		Parameter[] params = createParameters();
+		Parameter[] params = createParameters(stackName);
 		// create or update the template
-		this.cloudFormationClient.createOrUpdateStack(Constants.VPC_STACK_NAME, resultJSON, params);
+		this.cloudFormationClient.createOrUpdateStack(stackName, resultJSON, params);
 	}
 
 	/**
@@ -86,14 +87,22 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 		context.put(COLORS, colors);
 		return context;
 	}
+	
+	/**
+	 * Create the name of the stack.
+	 * @return
+	 */
+	String createStackName() {
+		return String.format(VPC_STACK_NAME_FORMAT, propertyProvider.getProperty(PROPERTY_KEY_STACK));
+	}
 
 	/**
 	 * Create the parameters for the template.
 	 * 
 	 * @return
 	 */
-	public Parameter[] createParameters() {
-		Parameter VpcName = new Parameter().withParameterKey(PARAMETER_VPC_NAME).withParameterValue(VPC_STACK_NAME);
+	public Parameter[] createParameters(String stackName) {
+		Parameter VpcName = new Parameter().withParameterKey(PARAMETER_VPC_NAME).withParameterValue(stackName);
 		Parameter VpcSubnetPrefix = new Parameter().withParameterKey(PARAMETER_VPC_SUBNET_PREFIX)
 				.withParameterValue(propertyProvider.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX));
 		Parameter PrivateSubnetZones = new Parameter().withParameterKey(PARAMETER_PRIVATE_SUBNET_ZONES)

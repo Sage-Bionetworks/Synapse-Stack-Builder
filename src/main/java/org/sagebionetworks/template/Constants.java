@@ -5,7 +5,7 @@ public class Constants {
 	/**
 	 * The unique name assigned to the Synapse VPC stack.
 	 */
-	public static final String VPC_STACK_NAME = "synapse-stack-vpc";
+	public static final String VPC_STACK_NAME_FORMAT = "synapse-%1$s-vpc";
 	
 	// CloudFormation Parameter names.
 	public static final String PARAMETER_VPN_CIDR = "VpnCidr";
