@@ -15,13 +15,12 @@
 				]
 			}
 		},
-		"${stack}${instance}DBSecurityGroup": {
-			"DependsOn": "VPC",
+		"${stack}${instance}VPCSecurityGroup": {
 			"Type": "AWS::EC2::SecurityGroup",
 			"Properties": {
 				"GroupDescription": "VPC Security Group for ${stack}-${instance}",
 				"VpcId": {
-					"Ref": "VPC"
+					"Fn::ImportValue": "us-east-1-synapse-stack-vpc-VPCId"
 				},
 				"SecurityGroupIngress": [
 					{
@@ -32,14 +31,6 @@
 						"ToPort": "-1",
 						"IpProtocol": "-1",
 						"Description": "Allow all VPN traffic"
-					}
-				],
-				"SecurityGroupEgress": [
-					{
-						"CidrIp": "0.0.0.0/0",
-						"FromPort": "-1",
-						"ToPort": "-1",
-						"IpProtocol": "-1"
 					}
 				]
 			}
