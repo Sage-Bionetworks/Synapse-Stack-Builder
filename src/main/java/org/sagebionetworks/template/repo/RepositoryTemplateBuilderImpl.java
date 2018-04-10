@@ -21,6 +21,7 @@ import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.PropertyProvider;
 
+import com.amazonaws.services.cloudformation.model.Parameter;
 import com.google.inject.Inject;
 
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
@@ -44,13 +45,13 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	public void buildAndDeploy() {
 		// Create the context from the input
 		VelocityContext context = createContext();
-		
+
 		// Create the shared-resource stack
 		String sharedResourceStackName = createSharedResourcesStackName();
 		buildAndDeployStack(context, sharedResourceStackName, TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP);
-		
+
 	}
-	
+
 	void buildAndDeployStack(VelocityContext context, String stackName, String templatePath) {
 		// Merge the context with the template
 		Template template = this.velocityEngine.getTemplate(templatePath);
@@ -61,10 +62,11 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		JSONObject templateJson = new JSONObject(resultJSON);
 		// Format the JSON
 		resultJSON = templateJson.toString(JSON_INDENT);
-		this.logger.info("Template for stack: "+stackName);
+		this.logger.info("Template for stack: " + stackName);
 		this.logger.info(resultJSON);
+		Parameter[] parameters = createParameters();
 		// create or update the template
-		this.cloudFormationClient.createOrUpdateStack(stackName, resultJSON);
+		this.cloudFormationClient.createOrUpdateStack(stackName, resultJSON, parameters);
 	}
 
 	/**
@@ -82,14 +84,28 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	}
 
 	/**
+	 * Create the parameters to be passed to the template at runtime.
+	 * 
+	 * @return
+	 */
+	Parameter[] createParameters() {
+		Parameter databasePassword = new Parameter().withParameterKey("MySQLDatabaseMasterPassword")
+				.withParameterKey(propertyProvider.getProperty("org.sagebionetworks.mysql.password"));
+		return new Parameter[] { databasePassword };
+	}
+
+	/**
 	 * Create the name of the stack from the input.
+	 * 
 	 * @return
 	 */
 	String createSharedResourcesStackName() {
 		StringBuilder builder = new StringBuilder();
 		builder.append(propertyProvider.getProperty(PROPERTY_KEY_STACK));
+		builder.append("-");
 		builder.append(propertyProvider.getProperty(PROPERTY_KEY_INSTANCE));
-		builder.append("SharedResources");
+		builder.append("-");
+		builder.append("shared-resources");
 		return builder.toString();
 	}
 

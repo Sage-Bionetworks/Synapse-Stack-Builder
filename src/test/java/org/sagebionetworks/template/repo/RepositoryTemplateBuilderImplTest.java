@@ -24,6 +24,8 @@ import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.PropertyProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 
+import com.amazonaws.services.cloudformation.model.Parameter;
+
 @RunWith(MockitoJUnitRunner.class)
 public class RepositoryTemplateBuilderImplTest {
 
@@ -69,8 +71,10 @@ public class RepositoryTemplateBuilderImplTest {
 		builder.buildAndDeploy();
 		ArgumentCaptor<String> nameCapture = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<String> bodyCapture = ArgumentCaptor.forClass(String.class);
-		verify(mockCloudFormationClient).createOrUpdateStack(nameCapture.capture(), bodyCapture.capture());
-		assertEquals("dev101SharedResources", nameCapture.getValue());
+		ArgumentCaptor<Parameter[]> parameterCatpure = ArgumentCaptor.forClass(Parameter[].class);
+		verify(mockCloudFormationClient).createOrUpdateStack(nameCapture.capture(), bodyCapture.capture(), parameterCatpure.capture());
+		assertEquals("dev-101-shared-resources", nameCapture.getValue());
+		assertNotNull(parameterCatpure.getValue());
 		String bodyJSONString = bodyCapture.getValue();
 		assertNotNull(bodyJSONString);
 		System.out.println(bodyJSONString);
@@ -87,8 +91,8 @@ public class RepositoryTemplateBuilderImplTest {
 		JSONObject properties = subnetGroup.getJSONObject("Properties");
 		JSONArray subnetArray = properties.getJSONArray("SubnetIds");
 		JSONObject subnetOne = subnetArray.getJSONObject(0);
-		assertEquals("us-east-1-synapse-stack-vpc-PinkPrivate1Subnet", subnetOne.getString("Fn::ImportValue"));
+		assertEquals("us-east-1-synapse-dev-vpc-PinkPrivate1Subnet", subnetOne.getString("Fn::ImportValue"));
 		JSONObject subnetTwo = subnetArray.getJSONObject(1);
-		assertEquals("us-east-1-synapse-stack-vpc-PinkPrivate2Subnet", subnetTwo.getString("Fn::ImportValue"));
+		assertEquals("us-east-1-synapse-dev-vpc-PinkPrivate2Subnet", subnetTwo.getString("Fn::ImportValue"));
 	}
 }
