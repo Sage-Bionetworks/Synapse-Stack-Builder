@@ -65,7 +65,7 @@ public class VpcTemplateBuilderImplTest {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 		
 		builder = new VpcTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, mockPropertyProvider, mockLoggerFactory);
-		colors = " Orange , Green ";
+		colors = " Red , Green ";
 		subnetPrefix = "10.21";
 		privateZones = "us-east-1a,us-east-1b";
 		publicZones = "us-east-1c,us-east-1e";

@@ -77,6 +77,10 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 	 */
 	VelocityContext createContext() {
 		VelocityContext context = new VelocityContext();
+		// Create the sub-nets
+		SubnetBuilder builder = new SubnetBuilder();
+		builder.withCidrPrefix(propertyProvider.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX));
+		builder.withColors(colors)
 		// Lookup the colors property
 		String colorsCSV = propertyProvider.getProperty(PROPERTY_KEY_COLORS);
 		String[] colors = colorsCSV.split(",");
@@ -86,6 +90,21 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 		}
 		context.put(COLORS, colors);
 		return context;
+	}
+	
+	/**
+	 * Get the colors from the property CSV.
+	 * @return
+	 */
+	Color[] getColorsFromProperty() {
+		String colorsCSV = propertyProvider.getProperty(PROPERTY_KEY_COLORS);
+		String[] split = colorsCSV.split(",");
+		Color[] colors = new Color[split.length];
+		// trim
+		for (int i = 0; i < split.length; i++) {
+			colors[i] = Color.valueOf(split[i].trim());
+		}
+		return colors;
 	}
 	
 	/**

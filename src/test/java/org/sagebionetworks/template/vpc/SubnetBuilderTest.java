@@ -6,7 +6,7 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 
 public class SubnetBuilderTest {
-	
+
 	@Test
 	public void testBuild() {
 		SubnetBuilder builder = new SubnetBuilder();
@@ -19,7 +19,7 @@ public class SubnetBuilderTest {
 		SubnetGroup[] results = builder.build();
 		assertNotNull(results);
 		assertEquals(2, results.length);
-		
+
 		// red
 		SubnetGroup red = results[0];
 		assertEquals(Color.Red.name(), red.getColor());
@@ -32,7 +32,7 @@ public class SubnetBuilderTest {
 		assertNotNull(red.getPrivateCidrs());
 		assertEquals(1, red.getPrivateCidrs().length);
 		assertEquals("10.21.8.0/22", red.getPrivateCidrs()[0]);
-		
+
 		// blue
 		SubnetGroup blue = results[1];
 		assertEquals(Color.Blue.name(), blue.getColor());
@@ -47,4 +47,42 @@ public class SubnetBuilderTest {
 		assertEquals("10.21.20.0/22", blue.getPrivateCidrs()[0]);
 	}
 
+	@Test
+	public void testCreateCIDR() {
+		long addressValue = 0L;
+		int subnetMask = 16;
+		// call under test
+		String result = SubnetBuilder.createCIDR(addressValue, subnetMask);
+		assertEquals("0.0.0.0/16", result);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testWithCidrPrefixNull() {
+		String prefix = null;
+		SubnetBuilder builder = new SubnetBuilder();
+		// call under test
+		builder.withCidrPrefix(prefix);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testWithCidrPrefixWrongFormat() {
+		String prefix = "wrong";
+		SubnetBuilder builder = new SubnetBuilder();
+		// call under test
+		builder.withCidrPrefix(prefix);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testWithSubnetMaskTooLow() {
+		SubnetBuilder builder = new SubnetBuilder();
+		// call under test
+		builder.withNetworkMask(15);
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void testWithSubnetMaskTooHigh() {
+		SubnetBuilder builder = new SubnetBuilder();
+		// call under test
+		builder.withNetworkMask(33);
+	}
 }
