@@ -12,7 +12,8 @@ public class SubnetBuilderTest {
 		SubnetBuilder builder = new SubnetBuilder();
 		builder.withCidrPrefix("10.21");
 		builder.withColors(Color.Red, Color.Blue);
-		builder.withNetworkMask(22);
+		builder.withSubnetMask(22);
+		builder.withColorGroupNetMaskSubnetMask(20);
 		builder.withNumberPublicSubnets(2);
 		builder.withNumberPrivateSubnets(1);
 		// call under test
@@ -21,30 +22,77 @@ public class SubnetBuilderTest {
 		assertEquals(2, results.length);
 
 		// red
-		SubnetGroup red = results[0];
-		assertEquals(Color.Red.name(), red.getColor());
-		// red public
-		assertNotNull(red.getPublicCidrs());
-		assertEquals(2, red.getPublicCidrs().length);
-		assertEquals("10.21.0.0/22", red.getPublicCidrs()[0]);
-		assertEquals("10.21.4.0/22", red.getPublicCidrs()[1]);
-		// red private
-		assertNotNull(red.getPrivateCidrs());
-		assertEquals(1, red.getPrivateCidrs().length);
-		assertEquals("10.21.8.0/22", red.getPrivateCidrs()[0]);
-
+		SubnetGroup color = results[0];
+		assertEquals("10.21.0.0/20", color.getCidr());
+		assertEquals("Red", color.getColor());
+		Subnet[] subnets = color.getSubnets();
+		assertNotNull(subnets);
+		assertEquals(3, subnets.length);
+		// red public 0
+		Subnet subnet = subnets[0];
+		assertEquals("RedPublic0Subnet", subnet.getName());
+		assertEquals("10.21.0.0/22", subnet.getCidr());
+		assertEquals("Public", subnet.getType());
+		// red public 1
+		subnet = subnets[1];
+		assertEquals("RedPublic1Subnet", subnet.getName());
+		assertEquals("10.21.4.0/22", subnet.getCidr());
+		assertEquals("Public", subnet.getType());
+		
+		// red private 0
+		subnet = subnets[2];
+		assertEquals("RedPrivate0Subnet", subnet.getName());
+		assertEquals("10.21.8.0/22", subnet.getCidr());
+		assertEquals("Private", subnet.getType());
+		
 		// blue
-		SubnetGroup blue = results[1];
-		assertEquals(Color.Blue.name(), blue.getColor());
-		// blue public
-		assertNotNull(blue.getPublicCidrs());
-		assertEquals(2, blue.getPublicCidrs().length);
-		assertEquals("10.21.12.0/22", blue.getPublicCidrs()[0]);
-		assertEquals("10.21.16.0/22", blue.getPublicCidrs()[1]);
-		// blue private
-		assertNotNull(red.getPrivateCidrs());
-		assertEquals(1, red.getPrivateCidrs().length);
-		assertEquals("10.21.20.0/22", blue.getPrivateCidrs()[0]);
+		color = results[1];
+		assertEquals("10.21.16.0/20", color.getCidr());
+		assertEquals("Blue", color.getColor());
+		subnets = color.getSubnets();
+		assertNotNull(subnets);
+		assertEquals(3, subnets.length);
+		// blue public 0
+		subnet = subnets[0];
+		assertEquals("BluePublic0Subnet", subnet.getName());
+		assertEquals("10.21.16.0/22", subnet.getCidr());
+		assertEquals("Public", subnet.getType());
+		// blue public 1
+		subnet = subnets[1];
+		assertEquals("BluePublic1Subnet", subnet.getName());
+		assertEquals("10.21.20.0/22", subnet.getCidr());
+		assertEquals("Public", subnet.getType());
+		
+		// blue private 0
+		subnet = subnets[2];
+		assertEquals("BluePrivate0Subnet", subnet.getName());
+		assertEquals("10.21.24.0/22", subnet.getCidr());
+		assertEquals("Private", subnet.getType());
+	}
+	
+	@Test
+	public void testCreateSubnet() {
+		long addressLong =(long) Math.pow(2, 32)-1;
+		int networkMask = 8;
+		Color color = Color.Red;
+		SubnetType type = SubnetType.Public;
+		int index = 0;
+		// Call under test
+		Subnet result = SubnetBuilder.createSubnet(addressLong, networkMask, color, type, index);
+		assertNotNull(result);
+		assertEquals("RedPublic0Subnet", result.getName());
+		assertEquals("255.255.255.255/8", result.getCidr());
+		assertEquals("Public", result.getType());
+	}
+	
+	@Test
+	public void testCreateSubnetName() {
+		Color color = Color.Blue;
+		SubnetType type = SubnetType.Private;
+		int index = 1;
+		// call under test
+		String name = SubnetBuilder.createSubnetName(color, type, index);
+		assertEquals("BluePrivate1Subnet", name);
 	}
 
 	@Test
@@ -76,13 +124,13 @@ public class SubnetBuilderTest {
 	public void testWithSubnetMaskTooLow() {
 		SubnetBuilder builder = new SubnetBuilder();
 		// call under test
-		builder.withNetworkMask(15);
+		builder.withSubnetMask(15);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testWithSubnetMaskTooHigh() {
 		SubnetBuilder builder = new SubnetBuilder();
 		// call under test
-		builder.withNetworkMask(33);
+		builder.withSubnetMask(33);
 	}
 }

@@ -1,9 +1,11 @@
 package org.sagebionetworks.template.vpc;
 
 public class IpAddressUtils {
+	
+	public static final long MAX_IP_V4_ADDRESS = (long) Math.pow(2, 32)-1;
 
 	/**
-	 * Convert an IPv4 address to long.
+	 * Convert an IPv4 address string to its corresponding long value.
 	 * @param ipaddress
 	 * @return
 	 */
@@ -23,11 +25,14 @@ public class IpAddressUtils {
 	}
 	
 	/**
-	 * Convert BigInteger to an IPv4 address.
+	 * Convert the long value of an IP address to an IPv4 address string.
 	 * @param intValue
 	 * @return
 	 */
 	public static String integerToIpV4Address(long value) {
+		if(value >  MAX_IP_V4_ADDRESS) {
+			throw new IllegalArgumentException("Value too large for IPv4"); 
+		}
 		StringBuilder builder = new StringBuilder();
 		// shift by 24, 16, 8, and 0
 		for(int i = 24; i >= 0; i -=8) {
@@ -35,9 +40,6 @@ public class IpAddressUtils {
 				builder.append(".");
 			}
 			long shift = value >> i;
-			if(shift > 255) {
-				throw new IllegalArgumentException("Value too large for IPv4");
-			}
 			builder.append(shift);
 			value -= shift << i;
 		}

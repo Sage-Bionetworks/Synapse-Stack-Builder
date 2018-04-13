@@ -1,9 +1,31 @@
-		#foreach( $color in $colors )
+#foreach( $subnetGroup in $subnetGroups )
+	,
+	"${subnetGroup.color}SubnetGroupCIDR": {
+		"Description": "$subnetGroup.color subnet group CIDR",
+		"Value": "${subnetGroup.cidr}",
+		"Export": {
+			"Name": {
+				"Fn::Join": [
+					"-",
+					[
+						{
+							"Ref": "AWS::Region"
+						},
+						{
+							"Ref": "AWS::StackName"
+						},
+						"${subnetGroup.color}-CIDR"
+					]
+				]
+			}
+		}
+	}
+	#foreach ( $subnet in $subnetGroup.subnets )
 		,
-		"${color}Public1Subnet": {
-			"Description": "SubnetId of the public subnet ${color}Public1",
+		"${subnet.name}Id": {
+			"Description": "Export subnet's ID",
 			"Value": {
-				"Ref": "${color}Public1Subnet"
+				"Ref": "${subnet.name}"
 			},
 			"Export": {
 				"Name": {
@@ -16,20 +38,15 @@
 							{
 								"Ref": "AWS::StackName"
 							},
-							"${color}Public1Subnet"
+							"${subnet.name}-ID"
 						]
 					]
 				}
 			}
 		},
-		"${color}Public1SubnetCIDR": {
-			"Description": "CIDR of the public subnet ${color}Public1",
-			"Value": {
-				"Fn::GetAtt": [
-					"${color}Public1Subnet",
-					"CidrBlock"
-				]
-			},
+		"${subnet.name}Cidr": {
+			"Description": "Export subnet's CIDR",
+			"Value": "${subnet.cidr}",
 			"Export": {
 				"Name": {
 					"Fn::Join": [
@@ -41,102 +58,11 @@
 							{
 								"Ref": "AWS::StackName"
 							},
-							"${color}Public1SubnetCIDR"
-						]
-					]
-				}
-			}
-		},
-		"${color}Public2Subnet": {
-			"Description": "SubnetId of the public subnet ${color}Public2",
-			"Value": {
-				"Ref": "${color}Public2Subnet"
-			},
-			"Export": {
-				"Name": {
-					"Fn::Join": [
-						"-",
-						[
-							{
-								"Ref": "AWS::Region"
-							},
-							{
-								"Ref": "AWS::StackName"
-							},
-							"${color}Public2Subnet"
-						]
-					]
-				}
-			}
-		},
-		"${color}Public2SubnetCIDR": {
-			"Description": "CIDR of the public subnet ${color}Public1",
-			"Value": {
-				"Fn::GetAtt": [
-					"${color}Public2Subnet",
-					"CidrBlock"
-				]
-			},
-			"Export": {
-				"Name": {
-					"Fn::Join": [
-						"-",
-						[
-							{
-								"Ref": "AWS::Region"
-							},
-							{
-								"Ref": "AWS::StackName"
-							},
-							"${color}Public2SubnetCIDR"
-						]
-					]
-				}
-			}
-		},
-		"${color}Private1Subnet": {
-			"Description": "SubnetId of the private subnet ${color}Private1",
-			"Value": {
-				"Ref": "${color}Private1Subnet"
-			},
-			"Export": {
-				"Name": {
-					"Fn::Join": [
-						"-",
-						[
-							{
-								"Ref": "AWS::Region"
-							},
-							{
-								"Ref": "AWS::StackName"
-							},
-							"${color}Private1Subnet"
-						]
-					]
-				}
-			}
-		},
-		"${color}Private2Subnet": {
-			"Description": "SubnetId of the private subnet 2",
-			"Value": {
-				"Ref": "${color}Private2Subnet"
-			},
-			"Export": {
-				"Name": {
-					"Fn::Join": [
-						"-",
-						[
-							{
-								"Ref": "AWS::Region"
-							},
-							{
-								"Ref": "AWS::StackName"
-							},
-							"${color}Private2Subnet"
+							"${subnet.name}-CIDR"
 						]
 					]
 				}
 			}
 		}
-	
-	 #end	
+	#end	
+#end	
