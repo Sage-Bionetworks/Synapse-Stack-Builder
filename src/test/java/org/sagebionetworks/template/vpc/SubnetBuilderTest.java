@@ -14,8 +14,8 @@ public class SubnetBuilderTest {
 		builder.withColors(Color.Red, Color.Blue);
 		builder.withSubnetMask(22);
 		builder.withColorGroupNetMaskSubnetMask(20);
-		builder.withNumberPublicSubnets(2);
-		builder.withNumberPrivateSubnets(1);
+		builder.withPublicAvailabilityZones("us-east-1c","us-east-1b");
+		builder.withPrivateAvailabilityZones("us-east-1a");
 		// call under test
 		SubnetGroup[] results = builder.build();
 		assertNotNull(results);
@@ -77,12 +77,14 @@ public class SubnetBuilderTest {
 		Color color = Color.Red;
 		SubnetType type = SubnetType.Public;
 		int index = 0;
+		String availabilityZone = "us-east-1c";
 		// Call under test
-		Subnet result = SubnetBuilder.createSubnet(addressLong, networkMask, color, type, index);
+		Subnet result = SubnetBuilder.createSubnet(availabilityZone, addressLong, networkMask, color, type, index);
 		assertNotNull(result);
 		assertEquals("RedPublic0Subnet", result.getName());
 		assertEquals("255.255.255.255/8", result.getCidr());
 		assertEquals("Public", result.getType());
+		assertEquals("us-east-1c", result.getAvailabilityZone());
 	}
 	
 	@Test

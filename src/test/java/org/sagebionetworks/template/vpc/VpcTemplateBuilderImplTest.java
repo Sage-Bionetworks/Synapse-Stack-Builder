@@ -6,8 +6,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.sagebionetworks.template.Constants.PARAMETER_PRIVATE_SUBNET_ZONES;
-import static org.sagebionetworks.template.Constants.PARAMETER_PUBLIC_SUBNET_ZONES;
 import static org.sagebionetworks.template.Constants.PARAMETER_VPC_SUBNET_PREFIX;
 import static org.sagebionetworks.template.Constants.PARAMETER_VPN_CIDR;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_COLORS;
@@ -52,10 +50,10 @@ public class VpcTemplateBuilderImplTest {
 	VelocityEngine velocityEngine;
 	VpcTemplateBuilderImpl builder;
 	
-	String colors;
+	String[] colors;
 	String subnetPrefix;
-	String privateZones;
-	String publicZones;
+	String[] privateZones;
+	String[] publicZones;
 	String vpnCider;
 	String stack;
 
@@ -67,16 +65,16 @@ public class VpcTemplateBuilderImplTest {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 		
 		builder = new VpcTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, mockPropertyProvider, mockLoggerFactory);
-		colors = " Red , Green ";
+		colors = new String[] {"Red","Green"};
 		subnetPrefix = "10.21";
-		privateZones = "us-east-1a,us-east-1b";
-		publicZones = "us-east-1c,us-east-1e";
+		privateZones = new String[] {"us-east-1a","us-east-1b"};
+		publicZones =  new String[] {"us-east-1c","us-east-1e"};
 		vpnCider = "10.1.0.0/16";
 		stack = "dev";
-		when(mockPropertyProvider.getProperty(PROPERTY_KEY_COLORS)).thenReturn(colors);
+		when(mockPropertyProvider.getComaSeparatedProperty(PROPERTY_KEY_COLORS)).thenReturn(colors);
 		when(mockPropertyProvider.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX)).thenReturn(subnetPrefix);
-		when(mockPropertyProvider.getProperty(PROPERTY_KEY_VPC_PRIVATE_SUBNET_ZONES)).thenReturn(privateZones);
-		when(mockPropertyProvider.getProperty(PROPERTY_KEY_VPC_PUBLIC_SUBNET_ZONES)).thenReturn(publicZones);
+		when(mockPropertyProvider.getComaSeparatedProperty(PROPERTY_KEY_VPC_PRIVATE_SUBNET_ZONES)).thenReturn(privateZones);
+		when(mockPropertyProvider.getComaSeparatedProperty(PROPERTY_KEY_VPC_PUBLIC_SUBNET_ZONES)).thenReturn(publicZones);
 		when(mockPropertyProvider.getProperty(PROPERTY_KEY_VPC_VPN_CIDR)).thenReturn(vpnCider);
 		when(mockPropertyProvider.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 	}
@@ -159,17 +157,13 @@ public class VpcTemplateBuilderImplTest {
 		// call under test
 		Parameter[] parameters = builder.createParameters(stackName);
 		assertNotNull(parameters);
-		assertEquals(4, parameters.length);
+		assertEquals(2, parameters.length);
 		// keys
 		assertEquals(PARAMETER_VPC_SUBNET_PREFIX,parameters[0].getParameterKey());
-		assertEquals(PARAMETER_PRIVATE_SUBNET_ZONES,parameters[1].getParameterKey());
-		assertEquals(PARAMETER_PUBLIC_SUBNET_ZONES,parameters[2].getParameterKey());
-		assertEquals(PARAMETER_VPN_CIDR,parameters[3].getParameterKey());
+		assertEquals(PARAMETER_VPN_CIDR,parameters[1].getParameterKey());
 		// values
 		assertEquals(subnetPrefix, parameters[0].getParameterValue());
-		assertEquals(privateZones, parameters[1].getParameterValue());
-		assertEquals(publicZones, parameters[2].getParameterValue());
-		assertEquals(vpnCider, parameters[3].getParameterValue());
+		assertEquals(vpnCider, parameters[1].getParameterValue());
 	}
 	
 	@Test

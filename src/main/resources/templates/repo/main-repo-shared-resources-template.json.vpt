@@ -14,10 +14,10 @@
 				"DBSubnetGroupDescription": "Repository database subnet group defines where RDS instances can be deployed.",
 				"SubnetIds": [
 					{
-						"Fn::ImportValue": "us-east-1-synapse-${stack}-vpc-${vpc-subnet-color}Private1Subnet"
+						"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}Private0Subnet-ID"
 					},
 					{
-						"Fn::ImportValue": "us-east-1-synapse-${stack}-vpc-${vpc-subnet-color}Private2Subnet"
+						"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}Private1Subnet-ID"
 					}
 				]
 			}
@@ -25,33 +25,24 @@
 		"${stack}${instance}VpcDBSecurityGroup": {
 			"Type": "AWS::EC2::SecurityGroup",
 			"Properties": {
-				"GroupDescription": "VPC Security Group for ${stack}-${instance} that grants access to VPN traffic and ${vpc-subnet-color} public subnets.",
+				"GroupDescription": "VPC Security Group for ${stack}-${instance} that grants access to VPN traffic and ${subnetGroupColor} public subnets.",
 				"VpcId": {
-					"Fn::ImportValue": "us-east-1-synapse-${stack}-VPCId"
+					"Fn::ImportValue": "${vpcExportPrefix}-VPCId"
 				},
 				"SecurityGroupIngress": [
 					{
 						"Description": "Allow all VPN traffic",
 						"CidrIp": {
-							"Fn::ImportValue": "us-east-1-synapse-${stack}-VpcCidr"
-						},
-						"FromPort": "-1",
-						"ToPort": "-1",
-						"IpProtocol": "-1"
-					},
-					{
-						"Description": "Allow ${vpc-subnet-color} public subnet one access to MySQL",
-						"CidrIp": {
-							"Fn::ImportValue": "us-east-1-synapse-${stack}-${vpc-subnet-color}Public1SubnetCIDR"
+							"Fn::ImportValue": "${vpcExportPrefix}-VpnCidr"
 						},
 						"FromPort": "3306",
 						"ToPort": "3306",
 						"IpProtocol": "tcp"
 					},
 					{
-						"Description": "Allow ${vpc-subnet-color} public subnet two access to MySQL",
+						"Description": "Allow ${subnetGroupColor} subnet one access to MySQL",
 						"CidrIp": {
-							"Fn::ImportValue": "us-east-1-synapse-${stack}-${vpc-subnet-color}Public2SubnetCIDR"
+							"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-CIDR"
 						},
 						"FromPort": "3306",
 						"ToPort": "3306",
@@ -87,9 +78,13 @@
 				"BackupRetentionPeriod": "7",
 				"DBInstanceClass": "db.r3.large",
 				"DBInstanceIdentifier": "${stack}-${instance}-db",
-				"DBName": "${stack}-${instance}",
-				"DBParameterGroupName": "${stack}${instance}DBParameterGroup",
-				"DBSubnetGroupName": "${stack}${instance}DBSubnetGroup",
+				"DBName": "${stack}${instance}",
+				"DBParameterGroupName": {
+					"Ref": "${stack}${instance}DBParameterGroup"
+				},
+				"DBSubnetGroupName": {
+					"Ref": "${stack}${instance}DBSubnetGroup"
+				},
 				"Engine": "MySQL",
 				"EngineVersion": "5.6.34",
 				"LicenseModel": "general-public-license",
@@ -103,7 +98,9 @@
 				"PubliclyAccessible": false,
 				"StorageType": "standard",
 				"VPCSecurityGroups": [
-					"${stack}${instance}VpcDBSecurityGroup"
+					{
+						"Ref": "${stack}${instance}VpcDBSecurityGroup"
+					}
 				]
 			}
 		}

@@ -137,14 +137,7 @@
 				"Ref": "VPC"
 			},
 			"CidrBlock": "${subnet.cidr}",
-			"AvailabilityZone": {
-				"Fn::Select": [
-					0,
-					{
-						"Ref": "${subnet.type}SubnetZones"
-					}
-				]
-			},
+			"AvailabilityZone": "${subnet.availabilityZone}",
 			"Tags": [
 				{
 					"Key": "Application",

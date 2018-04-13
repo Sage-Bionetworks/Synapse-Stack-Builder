@@ -1,6 +1,6 @@
 package org.sagebionetworks.template.repo;
 
-import static org.sagebionetworks.template.Constants.INSTANCE;
+import static org.sagebionetworks.template.Constants.*;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
@@ -11,6 +11,7 @@ import static org.sagebionetworks.template.Constants.TEMPALTE_SHARED_RESOUCES_MA
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
 import java.io.StringWriter;
+import java.util.StringJoiner;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
@@ -80,6 +81,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		context.put(INSTANCE, propertyProvider.getProperty(PROPERTY_KEY_INSTANCE));
 		context.put(VPC_SUBNET_COLOR, propertyProvider.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR));
 		context.put(SHARED_RESOUCES_STACK_NAME, createSharedResourcesStackName());
+		context.put(VPC_EXPORT_PREFIX, createVpcExportPrefix());
 		return context;
 	}
 
@@ -89,8 +91,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 * @return
 	 */
 	Parameter[] createParameters() {
-		Parameter databasePassword = new Parameter().withParameterKey("MySQLDatabaseMasterPassword")
-				.withParameterKey(propertyProvider.getProperty("org.sagebionetworks.mysql.password"));
+		Parameter databasePassword = new Parameter().withParameterKey(PARAMETER_MYSQL_PASSWORD)
+				.withParameterValue(propertyProvider.getProperty(PROPERTY_KEY_MYSQL_PASSWORD));
 		return new Parameter[] { databasePassword };
 	}
 
@@ -100,13 +102,23 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 * @return
 	 */
 	String createSharedResourcesStackName() {
-		StringBuilder builder = new StringBuilder();
-		builder.append(propertyProvider.getProperty(PROPERTY_KEY_STACK));
-		builder.append("-");
-		builder.append(propertyProvider.getProperty(PROPERTY_KEY_INSTANCE));
-		builder.append("-");
-		builder.append("shared-resources");
-		return builder.toString();
+		StringJoiner joiner = new StringJoiner("-");
+		joiner.add(propertyProvider.getProperty(PROPERTY_KEY_STACK));
+		joiner.add(propertyProvider.getProperty(PROPERTY_KEY_INSTANCE));
+		joiner.add("shared-resources");
+		return joiner.toString();
+	}
+	
+	/**
+	 * Create the prefix used for all of the VPC stack exports;
+	 * @return
+	 */
+	String createVpcExportPrefix() {
+		StringJoiner joiner = new StringJoiner("-");
+		joiner.add("us-east-1-synapse");
+		joiner.add(propertyProvider.getProperty(PROPERTY_KEY_STACK));
+		joiner.add("vpc");
+		return joiner.toString();
 	}
 
 }

@@ -7,8 +7,8 @@ package org.sagebionetworks.template.vpc;
 public class SubnetBuilder {
 
 	Color[] colors;
-	int numberPublicSubnets;
-	int numberPrivateSubnets;
+	String[] publicAvailabilityZones;
+	String[] privateAvailabilityZones;
 	int colorGroupNetMask;
 	int subnetMask;
 	String cidrPrefix;
@@ -25,24 +25,24 @@ public class SubnetBuilder {
 	}
 
 	/**
-	 * The number of public sub-nets that should be included in each color group.
+	 * A public subnet will be created for each provided Availability Zones.
 	 * 
 	 * @param numberPublicSubnets
 	 * @return
 	 */
-	public SubnetBuilder withNumberPublicSubnets(int numberPublicSubnets) {
-		this.numberPublicSubnets = numberPublicSubnets;
+	public SubnetBuilder withPublicAvailabilityZones(String...publicAvailabilityZones) {
+		this.publicAvailabilityZones = publicAvailabilityZones;
 		return this;
 	}
 
 	/**
-	 * The number of private sub-nets that should be included in each color group.
+	 * A private subnet will be created for each provided Availability Zones.
 	 * 
 	 * @param numberPrivateSubnets
 	 * @return
 	 */
-	public SubnetBuilder withNumberPrivateSubnets(int numberPrivateSubnets) {
-		this.numberPrivateSubnets = numberPrivateSubnets;
+	public SubnetBuilder withPrivateAvailabilityZones(String...privateAvailabilityZones) {
+		this.privateAvailabilityZones = privateAvailabilityZones;
 		return this;
 	}
 
@@ -112,15 +112,17 @@ public class SubnetBuilder {
 			long addressLong = startAddress + (numberGroupAddresses*i);
 			Color color = colors[i];
 			String colorCidr = createCIDR(addressLong, this.colorGroupNetMask);
-			Subnet[] subnets = new Subnet[this.numberPublicSubnets + this.numberPrivateSubnets];
+			Subnet[] subnets = new Subnet[this.publicAvailabilityZones.length + this.privateAvailabilityZones.length];
 			// create public sub-nets
-			for (int pub = 0; pub < this.numberPublicSubnets; pub++) {
-				subnets[pub] = createSubnet(addressLong, subnetMask, color, SubnetType.Public, pub);
+			for (int pub = 0; pub < this.publicAvailabilityZones.length; pub++) {
+				String availabilityZones = this.publicAvailabilityZones[pub];
+				subnets[pub] = createSubnet(availabilityZones, addressLong, subnetMask, color, SubnetType.Public, pub);
 				addressLong += numberSubnetAddresses;
 			}
 			// create private sub-nets
-			for (int pri = 0; pri < this.numberPrivateSubnets; pri++) {
-				subnets[this.numberPublicSubnets + pri] = createSubnet(addressLong, subnetMask, color,
+			for (int pri = 0; pri < this.privateAvailabilityZones.length; pri++) {
+				String availabilityZones = this.privateAvailabilityZones[pri];
+				subnets[this.publicAvailabilityZones.length + pri] = createSubnet(availabilityZones, addressLong, subnetMask, color,
 						SubnetType.Private, pri);
 				addressLong += numberSubnetAddresses;
 			}
@@ -138,10 +140,10 @@ public class SubnetBuilder {
 	 * @param index Index within the Color-Type.
 	 * @return
 	 */
-	static Subnet createSubnet(long addressLong, int networkMask, Color color, SubnetType type, int index) {
+	static Subnet createSubnet(String availabilityZones, long addressLong, int networkMask, Color color, SubnetType type, int index) {
 		String cidr = createCIDR(addressLong, networkMask);
 		String name = createSubnetName(color, type, index);
-		return new Subnet(name, cidr, type);
+		return new Subnet(name, cidr, type, availabilityZones);
 	}
 
 	/**
