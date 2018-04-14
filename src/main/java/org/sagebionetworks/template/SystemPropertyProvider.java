@@ -18,4 +18,15 @@ public class SystemPropertyProvider implements PropertyProvider {
 		return value;
 	}
 
+	@Override
+	public String[] getComaSeparatedProperty(String key) {
+		String csv = getProperty(key);
+		String[] split = csv.split(",");
+		// trim
+		for(int i=0; i<split.length;i++) {
+			split[i] = split[i].trim();
+		}
+		return split;
+	}
+
 }

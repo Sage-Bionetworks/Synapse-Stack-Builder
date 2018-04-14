@@ -1,0 +1,108 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Parameters": {
+		"MySQLDatabaseMasterPassword": {
+			"Description": "The master password for the MySQL databases.",
+			"Type": "String",
+			"NoEcho": true
+		}
+	},
+	"Resources": {
+		"${stack}${instance}DBSubnetGroup": {
+			"Type": "AWS::RDS::DBSubnetGroup",
+			"Properties": {
+				"DBSubnetGroupDescription": "Repository database subnet group defines where RDS instances can be deployed.",
+				"SubnetIds": [
+					{
+						"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}Private0Subnet-ID"
+					},
+					{
+						"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}Private1Subnet-ID"
+					}
+				]
+			}
+		},
+		"${stack}${instance}VpcDBSecurityGroup": {
+			"Type": "AWS::EC2::SecurityGroup",
+			"Properties": {
+				"GroupDescription": "VPC Security Group for ${stack}-${instance} that grants access to VPN traffic and ${subnetGroupColor} public subnets.",
+				"VpcId": {
+					"Fn::ImportValue": "${vpcExportPrefix}-VPCId"
+				},
+				"SecurityGroupIngress": [
+					{
+						"Description": "Allow all VPN traffic",
+						"CidrIp": {
+							"Fn::ImportValue": "${vpcExportPrefix}-VpnCidr"
+						},
+						"FromPort": "3306",
+						"ToPort": "3306",
+						"IpProtocol": "tcp"
+					},
+					{
+						"Description": "Allow ${subnetGroupColor} subnet one access to MySQL",
+						"CidrIp": {
+							"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-CIDR"
+						},
+						"FromPort": "3306",
+						"ToPort": "3306",
+						"IpProtocol": "tcp"
+					}
+				]
+			}
+		},
+		"${stack}${instance}DBParameterGroup": {
+			"Type": "AWS::RDS::DBParameterGroup",
+			"Properties": {
+				"Description": "Shared MySQL database parameters",
+				"Family": "mysql5.6",
+				"Parameters": {
+					"slow_query_log": "1",
+					"long_query_time": "1",
+					"max_allowed_packet": "16777216",
+					"log_bin_trust_function_creators": "1"
+				}
+			}
+		},
+		"${stack}${instance}RepositoryDB": {
+			"Type": "AWS::RDS::DBInstance",
+			"DependsOn": [
+				"${stack}${instance}DBSubnetGroup",
+				"${stack}${instance}VpcDBSecurityGroup",
+				"${stack}${instance}DBParameterGroup"
+			],
+			"Properties": {
+				"AllocatedStorage": "50",
+				"AllowMajorVersionUpgrade": false,
+				"AutoMinorVersionUpgrade": true,
+				"BackupRetentionPeriod": "7",
+				"DBInstanceClass": "db.r3.large",
+				"DBInstanceIdentifier": "${stack}-${instance}-db",
+				"DBName": "${stack}${instance}",
+				"DBParameterGroupName": {
+					"Ref": "${stack}${instance}DBParameterGroup"
+				},
+				"DBSubnetGroupName": {
+					"Ref": "${stack}${instance}DBSubnetGroup"
+				},
+				"Engine": "MySQL",
+				"EngineVersion": "5.6.34",
+				"LicenseModel": "general-public-license",
+				"MasterUsername": "${stack}${instance}user",
+				"MasterUserPassword": {
+					"Ref": "MySQLDatabaseMasterPassword"
+				},
+				"MultiAZ": true,
+				"PreferredBackupWindow": "3:00-6:00",
+				"PreferredMaintenanceWindow": "Mon:07:15-Mon:07:45",
+				"PubliclyAccessible": false,
+				"StorageType": "standard",
+				"VPCSecurityGroups": [
+					{
+						"Ref": "${stack}${instance}VpcDBSecurityGroup"
+					}
+				]
+			}
+		}
+	}
+}

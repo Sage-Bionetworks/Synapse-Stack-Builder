@@ -1,6 +1,7 @@
 package org.sagebionetworks.template;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,5 +36,19 @@ public class SystemPropertyProviderTest {
 		// call under test
 		String result = provider.getProperty(key);
 		assertEquals(value, result);
+	}
+	
+	@Test
+	public void testGetComaSeparatedProperty() {
+		String key = "org.sagebionetworks.somekey";
+		String value = "foo , bar,foobar";
+		System.setProperty(key, value);
+		// call under test
+		String[] result = provider.getComaSeparatedProperty(key);
+		assertNotNull(result);
+		assertEquals(3, result.length);
+		assertEquals("foo", result[0]);
+		assertEquals("bar", result[1]);
+		assertEquals("foobar", result[2]);
 	}
 }
