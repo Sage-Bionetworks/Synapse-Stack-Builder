@@ -132,7 +132,7 @@
 	"${subnet.name}": {
 		"Type": "AWS::EC2::Subnet",
 		"Properties": {
-			"MapPublicIpOnLaunch": true,
+			"MapPublicIpOnLaunch": #if( ${subnet.type} == 'Public') true #else false #end,
 			"VpcId": {
 				"Ref": "VPC"
 			},
