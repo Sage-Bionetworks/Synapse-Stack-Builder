@@ -3,6 +3,8 @@ package org.sagebionetworks.template;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Properties;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -50,5 +52,19 @@ public class SystemPropertyProviderTest {
 		assertEquals("foo", result[0]);
 		assertEquals("bar", result[1]);
 		assertEquals("foobar", result[2]);
+	}
+	
+	@Test
+	public void testLoadPropertiesFromClasspath() {
+		// call under test
+		Properties props = provider.loadPropertiesFromClasspath("templates/repo/defaults.properties");
+		assertNotNull(props);
+	}
+	
+	@Test (expected=IllegalArgumentException.class)
+	public void testLoadPropertiesFromClasspathNotFound() {
+		// call under test
+		Properties props = provider.loadPropertiesFromClasspath("doesNotExist");
+		assertNotNull(props);
 	}
 }

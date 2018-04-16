@@ -1,13 +1,13 @@
 package org.sagebionetworks.template;
 
 public class Constants {
+	
+	public static final String DEFAULT_REPO_PROPERTIES = "templates/repo/defaults.properties";
 
 	/**
 	 * The unique name assigned to the Synapse VPC stack.
 	 */
 	public static final String VPC_STACK_NAME_FORMAT = "synapse-%1$s-vpc";
-	
-
 
 
 	// CloudFormation Parameter names.
@@ -59,5 +59,6 @@ public class Constants {
 	public static final String INSTANCE = "instance";
 	public static final String SHARED_RESOUCES_STACK_NAME = "sharedRresourcesStackName";
 	public static final String VPC_EXPORT_PREFIX = "vpcExportPrefix";
+	public static final String PROPS = "props";
 
 }

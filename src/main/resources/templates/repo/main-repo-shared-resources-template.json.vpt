@@ -72,11 +72,11 @@
 				"${stack}${instance}DBParameterGroup"
 			],
 			"Properties": {
-				"AllocatedStorage": "50",
+				"AllocatedStorage": "${props.get("org.sagebionetworks.repo.rds.allocated.storage")}",
 				"AllowMajorVersionUpgrade": false,
 				"AutoMinorVersionUpgrade": true,
 				"BackupRetentionPeriod": "7",
-				"DBInstanceClass": "db.r3.large",
+				"DBInstanceClass": "${props.get("org.sagebionetworks.repo.rds.instance.class")}",
 				"DBInstanceIdentifier": "${stack}-${instance}-db",
 				"DBName": "${stack}${instance}",
 				"DBParameterGroupName": {
@@ -92,7 +92,7 @@
 				"MasterUserPassword": {
 					"Ref": "MySQLDatabaseMasterPassword"
 				},
-				"MultiAZ": true,
+				"MultiAZ": ${props.get("org.sagebionetworks.repo.rds.multi.az")},
 				"PreferredBackupWindow": "3:00-6:00",
 				"PreferredMaintenanceWindow": "Mon:07:15-Mon:07:45",
 				"PubliclyAccessible": false,
@@ -104,5 +104,6 @@
 				]
 			}
 		}
+		
 	}
 }

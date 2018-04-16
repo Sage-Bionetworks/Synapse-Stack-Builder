@@ -1,12 +1,17 @@
 package org.sagebionetworks.template.repo;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
+
+import java.util.Properties;
+
 import static org.sagebionetworks.template.Constants.*;
 
 import org.apache.logging.log4j.Logger;
@@ -21,8 +26,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.PropertyProvider;
+import org.sagebionetworks.template.SystemPropertyProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.vpc.Color;
 
@@ -31,6 +38,9 @@ import com.amazonaws.services.cloudformation.model.Parameter;
 @RunWith(MockitoJUnitRunner.class)
 public class RepositoryTemplateBuilderImplTest {
 
+	private static final String KEY_STORAGE = "org.sagebionetworks.repo.rds.allocated.storage";
+	private static final String KEY_INSTANCE_CLASS = "org.sagebionetworks.repo.rds.instance.class";
+	
 	@Mock
 	CloudFormationClient mockCloudFormationClient;
 	@Mock
@@ -47,6 +57,9 @@ public class RepositoryTemplateBuilderImplTest {
 	String instance;
 	String vpcSubnetColor;
 	String beanstalkNumber;
+	
+	Properties systemProperties;
+	Properties defaultProperties;
 
 	@Before
 	public void before() {
@@ -67,6 +80,16 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockPropertyProvider.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
 		when(mockPropertyProvider.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
 		when(mockPropertyProvider.getProperty(PROPERTY_KEY_MYSQL_PASSWORD)).thenReturn("somePassword");
+		
+		
+		
+		systemProperties = new Properties();
+		// override the storage size.
+		systemProperties.put(KEY_STORAGE, "123");
+		defaultProperties = new SystemPropertyProvider().loadPropertiesFromClasspath(Constants.DEFAULT_REPO_PROPERTIES);
+		
+		when(mockPropertyProvider.getSystemProperties()).thenReturn(systemProperties);
+		when(mockPropertyProvider.loadPropertiesFromClasspath(Constants.DEFAULT_REPO_PROPERTIES)).thenReturn(defaultProperties);
 	}
 
 	@Test
@@ -86,7 +109,10 @@ public class RepositoryTemplateBuilderImplTest {
 		JSONObject templateJson = new JSONObject(bodyJSONString);
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		assertNotNull(resources);
+		// database group
 		validateResouceDatabaseSubnetGroup(resources);
+		// database instance
+		validateResouceDatabaseInstance(resources);
 	}
 
 	public void validateResouceDatabaseSubnetGroup(JSONObject resources) {
@@ -98,6 +124,19 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("us-east-1-synapse-dev-vpc-GreenPrivate0Subnet-ID", subnetOne.getString("Fn::ImportValue"));
 		JSONObject subnetTwo = subnetArray.getJSONObject(1);
 		assertEquals("us-east-1-synapse-dev-vpc-GreenPrivate1Subnet-ID", subnetTwo.getString("Fn::ImportValue"));
+	}
+	
+	/**
+	 * Validate for the repo AWS::RDS::DBInstance.
+	 * @param resources
+	 */
+	public void validateResouceDatabaseInstance(JSONObject resources) {
+		JSONObject instance = resources.getJSONObject("dev101RepositoryDB");
+		assertNotNull(instance);
+		JSONObject properties = instance.getJSONObject("Properties");
+		assertEquals("123", properties.get("AllocatedStorage"));
+		assertEquals("db.t2.small", properties.get("DBInstanceClass"));
+		assertEquals(Boolean.FALSE, properties.get("MultiAZ"));
 	}
 
 	@Test
@@ -135,5 +174,13 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("Green", context.get(VPC_SUBNET_COLOR));
 		assertEquals("dev-101-shared-resources", context.get(SHARED_RESOUCES_STACK_NAME));
 		assertEquals("us-east-1-synapse-dev-vpc", context.get(VPC_EXPORT_PREFIX));
+		
+		Properties props = (Properties) context.get(PROPS);
+		assertNotNull(props);
+		assertEquals("123", props.get(KEY_STORAGE));
+		// should not match the default
+		assertFalse(props.get(KEY_STORAGE).equals(defaultProperties.get(KEY_STORAGE)));
+		// should match the default since it is not overridden.
+		assertTrue(props.get(KEY_INSTANCE_CLASS).equals(defaultProperties.get(KEY_INSTANCE_CLASS)));
 	}
 }
