@@ -11,6 +11,7 @@ import static org.sagebionetworks.template.Constants.TEMPALTE_SHARED_RESOUCES_MA
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
 import java.io.StringWriter;
+import java.util.Properties;
 import java.util.StringJoiner;
 
 import org.apache.logging.log4j.Logger;
@@ -82,6 +83,14 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		context.put(VPC_SUBNET_COLOR, propertyProvider.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR));
 		context.put(SHARED_RESOUCES_STACK_NAME, createSharedResourcesStackName());
 		context.put(VPC_EXPORT_PREFIX, createVpcExportPrefix());
+		
+		Properties props = new Properties();
+		// add all default properties
+		props.putAll(propertyProvider.loadPropertiesFromClasspath(DEFAULT_REPO_PROPERTIES));
+		// override the defaults from the system.
+		props.putAll(propertyProvider.getSystemProperties());
+		// add the merge of system and default properties.
+		context.put("props", props);
 		return context;
 	}
 

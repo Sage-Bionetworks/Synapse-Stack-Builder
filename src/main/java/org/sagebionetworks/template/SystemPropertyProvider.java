@@ -1,5 +1,9 @@
 package org.sagebionetworks.template;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 /**
  * Provider for System Properties.
  *
@@ -27,6 +31,28 @@ public class SystemPropertyProvider implements PropertyProvider {
 			split[i] = split[i].trim();
 		}
 		return split;
+	}
+
+	@Override
+	public Properties getSystemProperties() {
+		return System.getProperties();
+	}
+	
+
+	@Override
+	public Properties loadPropertiesFromClasspath(String path) {
+		InputStream in = SystemPropertyProvider.class.getClassLoader().getResourceAsStream(path);
+		if(in == null) {
+			throw new IllegalArgumentException("Cannot find: "+path+" on the classpath.");
+		}
+		Properties props = new Properties();
+		try {
+			props.load(in);
+		} catch (IOException e) {
+			// convert to runtime.
+			throw new RuntimeException(e);
+		}
+		return props;
 	}
 
 }
