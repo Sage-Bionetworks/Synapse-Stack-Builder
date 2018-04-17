@@ -90,8 +90,26 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		// override the defaults from the system.
 		props.putAll(propertyProvider.getSystemProperties());
 		// add the merge of system and default properties.
-		context.put("props", props);
+		context.put(PROPS, props);
+		
+		context.put(TABLE_DATABASE_SUFFIXES, tableDatabaseSuffixes(
+				Integer.parseInt((String) props.get(PROPERTY_KEY_TABLES_INSTANCE_COUNT))));
+		
 		return context;
+	}
+	
+	/**
+	 * Create the tables database suffixes from the number of database instances.
+	 * 
+	 * @param numbeDatabase
+	 * @return
+	 */
+	public String[] tableDatabaseSuffixes(int numbeDatabase) {
+		String[] results = new String[numbeDatabase];
+		for(int i=0; i<numbeDatabase; i++) {
+			results[i] = ""+i;
+		}
+		return results;
 	}
 
 	/**

@@ -104,6 +104,48 @@
 				]
 			}
 		}
-		
+		#foreach( $suffix in ${tableDatabaseSuffixes} )
+		,
+			"${stack}${instance}Table${suffix}RepositoryDB": {
+			"Type": "AWS::RDS::DBInstance",
+			"DependsOn": [
+				"${stack}${instance}DBSubnetGroup",
+				"${stack}${instance}VpcDBSecurityGroup",
+				"${stack}${instance}DBParameterGroup"
+			],
+			"Properties": {
+				"AllocatedStorage": "${props.get("org.sagebionetworks.tables.rds.allocated.storage")}",
+				"AllowMajorVersionUpgrade": false,
+				"AutoMinorVersionUpgrade": true,
+				"BackupRetentionPeriod": "7",
+				"DBInstanceClass": "${props.get("org.sagebionetworks.tables.rds.instance.class")}",
+				"DBInstanceIdentifier": "${stack}-${instance}-table-${suffix}",
+				"DBName": "${stack}${instance}table${suffix}",
+				"DBParameterGroupName": {
+					"Ref": "${stack}${instance}DBParameterGroup"
+				},
+				"DBSubnetGroupName": {
+					"Ref": "${stack}${instance}DBSubnetGroup"
+				},
+				"Engine": "MySQL",
+				"EngineVersion": "5.6.34",
+				"LicenseModel": "general-public-license",
+				"MasterUsername": "${stack}${instance}user",
+				"MasterUserPassword": {
+					"Ref": "MySQLDatabaseMasterPassword"
+				},
+				"MultiAZ": false,
+				"PreferredBackupWindow": "3:00-6:00",
+				"PreferredMaintenanceWindow": "Mon:07:15-Mon:07:45",
+				"PubliclyAccessible": false,
+				"StorageType": "standard",
+				"VPCSecurityGroups": [
+					{
+						"Ref": "${stack}${instance}VpcDBSecurityGroup"
+					}
+				]
+			}
+		}
+		#end
 	}
 }

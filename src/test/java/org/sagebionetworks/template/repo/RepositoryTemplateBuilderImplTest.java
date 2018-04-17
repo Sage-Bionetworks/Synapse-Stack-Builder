@@ -81,8 +81,6 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockPropertyProvider.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
 		when(mockPropertyProvider.getProperty(PROPERTY_KEY_MYSQL_PASSWORD)).thenReturn("somePassword");
 		
-		
-		
 		systemProperties = new Properties();
 		// override the storage size.
 		systemProperties.put(KEY_STORAGE, "123");
@@ -94,6 +92,11 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testBuildAndDeploy() {
+		// Set different values for the tables database
+		systemProperties.put("org.sagebionetworks.tables.rds.instance.count", "2");
+		systemProperties.put("org.sagebionetworks.tables.rds.allocated.storage", "3");
+		systemProperties.put("org.sagebionetworks.tables.rds.instance.class", "db.t2.micro");
+		
 		// call under test
 		builder.buildAndDeploy();
 		ArgumentCaptor<String> nameCapture = ArgumentCaptor.forClass(String.class);
@@ -113,6 +116,8 @@ public class RepositoryTemplateBuilderImplTest {
 		validateResouceDatabaseSubnetGroup(resources);
 		// database instance
 		validateResouceDatabaseInstance(resources);
+		// tables database
+		validateResouceTablesDatabase(resources);
 	}
 
 	public void validateResouceDatabaseSubnetGroup(JSONObject resources) {
@@ -137,6 +142,31 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("123", properties.get("AllocatedStorage"));
 		assertEquals("db.t2.small", properties.get("DBInstanceClass"));
 		assertEquals(Boolean.FALSE, properties.get("MultiAZ"));
+	}
+	
+	/**
+	 * Validate tables for AWS::RDS::DBInstance
+	 * @param resources
+	 */
+	public void validateResouceTablesDatabase(JSONObject resources) {
+		// zero
+		JSONObject instance = resources.getJSONObject("dev101Table0RepositoryDB");
+		assertNotNull(instance);
+		JSONObject properties = instance.getJSONObject("Properties");
+		assertEquals("3", properties.get("AllocatedStorage"));
+		assertEquals("db.t2.micro", properties.get("DBInstanceClass"));
+		assertEquals(Boolean.FALSE, properties.get("MultiAZ"));
+		assertEquals("dev-101-table-0", properties.get("DBInstanceIdentifier"));
+		assertEquals("dev101table0", properties.get("DBName"));
+		// one
+		instance = resources.getJSONObject("dev101Table1RepositoryDB");
+		assertNotNull(instance);
+		properties = instance.getJSONObject("Properties");
+		assertEquals("3", properties.get("AllocatedStorage"));
+		assertEquals("db.t2.micro", properties.get("DBInstanceClass"));
+		assertEquals(Boolean.FALSE, properties.get("MultiAZ"));
+		assertEquals("dev-101-table-1", properties.get("DBInstanceIdentifier"));
+		assertEquals("dev101table1", properties.get("DBName"));
 	}
 
 	@Test
@@ -183,4 +213,13 @@ public class RepositoryTemplateBuilderImplTest {
 		// should match the default since it is not overridden.
 		assertTrue(props.get(KEY_INSTANCE_CLASS).equals(defaultProperties.get(KEY_INSTANCE_CLASS)));
 	}
+	
+	@Test
+	public void testTableDatabaseSuffixes() {
+		String[] results = builder.tableDatabaseSuffixes(3);
+		assertNotNull(results);
+		assertEquals("0",results[0]);
+		assertEquals("1",results[1]);
+		assertEquals("2",results[2]);
+ 	}
 }
