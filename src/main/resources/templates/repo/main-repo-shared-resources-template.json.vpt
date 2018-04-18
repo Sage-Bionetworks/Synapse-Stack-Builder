@@ -128,7 +128,7 @@
 					{ "Ref": "${stack}${instance}DBTopic" }			
 				],
 				"AlarmDescription" : "Alert when database swap usage is exceeded.",
-				"AlarmName" : "${descriptor.resourceName}DBSwapUsage",
+				"AlarmName" : "${descriptor.instanceIdentifier}-Swap-Usage",
 				"ComparisonOperator" : "GreaterThanThreshold",
 				"Dimensions" : [
 					{
@@ -156,7 +156,7 @@
 					{ "Ref": "${stack}${instance}DBTopic" }			
 				],
 				"AlarmDescription" : "Alert when database write latency is exceeded.",
-				"AlarmName" : "${descriptor.resourceName}High-Write-Latency",
+				"AlarmName" : "${descriptor.instanceIdentifier}-High-Write-Latency",
 				"ComparisonOperator" : "GreaterThanOrEqualToThreshold",
 				"Dimensions" : [
 					{
@@ -170,6 +170,62 @@
 				"Namespace" : "AWS/RDS",
 				"Statistic" : "Average",
 				"Threshold" : 0.1
+			}
+		},
+		"${descriptor.resourceName}HighCPUUtilization": {
+			"Type" : "AWS::CloudWatch::Alarm",
+			"DependsOn": [
+				"${stack}${instance}DBTopic",
+				"${descriptor.resourceName}"
+			],
+			"Properties" : {
+				"ActionsEnabled" : true,
+				"AlarmActions" : [
+					{ "Ref": "${stack}${instance}DBTopic" }			
+				],
+				"AlarmDescription" : "Alert when database CPU utilization is exceeded.",
+				"AlarmName" : "${descriptor.instanceIdentifier}-High-CPU-Utilization",
+				"ComparisonOperator" : "GreaterThanOrEqualToThreshold",
+				"Dimensions" : [
+					{
+						"Name" : "DBInstanceIdentifier",
+						"Value" : "${descriptor.instanceIdentifier}"
+					}
+				],
+				"EvaluationPeriods" : 1,
+				"Period" : 300,
+				"MetricName" : "CPUUtilization",
+				"Namespace" : "AWS/RDS",
+				"Statistic" : "Average",
+				"Threshold" : 90.0
+			}
+		},
+		"${descriptor.resourceName}LowFreeStorageSpace": {
+			"Type" : "AWS::CloudWatch::Alarm",
+			"DependsOn": [
+				"${stack}${instance}DBTopic",
+				"${descriptor.resourceName}"
+			],
+			"Properties" : {
+				"ActionsEnabled" : true,
+				"AlarmActions" : [
+					{ "Ref": "${stack}${instance}DBTopic" }			
+				],
+				"AlarmDescription" : "Alert when database free storage space is low.",
+				"AlarmName" : "${descriptor.instanceIdentifier}-Low-Free-Storage-Space",
+				"ComparisonOperator" : "LessThanOrEqualToThreshold",
+				"Dimensions" : [
+					{
+						"Name" : "DBInstanceIdentifier",
+						"Value" : "${descriptor.instanceIdentifier}"
+					}
+				],
+				"EvaluationPeriods" : 1,
+				"Period" : 300,
+				"MetricName" : "FreeStorageSpace",
+				"Namespace" : "AWS/RDS",
+				"Statistic" : "Average",
+				"Threshold" : ${descriptor.getTenPercentOfAllocatedStroageBytes()}
 			}
 		}		
 		#end

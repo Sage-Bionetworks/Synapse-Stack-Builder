@@ -24,10 +24,20 @@ public class DatabaseDescriptor {
 
 	/**
 	 * Allocated Storage in GB.
+	 * 
 	 * @return
 	 */
 	public int getAllocatedStorage() {
 		return allocatedStorage;
+	}
+
+	/**
+	 * Calculate 10% of the allocated storage in bytes.
+	 * 
+	 * @return
+	 */
+	public double getTenPercentOfAllocatedStroageBytes() {
+		return ((double) allocatedStorage) * 0.1 * Math.pow(2, 30);
 	}
 
 	/**
