@@ -1,7 +1,5 @@
 package org.sagebionetworks.template;
 
-import java.util.Properties;
-
 /**
  * Abstraction for loading properties.
  *
@@ -24,17 +22,4 @@ public interface PropertyProvider {
 	 */
 	public String[] getComaSeparatedProperty(String key);
 	
-	/**
-	 * Get the System.properties.
-	 * @return
-	 */
-	public Properties getSystemProperties();
-	
-	/**
-	 * Load properties from the classpath.
-	 * 
-	 * @param path
-	 * @return
-	 */
-	public Properties loadPropertiesFromClasspath(String path);
 }

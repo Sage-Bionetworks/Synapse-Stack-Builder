@@ -9,7 +9,6 @@ public class Constants {
 	 */
 	public static final String VPC_STACK_NAME_FORMAT = "synapse-%1$s-vpc";
 
-
 	// CloudFormation Parameter names.
 	// VPC
 	public static final String PARAMETER_VPN_CIDR = "VpnCidr";
@@ -29,6 +28,12 @@ public class Constants {
 	public static final String PROPERTY_KEY_VPC_SUBNET_COLOR = "org.sagebionetworks.vpc.subnet.color";
 	public static final String PROPERTY_KEY_REPO_BEANSTALK_NUMBER = "org.sagebionetworks.repo.beanstalk.number";
 	public static final String PROPERTY_KEY_MYSQL_PASSWORD = "org.sagebionetworks.mysql.password";
+	public static final String PROPERTY_KEY_REPO_RDS_MULTI_AZ = "org.sagebionetworks.repo.rds.multi.az";
+	public static final String PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS = "org.sagebionetworks.repo.rds.instance.class";
+	public static final String PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE = "org.sagebionetworks.repo.rds.allocated.storage";
+	public static final String PROPERTY_KEY_TABLES_INSTANCE_COUNT = "org.sagebionetworks.tables.rds.instance.count";
+	public static final String PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS = "org.sagebionetworks.tables.rds.instance.class";
+	public static final String PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE = "org.sagebionetworks.tables.rds.allocated.storage";
 	// templates
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
 	public static final String TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";
@@ -60,5 +65,7 @@ public class Constants {
 	public static final String SHARED_RESOUCES_STACK_NAME = "sharedRresourcesStackName";
 	public static final String VPC_EXPORT_PREFIX = "vpcExportPrefix";
 	public static final String PROPS = "props";
+	
+	public static final String DATABASE_DESCRIPTORS = "databaseDescriptors";
 
 }
