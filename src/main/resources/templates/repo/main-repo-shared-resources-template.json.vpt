@@ -8,6 +8,16 @@
 		}
 	},
 	"Resources": {
+		"${stack}${instance}DBTopic" : {
+			"Type" : "AWS::SNS::Topic",
+			"Properties" : {
+				"DisplayName":"${stack}-${instance}-RDS-Alert",
+				"TopicName" : "${stack}-${instance}-RDS-Alert",
+				"Subscription" : [
+					{ "Endpoint" : "synapse-ops@sagebase.org", "Protocol" : "email" }
+				]
+			}
+		},
 		"${stack}${instance}DBSubnetGroup": {
 			"Type": "AWS::RDS::DBSubnetGroup",
 			"Properties": {
@@ -63,50 +73,10 @@
 					"log_bin_trust_function_creators": "1"
 				}
 			}
-		},
-		"${stack}${instance}RepositoryDB": {
-			"Type": "AWS::RDS::DBInstance",
-			"DependsOn": [
-				"${stack}${instance}DBSubnetGroup",
-				"${stack}${instance}VpcDBSecurityGroup",
-				"${stack}${instance}DBParameterGroup"
-			],
-			"Properties": {
-				"AllocatedStorage": "${props.get("org.sagebionetworks.repo.rds.allocated.storage")}",
-				"AllowMajorVersionUpgrade": false,
-				"AutoMinorVersionUpgrade": true,
-				"BackupRetentionPeriod": "7",
-				"DBInstanceClass": "${props.get("org.sagebionetworks.repo.rds.instance.class")}",
-				"DBInstanceIdentifier": "${stack}-${instance}-db",
-				"DBName": "${stack}${instance}",
-				"DBParameterGroupName": {
-					"Ref": "${stack}${instance}DBParameterGroup"
-				},
-				"DBSubnetGroupName": {
-					"Ref": "${stack}${instance}DBSubnetGroup"
-				},
-				"Engine": "MySQL",
-				"EngineVersion": "5.6.34",
-				"LicenseModel": "general-public-license",
-				"MasterUsername": "${stack}${instance}user",
-				"MasterUserPassword": {
-					"Ref": "MySQLDatabaseMasterPassword"
-				},
-				"MultiAZ": ${props.get("org.sagebionetworks.repo.rds.multi.az")},
-				"PreferredBackupWindow": "3:00-6:00",
-				"PreferredMaintenanceWindow": "Mon:07:15-Mon:07:45",
-				"PubliclyAccessible": false,
-				"StorageType": "standard",
-				"VPCSecurityGroups": [
-					{
-						"Ref": "${stack}${instance}VpcDBSecurityGroup"
-					}
-				]
-			}
 		}
-		#foreach( $suffix in ${tableDatabaseSuffixes} )
+		#foreach( $descriptor in ${databaseDescriptors} )
 		,
-			"${stack}${instance}Table${suffix}RepositoryDB": {
+			"${descriptor.resourceName}": {
 			"Type": "AWS::RDS::DBInstance",
 			"DependsOn": [
 				"${stack}${instance}DBSubnetGroup",
@@ -114,13 +84,13 @@
 				"${stack}${instance}DBParameterGroup"
 			],
 			"Properties": {
-				"AllocatedStorage": "${props.get("org.sagebionetworks.tables.rds.allocated.storage")}",
+				"AllocatedStorage": "${descriptor.allocatedStorage}",
 				"AllowMajorVersionUpgrade": false,
 				"AutoMinorVersionUpgrade": true,
 				"BackupRetentionPeriod": "7",
-				"DBInstanceClass": "${props.get("org.sagebionetworks.tables.rds.instance.class")}",
-				"DBInstanceIdentifier": "${stack}-${instance}-table-${suffix}",
-				"DBName": "${stack}${instance}table${suffix}",
+				"DBInstanceClass": "${descriptor.instanceClass}",
+				"DBInstanceIdentifier": "${descriptor.instanceIdentifier}",
+				"DBName": "${descriptor.dbName}",
 				"DBParameterGroupName": {
 					"Ref": "${stack}${instance}DBParameterGroup"
 				},
@@ -134,7 +104,7 @@
 				"MasterUserPassword": {
 					"Ref": "MySQLDatabaseMasterPassword"
 				},
-				"MultiAZ": false,
+				"MultiAZ": ${descriptor.multiAZ},
 				"PreferredBackupWindow": "3:00-6:00",
 				"PreferredMaintenanceWindow": "Mon:07:15-Mon:07:45",
 				"PubliclyAccessible": false,
@@ -145,7 +115,63 @@
 					}
 				]
 			}
-		}
+		},
+		"${descriptor.resourceName}AlarmSwapUsage": {
+			"Type" : "AWS::CloudWatch::Alarm",
+			"DependsOn": [
+				"${stack}${instance}DBTopic",
+				"${descriptor.resourceName}"
+			],
+			"Properties" : {
+				"ActionsEnabled" : true,
+				"AlarmActions" : [
+					{ "Ref": "${stack}${instance}DBTopic" }			
+				],
+				"AlarmDescription" : "Alert when database swap usage is exceeded.",
+				"AlarmName" : "${descriptor.resourceName}DBSwapUsage",
+				"ComparisonOperator" : "GreaterThanThreshold",
+				"Dimensions" : [
+					{
+						"Name" : "DBInstanceIdentifier",
+						"Value" : "${descriptor.instanceIdentifier}"
+					}
+				],
+				"EvaluationPeriods" : 2,
+				"Period" : 300,
+				"MetricName" : "SwapUsage",
+				"Namespace" : "AWS/RDS",
+				"Statistic" : "Average",
+				"Threshold" : 536870912
+			}
+		},
+		"${descriptor.resourceName}HighWriteLatency": {
+			"Type" : "AWS::CloudWatch::Alarm",
+			"DependsOn": [
+				"${stack}${instance}DBTopic",
+				"${descriptor.resourceName}"
+			],
+			"Properties" : {
+				"ActionsEnabled" : true,
+				"AlarmActions" : [
+					{ "Ref": "${stack}${instance}DBTopic" }			
+				],
+				"AlarmDescription" : "Alert when database write latency is exceeded.",
+				"AlarmName" : "${descriptor.resourceName}High-Write-Latency",
+				"ComparisonOperator" : "GreaterThanOrEqualToThreshold",
+				"Dimensions" : [
+					{
+						"Name" : "DBInstanceIdentifier",
+						"Value" : "${descriptor.instanceIdentifier}"
+					}
+				],
+				"EvaluationPeriods" : 1,
+				"Period" : 300,
+				"MetricName" : "WriteLatency",
+				"Namespace" : "AWS/RDS",
+				"Statistic" : "Average",
+				"Threshold" : 0.1
+			}
+		}		
 		#end
 	}
 }
