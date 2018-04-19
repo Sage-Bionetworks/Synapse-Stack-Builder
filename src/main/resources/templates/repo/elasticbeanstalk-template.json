@@ -1,6 +1,26 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
 	"Resources": {
+		"${stack}${instance}Application": {
+			"Type": "AWS::ElasticBeanstalk::Application",
+			"Properties": {
+				"ApplicationName": "Synapse-{stack}-${instance}",
+				"Description": "Group of all Synapse-{stack}-${instance} beanstalk Environment"
+			}
+		},
+		"myAppVersion": {
+			"Type": "AWS::ElasticBeanstalk::ApplicationVersion",
+			"Properties": {
+				"ApplicationName": {
+					"Ref": "{stack}${instance}Application"
+				},
+				"Description": "my sample version",
+				"SourceBundle": {
+					"S3Bucket": "",
+					"S3Key": ""
+				}
+			}
+		},
 		"myConfigTemplate": {
 			"Type": "AWS::ElasticBeanstalk::ConfigurationTemplate",
 			"Properties": {
