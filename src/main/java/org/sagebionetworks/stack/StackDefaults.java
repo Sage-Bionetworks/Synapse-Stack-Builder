@@ -54,7 +54,7 @@ public class StackDefaults {
 	 * Connect to S3 and downloads the default properties for this stack.
 	 * 
 	 * @param stack
-	 * @param s3Client
+	 * @param mockS3Client
 	 * @return
 	 * @throws IOException 
 	 */
