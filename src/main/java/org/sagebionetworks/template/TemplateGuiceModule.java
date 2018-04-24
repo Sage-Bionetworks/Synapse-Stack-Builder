@@ -5,14 +5,14 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
-import org.sagebionetworks.template.repo.ArtifactCopy;
-import org.sagebionetworks.template.repo.ArtifactCopyImpl;
-import org.sagebionetworks.template.repo.ArtifactDownload;
-import org.sagebionetworks.template.repo.ArtifactDownloadImpl;
 import org.sagebionetworks.template.repo.RepositoryPropertyProvider;
 import org.sagebionetworks.template.repo.RepositoryPropertyProviderImpl;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilderImpl;
+import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
+import org.sagebionetworks.template.repo.beanstalk.ArtifactCopyImpl;
+import org.sagebionetworks.template.repo.beanstalk.ArtifactDownload;
+import org.sagebionetworks.template.repo.beanstalk.ArtifactDownloadImpl;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilder;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilderImpl;
 

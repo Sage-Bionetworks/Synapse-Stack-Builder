@@ -1,4 +1,4 @@
-package org.sagebionetworks.template.repo;
+package org.sagebionetworks.template.repo.beanstalk;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

@@ -1,4 +1,4 @@
-package org.sagebionetworks.template.repo;
+package org.sagebionetworks.template.repo.beanstalk;
 
 /**
  * Abstraction for copying a war file from Artifactory to S3,
@@ -12,5 +12,5 @@ public interface ArtifactCopy {
 	 * @param version
 	 * @return
 	 */
-	public SourceBundle copyArtifactIfNeeded(Environment environment, String version);
+	public SourceBundle copyArtifactIfNeeded(EnvironmentType environment, String version);
 }

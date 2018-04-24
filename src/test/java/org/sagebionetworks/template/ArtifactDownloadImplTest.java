@@ -6,8 +6,8 @@ import java.io.File;
 
 import org.apache.http.client.HttpClient;
 import org.junit.Test;
-import org.sagebionetworks.template.repo.ArtifactDownload;
-import org.sagebionetworks.template.repo.ArtifactDownloadImpl;
+import org.sagebionetworks.template.repo.beanstalk.ArtifactDownload;
+import org.sagebionetworks.template.repo.beanstalk.ArtifactDownloadImpl;
 
 public class ArtifactDownloadImplTest {
 	

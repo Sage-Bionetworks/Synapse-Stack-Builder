@@ -14,6 +14,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sagebionetworks.template.Constants;
+import org.sagebionetworks.template.repo.beanstalk.ArtifactCopyImpl;
+import org.sagebionetworks.template.repo.beanstalk.ArtifactDownload;
+import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
+import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
@@ -34,7 +38,7 @@ public class ArtifactCopyImplTest {
 	
 	String stack;
 	String version;
-	Environment environment;
+	EnvironmentType environment;
 	String bucket;
 	String s3Key;
 	String artifactoryUrl;
@@ -47,7 +51,7 @@ public class ArtifactCopyImplTest {
 		stack = "dev";
 		when(mockPropertyProvider.get(Constants.PROPERTY_KEY_STACK)).thenReturn(stack);
 		
-		environment = Environment.REPOSITORY_WORKERS;
+		environment = EnvironmentType.REPOSITORY_WORKERS;
 		version = "212.4";
 		
 		bucket = "dev-sage.bionetworks";

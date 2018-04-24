@@ -1,4 +1,4 @@
-package org.sagebionetworks.template.repo;
+package org.sagebionetworks.template.repo.beanstalk;
 
 /**
  * AWS source bundle includes a S3 bucket and key.

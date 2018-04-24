@@ -1,15 +1,17 @@
-package org.sagebionetworks.template.repo;
+package org.sagebionetworks.template.repo.beanstalk;
 
-public enum Environment {
+public enum EnvironmentType {
 
-	REPOSITORY_SERVICES("services-repository"),
-	REPOSITORY_WORKERS("services-workers"),
-	PORTAL("portal");
+	REPOSITORY_SERVICES("services-repository", "repo"),
+	REPOSITORY_WORKERS("services-workers", "workers"),
+	PORTAL("portal","portal");
 
 	String path;
+	String cnamePrefix;
 
-	Environment(String path) {
+	EnvironmentType(String path, String cnamePrefix) {
 		this.path = path;
+		this.cnamePrefix = cnamePrefix;
 	}
 
 	/**
