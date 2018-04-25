@@ -10,8 +10,7 @@ import static org.sagebionetworks.template.Constants.PARAMETER_VPC_SUBNET_PREFIX
 import static org.sagebionetworks.template.Constants.PARAMETER_VPN_CIDR;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_COLORS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_PRIVATE_SUBNET_ZONES;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_PUBLIC_SUBNET_ZONES;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_AVAILABILITY_ZONES;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_PREFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_VPN_CIDR;
 import static org.sagebionetworks.template.Constants.STACK;
@@ -52,7 +51,7 @@ public class VpcTemplateBuilderImplTest {
 	
 	String[] colors;
 	String subnetPrefix;
-	String[] privateZones;
+	String[] avialabilityZones;
 	String[] publicZones;
 	String vpnCider;
 	String stack;
@@ -67,14 +66,12 @@ public class VpcTemplateBuilderImplTest {
 		builder = new VpcTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, mockPropertyProvider, mockLoggerFactory);
 		colors = new String[] {"Red","Green"};
 		subnetPrefix = "10.21";
-		privateZones = new String[] {"us-east-1a","us-east-1b"};
-		publicZones =  new String[] {"us-east-1c","us-east-1e"};
+		avialabilityZones = new String[] {"us-east-1a","us-east-1b"};
 		vpnCider = "10.1.0.0/16";
 		stack = "dev";
 		when(mockPropertyProvider.getComaSeparatedProperty(PROPERTY_KEY_COLORS)).thenReturn(colors);
 		when(mockPropertyProvider.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX)).thenReturn(subnetPrefix);
-		when(mockPropertyProvider.getComaSeparatedProperty(PROPERTY_KEY_VPC_PRIVATE_SUBNET_ZONES)).thenReturn(privateZones);
-		when(mockPropertyProvider.getComaSeparatedProperty(PROPERTY_KEY_VPC_PUBLIC_SUBNET_ZONES)).thenReturn(publicZones);
+		when(mockPropertyProvider.getComaSeparatedProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn(avialabilityZones);
 		when(mockPropertyProvider.getProperty(PROPERTY_KEY_VPC_VPN_CIDR)).thenReturn(vpnCider);
 		when(mockPropertyProvider.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 	}

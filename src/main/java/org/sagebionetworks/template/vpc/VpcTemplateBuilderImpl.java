@@ -83,6 +83,8 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 		// VPC CIDR
 		String vpcCidr = vpcSubnetPrefix+VPC_CIDR_SUFFIX;
 		context.put(VPC_CIDR, vpcCidr);
+		
+		String[] availabilityZones = propertyProvider.getComaSeparatedProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES);
 
 		// Create the sub-nets
 		SubnetBuilder builder = new SubnetBuilder();
@@ -90,8 +92,7 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 		builder.withColors(getColorsFromProperty());
 		builder.withSubnetMask(VPC_SUBNET_NETWORK_MASK);
 		builder.withColorGroupNetMaskSubnetMask(VPC_COLOR_GROUP_NETWORK_MASK);
-		builder.withPublicAvailabilityZones(propertyProvider.getComaSeparatedProperty(PROPERTY_KEY_VPC_PUBLIC_SUBNET_ZONES));
-		builder.withPrivateAvailabilityZones(propertyProvider.getComaSeparatedProperty(PROPERTY_KEY_VPC_PRIVATE_SUBNET_ZONES));
+		builder.withAvailabilityZones(availabilityZones);
 		SubnetGroup[] subnets = builder.build();
 		context.put(SUBNET_GROUPS, subnets);	
 		

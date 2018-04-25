@@ -1,5 +1,7 @@
 package org.sagebionetworks.template.vpc;
 
+import org.sagebionetworks.template.Constants;
+
 /**
  * Helper to build sub-nets. Sub-nets are group by a color.
  *
@@ -7,8 +9,7 @@ package org.sagebionetworks.template.vpc;
 public class SubnetBuilder {
 
 	Color[] colors;
-	String[] publicAvailabilityZones;
-	String[] privateAvailabilityZones;
+	String[] availabilityZones;
 	int colorGroupNetMask;
 	int subnetMask;
 	String cidrPrefix;
@@ -25,24 +26,13 @@ public class SubnetBuilder {
 	}
 
 	/**
-	 * A public subnet will be created for each provided Availability Zones.
-	 * 
-	 * @param numberPublicSubnets
-	 * @return
-	 */
-	public SubnetBuilder withPublicAvailabilityZones(String...publicAvailabilityZones) {
-		this.publicAvailabilityZones = publicAvailabilityZones;
-		return this;
-	}
-
-	/**
-	 * A private subnet will be created for each provided Availability Zones.
+	 * A private and public subnet will be created for each provided Availability Zones.
 	 * 
 	 * @param numberPrivateSubnets
 	 * @return
 	 */
-	public SubnetBuilder withPrivateAvailabilityZones(String...privateAvailabilityZones) {
-		this.privateAvailabilityZones = privateAvailabilityZones;
+	public SubnetBuilder withAvailabilityZones(String...availabilityZones) {
+		this.availabilityZones = availabilityZones;
 		return this;
 	}
 
@@ -112,18 +102,18 @@ public class SubnetBuilder {
 			long addressLong = startAddress + (numberGroupAddresses*i);
 			Color color = colors[i];
 			String colorCidr = createCIDR(addressLong, this.colorGroupNetMask);
-			Subnet[] subnets = new Subnet[this.publicAvailabilityZones.length + this.privateAvailabilityZones.length];
+			Subnet[] subnets = new Subnet[this.availabilityZones.length * 2];
 			// create public sub-nets
-			for (int pub = 0; pub < this.publicAvailabilityZones.length; pub++) {
-				String availabilityZones = this.publicAvailabilityZones[pub];
-				subnets[pub] = createSubnet(availabilityZones, addressLong, subnetMask, color, SubnetType.Public, pub);
+			for (int pub = 0; pub < this.availabilityZones.length; pub++) {
+				String availabilityZone = this.availabilityZones[pub];
+				subnets[pub] = createSubnet(availabilityZone, addressLong, subnetMask, color, SubnetType.Public);
 				addressLong += numberSubnetAddresses;
 			}
 			// create private sub-nets
-			for (int pri = 0; pri < this.privateAvailabilityZones.length; pri++) {
-				String availabilityZones = this.privateAvailabilityZones[pri];
-				subnets[this.publicAvailabilityZones.length + pri] = createSubnet(availabilityZones, addressLong, subnetMask, color,
-						SubnetType.Private, pri);
+			for (int pri = 0; pri < this.availabilityZones.length; pri++) {
+				String availabilityZone = this.availabilityZones[pri];
+				subnets[this.availabilityZones.length + pri] = createSubnet(availabilityZone, addressLong, subnetMask, color,
+						SubnetType.Private);
 				addressLong += numberSubnetAddresses;
 			}
 			results[i] = new SubnetGroup(color,colorCidr, subnets);
@@ -140,10 +130,10 @@ public class SubnetBuilder {
 	 * @param index Index within the Color-Type.
 	 * @return
 	 */
-	static Subnet createSubnet(String availabilityZones, long addressLong, int networkMask, Color color, SubnetType type, int index) {
+	static Subnet createSubnet(String availabilityZone, long addressLong, int networkMask, Color color, SubnetType type) {
 		String cidr = createCIDR(addressLong, networkMask);
-		String name = createSubnetName(color, type, index);
-		return new Subnet(name, cidr, type, availabilityZones);
+		String name = createSubnetName(color, type, availabilityZone);
+		return new Subnet(name, cidr, type, availabilityZone);
 	}
 
 	/**
@@ -170,11 +160,11 @@ public class SubnetBuilder {
 	 * @param index
 	 * @return
 	 */
-	static String createSubnetName(Color color, SubnetType type, int index) {
+	static String createSubnetName(Color color, SubnetType type, String availabilityZone) {
 		StringBuilder builder = new StringBuilder();
 		builder.append(color.name());
 		builder.append(type.name());
-		builder.append(index);
+		builder.append(Constants.createAvailabilityZoneName(availabilityZone));
 		builder.append("Subnet");
 		return builder.toString();
 	}

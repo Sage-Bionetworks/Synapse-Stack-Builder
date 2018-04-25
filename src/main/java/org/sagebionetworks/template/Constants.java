@@ -18,8 +18,7 @@ public class Constants {
 	// input property keys
 	// vpc
 	public static final String PROPERTY_KEY_VPC_VPN_CIDR = "org.sagebionetworks.vpc.vpn.cidr";
-	public static final String PROPERTY_KEY_VPC_PUBLIC_SUBNET_ZONES = "org.sagebionetworks.vpc.public.subnet.zones";
-	public static final String PROPERTY_KEY_VPC_PRIVATE_SUBNET_ZONES = "org.sagebionetworks.vpc.private.subnet.zones";
+	public static final String PROPERTY_KEY_VPC_AVAILABILITY_ZONES = "org.sagebionetworks.vpc.availability.zones";
 	public static final String PROPERTY_KEY_VPC_SUBNET_PREFIX = "org.sagebionetworks.vpc.subnet.prefix";
 	public static final String PROPERTY_KEY_COLORS = "org.sagebionetworks.vpc.colors.csv";
 	// repo
@@ -67,5 +66,20 @@ public class Constants {
 	public static final String PROPS = "props";
 	
 	public static final String DATABASE_DESCRIPTORS = "databaseDescriptors";
+	
+	/**
+	 * Create a camel case name for an availability
+	 * @param availability
+	 * @return
+	 */
+	public static final String createAvailabilityZoneName(String availabilityZone) {
+		String[] split = availabilityZone.split("-");
+		StringBuilder builder = new StringBuilder();
+		for(String part: split) {
+			builder.append(part.substring(0, 1).toUpperCase());
+			builder.append(part.substring(1));
+		}
+		return builder.toString();
+	}
 
 }
