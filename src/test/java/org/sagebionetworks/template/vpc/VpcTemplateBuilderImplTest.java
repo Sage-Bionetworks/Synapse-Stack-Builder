@@ -100,11 +100,8 @@ public class VpcTemplateBuilderImplTest {
 		assertNotNull(resouces);
 		assertTrue(resouces.has("VPC"));
 		assertTrue(resouces.has("InternetGateway"));
-		assertTrue(resouces.has("GatewayToInternet"));
-		assertTrue(resouces.has("PublicRouteTable"));
-		assertTrue(resouces.has("PublicRoute"));
+		assertTrue(resouces.has("InternetGatewayAttachment"));
 		assertTrue(resouces.has("ElasticIP"));
-		assertTrue(resouces.has("PrivateRouteTable"));
 		assertTrue(resouces.has("VpnSecurityGroup"));
 		// color subnets
 		// Red ACL
@@ -116,16 +113,16 @@ public class VpcTemplateBuilderImplTest {
 		assertTrue(resouces.has("RedInboundPrivateVpnNetworkAclEntry"));
 		assertTrue(resouces.has("RedOutboundPrivateNetworkAclEntry"));
 		// Red subnets
-		assertTrue(resouces.has("RedPublic0Subnet"));
-		assertTrue(resouces.has("RedPublic1Subnet"));
-		assertTrue(resouces.has("RedPrivate0Subnet"));
-		assertTrue(resouces.has("RedPrivate1Subnet"));
-		assertTrue(resouces.has("RedPublic0SubnetRouteTableAssociation"));
-		assertTrue(resouces.has("RedPublic1SubnetRouteTableAssociation"));
-		assertTrue(resouces.has("RedPublic0SubnetNetworkAclAssociation"));
-		assertTrue(resouces.has("RedPublic1SubnetNetworkAclAssociation"));
-		assertTrue(resouces.has("RedPrivate0SubnetRouteTableAssociation"));
-		assertTrue(resouces.has("RedPrivate1SubnetRouteTableAssociation"));
+		assertTrue(resouces.has("RedPublicUsEast1aSubnet"));
+		assertTrue(resouces.has("RedPublicUsEast1bSubnet"));
+		assertTrue(resouces.has("RedPrivateUsEast1aSubnet"));
+		assertTrue(resouces.has("RedPrivateUsEast1bSubnet"));
+		assertTrue(resouces.has("RedPublicUsEast1aSubnetRouteTableAssociation"));
+		assertTrue(resouces.has("RedPublicUsEast1bSubnetRouteTableAssociation"));
+		assertTrue(resouces.has("RedPublicUsEast1aSubnetNetworkAclAssociation"));
+		assertTrue(resouces.has("RedPublicUsEast1bSubnetNetworkAclAssociation"));
+		assertTrue(resouces.has("RedPrivateUsEast1aSubnetRouteTableAssociation"));
+		assertTrue(resouces.has("RedPrivateUsEast1bSubnetRouteTableAssociation"));
 		// Green
 		// Green ACL
 		assertTrue(resouces.has("GreenPublicNetworkAcl"));
@@ -136,16 +133,16 @@ public class VpcTemplateBuilderImplTest {
 		assertTrue(resouces.has("GreenInboundPrivateVpnNetworkAclEntry"));
 		assertTrue(resouces.has("GreenOutboundPrivateNetworkAclEntry"));
 		// Green subnets
-		assertTrue(resouces.has("GreenPublic0Subnet"));
-		assertTrue(resouces.has("GreenPublic1Subnet"));
-		assertTrue(resouces.has("GreenPrivate0Subnet"));
-		assertTrue(resouces.has("GreenPrivate1Subnet"));
-		assertTrue(resouces.has("GreenPublic0SubnetRouteTableAssociation"));
-		assertTrue(resouces.has("GreenPublic1SubnetRouteTableAssociation"));
-		assertTrue(resouces.has("GreenPublic0SubnetNetworkAclAssociation"));
-		assertTrue(resouces.has("GreenPublic1SubnetNetworkAclAssociation"));
-		assertTrue(resouces.has("GreenPrivate0SubnetRouteTableAssociation"));
-		assertTrue(resouces.has("GreenPrivate1SubnetRouteTableAssociation"));
+		assertTrue(resouces.has("GreenPublicUsEast1aSubnet"));
+		assertTrue(resouces.has("GreenPublicUsEast1bSubnet"));
+		assertTrue(resouces.has("GreenPrivateUsEast1aSubnet"));
+		assertTrue(resouces.has("GreenPrivateUsEast1bSubnet"));
+		assertTrue(resouces.has("GreenPublicUsEast1aSubnetRouteTableAssociation"));
+		assertTrue(resouces.has("GreenPublicUsEast1bSubnetRouteTableAssociation"));
+		assertTrue(resouces.has("GreenPublicUsEast1aSubnetNetworkAclAssociation"));
+		assertTrue(resouces.has("GreenPublicUsEast1bSubnetNetworkAclAssociation"));
+		assertTrue(resouces.has("GreenPrivateUsEast1aSubnetRouteTableAssociation"));
+		assertTrue(resouces.has("GreenPrivateUsEast1bSubnetRouteTableAssociation"));
 	}
 	
 	@Test

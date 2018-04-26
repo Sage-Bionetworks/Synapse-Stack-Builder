@@ -13,6 +13,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.sagebionetworks.template.repo.RepositoryPropertyProvider;
 
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException;
@@ -24,12 +25,18 @@ import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.UpdateStackRequest;
 import com.amazonaws.services.cloudformation.model.UpdateStackResult;
+import com.amazonaws.services.s3.AmazonS3;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CloudFormationClientImplTest {
 
 	@Mock
 	AmazonCloudFormation mockCloudFormationClient;
+	@Mock
+	AmazonS3 s3Client;
+	@Mock
+	RepositoryPropertyProvider propertyProvider;
+	
 	@Captor
 	ArgumentCaptor<DescribeStacksRequest> describeStackRequestCapture;
 	@Captor
@@ -53,7 +60,7 @@ public class CloudFormationClientImplTest {
 
 	@Before
 	public void before() {
-		client = new CloudFormationClientImpl(mockCloudFormationClient);
+		client = new CloudFormationClientImpl(mockCloudFormationClient, s3Client, propertyProvider);
 
 		stackId = "theStackId";
 		stack = new Stack().withStackId(stackId);

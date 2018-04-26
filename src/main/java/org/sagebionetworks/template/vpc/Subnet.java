@@ -1,5 +1,7 @@
 package org.sagebionetworks.template.vpc;
 
+import org.sagebionetworks.template.Constants;
+
 /**
  * Basic subnet model.
  *
@@ -56,6 +58,14 @@ public class Subnet {
 	 */
 	public String getAvailabilityZone() {
 		return availabilityZone;
+	}
+	
+	/**
+	 * The name of an availability zone in camel-case.
+	 * @return
+	 */
+	public String getPublicSubnetNameInSameZone() {
+		return name.replace("Private", "Public");
 	}
 	
 	

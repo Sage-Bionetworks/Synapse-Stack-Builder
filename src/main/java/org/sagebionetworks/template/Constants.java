@@ -2,6 +2,11 @@ package org.sagebionetworks.template;
 
 public class Constants {
 	
+	/**
+	 * Suffix for the configuration S3 bucket.
+	 */
+	public static final String CONFIGURATION_SAGEBASE_ORG = "-configuration.sagebase.org";
+
 	public static final String DEFAULT_REPO_PROPERTIES = "templates/repo/defaults.properties";
 
 	/**
@@ -82,4 +87,12 @@ public class Constants {
 		return builder.toString();
 	}
 
+	/**
+	 * 
+	 * @param stack
+	 * @return
+	 */
+	public static String getConfigurationBucket(String stack) {
+		return stack + CONFIGURATION_SAGEBASE_ORG;
+	}
 }
