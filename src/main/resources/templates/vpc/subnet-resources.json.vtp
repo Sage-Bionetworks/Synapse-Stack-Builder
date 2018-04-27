@@ -214,6 +214,18 @@
 			}
 		}
 	},
+	"${subnet.name}PublicRouteVPN": {
+		"Type": "AWS::EC2::Route",
+		"Properties": {
+			"RouteTableId": {
+				"Ref": "${subnet.name}RouteTable"
+			},
+			"DestinationCidrBlock": "10.1.0.0/16",
+			"VpcPeeringConnectionId": {
+				"Ref": "VpcPeeringConnection"
+			}
+		}
+	},
 	#else
 	"${subnet.name}PrivateRoute": {
 		"Type": "AWS::EC2::Route",
