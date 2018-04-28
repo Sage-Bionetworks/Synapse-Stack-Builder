@@ -2,8 +2,7 @@ package org.sagebionetworks.template.repo.beanstalk;
 
 import java.io.File;
 
-import org.sagebionetworks.template.Constants;
-import org.sagebionetworks.template.repo.RepositoryPropertyProvider;
+import org.sagebionetworks.template.Configuration;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.google.inject.Inject;
@@ -11,22 +10,21 @@ import com.google.inject.Inject;
 public class ArtifactCopyImpl implements ArtifactCopy {
 
 	private AmazonS3 s3Client;
-	private RepositoryPropertyProvider propertyProvider;
+	private Configuration configuration;
 	private ArtifactDownload downloader;
 
 	@Inject
-	public ArtifactCopyImpl(AmazonS3 s3Client, RepositoryPropertyProvider propertyProvider,
+	public ArtifactCopyImpl(AmazonS3 s3Client, Configuration propertyProvider,
 			ArtifactDownload downloader) {
 		super();
 		this.s3Client = s3Client;
-		this.propertyProvider = propertyProvider;
+		this.configuration = propertyProvider;
 		this.downloader = downloader;
 	}
 
 	@Override
 	public SourceBundle copyArtifactIfNeeded(EnvironmentType environment, String version) {
-		String stack = propertyProvider.get(Constants.PROPERTY_KEY_STACK);
-		String bucket = stack + "-sage.bionetworks";
+		String bucket = configuration.getConfigurationBucket();
 		String s3Key = environment.createS3Key(version);
 		SourceBundle bundle = new SourceBundle(bucket, s3Key);
 		// does the file already exist in S3

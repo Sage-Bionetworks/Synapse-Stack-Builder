@@ -7,7 +7,6 @@ import java.util.Date;
 import java.util.UUID;
 import java.util.function.Function;
 
-import org.sagebionetworks.template.repo.RepositoryPropertyProvider;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 
 import com.amazonaws.HttpMethod;
@@ -23,6 +22,7 @@ import com.amazonaws.services.cloudformation.model.UpdateStackRequest;
 import com.amazonaws.services.cloudformation.model.UpdateStackResult;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.google.inject.Inject;
 
 /**
@@ -33,14 +33,14 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 
 	AmazonCloudFormation cloudFormationClient;
 	AmazonS3 s3Client;
-	RepositoryPropertyProvider propertyProvider;
+	Configuration configuration;
 	
 	@Inject
-	public CloudFormationClientImpl(AmazonCloudFormation cloudFormationClient, AmazonS3 s3Client, RepositoryPropertyProvider propertyProvider) {
+	public CloudFormationClientImpl(AmazonCloudFormation cloudFormationClient, AmazonS3 s3Client, Configuration configuration) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.s3Client = s3Client;
-		this.propertyProvider = propertyProvider;
+		this.configuration = configuration;
 	}
 
 	@Override
@@ -140,14 +140,13 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 	 */
 	SourceBundle saveTempalteToS3(String stackName, String tempalte) {
 		try {
-			String stack = propertyProvider.get(Constants.PROPERTY_KEY_STACK);
-			String bucket = Constants.getConfigurationBucket(stack);
+			String bucket = configuration.getConfigurationBucket();
 			String key = "templates/" + stackName + "-" + UUID.randomUUID() + ".json";
 			byte[] bytes = tempalte.getBytes("UTF-8");
 			ByteArrayInputStream input = new ByteArrayInputStream(bytes);
 			ObjectMetadata metadata = new ObjectMetadata();
 			metadata.setContentLength(bytes.length);
-			s3Client.putObject(bucket, key, input, metadata);
+			s3Client.putObject(new PutObjectRequest(bucket, key, input, metadata));
 			return new SourceBundle(bucket, key);
 		} catch (IOException e) {
 			throw new RuntimeException(e);

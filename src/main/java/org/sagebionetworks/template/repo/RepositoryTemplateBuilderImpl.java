@@ -1,18 +1,25 @@
 package org.sagebionetworks.template.repo;
 
+import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
+import static org.sagebionetworks.template.Constants.DEFAULT_REPO_PROPERTIES;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_MYSQL_PASSWORD;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MULTI_AZ;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_INSTANCE_COUNT;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_COLOR;
 import static org.sagebionetworks.template.Constants.SHARED_RESOUCES_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.*;
+import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
 import java.io.StringWriter;
 import java.util.StringJoiner;
@@ -23,6 +30,7 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.Configuration;
 import org.sagebionetworks.template.LoggerFactory;
 
 import com.amazonaws.services.cloudformation.model.Parameter;
@@ -32,16 +40,17 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	
 	CloudFormationClient cloudFormationClient;
 	VelocityEngine velocityEngine;
-	RepositoryPropertyProvider propertyProvider;
+	Configuration config;
 	Logger logger;
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
-			RepositoryPropertyProvider propertyProvider, LoggerFactory loggerFactory) {
+			Configuration configuration, LoggerFactory loggerFactory) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.velocityEngine = velocityEngine;
-		this.propertyProvider = propertyProvider;
+		this.config = configuration;
+		this.config.initializeWithDefaults(DEFAULT_REPO_PROPERTIES);
 		this.logger = loggerFactory.getLogger(RepositoryTemplateBuilderImpl.class);
 	}
 
@@ -80,9 +89,9 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 */
 	VelocityContext createContext() {
 		VelocityContext context = new VelocityContext();
-		context.put(STACK, propertyProvider.get(PROPERTY_KEY_STACK));
-		context.put(INSTANCE, propertyProvider.get(PROPERTY_KEY_INSTANCE));
-		context.put(VPC_SUBNET_COLOR, propertyProvider.get(PROPERTY_KEY_VPC_SUBNET_COLOR));
+		context.put(STACK, config.getProperty(PROPERTY_KEY_STACK));
+		context.put(INSTANCE, config.getProperty(PROPERTY_KEY_INSTANCE));
+		context.put(VPC_SUBNET_COLOR, config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR));
 		context.put(SHARED_RESOUCES_STACK_NAME, createSharedResourcesStackName());
 		context.put(VPC_EXPORT_PREFIX, createVpcExportPrefix());
 		
@@ -92,30 +101,30 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	}
 	
 	public DatabaseDescriptor[] createDatabaseDescriptors() {
-		int numberOfTablesDatabase = propertyProvider.getInteger(PROPERTY_KEY_TABLES_INSTANCE_COUNT);
+		int numberOfTablesDatabase = config.getIntegerProperty(PROPERTY_KEY_TABLES_INSTANCE_COUNT);
 		// one repository database and multiple tables database.
 		DatabaseDescriptor[] results = new DatabaseDescriptor[numberOfTablesDatabase+1];
 		
-		String stack = propertyProvider.get(PROPERTY_KEY_STACK);
-		String instance = propertyProvider.get(PROPERTY_KEY_INSTANCE);
+		String stack = config.getProperty(PROPERTY_KEY_STACK);
+		String instance = config.getProperty(PROPERTY_KEY_INSTANCE);
 		
 		// Describe the repository database.
 		results[0] = new DatabaseDescriptor()
 				.withResourceName(stack+instance+"RepositoryDB")
-				.withAllocatedStorage(propertyProvider.getInteger(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE))
+				.withAllocatedStorage(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE))
 				.withInstanceIdentifier(stack+"-"+instance+"-db")
 				.withDbName(stack+instance)
-				.withInstanceClass(propertyProvider.get(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS))
-				.withMultiAZ(propertyProvider.getBoolean(PROPERTY_KEY_REPO_RDS_MULTI_AZ));
+				.withInstanceClass(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS))
+				.withMultiAZ(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ));
 		
 		// Describe each table database
 		for(int i=0; i<numberOfTablesDatabase; i++) {
 			results[i+1] = new DatabaseDescriptor()
 					.withResourceName(stack+instance+"Table"+i+"RepositoryDB")
-					.withAllocatedStorage(propertyProvider.getInteger(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE))
+					.withAllocatedStorage(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE))
 					.withInstanceIdentifier(stack+"-"+instance+"-table-"+i)
 					.withDbName(stack+instance)
-					.withInstanceClass(propertyProvider.get(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS))
+					.withInstanceClass(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS))
 					.withMultiAZ(false);
 		}
 		return results;
@@ -128,7 +137,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 */
 	Parameter[] createParameters() {
 		Parameter databasePassword = new Parameter().withParameterKey(PARAMETER_MYSQL_PASSWORD)
-				.withParameterValue(propertyProvider.get(PROPERTY_KEY_MYSQL_PASSWORD));
+				.withParameterValue(config.getProperty(PROPERTY_KEY_MYSQL_PASSWORD));
 		return new Parameter[] { databasePassword };
 	}
 
@@ -139,8 +148,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 */
 	String createSharedResourcesStackName() {
 		StringJoiner joiner = new StringJoiner("-");
-		joiner.add(propertyProvider.get(PROPERTY_KEY_STACK));
-		joiner.add(propertyProvider.get(PROPERTY_KEY_INSTANCE));
+		joiner.add(config.getProperty(PROPERTY_KEY_STACK));
+		joiner.add(config.getProperty(PROPERTY_KEY_INSTANCE));
 		joiner.add("shared-resources");
 		return joiner.toString();
 	}
@@ -152,7 +161,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	String createVpcExportPrefix() {
 		StringJoiner joiner = new StringJoiner("-");
 		joiner.add("us-east-1-synapse");
-		joiner.add(propertyProvider.get(PROPERTY_KEY_STACK));
+		joiner.add(config.getProperty(PROPERTY_KEY_STACK));
 		joiner.add("vpc");
 		return joiner.toString();
 	}

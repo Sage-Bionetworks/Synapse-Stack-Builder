@@ -28,12 +28,11 @@
 			}
 		},
 		"VpcPeeringConnection" :{
-			"DependsOn": "VPC",
 			"Type" : "AWS::EC2::VPCPeeringConnection",
 			"Properties" : {
 				"PeerVpcId" : "vpc-2135cc5a",
 				"PeerOwnerId" : "745159704268",
-				"PeerRoleArn" : "arn:aws:iam::745159704268:role/vpc-peering-role-synapse-VPCPeeringAuthorizerRole-3ZT3BCXX8NU2",
+				"PeerRoleArn" : "${peerRoleArn}",
 				"VpcId" : {
 					"Ref": "VPC"
 				},

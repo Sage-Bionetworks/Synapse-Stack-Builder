@@ -12,7 +12,7 @@ public class PropertyUtils {
 	 * @return
 	 */
 	public static Properties loadPropertiesFromClasspath(String path) {
-		InputStream in = SystemPropertyProvider.class.getClassLoader().getResourceAsStream(path);
+		InputStream in = PropertyUtils.class.getClassLoader().getResourceAsStream(path);
 		if(in == null) {
 			throw new IllegalArgumentException("Cannot find: "+path+" on the classpath.");
 		}

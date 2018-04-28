@@ -3,8 +3,12 @@ package org.sagebionetworks.template.vpc;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.PARAMETER_VPC_SUBNET_PREFIX;
 import static org.sagebionetworks.template.Constants.PARAMETER_VPN_CIDR;
+import static org.sagebionetworks.template.Constants.PEERING_ROLE_ARN_PREFIX;
+import static org.sagebionetworks.template.Constants.PEER_ROLE_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_COLORS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_AVAILABILITY_ZONES;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_PREFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_VPN_CIDR;
 import static org.sagebionetworks.template.Constants.STACK;
@@ -14,7 +18,7 @@ import static org.sagebionetworks.template.Constants.VPC_CIDR;
 import static org.sagebionetworks.template.Constants.VPC_CIDR_SUFFIX;
 import static org.sagebionetworks.template.Constants.VPC_COLOR_GROUP_NETWORK_MASK;
 import static org.sagebionetworks.template.Constants.VPC_STACK_NAME_FORMAT;
-import static org.sagebionetworks.template.Constants.*;
+import static org.sagebionetworks.template.Constants.VPC_SUBNET_NETWORK_MASK;
 
 import java.io.StringWriter;
 
@@ -24,8 +28,8 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.Configuration;
 import org.sagebionetworks.template.LoggerFactory;
-import org.sagebionetworks.template.PropertyProvider;
 
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.google.inject.Inject;
@@ -35,18 +39,18 @@ import com.google.inject.Inject;
  *
  */
 public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
-
+	
 	CloudFormationClient cloudFormationClient;
 	VelocityEngine velocityEngine;
-	PropertyProvider propertyProvider;
+	Configuration config;
 	Logger logger;
 
 	@Inject
 	public VpcTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
-			PropertyProvider propertyProvider, LoggerFactory loggerFactory) {
+			Configuration configuration, LoggerFactory loggerFactory) {
 		this.cloudFormationClient = cloudFormationClient;
 		this.velocityEngine = velocityEngine;
-		this.propertyProvider = propertyProvider;
+		this.config = configuration;
 		this.logger = loggerFactory.getLogger(VpcTemplateBuilderImpl.class);
 	}
 
@@ -79,12 +83,15 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 	VelocityContext createContext() {
 		VelocityContext context = new VelocityContext();
 		
-		String vpcSubnetPrefix = propertyProvider.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX);
+		String vpcSubnetPrefix = config.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX);
 		// VPC CIDR
 		String vpcCidr = vpcSubnetPrefix+VPC_CIDR_SUFFIX;
 		context.put(VPC_CIDR, vpcCidr);
 		
-		String[] availabilityZones = propertyProvider.getComaSeparatedProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES);
+		// The roll from the admin-central account that allows this account to accept VPC peering
+		context.put(PEER_ROLE_ARN, getPeeringRoleArn());
+		
+		String[] availabilityZones = config.getComaSeparatedProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES);
 
 		// Create the sub-nets
 		SubnetBuilder builder = new SubnetBuilder();
@@ -96,9 +103,21 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 		SubnetGroup[] subnets = builder.build();
 		context.put(SUBNET_GROUPS, subnets);	
 		
-		context.put(STACK, propertyProvider.getProperty(PROPERTY_KEY_STACK));
+		context.put(STACK, config.getProperty(PROPERTY_KEY_STACK));
 		
 		return context;
+	}
+	
+	/**
+	 * Get the role ARN used to accept VPC connection peering.
+	 * @return
+	 */
+	public String getPeeringRoleArn() {
+		String peeringRoleArn = config.getProperty(PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN);
+		if(!peeringRoleArn.startsWith(PEERING_ROLE_ARN_PREFIX)) {
+			throw new IllegalArgumentException(PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN+" must start with: "+PEERING_ROLE_ARN_PREFIX);
+		}
+		return peeringRoleArn;
 	}
 	
 	/**
@@ -106,7 +125,7 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 	 * @return
 	 */
 	Color[] getColorsFromProperty() {
-		String[] colorString = propertyProvider.getComaSeparatedProperty(PROPERTY_KEY_COLORS);
+		String[] colorString = config.getComaSeparatedProperty(PROPERTY_KEY_COLORS);
 		Color[] colors = new Color[colorString.length];
 		for (int i = 0; i < colorString.length; i++) {
 			colors[i] = Color.valueOf(colorString[i]);
@@ -119,7 +138,7 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 	 * @return
 	 */
 	String createStackName() {
-		return String.format(VPC_STACK_NAME_FORMAT, propertyProvider.getProperty(PROPERTY_KEY_STACK));
+		return String.format(VPC_STACK_NAME_FORMAT, config.getProperty(PROPERTY_KEY_STACK));
 	}
 
 	/**
@@ -129,9 +148,9 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 	 */
 	public Parameter[] createParameters(String stackName) {
 		Parameter VpcSubnetPrefix = new Parameter().withParameterKey(PARAMETER_VPC_SUBNET_PREFIX)
-				.withParameterValue(propertyProvider.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX));
+				.withParameterValue(config.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX));
 		Parameter VpnCidr = new Parameter().withParameterKey(PARAMETER_VPN_CIDR)
-				.withParameterValue(propertyProvider.getProperty(PROPERTY_KEY_VPC_VPN_CIDR));
+				.withParameterValue(config.getProperty(PROPERTY_KEY_VPC_VPN_CIDR));
 		return new Parameter[] { VpcSubnetPrefix, VpnCidr };
 	}
 }

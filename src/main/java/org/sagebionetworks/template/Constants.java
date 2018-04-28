@@ -5,10 +5,15 @@ public class Constants {
 	/**
 	 * Suffix for the configuration S3 bucket.
 	 */
-	public static final String CONFIGURATION_SAGEBASE_ORG = "-configuration.sagebase.org";
+	public static final String CONFIGURATION_BUCKET_TEMPLATE = "%1$s-configuration.sagebase.org";
 
 	public static final String DEFAULT_REPO_PROPERTIES = "templates/repo/defaults.properties";
 
+	/**
+	 * A VPC peering role ARN must start with this prefix.
+	 */
+	public static final String PEERING_ROLE_ARN_PREFIX = "arn:aws:iam::745159704268:role";
+	
 	/**
 	 * The unique name assigned to the Synapse VPC stack.
 	 */
@@ -26,6 +31,7 @@ public class Constants {
 	public static final String PROPERTY_KEY_VPC_AVAILABILITY_ZONES = "org.sagebionetworks.vpc.availability.zones";
 	public static final String PROPERTY_KEY_VPC_SUBNET_PREFIX = "org.sagebionetworks.vpc.subnet.prefix";
 	public static final String PROPERTY_KEY_COLORS = "org.sagebionetworks.vpc.colors.csv";
+	public static final String PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN = "org.sagebionetworks.vpc.peering.accept.role.arn";
 	// repo
 	public static final String PROPERTY_KEY_STACK = "org.sagebionetworks.stack";
 	public static final String PROPERTY_KEY_INSTANCE = "org.sagebionetworks.instance";
@@ -69,6 +75,7 @@ public class Constants {
 	public static final String SHARED_RESOUCES_STACK_NAME = "sharedRresourcesStackName";
 	public static final String VPC_EXPORT_PREFIX = "vpcExportPrefix";
 	public static final String PROPS = "props";
+	public static final String PEER_ROLE_ARN = "peerRoleArn";
 	
 	public static final String DATABASE_DESCRIPTORS = "databaseDescriptors";
 	
@@ -87,12 +94,4 @@ public class Constants {
 		return builder.toString();
 	}
 
-	/**
-	 * 
-	 * @param stack
-	 * @return
-	 */
-	public static String getConfigurationBucket(String stack) {
-		return stack + CONFIGURATION_SAGEBASE_ORG;
-	}
 }

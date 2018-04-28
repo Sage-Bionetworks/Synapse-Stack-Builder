@@ -8,9 +8,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.PARAMETER_VPC_SUBNET_PREFIX;
 import static org.sagebionetworks.template.Constants.PARAMETER_VPN_CIDR;
+import static org.sagebionetworks.template.Constants.PEERING_ROLE_ARN_PREFIX;
+import static org.sagebionetworks.template.Constants.PEER_ROLE_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_COLORS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_AVAILABILITY_ZONES;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_PREFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_VPN_CIDR;
 import static org.sagebionetworks.template.Constants.STACK;
@@ -28,8 +31,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.Configuration;
 import org.sagebionetworks.template.LoggerFactory;
-import org.sagebionetworks.template.PropertyProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 
 import com.amazonaws.services.cloudformation.model.Parameter;
@@ -40,7 +43,7 @@ public class VpcTemplateBuilderImplTest {
 	@Mock
 	CloudFormationClient mockCloudFormationClient;
 	@Mock
-	PropertyProvider mockPropertyProvider;
+	Configuration mockConfig;
 	@Mock
 	LoggerFactory mockLoggerFactory;
 	@Mock
@@ -55,6 +58,7 @@ public class VpcTemplateBuilderImplTest {
 	String[] publicZones;
 	String vpnCider;
 	String stack;
+	String peeringRoleARN;
 
 	@Before
 	public void before() {
@@ -63,17 +67,20 @@ public class VpcTemplateBuilderImplTest {
 		
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 		
-		builder = new VpcTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, mockPropertyProvider, mockLoggerFactory);
+		builder = new VpcTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, mockConfig, mockLoggerFactory);
 		colors = new String[] {"Red","Green"};
 		subnetPrefix = "10.21";
 		avialabilityZones = new String[] {"us-east-1a","us-east-1b"};
 		vpnCider = "10.1.0.0/16";
 		stack = "dev";
-		when(mockPropertyProvider.getComaSeparatedProperty(PROPERTY_KEY_COLORS)).thenReturn(colors);
-		when(mockPropertyProvider.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX)).thenReturn(subnetPrefix);
-		when(mockPropertyProvider.getComaSeparatedProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn(avialabilityZones);
-		when(mockPropertyProvider.getProperty(PROPERTY_KEY_VPC_VPN_CIDR)).thenReturn(vpnCider);
-		when(mockPropertyProvider.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		peeringRoleARN = PEERING_ROLE_ARN_PREFIX+"/someKey";
+		
+		when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_COLORS)).thenReturn(colors);
+		when(mockConfig.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX)).thenReturn(subnetPrefix);
+		when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn(avialabilityZones);
+		when(mockConfig.getProperty(PROPERTY_KEY_VPC_VPN_CIDR)).thenReturn(vpnCider);
+		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		when(mockConfig.getProperty(PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN)).thenReturn(peeringRoleARN);
 	}
 	
 	@Test
@@ -99,9 +106,9 @@ public class VpcTemplateBuilderImplTest {
 		JSONObject resouces = templateJson.getJSONObject("Resources");
 		assertNotNull(resouces);
 		assertTrue(resouces.has("VPC"));
+		assertTrue(resouces.has("VpcPeeringConnection"));
 		assertTrue(resouces.has("InternetGateway"));
 		assertTrue(resouces.has("InternetGatewayAttachment"));
-		assertTrue(resouces.has("ElasticIP"));
 		assertTrue(resouces.has("VpnSecurityGroup"));
 		// color subnets
 		// Red ACL
@@ -182,5 +189,20 @@ public class VpcTemplateBuilderImplTest {
 		
 		assertEquals("10.21.0.0/16", context.get(VPC_CIDR));
 		assertEquals("dev", context.get(STACK));
+		assertEquals(peeringRoleARN, context.get(PEER_ROLE_ARN));
+	}
+	
+	@Test
+	public void testGetPeeringRoleArn() {
+		String arn = builder.getPeeringRoleArn();
+		assertEquals(peeringRoleARN, arn);
+	}
+	
+	@Test (expected=IllegalArgumentException.class)
+	public void testGetPeeringRoleArnWrongPrefix() {
+		// value without the arn prefix
+		when(mockConfig.getProperty(PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN)).thenReturn("no prefix");
+		String arn = builder.getPeeringRoleArn();
+		assertEquals(peeringRoleARN, arn);
 	}
 }

@@ -4,7 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 
@@ -13,7 +15,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sagebionetworks.template.Constants;
+import org.sagebionetworks.template.Configuration;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopyImpl;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactDownload;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
@@ -28,7 +30,7 @@ public class ArtifactCopyImplTest {
 	@Mock
 	AmazonS3 mockS3Client;
 	@Mock
-	RepositoryPropertyProvider mockPropertyProvider;
+	Configuration mockPropertyProvider;
 	@Mock
 	ArtifactDownload mockDownloader;
 	@Mock
@@ -48,13 +50,13 @@ public class ArtifactCopyImplTest {
 		
 		when(mockDownloader.downloadFile(any(String.class))).thenReturn(mockFile);
 		
-		stack = "dev";
-		when(mockPropertyProvider.get(Constants.PROPERTY_KEY_STACK)).thenReturn(stack);
+		
 		
 		environment = EnvironmentType.REPOSITORY_WORKERS;
 		version = "212.4";
 		
-		bucket = "dev-sage.bionetworks";
+		bucket = "dev-configuration.sage.bionetworks";
+		when(mockPropertyProvider.getConfigurationBucket()).thenReturn(bucket);
 		s3Key = environment.createS3Key(version);
 		artifactoryUrl = environment.createArtifactoryUrl(version);
 		
