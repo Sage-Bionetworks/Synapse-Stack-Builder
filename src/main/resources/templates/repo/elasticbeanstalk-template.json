@@ -1,0 +1,98 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Resources": {
+		"${stack}${instance}Application": {
+			"Type": "AWS::ElasticBeanstalk::Application",
+			"Properties": {
+				"ApplicationName": "Synapse-{stack}-${instance}",
+				"Description": "Group of all Synapse-{stack}-${instance} beanstalk Environment"
+			}
+		},
+		"${environment.name}Version": {
+			"Type": "AWS::ElasticBeanstalk::ApplicationVersion",
+			"Properties": {
+				"ApplicationName": {
+					"Ref": "{stack}${instance}Application"
+				},
+				"Description": "Artifact for ${stack}-${instance}-${environment.type}-${environment.number}",
+				"SourceBundle": {
+					"S3Bucket": "${environment.sourceBundle.bucket}",
+					"S3Key": "${environment.sourceBundle.key}"
+				}
+			}
+		},
+		"${environment.name}Tempalte": {
+			"Type": "AWS::ElasticBeanstalk::ConfigurationTemplate",
+			"Properties": {
+				"ApplicationName": {
+					"Ref": "${stack}${instance}Application"
+				},
+				"Description": "ConfigurationTemplate for ${environment.name}",
+				"SolutionStackName": "Java 8 with Tomcat 8 version 2.6.5",
+				"OptionSettings": [
+					{
+						"Namespace": "aws:autoscaling:launchconfiguration",
+						"OptionName": "InstanceType",
+						"Value": "m1.small"
+					},
+					{
+						"Namespace": "aws:autoscaling:launchconfiguration",
+						"OptionName": "ImageId",
+						"Value": "ami-827b94f8"
+					},
+					{
+						"Namespace": "aws:autoscaling:launchconfiguration",
+						"OptionName": "EC2KeyName",
+						"Value": "${stack}-key-pair"
+					},
+					{
+						"Namespace": "aws:autoscaling:launchconfiguration",
+						"OptionName": "IamInstanceProfile",
+						"Value": "${stack}-s3-log-rolling"
+					},
+					{
+						"Namespace": "aws:ec2:vpc",
+						"OptionName": "VPCId",
+						"Value": {
+							"Ref": "VPC"
+						}
+					},
+					{
+						"Namespace": "aws:ec2:vpc",
+						"OptionName": "Subnets",
+						"Value": {
+							"Ref": "PrivateSubnet"
+						}
+					},
+					{
+						"Namespace": "aws:ec2:vpc",
+						"OptionName": "ELBSubnets",
+						"Value": {
+							"Ref": "PublicSubnet"
+						}
+					}
+				]
+			}
+		},
+		"${environment.name}": {
+			"Type": "AWS::ElasticBeanstalk::Environment",
+			"Properties": {
+				"ApplicationName": {
+					"Ref": "${stack}${instance}Application"
+				},
+				"CNAMEPrefix": "${environment.name}-sagebase-org",
+				"Description": "Environment for ${environment.name}",
+				"EnvironmentName": "${environment.name}",
+				"OptionSettings": [
+					""
+				],
+				"TemplateName": {
+					"Ref": "${environment.name}Tempalte"
+				},
+				"VersionLabel": {
+					"Ref": "${environment.name}Version"
+				}
+			}
+		}
+	}
+}

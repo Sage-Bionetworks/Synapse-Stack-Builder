@@ -14,8 +14,7 @@ public class SubnetBuilderTest {
 		builder.withColors(Color.Red, Color.Blue);
 		builder.withSubnetMask(22);
 		builder.withColorGroupNetMaskSubnetMask(20);
-		builder.withPublicAvailabilityZones("us-east-1c","us-east-1b");
-		builder.withPrivateAvailabilityZones("us-east-1a");
+		builder.withAvailabilityZones("us-east-1c","us-east-1b");
 		// call under test
 		SubnetGroup[] results = builder.build();
 		assertNotNull(results);
@@ -27,21 +26,21 @@ public class SubnetBuilderTest {
 		assertEquals("Red", color.getColor());
 		Subnet[] subnets = color.getSubnets();
 		assertNotNull(subnets);
-		assertEquals(3, subnets.length);
+		assertEquals(4, subnets.length);
 		// red public 0
 		Subnet subnet = subnets[0];
-		assertEquals("RedPublic0Subnet", subnet.getName());
+		assertEquals("RedPublicUsEast1cSubnet", subnet.getName());
 		assertEquals("10.21.0.0/22", subnet.getCidr());
 		assertEquals("Public", subnet.getType());
 		// red public 1
 		subnet = subnets[1];
-		assertEquals("RedPublic1Subnet", subnet.getName());
+		assertEquals("RedPublicUsEast1bSubnet", subnet.getName());
 		assertEquals("10.21.4.0/22", subnet.getCidr());
 		assertEquals("Public", subnet.getType());
 		
 		// red private 0
 		subnet = subnets[2];
-		assertEquals("RedPrivate0Subnet", subnet.getName());
+		assertEquals("RedPrivateUsEast1cSubnet", subnet.getName());
 		assertEquals("10.21.8.0/22", subnet.getCidr());
 		assertEquals("Private", subnet.getType());
 		
@@ -51,21 +50,21 @@ public class SubnetBuilderTest {
 		assertEquals("Blue", color.getColor());
 		subnets = color.getSubnets();
 		assertNotNull(subnets);
-		assertEquals(3, subnets.length);
+		assertEquals(4, subnets.length);
 		// blue public 0
 		subnet = subnets[0];
-		assertEquals("BluePublic0Subnet", subnet.getName());
+		assertEquals("BluePublicUsEast1cSubnet", subnet.getName());
 		assertEquals("10.21.16.0/22", subnet.getCidr());
 		assertEquals("Public", subnet.getType());
 		// blue public 1
 		subnet = subnets[1];
-		assertEquals("BluePublic1Subnet", subnet.getName());
+		assertEquals("BluePublicUsEast1bSubnet", subnet.getName());
 		assertEquals("10.21.20.0/22", subnet.getCidr());
 		assertEquals("Public", subnet.getType());
 		
 		// blue private 0
 		subnet = subnets[2];
-		assertEquals("BluePrivate0Subnet", subnet.getName());
+		assertEquals("BluePrivateUsEast1cSubnet", subnet.getName());
 		assertEquals("10.21.24.0/22", subnet.getCidr());
 		assertEquals("Private", subnet.getType());
 	}
@@ -76,12 +75,11 @@ public class SubnetBuilderTest {
 		int networkMask = 8;
 		Color color = Color.Red;
 		SubnetType type = SubnetType.Public;
-		int index = 0;
 		String availabilityZone = "us-east-1c";
 		// Call under test
-		Subnet result = SubnetBuilder.createSubnet(availabilityZone, addressLong, networkMask, color, type, index);
+		Subnet result = SubnetBuilder.createSubnet(availabilityZone, addressLong, networkMask, color, type);
 		assertNotNull(result);
-		assertEquals("RedPublic0Subnet", result.getName());
+		assertEquals("RedPublicUsEast1cSubnet", result.getName());
 		assertEquals("255.255.255.255/8", result.getCidr());
 		assertEquals("Public", result.getType());
 		assertEquals("us-east-1c", result.getAvailabilityZone());
@@ -91,10 +89,10 @@ public class SubnetBuilderTest {
 	public void testCreateSubnetName() {
 		Color color = Color.Blue;
 		SubnetType type = SubnetType.Private;
-		int index = 1;
+		String availabilityZone = "us-east-1c";
 		// call under test
-		String name = SubnetBuilder.createSubnetName(color, type, index);
-		assertEquals("BluePrivate1Subnet", name);
+		String name = SubnetBuilder.createSubnetName(color, type, availabilityZone);
+		assertEquals("BluePrivateUsEast1cSubnet", name);
 	}
 
 	@Test

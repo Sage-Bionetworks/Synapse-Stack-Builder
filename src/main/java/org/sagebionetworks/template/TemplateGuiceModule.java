@@ -1,12 +1,16 @@
 package org.sagebionetworks.template;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
-import org.sagebionetworks.template.repo.RepositoryPropertyProvider;
-import org.sagebionetworks.template.repo.RepositoryPropertyProviderImpl;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilderImpl;
+import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
+import org.sagebionetworks.template.repo.beanstalk.ArtifactCopyImpl;
+import org.sagebionetworks.template.repo.beanstalk.ArtifactDownload;
+import org.sagebionetworks.template.repo.beanstalk.ArtifactDownloadImpl;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilder;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilderImpl;
 
@@ -14,6 +18,8 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.google.inject.Provides;
 
 
@@ -27,10 +33,11 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	protected void configure() {
 		bind(CloudFormationClient.class).to(CloudFormationClientImpl.class);
 		bind(VpcTemplateBuilder.class).to(VpcTemplateBuilderImpl.class);
-		bind(PropertyProvider.class).to(SystemPropertyProvider.class);
+		bind(Configuration.class).to(ConfigurationImpl.class);
 		bind(LoggerFactory.class).to(LoggerFactoryImpl.class);
 		bind(RepositoryTemplateBuilder.class).to(RepositoryTemplateBuilderImpl.class);
-		bind(RepositoryPropertyProvider.class).to(RepositoryPropertyProviderImpl.class);
+		bind(ArtifactDownload.class).to(ArtifactDownloadImpl.class);
+		bind(ArtifactCopy.class).to(ArtifactCopyImpl.class);
 	}
 	
 	/**
@@ -42,6 +49,20 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		AmazonCloudFormationClientBuilder builder = AmazonCloudFormationClientBuilder.standard();
 		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
 		builder.withRegion(Regions.US_EAST_1);
+		return builder.build();
+	}
+	
+	@Provides
+	public AmazonS3 provideAmazonS3Client() {
+		AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
+		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
+		builder.withRegion(Regions.US_EAST_1);
+		return builder.build();
+	}
+	
+	@Provides
+	public HttpClient provideHttpClient() {
+		HttpClientBuilder builder = HttpClientBuilder.create();
 		return builder.build();
 	}
 	

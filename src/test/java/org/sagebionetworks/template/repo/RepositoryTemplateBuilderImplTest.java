@@ -32,6 +32,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.Configuration;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.vpc.Color;
@@ -44,7 +45,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Mock
 	CloudFormationClient mockCloudFormationClient;
 	@Mock
-	RepositoryPropertyProvider mockPropertyProvider;
+	Configuration config;
 	@Mock
 	LoggerFactory mockLoggerFactory;
 	@Mock
@@ -65,7 +66,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 
-		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, mockPropertyProvider,
+		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config,
 				mockLoggerFactory);
 
 		stack = "dev";
@@ -73,19 +74,19 @@ public class RepositoryTemplateBuilderImplTest {
 		vpcSubnetColor = Color.Green.name();
 		beanstalkNumber = "2";
 
-		when(mockPropertyProvider.get(PROPERTY_KEY_STACK)).thenReturn(stack);
-		when(mockPropertyProvider.get(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
-		when(mockPropertyProvider.get(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
-		when(mockPropertyProvider.get(PROPERTY_KEY_MYSQL_PASSWORD)).thenReturn("somePassword");
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
+		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
+		when(config.getProperty(PROPERTY_KEY_MYSQL_PASSWORD)).thenReturn("somePassword");
 		
-		when(mockPropertyProvider.getInteger(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE)).thenReturn(4);
-		when(mockPropertyProvider.get(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS)).thenReturn("db.t2.small");
-		when(mockPropertyProvider.get(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS)).thenReturn("db.t2.small");
-		when(mockPropertyProvider.getBoolean(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE)).thenReturn(4);
+		when(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS)).thenReturn("db.t2.small");
+		when(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS)).thenReturn("db.t2.small");
+		when(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
 		
-		when(mockPropertyProvider.getInteger(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
-		when(mockPropertyProvider.getInteger(PROPERTY_KEY_TABLES_INSTANCE_COUNT)).thenReturn(2);
-		when(mockPropertyProvider.get(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).thenReturn("db.t2.micro");
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_INSTANCE_COUNT)).thenReturn(2);
+		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).thenReturn("db.t2.micro");
 		
 	}
 

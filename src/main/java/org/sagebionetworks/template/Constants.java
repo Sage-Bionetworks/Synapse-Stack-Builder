@@ -2,8 +2,18 @@ package org.sagebionetworks.template;
 
 public class Constants {
 	
+	/**
+	 * Suffix for the configuration S3 bucket.
+	 */
+	public static final String CONFIGURATION_BUCKET_TEMPLATE = "%1$s-configuration.sagebase.org";
+
 	public static final String DEFAULT_REPO_PROPERTIES = "templates/repo/defaults.properties";
 
+	/**
+	 * A VPC peering role ARN must start with this prefix.
+	 */
+	public static final String PEERING_ROLE_ARN_PREFIX = "arn:aws:iam::745159704268:role";
+	
 	/**
 	 * The unique name assigned to the Synapse VPC stack.
 	 */
@@ -18,10 +28,10 @@ public class Constants {
 	// input property keys
 	// vpc
 	public static final String PROPERTY_KEY_VPC_VPN_CIDR = "org.sagebionetworks.vpc.vpn.cidr";
-	public static final String PROPERTY_KEY_VPC_PUBLIC_SUBNET_ZONES = "org.sagebionetworks.vpc.public.subnet.zones";
-	public static final String PROPERTY_KEY_VPC_PRIVATE_SUBNET_ZONES = "org.sagebionetworks.vpc.private.subnet.zones";
+	public static final String PROPERTY_KEY_VPC_AVAILABILITY_ZONES = "org.sagebionetworks.vpc.availability.zones";
 	public static final String PROPERTY_KEY_VPC_SUBNET_PREFIX = "org.sagebionetworks.vpc.subnet.prefix";
 	public static final String PROPERTY_KEY_COLORS = "org.sagebionetworks.vpc.colors.csv";
+	public static final String PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN = "org.sagebionetworks.vpc.peering.accept.role.arn";
 	// repo
 	public static final String PROPERTY_KEY_STACK = "org.sagebionetworks.stack";
 	public static final String PROPERTY_KEY_INSTANCE = "org.sagebionetworks.instance";
@@ -65,7 +75,23 @@ public class Constants {
 	public static final String SHARED_RESOUCES_STACK_NAME = "sharedRresourcesStackName";
 	public static final String VPC_EXPORT_PREFIX = "vpcExportPrefix";
 	public static final String PROPS = "props";
+	public static final String PEER_ROLE_ARN = "peerRoleArn";
 	
 	public static final String DATABASE_DESCRIPTORS = "databaseDescriptors";
+	
+	/**
+	 * Create a camel case name for an availability
+	 * @param availability
+	 * @return
+	 */
+	public static final String createAvailabilityZoneName(String availabilityZone) {
+		String[] split = availabilityZone.split("-");
+		StringBuilder builder = new StringBuilder();
+		for(String part: split) {
+			builder.append(part.substring(0, 1).toUpperCase());
+			builder.append(part.substring(1));
+		}
+		return builder.toString();
+	}
 
 }
