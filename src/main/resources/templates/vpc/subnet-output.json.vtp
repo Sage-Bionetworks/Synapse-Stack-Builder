@@ -65,4 +65,78 @@
 			}
 		}
 	#end	
-#end	
+#end
+#foreach( $subnetGroup in $subnetGroups )
+,
+	"${subnetGroup.color}PublicSubnets": {
+		"Description": "Comma separated list of all public sub-nets that belong to the ${subnetGroup.color}",
+		"Value" : {
+			"Fn::Join": [
+				", ",
+				[
+					#set($i = 0)
+					#foreach ($subnet in $subnetGroup.subnets)
+					#if($subnet.type == 'Public')
+					#if( $i > 0 ) , #end
+					{"Ref":"${subnet.name}"}
+					#set($i = $i+1)
+					#end
+					#end
+				]
+			]
+		},
+		"Export": {
+			"Name": {
+				"Fn::Join": [
+					"-",
+					[
+						{
+							"Ref": "AWS::Region"
+						},
+						{
+							"Ref": "AWS::StackName"
+						},
+						"${subnetGroup.color}-Public-Subnets"
+					]
+				]
+			}
+		}
+	}
+#end
+#foreach( $subnetGroup in $subnetGroups )
+,
+	"${subnetGroup.color}PrivateSubnets": {
+		"Description": "Comma separated list of all private sub-nets that belong to the ${subnetGroup.color}",
+		"Value" : {
+			"Fn::Join": [
+				", ",
+				[
+					#set($i = 0)
+					#foreach ($subnet in $subnetGroup.subnets)
+					#if($subnet.type == 'Private')
+					#if( $i > 0 ) , #end
+					{"Ref":"${subnet.name}"}
+					#set($i = $i+1)
+					#end
+					#end
+				]
+			]
+		},
+		"Export": {
+			"Name": {
+				"Fn::Join": [
+					"-",
+					[
+						{
+							"Ref": "AWS::Region"
+						},
+						{
+							"Ref": "AWS::StackName"
+						},
+						"${subnetGroup.color}-Private-Subnets"
+					]
+				]
+			}
+		}
+	}
+#end

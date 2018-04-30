@@ -1,7 +1,5 @@
 package org.sagebionetworks.template.vpc;
 
-import org.sagebionetworks.template.Constants;
-
 /**
  * Basic subnet model.
  *
