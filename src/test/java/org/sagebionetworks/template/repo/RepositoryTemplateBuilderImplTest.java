@@ -35,6 +35,7 @@ import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.Configuration;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.TemplateGuiceModule;
+import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.vpc.Color;
 
 import com.amazonaws.services.cloudformation.model.Parameter;
@@ -50,6 +51,8 @@ public class RepositoryTemplateBuilderImplTest {
 	LoggerFactory mockLoggerFactory;
 	@Mock
 	Logger mockLogger;
+	@Mock
+	ArtifactCopy mockArtifactCopy;
 
 	VelocityEngine velocityEngine;
 	RepositoryTemplateBuilderImpl builder;
@@ -67,7 +70,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config,
-				mockLoggerFactory);
+				mockLoggerFactory, mockArtifactCopy);
 
 		stack = "dev";
 		instance = "101";

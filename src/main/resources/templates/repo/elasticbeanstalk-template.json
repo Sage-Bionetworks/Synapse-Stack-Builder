@@ -1,31 +1,24 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
 	"Resources": {
-		"${stack}${instance}Application": {
-			"Type": "AWS::ElasticBeanstalk::Application",
-			"Properties": {
-				"ApplicationName": "Synapse-{stack}-${instance}",
-				"Description": "Group of all Synapse-{stack}-${instance} beanstalk Environment"
-			}
-		},
-		"${environment.name}Version": {
+		"${environment.refName}Version": {
 			"Type": "AWS::ElasticBeanstalk::ApplicationVersion",
 			"Properties": {
 				"ApplicationName": {
-					"Ref": "{stack}${instance}Application"
+					"Fn::ImportValue": "${sharedExportPrefix}-Beanstalk-Application-Name"
 				},
-				"Description": "Artifact for ${stack}-${instance}-${environment.type}-${environment.number}",
+				"Description": "Artifact for ${environment.name}",
 				"SourceBundle": {
 					"S3Bucket": "${environment.sourceBundle.bucket}",
 					"S3Key": "${environment.sourceBundle.key}"
 				}
 			}
 		},
-		"${environment.name}Tempalte": {
+		"${environment.refName}Tempalte": {
 			"Type": "AWS::ElasticBeanstalk::ConfigurationTemplate",
 			"Properties": {
 				"ApplicationName": {
-					"Ref": "${stack}${instance}Application"
+					"Fn::ImportValue": "${sharedExportPrefix}-Beanstalk-Application-Name"
 				},
 				"Description": "ConfigurationTemplate for ${environment.name}",
 				"SolutionStackName": "Java 8 with Tomcat 8 version 2.6.5",
@@ -54,31 +47,31 @@
 						"Namespace": "aws:ec2:vpc",
 						"OptionName": "VPCId",
 						"Value": {
-							"Ref": "VPC"
+							"Fn::ImportValue": "${vpcExportPrefix}-VPCId"
 						}
 					},
 					{
 						"Namespace": "aws:ec2:vpc",
 						"OptionName": "Subnets",
 						"Value": {
-							"Ref": "PrivateSubnet"
+							"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-Private-Subnets"
 						}
 					},
 					{
 						"Namespace": "aws:ec2:vpc",
 						"OptionName": "ELBSubnets",
 						"Value": {
-							"Ref": "PublicSubnet"
+							"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-Public-Subnets"
 						}
 					}
 				]
 			}
 		},
-		"${environment.name}": {
+		"${environment.refName}": {
 			"Type": "AWS::ElasticBeanstalk::Environment",
 			"Properties": {
 				"ApplicationName": {
-					"Ref": "${stack}${instance}Application"
+					"Fn::ImportValue": "${sharedExportPrefix}-Beanstalk-Application-Name"
 				},
 				"CNAMEPrefix": "${environment.name}-sagebase-org",
 				"Description": "Environment for ${environment.name}",
@@ -87,10 +80,10 @@
 					""
 				],
 				"TemplateName": {
-					"Ref": "${environment.name}Tempalte"
+					"Ref": "${environment.refName}Tempalte"
 				},
 				"VersionLabel": {
-					"Ref": "${environment.name}Version"
+					"Ref": "${environment.refName}Version"
 				}
 			}
 		}

@@ -50,8 +50,6 @@ public class ArtifactCopyImplTest {
 		
 		when(mockDownloader.downloadFile(any(String.class))).thenReturn(mockFile);
 		
-		
-		
 		environment = EnvironmentType.REPOSITORY_WORKERS;
 		version = "212.4";
 		

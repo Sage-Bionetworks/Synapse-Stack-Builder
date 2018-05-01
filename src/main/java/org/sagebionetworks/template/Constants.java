@@ -47,6 +47,7 @@ public class Constants {
 	// templates
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
 	public static final String TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";
+	public static final String TEMPALTE_BEAN_STALK_ENVIRONMENT = "templates/repo/elasticbeanstalk-template.json";
 
 	public static final int JSON_INDENT = 5;
 
@@ -74,18 +75,22 @@ public class Constants {
 	public static final String INSTANCE = "instance";
 	public static final String SHARED_RESOUCES_STACK_NAME = "sharedRresourcesStackName";
 	public static final String VPC_EXPORT_PREFIX = "vpcExportPrefix";
+	public static final String SHARED_EXPORT_PREFIX = "sharedExportPrefix";
 	public static final String PROPS = "props";
 	public static final String PEER_ROLE_ARN = "peerRoleArn";
 	
 	public static final String DATABASE_DESCRIPTORS = "databaseDescriptors";
 	
+	public static final String ENVIRONMENT = "environment";
+	
 	/**
-	 * Create a camel case name for an availability
-	 * @param availability
+	 * Create a camel case name from dash-separated-name.
+	 * Given 'foo-bar' will return 'FooBar'
+	 * @param dashName
 	 * @return
 	 */
-	public static final String createAvailabilityZoneName(String availabilityZone) {
-		String[] split = availabilityZone.split("-");
+	public static final String createCamelCaseName(String dashName) {
+		String[] split = dashName.split("-");
 		StringBuilder builder = new StringBuilder();
 		for(String part: split) {
 			builder.append(part.substring(0, 1).toUpperCase());

@@ -103,7 +103,13 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 			// provide an pre-signed URL to the template in S3
 			String templateUrl = createPresignedUrl(bundle);
 			// the function executes the create or update.
-			return function.apply(templateUrl);
+			try {
+				return function.apply(templateUrl);
+			} catch (AmazonCloudFormationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return null;
+			}
 		}finally {
 			// Delete the template from S3
 			deleteTemplate(bundle);

@@ -24,10 +24,10 @@
 				"DBSubnetGroupDescription": "Repository database subnet group defines where RDS instances can be deployed.",
 				"SubnetIds": [
 					{
-						"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}Private0Subnet-ID"
+						"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}PrivateUsEast1aSubnet-ID"
 					},
 					{
-						"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}Private1Subnet-ID"
+						"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}PrivateUsEast1bSubnet-ID"
 					}
 				]
 			}
@@ -229,5 +229,37 @@
 			}
 		}		
 		#end
+		,
+		"${stack}${instance}Application": {
+			"Type": "AWS::ElasticBeanstalk::Application",
+			"Properties": {
+				"ApplicationName": "Synapse-${stack}-${instance}",
+				"Description": "Group of all Synapse-${stack}-${instance} Bean Stalk Environment"
+			}
+		}
+	},
+	"Outputs": {
+		"BeanstalkApplicationId": {
+			"Description": "The elastic bean stalk application ID",
+			"Value": {
+				"Ref": "${stack}${instance}Application"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"Beanstalk-Application-Name"
+						]
+					]
+				}
+			}
+		}
 	}
 }
