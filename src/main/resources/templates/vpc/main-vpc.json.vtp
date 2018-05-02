@@ -221,6 +221,26 @@
 					]
 				}
 			}
+		},
+		"AvailabilityZones": {
+			"Description": "The availability zones used for this vpc",
+			"Value": "${availabilityZones}",
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"AvailabilityZones"
+						]
+					]
+				}
+			}
 		}
 		#parse( "templates/vpc/subnet-output.json.vtp" ) 
 	}

@@ -22,14 +22,7 @@
 			"Type": "AWS::RDS::DBSubnetGroup",
 			"Properties": {
 				"DBSubnetGroupDescription": "Repository database subnet group defines where RDS instances can be deployed.",
-				"SubnetIds": [
-					{
-						"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}PrivateUsEast1aSubnet-ID"
-					},
-					{
-						"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}PrivateUsEast1bSubnet-ID"
-					}
-				]
+				"SubnetIds": { "Fn::Split" : [ ",", {"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-Private-Subnets"} ] },
 			}
 		},
 		"${stack}${instance}VpcDBSecurityGroup": {
@@ -57,6 +50,18 @@
 						"FromPort": "3306",
 						"ToPort": "3306",
 						"IpProtocol": "tcp"
+					}
+				],
+				"Tags": [
+					{
+						"Key": "Application",
+						"Value": {
+							"Ref": "AWS::StackName"
+						}
+					},
+					{
+						"Key": "Name",
+						"Value": "${stack}${instance}VpcDatabaseSecurityGroup"
 					}
 				]
 			}
@@ -236,7 +241,109 @@
 				"ApplicationName": "Synapse-${stack}-${instance}",
 				"Description": "Group of all Synapse-${stack}-${instance} Bean Stalk Environment"
 			}
-		}
+		},
+		"${stack}${instance}BeanstalkSecurityGroup": {
+        	"DependsOn": "VPC",
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Security Group for all Bean Stalk EC2 instances in ${stack}${instance}",
+                "VpcId": {
+                    ""Fn::ImportValue": "${vpcExportPrefix}-VPCId"
+                },
+				"SecurityGroupIngress": [
+					{
+						"Description": "Allow SSH for VPN traffic",
+						"CidrIp": {
+							"Fn::ImportValue": "${vpcExportPrefix}-VpnCidr"
+						},
+						"FromPort": "22",
+						"ToPort": "22",
+						"IpProtocol": "tcp"
+					},
+					{
+						"Description": "Allow ${subnetGroupColor} subnet HTTP access",
+						"CidrIp": {
+							"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-CIDR"
+						},
+						"FromPort": "80",
+						"ToPort": "80",
+						"IpProtocol": "tcp"
+					}
+				]
+                "SecurityGroupEgress": [{
+                    "CidrIp": "0.0.0.0/0",
+                    "FromPort": "-1",
+                    "ToPort": "-1",
+                    "IpProtocol": "-1"
+                }],
+                "Tags": [
+					{
+						"Key": "Application",
+						"Value": {
+							"Ref": "AWS::StackName"
+						}
+					},
+					{
+						"Key": "Name",
+						"Value": "${stack}${instance}BeanstalkSecurityGroup"
+					}
+				]
+            }
+        },
+        "${stack}${instance}LoadBalancerSecurityGroup": {
+        	"DependsOn": "VPC",
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Security Group for the Load Balancers of ${stack}${instance}",
+                "VpcId": {
+                    ""Fn::ImportValue": "${vpcExportPrefix}-VPCId"
+                },
+				"SecurityGroupIngress": [
+					{
+						"Description": "Allow HTTP traffic",
+						"CidrIp": "0.0.0.0/0",
+						"FromPort": "80",
+						"ToPort": "80",
+						"IpProtocol": "tcp"
+					},
+					{
+						"Description": "Allow HTTPS traffic",
+						"CidrIp": "0.0.0.0/0",
+						"FromPort": "443",
+						"ToPort": "443",
+						"IpProtocol": "tcp"
+					},
+				]
+                "SecurityGroupEgress": [
+                	{
+						"Description": "Allow HTTP traffic",
+						"CidrIp": "0.0.0.0/0",
+						"FromPort": "80",
+						"ToPort": "80",
+						"IpProtocol": "tcp"
+					},
+					{
+						"Description": "Allow HTTPS traffic",
+						"CidrIp": "0.0.0.0/0",
+						"FromPort": "443",
+						"ToPort": "443",
+						"IpProtocol": "tcp"
+					},
+                ],
+                "Tags": [
+					{
+						"Key": "Application",
+						"Value": {
+							"Ref": "AWS::StackName"
+						}
+					},
+					{
+						"Key": "Name",
+						"Value": "${stack}${instance}LoadBalancerSecurityGroup"
+					}
+				]
+            }
+        }
 	},
 	"Outputs": {
 		"BeanstalkApplicationId": {
@@ -256,6 +363,72 @@
 								"Ref": "AWS::StackName"
 							},
 							"Beanstalk-Application-Name"
+						]
+					]
+				}
+			}
+		},
+		"BeanstalkSecurityGroupId": {
+			"Description": "The ID of the Beanstalk security group",
+			"Value": {
+				"Ref": "${stack}${instance}BeanStalkSecurityGroup"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"Beanstalk-Security-Group-ID"
+						]
+					]
+				}
+			}
+		},
+		"LoadBalancerSecurityGroup": {
+			"Description": "The ID of the Load Balancer Security Group",
+			"Value": {
+				"Ref": "${stack}${instance}LoadBalancerSecurityGroup"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"Load-Balancer-Security-Group-ID"
+						]
+					]
+				}
+			}
+		},
+		"${stack}${instance}DBTopicId": {
+			"Description": "The elastic bean stalk application ID",
+			"Value": {
+				"Ref": "${stack}${instance}DBTopic"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"DB-SNS-Topic-ID"
 						]
 					]
 				}

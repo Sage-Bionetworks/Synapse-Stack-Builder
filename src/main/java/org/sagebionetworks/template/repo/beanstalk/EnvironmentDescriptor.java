@@ -11,14 +11,12 @@ public class EnvironmentDescriptor {
 	int number;
 	EnvironmentType type;
 	SourceBundle sourceBundle;
-	
-	public EnvironmentDescriptor(String name, String refName, int number, EnvironmentType type, SourceBundle sourceBundle) {
-		super();
-		this.name = name;
-		this.refName = refName;
-		this.number = number;
-		this.type = type;
-		this.sourceBundle = sourceBundle;
+	String healthCheckUrl;
+	int minInstances;
+	int maxInstances;
+
+	public String getHealthCheckUrl() {
+		return healthCheckUrl;
 	}
 
 	public String getRefName() {
@@ -37,8 +35,56 @@ public class EnvironmentDescriptor {
 		return type.getShortName();
 	}
 
+	public int getMinInstances() {
+		return minInstances;
+	}
+
+	public int getMaxInstances() {
+		return maxInstances;
+	}
+
 	public SourceBundle getSourceBundle() {
 		return sourceBundle;
+	}
+
+	public EnvironmentDescriptor withMinInstances(int minInstances) {
+		this.minInstances = minInstances;
+		return this;
+	}
+
+	public EnvironmentDescriptor setMaxInstances(int maxInstances) {
+		this.maxInstances = maxInstances;
+		return this;
+	}
+
+	public EnvironmentDescriptor withName(String name) {
+		this.name = name;
+		return this;
+	}
+
+	public EnvironmentDescriptor withRefName(String refName) {
+		this.refName = refName;
+		return this;
+	}
+
+	public EnvironmentDescriptor withNumber(int number) {
+		this.number = number;
+		return this;
+	}
+
+	public EnvironmentDescriptor withType(EnvironmentType type) {
+		this.type = type;
+		return this;
+	}
+
+	public EnvironmentDescriptor withSourceBundle(SourceBundle sourceBundle) {
+		this.sourceBundle = sourceBundle;
+		return this;
+	}
+
+	public EnvironmentDescriptor withHealthCheckUrl(String healthCheckUrl) {
+		this.healthCheckUrl = healthCheckUrl;
+		return this;
 	}
 
 	@Override

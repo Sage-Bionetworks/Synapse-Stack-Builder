@@ -18,7 +18,7 @@ import static org.sagebionetworks.template.Constants.VPC_CIDR;
 import static org.sagebionetworks.template.Constants.VPC_CIDR_SUFFIX;
 import static org.sagebionetworks.template.Constants.VPC_COLOR_GROUP_NETWORK_MASK;
 import static org.sagebionetworks.template.Constants.VPC_STACK_NAME_FORMAT;
-import static org.sagebionetworks.template.Constants.VPC_SUBNET_NETWORK_MASK;
+import static org.sagebionetworks.template.Constants.*;
 
 import java.io.StringWriter;
 
@@ -91,6 +91,9 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 		// The roll from the admin-central account that allows this account to accept VPC peering
 		context.put(PEER_ROLE_ARN, getPeeringRoleArn());
 		
+		String availabilityZonesRaw = config.getProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES);
+		context.put(AVAILABILITY_ZONES, availabilityZonesRaw);
+		
 		String[] availabilityZones = config.getComaSeparatedProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES);
 
 		// Create the sub-nets
@@ -101,7 +104,7 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 		builder.withColorGroupNetMaskSubnetMask(VPC_COLOR_GROUP_NETWORK_MASK);
 		builder.withAvailabilityZones(availabilityZones);
 		SubnetGroup[] subnets = builder.build();
-		context.put(SUBNET_GROUPS, subnets);	
+		context.put(SUBNET_GROUPS, subnets);
 		
 		context.put(STACK, config.getProperty(PROPERTY_KEY_STACK));
 		

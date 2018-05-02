@@ -44,6 +44,11 @@ import com.google.inject.Inject;
 
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
 
+	public static final String PROPERTY_KEY_BEANSTALK_MAX_INSTANCES = "org.sagebionetworks.beanstalk.max.instances.";
+	public static final String PROPERTY_KEY_BEANSTALK_MIN_INSTANCES = "org.sagebionetworks.beanstalk.min.instances.";
+	public static final String PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL = "org.sagebionetworks.beanstalk.health.check.url.";
+	public static final String PROPERTY_KEY_BEANSTALK_VERSION = "org.sagebionetworks.beanstalk.version.";
+	public static final String PROPERTY_KEY_BEANSTALK_NUMBER = "org.sagebionetworks.beanstalk.number.";
 	CloudFormationClient cloudFormationClient;
 	VelocityEngine velocityEngine;
 	Configuration config;
@@ -165,7 +170,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		// create each type.
 		for (int i = 0; i < EnvironmentType.values().length; i++) {
 			EnvironmentType type = EnvironmentType.values()[i];
-			int number = config.getIntegerProperty("org.sagebionetworks.beanstalk.number." + type.getShortName());
+			int number = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + type.getShortName());
 			String name = new StringJoiner("-")
 					.add(type.getShortName())
 					.add(stack)
@@ -173,10 +178,21 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 					.add("" + number)
 					.toString();
 			String refName = Constants.createCamelCaseName(name);
-			String version = config.getProperty("org.sagebionetworks.beanstalk.version." + type.getShortName());
+			String version = config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName());
+			String healthCheckUrl = config.getProperty(PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL+type.getShortName());
+			int minInstances = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MIN_INSTANCES+type.getShortName());
+			int maxInstances = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MAX_INSTANCES+type.getShortName());
 			// Copy the version from artifactory to S3.
 			SourceBundle bundle = artifactCopy.copyArtifactIfNeeded(type, version);
-			environments[i] = new EnvironmentDescriptor(name, refName, number, type, bundle);
+			environments[i] = new EnvironmentDescriptor()
+					.withName(name)
+					.withRefName(refName)
+					.withNumber(number)
+					.withHealthCheckUrl(healthCheckUrl)
+					.withSourceBundle(bundle)
+					.withType(type)
+					.withMinInstances(minInstances)
+					.withMinInstances(maxInstances);
 		}
 		return environments;
 	}

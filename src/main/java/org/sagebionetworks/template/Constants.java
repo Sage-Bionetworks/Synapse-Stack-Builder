@@ -78,6 +78,7 @@ public class Constants {
 	public static final String SHARED_EXPORT_PREFIX = "sharedExportPrefix";
 	public static final String PROPS = "props";
 	public static final String PEER_ROLE_ARN = "peerRoleArn";
+	public static final String AVAILABILITY_ZONES = "availabilityZones";
 	
 	public static final String DATABASE_DESCRIPTORS = "databaseDescriptors";
 	

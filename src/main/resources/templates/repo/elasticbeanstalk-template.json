@@ -24,14 +24,31 @@
 				"SolutionStackName": "64bit Amazon Linux 2017.09 v2.7.7 running Tomcat 8 Java 8",
 				"OptionSettings": [
 					{
-						"Namespace": "aws:autoscaling:launchconfiguration",
-						"OptionName": "InstanceType",
-						"Value": "m1.small"
+						"Namespace": "aws:autoscaling:asg",
+						"OptionName": "Availability-Zone",
+						"Value": "Any 2"
 					},
 					{
-						"Namespace": "aws:autoscaling:launchconfiguration",
-						"OptionName": "ImageId",
-						"Value": "ami-827b94f8"
+						"Namespace": "aws:autoscaling:asg",
+						"OptionName": "Custom-Availability-Zones",
+						"Value": {
+							"Fn::ImportValue": "${vpcExportPrefix}-AvailabilityZones"
+						}
+					},
+					{
+						"Namespace": "aws:autoscaling:asg",
+						"OptionName": "Cooldown",
+						"Value": "360"
+					},
+					{
+						"Namespace": "aws:autoscaling:asg",
+						"OptionName": "MinSize",
+						"Value": "${environment.minInstances}"
+					},
+					{
+						"Namespace": "aws:autoscaling:asg",
+						"OptionName": "MaxSize",
+						"Value": "${environment.maxInstances}"
 					},
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
@@ -42,6 +59,88 @@
 						"Namespace": "aws:autoscaling:launchconfiguration",
 						"OptionName": "IamInstanceProfile",
 						"Value": "${stack}-s3-log-rolling"
+					},
+					{
+						"Namespace": "aws:autoscaling:launchconfiguration",
+						"OptionName": "ImageId",
+						"Value": "ami-827b94f8"
+					},
+					{
+						"Namespace": "aws:autoscaling:launchconfiguration",
+						"OptionName": "InstanceType",
+						"Value": "m1.small"
+					},
+					{
+						"Namespace": "aws:autoscaling:launchconfiguration",
+						"OptionName": "MonitoringInterval",
+						"Value": "1 minute"
+					},
+					{
+						"Namespace": "aws:autoscaling:launchconfiguration",
+						"OptionName": "SecurityGroups",
+						"Value": {
+							"Fn::ImportValue": "${sharedExportPrefix}-Beanstalk-Security-Group-ID"
+						}
+					},
+					{
+						"Namespace": "aws:autoscaling:launchconfiguration",
+						"OptionName": "SSHSourceRestriction",
+						"Value": {
+							"Fn::Join": [
+								",",
+								[
+									"tcp,22,22",
+									{
+										"Fn::ImportValue": "${vpcExportPrefix}-VpnCidr"
+									}
+								]
+							]
+						}
+					},
+					{
+						"Namespace": "aws:autoscaling:trigger",
+						"OptionName": "BreachDuration",
+						"Value": "10"
+					},
+					{
+						"Namespace": "aws:autoscaling:trigger",
+						"OptionName": "LowerBreachScaleIncrement",
+						"Value": "-1"
+					},
+					{
+						"Namespace": "aws:autoscaling:trigger",
+						"OptionName": "LowerThreshold",
+						"Value": "60"
+					},
+					{
+						"Namespace": "aws:autoscaling:trigger",
+						"OptionName": "MeasureName",
+						"Value": "CPUUtilization"
+					},
+					{
+						"Namespace": "aws:autoscaling:trigger",
+						"OptionName": "Period",
+						"Value": "10"
+					},
+					{
+						"Namespace": "aws:autoscaling:trigger",
+						"OptionName": "Statistic",
+						"Value": "Average"
+					},
+					{
+						"Namespace": "aws:autoscaling:trigger",
+						"OptionName": "Unit",
+						"Value": "Percent"
+					},
+					{
+						"Namespace": "aws:autoscaling:trigger",
+						"OptionName": "UpperBreachScaleIncrement",
+						"Value": "1"
+					},
+					{
+						"Namespace": "aws:autoscaling:trigger",
+						"OptionName": "UpperThreshold",
+						"Value": "90"
 					},
 					{
 						"Namespace": "aws:ec2:vpc",
@@ -63,6 +162,125 @@
 						"Value": {
 							"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-Public-Subnets"
 						}
+					},
+					{
+						"Namespace": "aws:ec2:vpc",
+						"OptionName": "AssociatePublicIpAddress",
+						"Value": "false"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application",
+						"OptionName": "Application-Healthcheck-URL",
+						"Value": "${environment.healthCheckUrl}"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:environment",
+						"OptionName": "EnvironmentType",
+						"Value": "LoadBalanced"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:environment",
+						"OptionName": "LoadBalancerType",
+						"Value": "classic"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:monitoring",
+						"OptionName": "Automatically-Terminate-Unhealthy-Instances",
+						"Value": "true"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:sns:topics",
+						"OptionName": "Notification-Endpoint",
+						"Value": {
+							"Fn::ImportValue": "${sharedExportPrefix}-DB-SNS-Topic-ID"
+						}
+					},
+					{
+						"Namespace": "aws:elb:healthcheck",
+						"OptionName": "HealthyThreshold",
+						"Value": "3"
+					},
+					{
+						"Namespace": "aws:elb:healthcheck",
+						"OptionName": "Interval",
+						"Value": "30"
+					},
+					{
+						"Namespace": "aws:elb:healthcheck",
+						"OptionName": "Timeout",
+						"Value": "5"
+					},
+					{
+						"Namespace": "aws:elb:healthcheck",
+						"OptionName": "UnhealthyThreshold",
+						"Value": "5"
+					},
+					{
+						"Namespace": "aws:elb:loadbalancer",
+						"OptionName": "CrossZone",
+						"Value": "false"
+					},
+					{
+						"Namespace": "aws:elb:loadbalancer",
+						"OptionName": "SecurityGroups",
+						"Value": {
+							"Fn::ImportValue": "${sharedExportPrefix}-Load-Balancer-Security-Group-ID"
+						}
+					},
+					{
+						"Namespace": "aws:elb:loadbalancer",
+						"OptionName": "LoadBalancerHTTPPort",
+						"Value": "80"
+					},
+					{
+						"Namespace": "aws:elb:loadbalancer",
+						"OptionName": "LoadBalancerHTTPSPort",
+						"Value": "443"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:container:tomcat:jvmoptions",
+						"OptionName": "Xms",
+						"Value": "256m"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:container:tomcat:jvmoptions",
+						"OptionName": "Xmx",
+						"Value": "1024m"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:container:tomcat:jvmoptions",
+						"OptionName": "XX?MaxPermSize",
+						"Value": "256m"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "AWS_ACCESS_KEY_ID",
+						"Value": "key"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "AWS_SECRET_KEY",
+						"Value": "secret"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "PARAM1",
+						"Value": "url"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "PARAM2",
+						"Value": "encryption key"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "PARAM3",
+						"Value": "${stack}"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "PARAM4",
+						"Value": "${instance}"
 					}
 				]
 			}
