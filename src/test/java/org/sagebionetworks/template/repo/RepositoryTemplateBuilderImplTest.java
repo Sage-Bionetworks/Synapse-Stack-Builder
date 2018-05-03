@@ -36,6 +36,7 @@ import org.sagebionetworks.template.Configuration;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
+import org.sagebionetworks.template.repo.beanstalk.EnvironmentConfiguration;
 import org.sagebionetworks.template.vpc.Color;
 
 import com.amazonaws.services.cloudformation.model.Parameter;
@@ -53,6 +54,8 @@ public class RepositoryTemplateBuilderImplTest {
 	Logger mockLogger;
 	@Mock
 	ArtifactCopy mockArtifactCopy;
+	@Mock
+	EnvironmentConfiguration mockEnvironConfig;
 
 	VelocityEngine velocityEngine;
 	RepositoryTemplateBuilderImpl builder;
@@ -70,7 +73,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config,
-				mockLoggerFactory, mockArtifactCopy);
+				mockLoggerFactory, mockArtifactCopy,mockEnvironConfig);
 
 		stack = "dev";
 		instance = "101";
@@ -170,7 +173,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Test
 	public void testGetParamters() {
 		// call under test
-		Parameter[] params = builder.createParameters();
+		Parameter[] params = builder.createSharedParameters();
 		assertNotNull(params);
 		assertEquals(1, params.length);
 		Parameter param = params[0];
@@ -195,7 +198,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Test
 	public void testCreateContext() {
 		// call under test
-		VelocityContext context = builder.createContext();
+		VelocityContext context = builder.createSharedContext();
 		assertNotNull(context);
 		assertEquals("dev", context.get(STACK));
 		assertEquals("101", context.get(INSTANCE));
@@ -228,7 +231,6 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("db.t2.micro", desc.getInstanceClass());
 		assertEquals("dev-101-table-1", desc.getInstanceIdentifier());
 		assertEquals("dev101Table1RepositoryDB", desc.getResourceName());
-		
 	}
 	
 }

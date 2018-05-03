@@ -243,12 +243,11 @@
 			}
 		},
 		"${stack}${instance}BeanstalkSecurityGroup": {
-        	"DependsOn": "VPC",
             "Type": "AWS::EC2::SecurityGroup",
             "Properties": {
                 "GroupDescription": "Security Group for all Bean Stalk EC2 instances in ${stack}${instance}",
                 "VpcId": {
-                    ""Fn::ImportValue": "${vpcExportPrefix}-VPCId"
+                    "Fn::ImportValue": "${vpcExportPrefix}-VPCId"
                 },
 				"SecurityGroupIngress": [
 					{
@@ -269,7 +268,7 @@
 						"ToPort": "80",
 						"IpProtocol": "tcp"
 					}
-				]
+				],
                 "SecurityGroupEgress": [{
                     "CidrIp": "0.0.0.0/0",
                     "FromPort": "-1",
@@ -291,12 +290,11 @@
             }
         },
         "${stack}${instance}LoadBalancerSecurityGroup": {
-        	"DependsOn": "VPC",
             "Type": "AWS::EC2::SecurityGroup",
             "Properties": {
                 "GroupDescription": "Security Group for the Load Balancers of ${stack}${instance}",
                 "VpcId": {
-                    ""Fn::ImportValue": "${vpcExportPrefix}-VPCId"
+                    "Fn::ImportValue": "${vpcExportPrefix}-VPCId"
                 },
 				"SecurityGroupIngress": [
 					{
@@ -313,7 +311,7 @@
 						"ToPort": "443",
 						"IpProtocol": "tcp"
 					},
-				]
+				],
                 "SecurityGroupEgress": [
                 	{
 						"Description": "Allow HTTP traffic",
@@ -371,7 +369,7 @@
 		"BeanstalkSecurityGroupId": {
 			"Description": "The ID of the Beanstalk security group",
 			"Value": {
-				"Ref": "${stack}${instance}BeanStalkSecurityGroup"
+				"Ref": "${stack}${instance}BeanstalkSecurityGroup"
 			},
 			"Export": {
 				"Name": {
@@ -434,5 +432,30 @@
 				}
 			}
 		}
+		#foreach( $descriptor in ${databaseDescriptors} )
+		,
+		"${descriptor.resourceName}Endpoint": {
+			"Description": "The elastic bean stalk application ID",
+			"Value": {
+				"Fn::GetAtt": ["${descriptor.resourceName}","Endpoint.Address"]
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"${descriptor.resourceName}-Endpoint"
+						]
+					]
+				}
+			}
+		}
+		#end
 	}
 }

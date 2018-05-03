@@ -35,6 +35,7 @@ import org.sagebionetworks.template.Configuration;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
+import org.sagebionetworks.template.repo.beanstalk.EnvironmentConfiguration;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
@@ -44,20 +45,17 @@ import com.google.inject.Inject;
 
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
 
-	public static final String PROPERTY_KEY_BEANSTALK_MAX_INSTANCES = "org.sagebionetworks.beanstalk.max.instances.";
-	public static final String PROPERTY_KEY_BEANSTALK_MIN_INSTANCES = "org.sagebionetworks.beanstalk.min.instances.";
-	public static final String PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL = "org.sagebionetworks.beanstalk.health.check.url.";
-	public static final String PROPERTY_KEY_BEANSTALK_VERSION = "org.sagebionetworks.beanstalk.version.";
-	public static final String PROPERTY_KEY_BEANSTALK_NUMBER = "org.sagebionetworks.beanstalk.number.";
 	CloudFormationClient cloudFormationClient;
 	VelocityEngine velocityEngine;
 	Configuration config;
 	Logger logger;
 	ArtifactCopy artifactCopy;
+	EnvironmentConfiguration environConfig;
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
-			Configuration configuration, LoggerFactory loggerFactory, ArtifactCopy artifactCopy) {
+			Configuration configuration, LoggerFactory loggerFactory, ArtifactCopy artifactCopy,
+			EnvironmentConfiguration environConfig) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.velocityEngine = velocityEngine;
@@ -65,25 +63,67 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.config.initializeWithDefaults(DEFAULT_REPO_PROPERTIES);
 		this.logger = loggerFactory.getLogger(RepositoryTemplateBuilderImpl.class);
 		this.artifactCopy = artifactCopy;
+		this.environConfig = environConfig;
 	}
 
 	@Override
 	public void buildAndDeploy() {
 		// Create the context from the input
-		VelocityContext context = createContext();
+		VelocityContext context = createSharedContext();
 
-		Parameter[] sharedParameters = createParameters();
+		Parameter[] sharedParameters = createSharedParameters();
 		// Create the shared-resource stack
 		String sharedResourceStackName = createSharedResourcesStackName();
 		buildAndDeployStack(context, sharedResourceStackName, TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP, sharedParameters);
+		// Build each bean stalk environment.
+		buildEnvironments();
+	}
 
+	public void buildEnvironments() {
+		String configUrl = environConfig.createEnvironmentConfiguration();
+		VelocityContext context = createEnvironmentContext();
+		Parameter[] parameters = createEnvironmentParameters();
 		// each environment is treated as its own stack.
 		EnvironmentDescriptor[] environements = createEnvironments();
-		for(EnvironmentDescriptor environment: environements) {
+		for (EnvironmentDescriptor environment : environements) {
 			// Replace the environment context
 			context.put(ENVIRONMENT, environment);
-			buildAndDeployStack(context, environment.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT);
+			buildAndDeployStack(context, environment.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, parameters);
 		}
+	}
+
+	/**
+	 * Parameters passed to each Elastic Bean Stalk build.
+	 * 
+	 * @return
+	 */
+	Parameter[] createEnvironmentParameters() {
+		Parameter[] params = new Parameter[3];
+		// Deprecated - Will be removed after switching to roles.
+		params[0] = new Parameter().withParameterKey(PARAMETER_AWS_KEY)
+				.withParameterValue(config.getProperty(PROPERTY_KEY_AWS_ACCESS_KEY_ID));
+		// Deprecated - Will be removed after switching to roles.
+		params[1] = new Parameter().withParameterKey(PARAMETER_AWS_SECRET)
+				.withParameterValue(config.getProperty(PROPERTY_KEY_AWS_SECRET_KEY));
+		// Deprecated - Will be removed after AWS secret manager.
+		params[2] = new Parameter().withParameterKey(PARAMETER_ENCRYPTION_KEY)
+				.withParameterValue(config.getProperty(PROPERTY_KEY_BEANSTALK_ENCRYPTION_KEY));
+		return params;
+	}
+
+	/**
+	 * Create the context used for each environment
+	 * 
+	 * @return
+	 */
+	VelocityContext createEnvironmentContext() {
+		VelocityContext context = new VelocityContext();
+		context.put(STACK, config.getProperty(PROPERTY_KEY_STACK));
+		context.put(INSTANCE, config.getProperty(PROPERTY_KEY_INSTANCE));
+		context.put(VPC_SUBNET_COLOR, config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR));
+		context.put(VPC_EXPORT_PREFIX, createVpcExportPrefix());
+		context.put(SHARED_EXPORT_PREFIX, createSharedExportPrefix());
+		return context;
 	}
 
 	/**
@@ -93,13 +133,14 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 * @param stackName
 	 * @param templatePath
 	 */
-	void buildAndDeployStack(VelocityContext context, String stackName, String templatePath, Parameter...parameters) {
+	void buildAndDeployStack(VelocityContext context, String stackName, String templatePath, Parameter... parameters) {
 		// Merge the context with the template
 		Template template = this.velocityEngine.getTemplate(templatePath);
 		StringWriter stringWriter = new StringWriter();
 		template.merge(context, stringWriter);
 		// Parse the resulting template
 		String resultJSON = stringWriter.toString();
+		System.out.println(resultJSON);
 		JSONObject templateJson = new JSONObject(resultJSON);
 		// Format the JSON
 		resultJSON = templateJson.toString(JSON_INDENT);
@@ -114,7 +155,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 * 
 	 * @return
 	 */
-	VelocityContext createContext() {
+	VelocityContext createSharedContext() {
 		VelocityContext context = new VelocityContext();
 		context.put(STACK, config.getProperty(PROPERTY_KEY_STACK));
 		context.put(INSTANCE, config.getProperty(PROPERTY_KEY_INSTANCE));
@@ -171,28 +212,18 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		for (int i = 0; i < EnvironmentType.values().length; i++) {
 			EnvironmentType type = EnvironmentType.values()[i];
 			int number = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + type.getShortName());
-			String name = new StringJoiner("-")
-					.add(type.getShortName())
-					.add(stack)
-					.add(instance)
-					.add("" + number)
+			String name = new StringJoiner("-").add(type.getShortName()).add(stack).add(instance).add("" + number)
 					.toString();
 			String refName = Constants.createCamelCaseName(name);
 			String version = config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName());
-			String healthCheckUrl = config.getProperty(PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL+type.getShortName());
-			int minInstances = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MIN_INSTANCES+type.getShortName());
-			int maxInstances = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MAX_INSTANCES+type.getShortName());
+			String healthCheckUrl = config.getProperty(PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL + type.getShortName());
+			int minInstances = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MIN_INSTANCES + type.getShortName());
+			int maxInstances = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MAX_INSTANCES + type.getShortName());
 			// Copy the version from artifactory to S3.
 			SourceBundle bundle = artifactCopy.copyArtifactIfNeeded(type, version);
-			environments[i] = new EnvironmentDescriptor()
-					.withName(name)
-					.withRefName(refName)
-					.withNumber(number)
-					.withHealthCheckUrl(healthCheckUrl)
-					.withSourceBundle(bundle)
-					.withType(type)
-					.withMinInstances(minInstances)
-					.withMinInstances(maxInstances);
+			environments[i] = new EnvironmentDescriptor().withName(name).withRefName(refName).withNumber(number)
+					.withHealthCheckUrl(healthCheckUrl).withSourceBundle(bundle).withType(type)
+					.withMinInstances(minInstances).withMinInstances(maxInstances);
 		}
 		return environments;
 	}
@@ -202,7 +233,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 * 
 	 * @return
 	 */
-	Parameter[] createParameters() {
+	Parameter[] createSharedParameters() {
 		Parameter databasePassword = new Parameter().withParameterKey(PARAMETER_MYSQL_PASSWORD)
 				.withParameterValue(config.getProperty(PROPERTY_KEY_MYSQL_PASSWORD));
 		return new Parameter[] { databasePassword };
@@ -233,7 +264,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		joiner.add("vpc");
 		return joiner.toString();
 	}
-	
+
 	/**
 	 * Create the prefix used for all of the VPC stack exports;
 	 * 

@@ -1,5 +1,22 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
+	"Parameters": {
+		"AwsKey": {
+			"Description": "Depricated. Will be removed",
+			"Type": "String",
+			"NoEcho": true
+		},
+		"AwsSecret": {
+			"Description": "Depricated. Will be removed",
+			"Type": "String",
+			"NoEcho": true
+		},
+		"EncryptionKey": {
+			"Description": "Depricated. Will be removed",
+			"Type": "String",
+			"NoEcho": true
+		}
+	},
 	"Resources": {
 		"${environment.refName}Version": {
 			"Type": "AWS::ElasticBeanstalk::ApplicationVersion",
@@ -255,12 +272,16 @@
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "AWS_ACCESS_KEY_ID",
-						"Value": "key"
+						"Value": {
+							"Ref": "AwsKey"
+						}
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "AWS_SECRET_KEY",
-						"Value": "secret"
+						"Value": {
+							"Ref": "AwsSecret"
+						}
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
@@ -270,7 +291,9 @@
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "PARAM2",
-						"Value": "encryption key"
+						"Value": {
+							"Ref": "EncryptionKey"
+						}
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
