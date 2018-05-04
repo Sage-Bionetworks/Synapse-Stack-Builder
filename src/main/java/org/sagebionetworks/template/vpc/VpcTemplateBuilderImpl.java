@@ -29,6 +29,7 @@ import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.Configuration;
+import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 
 import com.amazonaws.services.cloudformation.model.Parameter;
@@ -39,7 +40,7 @@ import com.google.inject.Inject;
  *
  */
 public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
-	
+
 	CloudFormationClient cloudFormationClient;
 	VelocityEngine velocityEngine;
 	Configuration config;
@@ -72,7 +73,8 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 		this.logger.info(resultJSON);
 		Parameter[] params = createParameters(stackName);
 		// create or update the template
-		this.cloudFormationClient.createOrUpdateStack(stackName, resultJSON, params);
+		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
+				.withTemplateBody(resultJSON).withParameters(params));
 	}
 
 	/**
@@ -82,18 +84,19 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 	 */
 	VelocityContext createContext() {
 		VelocityContext context = new VelocityContext();
-		
+
 		String vpcSubnetPrefix = config.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX);
 		// VPC CIDR
-		String vpcCidr = vpcSubnetPrefix+VPC_CIDR_SUFFIX;
+		String vpcCidr = vpcSubnetPrefix + VPC_CIDR_SUFFIX;
 		context.put(VPC_CIDR, vpcCidr);
-		
-		// The roll from the admin-central account that allows this account to accept VPC peering
+
+		// The roll from the admin-central account that allows this account to accept
+		// VPC peering
 		context.put(PEER_ROLE_ARN, getPeeringRoleArn());
-		
+
 		String availabilityZonesRaw = config.getProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES);
 		context.put(AVAILABILITY_ZONES, availabilityZonesRaw);
-		
+
 		String[] availabilityZones = config.getComaSeparatedProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES);
 
 		// Create the sub-nets
@@ -105,26 +108,29 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 		builder.withAvailabilityZones(availabilityZones);
 		SubnetGroup[] subnets = builder.build();
 		context.put(SUBNET_GROUPS, subnets);
-		
+
 		context.put(STACK, config.getProperty(PROPERTY_KEY_STACK));
-		
+
 		return context;
 	}
-	
+
 	/**
 	 * Get the role ARN used to accept VPC connection peering.
+	 * 
 	 * @return
 	 */
 	public String getPeeringRoleArn() {
 		String peeringRoleArn = config.getProperty(PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN);
-		if(!peeringRoleArn.startsWith(PEERING_ROLE_ARN_PREFIX)) {
-			throw new IllegalArgumentException(PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN+" must start with: "+PEERING_ROLE_ARN_PREFIX);
+		if (!peeringRoleArn.startsWith(PEERING_ROLE_ARN_PREFIX)) {
+			throw new IllegalArgumentException(
+					PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN + " must start with: " + PEERING_ROLE_ARN_PREFIX);
 		}
 		return peeringRoleArn;
 	}
-	
+
 	/**
 	 * Get the colors from the property CSV.
+	 * 
 	 * @return
 	 */
 	Color[] getColorsFromProperty() {
@@ -134,10 +140,11 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 			colors[i] = Color.valueOf(colorString[i]);
 		}
 		return colors;
-	}	
-	
+	}
+
 	/**
 	 * Create the name of the stack.
+	 * 
 	 * @return
 	 */
 	String createStackName() {

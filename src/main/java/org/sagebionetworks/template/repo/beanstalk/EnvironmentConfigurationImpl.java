@@ -1,17 +1,18 @@
 package org.sagebionetworks.template.repo.beanstalk;
 
+import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_NUMBER;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
-import static org.sagebionetworks.template.Constants.*;
+import static org.sagebionetworks.template.Constants.REPO_NUMBER;
+import static org.sagebionetworks.template.Constants.STACK;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
-import java.nio.file.Files;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
@@ -20,15 +21,14 @@ import org.apache.velocity.app.VelocityEngine;
 import org.sagebionetworks.template.Configuration;
 import org.sagebionetworks.template.FileProvider;
 import org.sagebionetworks.template.LoggerFactory;
-import org.sagebionetworks.template.TemplateGuiceModule;
 
+import com.amazonaws.services.cloudformation.model.Output;
+import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 
 public class EnvironmentConfigurationImpl implements EnvironmentConfiguration {
 
@@ -52,7 +52,7 @@ public class EnvironmentConfigurationImpl implements EnvironmentConfiguration {
 	}
 
 	@Override
-	public String createEnvironmentConfiguration() {
+	public String createEnvironmentConfiguration(Stack sharedResouces) {
 		File temp = null;
 		try {
 			// download the template
@@ -60,7 +60,7 @@ public class EnvironmentConfigurationImpl implements EnvironmentConfiguration {
 			velocityEngine.setProperty(FILE_RESOURCE_LOADER_PATH, temp.getParent());
 			Template template = velocityEngine.getTemplate(temp.getName());
 			// create the context used to create the final file
-			VelocityContext context = createContext();
+			VelocityContext context = createContext(sharedResouces);
 			// Generate the file
 			StringWriter writer = new StringWriter();
 			template.merge(context, writer);
@@ -99,17 +99,37 @@ public class EnvironmentConfigurationImpl implements EnvironmentConfiguration {
 	 * 
 	 * @return
 	 */
-	VelocityContext createContext() {
+	VelocityContext createContext(Stack sharedResouces) {
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
 		String instance = config.getProperty(PROPERTY_KEY_INSTANCE);
 		// create the context used to create the final file
 		VelocityContext context = new VelocityContext();
 		context.put(STACK, stack);
 		context.put(INSTANCE, instance);
-		context.put(DB_ENDPOINT_SUFFIX, config.getProperty(PROPERTY_KEY_REPO_RDS_ENDPOINT_SUFFIX));
+		// find the database end point suffix.
+		context.put(DB_ENDPOINT_SUFFIX, extractDatabaseSuffix(stack, instance, sharedResouces));
 		context.put(REPO_NUMBER,
 				config.getProperty(PROPERTY_KEY_BEANSTALK_NUMBER + EnvironmentType.REPOSITORY_SERVICES.getShortName()));
 		return context;
+	}
+	
+	/**
+	 * Extract the database end point suffix from the shared resources output.
+	 * @param stack
+	 * @param instance
+	 * @param sharedResouces
+	 * @return
+	 */
+	String extractDatabaseSuffix(String stack, String instance, Stack sharedResouces) {
+		String outputName = stack+instance+"RepositoryDBEndpoint";
+		// find the database end point suffix
+		for(Output output: sharedResouces.getOutputs()) {
+			if(outputName.equals(output.getOutputKey())){
+				String[] split = output.getOutputValue().split(stack+"-"+instance+"-db.");
+				return split[1];
+			}
+		}
+		throw new RuntimeException("Failed to find shared resources output: "+outputName);
 	}
 
 	/**
@@ -132,13 +152,6 @@ public class EnvironmentConfigurationImpl implements EnvironmentConfiguration {
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	public static void main(String[] args) {
-		Injector injector = Guice.createInjector(new TemplateGuiceModule());
-		EnvironmentConfiguration ec = injector.getInstance(EnvironmentConfiguration.class);
-		String url = ec.createEnvironmentConfiguration();
-		System.out.println(url);
 	}
 
 }

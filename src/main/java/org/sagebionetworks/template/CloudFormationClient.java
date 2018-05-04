@@ -1,7 +1,6 @@
 package org.sagebionetworks.template;
 
 import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException;
-import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 
 /**
@@ -36,7 +35,7 @@ public interface CloudFormationClient {
 	 * @param templateBody
 	 * @return StackId
 	 */
-	public String updateStack(String stackName, String templateBody, Parameter... parameters);
+	public void updateStack(CreateOrUpdateStackRequest request);
 
 	/**
 	 * Create a stack with the given name using the provided template body.
@@ -45,7 +44,7 @@ public interface CloudFormationClient {
 	 * @param templateBody
 	 * @return StackId
 	 */
-	public String createStack(String stackName, String templateBody, Parameter... parameters);
+	public void createStack(CreateOrUpdateStackRequest request);
 
 	/**
 	 * If a stack does not exist the stack will be created else the stack will be
@@ -55,5 +54,13 @@ public interface CloudFormationClient {
 	 * @param templateBody
 	 * @return StackId
 	 */
-	public String createOrUpdateStack(String stackName, String templateBody, Parameter... parameters);
+	public void createOrUpdateStack(CreateOrUpdateStackRequest request);
+	
+	/**
+	 * Wait for the given stack to complete.
+	 * @param stackName
+	 * @return
+	 * @throws InterruptedException 
+	 */
+	public Stack waitForStackToComplete(String stackName) throws InterruptedException;
 }

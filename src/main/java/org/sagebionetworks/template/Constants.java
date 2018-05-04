@@ -55,7 +55,6 @@ public class Constants {
 	public static final String PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL = "org.sagebionetworks.beanstalk.health.check.url.";
 	public static final String PROPERTY_KEY_BEANSTALK_VERSION = "org.sagebionetworks.beanstalk.version.";
 	public static final String PROPERTY_KEY_BEANSTALK_NUMBER = "org.sagebionetworks.beanstalk.number.";
-	public static final String PROPERTY_KEY_REPO_RDS_ENDPOINT_SUFFIX = "org.sagebionetworks.repo.rds.endpoint.suffix";
 
 	// templates
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
@@ -96,6 +95,7 @@ public class Constants {
 	public static final String ENVIRONMENT = "environment";
 	public static final String REPO_NUMBER = "repoNumber";
 	public static final String DB_ENDPOINT_SUFFIX = "dbEndpointSuffix";
+	public static final String CONFIGURATION_URL = "configurationUrl";
 
 	/**
 	 * Create a camel case name from dash-separated-name. Given 'foo-bar' will

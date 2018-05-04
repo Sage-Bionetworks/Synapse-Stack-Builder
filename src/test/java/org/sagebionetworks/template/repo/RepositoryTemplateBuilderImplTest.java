@@ -29,10 +29,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.Configuration;
+import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
@@ -56,6 +58,8 @@ public class RepositoryTemplateBuilderImplTest {
 	ArtifactCopy mockArtifactCopy;
 	@Mock
 	EnvironmentConfiguration mockEnvironConfig;
+	@Captor
+	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
 
 	VelocityEngine velocityEngine;
 	RepositoryTemplateBuilderImpl builder;
@@ -97,17 +101,14 @@ public class RepositoryTemplateBuilderImplTest {
 	}
 
 	@Test
-	public void testBuildAndDeploy() {
+	public void testBuildAndDeploy() throws InterruptedException {
 		// call under test
 		builder.buildAndDeploy();
-		ArgumentCaptor<String> nameCapture = ArgumentCaptor.forClass(String.class);
-		ArgumentCaptor<String> bodyCapture = ArgumentCaptor.forClass(String.class);
-		ArgumentCaptor<Parameter[]> parameterCatpure = ArgumentCaptor.forClass(Parameter[].class);
-		verify(mockCloudFormationClient).createOrUpdateStack(nameCapture.capture(), bodyCapture.capture(),
-				parameterCatpure.capture());
-		assertEquals("dev-101-shared-resources", nameCapture.getValue());
-		assertNotNull(parameterCatpure.getValue());
-		String bodyJSONString = bodyCapture.getValue();
+		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
+		CreateOrUpdateStackRequest request = requestCaptor.getValue();
+		assertEquals("dev-101-shared-resources", request.getStackName());
+		assertNotNull(request.getParameters());
+		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);
 		System.out.println(bodyJSONString);
 		JSONObject templateJson = new JSONObject(bodyJSONString);

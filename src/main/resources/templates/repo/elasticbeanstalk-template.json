@@ -286,7 +286,7 @@
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "PARAM1",
-						"Value": "url"
+						"Value": "${configurationUrl}"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",

@@ -33,6 +33,7 @@ import org.json.JSONObject;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.Configuration;
 import org.sagebionetworks.template.Constants;
+import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentConfiguration;
@@ -40,7 +41,9 @@ import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 
+import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
+import com.amazonaws.services.cloudformation.model.Stack;
 import com.google.inject.Inject;
 
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
@@ -67,7 +70,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	}
 
 	@Override
-	public void buildAndDeploy() {
+	public void buildAndDeploy() throws InterruptedException {
 		// Create the context from the input
 		VelocityContext context = createSharedContext();
 
@@ -75,13 +78,18 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		// Create the shared-resource stack
 		String sharedResourceStackName = createSharedResourcesStackName();
 		buildAndDeployStack(context, sharedResourceStackName, TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP, sharedParameters);
+		// Wait for the shared resources to complete
+		Stack sharedStackResults = cloudFormationClient.waitForStackToComplete(sharedResourceStackName);
 		// Build each bean stalk environment.
-		buildEnvironments();
+		buildEnvironments(sharedStackResults);
 	}
 
-	public void buildEnvironments() {
-		String configUrl = environConfig.createEnvironmentConfiguration();
-		VelocityContext context = createEnvironmentContext();
+	/**
+	 * Build all of the environments
+	 * @param sharedStackResults
+	 */
+	public void buildEnvironments(Stack sharedStackResults) {
+		VelocityContext context = createEnvironmentContext(sharedStackResults);
 		Parameter[] parameters = createEnvironmentParameters();
 		// each environment is treated as its own stack.
 		EnvironmentDescriptor[] environements = createEnvironments();
@@ -116,18 +124,21 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 * 
 	 * @return
 	 */
-	VelocityContext createEnvironmentContext() {
+	VelocityContext createEnvironmentContext(Stack sharedStackResults) {
 		VelocityContext context = new VelocityContext();
 		context.put(STACK, config.getProperty(PROPERTY_KEY_STACK));
 		context.put(INSTANCE, config.getProperty(PROPERTY_KEY_INSTANCE));
 		context.put(VPC_SUBNET_COLOR, config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR));
 		context.put(VPC_EXPORT_PREFIX, createVpcExportPrefix());
 		context.put(SHARED_EXPORT_PREFIX, createSharedExportPrefix());
+		// Create and upload the configuration property file.
+		String configUrl = environConfig.createEnvironmentConfiguration(sharedStackResults);
+		context.put(CONFIGURATION_URL, configUrl);
 		return context;
 	}
 
 	/**
-	 * Build and deploy a stack using the provided context and tempalte.
+	 * Build and deploy a stack using the provided context and template.
 	 * 
 	 * @param context
 	 * @param stackName
@@ -140,14 +151,14 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		template.merge(context, stringWriter);
 		// Parse the resulting template
 		String resultJSON = stringWriter.toString();
-		System.out.println(resultJSON);
 		JSONObject templateJson = new JSONObject(resultJSON);
 		// Format the JSON
 		resultJSON = templateJson.toString(JSON_INDENT);
 		this.logger.info("Template for stack: " + stackName);
 		this.logger.info(resultJSON);
 		// create or update the template
-		this.cloudFormationClient.createOrUpdateStack(stackName, resultJSON, parameters);
+		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
+				.withTemplateBody(resultJSON).withParameters(parameters));
 	}
 
 	/**

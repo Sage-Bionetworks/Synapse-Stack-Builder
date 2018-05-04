@@ -3,12 +3,16 @@ package org.sagebionetworks.template.repo.beanstalk;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
+import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
+import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_NUMBER;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ENDPOINT_SUFFIX;
-import static org.sagebionetworks.template.Constants.*;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
+import static org.sagebionetworks.template.Constants.REPO_NUMBER;
+import static org.sagebionetworks.template.Constants.STACK;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +33,7 @@ import org.sagebionetworks.template.Configuration;
 import org.sagebionetworks.template.FileProvider;
 import org.sagebionetworks.template.LoggerFactory;
 
+import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -66,6 +71,8 @@ public class EnvironmentConfigurationImplTest {
 	String tempDirectory;
 	String tempFileName;
 
+	Stack sharedResouces;
+
 	EnvironmentConfigurationImpl environConfig;
 
 	@Before
@@ -78,7 +85,6 @@ public class EnvironmentConfigurationImplTest {
 		instance = "101";
 		when(mockConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
 		dbEndpoint = "some.endpoint";
-		when(mockConfig.getProperty(PROPERTY_KEY_REPO_RDS_ENDPOINT_SUFFIX)).thenReturn(dbEndpoint);
 		beanstalkNumber = "0";
 		when(mockConfig.getProperty(PROPERTY_KEY_BEANSTALK_NUMBER + EnvironmentType.REPOSITORY_SERVICES.getShortName()))
 				.thenReturn(beanstalkNumber);
@@ -92,12 +98,14 @@ public class EnvironmentConfigurationImplTest {
 		when(mockFileProvider.createTempFile(any(String.class), any(String.class))).thenReturn(mockFile);
 		environConfig = new EnvironmentConfigurationImpl(mockS3Client, mockConfig, mockVelocityEngine,
 				mockLoggerFactory, mockFileProvider);
+
+		sharedResouces = new Stack();
 	}
 
 	@Test
 	public void testCreateEnvironmentConfiguration() {
 		// call under test
-		String url = environConfig.createEnvironmentConfiguration();
+		String url = environConfig.createEnvironmentConfiguration(sharedResouces);
 		assertEquals("https://s3.amazonaws.com/bucket/Stack/dev101-stack.properties", url);
 		verify(mockS3Client).getObject(any(GetObjectRequest.class), any(File.class));
 		verify(mockTempalte).merge(any(Context.class), any(Writer.class));
@@ -122,7 +130,7 @@ public class EnvironmentConfigurationImplTest {
 	@Test
 	public void testCreateContext() {
 		// Call under test
-		Context context = environConfig.createContext();
+		Context context = environConfig.createContext(sharedResouces);
 		assertNotNull(context);
 		assertEquals(stack, context.get(STACK));
 		assertEquals(instance, context.get(INSTANCE));

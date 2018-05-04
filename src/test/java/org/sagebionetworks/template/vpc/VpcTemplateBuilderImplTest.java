@@ -28,10 +28,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.Configuration;
+import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.TemplateGuiceModule;
 
@@ -48,6 +50,8 @@ public class VpcTemplateBuilderImplTest {
 	LoggerFactory mockLoggerFactory;
 	@Mock
 	Logger mockLogger;
+	@Captor
+	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
 
 	VelocityEngine velocityEngine;
 	VpcTemplateBuilderImpl builder;
@@ -94,14 +98,11 @@ public class VpcTemplateBuilderImplTest {
 	public void testBuildAndDepoy() {
 		// call under test
 		builder.buildAndDeploy();
-		ArgumentCaptor<String> nameCapture = ArgumentCaptor.forClass(String.class);
-		ArgumentCaptor<String> bodyCapture = ArgumentCaptor.forClass(String.class);
-		ArgumentCaptor<Parameter[]> parameterCatpure = ArgumentCaptor.forClass(Parameter[].class);
-		verify(mockCloudFormationClient).createOrUpdateStack(nameCapture.capture(), bodyCapture.capture(), parameterCatpure.capture());
-		assertEquals("synapse-dev-vpc", nameCapture.getValue());
-		assertNotNull(parameterCatpure.getValue());
-		System.out.println(bodyCapture.getValue());
-		JSONObject templateJson = new JSONObject(bodyCapture.getValue());
+		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
+		CreateOrUpdateStackRequest request = requestCaptor.getValue();
+		assertEquals("synapse-dev-vpc", request.getStackName());
+		assertNotNull(request.getParameters());
+		JSONObject templateJson = new JSONObject(request.getTemplateBody());
 		
 		JSONObject resouces = templateJson.getJSONObject("Resources");
 		assertNotNull(resouces);

@@ -44,6 +44,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(ArtifactCopy.class).to(ArtifactCopyImpl.class);
 		bind(EnvironmentConfiguration.class).to(EnvironmentConfigurationImpl.class);
 		bind(FileProvider.class).to(FileProviderImpl.class);
+		bind(ThreadProvider.class).to(ThreadProviderImp.class);
 	}
 	
 	/**
