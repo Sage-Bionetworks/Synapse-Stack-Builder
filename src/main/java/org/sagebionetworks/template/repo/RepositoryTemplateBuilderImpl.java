@@ -1,11 +1,23 @@
 package org.sagebionetworks.template.repo;
 
+import static org.sagebionetworks.template.Constants.CONFIGURATION_URL;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DEFAULT_REPO_PROPERTIES;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
+import static org.sagebionetworks.template.Constants.PARAMETER_AWS_KEY;
+import static org.sagebionetworks.template.Constants.PARAMETER_AWS_SECRET;
+import static org.sagebionetworks.template.Constants.PARAMETER_ENCRYPTION_KEY;
 import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_AWS_ACCESS_KEY_ID;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_AWS_SECRET_KEY;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_ENCRYPTION_KEY;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MAX_INSTANCES;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MIN_INSTANCES;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_NUMBER;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERSION;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_MYSQL_PASSWORD;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
@@ -16,11 +28,13 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_INSTANC
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_COLOR;
+import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.SHARED_RESOUCES_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
+import static org.sagebionetworks.template.Constants.TEMPALTE_BEAN_STALK_ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.*;
+import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
 import java.io.StringWriter;
 import java.util.StringJoiner;
@@ -41,7 +55,6 @@ import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 
-import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.google.inject.Inject;
@@ -234,7 +247,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 			SourceBundle bundle = artifactCopy.copyArtifactIfNeeded(type, version);
 			environments[i] = new EnvironmentDescriptor().withName(name).withRefName(refName).withNumber(number)
 					.withHealthCheckUrl(healthCheckUrl).withSourceBundle(bundle).withType(type)
-					.withMinInstances(minInstances).withMinInstances(maxInstances);
+					.withMinInstances(minInstances).withMaxInstances(maxInstances);
 		}
 		return environments;
 	}

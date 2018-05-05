@@ -42,18 +42,6 @@
 				"OptionSettings": [
 					{
 						"Namespace": "aws:autoscaling:asg",
-						"OptionName": "Availability-Zone",
-						"Value": "Any 2"
-					},
-					{
-						"Namespace": "aws:autoscaling:asg",
-						"OptionName": "Custom-Availability-Zones",
-						"Value": {
-							"Fn::ImportValue": "${vpcExportPrefix}-AvailabilityZones"
-						}
-					},
-					{
-						"Namespace": "aws:autoscaling:asg",
 						"OptionName": "Cooldown",
 						"Value": "360"
 					},
@@ -186,8 +174,8 @@
 						"Value": "false"
 					},
 					{
-						"Namespace": "aws:elasticbeanstalk:application",
-						"OptionName": "Application-Healthcheck-URL",
+						"Namespace": "aws:elasticbeanstalk:environment:process:default",
+						"OptionName": "HealthCheckPath",
 						"Value": "${environment.healthCheckUrl}"
 					},
 					{
@@ -199,11 +187,6 @@
 						"Namespace": "aws:elasticbeanstalk:environment",
 						"OptionName": "LoadBalancerType",
 						"Value": "classic"
-					},
-					{
-						"Namespace": "aws:elasticbeanstalk:monitoring",
-						"OptionName": "Automatically-Terminate-Unhealthy-Instances",
-						"Value": "true"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:sns:topics",
@@ -243,16 +226,6 @@
 						"Value": {
 							"Fn::ImportValue": "${sharedExportPrefix}-Load-Balancer-Security-Group-ID"
 						}
-					},
-					{
-						"Namespace": "aws:elb:loadbalancer",
-						"OptionName": "LoadBalancerHTTPPort",
-						"Value": "80"
-					},
-					{
-						"Namespace": "aws:elb:loadbalancer",
-						"OptionName": "LoadBalancerHTTPSPort",
-						"Value": "443"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:container:tomcat:jvmoptions",

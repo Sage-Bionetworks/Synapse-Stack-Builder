@@ -32,6 +32,8 @@ import com.google.inject.Inject;
 
 public class EnvironmentConfigurationImpl implements EnvironmentConfiguration {
 
+	public static final String OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT = "RepositoryDBEndpoint";
+
 	public static final String FILE_RESOURCE_LOADER_PATH = "file.resource.loader.path";
 
 	private AmazonS3 s3Client;
@@ -121,7 +123,7 @@ public class EnvironmentConfigurationImpl implements EnvironmentConfiguration {
 	 * @return
 	 */
 	String extractDatabaseSuffix(String stack, String instance, Stack sharedResouces) {
-		String outputName = stack+instance+"RepositoryDBEndpoint";
+		String outputName = stack+instance+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
 		// find the database end point suffix
 		for(Output output: sharedResouces.getOutputs()) {
 			if(outputName.equals(output.getOutputKey())){

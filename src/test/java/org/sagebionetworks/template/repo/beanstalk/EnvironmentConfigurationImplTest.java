@@ -33,6 +33,7 @@ import org.sagebionetworks.template.Configuration;
 import org.sagebionetworks.template.FileProvider;
 import org.sagebionetworks.template.LoggerFactory;
 
+import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
@@ -66,12 +67,13 @@ public class EnvironmentConfigurationImplTest {
 	String bucket;
 	String stack;
 	String instance;
-	String dbEndpoint;
 	String beanstalkNumber;
 	String tempDirectory;
 	String tempFileName;
 
 	Stack sharedResouces;
+	
+	String databaseEndpointSuffix;
 
 	EnvironmentConfigurationImpl environConfig;
 
@@ -84,7 +86,6 @@ public class EnvironmentConfigurationImplTest {
 		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		instance = "101";
 		when(mockConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
-		dbEndpoint = "some.endpoint";
 		beanstalkNumber = "0";
 		when(mockConfig.getProperty(PROPERTY_KEY_BEANSTALK_NUMBER + EnvironmentType.REPOSITORY_SERVICES.getShortName()))
 				.thenReturn(beanstalkNumber);
@@ -100,6 +101,11 @@ public class EnvironmentConfigurationImplTest {
 				mockLoggerFactory, mockFileProvider);
 
 		sharedResouces = new Stack();
+		Output dbOut = new Output();
+		dbOut.withOutputKey(stack+instance+EnvironmentConfigurationImpl.OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
+		databaseEndpointSuffix = "something.amazon.com";
+		dbOut.withOutputValue(stack+"-"+instance+"-db."+databaseEndpointSuffix);
+		sharedResouces.withOutputs(dbOut);
 	}
 
 	@Test
@@ -126,6 +132,13 @@ public class EnvironmentConfigurationImplTest {
 		assertEquals("templates/dev-template-stack.properties", request.getKey());
 		verify(mockLogger).info(any(String.class));
 	}
+	
+	@Test
+	public void testExtractDatabaseSuffix() {
+		// call under test
+		String suffix = environConfig.extractDatabaseSuffix(stack, instance, sharedResouces);
+		assertEquals(databaseEndpointSuffix, suffix);
+	}
 
 	@Test
 	public void testCreateContext() {
@@ -134,7 +147,7 @@ public class EnvironmentConfigurationImplTest {
 		assertNotNull(context);
 		assertEquals(stack, context.get(STACK));
 		assertEquals(instance, context.get(INSTANCE));
-		assertEquals(dbEndpoint, context.get(DB_ENDPOINT_SUFFIX));
+		assertEquals(databaseEndpointSuffix, context.get(DB_ENDPOINT_SUFFIX));
 		assertEquals(beanstalkNumber, context.get(REPO_NUMBER));
 	}
 

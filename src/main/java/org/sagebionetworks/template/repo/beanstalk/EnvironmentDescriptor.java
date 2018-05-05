@@ -52,7 +52,7 @@ public class EnvironmentDescriptor {
 		return this;
 	}
 
-	public EnvironmentDescriptor setMaxInstances(int maxInstances) {
+	public EnvironmentDescriptor withMaxInstances(int maxInstances) {
 		this.maxInstances = maxInstances;
 		return this;
 	}
