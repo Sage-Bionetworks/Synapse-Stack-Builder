@@ -172,6 +172,18 @@
 			]
 		}
 	},
+	"${subnet.name}RouteVPN": {
+		"Type": "AWS::EC2::Route",
+		"Properties": {
+			"RouteTableId": {
+				"Ref": "${subnet.name}RouteTable"
+			},
+			"DestinationCidrBlock": "10.1.0.0/16",
+			"VpcPeeringConnectionId": {
+				"Ref": "VpcPeeringConnection"
+			}
+		}
+	},
 	#if( ${subnet.type} == 'Public')
 	"${subnet.name}NATGatwayEIP" : {
 		"Type" : "AWS::EC2::EIP",
@@ -211,18 +223,6 @@
 			"DestinationCidrBlock": "0.0.0.0/0",
 			"GatewayId": {
 				"Ref": "InternetGateway"
-			}
-		}
-	},
-	"${subnet.name}PublicRouteVPN": {
-		"Type": "AWS::EC2::Route",
-		"Properties": {
-			"RouteTableId": {
-				"Ref": "${subnet.name}RouteTable"
-			},
-			"DestinationCidrBlock": "10.1.0.0/16",
-			"VpcPeeringConnectionId": {
-				"Ref": "VpcPeeringConnection"
 			}
 		}
 	},

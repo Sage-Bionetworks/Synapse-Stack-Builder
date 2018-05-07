@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.UUID;
 import java.util.function.Function;
 
+import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 
 import com.amazonaws.HttpMethod;
@@ -16,8 +17,8 @@ import com.amazonaws.services.cloudformation.model.CreateStackRequest;
 import com.amazonaws.services.cloudformation.model.CreateStackResult;
 import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
-import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
+import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.amazonaws.services.cloudformation.model.UpdateStackRequest;
 import com.amazonaws.services.cloudformation.model.UpdateStackResult;
 import com.amazonaws.services.s3.AmazonS3;
@@ -31,16 +32,24 @@ import com.google.inject.Inject;
  */
 public class CloudFormationClientImpl implements CloudFormationClient {
 
+	public static final long TIMEOUT_MS = 60*60*1000; // one hour.
+	
+	public static final int SLEEP_TIME = 10*1000;
+	public static final String NO_UPDATES_ARE_TO_BE_PERFORMED = "No updates are to be performed";
 	AmazonCloudFormation cloudFormationClient;
 	AmazonS3 s3Client;
 	Configuration configuration;
+	Logger logger;
+	ThreadProvider threadProvider;
 	
 	@Inject
-	public CloudFormationClientImpl(AmazonCloudFormation cloudFormationClient, AmazonS3 s3Client, Configuration configuration) {
+	public CloudFormationClientImpl(AmazonCloudFormation cloudFormationClient, AmazonS3 s3Client, Configuration configuration, LoggerFactory loggerFactory, ThreadProvider threadProvider) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.s3Client = s3Client;
 		this.configuration = configuration;
+		this.logger = loggerFactory.getLogger(CloudFormationClientImpl.class);
+		this.threadProvider = threadProvider;
 	}
 
 	@Override
@@ -56,16 +65,16 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 	}
 
 	@Override
-	public String updateStack(String stackName, String templateBody,Parameter... parameters) {
+	public void updateStack(final CreateOrUpdateStackRequest requestInput) {
 		// Temporarily upload the template to S3.
-		return executeWithS3Template(stackName, templateBody, new Function<String, String>() {
+		executeWithS3Template(requestInput, new Function<String, String>() {
 			
 			@Override
 			public String apply(String templateUrl) {
 				UpdateStackRequest request = new UpdateStackRequest();
-				request.setStackName(stackName);
+				request.setStackName(requestInput.getStackName());
 				request.setTemplateURL(templateUrl);
-				request.withParameters(parameters);
+				request.withParameters(requestInput.getParameters());
 				UpdateStackResult results = cloudFormationClient.updateStack(request);
 				return results.getStackId();
 			}
@@ -73,16 +82,16 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 	}
 
 	@Override
-	public String createStack(final String stackName, final String templateBody, final Parameter... parameters) {
+	public void createStack(final CreateOrUpdateStackRequest requestInput) {
 		// Temporarily upload the template to S3.
-		return executeWithS3Template(stackName, templateBody, new Function<String, String>() {
+		executeWithS3Template(requestInput, new Function<String, String>() {
 			
 			@Override
 			public String apply(String templateUrl) {
-				CreateStackRequest request = new CreateStackRequest().withStackName(stackName);
-				request.setStackName(stackName);
+				CreateStackRequest request = new CreateStackRequest();
+				request.setStackName(requestInput.getStackName());
 				request.setTemplateURL(templateUrl);
-				request.withParameters(parameters);
+				request.withParameters(requestInput.getParameters());
 				CreateStackResult result = cloudFormationClient.createStack(request);
 				return result.getStackId();
 			}
@@ -96,14 +105,22 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 	 * @param function
 	 * @return
 	 */
-	String executeWithS3Template(String stackName, String templateBody, Function<String, String> function) {
+	void executeWithS3Template(final CreateOrUpdateStackRequest requestInput, Function<String, String> function) {
 		// save the template file to S3
-		SourceBundle bundle = saveTempalteToS3(stackName, templateBody);
+		SourceBundle bundle = saveTempalteToS3(requestInput.getStackName(), requestInput.getTemplateBody());
 		try {
 			// provide an pre-signed URL to the template in S3
 			String templateUrl = createPresignedUrl(bundle);
 			// the function executes the create or update.
-			return function.apply(templateUrl);
+			try {
+				function.apply(templateUrl);
+			} catch (AmazonCloudFormationException e) {
+				if(e.getMessage().contains(NO_UPDATES_ARE_TO_BE_PERFORMED)) {
+					logger.info("There were no updates for stack: "+requestInput.getStackName());
+				}else {
+					throw new RuntimeException(e);
+				}
+			}
 		}finally {
 			// Delete the template from S3
 			deleteTemplate(bundle);
@@ -111,11 +128,11 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 	}
 
 	@Override
-	public String createOrUpdateStack(String stackName, String templateBody, Parameter... parameters) {
-		if(doesStackNameExist(stackName)) {
-			return updateStack(stackName, templateBody, parameters);
+	public void createOrUpdateStack(CreateOrUpdateStackRequest request) {
+		if(doesStackNameExist(request.getStackName())) {
+			updateStack(request);
 		}else {
-			return createStack(stackName, templateBody, parameters);
+			createStack(request);
 		}
 	}
 
@@ -171,6 +188,33 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 	 */
 	void deleteTemplate(SourceBundle bundle) {
 		s3Client.deleteObject(bundle.getBucket(), bundle.getKey());
+	}
+
+	@Override
+	public Stack waitForStackToComplete(String stackName) throws InterruptedException {
+		long start = threadProvider.currentTimeMillis();
+		while(true) {
+			long elapse = threadProvider.currentTimeMillis()-start;
+			if(elapse > TIMEOUT_MS) {
+				throw new RuntimeException("Timed out waiting for stack: '"+stackName+"' status to complete");
+			}
+			Stack stack = describeStack(stackName);
+			StackStatus status = StackStatus.fromValue(stack.getStackStatus());
+			switch(status) {
+			case CREATE_COMPLETE:
+			case UPDATE_COMPLETE:
+				// done
+				return stack;
+			case CREATE_IN_PROGRESS:
+			case UPDATE_IN_PROGRESS:
+			case UPDATE_COMPLETE_CLEANUP_IN_PROGRESS:
+				logger.info("Waiting for stack: '"+stackName+"' to complete.  Current status: "+status.name()+"...");
+				threadProvider.sleep(SLEEP_TIME);
+				break;
+			default:
+				throw new RuntimeException("Stack '"+stackName+"' did not complete.  Status: "+status.name()+" with reason: "+stack.getStackStatusReason());
+			}
+		}
 	}
 
 }

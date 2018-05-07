@@ -4,17 +4,19 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 import java.util.function.Function;
 
+import org.apache.logging.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +35,7 @@ import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
+import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.amazonaws.services.cloudformation.model.UpdateStackRequest;
 import com.amazonaws.services.cloudformation.model.UpdateStackResult;
 import com.amazonaws.services.s3.AmazonS3;
@@ -49,6 +52,12 @@ public class CloudFormationClientImplTest {
 	Configuration mockConfig;
 	@Mock
 	Function<String, String> mockFunction;
+	@Mock
+	LoggerFactory mockLoggerFactory;
+	@Mock
+	Logger mockLogger;
+	@Mock
+	ThreadProvider mockThreadProvider;
 	
 	@Captor
 	ArgumentCaptor<DescribeStacksRequest> describeStackRequestCapture;
@@ -68,6 +77,7 @@ public class CloudFormationClientImplTest {
 	DescribeStacksResult describeResult;
 	UpdateStackResult updateResult;
 	CreateStackResult createResult;
+	CreateOrUpdateStackRequest inputReqequest;
 	
 	URL presignedUrl;
 
@@ -77,7 +87,9 @@ public class CloudFormationClientImplTest {
 
 	@Before
 	public void before() throws MalformedURLException {
-		client = new CloudFormationClientImpl(mockCloudFormationClient, mockS3Client, mockConfig);
+		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
+		
+		client = new CloudFormationClientImpl(mockCloudFormationClient, mockS3Client, mockConfig, mockLoggerFactory, mockThreadProvider);
 
 		stackId = "theStackId";
 		stack = new Stack().withStackId(stackId);
@@ -86,11 +98,17 @@ public class CloudFormationClientImplTest {
 		updateResult = new UpdateStackResult().withStackId(stackId);
 
 		createResult = new CreateStackResult().withStackId(stackId);
+		
 
 		stackName = "someStackName";
 		tempalteBody = "body";
 		parameter = new Parameter().withParameterKey("paramKey").withParameterValue("paramValue");
 		parameters = new Parameter[] { parameter };
+		inputReqequest = new CreateOrUpdateStackRequest()
+				.withStackName(stackName)
+				.withTemplateBody(tempalteBody)
+				.withParameters(parameters);
+		
 		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(describeResult);
 		when(mockCloudFormationClient.createStack(any(CreateStackRequest.class))).thenReturn(createResult);
 		when(mockCloudFormationClient.updateStack(any(UpdateStackRequest.class))).thenReturn(updateResult);
@@ -100,6 +118,8 @@ public class CloudFormationClientImplTest {
 		
 		presignedUrl = new URL("http://www.amazon.com/bucket/key");
 		when(mockS3Client.generatePresignedUrl(anyString(), anyString(), any(Date.class), any(HttpMethod.class))).thenReturn(presignedUrl);
+		
+		when(mockThreadProvider.currentTimeMillis()).thenReturn(1L, 2L,3L,4L,Long.MAX_VALUE);
 		
 	}
 
@@ -133,22 +153,20 @@ public class CloudFormationClientImplTest {
 	@Test
 	public void testCreateStack() {
 		// call under test
-		String resultId = client.createStack(stackName, tempalteBody, parameters);
-		assertEquals(stackId, resultId);
+		client.createStack(inputReqequest);
 		verify(mockCloudFormationClient).createStack(createStackRequestCapture.capture());
-		CreateStackRequest request = createStackRequestCapture.getValue();
-		assertEquals(stackName, request.getStackName());
-		assertEquals(presignedUrl.toString(), request.getTemplateURL());
-		assertNotNull(request.getParameters());
-		assertEquals(1, request.getParameters().size());
-		assertEquals(parameter, request.getParameters().get(0));
+		CreateStackRequest captureRequest = createStackRequestCapture.getValue();
+		assertEquals(stackName, captureRequest.getStackName());
+		assertEquals(presignedUrl.toString(), captureRequest.getTemplateURL());
+		assertNotNull(captureRequest.getParameters());
+		assertEquals(1, captureRequest.getParameters().size());
+		assertEquals(parameter, captureRequest.getParameters().get(0));
 	}
 	
 	@Test
 	public void testUpdateStack() {
 		// call under test
-		String resultId = client.updateStack(stackName, tempalteBody, parameters);
-		assertEquals(stackId, resultId);
+		client.updateStack(inputReqequest);
 		verify(mockCloudFormationClient).updateStack(updateStackRequestCapture.capture());
 		UpdateStackRequest request = updateStackRequestCapture.getValue();
 		assertEquals(stackName, request.getStackName());
@@ -161,8 +179,7 @@ public class CloudFormationClientImplTest {
 	@Test
 	public void testCreateOrUpdateAsUpdate() {
 		// call under test
-		String resultId = client.createOrUpdateStack(stackName, tempalteBody, parameters);
-		assertEquals(stackId, resultId);
+		client.createOrUpdateStack(inputReqequest);
 		verify(mockCloudFormationClient).updateStack(any(UpdateStackRequest.class));
 		verify(mockCloudFormationClient, never()).createStack(any(CreateStackRequest.class));
 	}
@@ -173,8 +190,7 @@ public class CloudFormationClientImplTest {
 		AmazonCloudFormationException exception = new AmazonCloudFormationException("Does not exist");
 		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenThrow(exception);
 		// call under test
-		String resultId = client.createOrUpdateStack(stackName, tempalteBody, parameters);
-		assertEquals(stackId, resultId);
+		client.createOrUpdateStack(inputReqequest);
 		verify(mockCloudFormationClient, never()).updateStack(any(UpdateStackRequest.class));
 		verify(mockCloudFormationClient).createStack(any(CreateStackRequest.class));
 	}
@@ -211,11 +227,118 @@ public class CloudFormationClientImplTest {
 	public void testExecuteWithS3Template() {
 		when(mockFunction.apply(anyString())).thenReturn(stackId);
 		// call under test
-		String resultId = client.executeWithS3Template(stackName, tempalteBody, mockFunction);
-		assertEquals(stackId, resultId);
+		client.executeWithS3Template(inputReqequest, mockFunction);
 		verify(mockS3Client).putObject(any(PutObjectRequest.class));
 		verify(mockFunction).apply(presignedUrl.toString());
 		verify(mockS3Client).deleteObject(anyString(), anyString());
+	}
+	
+	
+	@Test
+	public void testExecuteWithS3TemplateNoUpdates() {
+		AmazonCloudFormationException exception = new AmazonCloudFormationException(CloudFormationClientImpl.NO_UPDATES_ARE_TO_BE_PERFORMED);
+		
+		when(mockFunction.apply(anyString())).thenThrow(exception);
+		// call under test
+		client.executeWithS3Template(inputReqequest, mockFunction);
+		verify(mockS3Client).putObject(any(PutObjectRequest.class));
+		verify(mockFunction).apply(presignedUrl.toString());
+		verify(mockS3Client).deleteObject(anyString(), anyString());
+		verify(mockLogger).info(any(String.class));
+	}
+	
+	@Test (expected=RuntimeException.class)
+	public void testExecuteWithS3TemplateWithError() {
+		AmazonCloudFormationException exception = new AmazonCloudFormationException("some other error");
+		when(mockFunction.apply(anyString())).thenThrow(exception);
+		// call under test
+		client.executeWithS3Template(inputReqequest, mockFunction);
+	}
+	
+	@Test
+	public void testWaitForStackToCompleteCreateComplete() throws InterruptedException {
+		stack.setStackStatus(StackStatus.CREATE_COMPLETE);
+		// call under test
+		Stack result = client.waitForStackToComplete(stackName);
+		assertNotNull(result);
+		verify(mockCloudFormationClient).describeStacks(any(DescribeStacksRequest.class));
+	}
+	
+	@Test
+	public void testWaitForStackToCompleteUpdateComplete() throws InterruptedException {
+		stack.setStackStatus(StackStatus.UPDATE_COMPLETE);
+		// call under test
+		Stack result = client.waitForStackToComplete(stackName);
+		assertNotNull(result);
+		verify(mockCloudFormationClient).describeStacks(any(DescribeStacksRequest.class));
+	}
+	
+	
+	@Test
+	public void testWaitForStackToCompleteTimeout() throws InterruptedException {
+		stack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
+		// call under test
+		try {
+			client.waitForStackToComplete(stackName);
+			fail();
+		} catch (RuntimeException e) {
+			assertTrue(e.getMessage().contains("Timed out"));
+			
+		}
+		verify(mockCloudFormationClient, times(3)).describeStacks(any(DescribeStacksRequest.class));
+		verify(mockLogger, times(3)).info(any(String.class));
+		verify(mockThreadProvider, times(3)).sleep(any(Long.class));
+	}
+	
+	@Test
+	public void testWaitForStackToCompleteTimeoutUpdate() throws InterruptedException {
+		stack.setStackStatus(StackStatus.UPDATE_IN_PROGRESS);
+		// call under test
+		try {
+			client.waitForStackToComplete(stackName);
+			fail();
+		} catch (RuntimeException e) {
+			assertTrue(e.getMessage().contains("Timed out"));
+			
+		}
+		verify(mockCloudFormationClient, times(3)).describeStacks(any(DescribeStacksRequest.class));
+		verify(mockLogger, times(3)).info(any(String.class));
+		verify(mockThreadProvider, times(3)).sleep(any(Long.class));
+	}
+	
+	@Test (expected=RuntimeException.class)
+	public void testWaitForStackToCompleteCreateFailed() throws InterruptedException {
+		stack.setStackStatus(StackStatus.CREATE_FAILED);
+		// call under test
+		client.waitForStackToComplete(stackName);
+	}
+	
+	@Test (expected=RuntimeException.class)
+	public void testWaitForStackToCompleteRollbackComplete() throws InterruptedException {
+		stack.setStackStatus(StackStatus.ROLLBACK_COMPLETE);
+		// call under test
+		client.waitForStackToComplete(stackName);
+	}
+	
+	@Test (expected=RuntimeException.class)
+	public void testWaitForStackToCompleteRollbackFailed() throws InterruptedException {
+		stack.setStackStatus(StackStatus.ROLLBACK_FAILED);
+		// call under test
+		client.waitForStackToComplete(stackName);
+	}
+	
+	@Test (expected=RuntimeException.class)
+	public void testWaitForStackToCompleteRollbackProgress() throws InterruptedException {
+		stack.setStackStatus(StackStatus.ROLLBACK_IN_PROGRESS);
+		// call under test
+		client.waitForStackToComplete(stackName);
+	}
+	
+	@Test (expected=RuntimeException.class)
+	public void testWaitForStackToCompleteUpdateFailed() throws InterruptedException {
+		stack.setStackStatus(StackStatus.UPDATE_ROLLBACK_FAILED);
+		// call under test
+		client.waitForStackToComplete(stackName);
 	}
 	
 }

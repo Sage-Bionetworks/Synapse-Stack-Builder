@@ -4,7 +4,8 @@ public interface RepositoryTemplateBuilder {
 	
 	/**
 	 * Build the repository template and deploy the stack.
+	 * @throws InterruptedException 
 	 */
-	public void buildAndDeploy();
+	public void buildAndDeploy() throws InterruptedException;
 
 }

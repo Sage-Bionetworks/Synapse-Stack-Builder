@@ -1,4 +1,4 @@
-package org.sagebionetworks.template.repo;
+package org.sagebionetworks.template.repo.beanstalk;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -49,8 +49,6 @@ public class ArtifactCopyImplTest {
 	public void before() {
 		
 		when(mockDownloader.downloadFile(any(String.class))).thenReturn(mockFile);
-		
-		
 		
 		environment = EnvironmentType.REPOSITORY_WORKERS;
 		version = "212.4";

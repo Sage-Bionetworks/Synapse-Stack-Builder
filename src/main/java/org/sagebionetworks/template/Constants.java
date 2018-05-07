@@ -1,7 +1,7 @@
 package org.sagebionetworks.template;
 
 public class Constants {
-	
+
 	/**
 	 * Suffix for the configuration S3 bucket.
 	 */
@@ -13,7 +13,7 @@ public class Constants {
 	 * A VPC peering role ARN must start with this prefix.
 	 */
 	public static final String PEERING_ROLE_ARN_PREFIX = "arn:aws:iam::745159704268:role";
-	
+
 	/**
 	 * The unique name assigned to the Synapse VPC stack.
 	 */
@@ -25,6 +25,9 @@ public class Constants {
 	public static final String PARAMETER_VPC_SUBNET_PREFIX = "VpcSubnetPrefix";
 	// repo
 	public static final String PARAMETER_MYSQL_PASSWORD = "MySQLDatabaseMasterPassword";
+	public static final String PARAMETER_ENCRYPTION_KEY = "EncryptionKey";
+	public static final String PARAMETER_AWS_SECRET = "AwsSecret";
+	public static final String PARAMETER_AWS_KEY = "AwsKey";
 	// input property keys
 	// vpc
 	public static final String PROPERTY_KEY_VPC_VPN_CIDR = "org.sagebionetworks.vpc.vpn.cidr";
@@ -44,23 +47,33 @@ public class Constants {
 	public static final String PROPERTY_KEY_TABLES_INSTANCE_COUNT = "org.sagebionetworks.tables.rds.instance.count";
 	public static final String PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS = "org.sagebionetworks.tables.rds.instance.class";
 	public static final String PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE = "org.sagebionetworks.tables.rds.allocated.storage";
+	public static final String PROPERTY_KEY_BEANSTALK_ENCRYPTION_KEY = "org.sagebionetworks.beanstalk.encryption.key";
+	public static final String PROPERTY_KEY_AWS_SECRET_KEY = "aws.secretKey";
+	public static final String PROPERTY_KEY_AWS_ACCESS_KEY_ID = "aws.accessKeyId";
+	public static final String PROPERTY_KEY_BEANSTALK_MAX_INSTANCES = "org.sagebionetworks.beanstalk.max.instances.";
+	public static final String PROPERTY_KEY_BEANSTALK_MIN_INSTANCES = "org.sagebionetworks.beanstalk.min.instances.";
+	public static final String PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL = "org.sagebionetworks.beanstalk.health.check.url.";
+	public static final String PROPERTY_KEY_BEANSTALK_VERSION = "org.sagebionetworks.beanstalk.version.";
+	public static final String PROPERTY_KEY_BEANSTALK_NUMBER = "org.sagebionetworks.beanstalk.number.";
+
 	// templates
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
 	public static final String TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";
+	public static final String TEMPALTE_BEAN_STALK_ENVIRONMENT = "templates/repo/elasticbeanstalk-template.json";
 
 	public static final int JSON_INDENT = 5;
 
 	/*
 	 * The subnet mask used to create subnet. A subnet mask of 22 will allocate a
-	 * subnet with 1024 address.  Note: The subnet mask will be the suffix of each
+	 * subnet with 1024 address. Note: The subnet mask will be the suffix of each
 	 * subnet CIDR.
 	 */
 	public static final int VPC_SUBNET_NETWORK_MASK = 22;
-	
+
 	/*
 	 * The network mask used to create color group. A mask of 20 will allocate a
-	 * group with 4,096 address.  Note: The mask will be the suffix for the color group
-	 * CIDR.
+	 * group with 4,096 address. Note: The mask will be the suffix for the color
+	 * group CIDR.
 	 */
 	public static final int VPC_COLOR_GROUP_NETWORK_MASK = 20;
 
@@ -74,20 +87,27 @@ public class Constants {
 	public static final String INSTANCE = "instance";
 	public static final String SHARED_RESOUCES_STACK_NAME = "sharedRresourcesStackName";
 	public static final String VPC_EXPORT_PREFIX = "vpcExportPrefix";
+	public static final String SHARED_EXPORT_PREFIX = "sharedExportPrefix";
 	public static final String PROPS = "props";
 	public static final String PEER_ROLE_ARN = "peerRoleArn";
-	
+	public static final String AVAILABILITY_ZONES = "availabilityZones";
 	public static final String DATABASE_DESCRIPTORS = "databaseDescriptors";
-	
+	public static final String ENVIRONMENT = "environment";
+	public static final String REPO_NUMBER = "repoNumber";
+	public static final String DB_ENDPOINT_SUFFIX = "dbEndpointSuffix";
+	public static final String CONFIGURATION_URL = "configurationUrl";
+
 	/**
-	 * Create a camel case name for an availability
-	 * @param availability
+	 * Create a camel case name from dash-separated-name. Given 'foo-bar' will
+	 * return 'FooBar'
+	 * 
+	 * @param dashName
 	 * @return
 	 */
-	public static final String createAvailabilityZoneName(String availabilityZone) {
-		String[] split = availabilityZone.split("-");
+	public static final String createCamelCaseName(String dashName) {
+		String[] split = dashName.split("-");
 		StringBuilder builder = new StringBuilder();
-		for(String part: split) {
+		for (String part : split) {
 			builder.append(part.substring(0, 1).toUpperCase());
 			builder.append(part.substring(1));
 		}

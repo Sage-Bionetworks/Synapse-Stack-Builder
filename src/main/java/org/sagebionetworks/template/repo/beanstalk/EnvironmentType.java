@@ -6,11 +6,11 @@ public enum EnvironmentType {
 	REPOSITORY_WORKERS("services-workers", "workers"),
 	PORTAL("portal","portal");
 
-	String path;
+	String pathName;
 	String cnamePrefix;
 
 	EnvironmentType(String path, String cnamePrefix) {
-		this.path = path;
+		this.pathName = path;
 		this.cnamePrefix = cnamePrefix;
 	}
 
@@ -24,11 +24,11 @@ public enum EnvironmentType {
 		StringBuilder builder = new StringBuilder(
 				"http://sagebionetworks.artifactoryonline.com/sagebionetworks/libs-releases-local/org/sagebionetworks");
 		builder.append("/");
-		builder.append(path);
+		builder.append(pathName);
 		builder.append("/");
 		builder.append(version);
 		builder.append("/");
-		builder.append(path);
+		builder.append(pathName);
 		builder.append("-");
 		builder.append(version);
 		builder.append(".war");
@@ -43,12 +43,20 @@ public enum EnvironmentType {
 	public String createS3Key(String version) {
 		StringBuilder builder = new StringBuilder("versions");
 		builder.append("/");
-		builder.append(path);
+		builder.append(pathName);
 		builder.append("/");
-		builder.append(path);
+		builder.append(pathName);
 		builder.append("-");
 		builder.append(version);
 		builder.append(".war");
 		return builder.toString();
+	}
+	
+	/**
+	 * Get the short name for this type.
+	 * @return
+	 */
+	public String getShortName() {
+		return this.cnamePrefix;
 	}
 }

@@ -164,7 +164,7 @@ public class SubnetBuilder {
 		StringBuilder builder = new StringBuilder();
 		builder.append(color.name());
 		builder.append(type.name());
-		builder.append(Constants.createAvailabilityZoneName(availabilityZone));
+		builder.append(Constants.createCamelCaseName(availabilityZone));
 		builder.append("Subnet");
 		return builder.toString();
 	}

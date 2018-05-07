@@ -5,12 +5,15 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+import org.apache.velocity.runtime.resource.loader.FileResourceLoader;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilderImpl;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopyImpl;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactDownload;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactDownloadImpl;
+import org.sagebionetworks.template.repo.beanstalk.EnvironmentConfiguration;
+import org.sagebionetworks.template.repo.beanstalk.EnvironmentConfigurationImpl;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilder;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilderImpl;
 
@@ -26,8 +29,9 @@ import com.google.inject.Provides;
 public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
 	private static final String RUNTIME_REFERENCES_STRICT = "runtime.references.strict";
-	private static final String CLASSPATH = "classpath";
+	private static final String CLASSPATH_AND_FILE = "classpath,file";
 	private static final String CLASSPATH_RESOURCE_LOADER_CLASS = "classpath.resource.loader.class";
+	private static final String FILE_RESOURCE_LOADER_CLASS = "file.resource.loader.class";
 
 	@Override
 	protected void configure() {
@@ -38,6 +42,9 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(RepositoryTemplateBuilder.class).to(RepositoryTemplateBuilderImpl.class);
 		bind(ArtifactDownload.class).to(ArtifactDownloadImpl.class);
 		bind(ArtifactCopy.class).to(ArtifactCopyImpl.class);
+		bind(EnvironmentConfiguration.class).to(EnvironmentConfigurationImpl.class);
+		bind(FileProvider.class).to(FileProviderImpl.class);
+		bind(ThreadProvider.class).to(ThreadProviderImp.class);
 	}
 	
 	/**
@@ -69,8 +76,9 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public VelocityEngine velocityEngineProvider() {
 		VelocityEngine engine = new VelocityEngine();
-		engine.setProperty(RuntimeConstants.RESOURCE_LOADER, CLASSPATH); 
+		engine.setProperty(RuntimeConstants.RESOURCE_LOADER, CLASSPATH_AND_FILE); 
 		engine.setProperty(CLASSPATH_RESOURCE_LOADER_CLASS, ClasspathResourceLoader.class.getName());
+		engine.setProperty(FILE_RESOURCE_LOADER_CLASS, FileResourceLoader.class.getName());
 		engine.setProperty(RUNTIME_REFERENCES_STRICT, true);
 		return engine;
 	}

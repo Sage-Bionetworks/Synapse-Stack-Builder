@@ -8,7 +8,7 @@ public class ConstantsTest {
 
 	@Test
 	public void testCreateAvailabilityZoneName() {
-		String result = Constants.createAvailabilityZoneName("us-east-1b");
+		String result = Constants.createCamelCaseName("us-east-1b");
 		assertEquals("UsEast1b", result);
 	}
 }
