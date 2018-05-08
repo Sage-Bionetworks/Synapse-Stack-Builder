@@ -306,6 +306,22 @@ public class CloudFormationClientImplTest {
 		verify(mockThreadProvider, times(3)).sleep(any(Long.class));
 	}
 	
+	@Test
+	public void testWaitForStackToCompleteTimeoutUpdateCleanup() throws InterruptedException {
+		stack.setStackStatus(StackStatus.UPDATE_COMPLETE_CLEANUP_IN_PROGRESS);
+		// call under test
+		try {
+			client.waitForStackToComplete(stackName);
+			fail();
+		} catch (RuntimeException e) {
+			assertTrue(e.getMessage().contains("Timed out"));
+			
+		}
+		verify(mockCloudFormationClient, times(3)).describeStacks(any(DescribeStacksRequest.class));
+		verify(mockLogger, times(3)).info(any(String.class));
+		verify(mockThreadProvider, times(3)).sleep(any(Long.class));
+	}
+	
 	@Test (expected=RuntimeException.class)
 	public void testWaitForStackToCompleteCreateFailed() throws InterruptedException {
 		stack.setStackStatus(StackStatus.CREATE_FAILED);
