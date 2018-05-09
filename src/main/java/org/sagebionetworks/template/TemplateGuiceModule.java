@@ -6,6 +6,8 @@ import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.apache.velocity.runtime.resource.loader.FileResourceLoader;
+import org.sagebionetworks.template.repo.IdGeneratorBuilder;
+import org.sagebionetworks.template.repo.IdGeneratorBuilderImpl;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilderImpl;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
@@ -45,6 +47,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(EnvironmentConfiguration.class).to(EnvironmentConfigurationImpl.class);
 		bind(FileProvider.class).to(FileProviderImpl.class);
 		bind(ThreadProvider.class).to(ThreadProviderImp.class);
+		bind(IdGeneratorBuilder.class).to(IdGeneratorBuilderImpl.class);
 	}
 	
 	/**

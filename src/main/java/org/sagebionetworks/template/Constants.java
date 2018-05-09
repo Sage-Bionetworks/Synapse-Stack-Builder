@@ -1,5 +1,7 @@
 package org.sagebionetworks.template;
 
+import java.util.StringJoiner;
+
 public class Constants {
 
 	/**
@@ -60,6 +62,7 @@ public class Constants {
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
 	public static final String TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";
 	public static final String TEMPALTE_BEAN_STALK_ENVIRONMENT = "templates/repo/elasticbeanstalk-template.json";
+	public static final String TEMPLATE_ID_GENERATOR = "templates/repo/id-generator-template.json";
 
 	public static final int JSON_INDENT = 5;
 
@@ -114,4 +117,16 @@ public class Constants {
 		return builder.toString();
 	}
 
+	/**
+	 * Create the prefix used for all of the VPC stack exports;
+	 * 
+	 * @return
+	 */
+	public static String createVpcExportPrefix(String stack) {
+		StringJoiner joiner = new StringJoiner("-");
+		joiner.add("us-east-1-synapse");
+		joiner.add(stack);
+		joiner.add("vpc");
+		return joiner.toString();
+	}
 }

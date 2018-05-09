@@ -67,11 +67,6 @@
 					},
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
-						"OptionName": "ImageId",
-						"Value": "ami-827b94f8"
-					},
-					{
-						"Namespace": "aws:autoscaling:launchconfiguration",
 						"OptionName": "InstanceType",
 						"Value": "m1.small"
 					},
@@ -165,7 +160,7 @@
 						"Namespace": "aws:ec2:vpc",
 						"OptionName": "ELBSubnets",
 						"Value": {
-							"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-Public-Subnets"
+							"Fn::ImportValue": "${vpcExportPrefix}-Public-Subnets"
 						}
 					},
 					{
@@ -236,11 +231,6 @@
 						"Namespace": "aws:elasticbeanstalk:container:tomcat:jvmoptions",
 						"OptionName": "Xmx",
 						"Value": "1024m"
-					},
-					{
-						"Namespace": "aws:elasticbeanstalk:container:tomcat:jvmoptions",
-						"OptionName": "XX?MaxPermSize",
-						"Value": "256m"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",

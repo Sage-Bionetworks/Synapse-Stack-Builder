@@ -231,13 +231,6 @@ public class RepositoryTemplateBuilderImplTest {
 	}
 
 	@Test
-	public void testCreateVpcExportPrefix() {
-		// call under test
-		String vpcPrefix = builder.createVpcExportPrefix();
-		assertEquals("us-east-1-synapse-dev-vpc", vpcPrefix);
-	}
-
-	@Test
 	public void testCreateContext() {
 		// call under test
 		VelocityContext context = builder.createSharedContext();
@@ -289,6 +282,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("url-repo", desc.getHealthCheckUrl());
 		assertEquals(1, desc.getMinInstances());
 		assertEquals(2, desc.getMaxInstances());
+		assertEquals("version-repo", desc.getVersionLabel());
 		SourceBundle bundle = desc.getSourceBundle();
 		assertNotNull(bundle);
 		assertEquals("bucket", bundle.getBucket());
