@@ -1,5 +1,6 @@
 package org.sagebionetworks.template.vpc;
 
+import static org.sagebionetworks.template.Constants.AVAILABILITY_ZONES;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.PARAMETER_VPC_SUBNET_PREFIX;
 import static org.sagebionetworks.template.Constants.PARAMETER_VPN_CIDR;
@@ -12,13 +13,13 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_PEERING_AC
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_PREFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_VPN_CIDR;
 import static org.sagebionetworks.template.Constants.STACK;
-import static org.sagebionetworks.template.Constants.SUBNET_GROUPS;
+import static org.sagebionetworks.template.Constants.SUBNETS;
 import static org.sagebionetworks.template.Constants.TEMPLATES_VPC_MAIN_VPC_JSON_VTP;
 import static org.sagebionetworks.template.Constants.VPC_CIDR;
 import static org.sagebionetworks.template.Constants.VPC_CIDR_SUFFIX;
 import static org.sagebionetworks.template.Constants.VPC_COLOR_GROUP_NETWORK_MASK;
 import static org.sagebionetworks.template.Constants.VPC_STACK_NAME_FORMAT;
-import static org.sagebionetworks.template.Constants.*;
+import static org.sagebionetworks.template.Constants.VPC_SUBNET_NETWORK_MASK;
 
 import java.io.StringWriter;
 
@@ -66,7 +67,6 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 		template.merge(context, stringWriter);
 		// Parse the resulting template
 		String resultJSON = stringWriter.toString();
-		System.out.println(resultJSON);
 		JSONObject templateJson = new JSONObject(resultJSON);
 		// Format the JSON
 		resultJSON = templateJson.toString(JSON_INDENT);
@@ -106,8 +106,8 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 		builder.withSubnetMask(VPC_SUBNET_NETWORK_MASK);
 		builder.withColorGroupNetMaskSubnetMask(VPC_COLOR_GROUP_NETWORK_MASK);
 		builder.withAvailabilityZones(availabilityZones);
-		SubnetGroup[] subnets = builder.build();
-		context.put(SUBNET_GROUPS, subnets);
+		Subnets subnets = builder.build();
+		context.put(SUBNETS, subnets);
 
 		context.put(STACK, config.getProperty(PROPERTY_KEY_STACK));
 

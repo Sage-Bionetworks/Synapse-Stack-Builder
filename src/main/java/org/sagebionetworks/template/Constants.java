@@ -64,11 +64,11 @@ public class Constants {
 	public static final int JSON_INDENT = 5;
 
 	/*
-	 * The subnet mask used to create subnet. A subnet mask of 22 will allocate a
-	 * subnet with 1024 address. Note: The subnet mask will be the suffix of each
+	 * The subnet mask used to create subnet. A subnet mask of 21 will allocate a
+	 * subnet with 2,048 address. Note: The subnet mask will be the suffix of each
 	 * subnet CIDR.
 	 */
-	public static final int VPC_SUBNET_NETWORK_MASK = 22;
+	public static final int VPC_SUBNET_NETWORK_MASK = 21;
 
 	/*
 	 * The network mask used to create color group. A mask of 20 will allocate a
@@ -80,7 +80,7 @@ public class Constants {
 	public static final String VPC_CIDR_SUFFIX = ".0.0/16";
 
 	// context keys
-	public static final String SUBNET_GROUPS = "subnetGroups";
+	public static final String SUBNETS = "subnets";
 	public static final String VPC_CIDR = "vpcCidr";
 	public static final String VPC_SUBNET_COLOR = "subnetGroupColor";
 	public static final String STACK = "stack";

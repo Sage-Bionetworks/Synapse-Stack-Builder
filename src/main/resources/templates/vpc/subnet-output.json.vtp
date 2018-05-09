@@ -1,4 +1,4 @@
-#foreach( $subnetGroup in $subnetGroups )
+#foreach( $subnetGroup in $subnets.privateSubnetGroups )
 	,
 	"${subnetGroup.color}SubnetGroupCIDR": {
 		"Description": "$subnetGroup.color subnet group CIDR",
@@ -66,21 +66,18 @@
 		}
 	#end	
 #end
-#foreach( $subnetGroup in $subnetGroups )
-,
-	"${subnetGroup.color}PublicSubnets": {
-		"Description": "Comma separated list of all public sub-nets that belong to the ${subnetGroup.color}",
+	,
+	"PublicSubnets": {
+		"Description": "Comma separated list of all public sub-nets",
 		"Value" : {
 			"Fn::Join": [
 				", ",
 				[
 					#set($i = 0)
-					#foreach ($subnet in $subnetGroup.subnets)
-					#if($subnet.type == 'Public')
+					#foreach( $publicSubnet in $subnets.publicSubnets )
 					#if( $i > 0 ) , #end
-					{"Ref":"${subnet.name}"}
+					{"Ref":"${publicSubnet.name}"}
 					#set($i = $i+1)
-					#end
 					#end
 				]
 			]
@@ -96,14 +93,13 @@
 						{
 							"Ref": "AWS::StackName"
 						},
-						"${subnetGroup.color}-Public-Subnets"
+						"Public-Subnets"
 					]
 				]
 			}
 		}
 	}
-#end
-#foreach( $subnetGroup in $subnetGroups )
+#foreach( $subnetGroup in $subnets.privateSubnetGroups )
 ,
 	"${subnetGroup.color}PrivateSubnets": {
 		"Description": "Comma separated list of all private sub-nets that belong to the ${subnetGroup.color}",
@@ -113,11 +109,9 @@
 				[
 					#set($i = 0)
 					#foreach ($subnet in $subnetGroup.subnets)
-					#if($subnet.type == 'Private')
 					#if( $i > 0 ) , #end
 					{"Ref":"${subnet.name}"}
 					#set($i = $i+1)
-					#end
 					#end
 				]
 			]

@@ -89,36 +89,44 @@ public class SubnetBuilder {
 	 * 
 	 * @return
 	 */
-	public SubnetGroup[] build() {
-		SubnetGroup[] results = new SubnetGroup[colors.length];
+	public Subnets build() {
 		// This will be the IP address of the first sub-net
 		String firstIpV4Address = this.cidrPrefix + ".0.0";
-		long startAddress = IpAddressUtils.ipV4AddressToInteger(firstIpV4Address);
+		long address = IpAddressUtils.ipV4AddressToInteger(firstIpV4Address);
 		int subnetNumBits = 32 - this.subnetMask;
 		int colorGroupNumBits = 32 - this.colorGroupNetMask;
 		long numberGroupAddresses = (int) Math.pow(2.0, (double) colorGroupNumBits);
 		long numberSubnetAddresses = (int) Math.pow(2.0, (double) subnetNumBits);
+		
+		// Create a public sub-net for each availability zone.
+		Subnet[] publicSubnets = new Subnet[availabilityZones.length];
+		for(int i=0; i< availabilityZones.length; i++) {
+			String availabilityZone = availabilityZones[i];
+			String availabilityZoneName = Constants.createCamelCaseName(availabilityZone);
+			String name = "Public"+availabilityZoneName;
+			String cidr = createCIDR(address, this.colorGroupNetMask);
+			publicSubnets[i] = new Subnet(name, cidr, SubnetType.Public, availabilityZone);
+			// bump the address
+			address += numberGroupAddresses;
+		}
+		
+		// Create the grouping for each color and all sub-nets within the color.
+		SubnetGroup[] privateSubnetGroups = new SubnetGroup[colors.length];
 		for (int i = 0; i < colors.length; i++) {
-			long addressLong = startAddress + (numberGroupAddresses*i);
+			long addressLong = address + (numberGroupAddresses*i);
 			Color color = colors[i];
 			String colorCidr = createCIDR(addressLong, this.colorGroupNetMask);
-			Subnet[] subnets = new Subnet[this.availabilityZones.length * 2];
-			// create public sub-nets
-			for (int pub = 0; pub < this.availabilityZones.length; pub++) {
-				String availabilityZone = this.availabilityZones[pub];
-				subnets[pub] = createSubnet(availabilityZone, addressLong, subnetMask, color, SubnetType.Public);
-				addressLong += numberSubnetAddresses;
-			}
+			Subnet[] subnets = new Subnet[this.availabilityZones.length];
 			// create private sub-nets
 			for (int pri = 0; pri < this.availabilityZones.length; pri++) {
 				String availabilityZone = this.availabilityZones[pri];
-				subnets[this.availabilityZones.length + pri] = createSubnet(availabilityZone, addressLong, subnetMask, color,
+				subnets[pri] = createSubnet(availabilityZone, addressLong, subnetMask, color,
 						SubnetType.Private);
 				addressLong += numberSubnetAddresses;
 			}
-			results[i] = new SubnetGroup(color,colorCidr, subnets);
+			privateSubnetGroups[i] = new SubnetGroup(color,colorCidr, subnets);
 		}
-		return results;
+		return new Subnets(publicSubnets, privateSubnetGroups);
 	}
 
 	/**
@@ -165,7 +173,6 @@ public class SubnetBuilder {
 		builder.append(color.name());
 		builder.append(type.name());
 		builder.append(Constants.createCamelCaseName(availabilityZone));
-		builder.append("Subnet");
 		return builder.toString();
 	}
 }
