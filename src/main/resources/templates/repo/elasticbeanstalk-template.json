@@ -1,5 +1,6 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Creates all of the resources to deploy ${environment.name}",
 	"Parameters": {
 		"AwsKey": {
 			"Description": "Depricated. Will be removed",
@@ -169,11 +170,6 @@
 						"Value": "false"
 					},
 					{
-						"Namespace": "aws:elasticbeanstalk:environment:process:default",
-						"OptionName": "HealthCheckPath",
-						"Value": "${environment.healthCheckUrl}"
-					},
-					{
 						"Namespace": "aws:elasticbeanstalk:environment",
 						"OptionName": "EnvironmentType",
 						"Value": "LoadBalanced"
@@ -182,6 +178,11 @@
 						"Namespace": "aws:elasticbeanstalk:environment",
 						"OptionName": "LoadBalancerType",
 						"Value": "classic"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application",
+						"OptionName": "Application Healthcheck URL",
+						"Value": "${environment.healthCheckUrl}"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:sns:topics",
@@ -221,6 +222,31 @@
 						"Value": {
 							"Fn::ImportValue": "${sharedExportPrefix}-Load-Balancer-Security-Group-ID"
 						}
+					},
+					{
+						"Namespace": "aws:elb:listener:443",
+						"OptionName": "ListenerProtocol",
+						"Value": "HTTPS"
+					},
+					{
+						"Namespace": "aws:elb:listener:443",
+						"OptionName": "InstancePort",
+						"Value": "443"
+					},
+					{
+						"Namespace": "aws:elb:listener:443",
+						"OptionName": "InstanceProtocol",
+						"Value": "HTTPS"
+					},
+					{
+						"Namespace": "aws:elb:listener:443",
+						"OptionName": "SSLCertificateId",
+						"Value": "arn:aws:acm:us-east-1:449435941126:certificate/bbd59a26-ad30-4b74-ad2d-194241801b22"
+					},
+					{
+						"Namespace": "aws:elb:listener:443",
+						"OptionName": "ListenerEnabled",
+						"Value": "true"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:container:tomcat:jvmoptions",
