@@ -1,0 +1,260 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Creates the ID Generator Database resouces shared by ${stack}.",
+	"Parameters": {
+		"MySQLDatabaseMasterPassword": {
+			"Description": "The master password for the MySQL databases.",
+			"Type": "String",
+			"NoEcho": true
+		}
+	},
+	"Resources": {
+		"${stack}IdGeneratorTopic": {
+			"Type": "AWS::SNS::Topic",
+			"Properties": {
+				"DisplayName": "${stack}-ID-Generator-Alert",
+				"TopicName": "${stack}-ID-Generator-Alert",
+				"Subscription": [
+					{
+						"Endpoint": "synapse-ops@sagebase.org",
+						"Protocol": "email"
+					}
+				]
+			}
+		},
+		"${stack}IdGeneratorDBSubnetGroup": {
+			"Type": "AWS::RDS::DBSubnetGroup",
+			"Properties": {
+				"DBSubnetGroupDescription": "Repository database subnet group defines where RDS instances can be deployed.",
+				"SubnetIds": {
+					"Fn::Split": [
+						",",
+						{
+							"Fn::ImportValue": "${vpcExportPrefix}-Public-Subnets"
+						}
+					]
+				}
+			}
+		},
+		"${stack}IdGeneratorDBSecurityGroup": {
+			"Type": "AWS::EC2::SecurityGroup",
+			"Properties": {
+				"GroupDescription": "Security Group for the ID generator database.",
+				"VpcId": {
+					"Fn::ImportValue": "${vpcExportPrefix}-VPCId"
+				},
+				"SecurityGroupIngress": [
+					{
+						"Description": "Allow all VPN traffic",
+						"CidrIp": {
+							"Fn::ImportValue": "${vpcExportPrefix}-VpnCidr"
+						},
+						"FromPort": "3306",
+						"ToPort": "3306",
+						"IpProtocol": "tcp"
+					},
+					{
+						"Description": "Allow access to all instances within the Synapse VPC",
+						"CidrIp": {
+							"Fn::ImportValue": "${vpcExportPrefix}-VpcCidr"
+						},
+						"FromPort": "3306",
+						"ToPort": "3306",
+						"IpProtocol": "tcp"
+					}
+				],
+				"Tags": [
+					{
+						"Key": "Application",
+						"Value": {
+							"Ref": "AWS::StackName"
+						}
+					},
+					{
+						"Key": "Name",
+						"Value": "${stack}IdGeneratorDB"
+					}
+				]
+			}
+		},
+		"${stack}IdGeneratorDBParameterGroup": {
+			"Type": "AWS::RDS::DBParameterGroup",
+			"Properties": {
+				"Description": "Shared MySQL database parameters",
+				"Family": "mysql5.6",
+				"Parameters": {
+					"slow_query_log": "1",
+					"long_query_time": "1",
+					"max_allowed_packet": "16777216",
+					"log_bin_trust_function_creators": "1"
+				}
+			}
+		},
+		"${stack}IdGenerator": {
+			"Type": "AWS::RDS::DBInstance",
+			"Properties": {
+				"AllocatedStorage": "5",
+				"AllowMajorVersionUpgrade": false,
+				"AutoMinorVersionUpgrade": true,
+				"BackupRetentionPeriod": "7",
+				"DBInstanceClass": "db.m1.small",
+				"DBInstanceIdentifier": "${stack}-id-generator-db",
+				"DBName": "${stack}idgen",
+				"DBParameterGroupName": {
+					"Ref": "${stack}IdGeneratorDBParameterGroup"
+				},
+				"DBSubnetGroupName": {
+					"Ref": "${stack}IdGeneratorDBSubnetGroup"
+				},
+				"Engine": "MySQL",
+				"EngineVersion": "5.6.34",
+				"LicenseModel": "general-public-license",
+				"MasterUsername": "${stack}idgenuser",
+				"MasterUserPassword": {
+					"Ref": "MySQLDatabaseMasterPassword"
+				},
+				"MultiAZ": false,
+				"PreferredBackupWindow": "3:00-6:00",
+				"PreferredMaintenanceWindow": "Mon:07:15-Mon:07:45",
+				"PubliclyAccessible": false,
+				"StorageType": "standard",
+				"VPCSecurityGroups": [
+					{
+						"Ref": "${stack}IdGeneratorDBSecurityGroup"
+					}
+				]
+			}
+		},
+		"${stack}IdGeneratorAlarmSwapUsage": {
+			"Type": "AWS::CloudWatch::Alarm",
+			"Properties": {
+				"ActionsEnabled": true,
+				"AlarmActions": [
+					{
+						"Ref": "${stack}IdGeneratorTopic"
+					}
+				],
+				"AlarmDescription": "Alert when database swap usage is exceeded.",
+				"AlarmName": "${stack}-id-generator-db-Swap-Usage",
+				"ComparisonOperator": "GreaterThanThreshold",
+				"Dimensions": [
+					{
+						"Name": "DBInstanceIdentifier",
+						"Value": "${stack}-id-generator-db"
+					}
+				],
+				"EvaluationPeriods": 2,
+				"Period": 300,
+				"MetricName": "SwapUsage",
+				"Namespace": "AWS/RDS",
+				"Statistic": "Average",
+				"Threshold": 536870912
+			}
+		},
+		"${stack}IdGeneratorHighWriteLatency": {
+			"Type": "AWS::CloudWatch::Alarm",
+			"Properties": {
+				"ActionsEnabled": true,
+				"AlarmActions": [
+					{
+						"Ref": "${stack}IdGeneratorTopic"
+					}
+				],
+				"AlarmDescription": "Alert when database write latency is exceeded.",
+				"AlarmName": "${stack}-id-generator-db-High-Write-Latency",
+				"ComparisonOperator": "GreaterThanOrEqualToThreshold",
+				"Dimensions": [
+					{
+						"Name": "DBInstanceIdentifier",
+						"Value": "${stack}-id-generator-db"
+					}
+				],
+				"EvaluationPeriods": 1,
+				"Period": 300,
+				"MetricName": "WriteLatency",
+				"Namespace": "AWS/RDS",
+				"Statistic": "Average",
+				"Threshold": 0.1
+			}
+		},
+		"${stack}IdGeneratorHighCPUUtilization": {
+			"Type": "AWS::CloudWatch::Alarm",
+			"Properties": {
+				"ActionsEnabled": true,
+				"AlarmActions": [
+					{
+						"Ref": "${stack}IdGeneratorTopic"
+					}
+				],
+				"AlarmDescription": "Alert when database CPU utilization is exceeded.",
+				"AlarmName": "${stack}-id-generator-db-High-CPU-Utilization",
+				"ComparisonOperator": "GreaterThanOrEqualToThreshold",
+				"Dimensions": [
+					{
+						"Name": "DBInstanceIdentifier",
+						"Value": "${stack}-id-generator-db"
+					}
+				],
+				"EvaluationPeriods": 1,
+				"Period": 300,
+				"MetricName": "CPUUtilization",
+				"Namespace": "AWS/RDS",
+				"Statistic": "Average",
+				"Threshold": 90.0
+			}
+		},
+		"${stack}IdGeneratorLowFreeStorageSpace": {
+			"Type": "AWS::CloudWatch::Alarm",
+			"Properties": {
+				"ActionsEnabled": true,
+				"AlarmActions": [
+					{
+						"Ref": "${stack}IdGeneratorTopic"
+					}
+				],
+				"AlarmDescription": "Alert when database free storage space is low.",
+				"AlarmName": "${stack}-id-generator-db-Low-Free-Storage-Space",
+				"ComparisonOperator": "LessThanOrEqualToThreshold",
+				"Dimensions": [
+					{
+						"Name": "DBInstanceIdentifier",
+						"Value": "${stack}-id-generator-db"
+					}
+				],
+				"EvaluationPeriods": 1,
+				"Period": 300,
+				"MetricName": "FreeStorageSpace",
+				"Namespace": "AWS/RDS",
+				"Statistic": "Average",
+				"Threshold": 524288
+			}
+		}
+	},
+	"Outputs": {
+		"${stack}IdGeneratorEndpoint": {
+			"Description": "The elastic bean stalk application ID",
+			"Value": {
+				"Fn::GetAtt": [
+					"${stack}IdGenerator",
+					"Endpoint.Address"
+				]
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"${stack}IdGenerator-Endpoint"
+						]
+					]
+				}
+			}
+		}
+	}
+}

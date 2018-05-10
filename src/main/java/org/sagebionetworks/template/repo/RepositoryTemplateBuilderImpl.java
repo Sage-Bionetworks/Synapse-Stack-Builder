@@ -139,10 +139,11 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 */
 	VelocityContext createEnvironmentContext(Stack sharedStackResults) {
 		VelocityContext context = new VelocityContext();
-		context.put(STACK, config.getProperty(PROPERTY_KEY_STACK));
+		String stack = config.getProperty(PROPERTY_KEY_STACK);
+		context.put(STACK, stack);
 		context.put(INSTANCE, config.getProperty(PROPERTY_KEY_INSTANCE));
 		context.put(VPC_SUBNET_COLOR, config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR));
-		context.put(VPC_EXPORT_PREFIX, createVpcExportPrefix());
+		context.put(VPC_EXPORT_PREFIX, Constants.createVpcExportPrefix(stack));
 		context.put(SHARED_EXPORT_PREFIX, createSharedExportPrefix());
 		// Create and upload the configuration property file.
 		String configUrl = environConfig.createEnvironmentConfiguration(sharedStackResults);
@@ -181,11 +182,12 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 */
 	VelocityContext createSharedContext() {
 		VelocityContext context = new VelocityContext();
-		context.put(STACK, config.getProperty(PROPERTY_KEY_STACK));
+		String stack = config.getProperty(PROPERTY_KEY_STACK);
+		context.put(STACK, stack);
 		context.put(INSTANCE, config.getProperty(PROPERTY_KEY_INSTANCE));
 		context.put(VPC_SUBNET_COLOR, config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR));
 		context.put(SHARED_RESOUCES_STACK_NAME, createSharedResourcesStackName());
-		context.put(VPC_EXPORT_PREFIX, createVpcExportPrefix());
+		context.put(VPC_EXPORT_PREFIX, Constants.createVpcExportPrefix(stack));
 		context.put(SHARED_EXPORT_PREFIX, createSharedExportPrefix());
 
 		// Create the descriptors for all of the database.
@@ -247,7 +249,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 			SourceBundle bundle = artifactCopy.copyArtifactIfNeeded(type, version);
 			environments[i] = new EnvironmentDescriptor().withName(name).withRefName(refName).withNumber(number)
 					.withHealthCheckUrl(healthCheckUrl).withSourceBundle(bundle).withType(type)
-					.withMinInstances(minInstances).withMaxInstances(maxInstances);
+					.withMinInstances(minInstances).withMaxInstances(maxInstances)
+					.withVersionLabel(version);
 		}
 		return environments;
 	}
@@ -273,19 +276,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		joiner.add(config.getProperty(PROPERTY_KEY_STACK));
 		joiner.add(config.getProperty(PROPERTY_KEY_INSTANCE));
 		joiner.add("shared-resources");
-		return joiner.toString();
-	}
-
-	/**
-	 * Create the prefix used for all of the VPC stack exports;
-	 * 
-	 * @return
-	 */
-	String createVpcExportPrefix() {
-		StringJoiner joiner = new StringJoiner("-");
-		joiner.add("us-east-1-synapse");
-		joiner.add(config.getProperty(PROPERTY_KEY_STACK));
-		joiner.add("vpc");
 		return joiner.toString();
 	}
 

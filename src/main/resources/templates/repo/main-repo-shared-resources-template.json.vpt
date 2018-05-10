@@ -1,5 +1,6 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Creates all of the shared resources for ${stack}-${instance}.",
 	"Parameters": {
 		"MySQLDatabaseMasterPassword": {
 			"Description": "The master password for the MySQL databases.",

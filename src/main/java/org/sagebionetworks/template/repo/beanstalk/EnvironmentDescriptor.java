@@ -14,6 +14,11 @@ public class EnvironmentDescriptor {
 	String healthCheckUrl;
 	int minInstances;
 	int maxInstances;
+	String versionLabel;
+
+	public String getVersionLabel() {
+		return versionLabel;
+	}
 
 	public String getHealthCheckUrl() {
 		return healthCheckUrl;
@@ -45,6 +50,11 @@ public class EnvironmentDescriptor {
 
 	public SourceBundle getSourceBundle() {
 		return sourceBundle;
+	}
+
+	public EnvironmentDescriptor withVersionLabel(String versionLabel) {
+		this.versionLabel = versionLabel;
+		return this;
 	}
 
 	public EnvironmentDescriptor withMinInstances(int minInstances) {

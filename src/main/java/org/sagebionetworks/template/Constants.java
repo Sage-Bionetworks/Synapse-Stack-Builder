@@ -1,5 +1,7 @@
 package org.sagebionetworks.template;
 
+import java.util.StringJoiner;
+
 public class Constants {
 
 	/**
@@ -60,15 +62,16 @@ public class Constants {
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
 	public static final String TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";
 	public static final String TEMPALTE_BEAN_STALK_ENVIRONMENT = "templates/repo/elasticbeanstalk-template.json";
+	public static final String TEMPLATE_ID_GENERATOR = "templates/repo/id-generator-template.json";
 
 	public static final int JSON_INDENT = 5;
 
 	/*
-	 * The subnet mask used to create subnet. A subnet mask of 22 will allocate a
-	 * subnet with 1024 address. Note: The subnet mask will be the suffix of each
+	 * The subnet mask used to create subnet. A subnet mask of 21 will allocate a
+	 * subnet with 2,048 address. Note: The subnet mask will be the suffix of each
 	 * subnet CIDR.
 	 */
-	public static final int VPC_SUBNET_NETWORK_MASK = 22;
+	public static final int VPC_SUBNET_NETWORK_MASK = 21;
 
 	/*
 	 * The network mask used to create color group. A mask of 20 will allocate a
@@ -80,7 +83,7 @@ public class Constants {
 	public static final String VPC_CIDR_SUFFIX = ".0.0/16";
 
 	// context keys
-	public static final String SUBNET_GROUPS = "subnetGroups";
+	public static final String SUBNETS = "subnets";
 	public static final String VPC_CIDR = "vpcCidr";
 	public static final String VPC_SUBNET_COLOR = "subnetGroupColor";
 	public static final String STACK = "stack";
@@ -114,4 +117,16 @@ public class Constants {
 		return builder.toString();
 	}
 
+	/**
+	 * Create the prefix used for all of the VPC stack exports;
+	 * 
+	 * @return
+	 */
+	public static String createVpcExportPrefix(String stack) {
+		StringJoiner joiner = new StringJoiner("-");
+		joiner.add("us-east-1-synapse");
+		joiner.add(stack);
+		joiner.add("vpc");
+		return joiner.toString();
+	}
 }

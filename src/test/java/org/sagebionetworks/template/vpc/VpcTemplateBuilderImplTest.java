@@ -17,7 +17,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_PEERING_AC
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_PREFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_VPN_CIDR;
 import static org.sagebionetworks.template.Constants.STACK;
-import static org.sagebionetworks.template.Constants.SUBNET_GROUPS;
+import static org.sagebionetworks.template.Constants.*;
 import static org.sagebionetworks.template.Constants.VPC_CIDR;
 
 import org.apache.logging.log4j.Logger;
@@ -104,6 +104,7 @@ public class VpcTemplateBuilderImplTest {
 		assertEquals("synapse-dev-vpc", request.getStackName());
 		assertNotNull(request.getParameters());
 		JSONObject templateJson = new JSONObject(request.getTemplateBody());
+		System.out.println(templateJson.toString(JSON_INDENT));
 		
 		JSONObject resouces = templateJson.getJSONObject("Resources");
 		assertNotNull(resouces);
@@ -113,45 +114,17 @@ public class VpcTemplateBuilderImplTest {
 		assertTrue(resouces.has("InternetGatewayAttachment"));
 		assertTrue(resouces.has("VpnSecurityGroup"));
 		// color subnets
-		// Red ACL
-		assertTrue(resouces.has("RedPublicNetworkAcl"));
-		assertTrue(resouces.has("RedInboundPublicNetworkAclEntry"));
-		assertTrue(resouces.has("RedOutboundPublicNetworkAclEntry"));
-		assertTrue(resouces.has("RedPrivateNetworkAcl"));
-		assertTrue(resouces.has("RedInboundPrivateSameGroupNetworkAclEntry"));
-		assertTrue(resouces.has("RedInboundPrivateVpnNetworkAclEntry"));
-		assertTrue(resouces.has("RedOutboundPrivateNetworkAclEntry"));
 		// Red subnets
-		assertTrue(resouces.has("RedPublicUsEast1aSubnet"));
-		assertTrue(resouces.has("RedPublicUsEast1bSubnet"));
-		assertTrue(resouces.has("RedPrivateUsEast1aSubnet"));
-		assertTrue(resouces.has("RedPrivateUsEast1bSubnet"));
-		assertTrue(resouces.has("RedPublicUsEast1aSubnetRouteTableAssociation"));
-		assertTrue(resouces.has("RedPublicUsEast1bSubnetRouteTableAssociation"));
-		assertTrue(resouces.has("RedPublicUsEast1aSubnetNetworkAclAssociation"));
-		assertTrue(resouces.has("RedPublicUsEast1bSubnetNetworkAclAssociation"));
-		assertTrue(resouces.has("RedPrivateUsEast1aSubnetRouteTableAssociation"));
-		assertTrue(resouces.has("RedPrivateUsEast1bSubnetRouteTableAssociation"));
+		assertTrue(resouces.has("RedPrivateUsEast1a"));
+		assertTrue(resouces.has("RedPrivateUsEast1b"));
+		assertTrue(resouces.has("RedPrivateUsEast1aRouteTableAssociation"));
+		assertTrue(resouces.has("RedPrivateUsEast1bRouteTableAssociation"));
 		// Green
-		// Green ACL
-		assertTrue(resouces.has("GreenPublicNetworkAcl"));
-		assertTrue(resouces.has("GreenInboundPublicNetworkAclEntry"));
-		assertTrue(resouces.has("GreenOutboundPublicNetworkAclEntry"));
-		assertTrue(resouces.has("GreenPrivateNetworkAcl"));
-		assertTrue(resouces.has("GreenInboundPrivateSameGroupNetworkAclEntry"));
-		assertTrue(resouces.has("GreenInboundPrivateVpnNetworkAclEntry"));
-		assertTrue(resouces.has("GreenOutboundPrivateNetworkAclEntry"));
 		// Green subnets
-		assertTrue(resouces.has("GreenPublicUsEast1aSubnet"));
-		assertTrue(resouces.has("GreenPublicUsEast1bSubnet"));
-		assertTrue(resouces.has("GreenPrivateUsEast1aSubnet"));
-		assertTrue(resouces.has("GreenPrivateUsEast1bSubnet"));
-		assertTrue(resouces.has("GreenPublicUsEast1aSubnetRouteTableAssociation"));
-		assertTrue(resouces.has("GreenPublicUsEast1bSubnetRouteTableAssociation"));
-		assertTrue(resouces.has("GreenPublicUsEast1aSubnetNetworkAclAssociation"));
-		assertTrue(resouces.has("GreenPublicUsEast1bSubnetNetworkAclAssociation"));
-		assertTrue(resouces.has("GreenPrivateUsEast1aSubnetRouteTableAssociation"));
-		assertTrue(resouces.has("GreenPrivateUsEast1bSubnetRouteTableAssociation"));
+		assertTrue(resouces.has("GreenPrivateUsEast1a"));
+		assertTrue(resouces.has("GreenPrivateUsEast1b"));
+		assertTrue(resouces.has("GreenPrivateUsEast1aRouteTableAssociation"));
+		assertTrue(resouces.has("GreenPrivateUsEast1bRouteTableAssociation"));
 	}
 	
 	@Test
@@ -184,10 +157,14 @@ public class VpcTemplateBuilderImplTest {
 		// call under test
 		VelocityContext context = builder.createContext();
 		assertNotNull(context);
-		SubnetGroup[] subnets = (SubnetGroup[]) context.get(SUBNET_GROUPS);
-		assertEquals(2, subnets.length);
-		assertEquals("Red", subnets[0].getColor());
-		assertEquals("Green", subnets[1].getColor());
+		Subnets subnets = (Subnets) context.get(SUBNETS);
+		assertEquals(2, subnets.getPublicSubnets().length);
+		assertEquals("PublicUsEast1a", subnets.getPublicSubnets()[0].getName());
+		assertEquals("PublicUsEast1b", subnets.getPublicSubnets()[1].getName());
+		
+		assertEquals(2, subnets.getPrivateSubnetGroups().length);
+		assertEquals("Red", subnets.getPrivateSubnetGroups()[0].getColor());
+		assertEquals("Green", subnets.getPrivateSubnetGroups()[1].getColor());
 		
 		assertEquals("10.21.0.0/16", context.get(VPC_CIDR));
 		assertEquals("dev", context.get(STACK));
