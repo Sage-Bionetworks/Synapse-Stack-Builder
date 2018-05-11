@@ -32,7 +32,7 @@ import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.SHARED_RESOUCES_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
+import static org.sagebionetworks.template.Constants.*;
 
 import java.util.List;
 
@@ -128,6 +128,9 @@ public class RepositoryTemplateBuilderImplTest {
 					.thenReturn("url-" + type.getShortName());
 			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MIN_INSTANCES + type.getShortName())).thenReturn(1);
 			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MAX_INSTANCES + type.getShortName())).thenReturn(2);
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN+ type.getShortName())).thenReturn("the:ssl:arn");
+			when(config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE_SUFFIX+ type.getShortName())).thenReturn("synapes.org");
+			
 			SourceBundle bundle = new SourceBundle("bucket", "key-" + type.getShortName());
 			when(mockArtifactCopy.copyArtifactIfNeeded(type, version)).thenReturn(bundle);
 		}
@@ -287,6 +290,9 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(bundle);
 		assertEquals("bucket", bundle.getBucket());
 		assertEquals("key-repo", bundle.getKey());
+		assertEquals("dev.synapes.org", desc.getHostedZone());
+		assertEquals("repo-dev-101-0-dev-synapes-org", desc.getCnamePrefix());
+		assertEquals("the:ssl:arn", desc.getSslCertificateARN());
 
 		// workers
 		desc = descriptors[1];

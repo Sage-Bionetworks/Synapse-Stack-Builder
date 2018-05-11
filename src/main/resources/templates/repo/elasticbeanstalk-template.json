@@ -1,5 +1,6 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Creates all of the Elastic Beanstalk resouces to deploy ${environment.name}",
 	"Parameters": {
 		"AwsKey": {
 			"Description": "Depricated. Will be removed",
@@ -169,11 +170,6 @@
 						"Value": "false"
 					},
 					{
-						"Namespace": "aws:elasticbeanstalk:environment:process:default",
-						"OptionName": "HealthCheckPath",
-						"Value": "${environment.healthCheckUrl}"
-					},
-					{
 						"Namespace": "aws:elasticbeanstalk:environment",
 						"OptionName": "EnvironmentType",
 						"Value": "LoadBalanced"
@@ -182,6 +178,11 @@
 						"Namespace": "aws:elasticbeanstalk:environment",
 						"OptionName": "LoadBalancerType",
 						"Value": "classic"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application",
+						"OptionName": "Application Healthcheck URL",
+						"Value": "${environment.healthCheckUrl}"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:sns:topics",
@@ -221,6 +222,31 @@
 						"Value": {
 							"Fn::ImportValue": "${sharedExportPrefix}-Load-Balancer-Security-Group-ID"
 						}
+					},
+					{
+						"Namespace": "aws:elb:listener:443",
+						"OptionName": "ListenerProtocol",
+						"Value": "HTTPS"
+					},
+					{
+						"Namespace": "aws:elb:listener:443",
+						"OptionName": "InstancePort",
+						"Value": "80"
+					},
+					{
+						"Namespace": "aws:elb:listener:443",
+						"OptionName": "InstanceProtocol",
+						"Value": "HTTP"
+					},
+					{
+						"Namespace": "aws:elb:listener:443",
+						"OptionName": "SSLCertificateId",
+						"Value": "${environment.sslCertificateARN}"
+					},
+					{
+						"Namespace": "aws:elb:listener:443",
+						"OptionName": "ListenerEnabled",
+						"Value": "true"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:container:tomcat:jvmoptions",
@@ -277,7 +303,7 @@
 				"ApplicationName": {
 					"Fn::ImportValue": "${sharedExportPrefix}-Beanstalk-Application-Name"
 				},
-				"CNAMEPrefix": "${environment.name}-sagebase-org",
+				"CNAMEPrefix": "${environment.cnamePrefix}",
 				"Description": "Environment for ${environment.name}",
 				"EnvironmentName": "${environment.name}",
 				"TemplateName": {
@@ -286,6 +312,18 @@
 				"VersionLabel": {
 					"Ref": "${environment.refName}Version"
 				}
+			}
+		},
+		"${environment.refName}CNAME": {
+			"Type": "AWS::Route53::RecordSet",
+			"Properties": {
+				"HostedZoneName": "${environment.hostedZone}.",
+				"Name": "${environment.name}.${environment.hostedZone}.",
+				"ResourceRecords": [
+					"${environment.cnamePrefix}.us-east-1.elasticbeanstalk.com"
+				],
+				"TTL": "300",
+				"Type": "CNAME"
 			}
 		}
 	}

@@ -15,6 +15,9 @@ public class EnvironmentDescriptor {
 	int minInstances;
 	int maxInstances;
 	String versionLabel;
+	String sslCertificateARN;
+	String hostedZone;
+	String cnamePrefix;
 
 	public String getVersionLabel() {
 		return versionLabel;
@@ -50,6 +53,33 @@ public class EnvironmentDescriptor {
 
 	public SourceBundle getSourceBundle() {
 		return sourceBundle;
+	}
+
+	public String getSslCertificateARN() {
+		return sslCertificateARN;
+	}
+
+	public String getHostedZone() {
+		return hostedZone;
+	}
+
+	public String getCnamePrefix() {
+		return cnamePrefix;
+	}
+	
+	public EnvironmentDescriptor withHostedZone(String hostedZone) {
+		this.hostedZone = hostedZone;
+		return this;
+	}
+	
+	public EnvironmentDescriptor withSslCertificateARN(String sslCertificateARN) {
+		this.sslCertificateARN = sslCertificateARN;
+		return this;
+	}
+
+	public EnvironmentDescriptor withCnamePrefix(String cnamePrefix) {
+		this.cnamePrefix = cnamePrefix;
+		return this;
 	}
 
 	public EnvironmentDescriptor withVersionLabel(String versionLabel) {

@@ -17,12 +17,14 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_HEAL
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MAX_INSTANCES;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MIN_INSTANCES;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_NUMBER;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERSION;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_MYSQL_PASSWORD;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MULTI_AZ;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ROUTE_53_HOSTED_ZONE_SUFFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_INSTANCE_COUNT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE;
@@ -245,12 +247,19 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 			String healthCheckUrl = config.getProperty(PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL + type.getShortName());
 			int minInstances = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MIN_INSTANCES + type.getShortName());
 			int maxInstances = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MAX_INSTANCES + type.getShortName());
+			String sslCertificateARN = config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN+type.getShortName());
+			String hostedZone = stack+"."+config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE_SUFFIX+type.getShortName());
+			String cnamePrefix = name+"-"+hostedZone.replaceAll("\\.", "-");
+			
 			// Copy the version from artifactory to S3.
 			SourceBundle bundle = artifactCopy.copyArtifactIfNeeded(type, version);
 			environments[i] = new EnvironmentDescriptor().withName(name).withRefName(refName).withNumber(number)
 					.withHealthCheckUrl(healthCheckUrl).withSourceBundle(bundle).withType(type)
 					.withMinInstances(minInstances).withMaxInstances(maxInstances)
-					.withVersionLabel(version);
+					.withVersionLabel(version)
+					.withSslCertificateARN(sslCertificateARN)
+					.withHostedZone(hostedZone)
+					.withCnamePrefix(cnamePrefix);
 		}
 		return environments;
 	}
