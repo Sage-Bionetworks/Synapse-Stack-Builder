@@ -57,6 +57,8 @@ public class Constants {
 	public static final String PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL = "org.sagebionetworks.beanstalk.health.check.url.";
 	public static final String PROPERTY_KEY_BEANSTALK_VERSION = "org.sagebionetworks.beanstalk.version.";
 	public static final String PROPERTY_KEY_BEANSTALK_NUMBER = "org.sagebionetworks.beanstalk.number.";
+	public static final String PROPERTY_KEY_BEANSTALK_SSL_ARN = "org.sagebionetworks.beanstalk.ssl.arn.";
+	public static final String PROPERTY_KEY_ROUTE_53_HOSTED_ZONE_SUFFIX = "org.sagebionetworks.route.53.hosted.zone.suffix.";
 
 	// templates
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";

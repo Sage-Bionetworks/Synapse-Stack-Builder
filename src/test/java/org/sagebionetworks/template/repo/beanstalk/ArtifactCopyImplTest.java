@@ -6,16 +6,18 @@ import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.io.File;
 
+import org.apache.logging.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sagebionetworks.template.Configuration;
+import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopyImpl;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactDownload;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
@@ -35,6 +37,10 @@ public class ArtifactCopyImplTest {
 	ArtifactDownload mockDownloader;
 	@Mock
 	File mockFile;
+	@Mock
+	LoggerFactory mockLoggerFactory;
+	@Mock
+	Logger mockLogger;
 	
 	ArtifactCopyImpl copier;
 	
@@ -48,6 +54,7 @@ public class ArtifactCopyImplTest {
 	@Before
 	public void before() {
 		
+		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 		when(mockDownloader.downloadFile(any(String.class))).thenReturn(mockFile);
 		
 		environment = EnvironmentType.REPOSITORY_WORKERS;
@@ -58,7 +65,7 @@ public class ArtifactCopyImplTest {
 		s3Key = environment.createS3Key(version);
 		artifactoryUrl = environment.createArtifactoryUrl(version);
 		
-		copier = new ArtifactCopyImpl(mockS3Client, mockPropertyProvider, mockDownloader);
+		copier = new ArtifactCopyImpl(mockS3Client, mockPropertyProvider, mockDownloader, mockLoggerFactory);
 	}
 	
 	@Test
@@ -75,6 +82,7 @@ public class ArtifactCopyImplTest {
 		verify(mockS3Client).doesObjectExist(bucket, s3Key);
 		verify(mockDownloader).downloadFile(artifactoryUrl);
 		verify(mockS3Client).putObject(bucket, s3Key, mockFile);
+		verify(mockLogger, times(2)).info(any(String.class));
 		// the temp file should get deleted.
 		verify(mockFile).delete();
 	}
@@ -113,5 +121,6 @@ public class ArtifactCopyImplTest {
 		verify(mockDownloader, never()).downloadFile(artifactoryUrl);
 		verify(mockS3Client, never()).putObject(bucket, s3Key, mockFile);
 		verify(mockFile, never()).delete();
+		verify(mockLogger, never()).info(any(String.class));
 	}
 }
