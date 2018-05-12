@@ -57,6 +57,18 @@
 						"Value": "${environment.maxInstances}"
 					},
 					{
+						"Namespace": "aws:autoscaling:asg",
+						"OptionName": "Availability Zones",
+						"Value": "Any 2"
+					},
+					{
+						"Namespace": "aws:autoscaling:asg",
+						"OptionName": "Custom Availability Zones",
+						"Value": {
+							"Fn::ImportValue": "${vpcExportPrefix}-AvailabilityZones"
+						}
+					},
+					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
 						"OptionName": "EC2KeyName",
 						"Value": "${stack}-key-pair"
