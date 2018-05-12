@@ -129,7 +129,7 @@ public class RepositoryTemplateBuilderImplTest {
 			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MIN_INSTANCES + type.getShortName())).thenReturn(1);
 			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MAX_INSTANCES + type.getShortName())).thenReturn(2);
 			when(config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN+ type.getShortName())).thenReturn("the:ssl:arn");
-			when(config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE_SUFFIX+ type.getShortName())).thenReturn("synapes.org");
+			when(config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE+ type.getShortName())).thenReturn("synapes.org");
 			
 			SourceBundle bundle = new SourceBundle("bucket", "key-" + type.getShortName());
 			when(mockArtifactCopy.copyArtifactIfNeeded(type, version)).thenReturn(bundle);
@@ -290,8 +290,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(bundle);
 		assertEquals("bucket", bundle.getBucket());
 		assertEquals("key-repo", bundle.getKey());
-		assertEquals("dev.synapes.org", desc.getHostedZone());
-		assertEquals("repo-dev-101-0-dev-synapes-org", desc.getCnamePrefix());
+		assertEquals("synapes.org", desc.getHostedZone());
+		assertEquals("repo-dev-101-0-synapes-org", desc.getCnamePrefix());
 		assertEquals("the:ssl:arn", desc.getSslCertificateARN());
 
 		// workers

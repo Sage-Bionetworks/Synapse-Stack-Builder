@@ -39,7 +39,7 @@
 					"Fn::ImportValue": "${sharedExportPrefix}-Beanstalk-Application-Name"
 				},
 				"Description": "ConfigurationTemplate for ${environment.name}",
-				"SolutionStackName": "64bit Amazon Linux 2017.09 v2.7.7 running Tomcat 8 Java 8",
+				"SolutionStackName": "64bit Amazon Linux 2018.03 v2.8.0 running Tomcat 8 Java 8",
 				"OptionSettings": [
 					{
 						"Namespace": "aws:autoscaling:asg",

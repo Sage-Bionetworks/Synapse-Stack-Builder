@@ -41,7 +41,6 @@ public class Constants {
 	public static final String PROPERTY_KEY_STACK = "org.sagebionetworks.stack";
 	public static final String PROPERTY_KEY_INSTANCE = "org.sagebionetworks.instance";
 	public static final String PROPERTY_KEY_VPC_SUBNET_COLOR = "org.sagebionetworks.vpc.subnet.color";
-	public static final String PROPERTY_KEY_REPO_BEANSTALK_NUMBER = "org.sagebionetworks.repo.beanstalk.number";
 	public static final String PROPERTY_KEY_MYSQL_PASSWORD = "org.sagebionetworks.mysql.password";
 	public static final String PROPERTY_KEY_REPO_RDS_MULTI_AZ = "org.sagebionetworks.repo.rds.multi.az";
 	public static final String PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS = "org.sagebionetworks.repo.rds.instance.class";
@@ -58,7 +57,7 @@ public class Constants {
 	public static final String PROPERTY_KEY_BEANSTALK_VERSION = "org.sagebionetworks.beanstalk.version.";
 	public static final String PROPERTY_KEY_BEANSTALK_NUMBER = "org.sagebionetworks.beanstalk.number.";
 	public static final String PROPERTY_KEY_BEANSTALK_SSL_ARN = "org.sagebionetworks.beanstalk.ssl.arn.";
-	public static final String PROPERTY_KEY_ROUTE_53_HOSTED_ZONE_SUFFIX = "org.sagebionetworks.route.53.hosted.zone.suffix.";
+	public static final String PROPERTY_KEY_ROUTE_53_HOSTED_ZONE = "org.sagebionetworks.route.53.hosted.zone.";
 
 	// templates
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
