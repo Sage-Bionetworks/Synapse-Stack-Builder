@@ -214,7 +214,7 @@
 					{
 						"Namespace": "aws:elb:loadbalancer",
 						"OptionName": "CrossZone",
-						"Value": "true"
+						"Value": "false"
 					},
 					{
 						"Namespace": "aws:elb:loadbalancer",
