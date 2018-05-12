@@ -64,7 +64,9 @@
 					{
 						"Namespace": "aws:autoscaling:asg",
 						"OptionName": "Custom Availability Zones",
-						"Value": "us-east-1a, us-east-1b"
+						"Value": {
+							"Fn::ImportValue": "${vpcExportPrefix}-AvailabilityZones"
+						}
 					},
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
