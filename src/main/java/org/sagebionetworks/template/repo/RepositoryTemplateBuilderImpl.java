@@ -24,7 +24,6 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_MYSQL_PASSWORD
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MULTI_AZ;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ROUTE_53_HOSTED_ZONE_SUFFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_INSTANCE_COUNT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE;
@@ -36,7 +35,7 @@ import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.TEMPALTE_BEAN_STALK_ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
+import static org.sagebionetworks.template.Constants.*;
 
 import java.io.StringWriter;
 import java.util.StringJoiner;
@@ -248,7 +247,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 			int minInstances = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MIN_INSTANCES + type.getShortName());
 			int maxInstances = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MAX_INSTANCES + type.getShortName());
 			String sslCertificateARN = config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN+type.getShortName());
-			String hostedZone = stack+"."+config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE_SUFFIX+type.getShortName());
+			String hostedZone = config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE+type.getShortName());
 			String cnamePrefix = name+"-"+hostedZone.replaceAll("\\.", "-");
 			
 			// Copy the version from artifactory to S3.
