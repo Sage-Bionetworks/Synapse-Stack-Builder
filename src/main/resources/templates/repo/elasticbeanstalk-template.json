@@ -57,11 +57,6 @@
 						"Value": "${environment.maxInstances}"
 					},
 					{
-						"Namespace": "aws:autoscaling:asg",
-						"OptionName": "Availability Zones",
-						"Value": "Any 2"
-					},
-					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
 						"OptionName": "EC2KeyName",
 						"Value": "${stack}-key-pair"
@@ -219,7 +214,7 @@
 					{
 						"Namespace": "aws:elb:loadbalancer",
 						"OptionName": "CrossZone",
-						"Value": "false"
+						"Value": "true"
 					},
 					{
 						"Namespace": "aws:elb:loadbalancer",
