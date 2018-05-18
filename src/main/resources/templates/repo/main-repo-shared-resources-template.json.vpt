@@ -342,7 +342,81 @@
 					}
 				]
             }
-        }
+        },
+        "${stack}${instance}SynapesServiceRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Principal": {
+								"Service": [
+									"ec2.amazonaws.com"
+								]
+							},
+							"Action": [
+								"sts:AssumeRole"
+							]
+						}
+					]
+				},
+				"Path": "/",
+				"Policies": [
+					{
+						"PolicyName": "${stack}${instance}SynapesService",
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [
+								{
+									"Action": "s3:*",
+									"Effect": "Allow",
+									"Resource": "*"
+								},
+								{
+									"Action": "sns:*",
+									"Effect": "Allow",
+									"Resource": "*"
+								},
+								{
+									"Action": "sqs:*",
+									"Effect": "Allow",
+									"Resource": "*"
+								},
+								{
+									"Action": "cloudwatch:*",
+									"Effect": "Allow",
+									"Resource": "*"
+								},
+								{
+									"Action": "cloudsearch:*",
+									"Effect": "Allow",
+									"Resource": "*"
+								},
+								{
+									"Action": "ses:*",
+									"Effect": "Allow",
+									"Resource": "*"
+								}
+							]
+						}
+					}
+				]
+			}
+		},
+		"${stack}${instance}SynapesServiceRoleInstanceProfile": {
+			"Type": "AWS::IAM::InstanceProfile",
+			"Properties": {
+				"InstanceProfileName" : "${stack}${instance}SynapesServiceInstanceProfile",
+				"Path": "/",
+				"Roles": [
+					{
+						"Ref": "${stack}${instance}SynapesServiceRole"
+					}
+				]
+			}
+		}
 	},
 	"Outputs": {
 		"BeanstalkApplicationId": {

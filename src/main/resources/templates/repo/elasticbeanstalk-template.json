@@ -64,7 +64,7 @@
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
 						"OptionName": "IamInstanceProfile",
-						"Value": "${stack}-s3-log-rolling"
+						"Value": "${stack}${instance}SynapesServiceInstanceProfile"
 					},
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
