@@ -2,16 +2,6 @@
 	"AWSTemplateFormatVersion": "2010-09-09",
 	"Description": "Creates all of the Elastic Beanstalk resouces to deploy ${environment.name}",
 	"Parameters": {
-		"AwsKey": {
-			"Description": "Depricated. Will be removed",
-			"Type": "String",
-			"NoEcho": true
-		},
-		"AwsSecret": {
-			"Description": "Depricated. Will be removed",
-			"Type": "String",
-			"NoEcho": true
-		},
 		"EncryptionKey": {
 			"Description": "Depricated. Will be removed",
 			"Type": "String",
@@ -64,7 +54,7 @@
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
 						"OptionName": "IamInstanceProfile",
-						"Value": "${stack}${instance}SynapesServiceInstanceProfile"
+						"Value": "${stack}${instance}${environment.instanceProfileSuffix}"
 					},
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
@@ -260,20 +250,6 @@
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
-						"OptionName": "AWS_ACCESS_KEY_ID",
-						"Value": {
-							"Ref": "AwsKey"
-						}
-					},
-					{
-						"Namespace": "aws:elasticbeanstalk:application:environment",
-						"OptionName": "AWS_SECRET_KEY",
-						"Value": {
-							"Ref": "AwsSecret"
-						}
-					},
-					{
-						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "PARAM1",
 						"Value": "${configurationUrl}"
 					},
@@ -293,6 +269,11 @@
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "PARAM4",
 						"Value": "${instance}"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "PARAM5",
+						"Value": "${repoBeanstalkNumber}"
 					}
 				]
 			}

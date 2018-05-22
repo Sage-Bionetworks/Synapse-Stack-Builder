@@ -338,15 +338,8 @@ public class RepositoryTemplateBuilderImplTest {
 	public void testCreateEnvironmentParameters() {
 		Parameter[] params = builder.createEnvironmentParameters();
 		assertNotNull(params);
-		assertEquals(3, params.length);
-
+		assertEquals(1, params.length);
 		Parameter param = params[0];
-		assertEquals("AwsKey", param.getParameterKey());
-		assertEquals("aws-key", param.getParameterValue());
-		param = params[1];
-		assertEquals("AwsSecret", param.getParameterKey());
-		assertEquals("aws-secret", param.getParameterValue());
-		param = params[2];
 		assertEquals("EncryptionKey", param.getParameterKey());
 		assertEquals("encryption-key", param.getParameterValue());
 	}

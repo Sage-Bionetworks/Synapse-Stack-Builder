@@ -343,7 +343,7 @@
 				]
             }
         },
-        "${stack}${instance}SynapesServiceRole": {
+        "${stack}${instance}SynapesRepoWorkersServiceRole": {
 			"Type": "AWS::IAM::Role",
 			"Properties": {
 				"AssumeRolePolicyDocument": {
@@ -365,7 +365,7 @@
 				"Path": "/",
 				"Policies": [
 					{
-						"PolicyName": "${stack}${instance}SynapesService",
+						"PolicyName" : "${stack}${instance}SynapesRepoWorkersService",
 						"PolicyDocument": {
 							"Version": "2012-10-17",
 							"Statement": [
@@ -405,14 +405,63 @@
 				]
 			}
 		},
-		"${stack}${instance}SynapesServiceRoleInstanceProfile": {
+		"${stack}${instance}SynapesRepoWorkersInstanceProfile": {
 			"Type": "AWS::IAM::InstanceProfile",
 			"Properties": {
-				"InstanceProfileName" : "${stack}${instance}SynapesServiceInstanceProfile",
+				"InstanceProfileName" : "${stack}${instance}SynapesRepoWorkersInstanceProfile",
 				"Path": "/",
 				"Roles": [
 					{
-						"Ref": "${stack}${instance}SynapesServiceRole"
+						"Ref": "${stack}${instance}SynapesRepoWorkersServiceRole"
+					}
+				]
+			}
+		},
+		"${stack}${instance}SynapesPortalServiceRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Principal": {
+								"Service": [
+									"ec2.amazonaws.com"
+								]
+							},
+							"Action": [
+								"sts:AssumeRole"
+							]
+						}
+					]
+				},
+				"Path": "/",
+				"Policies": [
+					{
+						"PolicyName" : "${stack}${instance}SynapesPortalService",
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [
+								{
+									"Action": "s3:*",
+									"Effect": "Allow",
+									"Resource": "*"
+								}
+							]
+						}
+					}
+				]
+			}
+		},
+		"${stack}${instance}SynapesPortalInstanceProfile": {
+			"Type": "AWS::IAM::InstanceProfile",
+			"Properties": {
+				"InstanceProfileName" : "${stack}${instance}SynapesPortalInstanceProfile",
+				"Path": "/",
+				"Roles": [
+					{
+						"Ref": "${stack}${instance}SynapesPortalServiceRole"
 					}
 				]
 			}

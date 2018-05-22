@@ -100,6 +100,9 @@ public class Constants {
 	public static final String REPO_NUMBER = "repoNumber";
 	public static final String DB_ENDPOINT_SUFFIX = "dbEndpointSuffix";
 	public static final String CONFIGURATION_URL = "configurationUrl";
+	public static final String REPO_BEANSTALK_NUMBER = "repoBeanstalkNumber";
+	
+	public static final String CAPABILITY_NAMED_IAM = "CAPABILITY_NAMED_IAM";
 
 	/**
 	 * Create a camel case name from dash-separated-name. Given 'foo-bar' will
