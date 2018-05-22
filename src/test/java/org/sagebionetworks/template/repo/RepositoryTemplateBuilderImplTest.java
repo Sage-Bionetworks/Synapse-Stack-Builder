@@ -293,6 +293,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("synapes.org", desc.getHostedZone());
 		assertEquals("repo-dev-101-0-synapes-org", desc.getCnamePrefix());
 		assertEquals("the:ssl:arn", desc.getSslCertificateARN());
+		assertEquals("SynapesRepoWorkersInstanceProfile", desc.getInstanceProfileSuffix());
 
 		// workers
 		desc = descriptors[1];
@@ -306,6 +307,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(bundle);
 		assertEquals("bucket", bundle.getBucket());
 		assertEquals("key-workers", bundle.getKey());
+		assertEquals("SynapesRepoWorkersInstanceProfile", desc.getInstanceProfileSuffix());
 
 		// portal
 		desc = descriptors[2];
@@ -319,6 +321,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(bundle);
 		assertEquals("bucket", bundle.getBucket());
 		assertEquals("key-portal", bundle.getKey());
+		assertEquals("SynapesPortalInstanceProfile", desc.getInstanceProfileSuffix());
 	}
 
 	@Test
@@ -332,6 +335,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("us-east-1-synapse-dev-vpc", context.get(VPC_EXPORT_PREFIX));
 		assertEquals("us-east-1-dev-101-shared-resources", context.get(SHARED_EXPORT_PREFIX));
 		assertEquals("http://amazon.com/bucket/key", context.get(CONFIGURATION_URL));
+		assertEquals(0, context.get(REPO_BEANSTALK_NUMBER));
 	}
 
 	@Test

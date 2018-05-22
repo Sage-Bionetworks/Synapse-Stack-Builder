@@ -14,6 +14,7 @@ import static org.mockito.Mockito.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
+import java.util.List;
 import java.util.function.Function;
 
 import org.apache.logging.log4j.Logger;
@@ -84,6 +85,8 @@ public class CloudFormationClientImplTest {
 	Stack stack;
 	
 	String bucket;
+	
+	String[] capabilities;
 
 	@Before
 	public void before() throws MalformedURLException {
@@ -99,7 +102,8 @@ public class CloudFormationClientImplTest {
 
 		createResult = new CreateStackResult().withStackId(stackId);
 		
-
+		capabilities = new String[] {"capOne", "capTwo"};
+		
 		stackName = "someStackName";
 		tempalteBody = "body";
 		parameter = new Parameter().withParameterKey("paramKey").withParameterValue("paramValue");
@@ -107,7 +111,8 @@ public class CloudFormationClientImplTest {
 		inputReqequest = new CreateOrUpdateStackRequest()
 				.withStackName(stackName)
 				.withTemplateBody(tempalteBody)
-				.withParameters(parameters);
+				.withParameters(parameters)
+				.withCapabilities(capabilities);
 		
 		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(describeResult);
 		when(mockCloudFormationClient.createStack(any(CreateStackRequest.class))).thenReturn(createResult);
@@ -161,6 +166,11 @@ public class CloudFormationClientImplTest {
 		assertNotNull(captureRequest.getParameters());
 		assertEquals(1, captureRequest.getParameters().size());
 		assertEquals(parameter, captureRequest.getParameters().get(0));
+		List<String> caps = captureRequest.getCapabilities();
+		assertNotNull(caps);
+		assertEquals(capabilities.length, caps.size());
+		assertEquals(capabilities[0], caps.get(0));
+		assertEquals(capabilities[1], caps.get(1));
 	}
 	
 	@Test
@@ -174,6 +184,11 @@ public class CloudFormationClientImplTest {
 		assertNotNull(request.getParameters());
 		assertEquals(1, request.getParameters().size());
 		assertEquals(parameter, request.getParameters().get(0));
+		List<String> caps = request.getCapabilities();
+		assertNotNull(caps);
+		assertEquals(capabilities.length, caps.size());
+		assertEquals(capabilities[0], caps.get(0));
+		assertEquals(capabilities[1], caps.get(1));
 	}
 	
 	@Test
