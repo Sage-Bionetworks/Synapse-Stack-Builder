@@ -170,6 +170,11 @@
 						"Value": "classic"
 					},
 					{
+						"Namespace": "aws:elasticbeanstalk:hostmanager",
+						"OptionName": "LogPublicationControl",
+						"Value": "true"
+					},
+					{
 						"Namespace": "aws:elasticbeanstalk:application",
 						"OptionName": "Application Healthcheck URL",
 						"Value": "${environment.healthCheckUrl}"
