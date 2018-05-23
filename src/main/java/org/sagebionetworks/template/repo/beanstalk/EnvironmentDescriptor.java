@@ -42,6 +42,10 @@ public class EnvironmentDescriptor {
 	public String getType() {
 		return type.getShortName();
 	}
+	
+	public String getInstanceProfileSuffix() {
+		return type.getInstanceProfileSuffix();
+	}
 
 	public int getMinInstances() {
 		return minInstances;

@@ -13,6 +13,7 @@ public class CreateOrUpdateStackRequest {
 	String stackName;
 	String templateBody;
 	Parameter[] parameters;
+	String[] capabilities;
 
 	/**
 	 * The name of the stack to create/update.
@@ -72,6 +73,25 @@ public class CreateOrUpdateStackRequest {
 	public CreateOrUpdateStackRequest withParameters(Parameter... parameters) {
 		this.parameters = parameters;
 		return this;
+	}
+	
+	/**
+	 * Capabilities required to make IAM changes in cloud formation.
+	 * 
+	 * @param capabilities
+	 * @return
+	 */
+	public CreateOrUpdateStackRequest withCapabilities(String...capabilities) {
+		this.capabilities = capabilities;
+		return this;
+	}
+	
+	/**
+	 * Capabilities required to make IAM changes in cloud formation.
+	 * @return
+	 */
+	public String[] getCapabilities() {
+		return capabilities;
 	}
 
 	@Override

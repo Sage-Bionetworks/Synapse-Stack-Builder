@@ -6,12 +6,8 @@ import static org.sagebionetworks.template.Constants.DEFAULT_REPO_PROPERTIES;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
-import static org.sagebionetworks.template.Constants.PARAMETER_AWS_KEY;
-import static org.sagebionetworks.template.Constants.PARAMETER_AWS_SECRET;
 import static org.sagebionetworks.template.Constants.PARAMETER_ENCRYPTION_KEY;
 import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_AWS_ACCESS_KEY_ID;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_AWS_SECRET_KEY;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_ENCRYPTION_KEY;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MAX_INSTANCES;
@@ -24,11 +20,13 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_MYSQL_PASSWORD
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MULTI_AZ;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ROUTE_53_HOSTED_ZONE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_INSTANCE_COUNT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_COLOR;
+import static org.sagebionetworks.template.Constants.REPO_BEANSTALK_NUMBER;
 import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.SHARED_RESOUCES_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
@@ -120,15 +118,9 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 * @return
 	 */
 	Parameter[] createEnvironmentParameters() {
-		Parameter[] params = new Parameter[3];
-		// Deprecated - Will be removed after switching to roles.
-		params[0] = new Parameter().withParameterKey(PARAMETER_AWS_KEY)
-				.withParameterValue(config.getProperty(PROPERTY_KEY_AWS_ACCESS_KEY_ID));
-		// Deprecated - Will be removed after switching to roles.
-		params[1] = new Parameter().withParameterKey(PARAMETER_AWS_SECRET)
-				.withParameterValue(config.getProperty(PROPERTY_KEY_AWS_SECRET_KEY));
+		Parameter[] params = new Parameter[1];
 		// Deprecated - Will be removed after AWS secret manager.
-		params[2] = new Parameter().withParameterKey(PARAMETER_ENCRYPTION_KEY)
+		params[0] = new Parameter().withParameterKey(PARAMETER_ENCRYPTION_KEY)
 				.withParameterValue(config.getProperty(PROPERTY_KEY_BEANSTALK_ENCRYPTION_KEY));
 		return params;
 	}
@@ -146,6 +138,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		context.put(VPC_SUBNET_COLOR, config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR));
 		context.put(VPC_EXPORT_PREFIX, Constants.createVpcExportPrefix(stack));
 		context.put(SHARED_EXPORT_PREFIX, createSharedExportPrefix());
+		context.put(REPO_BEANSTALK_NUMBER, config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + EnvironmentType.REPOSITORY_SERVICES.getShortName()));
 		// Create and upload the configuration property file.
 		String configUrl = environConfig.createEnvironmentConfiguration(sharedStackResults);
 		context.put(CONFIGURATION_URL, configUrl);
@@ -173,7 +166,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.logger.info(resultJSON);
 		// create or update the template
 		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
-				.withTemplateBody(resultJSON).withParameters(parameters));
+				.withTemplateBody(resultJSON).withParameters(parameters).withCapabilities(CAPABILITY_NAMED_IAM));
 	}
 
 	/**
