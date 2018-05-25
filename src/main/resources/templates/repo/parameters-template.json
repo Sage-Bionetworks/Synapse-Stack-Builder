@@ -1,0 +1,24 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "The parameters used by ${stack}-${instance}.",
+	"Parameters": {
+		"EncryptionKey": {
+			"Description": "Depricated. Will be removed",
+			"Type": "String",
+			"NoEcho": true
+		}
+	},
+	"Resources": {
+		"paramterName": {
+			"Type": "AWS::SSM::Parameter",
+			"Properties": {
+				"Name": "",
+				"Description": "",
+				"Type": "String",
+				"Value": {
+					"Ref": "${environment.refName}Tempalte"
+				}
+			}
+		}
+	}
+}
