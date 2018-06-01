@@ -2,15 +2,13 @@
 	"AWSTemplateFormatVersion": "2010-09-09",
 	"Description": "Creates all of the Elastic Beanstalk resouces to deploy ${environment.name}",
 	"Parameters": {
-		#if ( $environment.isTypeRepositoryOrWorkers() )
-		#foreach( $secret in $secrets )
+		#foreach( $secret in $environment.secrets )
 		#if ($foreach.index > 0) , #end
 		"${secret.parameterName}": {
-			"Description": "Provides the encrypted value for ${secret.propertyKey}",
+			"Description": "Provides the encrypted value for the '${secret.propertyKey}' property",
 			"Type": "String",
 			"NoEcho": true
 		}
-		#end
 		#end
 	},
 	"Resources": {
@@ -260,11 +258,6 @@
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
-						"OptionName": "PARAM1",
-						"Value": "${configurationUrl}"
-					},
-					{
-						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "PARAM3",
 						"Value": "${stack}"
 					},
@@ -277,6 +270,13 @@
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "PARAM5",
 						"Value": "${repoBeanstalkNumber}"
+					}
+					#if ($environment.isTypeRepositoryOrWorkers())
+					,
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.stack.cmk.alias",
+						"Value": "${stackCMKAlias}"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
@@ -333,15 +333,14 @@
 						"OptionName": "org.sagebionetworks.ezid.doi.prefix",
 						"Value": "doi\\:10.7303/"
 					}
-					#if ( $environment.isTypeRepositoryOrWorkers() )
-					#foreach( $secret in $secrets )
+					#end
+					#foreach( $secret in $environment.secrets )
 					,
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "${secret.propertyKey}",
 						"Value": {"Ref": "${secret.parameterName}" }
 					}
-					#end
 					#end
 				]
 			}

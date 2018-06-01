@@ -1,5 +1,7 @@
 package org.sagebionetworks.template.repo.beanstalk;
 
+import com.amazonaws.services.cloudformation.model.Parameter;
+
 /**
  * Description of an Elastic Bean Stalk Environment.
  *
@@ -147,6 +149,34 @@ public class EnvironmentDescriptor {
 	 */
 	public boolean isTypeRepositoryOrWorkers() {
 		return EnvironmentType.REPOSITORY_SERVICES.equals(type) || EnvironmentType.REPOSITORY_WORKERS.equals(type);
+	}
+	
+	/**
+	 * Parameters passed to each Elastic Bean Stalk build.
+	 * @param environment 
+	 * 
+	 * @return
+	 */
+	public Parameter[] createEnvironmentParameters() {
+		// Create a parameter for each secret
+		Parameter[] params = new Parameter[secrets.length];
+		for(int i=0; i<secrets.length; i++) {
+			params[i] = createEnvironmentParameter(secrets[i]);
+		}
+		return params;
+	}
+	
+	/**
+	 * Create a parameter for the given secret.
+	 * 
+	 * @param secret
+	 * @return
+	 */
+	Parameter createEnvironmentParameter(Secret secret) {
+		Parameter parameter = new Parameter();
+		parameter.withParameterKey(secret.getParameterName());
+		parameter.withParameterValue(secret.getEncryptedValue());
+		return parameter;
 	}
 
 	@Override

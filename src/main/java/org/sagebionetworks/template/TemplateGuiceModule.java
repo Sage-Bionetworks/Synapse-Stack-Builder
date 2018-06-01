@@ -14,8 +14,6 @@ import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopyImpl;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactDownload;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactDownloadImpl;
-import org.sagebionetworks.template.repo.beanstalk.EnvironmentConfiguration;
-import org.sagebionetworks.template.repo.beanstalk.EnvironmentConfigurationImpl;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilderImpl;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilder;
@@ -50,7 +48,6 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(RepositoryTemplateBuilder.class).to(RepositoryTemplateBuilderImpl.class);
 		bind(ArtifactDownload.class).to(ArtifactDownloadImpl.class);
 		bind(ArtifactCopy.class).to(ArtifactCopyImpl.class);
-		bind(EnvironmentConfiguration.class).to(EnvironmentConfigurationImpl.class);
 		bind(FileProvider.class).to(FileProviderImpl.class);
 		bind(ThreadProvider.class).to(ThreadProviderImp.class);
 		bind(IdGeneratorBuilder.class).to(IdGeneratorBuilderImpl.class);

@@ -1,13 +1,13 @@
 package org.sagebionetworks.template.repo;
 
 import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
-import static org.sagebionetworks.template.Constants.CONFIGURATION_URL;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.DEFAULT_REPO_PROPERTIES;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
+import static org.sagebionetworks.template.Constants.OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MAX_INSTANCES;
@@ -48,13 +48,13 @@ import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
-import org.sagebionetworks.template.repo.beanstalk.EnvironmentConfiguration;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import org.sagebionetworks.template.repo.beanstalk.Secret;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 
+import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.google.inject.Inject;
@@ -66,13 +66,12 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	Configuration config;
 	Logger logger;
 	ArtifactCopy artifactCopy;
-	EnvironmentConfiguration environConfig;
 	SecretBuilder secretBuilder;
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
 			Configuration configuration, LoggerFactory loggerFactory, ArtifactCopy artifactCopy,
-			EnvironmentConfiguration environConfig, SecretBuilder secretBuilder) {
+			SecretBuilder secretBuilder) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.velocityEngine = velocityEngine;
@@ -80,7 +79,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.config.initializeWithDefaults(DEFAULT_REPO_PROPERTIES);
 		this.logger = loggerFactory.getLogger(RepositoryTemplateBuilderImpl.class);
 		this.artifactCopy = artifactCopy;
-		this.environConfig = environConfig;
 		this.secretBuilder = secretBuilder;
 	}
 
@@ -105,52 +103,17 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 * @param sharedStackResults
 	 */
 	public void buildEnvironments(Stack sharedStackResults) {
-		
 		// Create the repo/worker secrets
 		Secret[] secrets = secretBuilder.createSecrets();
-
 		// each environment is treated as its own stack.
 		EnvironmentDescriptor[] environements = createEnvironments(secrets);
 		for (EnvironmentDescriptor environment : environements) {
 			// Create the parameters and context for this type.
-			Parameter[] parameters = createEnvironmentParameters(environment);
+			Parameter[] parameters = environment.createEnvironmentParameters();
 			VelocityContext context = createEnvironmentContext(sharedStackResults, environment);
 			// build this type.
 			buildAndDeployStack(context, environment.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, parameters);
 		}
-	}
-
-	/**
-	 * Parameters passed to each Elastic Bean Stalk build.
-	 * @param environment 
-	 * 
-	 * @return
-	 */
-	Parameter[] createEnvironmentParameters(EnvironmentDescriptor environment) {
-		Secret[] secrets = environment.getSecrets();
-		// only have parameters if there are secrets
-		if(secrets == null) {
-			return new Parameter[0];
-		}
-		// Create a parameter for each secret
-		Parameter[] params = new Parameter[secrets.length];
-		for(int i=0; i<secrets.length; i++) {
-			params[i] = createEnvironmentParameter(secrets[i]);
-		}
-		return params;
-	}
-	
-	/**
-	 * Create a parameter for the given secret.
-	 * 
-	 * @param secret
-	 * @return
-	 */
-	Parameter createEnvironmentParameter(Secret secret) {
-		Parameter parameter = new Parameter();
-		parameter.withParameterKey(secret.getParameterName());
-		parameter.withParameterValue(secret.getEncryptedValue());
-		return parameter;
 	}
 	
 
@@ -170,12 +133,10 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		context.put(VPC_EXPORT_PREFIX, Constants.createVpcExportPrefix(stack));
 		context.put(SHARED_EXPORT_PREFIX, createSharedExportPrefix());
 		context.put(REPO_BEANSTALK_NUMBER, config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + EnvironmentType.REPOSITORY_SERVICES.getShortName()));
-		// Create and upload the configuration property file.
-		String configUrl = environConfig.createEnvironmentConfiguration(sharedStackResults);
-		context.put(CONFIGURATION_URL, configUrl);
 		// Extract the database suffix
-		context.put(DB_ENDPOINT_SUFFIX, environConfig.extractDatabaseSuffix(sharedStackResults));
+		context.put(DB_ENDPOINT_SUFFIX, extractDatabaseSuffix(sharedStackResults));
 		context.put(ENVIRONMENT, environment);
+		context.put(STACK_CMK_ALIAS, secretBuilder.getCMKAlias());
 		return context;
 	}
 
@@ -279,7 +240,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 			String cnamePrefix = name+"-"+hostedZone.replaceAll("\\.", "-");
 			
 			// Environment secrets
-			Secret[] environmentSecrets = null;
+			Secret[] environmentSecrets = new Secret[0];
 			if(EnvironmentType.REPOSITORY_SERVICES.equals(type) || EnvironmentType.REPOSITORY_WORKERS.equals(type)) {
 				// secrets are only passed to repo and workers
 				environmentSecrets = secrets;
@@ -334,6 +295,27 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		joiner.add("us-east-1");
 		joiner.add(createSharedResourcesStackName());
 		return joiner.toString();
+	}
+	
+	/**
+	 * Extract the database end point suffix from the shared resources output.
+	 * @param stack
+	 * @param instance
+	 * @param sharedResouces
+	 * @return
+	 */
+	String extractDatabaseSuffix(Stack sharedResouces) {
+		String stack = config.getProperty(PROPERTY_KEY_STACK);
+		String instance = config.getProperty(PROPERTY_KEY_INSTANCE);
+		String outputName = stack+instance+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
+		// find the database end point suffix
+		for(Output output: sharedResouces.getOutputs()) {
+			if(outputName.equals(output.getOutputKey())){
+				String[] split = output.getOutputValue().split(stack+"-"+instance+"-db.");
+				return split[1];
+			}
+		}
+		throw new RuntimeException("Failed to find shared resources output: "+outputName);
 	}
 
 }
