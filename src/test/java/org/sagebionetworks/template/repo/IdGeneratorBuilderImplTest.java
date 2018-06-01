@@ -7,7 +7,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_MYSQL_PASSWORD;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import org.apache.logging.log4j.Logger;
@@ -25,6 +24,7 @@ import org.sagebionetworks.template.Configuration;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.TemplateGuiceModule;
+import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 
 import com.amazonaws.services.cloudformation.model.Parameter;
 
@@ -39,6 +39,8 @@ public class IdGeneratorBuilderImplTest {
 	LoggerFactory mockLoggerFactory;
 	@Mock
 	Logger mockLogger;
+	@Mock
+	SecretBuilder mockSecretBuilder;
 
 	VelocityEngine velocityEngine;
 	IdGeneratorBuilderImpl builder;
@@ -54,9 +56,9 @@ public class IdGeneratorBuilderImplTest {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn("dev");
-		when(config.getProperty(PROPERTY_KEY_MYSQL_PASSWORD)).thenReturn("somePassword");
+		when(mockSecretBuilder.getIdGeneratorPassword()).thenReturn("somePassword");
 
-		builder = new IdGeneratorBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory);
+		builder = new IdGeneratorBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory, mockSecretBuilder);
 	}
 
 	@Test

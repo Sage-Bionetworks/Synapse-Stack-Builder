@@ -16,4 +16,12 @@ public interface EnvironmentConfiguration {
 	 * @return The URL of the resulting S3 file.
 	 */
 	String createEnvironmentConfiguration(Stack sharedStackResults);
+	
+	/**
+	 * Get the database suffix from the shared stack configuration.
+	 * 
+	 * @param sharedStackResults
+	 * @return
+	 */
+	String extractDatabaseSuffix(Stack sharedStackResults);
 }

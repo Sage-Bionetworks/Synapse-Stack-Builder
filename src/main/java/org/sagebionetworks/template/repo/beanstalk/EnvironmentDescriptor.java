@@ -18,6 +18,7 @@ public class EnvironmentDescriptor {
 	String sslCertificateARN;
 	String hostedZone;
 	String cnamePrefix;
+	Secret[] secrets;
 
 	public String getVersionLabel() {
 		return versionLabel;
@@ -129,6 +130,23 @@ public class EnvironmentDescriptor {
 	public EnvironmentDescriptor withHealthCheckUrl(String healthCheckUrl) {
 		this.healthCheckUrl = healthCheckUrl;
 		return this;
+	}
+	
+	public Secret[] getSecrets() {
+		return secrets;
+	}
+
+	public EnvironmentDescriptor withSecrets(Secret[] secrets) {
+		this.secrets = secrets;
+		return this;
+	}
+
+	/**
+	 * Is the type repository or workers?
+	 * @return
+	 */
+	public boolean isTypeRepositoryOrWorkers() {
+		return EnvironmentType.REPOSITORY_SERVICES.equals(type) || EnvironmentType.REPOSITORY_WORKERS.equals(type);
 	}
 
 	@Override

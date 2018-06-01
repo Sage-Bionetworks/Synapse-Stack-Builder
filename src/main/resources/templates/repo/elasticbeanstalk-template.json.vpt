@@ -2,11 +2,16 @@
 	"AWSTemplateFormatVersion": "2010-09-09",
 	"Description": "Creates all of the Elastic Beanstalk resouces to deploy ${environment.name}",
 	"Parameters": {
-		"EncryptionKey": {
-			"Description": "Depricated. Will be removed",
+		#if ( $environment.isTypeRepositoryOrWorkers() )
+		#foreach( $secret in $secrets )
+		#if ($foreach.index > 0) , #end
+		"${secret.parameterName}": {
+			"Description": "Provides the encrypted value for ${secret.propertyKey}",
 			"Type": "String",
 			"NoEcho": true
 		}
+		#end
+		#end
 	},
 	"Resources": {
 		"${environment.refName}Version": {
@@ -260,13 +265,6 @@
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
-						"OptionName": "PARAM2",
-						"Value": {
-							"Ref": "EncryptionKey"
-						}
-					},
-					{
-						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "PARAM3",
 						"Value": "${stack}"
 					},
@@ -335,6 +333,16 @@
 						"OptionName": "org.sagebionetworks.ezid.doi.prefix",
 						"Value": "doi\\:10.7303/"
 					}
+					#if ( $environment.isTypeRepositoryOrWorkers() )
+					#foreach( $secret in $secrets )
+					,
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "${secret.propertyKey}",
+						"Value": {"Ref": "${secret.parameterName}" }
+					}
+					#end
+					#end
 				]
 			}
 		},

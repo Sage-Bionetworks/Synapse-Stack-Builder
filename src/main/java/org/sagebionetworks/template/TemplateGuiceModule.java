@@ -16,6 +16,8 @@ import org.sagebionetworks.template.repo.beanstalk.ArtifactDownload;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactDownloadImpl;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentConfiguration;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentConfigurationImpl;
+import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
+import org.sagebionetworks.template.repo.beanstalk.SecretBuilderImpl;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilder;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilderImpl;
 
@@ -23,8 +25,12 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
+import com.amazonaws.services.kms.AWSKMS;
+import com.amazonaws.services.kms.AWSKMSAsyncClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.secretsmanager.AWSSecretsManager;
+import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.google.inject.Provides;
 
 
@@ -48,6 +54,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(FileProvider.class).to(FileProviderImpl.class);
 		bind(ThreadProvider.class).to(ThreadProviderImp.class);
 		bind(IdGeneratorBuilder.class).to(IdGeneratorBuilderImpl.class);
+		bind(SecretBuilder.class).to(SecretBuilderImpl.class);
 	}
 	
 	/**
@@ -70,9 +77,26 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		return builder.build();
 	}
 	
+	
 	@Provides
 	public HttpClient provideHttpClient() {
 		HttpClientBuilder builder = HttpClientBuilder.create();
+		return builder.build();
+	}
+	
+	@Provides
+	public AWSSecretsManager provideAWSSecretsManager() {
+	    AWSSecretsManagerClientBuilder builder = AWSSecretsManagerClientBuilder.standard();
+		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
+		builder.withRegion(Regions.US_EAST_1);
+	    return builder.build();
+	}
+	
+	@Provides
+	public AWSKMS provideAWSKMSClient() {
+		AWSKMSAsyncClientBuilder builder = AWSKMSAsyncClientBuilder.standard();
+		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
+		builder.withRegion(Regions.US_EAST_1);
 		return builder.build();
 	}
 	

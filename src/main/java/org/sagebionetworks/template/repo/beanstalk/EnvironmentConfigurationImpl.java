@@ -156,4 +156,11 @@ public class EnvironmentConfigurationImpl implements EnvironmentConfiguration {
 		}
 	}
 
+	@Override
+	public String extractDatabaseSuffix(Stack sharedStackResults) {
+		String stack = config.getProperty(PROPERTY_KEY_STACK);
+		String instance = config.getProperty(PROPERTY_KEY_INSTANCE);
+		return extractDatabaseSuffix(stack, instance, sharedStackResults);
+	}
+
 }

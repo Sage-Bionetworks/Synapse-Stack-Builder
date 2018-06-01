@@ -50,7 +50,7 @@
 		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk</artifactId>
-			<version>1.11.307</version>
+			<version>1.11.338</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.inject</groupId>

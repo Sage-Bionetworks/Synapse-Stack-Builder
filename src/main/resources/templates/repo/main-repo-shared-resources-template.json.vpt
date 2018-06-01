@@ -532,7 +532,7 @@
 		"${stack}${instance}CMKAlias": {
 			"Type": "AWS::KMS::Alias",
 			"Properties": {
-				"AliasName": "alias/${stack}-${instance}",
+				"AliasName": "alias/synapse/${stack}/${instance}/cmk",
 				"TargetKeyId": {
 					"Ref": "${stack}${instance}CMK"
 				}
