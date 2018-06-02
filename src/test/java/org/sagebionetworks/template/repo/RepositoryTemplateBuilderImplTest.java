@@ -36,8 +36,9 @@ import static org.sagebionetworks.template.Constants.SHARED_RESOUCES_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
+import static org.sagebionetworks.template.Constants.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.logging.log4j.Logger;
@@ -319,6 +320,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("repo-dev-101-0-synapes-org", desc.getCnamePrefix());
 		assertEquals("the:ssl:arn", desc.getSslCertificateARN());
 		assertEquals("SynapesRepoWorkersInstanceProfile", desc.getInstanceProfileSuffix());
+		// secrets should be passed to reop
+		assertTrue(Arrays.equals(secrets, desc.getSecrets()));
 
 		// workers
 		desc = descriptors[1];
@@ -333,6 +336,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("bucket", bundle.getBucket());
 		assertEquals("key-workers", bundle.getKey());
 		assertEquals("SynapesRepoWorkersInstanceProfile", desc.getInstanceProfileSuffix());
+		// secrets should be passed to workers
+		assertTrue(Arrays.equals(secrets, desc.getSecrets()));
 
 		// portal
 		desc = descriptors[2];
@@ -347,6 +352,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("bucket", bundle.getBucket());
 		assertEquals("key-portal", bundle.getKey());
 		assertEquals("SynapesPortalInstanceProfile", desc.getInstanceProfileSuffix());
+		// empty secrets should be passed to portal
+		assertTrue(Arrays.equals(new Secret[0], desc.getSecrets()));
 	}
 
 	@Test
@@ -363,6 +370,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(environment, context.get(ENVIRONMENT));
 		assertEquals(0, context.get(REPO_BEANSTALK_NUMBER));
 		assertEquals(keyAlias, context.get(STACK_CMK_ALIAS));
+		assertEquals(databaseEndpointSuffix, context.get(DB_ENDPOINT_SUFFIX));
 	}
 	
 	@Test

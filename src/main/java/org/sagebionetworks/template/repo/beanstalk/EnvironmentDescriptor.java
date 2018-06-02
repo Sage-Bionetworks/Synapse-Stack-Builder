@@ -1,5 +1,7 @@
 package org.sagebionetworks.template.repo.beanstalk;
 
+import java.util.Arrays;
+
 import com.amazonaws.services.cloudformation.model.Parameter;
 
 /**
@@ -172,7 +174,7 @@ public class EnvironmentDescriptor {
 	 * @param secret
 	 * @return
 	 */
-	Parameter createEnvironmentParameter(Secret secret) {
+	static Parameter createEnvironmentParameter(Secret secret) {
 		Parameter parameter = new Parameter();
 		parameter.withParameterKey(secret.getParameterName());
 		parameter.withParameterValue(secret.getEncryptedValue());
@@ -183,11 +185,19 @@ public class EnvironmentDescriptor {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((cnamePrefix == null) ? 0 : cnamePrefix.hashCode());
+		result = prime * result + ((healthCheckUrl == null) ? 0 : healthCheckUrl.hashCode());
+		result = prime * result + ((hostedZone == null) ? 0 : hostedZone.hashCode());
+		result = prime * result + maxInstances;
+		result = prime * result + minInstances;
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + number;
 		result = prime * result + ((refName == null) ? 0 : refName.hashCode());
+		result = prime * result + Arrays.hashCode(secrets);
 		result = prime * result + ((sourceBundle == null) ? 0 : sourceBundle.hashCode());
+		result = prime * result + ((sslCertificateARN == null) ? 0 : sslCertificateARN.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
+		result = prime * result + ((versionLabel == null) ? 0 : versionLabel.hashCode());
 		return result;
 	}
 
@@ -200,6 +210,25 @@ public class EnvironmentDescriptor {
 		if (getClass() != obj.getClass())
 			return false;
 		EnvironmentDescriptor other = (EnvironmentDescriptor) obj;
+		if (cnamePrefix == null) {
+			if (other.cnamePrefix != null)
+				return false;
+		} else if (!cnamePrefix.equals(other.cnamePrefix))
+			return false;
+		if (healthCheckUrl == null) {
+			if (other.healthCheckUrl != null)
+				return false;
+		} else if (!healthCheckUrl.equals(other.healthCheckUrl))
+			return false;
+		if (hostedZone == null) {
+			if (other.hostedZone != null)
+				return false;
+		} else if (!hostedZone.equals(other.hostedZone))
+			return false;
+		if (maxInstances != other.maxInstances)
+			return false;
+		if (minInstances != other.minInstances)
+			return false;
 		if (name == null) {
 			if (other.name != null)
 				return false;
@@ -212,12 +241,24 @@ public class EnvironmentDescriptor {
 				return false;
 		} else if (!refName.equals(other.refName))
 			return false;
+		if (!Arrays.equals(secrets, other.secrets))
+			return false;
 		if (sourceBundle == null) {
 			if (other.sourceBundle != null)
 				return false;
 		} else if (!sourceBundle.equals(other.sourceBundle))
 			return false;
+		if (sslCertificateARN == null) {
+			if (other.sslCertificateARN != null)
+				return false;
+		} else if (!sslCertificateARN.equals(other.sslCertificateARN))
+			return false;
 		if (type != other.type)
+			return false;
+		if (versionLabel == null) {
+			if (other.versionLabel != null)
+				return false;
+		} else if (!versionLabel.equals(other.versionLabel))
 			return false;
 		return true;
 	}
@@ -225,7 +266,11 @@ public class EnvironmentDescriptor {
 	@Override
 	public String toString() {
 		return "EnvironmentDescriptor [name=" + name + ", refName=" + refName + ", number=" + number + ", type=" + type
-				+ ", sourceBundle=" + sourceBundle + "]";
+				+ ", sourceBundle=" + sourceBundle + ", healthCheckUrl=" + healthCheckUrl + ", minInstances="
+				+ minInstances + ", maxInstances=" + maxInstances + ", versionLabel=" + versionLabel
+				+ ", sslCertificateARN=" + sslCertificateARN + ", hostedZone=" + hostedZone + ", cnamePrefix="
+				+ cnamePrefix + ", secrets=" + Arrays.toString(secrets) + "]";
 	}
+	
 	
 }
