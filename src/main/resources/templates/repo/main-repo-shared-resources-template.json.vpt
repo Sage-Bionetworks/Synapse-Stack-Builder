@@ -252,15 +252,6 @@
                 },
 				"SecurityGroupIngress": [
 					{
-						"Description": "Allow SSH for VPN traffic",
-						"CidrIp": {
-							"Fn::ImportValue": "${vpcExportPrefix}-VpnCidr"
-						},
-						"FromPort": "22",
-						"ToPort": "22",
-						"IpProtocol": "tcp"
-					},
-					{
 						"Description": "Allow ${subnetGroupColor} subnet HTTP access",
 						"CidrIp": {
 							"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-CIDR"
