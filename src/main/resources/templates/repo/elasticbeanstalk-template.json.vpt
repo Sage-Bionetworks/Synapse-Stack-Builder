@@ -258,17 +258,17 @@
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
-						"OptionName": "PARAM3",
+						"OptionName": "org.sagebionetworks.stack",
 						"Value": "${stack}"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
-						"OptionName": "PARAM4",
+						"OptionName": "org.sagebionetworks.stack.instance",
 						"Value": "${instance}"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
-						"OptionName": "PARAM5",
+						"OptionName": "org.sagebionetworks.stack.repo.beanstalk.number",
 						"Value": "${repoBeanstalkNumber}"
 					}
 					#if ($environment.isTypeRepositoryOrWorkers())
