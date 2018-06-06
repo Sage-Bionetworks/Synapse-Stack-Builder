@@ -244,6 +244,11 @@
 						"Value": "true"
 					},
 					{
+						"Namespace": "aws:elb:policies:TLSHighPolicy",
+						"OptionName": "SSLReferencePolicy",
+						"Value": "ELBSecurityPolicy-TLS-1-2-2017-01"
+					},
+					{
 						"Namespace": "aws:elasticbeanstalk:container:tomcat:jvmoptions",
 						"OptionName": "Xms",
 						"Value": "256m"
