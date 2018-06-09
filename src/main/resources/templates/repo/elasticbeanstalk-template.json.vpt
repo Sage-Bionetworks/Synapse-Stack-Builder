@@ -280,6 +280,41 @@
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.fileservice.endpoint",
+						"Value": "https\\://repo-${stack}-${instance}-${repoBeanstalkNumber}.${stack}.sagebase.org/file/v1"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.authenticationservice.publicendpoint",
+						"Value": "https\\://repo-${stack}-${instance}-${repoBeanstalkNumber}.${stack}.sagebase.org/auth/v1"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.authenticationservice.privateendpoint",
+						"Value": "https\\://repo-${stack}-${instance}-${repoBeanstalkNumber}.${stack}.sagebase.org/auth/v1"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.repositoryservice.endpoint",
+						"Value": "https\\://repo-${stack}-${instance}-${repoBeanstalkNumber}.${stack}.sagebase.org/repo/v1"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.notification.email.address",
+						"Value": "notifications@synapse.org"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.search.enabled",
+						"Value": "true"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.id.generator.database.driver",
+						"Value": "com.mysql.jdbc.Driver"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.id.generator.database.username",
 						"Value": "${stack}idgenuser"
 					},
