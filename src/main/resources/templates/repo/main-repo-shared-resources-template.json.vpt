@@ -252,15 +252,6 @@
                 },
 				"SecurityGroupIngress": [
 					{
-						"Description": "Allow SSH for VPN traffic",
-						"CidrIp": {
-							"Fn::ImportValue": "${vpcExportPrefix}-VpnCidr"
-						},
-						"FromPort": "22",
-						"ToPort": "22",
-						"IpProtocol": "tcp"
-					},
-					{
 						"Description": "Allow ${subnetGroupColor} subnet HTTP access",
 						"CidrIp": {
 							"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-CIDR"
@@ -398,6 +389,13 @@
 									"Action": "ses:*",
 									"Effect": "Allow",
 									"Resource": "*"
+								},
+								{
+									"Action": [
+										"kms:Decrypt"
+									],
+									"Effect": "Allow",
+									"Resource": "*"
 								}
 							]
 						}
@@ -464,6 +462,64 @@
 						"Ref": "${stack}${instance}SynapesPortalServiceRole"
 					}
 				]
+			}
+		},
+		"${stack}${instance}CMK": {
+			"Type": "AWS::KMS::Key",
+			"Properties": {
+				"Description": "The master encryption key for ${stack}-${instance}",
+				"EnableKeyRotation": false,
+				"KeyPolicy": {
+					"Version": "2012-10-17",
+					"Id": "key-default-1",
+					"Statement": [
+						{
+							"Sid": "Allow administration of the key",
+							"Effect": "Allow",
+							"Principal": {
+								"AWS": {
+									"Fn::Join": [
+										"",
+										[
+											"arn:aws:iam::",
+											{
+												"Ref": "AWS::AccountId"
+											},
+											":root"
+										]
+									]
+								}
+							},
+							"Action": [
+								"kms:*"
+							],
+							"Resource": "*"
+						},
+						{
+							"Sid": "Allow use of the key",
+							"Effect": "Allow",
+							"Principal": {
+								"AWS": {"Fn::GetAtt" : ["${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"] }
+							},
+							"Action": [
+								"kms:Encrypt",
+								"kms:Decrypt",
+								"kms:ReEncrypt*",
+								"kms:DescribeKey"
+							],
+							"Resource": "*"
+						}
+					]
+				}
+			}
+		},
+		"${stack}${instance}CMKAlias": {
+			"Type": "AWS::KMS::Alias",
+			"Properties": {
+				"AliasName": "alias/synapse/${stack}/${instance}/cmk",
+				"TargetKeyId": {
+					"Ref": "${stack}${instance}CMK"
+				}
 			}
 		}
 	},

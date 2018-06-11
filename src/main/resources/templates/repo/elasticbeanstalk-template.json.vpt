@@ -2,11 +2,14 @@
 	"AWSTemplateFormatVersion": "2010-09-09",
 	"Description": "Creates all of the Elastic Beanstalk resouces to deploy ${environment.name}",
 	"Parameters": {
-		"EncryptionKey": {
-			"Description": "Depricated. Will be removed",
+		#foreach( $secret in $environment.secrets )
+		#if ($foreach.index > 0) , #end
+		"${secret.parameterName}": {
+			"Description": "Provides the encrypted value for the '${secret.propertyKey}' property",
 			"Type": "String",
 			"NoEcho": true
 		}
+		#end
 	},
 	"Resources": {
 		"${environment.refName}Version": {
@@ -255,31 +258,125 @@
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
-						"OptionName": "PARAM1",
-						"Value": "${configurationUrl}"
-					},
-					{
-						"Namespace": "aws:elasticbeanstalk:application:environment",
-						"OptionName": "PARAM2",
-						"Value": {
-							"Ref": "EncryptionKey"
-						}
-					},
-					{
-						"Namespace": "aws:elasticbeanstalk:application:environment",
-						"OptionName": "PARAM3",
+						"OptionName": "org.sagebionetworks.stack",
 						"Value": "${stack}"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
-						"OptionName": "PARAM4",
+						"OptionName": "org.sagebionetworks.stack.instance",
 						"Value": "${instance}"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
-						"OptionName": "PARAM5",
+						"OptionName": "org.sagebionetworks.stack.repo.beanstalk.number",
 						"Value": "${repoBeanstalkNumber}"
 					}
+					#if ($environment.isTypeRepositoryOrWorkers())
+					,
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.stack.cmk.alias",
+						"Value": "${stackCMKAlias}"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.fileservice.endpoint",
+						"Value": "https\\://repo-${stack}-${instance}-${repoBeanstalkNumber}.${stack}.sagebase.org/file/v1"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.authenticationservice.publicendpoint",
+						"Value": "https\\://repo-${stack}-${instance}-${repoBeanstalkNumber}.${stack}.sagebase.org/auth/v1"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.authenticationservice.privateendpoint",
+						"Value": "https\\://repo-${stack}-${instance}-${repoBeanstalkNumber}.${stack}.sagebase.org/auth/v1"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.repositoryservice.endpoint",
+						"Value": "https\\://repo-${stack}-${instance}-${repoBeanstalkNumber}.${stack}.sagebase.org/repo/v1"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.notification.email.address",
+						"Value": "notifications@synapse.org"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.search.enabled",
+						"Value": "true"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.id.generator.database.driver",
+						"Value": "com.mysql.jdbc.Driver"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.id.generator.database.username",
+						"Value": "${stack}idgenuser"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.id.generator.database.connection.url",
+						"Value": "jdbc\\:mysql\\://${stack}-id-generator-db.${dbEndpointSuffix}/${stack}idgen"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.repository.database.username",
+						"Value": "${stack}${instance}user"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.repository.database.connection.url",
+						"Value": "jdbc\\:mysql\\://${stack}-${instance}-db.${dbEndpointSuffix}/${stack}${instance}"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.table.cluster.schema.0",
+						"Value": "${stack}${instance}user"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.table.cluster.endpoint.0",
+						"Value": "${stack}-${instance}-table-0.${dbEndpointSuffix}"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.table.cluster.database.count",
+						"Value": "1"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.repository.databaes.driver",
+						"Value": "com.mysql.jdbc.Driver"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.s3.bucket",
+						"Value": "${stack}data.sagebase.org"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.ezid.username",
+						"Value": "sagebio"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.ezid.doi.prefix",
+						"Value": "doi\\:10.7303/"
+					}
+					#end
+					#foreach( $secret in $environment.secrets )
+					,
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "${secret.propertyKey}",
+						"Value": {"Ref": "${secret.parameterName}" }
+					}
+					#end
 				]
 			}
 		},

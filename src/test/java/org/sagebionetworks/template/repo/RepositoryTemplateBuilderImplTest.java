@@ -7,9 +7,10 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.sagebionetworks.template.Constants.CONFIGURATION_URL;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
+import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.INSTANCE;
+import static org.sagebionetworks.template.Constants.OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_AWS_ACCESS_KEY_ID;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_AWS_SECRET_KEY;
@@ -17,23 +18,27 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_ENCR
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MAX_INSTANCES;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MIN_INSTANCES;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERSION;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_MYSQL_PASSWORD;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MULTI_AZ;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ROUTE_53_HOSTED_ZONE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_INSTANCE_COUNT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_COLOR;
+import static org.sagebionetworks.template.Constants.REPO_BEANSTALK_NUMBER;
 import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.SHARED_RESOUCES_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
+import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.logging.log4j.Logger;
@@ -53,12 +58,14 @@ import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
-import org.sagebionetworks.template.repo.beanstalk.EnvironmentConfiguration;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
+import org.sagebionetworks.template.repo.beanstalk.Secret;
+import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 import org.sagebionetworks.template.vpc.Color;
 
+import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 
@@ -76,7 +83,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Mock
 	ArtifactCopy mockArtifactCopy;
 	@Mock
-	EnvironmentConfiguration mockEnvironConfig;
+	SecretBuilder mockSecretBuilder;
 	@Captor
 	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
 
@@ -89,8 +96,12 @@ public class RepositoryTemplateBuilderImplTest {
 	String beanstalkNumber;
 
 	String bucket;
-	Stack sharedStackResults;
-	String configUrl;
+
+	Stack sharedResouces;
+	String databaseEndpointSuffix;
+	
+	Secret[] secrets;
+	String keyAlias;
 
 	@Before
 	public void before() throws InterruptedException {
@@ -100,7 +111,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
-				mockArtifactCopy, mockEnvironConfig);
+				mockArtifactCopy, mockSecretBuilder);
 
 		stack = "dev";
 		instance = "101";
@@ -110,7 +121,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
 		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
-		when(config.getProperty(PROPERTY_KEY_MYSQL_PASSWORD)).thenReturn("somePassword");
+		when(mockSecretBuilder.getRepositoryDatabasePassword()).thenReturn("somePassword");
 
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE)).thenReturn(4);
 		when(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS)).thenReturn("db.t2.small");
@@ -139,10 +150,25 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_AWS_SECRET_KEY)).thenReturn("aws-secret");
 		when(config.getProperty(PROPERTY_KEY_BEANSTALK_ENCRYPTION_KEY)).thenReturn("encryption-key");
 
-		sharedStackResults = new Stack();
-		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(sharedStackResults);
-		configUrl = "http://amazon.com/bucket/key";
-		when(mockEnvironConfig.createEnvironmentConfiguration(sharedStackResults)).thenReturn(configUrl);
+		sharedResouces = new Stack();
+		Output dbOut = new Output();
+		dbOut.withOutputKey(stack+instance+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
+		databaseEndpointSuffix = "something.amazon.com";
+		dbOut.withOutputValue(stack+"-"+instance+"-db."+databaseEndpointSuffix);
+		sharedResouces.withOutputs(dbOut);
+		
+		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(sharedResouces);
+		
+		Secret secret = new Secret();
+		secret.withEncryptedValue("EncryptedValue");
+		secret.withParameterName("ParameterName");
+		secret.withPropertyKey("PropertyKey");
+		secrets = new Secret[] {secret};
+		
+		keyAlias = "alias/some/alias";
+		
+		when(mockSecretBuilder.createSecrets()).thenReturn(secrets);
+		when(mockSecretBuilder.getCMKAlias()).thenReturn(keyAlias);
 	}
 
 	@Test
@@ -274,7 +300,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Test
 	public void testCreateEnvironments() {
 		// call under test
-		EnvironmentDescriptor[] descriptors = builder.createEnvironments();
+		EnvironmentDescriptor[] descriptors = builder.createEnvironments(secrets);
 		assertNotNull(descriptors);
 		assertEquals(3, descriptors.length);
 		// repo
@@ -294,6 +320,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("repo-dev-101-0-synapes-org", desc.getCnamePrefix());
 		assertEquals("the:ssl:arn", desc.getSslCertificateARN());
 		assertEquals("SynapesRepoWorkersInstanceProfile", desc.getInstanceProfileSuffix());
+		// secrets should be passed to reop
+		assertTrue(Arrays.equals(secrets, desc.getSecrets()));
 
 		// workers
 		desc = descriptors[1];
@@ -308,6 +336,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("bucket", bundle.getBucket());
 		assertEquals("key-workers", bundle.getKey());
 		assertEquals("SynapesRepoWorkersInstanceProfile", desc.getInstanceProfileSuffix());
+		// secrets should be passed to workers
+		assertTrue(Arrays.equals(secrets, desc.getSecrets()));
 
 		// portal
 		desc = descriptors[2];
@@ -322,29 +352,31 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("bucket", bundle.getBucket());
 		assertEquals("key-portal", bundle.getKey());
 		assertEquals("SynapesPortalInstanceProfile", desc.getInstanceProfileSuffix());
+		// empty secrets should be passed to portal
+		assertTrue(Arrays.equals(new Secret[0], desc.getSecrets()));
 	}
 
 	@Test
 	public void testCreateEnvironmentContext() {
+		EnvironmentDescriptor environment = new EnvironmentDescriptor();
 		// call under test
-		VelocityContext context = builder.createEnvironmentContext(sharedStackResults);
+		VelocityContext context = builder.createEnvironmentContext(sharedResouces, environment);
 		assertNotNull(context);
 		assertEquals("dev", context.get(STACK));
 		assertEquals("101", context.get(INSTANCE));
 		assertEquals("Green", context.get(VPC_SUBNET_COLOR));
 		assertEquals("us-east-1-synapse-dev-vpc", context.get(VPC_EXPORT_PREFIX));
 		assertEquals("us-east-1-dev-101-shared-resources", context.get(SHARED_EXPORT_PREFIX));
-		assertEquals("http://amazon.com/bucket/key", context.get(CONFIGURATION_URL));
+		assertEquals(environment, context.get(ENVIRONMENT));
 		assertEquals(0, context.get(REPO_BEANSTALK_NUMBER));
+		assertEquals(keyAlias, context.get(STACK_CMK_ALIAS));
+		assertEquals(databaseEndpointSuffix, context.get(DB_ENDPOINT_SUFFIX));
 	}
-
+	
 	@Test
-	public void testCreateEnvironmentParameters() {
-		Parameter[] params = builder.createEnvironmentParameters();
-		assertNotNull(params);
-		assertEquals(1, params.length);
-		Parameter param = params[0];
-		assertEquals("EncryptionKey", param.getParameterKey());
-		assertEquals("encryption-key", param.getParameterValue());
+	public void testExtractDatabaseSuffix() {
+		// call under test
+		String suffix = builder.extractDatabaseSuffix(sharedResouces);
+		assertEquals(databaseEndpointSuffix, suffix);
 	}
 }

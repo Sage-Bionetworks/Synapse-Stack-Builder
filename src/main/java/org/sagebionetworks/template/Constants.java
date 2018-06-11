@@ -41,7 +41,6 @@ public class Constants {
 	public static final String PROPERTY_KEY_STACK = "org.sagebionetworks.stack";
 	public static final String PROPERTY_KEY_INSTANCE = "org.sagebionetworks.instance";
 	public static final String PROPERTY_KEY_VPC_SUBNET_COLOR = "org.sagebionetworks.vpc.subnet.color";
-	public static final String PROPERTY_KEY_MYSQL_PASSWORD = "org.sagebionetworks.mysql.password";
 	public static final String PROPERTY_KEY_REPO_RDS_MULTI_AZ = "org.sagebionetworks.repo.rds.multi.az";
 	public static final String PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS = "org.sagebionetworks.repo.rds.instance.class";
 	public static final String PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE = "org.sagebionetworks.repo.rds.allocated.storage";
@@ -58,12 +57,16 @@ public class Constants {
 	public static final String PROPERTY_KEY_BEANSTALK_NUMBER = "org.sagebionetworks.beanstalk.number.";
 	public static final String PROPERTY_KEY_BEANSTALK_SSL_ARN = "org.sagebionetworks.beanstalk.ssl.arn.";
 	public static final String PROPERTY_KEY_ROUTE_53_HOSTED_ZONE = "org.sagebionetworks.route.53.hosted.zone.";
+	public static final String PROPERTY_KEY_SECRET_KEYS_CSV = "org.sagebionetworks.secret.keys.csv";
+	public static final String PROPERTY_KEY_REPOSITORY_DATABASE_PASSWORD = "org.sagebionetworks.repository.database.password";
+	public static final String PROPERTY_KEY_ID_GENERATOR_DATABASE_PASSWORD = "org.sagebionetworks.id.generator.database.password";
 
 	// templates
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
 	public static final String TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";
-	public static final String TEMPALTE_BEAN_STALK_ENVIRONMENT = "templates/repo/elasticbeanstalk-template.json";
+	public static final String TEMPALTE_BEAN_STALK_ENVIRONMENT = "templates/repo/elasticbeanstalk-template.json.vpt";
 	public static final String TEMPLATE_ID_GENERATOR = "templates/repo/id-generator-template.json";
+	
 
 	public static final int JSON_INDENT = 5;
 
@@ -99,10 +102,12 @@ public class Constants {
 	public static final String ENVIRONMENT = "environment";
 	public static final String REPO_NUMBER = "repoNumber";
 	public static final String DB_ENDPOINT_SUFFIX = "dbEndpointSuffix";
-	public static final String CONFIGURATION_URL = "configurationUrl";
 	public static final String REPO_BEANSTALK_NUMBER = "repoBeanstalkNumber";
+	public static final String STACK_CMK_ALIAS = "stackCMKAlias";
+	
 	
 	public static final String CAPABILITY_NAMED_IAM = "CAPABILITY_NAMED_IAM";
+	public static final String OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT = "RepositoryDBEndpoint";
 
 	/**
 	 * Create a camel case name from dash-separated-name. Given 'foo-bar' will
