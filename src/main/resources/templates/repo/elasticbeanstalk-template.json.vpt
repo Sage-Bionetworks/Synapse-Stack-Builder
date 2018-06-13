@@ -350,6 +350,11 @@
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.hmac.signing.key.current.version",
+						"Value": "1"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.secrets.key",
 						"Value": "${environment.secretsSource.key}"
 					},
