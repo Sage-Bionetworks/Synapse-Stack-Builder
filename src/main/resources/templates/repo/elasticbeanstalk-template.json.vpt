@@ -367,6 +367,11 @@
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.ezid.doi.prefix",
 						"Value": "doi:10.7303/"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.docker.authorization.certificate",
+						"Value": "MIIDYjCCAwmgAwIBAgIJAPjAfVg1hZLeMAkGByqGSM49BAEwgaoxCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJXQTEQMA4GA1UEBxMHU2VhdHRsZTEZMBcGA1UEChMQU2FnZSBCaW9uZXR3b3JrczEhMB8GA1UECxMYU3luYXBzZSBFbmdpbmVlcmluZyBUZWFtMRgwFgYDVQQDEw93d3cuc3luYXBzZS5vcmcxJDAiBgkqhkiG9w0BCQEWFXBsYXRmb3JtQHNhZ2ViYXNlLm9yZzAgFw0xNjA2MTcxNjAzMDZaGA8yMTE2MDUyNDE2MDMwNlowgaoxCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJXQTEQMA4GA1UEBxMHU2VhdHRsZTEZMBcGA1UEChMQU2FnZSBCaW9uZXR3b3JrczEhMB8GA1UECxMYU3luYXBzZSBFbmdpbmVlcmluZyBUZWFtMRgwFgYDVQQDEw93d3cuc3luYXBzZS5vcmcxJDAiBgkqhkiG9w0BCQEWFXBsYXRmb3JtQHNhZ2ViYXNlLm9yZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABH+L4hYeqS3yNtSR4PX6vrd/d4DXP4Dcxsa6+ztVXT1GRXpnVzzSqTMqDT8caOyXgoIMMQyQS1scHbs5J4NDnSmjggETMIIBDzAdBgNVHQ4EFgQUzX4kDwoYtxcxO9Ag6smecR+MtfEwgd8GA1UdIwSB1zCB1IAUzX4kDwoYtxcxO9Ag6smecR+MtfGhgbCkga0wgaoxCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJXQTEQMA4GA1UEBxMHU2VhdHRsZTEZMBcGA1UEChMQU2FnZSBCaW9uZXR3b3JrczEhMB8GA1UECxMYU3luYXBzZSBFbmdpbmVlcmluZyBUZWFtMRgwFgYDVQQDEw93d3cuc3luYXBzZS5vcmcxJDAiBgkqhkiG9w0BCQEWFXBsYXRmb3JtQHNhZ2ViYXNlLm9yZ4IJAPjAfVg1hZLeMAwGA1UdEwQFMAMBAf8wCQYHKoZIzj0EAQNIADBFAiAa9iX8YT8agglhE1DWhBIC5tqUa+pAZawmTZWgsMm4lAIhAPCAlfHaho9OsebE2PMriQm4DQhgtQve0qjO7IxEfJZg"
 					}
 					#end
 					#foreach( $secret in $environment.secrets )

@@ -11,7 +11,7 @@ public interface SecretBuilder {
 	 * 
 	 * @return
 	 */
-	public Secret[] createSecrets();
+	public SourceBundle createSecrets();
 
 	/**
 	 * Get the alias of the master key.

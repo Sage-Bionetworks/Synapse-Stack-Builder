@@ -1,10 +1,19 @@
 package org.sagebionetworks.template.repo.beanstalk;
 
-import static org.sagebionetworks.template.Constants.*;
+import static org.sagebionetworks.template.Constants.DEFAULT_REPO_PROPERTIES;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ID_GENERATOR_DATABASE_PASSWORD;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPOSITORY_DATABASE_PASSWORD;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_SECRET_KEYS_CSV;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.Base64;
+import java.util.Properties;
 import java.util.StringJoiner;
 
 import org.sagebionetworks.template.Configuration;
@@ -12,6 +21,9 @@ import org.sagebionetworks.template.Configuration;
 import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.model.EncryptRequest;
 import com.amazonaws.services.kms.model.EncryptResult;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
@@ -19,6 +31,7 @@ import com.google.inject.Inject;
 
 public class SecretBuilderImpl implements SecretBuilder {
 	
+	public static final String AUTO_GENERATED_DO_NOT_MODIFY = "Auto-generated.  Do not modify";
 	private static final String DOT = "\\.";
 	private static final String SAGEBIONETWORKS = "sagebionetworks";
 	private static final String ORG = "org";
@@ -27,26 +40,71 @@ public class SecretBuilderImpl implements SecretBuilder {
 	Configuration config;
 	AWSSecretsManager secretManager;
 	AWSKMS keyManager;
-	
+	AmazonS3 s3Client;
 	
 	@Inject
-	public SecretBuilderImpl(Configuration config, AWSSecretsManager secretManager, AWSKMS keyManager) {
+	public SecretBuilderImpl(Configuration config, AWSSecretsManager secretManager, AWSKMS keyManager, AmazonS3 s3Client) {
 		super();
 		this.config = config;
 		this.config.initializeWithDefaults(DEFAULT_REPO_PROPERTIES);
 		this.secretManager = secretManager;
 		this.keyManager = keyManager;
+		this.s3Client = s3Client;
 	}
 
 	@Override
-	public Secret[] createSecrets() {
+	public SourceBundle createSecrets() {
 		// Load the secret names
 		String[] secretNames = config.getComaSeparatedProperty(PROPERTY_KEY_SECRET_KEYS_CSV);
-		Secret[] secrets = new Secret[secretNames.length];
+		Properties secrets = new Properties();
 		for (int i = 0; i < secretNames.length; i++) {
-			secrets[i] = createSecret(secretNames[i]);
+			String secretKey = secretNames[i];
+			String secretCipher = createSecret(secretKey);
+			secrets.put(secretKey, secretCipher);
 		}
-		return secrets;
+		return uploadSecretsToS3(secrets);
+	}
+
+	/**
+	 * Upload the given secret properties to S3.
+	 * @param secrets
+	 * @return
+	 */
+	SourceBundle uploadSecretsToS3(Properties secrets) {
+			String bucket = config.getConfigurationBucket();
+			String key = createSecretS3Key();
+			byte[] bytes = getPropertiesBytes(secrets);
+			ObjectMetadata metadata = new ObjectMetadata();
+			metadata.setContentLength(bytes.length);
+			s3Client.putObject(new PutObjectRequest(bucket, key, new ByteArrayInputStream(bytes), metadata));
+			return new SourceBundle(bucket, key);
+	}
+	
+	/**
+	 * Get the UTF-8 bytes of the given Properties.
+	 * @param props
+	 * @return
+	 */
+	public static byte[] getPropertiesBytes(Properties props) {
+		try {
+			// write the properties to a string
+			StringWriter writer = new StringWriter();
+			props.store(writer, AUTO_GENERATED_DO_NOT_MODIFY);
+			// UTF-8 bytes will be uploaded to S3.
+			return writer.toString().getBytes(UTF_8);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		} 
+	}
+	
+	public String createSecretS3Key() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("Stack/");
+		builder.append(config.getProperty(PROPERTY_KEY_STACK));
+		builder.append("-");
+		builder.append(config.getProperty(PROPERTY_KEY_INSTANCE));
+		builder.append("-secrets.properties");
+		return builder.toString();
 	}
 
 	/**
@@ -56,14 +114,13 @@ public class SecretBuilderImpl implements SecretBuilder {
 	 * @param string
 	 * @return
 	 */
-	Secret createSecret(String key) {
+	String createSecret(String key) {
 		String plaintextValue = getSecretValue(key);
 		// Encrypt the value using the stack's key
 		EncryptResult encryptResult = keyManager.encrypt(new EncryptRequest()
 				.withPlaintext(stringToByteBuffer(plaintextValue)).withKeyId(getCMKAlias()));
 		String encryptedValue = base64Encode(encryptResult.getCiphertextBlob());
-		String parameterName = SecretBuilderImpl.createParameterName(key);
-		return new Secret().withEncryptedValue(encryptedValue).withPropertyKey(key).withParameterName(parameterName);
+		return encryptedValue;
 	}
 
 	/**

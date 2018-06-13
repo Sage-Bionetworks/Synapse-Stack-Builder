@@ -8,6 +8,7 @@ import static org.sagebionetworks.template.Constants.*;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.Base64;
+import java.util.Properties;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -21,6 +22,8 @@ import org.sagebionetworks.template.Configuration;
 import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.model.EncryptRequest;
 import com.amazonaws.services.kms.model.EncryptResult;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
@@ -34,11 +37,15 @@ public class SecretBuilderImplTest {
 	AWSSecretsManager mockSecretManager;
 	@Mock
 	AWSKMS mockKeyManager;
+	@Mock
+	AmazonS3 mockS3Client;
 	
 	@Captor
 	ArgumentCaptor<GetSecretValueRequest> secretRequestCaptor;
 	@Captor
 	ArgumentCaptor<EncryptRequest> encryptRequestCaptor;
+	@Captor
+	ArgumentCaptor<PutObjectRequest> putObjectRequsetCaptor;
 	
 	String stack;
 	String instance;
@@ -48,6 +55,9 @@ public class SecretBuilderImplTest {
 	String secretString;
 	String encryptedSecretValue;
 	ByteBuffer secretBuffer;
+	
+	String s3Bucket;
+	String expectedS3Key;
 	
 	@Before
 	public void before() {
@@ -60,14 +70,17 @@ public class SecretBuilderImplTest {
 		when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_SECRET_KEYS_CSV)).thenReturn(new String[] {key});
 		
 		
-		builder = new SecretBuilderImpl(mockConfig, mockSecretManager, mockKeyManager);
+		builder = new SecretBuilderImpl(mockConfig, mockSecretManager, mockKeyManager, mockS3Client);
 		
 		secretString = "super secret";
 		when(mockSecretManager.getSecretValue(any(GetSecretValueRequest.class))).thenReturn(new GetSecretValueResult().withSecretString(secretString));
 		encryptedSecretValue = "pretend this is encrypted";
 		secretBuffer = SecretBuilderImpl.stringToByteBuffer(encryptedSecretValue);
 		when(mockKeyManager.encrypt(any(EncryptRequest.class))).thenReturn(new EncryptResult().withCiphertextBlob(secretBuffer));
-	
+		
+		s3Bucket = "the-bucket";
+		when(mockConfig.getConfigurationBucket()).thenReturn(s3Bucket);
+		expectedS3Key = "Stack/dev-299-secrets.properties";
 	}
 	
 	@Test
@@ -114,23 +127,48 @@ public class SecretBuilderImplTest {
 	@Test
 	public void testCreateSecret() {
 		// Call under test
-		Secret secret = builder.createSecret(key);
-		assertNotNull(secret);
-		assertEquals(encryptedSecretValue, base64Decode(secret.getEncryptedValue()));
-		assertEquals("SomeKey", secret.getParameterName());
-		assertEquals("org.sagebionetworks.some.key", secret.getPropertyKey());
+		String cipher = builder.createSecret(key);
+		assertNotNull(cipher);
+		assertEquals(encryptedSecretValue, base64Decode(cipher));
 		verify(mockKeyManager).encrypt(encryptRequestCaptor.capture());
 		assertEquals("alias/synapse/dev/299/cmk", encryptRequestCaptor.getValue().getKeyId());
 		assertEquals(secretString, byteBufferToString(encryptRequestCaptor.getValue().getPlaintext()));
 	}
 	
 	@Test
+	public void testCreateSecretS3Key() {
+		// Call under test
+		String key = builder.createSecretS3Key();
+		assertEquals(expectedS3Key, key);
+	}
+	
+	@Test
+	public void testUploadSecretsToS3() {
+		Properties toUpload = new Properties();
+		toUpload.put("keyOne", "cipherOne");
+		byte[] propertyBytes = SecretBuilderImpl.getPropertiesBytes(toUpload);
+		// call under test
+		SourceBundle bundle = builder.uploadSecretsToS3(toUpload);
+		assertNotNull(bundle);
+		assertEquals(s3Bucket, bundle.getBucket());
+		assertEquals(expectedS3Key, bundle.getKey());
+		verify(mockS3Client).putObject(putObjectRequsetCaptor.capture());
+		PutObjectRequest request = putObjectRequsetCaptor.getValue();
+		assertNotNull(request);
+		assertEquals(s3Bucket, request.getBucketName());
+		assertEquals(expectedS3Key, request.getBucketName());
+		assertNotNull(request.getMetadata());
+		assertEquals(propertyBytes.length, request.getMetadata().getContentLength());
+		assertTrue();
+	}
+	
+	@Test
 	public void testCreateSecrets() {
 		// Call under test
-		Secret[] secrets = builder.createSecrets();
-		assertNotNull(secrets);
-		assertEquals(1, secrets.length);
-		assertEquals("SomeKey", secrets[0].getParameterName());
+		SourceBundle bundle = builder.createSecrets();
+		assertNotNull(bundle);
+		assertEquals(s3Bucket, bundle.getBucket());
+		assertEquals(expectedS3Key, bundle.getKey());
 	}
 	
 	/**
