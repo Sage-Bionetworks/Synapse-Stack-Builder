@@ -2,8 +2,12 @@ package org.sagebionetworks.template.repo.beanstalk;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.*;
-import static org.sagebionetworks.template.Constants.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_SECRET_KEYS_CSV;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -156,10 +160,9 @@ public class SecretBuilderImplTest {
 		PutObjectRequest request = putObjectRequsetCaptor.getValue();
 		assertNotNull(request);
 		assertEquals(s3Bucket, request.getBucketName());
-		assertEquals(expectedS3Key, request.getBucketName());
+		assertEquals(expectedS3Key, request.getKey());
 		assertNotNull(request.getMetadata());
 		assertEquals(propertyBytes.length, request.getMetadata().getContentLength());
-		assertTrue();
 	}
 	
 	@Test

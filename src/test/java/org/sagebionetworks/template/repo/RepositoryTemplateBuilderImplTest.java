@@ -8,6 +8,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
+import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
@@ -36,9 +37,8 @@ import static org.sagebionetworks.template.Constants.SHARED_RESOUCES_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.*;
+import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.logging.log4j.Logger;
@@ -60,7 +60,6 @@ import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
-import org.sagebionetworks.template.repo.beanstalk.Secret;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 import org.sagebionetworks.template.vpc.Color;
@@ -100,7 +99,7 @@ public class RepositoryTemplateBuilderImplTest {
 	Stack sharedResouces;
 	String databaseEndpointSuffix;
 	
-	Secret[] secrets;
+	SourceBundle secretsSouce;
 	String keyAlias;
 
 	@Before
@@ -159,15 +158,10 @@ public class RepositoryTemplateBuilderImplTest {
 		
 		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(sharedResouces);
 		
-		Secret secret = new Secret();
-		secret.withEncryptedValue("EncryptedValue");
-		secret.withParameterName("ParameterName");
-		secret.withPropertyKey("PropertyKey");
-		secrets = new Secret[] {secret};
-		
+		secretsSouce = new SourceBundle("secretBucket", "secretKey");
 		keyAlias = "alias/some/alias";
 		
-		when(mockSecretBuilder.createSecrets()).thenReturn(secrets);
+		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
 		when(mockSecretBuilder.getCMKAlias()).thenReturn(keyAlias);
 	}
 
@@ -300,7 +294,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Test
 	public void testCreateEnvironments() {
 		// call under test
-		EnvironmentDescriptor[] descriptors = builder.createEnvironments(secrets);
+		EnvironmentDescriptor[] descriptors = builder.createEnvironments(secretsSouce);
 		assertNotNull(descriptors);
 		assertEquals(3, descriptors.length);
 		// repo
@@ -321,7 +315,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("the:ssl:arn", desc.getSslCertificateARN());
 		assertEquals("SynapesRepoWorkersInstanceProfile", desc.getInstanceProfileSuffix());
 		// secrets should be passed to reop
-		assertTrue(Arrays.equals(secrets, desc.getSecrets()));
+		assertEquals(secretsSouce, desc.getSecretsSource());
 
 		// workers
 		desc = descriptors[1];
@@ -337,7 +331,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("key-workers", bundle.getKey());
 		assertEquals("SynapesRepoWorkersInstanceProfile", desc.getInstanceProfileSuffix());
 		// secrets should be passed to workers
-		assertTrue(Arrays.equals(secrets, desc.getSecrets()));
+		assertEquals(secretsSouce, desc.getSecretsSource());
 
 		// portal
 		desc = descriptors[2];
@@ -353,7 +347,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("key-portal", bundle.getKey());
 		assertEquals("SynapesPortalInstanceProfile", desc.getInstanceProfileSuffix());
 		// empty secrets should be passed to portal
-		assertTrue(Arrays.equals(new Secret[0], desc.getSecrets()));
+		assertEquals(null, desc.getSecretsSource());
 	}
 
 	@Test

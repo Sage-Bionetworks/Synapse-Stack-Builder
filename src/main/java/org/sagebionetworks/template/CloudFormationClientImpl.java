@@ -74,7 +74,9 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 				UpdateStackRequest request = new UpdateStackRequest();
 				request.setStackName(requestInput.getStackName());
 				request.setTemplateURL(templateUrl);
-				request.withParameters(requestInput.getParameters());
+				if(requestInput.getParameters() != null) {
+					request.withParameters(requestInput.getParameters());
+				}
 				if(requestInput.getCapabilities() != null) {
 					request.withCapabilities(requestInput.getCapabilities());
 				}
@@ -94,7 +96,9 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 				CreateStackRequest request = new CreateStackRequest();
 				request.setStackName(requestInput.getStackName());
 				request.setTemplateURL(templateUrl);
-				request.withParameters(requestInput.getParameters());
+				if(requestInput.getParameters() != null) {
+					request.withParameters(requestInput.getParameters());
+				}
 				if(requestInput.getCapabilities() != null) {
 					request.withCapabilities(requestInput.getCapabilities());
 				}
