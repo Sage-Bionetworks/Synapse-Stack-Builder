@@ -321,7 +321,7 @@
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.table.cluster.schema.0",
-						"Value": "${stack}${instance}user"
+						"Value": "${stack}${instance}"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
