@@ -1,9 +1,5 @@
 package org.sagebionetworks.template.repo.beanstalk;
 
-import java.util.Arrays;
-
-import com.amazonaws.services.cloudformation.model.Parameter;
-
 /**
  * Description of an Elastic Bean Stalk Environment.
  *
@@ -22,7 +18,7 @@ public class EnvironmentDescriptor {
 	String sslCertificateARN;
 	String hostedZone;
 	String cnamePrefix;
-	Secret[] secrets;
+	SourceBundle secretsSource;
 
 	public String getVersionLabel() {
 		return versionLabel;
@@ -136,12 +132,12 @@ public class EnvironmentDescriptor {
 		return this;
 	}
 	
-	public Secret[] getSecrets() {
-		return secrets;
+	public SourceBundle getSecretsSource() {
+		return secretsSource;
 	}
 
-	public EnvironmentDescriptor withSecrets(Secret[] secrets) {
-		this.secrets = secrets;
+	public EnvironmentDescriptor withSecretsSource(SourceBundle secrets) {
+		this.secretsSource = secrets;
 		return this;
 	}
 
@@ -151,34 +147,6 @@ public class EnvironmentDescriptor {
 	 */
 	public boolean isTypeRepositoryOrWorkers() {
 		return EnvironmentType.REPOSITORY_SERVICES.equals(type) || EnvironmentType.REPOSITORY_WORKERS.equals(type);
-	}
-	
-	/**
-	 * Parameters passed to each Elastic Bean Stalk build.
-	 * @param environment 
-	 * 
-	 * @return
-	 */
-	public Parameter[] createEnvironmentParameters() {
-		// Create a parameter for each secret
-		Parameter[] params = new Parameter[secrets.length];
-		for(int i=0; i<secrets.length; i++) {
-			params[i] = createEnvironmentParameter(secrets[i]);
-		}
-		return params;
-	}
-	
-	/**
-	 * Create a parameter for the given secret.
-	 * 
-	 * @param secret
-	 * @return
-	 */
-	static Parameter createEnvironmentParameter(Secret secret) {
-		Parameter parameter = new Parameter();
-		parameter.withParameterKey(secret.getParameterName());
-		parameter.withParameterValue(secret.getEncryptedValue());
-		return parameter;
 	}
 
 	@Override
@@ -193,7 +161,7 @@ public class EnvironmentDescriptor {
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + number;
 		result = prime * result + ((refName == null) ? 0 : refName.hashCode());
-		result = prime * result + Arrays.hashCode(secrets);
+		result = prime * result + ((secretsSource == null) ? 0 : secretsSource.hashCode());
 		result = prime * result + ((sourceBundle == null) ? 0 : sourceBundle.hashCode());
 		result = prime * result + ((sslCertificateARN == null) ? 0 : sslCertificateARN.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
@@ -241,7 +209,10 @@ public class EnvironmentDescriptor {
 				return false;
 		} else if (!refName.equals(other.refName))
 			return false;
-		if (!Arrays.equals(secrets, other.secrets))
+		if (secretsSource == null) {
+			if (other.secretsSource != null)
+				return false;
+		} else if (!secretsSource.equals(other.secretsSource))
 			return false;
 		if (sourceBundle == null) {
 			if (other.sourceBundle != null)
@@ -269,8 +240,7 @@ public class EnvironmentDescriptor {
 				+ ", sourceBundle=" + sourceBundle + ", healthCheckUrl=" + healthCheckUrl + ", minInstances="
 				+ minInstances + ", maxInstances=" + maxInstances + ", versionLabel=" + versionLabel
 				+ ", sslCertificateARN=" + sslCertificateARN + ", hostedZone=" + hostedZone + ", cnamePrefix="
-				+ cnamePrefix + ", secrets=" + Arrays.toString(secrets) + "]";
+				+ cnamePrefix + ", secretsSource=" + secretsSource + "]";
 	}
-	
-	
+		
 }

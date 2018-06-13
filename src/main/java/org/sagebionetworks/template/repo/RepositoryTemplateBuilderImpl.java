@@ -104,12 +104,11 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 */
 	public void buildEnvironments(Stack sharedStackResults) {
 		// Create the repo/worker secrets
-		Secret[] secrets = secretBuilder.createSecrets();
+		SourceBundle secretsSouce = secretBuilder.createSecrets();
 		// each environment is treated as its own stack.
-		EnvironmentDescriptor[] environements = createEnvironments(secrets);
+		EnvironmentDescriptor[] environements = createEnvironments(secretsSouce);
 		for (EnvironmentDescriptor environment : environements) {
-			// Create the parameters and context for this type.
-			Parameter[] parameters = environment.createEnvironmentParameters();
+			Parameter[] parameters = null;
 			VelocityContext context = createEnvironmentContext(sharedStackResults, environment);
 			// build this type.
 			buildAndDeployStack(context, environment.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, parameters);
@@ -220,7 +219,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 * 
 	 * @return
 	 */
-	public EnvironmentDescriptor[] createEnvironments(Secret[] secrets) {
+	public EnvironmentDescriptor[] createEnvironments(SourceBundle secrets) {
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
 		String instance = config.getProperty(PROPERTY_KEY_INSTANCE);
 		EnvironmentDescriptor[] environments = new EnvironmentDescriptor[EnvironmentType.values().length];
@@ -240,7 +239,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 			String cnamePrefix = name+"-"+hostedZone.replaceAll("\\.", "-");
 			
 			// Environment secrets
-			Secret[] environmentSecrets = new Secret[0];
+			SourceBundle environmentSecrets = null;
 			if(EnvironmentType.REPOSITORY_SERVICES.equals(type) || EnvironmentType.REPOSITORY_WORKERS.equals(type)) {
 				// secrets are only passed to repo and workers
 				environmentSecrets = secrets;
@@ -255,7 +254,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 					.withSslCertificateARN(sslCertificateARN)
 					.withHostedZone(hostedZone)
 					.withCnamePrefix(cnamePrefix)
-					.withSecrets(environmentSecrets);
+					.withSecretsSource(environmentSecrets);
 		}
 		return environments;
 	}
