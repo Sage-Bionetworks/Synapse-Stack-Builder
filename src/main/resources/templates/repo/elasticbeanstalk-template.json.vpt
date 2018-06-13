@@ -300,11 +300,6 @@
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
-						"OptionName": "org.sagebionetworks.id.generator.database.driver",
-						"Value": "com.mysql.jdbc.Driver"
-					},
-					{
-						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.id.generator.database.username",
 						"Value": "${stack}idgenuser"
 					},
@@ -337,11 +332,6 @@
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.table.cluster.database.count",
 						"Value": "1"
-					},
-					{
-						"Namespace": "aws:elasticbeanstalk:application:environment",
-						"OptionName": "org.sagebionetworks.repository.databaes.driver",
-						"Value": "com.mysql.jdbc.Driver"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
