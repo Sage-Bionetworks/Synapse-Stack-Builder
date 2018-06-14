@@ -160,7 +160,7 @@
 					{
 						"Namespace": "aws:elasticbeanstalk:environment",
 						"OptionName": "LoadBalancerType",
-						"Value": "classic"
+						"Value": "application"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:hostmanager",
@@ -394,6 +394,43 @@
 				],
 				"TTL": "300",
 				"Type": "CNAME"
+			}
+		},
+		"${environment.refName}TestRule": {
+			"Type": "AWS::WAF::Rule",
+			"Properties": {
+				"Name": "MyIPSetRule",
+				"MetricName": "MyIPSetRule",
+				"Predicates": [
+					{
+						"DataId": {
+							"Ref": "MyIPSetBlacklist"
+						},
+						"Negated": false,
+						"Type": "IPMatch"
+					}
+				]
+			}
+		},
+		"${environment.refName}WebACL": {
+			"Type": "AWS::WAF::WebACL",
+			"Properties": {
+				"DefaultAction": {
+					"Type": "ALLOW"
+				},
+				"MetricName": "${environment.refName}WebACL",
+				"Name": "${environment.refName}WebACL",
+				"Rules": [
+					{
+						"Action": {
+							"Type": "BLOCK"
+						},
+						"Priority": 1,
+						"RuleId": {
+							"Ref": "MyRule"
+						}
+					}
+				]
 			}
 		}
 	}
