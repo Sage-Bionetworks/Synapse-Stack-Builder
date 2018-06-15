@@ -1,0 +1,111 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "AWS WAF Basic OWASP Example Rule Set",
+	"Resources": {
+		"${stack}{$instance}SizeRestrictionSet": {
+			"Type": "AWS::WAFRegional::SizeConstraintSet",
+			"Properties": {
+				"Name": "${stack}-${instance}-size-restrictions",
+				"SizeConstraints": [
+					{
+						"FieldToMatch": {
+							"Type": "URI"
+						},
+						"TextTransformation": "NONE",
+						"ComparisonOperator": "GT",
+						"Size": 512
+					},
+					{
+						"FieldToMatch": {
+							"Type": "QUERY_STRING"
+						},
+						"TextTransformation": "NONE",
+						"ComparisonOperator": "GT",
+						"Size": 1024
+					},
+					{
+						"FieldToMatch": {
+							"Type": "BODY"
+						},
+						"TextTransformation": "NONE",
+						"ComparisonOperator": "GT",
+						"Size": 2097152
+					},
+					{
+						"FieldToMatch": {
+							"Type": "HEADER",
+							"Data": "cookie"
+						},
+						"TextTransformation": "NONE",
+						"ComparisonOperator": "GT",
+						"Size": 4096
+					}
+				]
+			}
+		},
+		"${stack}{$instance}SizeRestrictionRule": {
+			"Type": "AWS::WAFRegional::Rule",
+			"Properties": {
+				"Name": "${stack}-${instance}-size-restrictions-rule",
+				"MetricName": "${stack}${instance}SizeRestrictionsRule",
+				"Predicates": [
+					{
+						"DataId": {
+							"Ref": "${environment.refName}SizeRestrictionSet"
+						},
+						"Negated": false,
+						"Type": "SizeConstraint"
+					}
+				]
+			}
+		},
+		"${stack}{$instance}WebACL": {
+			"Type": "AWS::WAFRegional::WebACL",
+			"Properties": {
+				"DefaultAction": {
+					"Type": "ALLOW"
+				},
+				"MetricName": "${environment.refName}WebACL",
+				"Name": "${environment.refName}WebACL",
+				"Rules": [
+					{
+						"Action": {
+							"Type": "BLOCK"
+						},
+						"Priority": 1,
+						"RuleId": {
+							"Ref": "${environment.refName}SizeRestrictionRule"
+						}
+					}
+				]
+			}
+		},
+		"portalACLAssociation": {
+			"Type": "AWS::WAFRegional::WebACLAssociation",
+			"Properties": {
+				"ResourceArn": "${portalLoadBalancerARN}",
+				"WebACLId": {
+					"Ref": "${environment.refName}WebACL"
+				}
+			}
+		},
+		"repoACLAssociation": {
+			"Type": "AWS::WAFRegional::WebACLAssociation",
+			"Properties": {
+				"ResourceArn": "${repoLoadBalancerARN}",
+				"WebACLId": {
+					"Ref": "${environment.refName}WebACL"
+				}
+			}
+		},
+		"workersACLAssociation": {
+			"Type": "AWS::WAFRegional::WebACLAssociation",
+			"Properties": {
+				"ResourceArn": "${workersLoadBalancerARN}",
+				"WebACLId": {
+					"Ref": "${environment.refName}WebACL"
+				}
+			}
+		}
+	}
+}

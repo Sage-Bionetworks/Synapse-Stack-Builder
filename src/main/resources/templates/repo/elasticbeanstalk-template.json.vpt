@@ -160,7 +160,7 @@
 					{
 						"Namespace": "aws:elasticbeanstalk:environment",
 						"OptionName": "LoadBalancerType",
-						"Value": "application"
+						"Value": "classic"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:hostmanager",
@@ -395,42 +395,32 @@
 				"TTL": "300",
 				"Type": "CNAME"
 			}
-		},
-		"${environment.refName}TestRule": {
-			"Type": "AWS::WAF::Rule",
-			"Properties": {
-				"Name": "MyIPSetRule",
-				"MetricName": "MyIPSetRule",
-				"Predicates": [
-					{
-						"DataId": {
-							"Ref": "MyIPSetBlacklist"
-						},
-						"Negated": false,
-						"Type": "IPMatch"
-					}
+		}
+	},
+	"Outputs": {
+		"URL": {
+			"Description": "URL of the AWS Elastic Beanstalk Environment",
+			"Value": {
+				"Fn::GetAtt": [
+					"${environment.refName}",
+					"EndpointURL"
 				]
-			}
-		},
-		"${environment.refName}WebACL": {
-			"Type": "AWS::WAF::WebACL",
-			"Properties": {
-				"DefaultAction": {
-					"Type": "ALLOW"
-				},
-				"MetricName": "${environment.refName}WebACL",
-				"Name": "${environment.refName}WebACL",
-				"Rules": [
-					{
-						"Action": {
-							"Type": "BLOCK"
-						},
-						"Priority": 1,
-						"RuleId": {
-							"Ref": "MyRule"
-						}
-					}
-				]
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"${environment.refName}-EndpointURL"
+						]
+					]
+				}
 			}
 		}
 	}
