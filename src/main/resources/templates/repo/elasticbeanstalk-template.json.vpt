@@ -160,17 +160,12 @@
 					{
 						"Namespace": "aws:elasticbeanstalk:environment",
 						"OptionName": "LoadBalancerType",
-						"Value": "classic"
+						"Value": "application"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:hostmanager",
 						"OptionName": "LogPublicationControl",
 						"Value": "true"
-					},
-					{
-						"Namespace": "aws:elasticbeanstalk:application",
-						"OptionName": "Application Healthcheck URL",
-						"Value": "${environment.healthCheckUrl}"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:sns:topics",
@@ -180,61 +175,148 @@
 						}
 					},
 					{
-						"Namespace": "aws:elb:healthcheck",
-						"OptionName": "HealthyThreshold",
-						"Value": "3"
+						"Namespace": "aws:elbv2:loadbalancer",
+						"OptionName": "AccessLogsS3Bucket",
+						"Value": "${stack}.alb.access.logs"
 					},
 					{
-						"Namespace": "aws:elb:healthcheck",
-						"OptionName": "Interval",
-						"Value": "30"
+						"Namespace": "aws:elbv2:loadbalancer",
+						"OptionName": "AccessLogsS3Enabled",
+						"Value": "true"
 					},
 					{
-						"Namespace": "aws:elb:healthcheck",
-						"OptionName": "Timeout",
-						"Value": "5"
+						"Namespace": "aws:elbv2:loadbalancer",
+						"OptionName": "AccessLogsS3Prefix",
+						"Value": "${environment.type}/${stack}/${instance}"
 					},
 					{
-						"Namespace": "aws:elb:healthcheck",
-						"OptionName": "UnhealthyThreshold",
-						"Value": "5"
+						"Namespace": "aws:elbv2:loadbalancer",
+						"OptionName": "IdleTimeout",
+						"Value": "60"
 					},
 					{
-						"Namespace": "aws:elb:loadbalancer",
-						"OptionName": "CrossZone",
-						"Value": "false"
+						"Namespace": "aws:elbv2:loadbalancer",
+						"OptionName": "ManagedSecurityGroup",
+						"Value": {
+							"Fn::ImportValue": "${sharedExportPrefix}-Load-Balancer-Security-Group-ID"
+						}
 					},
 					{
-						"Namespace": "aws:elb:loadbalancer",
+						"Namespace": "aws:elbv2:loadbalancer",
 						"OptionName": "SecurityGroups",
 						"Value": {
 							"Fn::ImportValue": "${sharedExportPrefix}-Load-Balancer-Security-Group-ID"
 						}
 					},
 					{
-						"Namespace": "aws:elb:listener:443",
-						"OptionName": "ListenerProtocol",
-						"Value": "HTTPS"
+						"Namespace": "aws:elbv2:listener:default",
+						"OptionName": "ListenerEnabled",
+						"Value": "true"
 					},
 					{
-						"Namespace": "aws:elb:listener:443",
-						"OptionName": "InstancePort",
-						"Value": "80"
-					},
-					{
-						"Namespace": "aws:elb:listener:443",
-						"OptionName": "InstanceProtocol",
+						"Namespace": "aws:elbv2:listener:default",
+						"OptionName": "Protocol",
 						"Value": "HTTP"
 					},
 					{
-						"Namespace": "aws:elb:listener:443",
-						"OptionName": "SSLCertificateId",
+						"Namespace": "aws:elbv2:listener:default",
+						"OptionName": "Rules",
+						"Value": "default"
+					},
+					{
+						"Namespace": "aws:elbv2:listener:443",
+						"OptionName": "ListenerEnabled",
+						"Value": "true"
+					},
+					{
+						"Namespace": "aws:elbv2:listener:443",
+						"OptionName": "Protocol",
+						"Value": "HTTPS"
+					},
+					{
+						"Namespace": "aws:elbv2:listener:443",
+						"OptionName": "Rules",
+						"Value": "default"
+					},
+					{
+						"Namespace": "aws:elbv2:listener:443",
+						"OptionName": "SSLCertificateArns",
 						"Value": "${environment.sslCertificateARN}"
 					},
 					{
-						"Namespace": "aws:elb:listener:443",
-						"OptionName": "ListenerEnabled",
-						"Value": "true"
+						"Namespace": "aws:elbv2:listener:443",
+						"OptionName": "SSLPolicy",
+						"Value": "ElbSecuritypolicy-TLS-1-2-2017-01"
+					},
+					{
+						"Namespace": "aws:elbv2:listenerrule:default",
+						"OptionName": "HostHeaders",
+						"Value": "*"
+					},
+					{
+						"Namespace": "aws:elbv2:listenerrule:default",
+						"OptionName": "PathPatterns",
+						"Value": "*"
+					},
+					{
+						"Namespace": "aws:elbv2:listenerrule:default",
+						"OptionName": "Priority",
+						"Value": "1"
+					},
+					{
+						"Namespace": "aws:elbv2:listenerrule:default",
+						"OptionName": "Process",
+						"Value": "default"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:environment:process:default",
+						"OptionName": "DeregistrationDelay",
+						"Value": "60"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:environment:process:default",
+						"OptionName": "HealthCheckInterval",
+						"Value": "30"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:environment:process:default",
+						"OptionName": "HealthCheckPath",
+						"Value": "${environment.healthCheckUrl}"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:environment:process:default",
+						"OptionName": "HealthCheckTimeout",
+						"Value": "5"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:environment:process:default",
+						"OptionName": "HealthyThresholdCount",
+						"Value": "2"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:environment:process:default",
+						"OptionName": "MatcherHTTPCode",
+						"Value": "200,201"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:environment:process:default",
+						"OptionName": "Port",
+						"Value": "80"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:environment:process:default",
+						"OptionName": "Protocol",
+						"Value": "HTTP"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:environment:process:default",
+						"OptionName": "StickinessEnabled",
+						"Value": "false"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:environment:process:default",
+						"OptionName": "UnhealthyThresholdCount",
+						"Value": "5"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:container:tomcat:jvmoptions",
