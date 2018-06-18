@@ -210,6 +210,11 @@
 					},
 					{
 						"Namespace": "aws:elbv2:listener:default",
+						"OptionName": "DefaultProcess",
+						"Value": "default"
+					},
+					{
+						"Namespace": "aws:elbv2:listener:default",
 						"OptionName": "ListenerEnabled",
 						"Value": "true"
 					},
@@ -221,6 +226,11 @@
 					{
 						"Namespace": "aws:elbv2:listener:default",
 						"OptionName": "Rules",
+						"Value": "default"
+					},
+					{
+						"Namespace": "aws:elbv2:listener:443",
+						"OptionName": "DefaultProcess",
 						"Value": "default"
 					},
 					{
@@ -246,17 +256,12 @@
 					{
 						"Namespace": "aws:elbv2:listener:443",
 						"OptionName": "SSLPolicy",
-						"Value": "ElbSecuritypolicy-TLS-1-2-2017-01"
-					},
-					{
-						"Namespace": "aws:elbv2:listenerrule:default",
-						"OptionName": "HostHeaders",
-						"Value": "*"
+						"Value": "ELBSecurityPolicy-TLS-1-2-2017-01"
 					},
 					{
 						"Namespace": "aws:elbv2:listenerrule:default",
 						"OptionName": "PathPatterns",
-						"Value": "*"
+						"Value": "/*"
 					},
 					{
 						"Namespace": "aws:elbv2:listenerrule:default",
