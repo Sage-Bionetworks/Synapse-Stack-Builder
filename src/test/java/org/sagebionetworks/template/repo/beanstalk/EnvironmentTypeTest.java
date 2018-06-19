@@ -55,4 +55,17 @@ public class EnvironmentTypeTest {
 		String result = EnvironmentType.PORTAL.createS3Key("222.0");
 		assertEquals("versions/portal/portal-222.0.war", result);
 	}
+	
+	@Test
+	public void testValueOfPrefix() {
+		assertEquals(EnvironmentType.PORTAL, EnvironmentType.valueOfPrefix(EnvironmentType.PORTAL.cnamePrefix));
+		assertEquals(EnvironmentType.REPOSITORY_SERVICES, EnvironmentType.valueOfPrefix(EnvironmentType.REPOSITORY_SERVICES.cnamePrefix));
+		assertEquals(EnvironmentType.REPOSITORY_WORKERS, EnvironmentType.valueOfPrefix(EnvironmentType.REPOSITORY_WORKERS.cnamePrefix));
+	}
+	
+	@Test (expected=IllegalArgumentException.class)
+	public void testValueOfPrefixUnknown() {
+		// call under test
+		EnvironmentType.valueOfPrefix("unknown");
+	}
 }

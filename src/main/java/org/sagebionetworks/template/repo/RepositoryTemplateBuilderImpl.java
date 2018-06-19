@@ -69,11 +69,12 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	Logger logger;
 	ArtifactCopy artifactCopy;
 	SecretBuilder secretBuilder;
+	WebACLBuilder aclBuilder;	
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
 			Configuration configuration, LoggerFactory loggerFactory, ArtifactCopy artifactCopy,
-			SecretBuilder secretBuilder) {
+			SecretBuilder secretBuilder, WebACLBuilder aclBuilder) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.velocityEngine = velocityEngine;
@@ -82,6 +83,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.logger = loggerFactory.getLogger(RepositoryTemplateBuilderImpl.class);
 		this.artifactCopy = artifactCopy;
 		this.secretBuilder = secretBuilder;
+		this.aclBuilder = aclBuilder;
 	}
 
 	@Override
@@ -98,6 +100,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		
 		// Build each bean stalk environment.
 		List<String> environmentNames = buildEnvironments(sharedStackResults);
+		// setup a web-ACL for each environment
+		aclBuilder.buildWebACL(environmentNames);
 	}
 
 	/**

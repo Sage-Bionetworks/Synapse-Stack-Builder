@@ -1,8 +1,8 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
-	"Description": "AWS WAF Basic OWASP Example Rule Set",
+	"Description": "Creates the Web Application Firewall (WAF) and associates it with all Synapse application load balancers.",
 	"Resources": {
-		"${stack}{$instance}SizeRestrictionSet": {
+		"${stack}${instance}SizeRestrictionSet": {
 			"Type": "AWS::WAFRegional::SizeConstraintSet",
 			"Properties": {
 				"Name": "${stack}-${instance}-size-restrictions",
@@ -43,7 +43,7 @@
 				]
 			}
 		},
-		"${stack}{$instance}SizeRestrictionRule": {
+		"${stack}${instance}SizeRestrictionRule": {
 			"Type": "AWS::WAFRegional::Rule",
 			"Properties": {
 				"Name": "${stack}-${instance}-size-restrictions-rule",
@@ -51,7 +51,7 @@
 				"Predicates": [
 					{
 						"DataId": {
-							"Ref": "${environment.refName}SizeRestrictionSet"
+							"Ref": "${stack}${instance}SizeRestrictionSet"
 						},
 						"Negated": false,
 						"Type": "SizeConstraint"
@@ -59,22 +59,105 @@
 				]
 			}
 		},
-		"${stack}{$instance}WebACL": {
+		"${stack}${instance}SQLInjectionSet": {
+			"Type": "AWS::WAFRegional::SqlInjectionMatchSet",
+			"Properties": {
+				"Name": "${stack}-${instance}-SQL-Injection-Set",
+				"SqlInjectionMatchTuples": [
+					{
+						"FieldToMatch": {
+							"Type": "URI"
+						},
+						"TextTransformation": "URL_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "URI"
+						},
+						"TextTransformation": "HTML_ENTITY_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "QUERY_STRING"
+						},
+						"TextTransformation": "URL_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "QUERY_STRING"
+						},
+						"TextTransformation": "HTML_ENTITY_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "BODY"
+						},
+						"TextTransformation": "URL_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "BODY"
+						},
+						"TextTransformation": "HTML_ENTITY_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "HEADER",
+							"Data": "cookie"
+						},
+						"TextTransformation": "URL_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "HEADER",
+							"Data": "cookie"
+						},
+						"TextTransformation": "HTML_ENTITY_DECODE"
+					}
+				]
+			}
+		},
+		"${stack}${instance}SQLInjectionRule": {
+			"Type": "AWS::WAFRegional::Rule",
+			"Properties": {
+				"MetricName": "${stack}${instance}SQLInjectionRule",
+				"Name": "${stack}-${instance}-SQL-Injection-Rule",
+				"Predicates": [
+					{
+						"Type": "SqlInjectionMatch",
+						"Negated": false,
+						"DataId": {
+							"Ref": "${stack}${instance}SQLInjectionSet"
+						}
+					}
+				]
+			}
+		},
+		"${stack}${instance}WebACL": {
 			"Type": "AWS::WAFRegional::WebACL",
 			"Properties": {
 				"DefaultAction": {
 					"Type": "ALLOW"
 				},
-				"MetricName": "${environment.refName}WebACL",
-				"Name": "${environment.refName}WebACL",
+				"MetricName": "${stack}${instance}WebACL",
+				"Name": "${stack}${instance}WebACL",
 				"Rules": [
 					{
 						"Action": {
-							"Type": "BLOCK"
+							"Type": "COUNT"
 						},
 						"Priority": 1,
 						"RuleId": {
-							"Ref": "${environment.refName}SizeRestrictionRule"
+							"Ref": "${stack}${instance}SizeRestrictionRule"
+						}
+					},
+					{
+						"Action": {
+							"Type": "COUNT"
+						},
+						"Priority": 2,
+						"RuleId": {
+							"Ref": "${stack}${instance}SQLInjectionRule"
 						}
 					}
 				]
@@ -85,7 +168,7 @@
 			"Properties": {
 				"ResourceArn": "${portalLoadBalancerARN}",
 				"WebACLId": {
-					"Ref": "${environment.refName}WebACL"
+					"Ref": "${stack}${instance}WebACL"
 				}
 			}
 		},
@@ -94,7 +177,7 @@
 			"Properties": {
 				"ResourceArn": "${repoLoadBalancerARN}",
 				"WebACLId": {
-					"Ref": "${environment.refName}WebACL"
+					"Ref": "${stack}${instance}WebACL"
 				}
 			}
 		},
@@ -103,7 +186,7 @@
 			"Properties": {
 				"ResourceArn": "${workersLoadBalancerARN}",
 				"WebACLId": {
-					"Ref": "${environment.refName}WebACL"
+					"Ref": "${stack}${instance}WebACL"
 				}
 			}
 		}

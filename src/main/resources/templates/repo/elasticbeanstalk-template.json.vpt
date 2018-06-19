@@ -504,7 +504,7 @@
 							{
 								"Ref": "AWS::StackName"
 							},
-							"${environment.refName}-EndpointURL"
+							"EndpointURL"
 						]
 					]
 				}
