@@ -133,6 +133,219 @@
 				]
 			}
 		},
+		"${stack}${instance}XssSet": {
+			"Type": "AWS::WAFRegional::XssMatchSet",
+			"Properties": {
+				"Name": "${stack}-${instance}-XSS-Rule",
+				"XssMatchTuples": [
+					{
+						"FieldToMatch": {
+							"Type": "URI"
+						},
+						"TextTransformation": "URL_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "URI"
+						},
+						"TextTransformation": "HTML_ENTITY_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "QUERY_STRING"
+						},
+						"TextTransformation": "URL_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "QUERY_STRING"
+						},
+						"TextTransformation": "HTML_ENTITY_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "BODY"
+						},
+						"TextTransformation": "URL_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "BODY"
+						},
+						"TextTransformation": "HTML_ENTITY_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "HEADER",
+							"Data": "cookie"
+						},
+						"TextTransformation": "URL_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "HEADER",
+							"Data": "cookie"
+						},
+						"TextTransformation": "HTML_ENTITY_DECODE"
+					}
+				]
+			}
+		},
+		"${stack}${instance}XssRule": {
+			"Type": "AWS::WAFRegional::Rule",
+			"Properties": {
+				"MetricName": "${stack}${instance}XssRule",
+				"Name": "${stack}-${instance}-XSS-Rule",
+				"Predicates": [
+					{
+						"Type": "XssMatch",
+						"Negated": false,
+						"DataId": {
+							"Ref": "${stack}${instance}XssSet"
+						}
+					}
+				]
+			}
+		},
+        "${stack}${instance}PathsStringSet": {
+            "Type": "AWS::WAFRegional::ByteMatchSet",
+            "Properties": {
+                "Name": "${stack}-${instance}-match-rfi-lfi-traversal",
+                "ByteMatchTuples": [
+                    {
+                        "FieldToMatch": {
+                            "Type": "URI"
+                        },
+                        "PositionalConstraint": "CONTAINS",
+                        "TargetString": "../",
+                        "TextTransformation": "URL_DECODE"
+                    },
+                    {
+                        "FieldToMatch": {
+                            "Type": "URI"
+                        },
+                        "PositionalConstraint": "CONTAINS",
+                        "TargetString": "../",
+                        "TextTransformation": "HTML_ENTITY_DECODE"
+                    },
+                    {
+                        "FieldToMatch": {
+                            "Type": "QUERY_STRING"
+                        },
+                        "PositionalConstraint": "CONTAINS",
+                        "TargetString": "../",
+                        "TextTransformation": "URL_DECODE"
+                    },
+                    {
+                        "FieldToMatch": {
+                            "Type": "QUERY_STRING"
+                        },
+                        "PositionalConstraint": "CONTAINS",
+                        "TargetString": "../",
+                        "TextTransformation": "HTML_ENTITY_DECODE"
+                    },
+                    {
+                        "FieldToMatch": {
+                            "Type": "URI"
+                        },
+                        "PositionalConstraint": "CONTAINS",
+                        "TargetString": "://",
+                        "TextTransformation": "URL_DECODE"
+                    },
+                    {
+                        "FieldToMatch": {
+                            "Type": "URI"
+                        },
+                        "PositionalConstraint": "CONTAINS",
+                        "TargetString": "://",
+                        "TextTransformation": "HTML_ENTITY_DECODE"
+                    },
+                    {
+                        "FieldToMatch": {
+                            "Type": "QUERY_STRING"
+                        },
+                        "PositionalConstraint": "CONTAINS",
+                        "TargetString": "://",
+                        "TextTransformation": "URL_DECODE"
+                    },
+                    {
+                        "FieldToMatch": {
+                            "Type": "QUERY_STRING"
+                        },
+                        "PositionalConstraint": "CONTAINS",
+                        "TargetString": "://",
+                        "TextTransformation": "HTML_ENTITY_DECODE"
+                    }
+                ]
+            }
+        },
+        "${stack}${instance}PathsRule": {
+            "Type": "AWS::WAFRegional::Rule",
+            "Properties": {
+                "MetricName": "${stack}${instance}PathsRule",
+                "Name": "${stack}-${instance}-Paths-Rule",
+                "Predicates": [
+                    {
+                        "Type": "ByteMatch",
+                        "Negated": false,
+                        "DataId": {
+                            "Ref": "${stack}${instance}PathsStringSet"
+                        }
+                    }
+                ]
+            }
+        },
+        "${stack}${instance}AdminUrlStringSet": {
+            "Type": "AWS::WAFRegional::ByteMatchSet",
+            "Properties": {
+                "Name": "${stack}-${instance}-match-admin-url",
+                "ByteMatchTuples": [
+                    {
+                        "FieldToMatch": {
+                            "Type": "URI"
+                        },
+                        "PositionalConstraint": "STARTS_WITH",
+                        "TargetString": "/repo/v1/admin",
+                        "TextTransformation": "URL_DECODE"
+                    }
+                ]
+            }
+        },
+        "${stack}${instance}AdminRemoteAddrIpSet": {
+            "Type": "AWS::WAFRegional::IPSet",
+            "Properties": {
+                "Name": "${stack}-${instance}-match-admin-remote-ip",
+                "IPSetDescriptors": [
+                    {
+                        "Type": "IPV4",
+                        "Value": "10.1.0.0/16"
+                    }
+                ]
+            }
+        },
+        "${stack}${instance}AdminAccessRule": {
+            "Type": "AWS::WAFRegional::Rule",
+            "Properties": {
+                "MetricName": "${stack}${instance}AdminAccessRule",
+                "Name": "${stack}-${instance}-Admin-Access-Rule",
+                "Predicates": [
+                    {
+                        "Type": "ByteMatch",
+                        "Negated": false,
+                        "DataId": {
+                            "Ref": "${stack}${instance}AdminUrlStringSet"
+                        }
+                    },
+                    {
+                        "Type": "IPMatch",
+                        "Negated": true,
+                        "DataId": {
+                            "Ref": "${stack}${instance}AdminRemoteAddrIpSet"
+                        }
+                    }
+                ]
+            }
+        },
 		"${stack}${instance}WebACL": {
 			"Type": "AWS::WAFRegional::WebACL",
 			"Properties": {
@@ -158,6 +371,33 @@
 						"Priority": 2,
 						"RuleId": {
 							"Ref": "${stack}${instance}SQLInjectionRule"
+						}
+					},
+					{
+						"Action": {
+							"Type": "COUNT"
+						},
+						"Priority": 3,
+						"RuleId": {
+							"Ref": "${stack}${instance}XssRule"
+						}
+					},
+					{
+						"Action": {
+							"Type": "COUNT"
+						},
+						"Priority": 4,
+						"RuleId": {
+							"Ref": "${stack}${instance}PathsRule"
+						}
+					},
+					{
+						"Action": {
+							"Type": "COUNT"
+						},
+						"Priority": 5,
+						"RuleId": {
+							"Ref": "${stack}${instance}AdminAccessRule"
 						}
 					}
 				]
