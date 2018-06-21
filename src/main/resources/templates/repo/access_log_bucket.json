@@ -1,0 +1,77 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Setup the S3 Bucket where Application Load Balancer access logs are pushed.",
+	"Parameters": {
+		"stack": {
+			"Description": "'prod' or 'dev'",
+			"AllowedValues": [
+				"prod",
+				"dev"
+			],
+			"Type": "String"
+		}
+	},
+	"Resources": {
+		"albAccessLogBucket": {
+			"Type": "AWS::S3::Bucket",
+			"Properties": {
+				"AccessControl": "LogDeliveryWrite",
+				"BucketName": {
+					"Fn::Join": [
+						".",
+						[
+							{
+								"Ref": "stack"
+							},
+							"alb.access.logs"
+						]
+					]
+				},
+				"BucketEncryption": {
+					"ServerSideEncryptionConfiguration": [
+						{
+							"ServerSideEncryptionByDefault": {
+								"SSEAlgorithm": "AES256"
+							}
+						}
+					]
+				}
+			}
+		},
+		"albAccessLogBucketBucketPolicy": {
+			"Type": "AWS::S3::BucketPolicy",
+			"Properties": {
+				"Bucket": {
+					"Ref": "albAccessLogBucket"
+				},
+				"PolicyDocument": {
+					"Statement": [
+						{
+							"Action": [
+								"s3:PutObject"
+							],
+							"Effect": "Allow",
+							"Resource": {
+								"Fn::Join": [
+									"",
+									[
+										"arn:aws:s3:::",
+										{
+											"Ref": "albAccessLogBucket"
+										},
+										"/*"
+									]
+								]
+							},
+							"Principal": {
+								"AWS": [
+									"127311923021"
+								]
+							}
+						}
+					]
+				}
+			}
+		}
+	}
+}

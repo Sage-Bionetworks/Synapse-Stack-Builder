@@ -73,4 +73,18 @@ public enum EnvironmentType {
 	public String getInstanceProfileSuffix() {
 		return this.instanceProfileSuffix;
 	}
+	
+	/**
+	 * Get the EnvironmentType matching the passed prefix.
+	 * @param prefix
+	 * @return
+	 */
+	public static EnvironmentType valueOfPrefix(String prefix) {
+		for(EnvironmentType type: values()) {
+			if(type.cnamePrefix.equals(prefix)){
+				return type;
+			}
+		}
+		throw new IllegalArgumentException("Unknown prefix: "+prefix);
+	}
 }

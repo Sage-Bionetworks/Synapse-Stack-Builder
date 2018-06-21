@@ -29,12 +29,15 @@ import static org.sagebionetworks.template.Constants.REPO_BEANSTALK_NUMBER;
 import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.SHARED_RESOUCES_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
+import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
 import static org.sagebionetworks.template.Constants.TEMPALTE_BEAN_STALK_ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.*;
+import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
 import java.io.StringWriter;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.StringJoiner;
 
 import org.apache.logging.log4j.Logger;
@@ -50,7 +53,6 @@ import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
-import org.sagebionetworks.template.repo.beanstalk.Secret;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 
@@ -67,11 +69,12 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	Logger logger;
 	ArtifactCopy artifactCopy;
 	SecretBuilder secretBuilder;
+	WebACLBuilder aclBuilder;	
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
 			Configuration configuration, LoggerFactory loggerFactory, ArtifactCopy artifactCopy,
-			SecretBuilder secretBuilder) {
+			SecretBuilder secretBuilder, WebACLBuilder aclBuilder) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.velocityEngine = velocityEngine;
@@ -80,6 +83,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.logger = loggerFactory.getLogger(RepositoryTemplateBuilderImpl.class);
 		this.artifactCopy = artifactCopy;
 		this.secretBuilder = secretBuilder;
+		this.aclBuilder = aclBuilder;
 	}
 
 	@Override
@@ -95,24 +99,29 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		Stack sharedStackResults = cloudFormationClient.waitForStackToComplete(sharedResourceStackName);
 		
 		// Build each bean stalk environment.
-		buildEnvironments(sharedStackResults);
+		List<String> environmentNames = buildEnvironments(sharedStackResults);
+		// setup a web-ACL for each environment
+		aclBuilder.buildWebACL(environmentNames);
 	}
 
 	/**
 	 * Build all of the environments
 	 * @param sharedStackResults
 	 */
-	public void buildEnvironments(Stack sharedStackResults) {
+	public List<String> buildEnvironments(Stack sharedStackResults) {
 		// Create the repo/worker secrets
 		SourceBundle secretsSouce = secretBuilder.createSecrets();
+		List<String> environmentNames = new LinkedList<String>();
 		// each environment is treated as its own stack.
 		EnvironmentDescriptor[] environements = createEnvironments(secretsSouce);
 		for (EnvironmentDescriptor environment : environements) {
 			Parameter[] parameters = null;
 			VelocityContext context = createEnvironmentContext(sharedStackResults, environment);
+			environmentNames.add(environment.getName());
 			// build this type.
 			buildAndDeployStack(context, environment.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, parameters);
 		}
+		return environmentNames;
 	}
 	
 

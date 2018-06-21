@@ -10,6 +10,8 @@ import org.sagebionetworks.template.repo.IdGeneratorBuilder;
 import org.sagebionetworks.template.repo.IdGeneratorBuilderImpl;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilderImpl;
+import org.sagebionetworks.template.repo.WebACLBuilder;
+import org.sagebionetworks.template.repo.WebACLBuilderImpl;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopyImpl;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactDownload;
@@ -23,6 +25,8 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
+import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
+import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClientBuilder;
 import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.AWSKMSAsyncClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
@@ -52,6 +56,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(ThreadProvider.class).to(ThreadProviderImp.class);
 		bind(IdGeneratorBuilder.class).to(IdGeneratorBuilderImpl.class);
 		bind(SecretBuilder.class).to(SecretBuilderImpl.class);
+		bind(WebACLBuilder.class).to(WebACLBuilderImpl.class);
 	}
 	
 	/**
@@ -92,6 +97,14 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public AWSKMS provideAWSKMSClient() {
 		AWSKMSAsyncClientBuilder builder = AWSKMSAsyncClientBuilder.standard();
+		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
+		builder.withRegion(Regions.US_EAST_1);
+		return builder.build();
+	}
+	
+	@Provides
+	public AmazonElasticLoadBalancing provideAmazonElasticLoadBalancing() {
+		AmazonElasticLoadBalancingClientBuilder builder = AmazonElasticLoadBalancingClientBuilder.standard();
 		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
 		builder.withRegion(Regions.US_EAST_1);
 		return builder.build();

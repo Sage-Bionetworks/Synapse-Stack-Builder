@@ -67,6 +67,7 @@ import org.sagebionetworks.template.vpc.Color;
 import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
+import com.google.common.collect.Lists;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RepositoryTemplateBuilderImplTest {
@@ -83,6 +84,8 @@ public class RepositoryTemplateBuilderImplTest {
 	ArtifactCopy mockArtifactCopy;
 	@Mock
 	SecretBuilder mockSecretBuilder;
+	@Mock
+	WebACLBuilder mockACLBuilder;
 	@Captor
 	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
 
@@ -110,7 +113,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
-				mockArtifactCopy, mockSecretBuilder);
+				mockArtifactCopy, mockSecretBuilder, mockACLBuilder);
 
 		stack = "dev";
 		instance = "101";
@@ -186,6 +189,8 @@ public class RepositoryTemplateBuilderImplTest {
 		validateResouceDatabaseInstance(resources);
 		// tables database
 		validateResouceTablesDatabase(resources);
+		List<String> evironmentNames = Lists.newArrayList("repo-dev-101-0", "workers-dev-101-0", "portal-dev-101-0");
+		verify(mockACLBuilder).buildWebACL(evironmentNames);
 	}
 
 	public void validateResouceDatabaseSubnetGroup(JSONObject resources) {
