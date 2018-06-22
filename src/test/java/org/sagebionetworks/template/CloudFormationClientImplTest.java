@@ -79,8 +79,6 @@ public class CloudFormationClientImplTest {
 	UpdateStackResult updateResult;
 	CreateStackResult createResult;
 	CreateOrUpdateStackRequest inputReqequest;
-	
-	URL presignedUrl;
 
 	Stack stack;
 	
@@ -121,9 +119,6 @@ public class CloudFormationClientImplTest {
 		bucket = "theBucket";
 		when(mockConfig.getConfigurationBucket()).thenReturn(bucket);
 		
-		presignedUrl = new URL("http://www.amazon.com/bucket/key");
-		when(mockS3Client.generatePresignedUrl(anyString(), anyString(), any(Date.class), any(HttpMethod.class))).thenReturn(presignedUrl);
-		
 		when(mockThreadProvider.currentTimeMillis()).thenReturn(1L, 2L,3L,4L,Long.MAX_VALUE);
 		
 	}
@@ -162,7 +157,7 @@ public class CloudFormationClientImplTest {
 		verify(mockCloudFormationClient).createStack(createStackRequestCapture.capture());
 		CreateStackRequest captureRequest = createStackRequestCapture.getValue();
 		assertEquals(stackName, captureRequest.getStackName());
-		assertEquals(presignedUrl.toString(), captureRequest.getTemplateURL());
+		assertNotNull(captureRequest.getTemplateURL());
 		assertNotNull(captureRequest.getParameters());
 		assertEquals(1, captureRequest.getParameters().size());
 		assertEquals(parameter, captureRequest.getParameters().get(0));
@@ -180,7 +175,7 @@ public class CloudFormationClientImplTest {
 		verify(mockCloudFormationClient).updateStack(updateStackRequestCapture.capture());
 		UpdateStackRequest request = updateStackRequestCapture.getValue();
 		assertEquals(stackName, request.getStackName());
-		assertEquals(presignedUrl.toString(), request.getTemplateURL());
+		assertNotNull(request.getTemplateURL());
 		assertNotNull(request.getParameters());
 		assertEquals(1, request.getParameters().size());
 		assertEquals(parameter, request.getParameters().get(0));
@@ -244,7 +239,7 @@ public class CloudFormationClientImplTest {
 		// call under test
 		client.executeWithS3Template(inputReqequest, mockFunction);
 		verify(mockS3Client).putObject(any(PutObjectRequest.class));
-		verify(mockFunction).apply(presignedUrl.toString());
+		verify(mockFunction).apply(anyString());
 		verify(mockS3Client).deleteObject(anyString(), anyString());
 	}
 	
@@ -257,7 +252,7 @@ public class CloudFormationClientImplTest {
 		// call under test
 		client.executeWithS3Template(inputReqequest, mockFunction);
 		verify(mockS3Client).putObject(any(PutObjectRequest.class));
-		verify(mockFunction).apply(presignedUrl.toString());
+		verify(mockFunction).apply(anyString());
 		verify(mockS3Client).deleteObject(anyString(), anyString());
 		verify(mockLogger).info(any(String.class));
 	}
