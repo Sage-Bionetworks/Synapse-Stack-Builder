@@ -2,15 +2,12 @@ package org.sagebionetworks.template;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.URL;
-import java.util.Date;
 import java.util.UUID;
 import java.util.function.Function;
 
 import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 
-import com.amazonaws.HttpMethod;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException;
 import com.amazonaws.services.cloudformation.model.CreateStackRequest;
@@ -31,6 +28,8 @@ import com.google.inject.Inject;
  *
  */
 public class CloudFormationClientImpl implements CloudFormationClient {
+
+	public static final String S3_URL_TEMPLATE = "https://s3.amazonaws.com/%s/%s";
 
 	public static final long TIMEOUT_MS = 60*60*1000; // one hour.
 	
@@ -120,7 +119,7 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 		SourceBundle bundle = saveTempalteToS3(requestInput.getStackName(), requestInput.getTemplateBody());
 		try {
 			// provide an pre-signed URL to the template in S3
-			String templateUrl = createPresignedUrl(bundle);
+			String templateUrl = createS3Url(bundle);
 			// the function executes the create or update.
 			try {
 				function.apply(templateUrl);
@@ -185,11 +184,8 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 	 * @param bundle
 	 * @return
 	 */
-	String createPresignedUrl(SourceBundle bundle) {
-		Date expiration = new Date(System.currentTimeMillis() + (1000 * 60));
-		URL url = s3Client.generatePresignedUrl(bundle.getBucket(), bundle.getKey(), expiration,
-				HttpMethod.GET);
-		return url.toString();
+	String createS3Url(SourceBundle bundle) {
+		return String.format(S3_URL_TEMPLATE, bundle.getBucket(), bundle.getKey());
 	}
 	
 	/**
