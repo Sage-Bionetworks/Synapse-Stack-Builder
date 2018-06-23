@@ -484,14 +484,10 @@
 							],
 							"Resource": "*",
 							"Condition": {
-								"StringNotEquals": {
+								"StringNotLike": {
 									"aws:userid": [
-										{
-											"Fn::GetAtt": [ "${stack}${instance}SynapesRepoWorkersServiceRole", "RoleId"	]
-										},
-										{
-											"Fn::ImportValue": "us-east-1-synapse-${stack}-cmk-SynapseDeploymentRoleId"
-										},
+										{ "Fn::Join": [ "", [{"Fn::GetAtt": [ "${stack}${instance}SynapesRepoWorkersServiceRole", "RoleId"]}, ":*" ]]},
+										{ "Fn::Join": [ "", [{"Fn::ImportValue": "us-east-1-synapse-${stack}-cmk-SynapseDeploymentRoleId"}, ":*" ]]},
 										{
 											"Ref": "AWS::AccountId"
 										}
