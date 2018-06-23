@@ -474,7 +474,29 @@
 					"Id": "key-default-1",
 					"Statement": [
 						{
-							"Sid": "Allow administration of the key",
+							"Sid": "This key can only be used by Root, Stack-Builder, and Synapse-Service-Role",
+							"Effect": "Deny",
+							"Principal": {
+								"AWS": "*"
+							},
+							"Action": [
+								"kms:*"
+							],
+							"Resource": "*",
+							"Condition": {
+								"StringNotLike": {
+									"aws:userid": [
+										{ "Fn::Join": [ "", [{"Fn::GetAtt": [ "${stack}${instance}SynapesRepoWorkersServiceRole", "RoleId"]}, ":*" ]]},
+										{ "Fn::Join": [ "", [{"Fn::ImportValue": "us-east-1-synapse-${stack}-cmk-SynapseDeploymentRoleId"}, ":*" ]]},
+										{
+											"Ref": "AWS::AccountId"
+										}
+									]
+								}
+							}
+						},
+						{
+							"Sid": "Allow root administration of the key",
 							"Effect": "Allow",
 							"Principal": {
 								"AWS": {
@@ -492,20 +514,6 @@
 							},
 							"Action": [
 								"kms:*"
-							],
-							"Resource": "*"
-						},
-						{
-							"Sid": "Allow use of the key",
-							"Effect": "Allow",
-							"Principal": {
-								"AWS": {"Fn::GetAtt" : ["${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"] }
-							},
-							"Action": [
-								"kms:Encrypt",
-								"kms:Decrypt",
-								"kms:ReEncrypt*",
-								"kms:DescribeKey"
 							],
 							"Resource": "*"
 						}
