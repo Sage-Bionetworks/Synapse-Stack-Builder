@@ -9,16 +9,6 @@
 		}
 	},
 	"Resources": {
-		"${stack}${instance}DBTopic" : {
-			"Type" : "AWS::SNS::Topic",
-			"Properties" : {
-				"DisplayName":"${stack}-${instance}-RDS-Alert",
-				"TopicName" : "${stack}-${instance}-RDS-Alert",
-				"Subscription" : [
-					{ "Endpoint" : "synapse-ops@sagebase.org", "Protocol" : "email" }
-				]
-			}
-		},
 		"${stack}${instance}DBSubnetGroup": {
 			"Type": "AWS::RDS::DBSubnetGroup",
 			"Properties": {
@@ -152,7 +142,6 @@
 		"${descriptor.resourceName}HighWriteLatency": {
 			"Type" : "AWS::CloudWatch::Alarm",
 			"DependsOn": [
-				"${stack}${instance}DBTopic",
 				"${descriptor.resourceName}"
 			],
 			"Properties" : {
@@ -180,7 +169,6 @@
 		"${descriptor.resourceName}HighCPUUtilization": {
 			"Type" : "AWS::CloudWatch::Alarm",
 			"DependsOn": [
-				"${stack}${instance}DBTopic",
 				"${descriptor.resourceName}"
 			],
 			"Properties" : {
@@ -208,7 +196,6 @@
 		"${descriptor.resourceName}LowFreeStorageSpace": {
 			"Type" : "AWS::CloudWatch::Alarm",
 			"DependsOn": [
-				"${stack}${instance}DBTopic",
 				"${descriptor.resourceName}"
 			],
 			"Properties" : {
@@ -592,28 +579,6 @@
 								"Ref": "AWS::StackName"
 							},
 							"Load-Balancer-Security-Group-ID"
-						]
-					]
-				}
-			}
-		},
-		"${stack}${instance}DBTopicId": {
-			"Description": "The elastic bean stalk application ID",
-			"Value": {
-				"Ref": "${stack}${instance}DBTopic"
-			},
-			"Export": {
-				"Name": {
-					"Fn::Join": [
-						"-",
-						[
-							{
-								"Ref": "AWS::Region"
-							},
-							{
-								"Ref": "AWS::StackName"
-							},
-							"DB-SNS-Topic-ID"
 						]
 					]
 				}

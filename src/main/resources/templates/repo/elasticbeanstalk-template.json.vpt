@@ -171,7 +171,7 @@
 						"Namespace": "aws:elasticbeanstalk:sns:topics",
 						"OptionName": "Notification-Endpoint",
 						"Value": {
-							"Fn::ImportValue": "${sharedExportPrefix}-DB-SNS-Topic-ID"
+							"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"
 						}
 					},
 					{
