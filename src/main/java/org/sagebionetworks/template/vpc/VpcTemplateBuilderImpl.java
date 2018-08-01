@@ -67,7 +67,7 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 		template.merge(context, stringWriter);
 		// Parse the resulting template
 		String resultJSON = stringWriter.toString();
-		System.out.println(resultJSON);
+//		System.out.println(resultJSON);
 		JSONObject templateJson = new JSONObject(resultJSON);
 		// Format the JSON
 		resultJSON = templateJson.toString(JSON_INDENT);
