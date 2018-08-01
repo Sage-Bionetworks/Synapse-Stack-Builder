@@ -125,13 +125,12 @@
 		"${descriptor.resourceName}AlarmSwapUsage": {
 			"Type" : "AWS::CloudWatch::Alarm",
 			"DependsOn": [
-				"${stack}${instance}DBTopic",
 				"${descriptor.resourceName}"
 			],
 			"Properties" : {
 				"ActionsEnabled" : true,
 				"AlarmActions" : [
-					{ "Ref": "${stack}${instance}DBTopic" }			
+					{"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"}			
 				],
 				"AlarmDescription" : "Alert when database swap usage is exceeded.",
 				"AlarmName" : "${descriptor.instanceIdentifier}-Swap-Usage",
@@ -159,7 +158,7 @@
 			"Properties" : {
 				"ActionsEnabled" : true,
 				"AlarmActions" : [
-					{ "Ref": "${stack}${instance}DBTopic" }			
+					{"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"}			
 				],
 				"AlarmDescription" : "Alert when database write latency is exceeded.",
 				"AlarmName" : "${descriptor.instanceIdentifier}-High-Write-Latency",
@@ -187,7 +186,7 @@
 			"Properties" : {
 				"ActionsEnabled" : true,
 				"AlarmActions" : [
-					{ "Ref": "${stack}${instance}DBTopic" }			
+					{"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"}			
 				],
 				"AlarmDescription" : "Alert when database CPU utilization is exceeded.",
 				"AlarmName" : "${descriptor.instanceIdentifier}-High-CPU-Utilization",
@@ -215,7 +214,7 @@
 			"Properties" : {
 				"ActionsEnabled" : true,
 				"AlarmActions" : [
-					{ "Ref": "${stack}${instance}DBTopic" }			
+					{"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"}			
 				],
 				"AlarmDescription" : "Alert when database free storage space is low.",
 				"AlarmName" : "${descriptor.instanceIdentifier}-Low-Free-Storage-Space",
