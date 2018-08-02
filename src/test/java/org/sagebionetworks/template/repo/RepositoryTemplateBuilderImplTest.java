@@ -7,7 +7,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
+import static org.sagebionetworks.template.Constants.*;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.INSTANCE;
@@ -127,8 +127,11 @@ public class RepositoryTemplateBuilderImplTest {
 
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE)).thenReturn(4);
 		when(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS)).thenReturn("db.t2.small");
-		when(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS)).thenReturn("db.t2.small");
 		when(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
+		
+		when(config.getIntegerProperty(PROPERTY_KEY_IDGEN_RDS_ALLOCATED_STORAGE)).thenReturn(2);
+		when(config.getProperty(PROPERTY_KEY_IDGEN_RDS_INSTANCE_CLASS)).thenReturn("db.t2.small");
+		when(config.getBooleanProperty(PROPERTY_KEY_IDGEN_RDS_MULTI_AZ)).thenReturn(false);
 
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_INSTANCE_COUNT)).thenReturn(2);
@@ -271,7 +274,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		DatabaseDescriptor[] descriptors = (DatabaseDescriptor[]) context.get(DATABASE_DESCRIPTORS);
 		assertNotNull(descriptors);
-		assertEquals(3, descriptors.length);
+		assertEquals(4, descriptors.length);
 		// repo database
 		DatabaseDescriptor desc = descriptors[0];
 		assertEquals(4, desc.getAllocatedStorage());
@@ -279,16 +282,24 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("db.t2.small", desc.getInstanceClass());
 		assertEquals("dev-101-db", desc.getInstanceIdentifier());
 		assertEquals("dev101RepositoryDB", desc.getResourceName());
+		
+		// ID generator database
+		DatabaseDescriptor idgen = descriptors[1];
+		assertEquals(2, idgen.getAllocatedStorage());
+		assertEquals("dev101", idgen.getDbName());
+		assertEquals("db.t2.small", idgen.getInstanceClass());
+		assertEquals("dev-101-id-gen-db", idgen.getInstanceIdentifier());
+		assertEquals("dev101IDGeneratorDB", idgen.getResourceName());
 
 		// table zero
-		desc = descriptors[1];
+		desc = descriptors[2];
 		assertEquals(3, desc.getAllocatedStorage());
 		assertEquals("dev101", desc.getDbName());
 		assertEquals("db.t2.micro", desc.getInstanceClass());
 		assertEquals("dev-101-table-0", desc.getInstanceIdentifier());
 		assertEquals("dev101Table0RepositoryDB", desc.getResourceName());
 		// table one
-		desc = descriptors[2];
+		desc = descriptors[3];
 		assertEquals(3, desc.getAllocatedStorage());
 		assertEquals("dev101", desc.getDbName());
 		assertEquals("db.t2.micro", desc.getInstanceClass());
