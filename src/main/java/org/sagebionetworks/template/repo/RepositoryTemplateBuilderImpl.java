@@ -1,6 +1,6 @@
 package org.sagebionetworks.template.repo;
 
-import static org.sagebionetworks.template.Constants.*;
+import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.DEFAULT_REPO_PROPERTIES;
@@ -200,7 +200,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	public DatabaseDescriptor[] createDatabaseDescriptors() {
 		int numberOfTablesDatabase = config.getIntegerProperty(PROPERTY_KEY_TABLES_INSTANCE_COUNT);
 		// one repository database and multiple tables database.
-		DatabaseDescriptor[] results = new DatabaseDescriptor[numberOfTablesDatabase + 2];
+		DatabaseDescriptor[] results = new DatabaseDescriptor[numberOfTablesDatabase + 1];
 
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
 		String instance = config.getProperty(PROPERTY_KEY_INSTANCE);
@@ -211,17 +211,10 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				.withInstanceIdentifier(stack + "-" + instance + "-db").withDbName(stack + instance)
 				.withInstanceClass(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS))
 				.withMultiAZ(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ));
-		
-		// ID generator
-		results[1] = new DatabaseDescriptor().withResourceName(stack + instance + "IDGeneratorDB")
-				.withAllocatedStorage(config.getIntegerProperty(PROPERTY_KEY_IDGEN_RDS_ALLOCATED_STORAGE))
-				.withInstanceIdentifier(stack + "-" + instance + "-id-gen-db").withDbName(stack + instance)
-				.withInstanceClass(config.getProperty(PROPERTY_KEY_IDGEN_RDS_INSTANCE_CLASS))
-				.withMultiAZ(config.getBooleanProperty(PROPERTY_KEY_IDGEN_RDS_MULTI_AZ));
 
 		// Describe each table database
 		for (int i = 0; i < numberOfTablesDatabase; i++) {
-			results[i + 2] = new DatabaseDescriptor().withResourceName(stack + instance + "Table" + i + "RepositoryDB")
+			results[i + 1] = new DatabaseDescriptor().withResourceName(stack + instance + "Table" + i + "RepositoryDB")
 					.withAllocatedStorage(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE))
 					.withInstanceIdentifier(stack + "-" + instance + "-table-" + i).withDbName(stack + instance)
 					.withInstanceClass(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).withMultiAZ(false);
