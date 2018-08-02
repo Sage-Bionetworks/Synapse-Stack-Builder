@@ -70,7 +70,6 @@ public class IdGeneratorBuilderImplTest {
 		assertEquals("dev-id-generator", request.getStackName());
 		JSONObject template = new JSONObject(request.getTemplateBody());
 		JSONObject resources = template.getJSONObject("Resources");
-		assertTrue(resources.has("devIdGeneratorTopic"));
 		assertTrue(resources.has("devIdGeneratorDBSubnetGroup"));
 		assertTrue(resources.has("devIdGeneratorDBSecurityGroup"));
 		assertTrue(resources.has("devIdGeneratorDBParameterGroup"));
