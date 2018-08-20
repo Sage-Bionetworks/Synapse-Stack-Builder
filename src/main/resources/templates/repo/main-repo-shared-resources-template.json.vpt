@@ -9,16 +9,6 @@
 		}
 	},
 	"Resources": {
-		"${stack}${instance}DBTopic" : {
-			"Type" : "AWS::SNS::Topic",
-			"Properties" : {
-				"DisplayName":"${stack}-${instance}-RDS-Alert",
-				"TopicName" : "${stack}-${instance}-RDS-Alert",
-				"Subscription" : [
-					{ "Endpoint" : "synapse-ops@sagebase.org", "Protocol" : "email" }
-				]
-			}
-		},
 		"${stack}${instance}DBSubnetGroup": {
 			"Type": "AWS::RDS::DBSubnetGroup",
 			"Properties": {
@@ -125,13 +115,12 @@
 		"${descriptor.resourceName}AlarmSwapUsage": {
 			"Type" : "AWS::CloudWatch::Alarm",
 			"DependsOn": [
-				"${stack}${instance}DBTopic",
 				"${descriptor.resourceName}"
 			],
 			"Properties" : {
 				"ActionsEnabled" : true,
 				"AlarmActions" : [
-					{ "Ref": "${stack}${instance}DBTopic" }			
+					{"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"}			
 				],
 				"AlarmDescription" : "Alert when database swap usage is exceeded.",
 				"AlarmName" : "${descriptor.instanceIdentifier}-Swap-Usage",
@@ -153,13 +142,12 @@
 		"${descriptor.resourceName}HighWriteLatency": {
 			"Type" : "AWS::CloudWatch::Alarm",
 			"DependsOn": [
-				"${stack}${instance}DBTopic",
 				"${descriptor.resourceName}"
 			],
 			"Properties" : {
 				"ActionsEnabled" : true,
 				"AlarmActions" : [
-					{ "Ref": "${stack}${instance}DBTopic" }			
+					{"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"}			
 				],
 				"AlarmDescription" : "Alert when database write latency is exceeded.",
 				"AlarmName" : "${descriptor.instanceIdentifier}-High-Write-Latency",
@@ -181,13 +169,12 @@
 		"${descriptor.resourceName}HighCPUUtilization": {
 			"Type" : "AWS::CloudWatch::Alarm",
 			"DependsOn": [
-				"${stack}${instance}DBTopic",
 				"${descriptor.resourceName}"
 			],
 			"Properties" : {
 				"ActionsEnabled" : true,
 				"AlarmActions" : [
-					{ "Ref": "${stack}${instance}DBTopic" }			
+					{"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"}			
 				],
 				"AlarmDescription" : "Alert when database CPU utilization is exceeded.",
 				"AlarmName" : "${descriptor.instanceIdentifier}-High-CPU-Utilization",
@@ -209,13 +196,12 @@
 		"${descriptor.resourceName}LowFreeStorageSpace": {
 			"Type" : "AWS::CloudWatch::Alarm",
 			"DependsOn": [
-				"${stack}${instance}DBTopic",
 				"${descriptor.resourceName}"
 			],
 			"Properties" : {
 				"ActionsEnabled" : true,
 				"AlarmActions" : [
-					{ "Ref": "${stack}${instance}DBTopic" }			
+					{"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"}			
 				],
 				"AlarmDescription" : "Alert when database free storage space is low.",
 				"AlarmName" : "${descriptor.instanceIdentifier}-Low-Free-Storage-Space",
@@ -593,28 +579,6 @@
 								"Ref": "AWS::StackName"
 							},
 							"Load-Balancer-Security-Group-ID"
-						]
-					]
-				}
-			}
-		},
-		"${stack}${instance}DBTopicId": {
-			"Description": "The elastic bean stalk application ID",
-			"Value": {
-				"Ref": "${stack}${instance}DBTopic"
-			},
-			"Export": {
-				"Name": {
-					"Fn::Join": [
-						"-",
-						[
-							{
-								"Ref": "AWS::Region"
-							},
-							{
-								"Ref": "AWS::StackName"
-							},
-							"DB-SNS-Topic-ID"
 						]
 					]
 				}

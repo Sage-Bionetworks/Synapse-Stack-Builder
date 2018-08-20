@@ -9,28 +9,15 @@
 		}
 	},
 	"Resources": {
-		"${stack}IdGeneratorTopic": {
-			"Type": "AWS::SNS::Topic",
-			"Properties": {
-				"DisplayName": "${stack}-ID-Generator-Alert",
-				"TopicName": "${stack}-ID-Generator-Alert",
-				"Subscription": [
-					{
-						"Endpoint": "synapse-ops@sagebase.org",
-						"Protocol": "email"
-					}
-				]
-			}
-		},
 		"${stack}IdGeneratorDBSubnetGroup": {
 			"Type": "AWS::RDS::DBSubnetGroup",
 			"Properties": {
-				"DBSubnetGroupDescription": "Repository database subnet group defines where RDS instances can be deployed.",
+				"DBSubnetGroupDescription": "The ID generator database is deployed to the red private subnets.",
 				"SubnetIds": {
 					"Fn::Split": [
 						",",
 						{
-							"Fn::ImportValue": "${vpcExportPrefix}-Public-Subnets"
+							"Fn::ImportValue": "${vpcExportPrefix}-Red-Private-Subnets"
 						}
 					]
 				}
@@ -93,7 +80,7 @@
 		"${stack}IdGenerator": {
 			"Type": "AWS::RDS::DBInstance",
 			"Properties": {
-				"AllocatedStorage": "5",
+				"AllocatedStorage": "20",
 				"AllowMajorVersionUpgrade": false,
 				"AutoMinorVersionUpgrade": true,
 				"BackupRetentionPeriod": "7",
@@ -113,7 +100,7 @@
 				"MasterUserPassword": {
 					"Ref": "MySQLDatabaseMasterPassword"
 				},
-				"MultiAZ": false,
+				"MultiAZ": true,
 				"PreferredBackupWindow": "3:00-6:00",
 				"PreferredMaintenanceWindow": "Mon:07:15-Mon:07:45",
 				"PubliclyAccessible": false,
@@ -131,7 +118,7 @@
 				"ActionsEnabled": true,
 				"AlarmActions": [
 					{
-						"Ref": "${stack}IdGeneratorTopic"
+						"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"
 					}
 				],
 				"AlarmDescription": "Alert when database swap usage is exceeded.",
@@ -157,7 +144,7 @@
 				"ActionsEnabled": true,
 				"AlarmActions": [
 					{
-						"Ref": "${stack}IdGeneratorTopic"
+						"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"
 					}
 				],
 				"AlarmDescription": "Alert when database write latency is exceeded.",
@@ -183,7 +170,7 @@
 				"ActionsEnabled": true,
 				"AlarmActions": [
 					{
-						"Ref": "${stack}IdGeneratorTopic"
+						"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"
 					}
 				],
 				"AlarmDescription": "Alert when database CPU utilization is exceeded.",
@@ -209,7 +196,7 @@
 				"ActionsEnabled": true,
 				"AlarmActions": [
 					{
-						"Ref": "${stack}IdGeneratorTopic"
+						"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"
 					}
 				],
 				"AlarmDescription": "Alert when database free storage space is low.",

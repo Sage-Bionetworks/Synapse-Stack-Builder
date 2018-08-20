@@ -156,6 +156,19 @@
 					"To": "65535"
 				}
 			}
+		},
+		"${stack}NotificationTopic": {
+			"Type": "AWS::SNS::Topic",
+			"Properties": {
+				"DisplayName": "${stack}-Notification-Topic",
+				"TopicName": "${stack}-Notification-Topic",
+				"Subscription": [
+					{
+						"Endpoint": "synapse-ops@sagebase.org",
+						"Protocol": "email"
+					}
+				]
+			}
 		}
 		#parse( "templates/vpc/subnet-resources.json.vtp" )
 	},
@@ -291,6 +304,26 @@
 								"Ref": "AWS::StackName"
 							},
 							"AvailabilityZones"
+						]
+					]
+				}
+			}
+		},
+		"notificationTopic": {
+			"Description": "Notification topic for the ${stack} stack",
+			"Value": { "Ref":"${stack}NotificationTopic"},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"NotificationTopic"
 						]
 					]
 				}
