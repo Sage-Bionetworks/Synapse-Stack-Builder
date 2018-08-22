@@ -12,12 +12,12 @@
 		"${stack}IdGeneratorDBSubnetGroup": {
 			"Type": "AWS::RDS::DBSubnetGroup",
 			"Properties": {
-				"DBSubnetGroupDescription": "The ID generator database is deployed to the red private subnets.",
+				"DBSubnetGroupDescription": "The ID generator database is deployed to the ${subnetGroupColor} private subnets.",
 				"SubnetIds": {
 					"Fn::Split": [
 						",",
 						{
-							"Fn::ImportValue": "${vpcExportPrefix}-Red-Private-Subnets"
+							"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-Private-Subnets"
 						}
 					]
 				}
@@ -85,8 +85,8 @@
 				"AutoMinorVersionUpgrade": true,
 				"BackupRetentionPeriod": "7",
 				"DBInstanceClass": "db.t2.small",
-				"DBInstanceIdentifier": "${stack}-id-generator-db",
-				"DBName": "${stack}idgen",
+				"DBInstanceIdentifier": "${databaseIdentifier}",
+				"DBName": "${stack}idgen${subnetGroupColor}",
 				"DBParameterGroupName": {
 					"Ref": "${stack}IdGeneratorDBParameterGroup"
 				},
@@ -122,12 +122,12 @@
 					}
 				],
 				"AlarmDescription": "Alert when database swap usage is exceeded.",
-				"AlarmName": "${stack}-id-generator-db-Swap-Usage",
+				"AlarmName": "${databaseIdentifier}-Swap-Usage",
 				"ComparisonOperator": "GreaterThanThreshold",
 				"Dimensions": [
 					{
 						"Name": "DBInstanceIdentifier",
-						"Value": "${stack}-id-generator-db"
+						"Value": "${databaseIdentifier}"
 					}
 				],
 				"EvaluationPeriods": 2,
@@ -148,12 +148,12 @@
 					}
 				],
 				"AlarmDescription": "Alert when database write latency is exceeded.",
-				"AlarmName": "${stack}-id-generator-db-High-Write-Latency",
+				"AlarmName": "${databaseIdentifier}-High-Write-Latency",
 				"ComparisonOperator": "GreaterThanOrEqualToThreshold",
 				"Dimensions": [
 					{
 						"Name": "DBInstanceIdentifier",
-						"Value": "${stack}-id-generator-db"
+						"Value": "${databaseIdentifier}"
 					}
 				],
 				"EvaluationPeriods": 1,
@@ -174,12 +174,12 @@
 					}
 				],
 				"AlarmDescription": "Alert when database CPU utilization is exceeded.",
-				"AlarmName": "${stack}-id-generator-db-High-CPU-Utilization",
+				"AlarmName": "${databaseIdentifier}-High-CPU-Utilization",
 				"ComparisonOperator": "GreaterThanOrEqualToThreshold",
 				"Dimensions": [
 					{
 						"Name": "DBInstanceIdentifier",
-						"Value": "${stack}-id-generator-db"
+						"Value": "${databaseIdentifier}"
 					}
 				],
 				"EvaluationPeriods": 1,
@@ -200,12 +200,12 @@
 					}
 				],
 				"AlarmDescription": "Alert when database free storage space is low.",
-				"AlarmName": "${stack}-id-generator-db-Low-Free-Storage-Space",
+				"AlarmName": "${databaseIdentifier}-Low-Free-Storage-Space",
 				"ComparisonOperator": "LessThanOrEqualToThreshold",
 				"Dimensions": [
 					{
 						"Name": "DBInstanceIdentifier",
-						"Value": "${stack}-id-generator-db"
+						"Value": "${databaseIdentifier}"
 					}
 				],
 				"EvaluationPeriods": 1,
