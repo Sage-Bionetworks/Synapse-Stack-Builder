@@ -50,7 +50,7 @@ public class IdGeneratorBuilderImpl implements IdGeneratorBuilder {
 		VelocityContext context = new VelocityContext();
 		String color = config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR);
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
-		String databaseIdentifier = stack+"-id-generator-db-"+color;
+		String databaseIdentifier = stack+"-id-generator-db-"+color.toLowerCase();
 		context.put(STACK, stack);
 		context.put(VPC_EXPORT_PREFIX, Constants.createVpcExportPrefix(stack));
 		context.put(VPC_SUBNET_COLOR, color);
@@ -71,7 +71,7 @@ public class IdGeneratorBuilderImpl implements IdGeneratorBuilder {
 		// Format the JSON
 		resultJSON = templateJson.toString(JSON_INDENT);
 		System.out.println(resultJSON);
-		String stackName = stack + "-id-generator-"+color;
+		String stackName = stack + "-id-generator-"+color.toLowerCase();
 		this.logger.info("Template for stack: " + stackName);
 		this.logger.info(resultJSON);
 		// create or update the template

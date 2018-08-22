@@ -56,7 +56,7 @@ public class IdGeneratorBuilderImplTest {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn("dev");
-		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn("green");
+		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn("Green");
 		when(mockSecretBuilder.getIdGeneratorPassword()).thenReturn("somePassword");
 
 		builder = new IdGeneratorBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory, mockSecretBuilder);
