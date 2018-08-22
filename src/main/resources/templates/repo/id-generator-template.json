@@ -86,7 +86,7 @@
 				"BackupRetentionPeriod": "7",
 				"DBInstanceClass": "db.t2.small",
 				"DBInstanceIdentifier": "${databaseIdentifier}",
-				"DBName": "${stack}idgen${subnetGroupColor}",
+				"DBName": "${stack}idgen",
 				"DBParameterGroupName": {
 					"Ref": "${stack}IdGeneratorDBParameterGroup"
 				},
