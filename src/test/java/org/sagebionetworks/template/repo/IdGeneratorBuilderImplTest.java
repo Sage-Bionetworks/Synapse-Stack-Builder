@@ -6,7 +6,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
+import static org.sagebionetworks.template.Constants.*;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import org.apache.logging.log4j.Logger;
@@ -56,6 +56,7 @@ public class IdGeneratorBuilderImplTest {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn("dev");
+		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn("Green");
 		when(mockSecretBuilder.getIdGeneratorPassword()).thenReturn("somePassword");
 
 		builder = new IdGeneratorBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory, mockSecretBuilder);
@@ -67,7 +68,7 @@ public class IdGeneratorBuilderImplTest {
 		builder.buildAndDeploy();
 		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
 		CreateOrUpdateStackRequest request = requestCaptor.getValue();
-		assertEquals("dev-id-generator", request.getStackName());
+		assertEquals("dev-id-generator-green", request.getStackName());
 		JSONObject template = new JSONObject(request.getTemplateBody());
 		JSONObject resources = template.getJSONObject("Resources");
 		assertTrue(resources.has("devIdGeneratorDBSubnetGroup"));
