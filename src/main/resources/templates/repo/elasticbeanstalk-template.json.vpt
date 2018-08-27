@@ -435,6 +435,11 @@
 						"OptionName": "org.sagebionetworks.ezid.doi.prefix",
 						"Value": "doi:10.7303/"
 					},
+                    {
+                        "Namespace": "aws:elasticbeanstalk:application:environment",
+                        "OptionName": "org.sagebionetworks.doi.prefix",
+                        "Value": "10.7303"
+                    },
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.hmac.signing.key.current.version",
