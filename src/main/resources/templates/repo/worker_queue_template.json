@@ -1,0 +1,42 @@
+{
+	"${queueResourceName}": {
+		"Type": "AWS::SQS::Queue",
+		"Properties": {
+			"QueueName": "${queueName}",
+			"RedrivePolicy": {
+				"deadLetterTargetArn" : {"Fn::GetAtt" : [ "${deadLetterQueue}" , "Arn" ]},
+				"maxReceiveCount" : "${maxFailureCount}"
+			},
+
+			"VisibilityTimeout": Integer
+		}
+	}
+	,"${deadLetterQueue}":{
+		"Type" : "AWS::SQS::Queue"
+	}
+	,"${queueAlarmName}":{
+		"Type" : "AWS::CloudWatch::Alarm",
+		"Properties" : {
+			"ActionsEnabled" : true,
+			"AlarmActions" : ["$notificationSNSArn"],
+			"AlarmDescription" : "Alarm when oldest message in the ${queueName} queue exceeds ${oldestMessageAlarmThresholdSec} seconds",
+			"AlarmName" : {"Fn::Join":["${queueName}", "-oldest-message-exceed-time"]}
+			"ComparisonOperator" : " GreaterThanOrEqualToThreshold",
+			"Dimensions" : [{
+				"Name" : "QueueName",
+				"Value" : "${queueName}"
+			}],
+			"EvaluationPeriods" : 1,
+			"MetricName" : "ApproximateAgeOfOldestMessage",
+			"Namespace" : "AWS/SQS",
+			"Period" : 300,
+			"Statistic" : "Maximum",
+			"Threshold" : "${oldestMessageAlarmThresholdSec}",
+			"Unit" : "Seconds"
+		}
+	}
+
+}
+
+
+
