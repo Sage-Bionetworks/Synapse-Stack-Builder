@@ -35,6 +35,62 @@
 			"Unit" : "Seconds"
 		}
 	}
+	,"${SNSTopic}":{
+		"Type":{
+			"Type" : "AWS::SNS::Topic",
+			"Properties" : {
+				"Subscription" : [ {"Endpoint":{"Fn::GetAtt" : [ "${queueResourceName}" , "Arn" ]}
+									"Protocol": "sqs"
+									}],
+				"TopicName" : "${snsTopicName}"
+			}
+		}
+	},
+	"WriteToSQSQueuePolicy":{
+		"Type":"AWS::SQS::QueuePolicy",
+		"Properties":{
+			"PolicyDocument":{
+				"Version":"2012-10-17",
+				"Id":{
+					"Fn::Join":[
+						"/",
+						[
+							{
+								"Fn::GetAtt":[
+									"${queueResourceName}",
+									"Arn"
+								]
+							},
+							"SQSDefaultPolicy"
+						]
+					]
+				},
+				"Statement":[
+					{
+						"Sid":"allow-write-sns",
+						"Effect":"Allow",
+						"Principal":"*",
+						"Action":[
+							"sqs:SendMessage"
+						],
+						"Resource":"*",
+						"Condition":{
+							"ArnEquals":{
+								"aws:SourceArn":{
+									"Ref":"${SNSTopic}"
+								}
+							}
+						}
+					}
+				]
+			},
+			"Queues":[
+				{
+					"Ref":"${queueResourceName}"
+				}
+			]
+		}
+	}
 
 }
 
