@@ -1,4 +1,5 @@
 {
+	foreach queue
 	"${queueResourceName}": {
 		"Type": "AWS::SQS::Queue",
 		"Properties": {
@@ -7,8 +8,7 @@
 				"deadLetterTargetArn" : {"Fn::GetAtt" : [ "${deadLetterQueue}" , "Arn" ]},
 				"maxReceiveCount" : "${maxFailureCount}"
 			},
-
-			"VisibilityTimeout": Integer
+			"VisibilityTimeout":"${visibilityTimeout}"
 		}
 	}
 	,"${deadLetterQueue}":{
@@ -20,7 +20,7 @@
 			"ActionsEnabled" : true,
 			"AlarmActions" : ["$notificationSNSArn"],
 			"AlarmDescription" : "Alarm when oldest message in the ${queueName} queue exceeds ${oldestMessageAlarmThresholdSec} seconds",
-			"AlarmName" : {"Fn::Join":["${queueName}", "-oldest-message-exceed-time"]}
+			"AlarmName" : {"Fn::Join":["${queueName}", "-oldest-message-exceed-time"]},
 			"ComparisonOperator" : " GreaterThanOrEqualToThreshold",
 			"Dimensions" : [{
 				"Name" : "QueueName",
@@ -35,17 +35,6 @@
 			"Unit" : "Seconds"
 		}
 	}
-	,"${SNSTopic}":{
-		"Type":{
-			"Type" : "AWS::SNS::Topic",
-			"Properties" : {
-				"Subscription" : [ {"Endpoint":{"Fn::GetAtt" : [ "${queueResourceName}" , "Arn" ]}
-									"Protocol": "sqs"
-									}],
-				"TopicName" : "${snsTopicName}"
-			}
-		}
-	},
 	"WriteToSQSQueuePolicy":{
 		"Type":"AWS::SQS::QueuePolicy",
 		"Properties":{
@@ -76,9 +65,12 @@
 						"Resource":"*",
 						"Condition":{
 							"ArnEquals":{
-								"aws:SourceArn":{
-									"Ref":"${SNSTopic}"
-								}
+								"aws:SourceArn":[
+									foreach snstopic subscribed
+									{
+										"Ref":"${SNSTopic}"
+									}
+								]
 							}
 						}
 					}
@@ -91,6 +83,19 @@
 			]
 		}
 	}
+
+	foreach unique sns topic
+	,"${SNSTopic}":{
+		"Type":{
+			"Type" : "AWS::SNS::Topic",
+			"Properties" : {
+				"Subscription" : [ {"Endpoint":{"Fn::GetAtt" : [ "${queueResourceName}" , "Arn" ]}
+					"Protocol": "sqs"
+				}],
+				"TopicName" : "${snsTopicName}"
+			}
+		}
+	},
 
 }
 

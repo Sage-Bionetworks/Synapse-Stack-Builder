@@ -1,0 +1,143 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Resources": {
+		"WriteToSQSQueuePolicy": {
+			"Type": "AWS::SQS::QueuePolicy",
+			"Properties": {
+				"PolicyDocument": {
+					"Version": "2012-10-17",
+					"Id": "doesnt-really-matter",
+					"Statement": [
+						{
+							"Sid": "allow-write-sns",
+							"Effect": "Allow",
+							"Principal": "*",
+							"Action": [
+								"sqs:SendMessage"
+							],
+							"Resource": "*",
+							"Condition": {
+								"ArnEquals": {
+									"aws:SourceArn": [
+										{
+											"Ref": "topic2"
+										},
+										{
+											"Ref": "topic1"
+										}
+									]
+								}
+							}
+						}
+					]
+				},
+				"Queues": [
+					{
+						"Ref": "queue1"
+					}
+				]
+			}
+		},
+		"WriteToSQSQueuePolicy2": {
+			"Type": "AWS::SQS::QueuePolicy",
+			"Properties": {
+				"PolicyDocument": {
+					"Version": "2012-10-17",
+					"Id": "doesnt-really-matter2",
+					"Statement": [
+						{
+							"Sid": "allow-write-sns",
+							"Effect": "Allow",
+							"Principal": "*",
+							"Action": [
+								"sqs:SendMessage"
+							],
+							"Resource": "*",
+							"Condition": {
+								"ArnEquals": {
+									"aws:SourceArn": [
+										{
+											"Ref": "topic2"
+										},
+										{
+											"Ref": "topic1"
+										}
+									]
+								}
+							}
+						}
+					]
+				},
+				"Queues": [
+					{
+						"Ref": "queue2"
+					}
+				]
+			}
+		},
+		"topic1": {
+			"Type": "AWS::SNS::Topic",
+			"Properties": {
+				"Subscription": [
+					{
+						"Endpoint": {
+							"Fn::GetAtt": [
+								"queue1",
+								"Arn"
+							]
+						},
+						"Protocol": "sqs"
+					},
+					{
+						"Endpoint": {
+							"Fn::GetAtt": [
+								"queue2",
+								"Arn"
+							]
+						},
+						"Protocol": "sqs"
+					}
+				],
+				"TopicName": "topic1name"
+			}
+		},
+		"topic2": {
+			"Type": "AWS::SNS::Topic",
+			"Properties": {
+				"Subscription": [
+					{
+						"Endpoint": {
+							"Fn::GetAtt": [
+								"queue1",
+								"Arn"
+							]
+						},
+						"Protocol": "sqs"
+					},
+					{
+						"Endpoint": {
+							"Fn::GetAtt": [
+								"queue2",
+								"Arn"
+							]
+						},
+						"Protocol": "sqs"
+					}
+				],
+				"TopicName": "topic2name"
+			}
+		},
+		"queue1": {
+			"Type": "AWS::SQS::Queue",
+			"Properties": {
+				"QueueName": "queuename1"
+			}
+		},
+		"queue2": {
+			"Type": "AWS::SQS::Queue",
+			"Properties": {
+				"QueueName": "queuename2"
+			}
+		}
+	}
+}
