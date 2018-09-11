@@ -66,6 +66,7 @@ public class Constants {
 	public static final String TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";
 	public static final String TEMPALTE_BEAN_STALK_ENVIRONMENT = "templates/repo/elasticbeanstalk-template.json.vpt";
 	public static final String TEMPLATE_ID_GENERATOR = "templates/repo/id-generator-template.json";
+	public static final String TEMPLATE_WORKER_RESOURCES = "templates/repo/worker_queue_template.json"; //TODO: change name
 	
 
 	public static final int JSON_INDENT = 5;
@@ -108,6 +109,10 @@ public class Constants {
 	
 	public static final String CAPABILITY_NAMED_IAM = "CAPABILITY_NAMED_IAM";
 	public static final String OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT = "RepositoryDBEndpoint";
+
+	public static final String WORKER_SNS_TOPIC_DESCRIPTORS = "workerSnsTopicDescriptors";
+	public static final String WORKER_SQS_DESCRIPTORS = "workerQueueDescriptors";
+
 
 	/**
 	 * Create a camel case name from dash-separated-name. Given 'foo-bar' will

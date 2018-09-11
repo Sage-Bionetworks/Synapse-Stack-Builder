@@ -1,5 +1,5 @@
 {
-	foreach queue
+	#foreach( $queueDescriptor in $workerQueueDescriptors)
 	"${queueResourceName}": {
 		"Type": "AWS::SQS::Queue",
 		"Properties": {
@@ -83,19 +83,27 @@
 			]
 		}
 	}
+	#end
 
-	foreach unique sns topic
-	,"${SNSTopic}":{
+	#foreach( $workerSnsTopicDescriptor in $workerSnsTopicDescriptors)
+	"${workerSnsTopicDescriptor.topicName}":{
 		"Type":{
 			"Type" : "AWS::SNS::Topic",
 			"Properties" : {
-				"Subscription" : [ {"Endpoint":{"Fn::GetAtt" : [ "${queueResourceName}" , "Arn" ]}
+				"Subscription" : [
+				#foreach($queueResourceName in $workerSnsTopicDescriptor.subscribedQueues)
+				{
+					"Endpoint":{"Fn::GetAtt" : [ "${queueResourceName}" , "Arn" ]}
 					"Protocol": "sqs"
-				}],
-				"TopicName" : "${snsTopicName}"
+				}
+				#if( $foreach.hasNext ) , #end
+				#end
+				],
+				"TopicName" : "${workerSnsTopicDescriptor.topicName}"
 			}
 		}
 	},
+	#end
 
 }
 

@@ -39,6 +39,9 @@ import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 import org.apache.logging.log4j.Logger;
@@ -62,6 +65,10 @@ import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
+import org.sagebionetworks.template.repo.workers.WorkerQueueBuilderImpl;
+import org.sagebionetworks.template.repo.workers.WorkerQueueDescriptor;
+import org.sagebionetworks.template.repo.workers.WorkerResourceDescriptor;
+import org.sagebionetworks.template.repo.workers.WorkerSNSTopicDescriptor;
 import org.sagebionetworks.template.vpc.Color;
 
 import com.amazonaws.services.cloudformation.model.Output;
@@ -376,5 +383,27 @@ public class RepositoryTemplateBuilderImplTest {
 		// call under test
 		String suffix = builder.extractDatabaseSuffix(sharedResouces);
 		assertEquals(databaseEndpointSuffix, suffix);
+	}
+
+	@Test //TODO: remove
+	public void tempTestTODOREMOVE(){
+		WorkerQueueBuilderImpl workerBuilder = new WorkerQueueBuilderImpl(mockCloudFormationClient,velocityEngine,config, mockLoggerFactory);
+
+
+		WorkerQueueDescriptor workerQueueDescriptor = new WorkerQueueDescriptor();
+
+		workerQueueDescriptor.setQueueName("myQueueName");
+		workerQueueDescriptor.setSnsTopicSuffixesToSubscribe(Arrays.asList("myTopicerino"));
+		workerQueueDescriptor.setVisibilityTimeoutSec(420);
+
+		WorkerSNSTopicDescriptor workerSNSTopicDescriptor = new WorkerSNSTopicDescriptor();
+		workerSNSTopicDescriptor.setTopicName("myTopicerino");
+		workerSNSTopicDescriptor.setSubscribedQueues(Arrays.asList("myQueueName"));
+
+		WorkerResourceDescriptor workerResourceDescriptor = new WorkerResourceDescriptor();
+		workerResourceDescriptor.setWorkerQueueDescriptors(Arrays.asList(workerQueueDescriptor));
+		workerResourceDescriptor.setWorkerSnsTopicDescriptors(Arrays.asList(workerSNSTopicDescriptor));
+
+		System.out.println(workerBuilder.generateJSON(workerResourceDescriptor));
 	}
 }
