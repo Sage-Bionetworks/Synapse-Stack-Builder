@@ -1,18 +1,28 @@
 package org.sagebionetworks.template.repo.workers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class WorkerSNSTopicDescriptor {
-	String topicName;
+	String topicType;
 	List<String> subscribedQueues;
 
-
-	public String getTopicName() {
-		return topicName;
+	public WorkerSNSTopicDescriptor(String topicType){
+		this.topicType = topicType;
+		this.subscribedQueues = new ArrayList<>();
 	}
 
-	public void setTopicName(String topicName) {
-		this.topicName = topicName;
+
+	public void addSubscribedQueue(String subscribedQueue){
+		this.subscribedQueues.add(subscribedQueue);
+	}
+
+	public String getTopicType() {
+		return topicType;
+	}
+
+	public void setTopicType(String topicType) {
+		this.topicType = topicType;
 	}
 
 	public List<String> getSubscribedQueues() {

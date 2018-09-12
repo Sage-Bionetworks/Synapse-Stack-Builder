@@ -40,8 +40,6 @@ import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 
 import org.apache.logging.log4j.Logger;
@@ -400,7 +398,7 @@ public class RepositoryTemplateBuilderImplTest {
 		workerQueueDescriptor.setOldestMessageInQueueAlarmThresholdSec(43);
 
 		WorkerSNSTopicDescriptor workerSNSTopicDescriptor = new WorkerSNSTopicDescriptor();
-		workerSNSTopicDescriptor.setTopicName("myTopicerino");
+		workerSNSTopicDescriptor.setTopicType("myTopicerino");
 		workerSNSTopicDescriptor.setSubscribedQueues(Arrays.asList("myQueueName"));
 
 		WorkerResourceDescriptor workerResourceDescriptor = new WorkerResourceDescriptor();

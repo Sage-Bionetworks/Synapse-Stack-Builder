@@ -2,21 +2,14 @@ package org.sagebionetworks.template.repo.workers;
 
 import java.util.List;
 
-public class WorkerQueueDescriptor { //TODO: maybe WorkerResourceDescriptor?
-	//TODO; USE GSON TO SERIALZIE? NVM this is the fp
-	private static final int DEFAULT_MAX_FAILURE_COUNT = 10;  //TODO: adjust this number?
-
+public class WorkerQueueDescriptor {
 	String queueName;
 	List<String> snsTopicsToSubscribe;
-	Integer visibilityTimeoutSec; //todo: can't find code in worker utils that actually sets a default for this?????
+	Integer visibilityTimeoutSec;
 
 	Integer maxFailureCount; //optional //TODO: probably rename to indicate dead letter
 
 	Integer oldestMessageInQueueAlarmThresholdSec; //optional
-
-	public void validate(){
-		//TODO:
-	}
 
 
 
