@@ -1,41 +1,52 @@
-{
-	#foreach( $queueDescriptor in $workerQueueDescriptors)
-	"${queueResourceName}": {
+
+#foreach( $queueDescriptor in $workerQueueDescriptors)
+	"${queueDescriptor.queueName}Queue": {
 		"Type": "AWS::SQS::Queue",
 		"Properties": {
-			"QueueName": "${queueName}",
+			"QueueName": "${stack}-${instance}-${queueDescriptor.queueName}-worker-queue",
+			#if ($queueDescriptor.maxFailureCount)
 			"RedrivePolicy": {
-				"deadLetterTargetArn" : {"Fn::GetAtt" : [ "${deadLetterQueue}" , "Arn" ]},
-				"maxReceiveCount" : "${maxFailureCount}"
+				"deadLetterTargetArn" : {"Fn::GetAtt" : [ "${queueDescriptor.queueName}DeadLetter" , "Arn" ]},
+				"maxReceiveCount" : "${queueDescriptor.maxFailureCount}"
 			},
-			"VisibilityTimeout":"${visibilityTimeout}"
+			#end
+			"VisibilityTimeout":"${queueDescriptor.visibilityTimeoutSec}"
 		}
 	}
-	,"${deadLetterQueue}":{
-		"Type" : "AWS::SQS::Queue"
+	#if ($queueDescriptor.maxFailureCount)
+	,"${queueDescriptor.queueName}DeadLetter":{
+		"Type" : "AWS::SQS::Queue",
+		"Properties":{
+		"QueueName": "${queueDescriptor.queueName}-dl"
+		}
 	}
-	,"${queueAlarmName}":{
+	#end
+
+	#if($queueDescriptor.oldestMessageInQueueAlarmThresholdSec)
+	,"${queueDescriptor.queueName}OldestMessageAlarm":{
 		"Type" : "AWS::CloudWatch::Alarm",
 		"Properties" : {
 			"ActionsEnabled" : true,
-			"AlarmActions" : ["$notificationSNSArn"],
-			"AlarmDescription" : "Alarm when oldest message in the ${queueName} queue exceeds ${oldestMessageAlarmThresholdSec} seconds",
-			"AlarmName" : {"Fn::Join":["${queueName}", "-oldest-message-exceed-time"]},
-			"ComparisonOperator" : " GreaterThanOrEqualToThreshold",
+			"AlarmActions" : [{"Ref":"${stack}NotificationTopic"}],
+			"AlarmDescription" : "Alarm when oldest message in the ${queueDescriptor.queueName} queue exceeds ${queueDescriptor.oldestMessageInQueueAlarmThresholdSec} seconds",
+			"AlarmName" : "${queueDescriptor.queueName}-queue-oldest-message-exceed-time",
+			"ComparisonOperator" : "GreaterThanOrEqualToThreshold",
 			"Dimensions" : [{
 				"Name" : "QueueName",
-				"Value" : "${queueName}"
+				"Value" : 	{"Fn::GetAtt":["${queueDescriptor.queueName}Queue", "QueueName"]}
 			}],
 			"EvaluationPeriods" : 1,
 			"MetricName" : "ApproximateAgeOfOldestMessage",
 			"Namespace" : "AWS/SQS",
 			"Period" : 300,
 			"Statistic" : "Maximum",
-			"Threshold" : "${oldestMessageAlarmThresholdSec}",
+			"Threshold" : "${queueDescriptor.oldestMessageInQueueAlarmThresholdSec}",
 			"Unit" : "Seconds"
 		}
 	}
-	"WriteToSQSQueuePolicy":{
+
+	#end
+	,"WriteTo${queueDescriptor.queueName}QueuePolicy":{
 		"Type":"AWS::SQS::QueuePolicy",
 		"Properties":{
 			"PolicyDocument":{
@@ -46,7 +57,7 @@
 						[
 							{
 								"Fn::GetAtt":[
-									"${queueResourceName}",
+									"${queueDescriptor.queueName}Queue",
 									"Arn"
 								]
 							},
@@ -66,10 +77,11 @@
 						"Condition":{
 							"ArnEquals":{
 								"aws:SourceArn":[
-									foreach snstopic subscribed
+									#foreach ( $subscribedTopic in $queueDescriptor.snsTopicsToSubscribe)
 									{
-										"Ref":"${SNSTopic}"
-									}
+										"Ref":"${subscribedTopic}Topic"
+									} #if( $foreach.hasNext) , #end
+									#end
 								]
 							}
 						}
@@ -78,34 +90,34 @@
 			},
 			"Queues":[
 				{
-					"Ref":"${queueResourceName}"
+					"Ref":"${queueDescriptor.queueName}Queue"
 				}
 			]
 		}
 	}
-	#end
+#end
+,
 
-	#foreach( $workerSnsTopicDescriptor in $workerSnsTopicDescriptors)
-	"${workerSnsTopicDescriptor.topicName}":{
-		"Type":{
-			"Type" : "AWS::SNS::Topic",
-			"Properties" : {
-				"Subscription" : [
-				#foreach($queueResourceName in $workerSnsTopicDescriptor.subscribedQueues)
+#foreach( $workerSnsTopicDescriptor in $workerSnsTopicDescriptors)
+	"${workerSnsTopicDescriptor.topicName}Topic":{
+		"Type" : "AWS::SNS::Topic",
+		"Properties" : {
+			"Subscription" : [
+			#foreach($queueResourceName in $workerSnsTopicDescriptor.subscribedQueues)
 				{
-					"Endpoint":{"Fn::GetAtt" : [ "${queueResourceName}" , "Arn" ]}
+					"Endpoint":{"Fn::GetAtt" : [ "${queueResourceName}Queue" , "Arn" ]},
 					"Protocol": "sqs"
 				}
 				#if( $foreach.hasNext ) , #end
-				#end
-				],
-				"TopicName" : "${workerSnsTopicDescriptor.topicName}"
-			}
+			#end
+			],
+			"TopicName" : "${stack}-${instance}-${workerSnsTopicDescriptor.topicName}"
 		}
-	},
-	#end
 
-}
+	}
+	#if( $foreach.hasNext) , #end
+#end
+
 
 
 

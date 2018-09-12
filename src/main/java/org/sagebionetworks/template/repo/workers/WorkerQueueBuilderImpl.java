@@ -1,6 +1,9 @@
 package org.sagebionetworks.template.repo.workers;
 
+import static org.sagebionetworks.template.Constants.INSTANCE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
+import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.TEMPLATE_WORKER_RESOURCES;
 import static org.sagebionetworks.template.Constants.WORKER_SNS_TOPIC_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.WORKER_SQS_DESCRIPTORS;
@@ -39,16 +42,14 @@ public class WorkerQueueBuilderImpl implements WorkerQueueBuilder{
 
 	}
 
-	public String getFullSnsTopicName(String suffix){
-		return String.format(TOPIC_NAME_TEMPLATE_PREFIX, config.getProperty(PROPERTY_KEY_STACK), suffix);
-	}
-
 	VelocityContext createSharedContext(WorkerResourceDescriptor workerResourceDescriptor){
 
 		VelocityContext context = new VelocityContext();
 
 		context.put(WORKER_SNS_TOPIC_DESCRIPTORS, workerResourceDescriptor.workerSnsTopicDescriptors);
 		context.put(WORKER_SQS_DESCRIPTORS, workerResourceDescriptor.workerQueueDescriptors);
+		context.put(STACK, config.getProperty(PROPERTY_KEY_STACK));
+		context.put(INSTANCE, config.getProperty(PROPERTY_KEY_INSTANCE));
 
 		return context;
 	}
@@ -56,8 +57,10 @@ public class WorkerQueueBuilderImpl implements WorkerQueueBuilder{
 	public String generateJSON(WorkerResourceDescriptor descriptor){//TODO: used for work in progress testing. remove
 		Template template = velocityEngine.getTemplate(TEMPLATE_WORKER_RESOURCES);
 
+		VelocityContext context = createSharedContext(descriptor);
+
 		StringWriter writer = new StringWriter();
-		template.merge(createSharedContext(descriptor), writer);
+		template.merge(context, writer);
 		return writer.toString();
 	}
 

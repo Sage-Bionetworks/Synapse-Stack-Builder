@@ -7,11 +7,10 @@ public class WorkerQueueDescriptor { //TODO: maybe WorkerResourceDescriptor?
 	private static final int DEFAULT_MAX_FAILURE_COUNT = 10;  //TODO: adjust this number?
 
 	String queueName;
-	List<String> snsTopicSuffixesToSubscribe;
+	List<String> snsTopicsToSubscribe;
 	Integer visibilityTimeoutSec; //todo: can't find code in worker utils that actually sets a default for this?????
 
-	String deadLetterQueueName; //optional
-	Integer maxFailureCount; //optional
+	Integer maxFailureCount; //optional //TODO: probably rename to indicate dead letter
 
 	Integer oldestMessageInQueueAlarmThresholdSec; //optional
 
@@ -34,12 +33,12 @@ public class WorkerQueueDescriptor { //TODO: maybe WorkerResourceDescriptor?
 		this.queueName = queueName;
 	}
 
-	public List<String> getSnsTopicSuffixesToSubscribe() {
-		return snsTopicSuffixesToSubscribe;
+	public List<String> getSnsTopicsToSubscribe() {
+		return snsTopicsToSubscribe;
 	}
 
-	public void setSnsTopicSuffixesToSubscribe(List<String> snsTopicSuffixesToSubscribe) {
-		this.snsTopicSuffixesToSubscribe = snsTopicSuffixesToSubscribe;
+	public void setSnsTopicsToSubscribe(List<String> snsTopicsToSubscribe) {
+		this.snsTopicsToSubscribe = snsTopicsToSubscribe;
 	}
 
 	public Integer getVisibilityTimeoutSec() {
@@ -48,14 +47,6 @@ public class WorkerQueueDescriptor { //TODO: maybe WorkerResourceDescriptor?
 
 	public void setVisibilityTimeoutSec(Integer visibilityTimeoutSec) {
 		this.visibilityTimeoutSec = visibilityTimeoutSec;
-	}
-
-	public String getDeadLetterQueueName() {
-		return deadLetterQueueName;
-	}
-
-	public void setDeadLetterQueueName(String deadLetterQueueName) {
-		this.deadLetterQueueName = deadLetterQueueName;
 	}
 
 	public Integer getMaxFailureCount() {

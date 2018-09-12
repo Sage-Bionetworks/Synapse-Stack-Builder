@@ -393,8 +393,11 @@ public class RepositoryTemplateBuilderImplTest {
 		WorkerQueueDescriptor workerQueueDescriptor = new WorkerQueueDescriptor();
 
 		workerQueueDescriptor.setQueueName("myQueueName");
-		workerQueueDescriptor.setSnsTopicSuffixesToSubscribe(Arrays.asList("myTopicerino"));
+		workerQueueDescriptor.setSnsTopicsToSubscribe(Arrays.asList("myTopicerino"));
 		workerQueueDescriptor.setVisibilityTimeoutSec(420);
+
+		workerQueueDescriptor.setMaxFailureCount(5);
+		workerQueueDescriptor.setOldestMessageInQueueAlarmThresholdSec(43);
 
 		WorkerSNSTopicDescriptor workerSNSTopicDescriptor = new WorkerSNSTopicDescriptor();
 		workerSNSTopicDescriptor.setTopicName("myTopicerino");
