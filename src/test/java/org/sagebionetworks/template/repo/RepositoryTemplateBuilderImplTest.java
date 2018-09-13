@@ -63,10 +63,10 @@ import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
-import org.sagebionetworks.template.repo.workers.WorkerQueueBuilderImpl;
-import org.sagebionetworks.template.repo.workers.WorkerQueueDescriptor;
-import org.sagebionetworks.template.repo.workers.WorkerResourceDescriptor;
-import org.sagebionetworks.template.repo.workers.WorkerSNSTopicDescriptor;
+import org.sagebionetworks.template.repo.queues.WorkerQueueBuilderImpl;
+import org.sagebionetworks.template.repo.queues.WorkerQueueDescriptor;
+import org.sagebionetworks.template.repo.queues.WorkerResourceDescriptor;
+import org.sagebionetworks.template.repo.queues.WorkerSNSTopicDescriptor;
 import org.sagebionetworks.template.vpc.Color;
 
 import com.amazonaws.services.cloudformation.model.Output;
@@ -91,6 +91,11 @@ public class RepositoryTemplateBuilderImplTest {
 	SecretBuilder mockSecretBuilder;
 	@Mock
 	WebACLBuilder mockACLBuilder;
+	@Mock
+	VelocityContextProvider mockContextProvider1;
+	@Mock
+	VelocityContextProvider mockContextProvider2;
+
 	@Captor
 	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
 
@@ -118,7 +123,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
-				mockArtifactCopy, mockSecretBuilder, mockACLBuilder);
+				mockArtifactCopy, mockSecretBuilder, mockACLBuilder, Arrays.asList(mockContextProvider1, mockContextProvider2));
 
 		stack = "dev";
 		instance = "101";
@@ -397,8 +402,7 @@ public class RepositoryTemplateBuilderImplTest {
 		workerQueueDescriptor.setMaxFailureCount(5);
 		workerQueueDescriptor.setOldestMessageInQueueAlarmThresholdSec(43);
 
-		WorkerSNSTopicDescriptor workerSNSTopicDescriptor = new WorkerSNSTopicDescriptor();
-		workerSNSTopicDescriptor.setTopicType("myTopicerino");
+		WorkerSNSTopicDescriptor workerSNSTopicDescriptor = new WorkerSNSTopicDescriptor("myTopicerino");
 		workerSNSTopicDescriptor.setSubscribedQueues(Arrays.asList("myQueueName"));
 
 		WorkerResourceDescriptor workerResourceDescriptor = new WorkerResourceDescriptor();

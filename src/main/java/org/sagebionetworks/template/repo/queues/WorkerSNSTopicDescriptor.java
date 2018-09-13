@@ -1,4 +1,4 @@
-package org.sagebionetworks.template.repo.workers;
+package org.sagebionetworks.template.repo.queues;
 
 import java.util.ArrayList;
 import java.util.List;

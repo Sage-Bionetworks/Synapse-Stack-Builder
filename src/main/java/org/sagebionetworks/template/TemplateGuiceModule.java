@@ -1,5 +1,8 @@
 package org.sagebionetworks.template;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.velocity.app.VelocityEngine;
@@ -10,6 +13,7 @@ import org.sagebionetworks.template.repo.IdGeneratorBuilder;
 import org.sagebionetworks.template.repo.IdGeneratorBuilderImpl;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilderImpl;
+import org.sagebionetworks.template.repo.VelocityContextProvider;
 import org.sagebionetworks.template.repo.WebACLBuilder;
 import org.sagebionetworks.template.repo.WebACLBuilderImpl;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
@@ -118,6 +122,13 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		engine.setProperty(FILE_RESOURCE_LOADER_CLASS, FileResourceLoader.class.getName());
 		engine.setProperty(RUNTIME_REFERENCES_STRICT, true);
 		return engine;
+	}
+
+	@Provides
+	public List<VelocityContextProvider> contextProviders(){
+		return Arrays.asList(
+
+		);
 	}
 
 }

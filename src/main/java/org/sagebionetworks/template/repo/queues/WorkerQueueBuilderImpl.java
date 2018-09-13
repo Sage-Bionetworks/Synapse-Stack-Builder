@@ -1,4 +1,4 @@
-package org.sagebionetworks.template.repo.workers;
+package org.sagebionetworks.template.repo.queues;
 
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
@@ -9,8 +9,6 @@ import static org.sagebionetworks.template.Constants.WORKER_SNS_TOPIC_DESCRIPTOR
 import static org.sagebionetworks.template.Constants.WORKER_SQS_DESCRIPTORS;
 
 import java.io.StringWriter;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.google.inject.Inject;
 import org.apache.logging.log4j.Logger;
@@ -21,7 +19,7 @@ import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.Configuration;
 import org.sagebionetworks.template.LoggerFactory;
 
-public class WorkerQueueBuilderImpl implements WorkerQueueBuilder{
+public class WorkerQueueBuilderImpl {
 	public static final String TOPIC_NAME_TEMPLATE_PREFIX = "%1$s-%2$s-repo-"; //used to generate SNS topic names
 
 	CloudFormationClient cloudFormationClient;
@@ -35,11 +33,6 @@ public class WorkerQueueBuilderImpl implements WorkerQueueBuilder{
 		this.velocityEngine = velocityEngine;
 		this.config = config;
 		this.logger = loggerFactory.getLogger(WorkerQueueBuilderImpl.class);
-	}
-
-	@Override
-	public void buildAndDeploy() {
-
 	}
 
 	VelocityContext createSharedContext(WorkerResourceDescriptor workerResourceDescriptor){

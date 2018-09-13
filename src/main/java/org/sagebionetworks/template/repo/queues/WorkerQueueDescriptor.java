@@ -1,8 +1,11 @@
-package org.sagebionetworks.template.repo.workers;
+package org.sagebionetworks.template.repo.queues;
 
 import java.util.List;
 
 public class WorkerQueueDescriptor {
+
+	WorkerQueueJsonConfig dto; //TODO: use this instead of copying over fields;
+
 	String queueName;
 	List<String> snsTopicsToSubscribe;
 	Integer visibilityTimeoutSec;
@@ -11,6 +14,10 @@ public class WorkerQueueDescriptor {
 
 	Integer oldestMessageInQueueAlarmThresholdSec; //optional
 
+
+	public WorkerQueueDescriptor(WorkerQueueJsonConfig dto){
+		this.dto = dto;
+	}
 
 
 	///////////////////////

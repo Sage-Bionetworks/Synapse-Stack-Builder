@@ -1,4 +1,4 @@
-package org.sagebionetworks.template.repo.workers;
+package org.sagebionetworks.template.repo.queues;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,6 +28,8 @@ public class WorkerResourceJsonConfigTest {
 		config.repositoryChangeTopicTypes.add("TEST_TOPIC");
 
 		WorkerResourceJsonConfig deseralized = gson.fromJson(gson.toJson(config), WorkerResourceJsonConfig.class);
+
+		System.out.println(gson.toJson(gson.fromJson("{\"notRelated\":5}", WorkerResourceJsonConfig.class)));
 
 		System.out.println(gson.toJson(deseralized));
 	}

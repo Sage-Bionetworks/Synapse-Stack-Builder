@@ -1,7 +1,7 @@
-package org.sagebionetworks.template.repo.workers;
+package org.sagebionetworks.template.repo.queues;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,7 +27,7 @@ public class WorkerResourceJsonConfig {
 		}
 
 		Map<String,WorkerSNSTopicDescriptor> topicToQueue = new HashMap<>(repositoryChangeTopicTypes.size());
-		List<WorkerQueueDescriptor> workerQueueDescriptors = new WorkerQueueDescriptor();
+		List<WorkerQueueDescriptor> workerQueueDescriptors = new ArrayList<>();
 		for(WorkerQueueJsonConfig queueConfig: queues){
 			queueConfig.validateNotNull();
 			for(String snsTopicType : queueConfig.subscribedTopicTypes){
@@ -44,6 +44,7 @@ public class WorkerResourceJsonConfig {
 
 		}
 
+		return new WorkerResourceDescriptor();
 
 	}
 

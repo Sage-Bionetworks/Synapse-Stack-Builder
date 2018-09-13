@@ -69,12 +69,13 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	Logger logger;
 	ArtifactCopy artifactCopy;
 	SecretBuilder secretBuilder;
-	WebACLBuilder aclBuilder;	
+	WebACLBuilder aclBuilder;
+	List<VelocityContextProvider> contextProviders;
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
 			Configuration configuration, LoggerFactory loggerFactory, ArtifactCopy artifactCopy,
-			SecretBuilder secretBuilder, WebACLBuilder aclBuilder) {
+			SecretBuilder secretBuilder, WebACLBuilder aclBuilder, List<VelocityContextProvider> contextProviders) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.velocityEngine = velocityEngine;
@@ -84,6 +85,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.artifactCopy = artifactCopy;
 		this.secretBuilder = secretBuilder;
 		this.aclBuilder = aclBuilder;
+		this.contextProviders = contextProviders;
 	}
 
 	@Override
@@ -189,6 +191,11 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 
 		// Create the descriptors for all of the database.
 		context.put(DATABASE_DESCRIPTORS, createDatabaseDescriptors());
+
+		for(VelocityContextProvider provider : contextProviders){ //TODO: test
+			provider.addToContext(context);
+		}
+
 		return context;
 	}
 
