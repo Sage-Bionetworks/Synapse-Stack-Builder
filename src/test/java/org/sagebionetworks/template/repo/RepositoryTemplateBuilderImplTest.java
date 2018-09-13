@@ -42,6 +42,7 @@ import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.common.collect.Sets;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -63,10 +64,11 @@ import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
+import org.sagebionetworks.template.repo.queues.QueueConfig;
+import org.sagebionetworks.template.repo.queues.QueueDescriptor;
 import org.sagebionetworks.template.repo.queues.WorkerQueueBuilderImpl;
-import org.sagebionetworks.template.repo.queues.WorkerQueueDescriptor;
-import org.sagebionetworks.template.repo.queues.WorkerResourceDescriptor;
-import org.sagebionetworks.template.repo.queues.WorkerSNSTopicDescriptor;
+import org.sagebionetworks.template.repo.queues.SnsTopicAndQueueDescriptor;
+import org.sagebionetworks.template.repo.queues.SnsTopicDescriptor;
 import org.sagebionetworks.template.vpc.Color;
 
 import com.amazonaws.services.cloudformation.model.Output;
@@ -388,27 +390,18 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(databaseEndpointSuffix, suffix);
 	}
 
-	@Test //TODO: remove
+	@Test
 	public void tempTestTODOREMOVE(){
 		WorkerQueueBuilderImpl workerBuilder = new WorkerQueueBuilderImpl(mockCloudFormationClient,velocityEngine,config, mockLoggerFactory);
 
 
-		WorkerQueueDescriptor workerQueueDescriptor = new WorkerQueueDescriptor();
+		QueueConfig queueConfig = new QueueConfig("myQueueName", Sets.newHashSet("myTopicerino"), 420, 5, 43);
 
-		workerQueueDescriptor.setQueueName("myQueueName");
-		workerQueueDescriptor.setSnsTopicsToSubscribe(Arrays.asList("myTopicerino"));
-		workerQueueDescriptor.setVisibilityTimeoutSec(420);
+		SnsTopicDescriptor snsTopicDescriptor = new SnsTopicDescriptor("myTopicerino");
+		snsTopicDescriptor.setSubscribedQueueNames(Arrays.asList("myQueueName"));
 
-		workerQueueDescriptor.setMaxFailureCount(5);
-		workerQueueDescriptor.setOldestMessageInQueueAlarmThresholdSec(43);
+		SnsTopicAndQueueDescriptor snsTopicAndQueueDescriptor = new SnsTopicAndQueueDescriptor(Arrays.asList(snsTopicDescriptor), Arrays.asList(new QueueDescriptor(queueConfig)));
 
-		WorkerSNSTopicDescriptor workerSNSTopicDescriptor = new WorkerSNSTopicDescriptor("myTopicerino");
-		workerSNSTopicDescriptor.setSubscribedQueues(Arrays.asList("myQueueName"));
-
-		WorkerResourceDescriptor workerResourceDescriptor = new WorkerResourceDescriptor();
-		workerResourceDescriptor.setWorkerQueueDescriptors(Arrays.asList(workerQueueDescriptor));
-		workerResourceDescriptor.setWorkerSnsTopicDescriptors(Arrays.asList(workerSNSTopicDescriptor));
-
-		System.out.println(workerBuilder.generateJSON(workerResourceDescriptor));
+		System.out.println(workerBuilder.generateJSON(snsTopicAndQueueDescriptor));
 	}
 }

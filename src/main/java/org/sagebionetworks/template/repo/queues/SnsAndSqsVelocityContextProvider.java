@@ -19,9 +19,9 @@ public class SnsAndSqsVelocityContextProvider implements VelocityContextProvider
 
 	@Override
 	public void addToContext(VelocityContext context) {
-		WorkerResourceDescriptor workerResourceDescriptor;
-
-		context.put(WORKER_SNS_TOPIC_DESCRIPTORS, workerResourceDescriptor.workerSnsTopicDescriptors);
-		context.put(WORKER_SQS_DESCRIPTORS, workerResourceDescriptor.workerQueueDescriptors);
+//		SnsTopicAndQueueDescriptor snsTopicAndQueueDescriptor;
+//
+//		context.put(WORKER_SNS_TOPIC_DESCRIPTORS, snsTopicAndQueueDescriptor.snsTopicDescriptors);
+//		context.put(WORKER_SQS_DESCRIPTORS, snsTopicAndQueueDescriptor.queueDescriptors);
 	}
 }

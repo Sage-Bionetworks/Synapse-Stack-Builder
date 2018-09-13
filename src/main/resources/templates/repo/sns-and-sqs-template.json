@@ -1,9 +1,9 @@
 
-#foreach( $queueDescriptor in $workerQueueDescriptors)
+#foreach( $queueDescriptor in $queueDescriptors)
 	"${queueDescriptor.queueName}Queue": {
 		"Type": "AWS::SQS::Queue",
 		"Properties": {
-			"QueueName": "${stack}-${instance}-${queueDescriptor.queueName}-worker-queue",
+			"QueueName": "${stack}-${instance}-${queueDescriptor.queueName}",
 			#if ($queueDescriptor.maxFailureCount)
 			"RedrivePolicy": {
 				"deadLetterTargetArn" : {"Fn::GetAtt" : [ "${queueDescriptor.queueName}DeadLetter" , "Arn" ]},
@@ -17,7 +17,7 @@
 	,"${queueDescriptor.queueName}DeadLetter":{
 		"Type" : "AWS::SQS::Queue",
 		"Properties":{
-		"QueueName": "${queueDescriptor.queueName}-dl"
+		"QueueName": "${queueDescriptor.queueName}-dead-letter"
 		}
 	}
 	#end
@@ -98,12 +98,12 @@
 #end
 ,
 
-#foreach( $workerSnsTopicDescriptor in $workerSnsTopicDescriptors)
-	"${workerSnsTopicDescriptor.topicName}Topic":{
+#foreach( $snsTopicDescriptor in $snsTopicDescriptors)
+	"${snsTopicDescriptor.topicName}Topic":{
 		"Type" : "AWS::SNS::Topic",
 		"Properties" : {
 			"Subscription" : [
-			#foreach($queueResourceName in $workerSnsTopicDescriptor.subscribedQueues)
+			#foreach($queueResourceName in $snsTopicDescriptor.subscribedQueues)
 				{
 					"Endpoint":{"Fn::GetAtt" : [ "${queueResourceName}Queue" , "Arn" ]},
 					"Protocol": "sqs"
@@ -111,7 +111,7 @@
 				#if( $foreach.hasNext ) , #end
 			#end
 			],
-			"TopicName" : "${stack}-${instance}-${workerSnsTopicDescriptor.topicName}"
+			"TopicName" : "${stack}-${instance}-${snsTopicDescriptor.topicName}"
 		}
 
 	}

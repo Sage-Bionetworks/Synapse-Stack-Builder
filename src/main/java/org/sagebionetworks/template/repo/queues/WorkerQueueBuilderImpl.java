@@ -35,19 +35,19 @@ public class WorkerQueueBuilderImpl {
 		this.logger = loggerFactory.getLogger(WorkerQueueBuilderImpl.class);
 	}
 
-	VelocityContext createSharedContext(WorkerResourceDescriptor workerResourceDescriptor){
+	VelocityContext createSharedContext(SnsTopicAndQueueDescriptor snsTopicAndQueueDescriptor){
 
 		VelocityContext context = new VelocityContext();
 
-		context.put(WORKER_SNS_TOPIC_DESCRIPTORS, workerResourceDescriptor.workerSnsTopicDescriptors);
-		context.put(WORKER_SQS_DESCRIPTORS, workerResourceDescriptor.workerQueueDescriptors);
+		context.put(WORKER_SNS_TOPIC_DESCRIPTORS, snsTopicAndQueueDescriptor.snsTopicDescriptors);
+		context.put(WORKER_SQS_DESCRIPTORS, snsTopicAndQueueDescriptor.queueDescriptors);
 		context.put(STACK, config.getProperty(PROPERTY_KEY_STACK));
 		context.put(INSTANCE, config.getProperty(PROPERTY_KEY_INSTANCE));
 
 		return context;
 	}
 
-	public String generateJSON(WorkerResourceDescriptor descriptor){//TODO: used for work in progress testing. remove
+	public String generateJSON(SnsTopicAndQueueDescriptor descriptor){//TODO: used for work in progress testing. remove
 		Template template = velocityEngine.getTemplate(TEMPLATE_WORKER_RESOURCES);
 
 		VelocityContext context = createSharedContext(descriptor);
