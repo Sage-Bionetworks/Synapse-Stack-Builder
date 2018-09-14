@@ -65,9 +65,9 @@ import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 import org.sagebionetworks.template.repo.queues.QueueConfig;
-import org.sagebionetworks.template.repo.queues.QueueDescriptor;
+import org.sagebionetworks.template.repo.queues.SqsQueueDescriptor;
 import org.sagebionetworks.template.repo.queues.WorkerQueueBuilderImpl;
-import org.sagebionetworks.template.repo.queues.SnsTopicAndQueueDescriptor;
+import org.sagebionetworks.template.repo.queues.SnsTopicAndSqsQueueDescriptors;
 import org.sagebionetworks.template.repo.queues.SnsTopicDescriptor;
 import org.sagebionetworks.template.vpc.Color;
 
@@ -305,6 +305,9 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("db.t2.micro", desc.getInstanceClass());
 		assertEquals("dev-101-table-1", desc.getInstanceIdentifier());
 		assertEquals("dev101Table1RepositoryDB", desc.getResourceName());
+
+		verify(mockContextProvider1).addToContext(context);
+		verify(mockContextProvider2).addToContext(context);
 	}
 
 	@Test
@@ -398,9 +401,9 @@ public class RepositoryTemplateBuilderImplTest {
 		QueueConfig queueConfig = new QueueConfig("myQueueName", Sets.newHashSet("myTopicerino"), 420, 5, 43);
 
 		SnsTopicDescriptor snsTopicDescriptor = new SnsTopicDescriptor("myTopicerino");
-		snsTopicDescriptor.setSubscribedQueueNames(Arrays.asList("myQueueName"));
+		snsTopicDescriptor.withSubscribedQueue("myQueueName");
 
-		SnsTopicAndQueueDescriptor snsTopicAndQueueDescriptor = new SnsTopicAndQueueDescriptor(Arrays.asList(snsTopicDescriptor), Arrays.asList(new QueueDescriptor(queueConfig)));
+		SnsTopicAndSqsQueueDescriptors snsTopicAndQueueDescriptor = new SnsTopicAndSqsQueueDescriptors(Arrays.asList(snsTopicDescriptor), Arrays.asList(new SqsQueueDescriptor(queueConfig)));
 
 		System.out.println(workerBuilder.generateJSON(snsTopicAndQueueDescriptor));
 	}

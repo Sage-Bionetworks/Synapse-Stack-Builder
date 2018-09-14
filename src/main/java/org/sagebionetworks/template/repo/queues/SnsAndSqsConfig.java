@@ -3,6 +3,7 @@ package org.sagebionetworks.template.repo.queues;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -10,48 +11,48 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.collections.CollectionUtils;
 
 /**
- * Class used to deserialize JSON config using the GSON package
+ * Class used to deserialize JSON config using the GSON package.
+ * This class is immutable.
  */
 public class SnsAndSqsConfig {
-	public final Set<String> snsTopicNames;
-	public final List<QueueConfig> queues;
+	final Set<String> snsTopicNames;
+	final List<QueueConfig> queues;
 
 	@JsonCreator
 	public SnsAndSqsConfig(@JsonProperty(value = "snsTopicNames", required = true) Set<String> snsTopicNames,
 						   @JsonProperty(value = "queues", required = true) List<QueueConfig> queues) {
-		this.snsTopicNames = Collections.unmodifiableSet(snsTopicNames);
-		this.queues = Collections.unmodifiableList(queues);
+		this.snsTopicNames = Collections.unmodifiableSet(new HashSet<>(snsTopicNames));
+		this.queues = Collections.unmodifiableList(new ArrayList<>(queues));
 	}
 
 
-	public SnsTopicAndQueueDescriptor convertToDesciptor(){
+	public SnsTopicAndSqsQueueDescriptors convertToDesciptor(){
 		Map<String,SnsTopicDescriptor> topicToQueue = new HashMap<>(snsTopicNames.size());
-		List<QueueDescriptor> queueDescriptors = new ArrayList<>();
+		List<SqsQueueDescriptor> sqsQueueDescriptors = new ArrayList<>(queues.size());
 
 		for(QueueConfig queueConfig: queues){
-			for(String snsTopicType : queueConfig.subscribedTopicNames){
+			for(String subscribedTopicName : queueConfig.subscribedTopicNames){
 
 				//check SNS topic type used in the QueueConfig exist in the set snsTopicTypes
-				if(!snsTopicNames.contains(snsTopicType)){
-					throw new IllegalArgumentException(snsTopicType + " listed in "
+				if(!snsTopicNames.contains(subscribedTopicName)){
+					throw new IllegalArgumentException(subscribedTopicName + " listed in "
 							+ queueConfig.queueName
-							+ ".subscribedTopicType does not exist in your previously defined snsTopicSuffixes "
-							+ snsTopicType );
+							+ ".subscribedTopicNames does not exist in your previously defined snsTopicNames "
+							+ snsTopicNames );
 				}
 
 				//add queue to SnsTopicDescriptors
-				topicToQueue.computeIfAbsent(snsTopicType, SnsTopicDescriptor::new)
-							.addSubscribedQueue(queueConfig.queueName);
+				topicToQueue.computeIfAbsent(subscribedTopicName, SnsTopicDescriptor::new)
+							.withSubscribedQueue(queueConfig.queueName);
 			}
 
-			//wrap the queueConfig in a QueueDescriptor
-			queueDescriptors.add(new QueueDescriptor(queueConfig));
+			//wrap the queueConfig in a SqsQueueDescriptor
+			sqsQueueDescriptors.add(new SqsQueueDescriptor(queueConfig));
 		}
 
-		return new SnsTopicAndQueueDescriptor(new ArrayList<>(topicToQueue.values()), queueDescriptors);
+		return new SnsTopicAndSqsQueueDescriptors(new ArrayList<>(topicToQueue.values()), sqsQueueDescriptors);
 	}
 
 	@Override

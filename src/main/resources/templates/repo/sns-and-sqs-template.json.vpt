@@ -1,52 +1,52 @@
 
 #foreach( $queueDescriptor in $queueDescriptors)
-	"${queueDescriptor.queueName}Queue": {
+	"${queueDescriptor.config.queueName}Queue": {
 		"Type": "AWS::SQS::Queue",
 		"Properties": {
-			"QueueName": "${stack}-${instance}-${queueDescriptor.queueName}",
-			#if ($queueDescriptor.maxFailureCount)
+			"QueueName": "${stack}-${instance}-${queueDescriptor.config.queueName}",
+			#if ($queueDescriptor.config.deadLetterQueueMaxFailureCount)
 			"RedrivePolicy": {
-				"deadLetterTargetArn" : {"Fn::GetAtt" : [ "${queueDescriptor.queueName}DeadLetter" , "Arn" ]},
-				"maxReceiveCount" : "${queueDescriptor.maxFailureCount}"
+				"deadLetterTargetArn" : {"Fn::GetAtt" : [ "${queueDescriptor.config.queueName}DeadLetter" , "Arn" ]},
+				"maxReceiveCount" : "${queueDescriptor.config.deadLetterQueueMaxFailureCount}"
 			},
 			#end
-			"VisibilityTimeout":"${queueDescriptor.visibilityTimeoutSec}"
+			"VisibilityTimeout":"${queueDescriptor.config.messageVisibilityTimeoutSec}"
 		}
 	}
-	#if ($queueDescriptor.maxFailureCount)
-	,"${queueDescriptor.queueName}DeadLetter":{
+	#if ($queueDescriptor.config.deadLetterQueueMaxFailureCount)
+	,"${queueDescriptor.config.queueName}DeadLetter":{
 		"Type" : "AWS::SQS::Queue",
 		"Properties":{
-		"QueueName": "${queueDescriptor.queueName}-dead-letter"
+		"QueueName": "${queueDescriptor.config.queueName}-dead-letter"
 		}
 	}
 	#end
 
-	#if($queueDescriptor.oldestMessageInQueueAlarmThresholdSec)
-	,"${queueDescriptor.queueName}OldestMessageAlarm":{
+	#if($queueDescriptor.config.oldestMessageInQueueAlarmThresholdSec)
+	,"${queueDescriptor.config.queueName}OldestMessageAlarm":{
 		"Type" : "AWS::CloudWatch::Alarm",
 		"Properties" : {
 			"ActionsEnabled" : true,
 			"AlarmActions" : [{"Ref":"${stack}NotificationTopic"}],
-			"AlarmDescription" : "Alarm when oldest message in the ${queueDescriptor.queueName} queue exceeds ${queueDescriptor.oldestMessageInQueueAlarmThresholdSec} seconds",
-			"AlarmName" : "${queueDescriptor.queueName}-queue-oldest-message-exceed-time",
+			"AlarmDescription" : "Alarm when oldest message in the ${queueDescriptor.config.queueName} queue exceeds ${queueDescriptor.config.oldestMessageInQueueAlarmThresholdSec} seconds",
+			"AlarmName" : "${queueDescriptor.config.queueName}-queue-oldest-message-exceed-time",
 			"ComparisonOperator" : "GreaterThanOrEqualToThreshold",
 			"Dimensions" : [{
 				"Name" : "QueueName",
-				"Value" : 	{"Fn::GetAtt":["${queueDescriptor.queueName}Queue", "QueueName"]}
+				"Value" : 	{"Fn::GetAtt":["${queueDescriptor.config.queueName}Queue", "QueueName"]}
 			}],
 			"EvaluationPeriods" : 1,
 			"MetricName" : "ApproximateAgeOfOldestMessage",
 			"Namespace" : "AWS/SQS",
 			"Period" : 300,
 			"Statistic" : "Maximum",
-			"Threshold" : "${queueDescriptor.oldestMessageInQueueAlarmThresholdSec}",
+			"Threshold" : "${queueDescriptor.config.oldestMessageInQueueAlarmThresholdSec}",
 			"Unit" : "Seconds"
 		}
 	}
 
 	#end
-	,"WriteTo${queueDescriptor.queueName}QueuePolicy":{
+	,"WriteTo${queueDescriptor.config.queueName}QueuePolicy":{
 		"Type":"AWS::SQS::QueuePolicy",
 		"Properties":{
 			"PolicyDocument":{
@@ -57,7 +57,7 @@
 						[
 							{
 								"Fn::GetAtt":[
-									"${queueDescriptor.queueName}Queue",
+									"${queueDescriptor.config.queueName}Queue",
 									"Arn"
 								]
 							},
@@ -77,7 +77,7 @@
 						"Condition":{
 							"ArnEquals":{
 								"aws:SourceArn":[
-									#foreach ( $subscribedTopic in $queueDescriptor.snsTopicsToSubscribe)
+									#foreach ( $subscribedTopic in $queueDescriptor.config.subscribedTopicNames)
 									{
 										"Ref":"${subscribedTopic}Topic"
 									} #if( $foreach.hasNext) , #end
@@ -90,7 +90,7 @@
 			},
 			"Queues":[
 				{
-					"Ref":"${queueDescriptor.queueName}Queue"
+					"Ref":"${queueDescriptor.config.queueName}Queue"
 				}
 			]
 		}
@@ -103,7 +103,7 @@
 		"Type" : "AWS::SNS::Topic",
 		"Properties" : {
 			"Subscription" : [
-			#foreach($queueResourceName in $snsTopicDescriptor.subscribedQueues)
+			#foreach($queueResourceName in $snsTopicDescriptor.subscribedQueueNames)
 				{
 					"Endpoint":{"Fn::GetAtt" : [ "${queueResourceName}Queue" , "Arn" ]},
 					"Protocol": "sqs"

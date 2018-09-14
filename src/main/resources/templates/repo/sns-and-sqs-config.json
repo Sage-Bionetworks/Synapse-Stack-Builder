@@ -1,0 +1,27 @@
+{
+	"snsTopicNames":[
+		"TEST_TOPIC",
+		"OTHER_TOPIC"
+	],
+	"queues":[
+		{
+			"queueName":"queueNameEcksDee",
+			"subscribedTopicNames":[
+				"TEST_TOPIC"
+			],
+			"messageVisibilityTimeoutSec":42,
+			"deadLetterQueueMaxFailureCount":5,
+			"oldestMessageInQueueAlarmThresholdSec":35
+		},
+		{
+			"queueName":"theOtherWorker",
+			"subscribedTopicNames":[
+				"OTHER_TOPIC"
+			],
+			"messageVisibilityTimeoutSec":42,
+			"deadLetterQueueMaxFailureCount":5,
+			"oldestMessageInQueueAlarmThresholdSec":35
+		},
+
+	]
+}

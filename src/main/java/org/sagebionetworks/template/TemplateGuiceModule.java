@@ -1,5 +1,7 @@
 package org.sagebionetworks.template;
 
+import static org.sagebionetworks.template.Constants.SNS_AND_SQS_CONFIG_FILE;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -22,6 +24,7 @@ import org.sagebionetworks.template.repo.beanstalk.ArtifactDownload;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactDownloadImpl;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilderImpl;
+import org.sagebionetworks.template.repo.queues.SnsAndSqsVelocityContextProvider;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilder;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilderImpl;
 
@@ -125,9 +128,9 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 
 	@Provides
-	public List<VelocityContextProvider> contextProviders(){
+	public List<VelocityContextProvider> velocityContextProviders(){
 		return Arrays.asList(
-
+			new SnsAndSqsVelocityContextProvider(SNS_AND_SQS_CONFIG_FILE)
 		);
 	}
 
