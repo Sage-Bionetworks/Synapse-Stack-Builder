@@ -1,27 +1,25 @@
 {
 	"snsTopicNames":[
-		"TEST_TOPIC",
-		"OTHER_TOPIC"
+		"TESTTOPIC",
+		"OTHERTOPIC"
 	],
-	"queues":[
+	"queueDescriptors":[
 		{
 			"queueName":"queueNameEcksDee",
 			"subscribedTopicNames":[
-				"TEST_TOPIC"
+				"TESTTOPIC"
 			],
 			"messageVisibilityTimeoutSec":42,
-			"deadLetterQueueMaxFailureCount":5,
-			"oldestMessageInQueueAlarmThresholdSec":35
+			"deadLetterQueueMaxFailureCount":5
 		},
 		{
 			"queueName":"theOtherWorker",
 			"subscribedTopicNames":[
-				"OTHER_TOPIC"
+				"OTHERTOPIC",
+				"TESTTOPIC"
 			],
 			"messageVisibilityTimeoutSec":42,
-			"deadLetterQueueMaxFailureCount":5,
 			"oldestMessageInQueueAlarmThresholdSec":35
-		},
-
+		}
 	]
 }

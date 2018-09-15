@@ -39,11 +39,17 @@ import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import org.apache.logging.log4j.Logger;
+import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
@@ -64,11 +70,8 @@ import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
-import org.sagebionetworks.template.repo.queues.QueueConfig;
-import org.sagebionetworks.template.repo.queues.SqsQueueDescriptor;
-import org.sagebionetworks.template.repo.queues.WorkerQueueBuilderImpl;
-import org.sagebionetworks.template.repo.queues.SnsTopicAndSqsQueueDescriptors;
-import org.sagebionetworks.template.repo.queues.SnsTopicDescriptor;
+import org.sagebionetworks.template.repo.queues.SnsAndSqsConfig;
+import org.sagebionetworks.template.repo.queues.SnsAndSqsVelocityContextProvider;
 import org.sagebionetworks.template.vpc.Color;
 
 import com.amazonaws.services.cloudformation.model.Output;
@@ -125,7 +128,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
-				mockArtifactCopy, mockSecretBuilder, mockACLBuilder, Arrays.asList(mockContextProvider1, mockContextProvider2));
+				mockArtifactCopy, mockSecretBuilder, mockACLBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2));
 
 		stack = "dev";
 		instance = "101";
@@ -391,20 +394,5 @@ public class RepositoryTemplateBuilderImplTest {
 		// call under test
 		String suffix = builder.extractDatabaseSuffix(sharedResouces);
 		assertEquals(databaseEndpointSuffix, suffix);
-	}
-
-	@Test
-	public void tempTestTODOREMOVE(){
-		WorkerQueueBuilderImpl workerBuilder = new WorkerQueueBuilderImpl(mockCloudFormationClient,velocityEngine,config, mockLoggerFactory);
-
-
-		QueueConfig queueConfig = new QueueConfig("myQueueName", Sets.newHashSet("myTopicerino"), 420, 5, 43);
-
-		SnsTopicDescriptor snsTopicDescriptor = new SnsTopicDescriptor("myTopicerino");
-		snsTopicDescriptor.withSubscribedQueue("myQueueName");
-
-		SnsTopicAndSqsQueueDescriptors snsTopicAndQueueDescriptor = new SnsTopicAndSqsQueueDescriptors(Arrays.asList(snsTopicDescriptor), Arrays.asList(new SqsQueueDescriptor(queueConfig)));
-
-		System.out.println(workerBuilder.generateJSON(snsTopicAndQueueDescriptor));
 	}
 }

@@ -1,52 +1,52 @@
 
-#foreach( $queueDescriptor in $queueDescriptors)
-	"${queueDescriptor.config.queueName}Queue": {
+#foreach( $queueDescriptor in $sqsQueueDescriptors)
+	"${queueDescriptor.queueName}Queue": {
 		"Type": "AWS::SQS::Queue",
 		"Properties": {
-			"QueueName": "${stack}-${instance}-${queueDescriptor.config.queueName}",
-			#if ($queueDescriptor.config.deadLetterQueueMaxFailureCount)
+			"QueueName": "${stack}-${instance}-${queueDescriptor.queueName}",
+			#if ($queueDescriptor.deadLetterQueueMaxFailureCount)
 			"RedrivePolicy": {
-				"deadLetterTargetArn" : {"Fn::GetAtt" : [ "${queueDescriptor.config.queueName}DeadLetter" , "Arn" ]},
-				"maxReceiveCount" : "${queueDescriptor.config.deadLetterQueueMaxFailureCount}"
+				"deadLetterTargetArn" : {"Fn::GetAtt" : [ "${queueDescriptor.queueName}DeadLetter" , "Arn" ]},
+				"maxReceiveCount" : "${queueDescriptor.deadLetterQueueMaxFailureCount}"
 			},
 			#end
-			"VisibilityTimeout":"${queueDescriptor.config.messageVisibilityTimeoutSec}"
+			"VisibilityTimeout":"${queueDescriptor.messageVisibilityTimeoutSec}"
 		}
 	}
-	#if ($queueDescriptor.config.deadLetterQueueMaxFailureCount)
-	,"${queueDescriptor.config.queueName}DeadLetter":{
+	#if ($queueDescriptor.deadLetterQueueMaxFailureCount)
+	,"${queueDescriptor.queueName}DeadLetter":{
 		"Type" : "AWS::SQS::Queue",
 		"Properties":{
-		"QueueName": "${queueDescriptor.config.queueName}-dead-letter"
+		"QueueName": "${queueDescriptor.queueName}-dead-letter"
 		}
 	}
 	#end
 
-	#if($queueDescriptor.config.oldestMessageInQueueAlarmThresholdSec)
-	,"${queueDescriptor.config.queueName}OldestMessageAlarm":{
+	#if($queueDescriptor.oldestMessageInQueueAlarmThresholdSec)
+	,"${queueDescriptor.queueName}OldestMessageAlarm":{
 		"Type" : "AWS::CloudWatch::Alarm",
 		"Properties" : {
 			"ActionsEnabled" : true,
 			"AlarmActions" : [{"Ref":"${stack}NotificationTopic"}],
-			"AlarmDescription" : "Alarm when oldest message in the ${queueDescriptor.config.queueName} queue exceeds ${queueDescriptor.config.oldestMessageInQueueAlarmThresholdSec} seconds",
-			"AlarmName" : "${queueDescriptor.config.queueName}-queue-oldest-message-exceed-time",
+			"AlarmDescription" : "Alarm when oldest message in the ${queueDescriptor.queueName} queue exceeds ${queueDescriptor.oldestMessageInQueueAlarmThresholdSec} seconds",
+			"AlarmName" : "${queueDescriptor.queueName}-queue-oldest-message-exceed-time",
 			"ComparisonOperator" : "GreaterThanOrEqualToThreshold",
 			"Dimensions" : [{
 				"Name" : "QueueName",
-				"Value" : 	{"Fn::GetAtt":["${queueDescriptor.config.queueName}Queue", "QueueName"]}
+				"Value" : 	{"Fn::GetAtt":["${queueDescriptor.queueName}Queue", "QueueName"]}
 			}],
 			"EvaluationPeriods" : 1,
 			"MetricName" : "ApproximateAgeOfOldestMessage",
 			"Namespace" : "AWS/SQS",
 			"Period" : 300,
 			"Statistic" : "Maximum",
-			"Threshold" : "${queueDescriptor.config.oldestMessageInQueueAlarmThresholdSec}",
+			"Threshold" : "${queueDescriptor.oldestMessageInQueueAlarmThresholdSec}",
 			"Unit" : "Seconds"
 		}
 	}
 
 	#end
-	,"WriteTo${queueDescriptor.config.queueName}QueuePolicy":{
+	,"WriteTo${queueDescriptor.queueName}QueuePolicy":{
 		"Type":"AWS::SQS::QueuePolicy",
 		"Properties":{
 			"PolicyDocument":{
@@ -57,7 +57,7 @@
 						[
 							{
 								"Fn::GetAtt":[
-									"${queueDescriptor.config.queueName}Queue",
+									"${queueDescriptor.queueName}Queue",
 									"Arn"
 								]
 							},
@@ -77,7 +77,7 @@
 						"Condition":{
 							"ArnEquals":{
 								"aws:SourceArn":[
-									#foreach ( $subscribedTopic in $queueDescriptor.config.subscribedTopicNames)
+									#foreach ( $subscribedTopic in $queueDescriptor.subscribedTopicNames)
 									{
 										"Ref":"${subscribedTopic}Topic"
 									} #if( $foreach.hasNext) , #end
@@ -90,11 +90,12 @@
 			},
 			"Queues":[
 				{
-					"Ref":"${queueDescriptor.config.queueName}Queue"
+					"Ref":"${queueDescriptor.queueName}Queue"
 				}
 			]
 		}
 	}
+	#if( $foreach.hasNext) , #end
 #end
 ,
 

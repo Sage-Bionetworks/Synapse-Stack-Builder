@@ -38,6 +38,7 @@ import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 import java.io.StringWriter;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.StringJoiner;
 
 import org.apache.logging.log4j.Logger;
@@ -70,12 +71,12 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	ArtifactCopy artifactCopy;
 	SecretBuilder secretBuilder;
 	WebACLBuilder aclBuilder;
-	List<VelocityContextProvider> contextProviders;
+	Set<VelocityContextProvider> contextProviders;
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
 			Configuration configuration, LoggerFactory loggerFactory, ArtifactCopy artifactCopy,
-			SecretBuilder secretBuilder, WebACLBuilder aclBuilder, List<VelocityContextProvider> contextProviders) {
+			SecretBuilder secretBuilder, WebACLBuilder aclBuilder, Set<VelocityContextProvider> contextProviders) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.velocityEngine = velocityEngine;
@@ -192,7 +193,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		// Create the descriptors for all of the database.
 		context.put(DATABASE_DESCRIPTORS, createDatabaseDescriptors());
 
-		for(VelocityContextProvider provider : contextProviders){ //TODO: test
+		for(VelocityContextProvider provider : contextProviders){
 			provider.addToContext(context);
 		}
 

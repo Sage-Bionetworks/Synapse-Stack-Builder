@@ -16,7 +16,7 @@ public class SnsTopicDescriptor {
 	}
 
 
-	public SnsTopicDescriptor withSubscribedQueue(String subscribedQueue){
+	public SnsTopicDescriptor addToSubscribedQueues(String subscribedQueue){
 		this.subscribedQueueNames.add(subscribedQueue);
 		return this;
 	}

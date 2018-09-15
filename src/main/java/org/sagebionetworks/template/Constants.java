@@ -112,7 +112,7 @@ public class Constants {
 	public static final String OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT = "RepositoryDBEndpoint";
 
 	public static final String SNS_TOPIC_DESCRIPTORS = "snsTopicDescriptors";
-	public static final String SQS_QUEUE_DESCRIPTORS = "queueDescriptors";
+	public static final String SQS_QUEUE_DESCRIPTORS = "sqsQueueDescriptors";
 
 
 	/**
