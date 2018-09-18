@@ -1,124 +1,125 @@
+#if($sqsQueueDescriptors and $snsTopicDescriptors)
+    ,
+    #foreach( $queueDescriptor in $sqsQueueDescriptors)
+        "${queueDescriptor.queueName}Queue": {
+            "Type": "AWS::SQS::Queue",
+            "Properties": {
+                "QueueName": "${stack}-${instance}-${queueDescriptor.queueName}",
+                #if ($queueDescriptor.deadLetterQueueMaxFailureCount)
+                "RedrivePolicy": {
+                    "deadLetterTargetArn" : {"Fn::GetAtt" : [ "${queueDescriptor.queueName}DeadLetter" , "Arn" ]},
+                    "maxReceiveCount" : "${queueDescriptor.deadLetterQueueMaxFailureCount}"
+                },
+                #end
+                "VisibilityTimeout":"${queueDescriptor.messageVisibilityTimeoutSec}"
+            }
+        }
+        #if ($queueDescriptor.deadLetterQueueMaxFailureCount)
+        ,"${queueDescriptor.queueName}DeadLetter":{
+            "Type" : "AWS::SQS::Queue",
+            "Properties":{
+            "QueueName": "${queueDescriptor.queueName}-dead-letter"
+            }
+        }
+        #end
 
-#foreach( $queueDescriptor in $sqsQueueDescriptors)
-	"${queueDescriptor.queueName}Queue": {
-		"Type": "AWS::SQS::Queue",
-		"Properties": {
-			"QueueName": "${stack}-${instance}-${queueDescriptor.queueName}",
-			#if ($queueDescriptor.deadLetterQueueMaxFailureCount)
-			"RedrivePolicy": {
-				"deadLetterTargetArn" : {"Fn::GetAtt" : [ "${queueDescriptor.queueName}DeadLetter" , "Arn" ]},
-				"maxReceiveCount" : "${queueDescriptor.deadLetterQueueMaxFailureCount}"
-			},
-			#end
-			"VisibilityTimeout":"${queueDescriptor.messageVisibilityTimeoutSec}"
-		}
-	}
-	#if ($queueDescriptor.deadLetterQueueMaxFailureCount)
-	,"${queueDescriptor.queueName}DeadLetter":{
-		"Type" : "AWS::SQS::Queue",
-		"Properties":{
-		"QueueName": "${queueDescriptor.queueName}-dead-letter"
-		}
-	}
-	#end
+        #if($queueDescriptor.oldestMessageInQueueAlarmThresholdSec)
+        ,"${queueDescriptor.queueName}OldestMessageAlarm":{
+            "Type" : "AWS::CloudWatch::Alarm",
+            "Properties" : {
+                "ActionsEnabled" : true,
+                "AlarmActions" : [{"Ref":"${stack}NotificationTopic"}],
+                "AlarmDescription" : "Alarm when oldest message in the ${queueDescriptor.queueName} queue exceeds ${queueDescriptor.oldestMessageInQueueAlarmThresholdSec} seconds",
+                "AlarmName" : "${queueDescriptor.queueName}-queue-oldest-message-exceed-time",
+                "ComparisonOperator" : "GreaterThanOrEqualToThreshold",
+                "Dimensions" : [{
+                    "Name" : "QueueName",
+                    "Value" : 	{"Fn::GetAtt":["${queueDescriptor.queueName}Queue", "QueueName"]}
+                }],
+                "EvaluationPeriods" : 1,
+                "MetricName" : "ApproximateAgeOfOldestMessage",
+                "Namespace" : "AWS/SQS",
+                "Period" : 300,
+                "Statistic" : "Maximum",
+                "Threshold" : "${queueDescriptor.oldestMessageInQueueAlarmThresholdSec}",
+                "Unit" : "Seconds"
+            }
+        }
 
-	#if($queueDescriptor.oldestMessageInQueueAlarmThresholdSec)
-	,"${queueDescriptor.queueName}OldestMessageAlarm":{
-		"Type" : "AWS::CloudWatch::Alarm",
-		"Properties" : {
-			"ActionsEnabled" : true,
-			"AlarmActions" : [{"Ref":"${stack}NotificationTopic"}],
-			"AlarmDescription" : "Alarm when oldest message in the ${queueDescriptor.queueName} queue exceeds ${queueDescriptor.oldestMessageInQueueAlarmThresholdSec} seconds",
-			"AlarmName" : "${queueDescriptor.queueName}-queue-oldest-message-exceed-time",
-			"ComparisonOperator" : "GreaterThanOrEqualToThreshold",
-			"Dimensions" : [{
-				"Name" : "QueueName",
-				"Value" : 	{"Fn::GetAtt":["${queueDescriptor.queueName}Queue", "QueueName"]}
-			}],
-			"EvaluationPeriods" : 1,
-			"MetricName" : "ApproximateAgeOfOldestMessage",
-			"Namespace" : "AWS/SQS",
-			"Period" : 300,
-			"Statistic" : "Maximum",
-			"Threshold" : "${queueDescriptor.oldestMessageInQueueAlarmThresholdSec}",
-			"Unit" : "Seconds"
-		}
-	}
+        #end
+        ,"WriteTo${queueDescriptor.queueName}QueuePolicy":{
+            "Type":"AWS::SQS::QueuePolicy",
+            "Properties":{
+                "PolicyDocument":{
+                    "Version":"2012-10-17",
+                    "Id":{
+                        "Fn::Join":[
+                            "/",
+                            [
+                                {
+                                    "Fn::GetAtt":[
+                                        "${queueDescriptor.queueName}Queue",
+                                        "Arn"
+                                    ]
+                                },
+                                "SQSDefaultPolicy"
+                            ]
+                        ]
+                    },
+                    "Statement":[
+                        {
+                            "Sid":"allow-write-sns",
+                            "Effect":"Allow",
+                            "Principal":"*",
+                            "Action":[
+                                "sqs:SendMessage"
+                            ],
+                            "Resource":"*",
+                            "Condition":{
+                                "ArnEquals":{
+                                    "aws:SourceArn":[
+                                        #foreach ( $subscribedTopic in $queueDescriptor.subscribedTopicNames)
+                                        {
+                                            "Ref":"${subscribedTopic}Topic"
+                                        } #if( $foreach.hasNext) , #end
+                                        #end
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                "Queues":[
+                    {
+                        "Ref":"${queueDescriptor.queueName}Queue"
+                    }
+                ]
+            }
+        }
+        #if( $foreach.hasNext) , #end
+    #end
+    ,
 
-	#end
-	,"WriteTo${queueDescriptor.queueName}QueuePolicy":{
-		"Type":"AWS::SQS::QueuePolicy",
-		"Properties":{
-			"PolicyDocument":{
-				"Version":"2012-10-17",
-				"Id":{
-					"Fn::Join":[
-						"/",
-						[
-							{
-								"Fn::GetAtt":[
-									"${queueDescriptor.queueName}Queue",
-									"Arn"
-								]
-							},
-							"SQSDefaultPolicy"
-						]
-					]
-				},
-				"Statement":[
-					{
-						"Sid":"allow-write-sns",
-						"Effect":"Allow",
-						"Principal":"*",
-						"Action":[
-							"sqs:SendMessage"
-						],
-						"Resource":"*",
-						"Condition":{
-							"ArnEquals":{
-								"aws:SourceArn":[
-									#foreach ( $subscribedTopic in $queueDescriptor.subscribedTopicNames)
-									{
-										"Ref":"${subscribedTopic}Topic"
-									} #if( $foreach.hasNext) , #end
-									#end
-								]
-							}
-						}
-					}
-				]
-			},
-			"Queues":[
-				{
-					"Ref":"${queueDescriptor.queueName}Queue"
-				}
-			]
-		}
-	}
-	#if( $foreach.hasNext) , #end
+    #foreach( $snsTopicDescriptor in $snsTopicDescriptors)
+        "${snsTopicDescriptor.topicName}Topic":{
+            "Type" : "AWS::SNS::Topic",
+            "Properties" : {
+                "Subscription" : [
+                #foreach($queueResourceName in $snsTopicDescriptor.subscribedQueueNames)
+                    {
+                        "Endpoint":{"Fn::GetAtt" : [ "${queueResourceName}Queue" , "Arn" ]},
+                        "Protocol": "sqs"
+                    }
+                    #if( $foreach.hasNext ) , #end
+                #end
+                ],
+                "TopicName" : "${stack}-${instance}-${snsTopicDescriptor.topicName}"
+            }
+
+        }
+        #if( $foreach.hasNext) , #end
+    #end
 #end
-,
-
-#foreach( $snsTopicDescriptor in $snsTopicDescriptors)
-	"${snsTopicDescriptor.topicName}Topic":{
-		"Type" : "AWS::SNS::Topic",
-		"Properties" : {
-			"Subscription" : [
-			#foreach($queueResourceName in $snsTopicDescriptor.subscribedQueueNames)
-				{
-					"Endpoint":{"Fn::GetAtt" : [ "${queueResourceName}Queue" , "Arn" ]},
-					"Protocol": "sqs"
-				}
-				#if( $foreach.hasNext ) , #end
-			#end
-			],
-			"TopicName" : "${stack}-${instance}-${snsTopicDescriptor.topicName}"
-		}
-
-	}
-	#if( $foreach.hasNext) , #end
-#end
-
 
 
 
