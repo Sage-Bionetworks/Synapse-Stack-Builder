@@ -18,7 +18,7 @@
         ,"${queueDescriptor.queueName}DeadLetter":{
             "Type" : "AWS::SQS::Queue",
             "Properties":{
-            "QueueName": "${queueDescriptor.queueName}-dead-letter"
+            "QueueName": "${stack}-${instance}-${queueDescriptor.queueName}-dead-letter"
             }
         }
         #end
@@ -30,7 +30,7 @@
                 "ActionsEnabled" : true,
                 "AlarmActions" : [{"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"}],
                 "AlarmDescription" : "Alarm when oldest message in the ${queueDescriptor.queueName} queue exceeds ${queueDescriptor.oldestMessageInQueueAlarmThresholdSec} seconds",
-                "AlarmName" : "${queueDescriptor.queueName}-queue-oldest-message-exceed-time",
+                "AlarmName" : "${stack}-${instance}-${queueDescriptor.queueName}-queue-oldest-message-exceed-time",
                 "ComparisonOperator" : "GreaterThanOrEqualToThreshold",
                 "Dimensions" : [{
                     "Name" : "QueueName",
