@@ -39,9 +39,17 @@ import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
 import org.apache.logging.log4j.Logger;
+import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
@@ -62,6 +70,8 @@ import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
+import org.sagebionetworks.template.repo.queues.SnsAndSqsConfig;
+import org.sagebionetworks.template.repo.queues.SnsAndSqsVelocityContextProvider;
 import org.sagebionetworks.template.vpc.Color;
 
 import com.amazonaws.services.cloudformation.model.Output;
@@ -86,6 +96,11 @@ public class RepositoryTemplateBuilderImplTest {
 	SecretBuilder mockSecretBuilder;
 	@Mock
 	WebACLBuilder mockACLBuilder;
+	@Mock
+	VelocityContextProvider mockContextProvider1;
+	@Mock
+	VelocityContextProvider mockContextProvider2;
+
 	@Captor
 	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
 
@@ -113,7 +128,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
-				mockArtifactCopy, mockSecretBuilder, mockACLBuilder);
+				mockArtifactCopy, mockSecretBuilder, mockACLBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2));
 
 		stack = "dev";
 		instance = "101";
@@ -293,6 +308,9 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("db.t2.micro", desc.getInstanceClass());
 		assertEquals("dev-101-table-1", desc.getInstanceIdentifier());
 		assertEquals("dev101Table1RepositoryDB", desc.getResourceName());
+
+		verify(mockContextProvider1).addToContext(context);
+		verify(mockContextProvider2).addToContext(context);
 	}
 
 	@Test

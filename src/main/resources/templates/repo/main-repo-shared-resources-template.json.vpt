@@ -516,6 +516,7 @@
 				}
 			}
 		}
+		#parse("templates/repo/sns-and-sqs-template.json.vpt")
 	},
 	"Outputs": {
 		"BeanstalkApplicationId": {
