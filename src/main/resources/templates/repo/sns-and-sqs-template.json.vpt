@@ -28,7 +28,7 @@
             "Type" : "AWS::CloudWatch::Alarm",
             "Properties" : {
                 "ActionsEnabled" : true,
-                "AlarmActions" : [{"Ref":"${stack}NotificationTopic"}],
+                "AlarmActions" : [{"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"}],
                 "AlarmDescription" : "Alarm when oldest message in the ${queueDescriptor.queueName} queue exceeds ${queueDescriptor.oldestMessageInQueueAlarmThresholdSec} seconds",
                 "AlarmName" : "${queueDescriptor.queueName}-queue-oldest-message-exceed-time",
                 "ComparisonOperator" : "GreaterThanOrEqualToThreshold",
