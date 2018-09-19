@@ -17,16 +17,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * This class is immutable.
  */
 public class SnsAndSqsConfig {
+
+
 	private final Set<String> snsTopicNames;
 	private final List<SqsQueueDescriptor> queueDescriptors;
 
 	@JsonCreator
 	public SnsAndSqsConfig(@JsonProperty(value = "snsTopicNames", required = true) List<String> snsTopicNames,
 						   @JsonProperty(value = "queueDescriptors", required = true) List<SqsQueueDescriptor> queueDescriptors) {
+		SnsAndSqsNameValidator.validateNames(snsTopicNames);
+
 		this.snsTopicNames = Collections.unmodifiableSet(new LinkedHashSet<>(snsTopicNames));
 		this.queueDescriptors = Collections.unmodifiableList(new ArrayList<>(queueDescriptors));
 	}
-
 
 	public List<SnsTopicDescriptor> processSnsTopicDescriptors() {
 		Map<String,SnsTopicDescriptor> topicNameToTopicDescriptor = new HashMap<>(snsTopicNames.size());

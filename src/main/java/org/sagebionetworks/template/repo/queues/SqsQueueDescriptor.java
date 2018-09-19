@@ -26,6 +26,9 @@ public class SqsQueueDescriptor {
 							  @JsonProperty(value = "messageVisibilityTimeoutSec", required=true) Integer messageVisibilityTimeoutSec,
 							  @JsonProperty("deadLetterQueueMaxFailureCount") Integer deadLetterQueueMaxFailureCount,
 							  @JsonProperty("oldestMessageInQueueAlarmThresholdSec") Integer oldestMessageInQueueAlarmThresholdSec) {
+		SnsAndSqsNameValidator.validateName(queueName);
+		SnsAndSqsNameValidator.validateNames(subscribedTopicNames);
+
 		this.queueName = queueName;
 		this.subscribedTopicNames = Collections.unmodifiableSet(new LinkedHashSet<>(subscribedTopicNames));
 		this.messageVisibilityTimeoutSec = messageVisibilityTimeoutSec;

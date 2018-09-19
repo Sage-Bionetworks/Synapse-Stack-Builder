@@ -3,6 +3,7 @@ package org.sagebionetworks.template.repo.queues;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -27,8 +28,16 @@ public class SnsAndSqsConfigTest {
 	SnsAndSqsConfig snsAndSqsConfig;
 
 
-	@Before
-	public void setUp(){
+	@Test
+	public void testConstructor_SnsNamesValidation(){
+		SqsQueueDescriptor sqsQueueDescriptor = new SqsQueueDescriptor(queueName, Collections.emptyList(), messageVisibilityTimeoutSec, deadLetterQueueMaxFailureCount, oldestMessGeInQueueAlarmThresholdSec);
+
+		try {
+			new SnsAndSqsConfig(Arrays.asList("BAD_NAME"), Arrays.asList(sqsQueueDescriptor));
+			fail();
+		} catch (IllegalArgumentException e){
+			//expected
+		}
 	}
 
 	@Test(expected = IllegalArgumentException.class)
