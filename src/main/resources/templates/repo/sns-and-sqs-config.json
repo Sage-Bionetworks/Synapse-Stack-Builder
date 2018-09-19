@@ -71,7 +71,7 @@
 			"messageVisibilityTimeoutSec":600
 		},
 		{
-			"queueName":"FILE_UPDATE", //TODO: file-sqs-spb.xml references stackConfiguration.fileUpdateQueueName
+			"queueName":"FILE_UPDATE",
 			"subscribedTopicNames":[
 				"FILE"
 			],
@@ -79,7 +79,7 @@
 			"deadLetterQueueMaxFailureCount":5
 		},
 		{
-			"queueName":"MESSAGE_UPDATE", //TODO: message-to-user-sqs-spb.xml stackConfiguration.messageUpdateQueueName
+			"queueName":"MESSAGE_UPDATE",
 			"subscribedTopicNames":[
 				"MESSAGE"
 			],
@@ -120,16 +120,16 @@
 			"messageVisibilityTimeoutSec":60
 		},
 		{
-			"queueName":"SEARCH_UPDATE", //TODO: search-sqs-spb.xml stackConfiguration.searchUpdateQueueName
+			"queueName":"SEARCH_UPDATE",
 			"subscribedTopicNames":[
 				"ENTITY",
 				"WIKI"
 			],
 			"messageVisibilityTimeoutSec":600,
-			"deadLetterQueueMaxFailureCount":250 //TODO: why so high?
+			"deadLetterQueueMaxFailureCount":250
 		},
 		{
-			"queueName":"TABLE_UPDATE", //TODO: table-cluster-sqs-spb.xml stackConfiguration.tableUpdateQueueName
+			"queueName":"TABLE_UPDATE",
 			"subscribedTopicNames":[
 				"TABLE"
 			],
