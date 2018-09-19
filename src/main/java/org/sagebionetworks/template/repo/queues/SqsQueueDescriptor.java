@@ -34,18 +34,10 @@ public class SqsQueueDescriptor {
 	}
 
 	///////////////////////////////////////////
-	// getters are required by Apache Velocity
+	// getters are only used by Apache Velocity
 	///////////////////////////////////////////
 	public String getQueueName() {
 		return queueName;
-	}
-
-	/**
-	 * Returns the queueName with only alphanumeric characters [a-zA-Z0-9]
-	 * @return
-	 */
-	public String getQueueNameCloudformationResource(){
-		return queueName.replaceAll("[^a-zA-Z0-9]", "");
 	}
 
 	public Set<String> getSubscribedTopicNames() {

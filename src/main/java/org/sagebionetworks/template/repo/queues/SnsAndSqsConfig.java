@@ -42,9 +42,9 @@ public class SnsAndSqsConfig {
 							+ snsTopicNames );
 				}
 
-				//add queue name that is filtered alphanumerically to SnsTopicDescriptor.
+				//add queue to SnsTopicDescriptors
 				topicNameToTopicDescriptor.computeIfAbsent(subscribedTopicName, SnsTopicDescriptor::new)
-							.addToSubscribedQueues(sqsQueueDescriptor.getQueueNameCloudformationResource());
+							.addToSubscribedQueues(sqsQueueDescriptor.queueName);
 			}
 		}
 		return new ArrayList<>(topicNameToTopicDescriptor.values());
