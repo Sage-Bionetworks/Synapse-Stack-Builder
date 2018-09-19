@@ -1,13 +1,13 @@
 #if($sqsQueueDescriptors and $snsTopicDescriptors)
     ,
     #foreach( $queueDescriptor in $sqsQueueDescriptors)
-        "${queueDescriptor.queueName}Queue": {
+        "${queueDescriptor.queueNameCloudformationResource}Queue": {
             "Type": "AWS::SQS::Queue",
             "Properties": {
                 "QueueName": "${stack}-${instance}-${queueDescriptor.queueName}",
                 #if ($queueDescriptor.deadLetterQueueMaxFailureCount)
                 "RedrivePolicy": {
-                    "deadLetterTargetArn" : {"Fn::GetAtt" : [ "${queueDescriptor.queueName}DeadLetter" , "Arn" ]},
+                    "deadLetterTargetArn" : {"Fn::GetAtt" : [ "${queueDescriptor.queueNameCloudformationResource}DeadLetter" , "Arn" ]},
                     "maxReceiveCount" : "${queueDescriptor.deadLetterQueueMaxFailureCount}"
                 },
                 #end
@@ -15,7 +15,7 @@
             }
         }
         #if ($queueDescriptor.deadLetterQueueMaxFailureCount)
-        ,"${queueDescriptor.queueName}DeadLetter":{
+        ,"${queueDescriptor.queueNameCloudformationResource}DeadLetter":{
             "Type" : "AWS::SQS::Queue",
             "Properties":{
             "QueueName": "${stack}-${instance}-${queueDescriptor.queueName}-dead-letter"
@@ -24,7 +24,7 @@
         #end
 
         #if($queueDescriptor.oldestMessageInQueueAlarmThresholdSec)
-        ,"${queueDescriptor.queueName}OldestMessageAlarm":{
+        ,"${queueDescriptor.queueNameCloudformationResource}OldestMessageAlarm":{
             "Type" : "AWS::CloudWatch::Alarm",
             "Properties" : {
                 "ActionsEnabled" : true,
@@ -34,7 +34,7 @@
                 "ComparisonOperator" : "GreaterThanOrEqualToThreshold",
                 "Dimensions" : [{
                     "Name" : "QueueName",
-                    "Value" : 	{"Fn::GetAtt":["${queueDescriptor.queueName}Queue", "QueueName"]}
+                    "Value" : 	{"Fn::GetAtt":["${queueDescriptor.queueNameCloudformationResource}Queue", "QueueName"]}
                 }],
                 "EvaluationPeriods" : 1,
                 "MetricName" : "ApproximateAgeOfOldestMessage",
@@ -47,7 +47,7 @@
         }
 
         #end
-        ,"WriteTo${queueDescriptor.queueName}QueuePolicy":{
+        ,"WriteTo${queueDescriptor.queueNameCloudformationResource}QueuePolicy":{
             "Type":"AWS::SQS::QueuePolicy",
             "Properties":{
                 "PolicyDocument":{
@@ -58,7 +58,7 @@
                             [
                                 {
                                     "Fn::GetAtt":[
-                                        "${queueDescriptor.queueName}Queue",
+                                        "${queueDescriptor.queueNameCloudformationResource}Queue",
                                         "Arn"
                                     ]
                                 },
@@ -91,7 +91,7 @@
                 },
                 "Queues":[
                     {
-                        "Ref":"${queueDescriptor.queueName}Queue"
+                        "Ref":"${queueDescriptor.queueNameCloudformationResource}Queue"
                     }
                 ]
             }
@@ -101,11 +101,11 @@
     ,
 
     #foreach( $snsTopicDescriptor in $snsTopicDescriptors)
-        "${snsTopicDescriptor.topicName}Topic":{
+        "${snsTopicDescriptor.topicNameCloudformationResource}Topic":{
             "Type" : "AWS::SNS::Topic",
             "Properties" : {
                 "Subscription" : [
-                #foreach($queueResourceName in $snsTopicDescriptor.subscribedQueueNames)
+                #foreach($queueResourceName in $snsTopicDescriptor.subscribedQueueCloudformationResources)
                     {
                         "Endpoint":{"Fn::GetAtt" : [ "${queueResourceName}Queue" , "Arn" ]},
                         "Protocol": "sqs"

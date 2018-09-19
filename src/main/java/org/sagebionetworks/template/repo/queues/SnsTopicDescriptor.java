@@ -1,23 +1,21 @@
 package org.sagebionetworks.template.repo.queues;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
 public class SnsTopicDescriptor {
 	String topicName;
-	Set<String> subscribedQueueNames;
+	Set<String> subscribedQueueCloudformationResources;
 
 	public SnsTopicDescriptor(String topicName){
 		this.topicName = topicName;
-		this.subscribedQueueNames = new HashSet<>();
+		this.subscribedQueueCloudformationResources = new LinkedHashSet<>();
 	}
 
 
 	public SnsTopicDescriptor addToSubscribedQueues(String subscribedQueue){
-		this.subscribedQueueNames.add(subscribedQueue);
+		this.subscribedQueueCloudformationResources.add(subscribedQueue);
 		return this;
 	}
 
@@ -25,8 +23,12 @@ public class SnsTopicDescriptor {
 		return topicName;
 	}
 
-	public Set<String> getSubscribedQueueNames() {
-		return subscribedQueueNames;
+	public String geTopicNameCloudformationResource(){
+		return this.topicName.replaceAll("[^a-zA-Z0-9]", "");
+	}
+
+	public Set<String> getSubscribedQueueCloudformationResources() {
+		return subscribedQueueCloudformationResources;
 	}
 
 	@Override
@@ -35,12 +37,12 @@ public class SnsTopicDescriptor {
 		if (o == null || getClass() != o.getClass()) return false;
 		SnsTopicDescriptor that = (SnsTopicDescriptor) o;
 		return Objects.equals(topicName, that.topicName) &&
-				Objects.equals(subscribedQueueNames, that.subscribedQueueNames);
+				Objects.equals(subscribedQueueCloudformationResources, that.subscribedQueueCloudformationResources);
 	}
 
 	@Override
 	public int hashCode() {
 
-		return Objects.hash(topicName, subscribedQueueNames);
+		return Objects.hash(topicName, subscribedQueueCloudformationResources);
 	}
 }
