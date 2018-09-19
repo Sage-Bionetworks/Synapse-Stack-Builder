@@ -138,7 +138,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public SnsAndSqsConfig snsAndSqsConfigProvider() throws IOException {
 		ObjectMapper objectMapper = new ObjectMapper();
-		return objectMapper.readValue(new File(SNS_AND_SQS_CONFIG_FILE), SnsAndSqsConfig.class);
+		return objectMapper.readValue(ClassLoader.getSystemClassLoader().getResource(SNS_AND_SQS_CONFIG_FILE), SnsAndSqsConfig.class);
 	}
 
 }
