@@ -1,6 +1,9 @@
 package org.sagebionetworks.template;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 public class Constants {
 
@@ -128,9 +131,13 @@ public class Constants {
 		StringBuilder builder = new StringBuilder();
 		for (String part : split) {
 			builder.append(part.substring(0, 1).toUpperCase());
-			builder.append(part.substring(1));
+			builder.append(part.substring(1).toLowerCase());
 		}
 		return builder.toString();
+	}
+
+	public static List<String> createCamelCaseName(Collection<String> collection, String separator){
+		return collection.stream().map(str -> createCamelCaseName(str, separator)).collect(Collectors.toList());
 	}
 
 	/**
