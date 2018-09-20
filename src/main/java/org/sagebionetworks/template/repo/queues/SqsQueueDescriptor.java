@@ -43,7 +43,11 @@ public class SqsQueueDescriptor {
 		return queueName;
 	}
 
-	public Set<String> getSubscribedTopicNames() {
+	public String getQueueReferenceName(){
+		return
+	}
+
+	public Set<String> getSubscribedTopicReferenceNames() {
 		return subscribedTopicNames;
 	}
 

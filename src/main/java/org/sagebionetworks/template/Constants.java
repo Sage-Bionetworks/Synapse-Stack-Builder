@@ -119,11 +119,12 @@ public class Constants {
 	 * Create a camel case name from dash-separated-name. Given 'foo-bar' will
 	 * return 'FooBar'
 	 * 
-	 * @param dashName
+	 * @param name
+	 * @param separator
 	 * @return
 	 */
-	public static final String createCamelCaseName(String dashName) {
-		String[] split = dashName.split("-");
+	public static final String createCamelCaseName(String name, String separator) {
+		String[] split = name.split(separator);
 		StringBuilder builder = new StringBuilder();
 		for (String part : split) {
 			builder.append(part.substring(0, 1).toUpperCase());
