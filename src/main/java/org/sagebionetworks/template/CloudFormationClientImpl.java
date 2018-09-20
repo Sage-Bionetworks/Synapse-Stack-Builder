@@ -214,6 +214,7 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 			case CREATE_IN_PROGRESS:
 			case UPDATE_IN_PROGRESS:
 			case UPDATE_COMPLETE_CLEANUP_IN_PROGRESS:
+			case UPDATE_ROLLBACK_COMPLETE:
 				logger.info("Waiting for stack: '"+stackName+"' to complete.  Current status: "+status.name()+"...");
 				threadProvider.sleep(SLEEP_TIME);
 				break;
