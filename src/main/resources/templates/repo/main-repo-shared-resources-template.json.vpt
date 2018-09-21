@@ -485,7 +485,7 @@
 							"Sid": "Allow root administration of the key",
 							"Effect": "Allow",
 							"Principal": {
-								"AWS": {
+								"AWS": [{
 									"Fn::Join": [
 										"",
 										[
@@ -496,7 +496,10 @@
 											":root"
 										]
 									]
-								}
+								    },
+								    { "Fn::ImportValue": "us-east-1-accounts-AWSIAMAdminRoleId"},
+								    { "Fn::ImportValue": "us-east-1-synapse-${stack}-cmk-SynapseDeploymentRoleId" }
+								]
 							},
 							"Action": [
 								"kms:*"
