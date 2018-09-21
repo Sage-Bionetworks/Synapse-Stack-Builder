@@ -1,11 +1,10 @@
 package org.sagebionetworks.template.repo.queues;
 
-import java.util.LinkedHashSet;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-
-import org.sagebionetworks.template.Constants;
 
 public class SnsTopicDescriptor {
 	String topicName;
@@ -13,7 +12,7 @@ public class SnsTopicDescriptor {
 
 	public SnsTopicDescriptor(String topicName){
 		this.topicName = topicName;
-		this.subscribedQueueNames = new LinkedHashSet<>();
+		this.subscribedQueueNames = new HashSet<>();
 	}
 
 
@@ -26,12 +25,8 @@ public class SnsTopicDescriptor {
 		return topicName;
 	}
 
-	public String getTopicReferenceName(){
-		return Constants.createCamelCaseName(topicName, "_");
-	}
-
-	public List<String> getSubscribedQueueReferenceNames() {
-		return Constants.createCamelCaseName(subscribedQueueNames, "_");
+	public Set<String> getSubscribedQueueNames() {
+		return subscribedQueueNames;
 	}
 
 	@Override

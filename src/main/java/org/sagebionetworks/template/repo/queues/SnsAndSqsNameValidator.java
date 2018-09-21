@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.regex.Pattern;
 
 public class SnsAndSqsNameValidator {
-	private static final Pattern ALPHA_NUMERIC_MATCHER = Pattern.compile("\\w+");
+	private static final Pattern ALPHA_NUMERIC_MATCHER = Pattern.compile("[a-zA-Z0-9]+");
 
 
 	public static void validateNames(Collection<String> names){

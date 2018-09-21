@@ -33,7 +33,7 @@ public class SnsAndSqsConfigTest {
 		SqsQueueDescriptor sqsQueueDescriptor = new SqsQueueDescriptor(queueName, Collections.emptyList(), messageVisibilityTimeoutSec, deadLetterQueueMaxFailureCount, oldestMessGeInQueueAlarmThresholdSec);
 
 		try {
-			new SnsAndSqsConfig(Arrays.asList("BAD-NAME"), Arrays.asList(sqsQueueDescriptor));
+			new SnsAndSqsConfig(Arrays.asList("BAD_NAME"), Arrays.asList(sqsQueueDescriptor));
 			fail();
 		} catch (IllegalArgumentException e){
 			//expected

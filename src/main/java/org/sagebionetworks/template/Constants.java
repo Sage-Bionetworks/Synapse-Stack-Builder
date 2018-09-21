@@ -1,9 +1,6 @@
 package org.sagebionetworks.template;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.StringJoiner;
-import java.util.stream.Collectors;
 
 public class Constants {
 
@@ -122,22 +119,17 @@ public class Constants {
 	 * Create a camel case name from dash-separated-name. Given 'foo-bar' will
 	 * return 'FooBar'
 	 * 
-	 * @param name
-	 * @param separator
+	 * @param dashName
 	 * @return
 	 */
-	public static final String createCamelCaseName(String name, String separator) {
-		String[] split = name.split(separator);
+	public static final String createCamelCaseName(String dashName) {
+		String[] split = dashName.split("-");
 		StringBuilder builder = new StringBuilder();
 		for (String part : split) {
 			builder.append(part.substring(0, 1).toUpperCase());
-			builder.append(part.substring(1).toLowerCase());
+			builder.append(part.substring(1));
 		}
 		return builder.toString();
-	}
-
-	public static List<String> createCamelCaseName(Collection<String> collection, String separator){
-		return collection.stream().map(str -> createCamelCaseName(str, separator)).collect(Collectors.toList());
 	}
 
 	/**

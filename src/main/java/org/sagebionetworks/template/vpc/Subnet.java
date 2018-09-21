@@ -65,7 +65,7 @@ public class Subnet {
 	 * @return
 	 */
 	public String getAvailabilityZoneRef() {
-		return Constants.createCamelCaseName(availabilityZone, "-");
+		return Constants.createCamelCaseName(availabilityZone);
 	}
 	
 	
