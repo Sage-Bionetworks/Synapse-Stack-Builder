@@ -8,7 +8,6 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.sagebionetworks.template.Constants;
 
 /**
  * Config read from JSON for a queue
@@ -44,12 +43,8 @@ public class SqsQueueDescriptor {
 		return queueName;
 	}
 
-	public String getQueueReferenceName(){
-		return Constants.createCamelCaseName(queueName, "_");
-	}
-
-	public List<String> getSubscribedTopicReferenceNames() {
-		return Constants.createCamelCaseName(subscribedTopicNames, "_");
+	public Set<String> getSubscribedTopicNames() {
+		return subscribedTopicNames;
 	}
 
 	public Integer getMessageVisibilityTimeoutSec() {

@@ -102,7 +102,7 @@ public class SubnetBuilder {
 		Subnet[] publicSubnets = new Subnet[availabilityZones.length];
 		for(int i=0; i< availabilityZones.length; i++) {
 			String availabilityZone = availabilityZones[i];
-			String availabilityZoneName = Constants.createCamelCaseName(availabilityZone, "-");
+			String availabilityZoneName = Constants.createCamelCaseName(availabilityZone);
 			String name = "Public"+availabilityZoneName;
 			String cidr = createCIDR(address, this.colorGroupNetMask);
 			publicSubnets[i] = new Subnet(name, cidr, SubnetType.Public, availabilityZone);
@@ -172,7 +172,7 @@ public class SubnetBuilder {
 		StringBuilder builder = new StringBuilder();
 		builder.append(color.name());
 		builder.append(type.name());
-		builder.append(Constants.createCamelCaseName(availabilityZone, "-"));
+		builder.append(Constants.createCamelCaseName(availabilityZone));
 		return builder.toString();
 	}
 }
