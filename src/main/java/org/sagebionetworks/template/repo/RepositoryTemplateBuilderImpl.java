@@ -246,7 +246,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 			int number = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + type.getShortName());
 			String name = new StringJoiner("-").add(type.getShortName()).add(stack).add(instance).add("" + number)
 					.toString();
-			String refName = Constants.createCamelCaseName(name);
+			String refName = Constants.createCamelCaseName(name, "-");
 			String version = config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName());
 			String healthCheckUrl = config.getProperty(PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL + type.getShortName());
 			int minInstances = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MIN_INSTANCES + type.getShortName());

@@ -13,7 +13,7 @@ public class SnsAndSqsNameValidatorTest {
 		SnsAndSqsNameValidator.validateName("my-dashed-name");
 	}
 
-	@Test (expected = IllegalArgumentException.class)
+	@Test
 	public void testValidateName_nameContainsUnderscore(){
 		SnsAndSqsNameValidator.validateName("my_underscored_name");
 	}

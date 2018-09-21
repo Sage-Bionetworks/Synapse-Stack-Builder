@@ -19,7 +19,7 @@ public class SqsQueueDescriptorTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructor_badSubScribedTopicsName(){
-		new SqsQueueDescriptor("goodName", Collections.singletonList("bad_name"),
+		new SqsQueueDescriptor("goodName", Collections.singletonList("bad-name"),
 				messageVisibilityTimeoutSec,deadLetterQueueMaxFailureCount,oldestMessageInQueueAlarmThresholdSec);
 	}
 
