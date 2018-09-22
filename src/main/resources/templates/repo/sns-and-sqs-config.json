@@ -1,43 +1,43 @@
 {
 	"snsTopicNames":[
-		"Reply",
-		"Thread",
-		"DataAccessSubmission",
-		"DataAccessSubmissionStatus",
-		"EntityContainer",
-		"EvaluationSubmissions",
-		"File",
-		"Message",
-		"Principal",
-		"AccessControlList",
-		"Entity",
-		"ProjectSetting",
-		"VerificationSubmission",
-		"CertifiedUserPassingRecord",
-		"Wiki",
-		"Table",
-		"EntityView"
+		"REPLY",
+		"THREAD",
+		"DATA_ACCESS_SUBMISSION",
+		"DATA_ACCESS_SUBMISSION_STATUS",
+		"ENTITY_CONTAINER",
+		"EVALUATION_SUBMISSIONS",
+		"FILE",
+		"MESSAGE",
+		"PRINCIPAL",
+		"ACCESS_CONTROL_LIST",
+		"ENTITY",
+		"PROJECT_SETTING",
+		"VERIFICATION_SUBMISSION",
+		"CERTIFIED_USER_PASSING_RECORD",
+		"WIKI",
+		"TABLE",
+		"ENTITY_VIEW"
 	],
 	"queueDescriptors":[
 		{
-			"queueName":"AddFilesToDownloadList",
+			"queueName":"ADD_FILES_TO_DOWNLOAD_LIST",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":60
 		},
 		{
-			"queueName":"Broadcast",
+			"queueName":"BROADCAST",
 			"subscribedTopicNames":[
-				"Reply",
-				"Thread",
-				"DataAccessSubmission",
-				"DataAccessSubmissionStatus"
+				"REPLY",
+				"THREAD",
+				"DATA_ACCESS_SUBMISSION",
+				"DATA_ACCESS_SUBMISSION_STATUS"
 			],
 			"messageVisibilityTimeoutSec":120
 		},
 		{
-			"queueName":"ThreadStats",
+			"queueName":"THREAD_STATS",
 			"subscribedTopicNames":[
-				"Thread"
+				"THREAD"
 			],
 			"messageVisibilityTimeoutSec":20
 		},
@@ -47,131 +47,131 @@
 			"messageVisibilityTimeoutSec":30
 		},
 		{
-			"queueName":"EntityHierarchyChangeWorker",
+			"queueName":"ENTITY_HIERARCHY_CHANGE",
 			"subscribedTopicNames":[
-				"EntityContainer"
+				"ENTITY_CONTAINER"
 			],
 			"messageVisibilityTimeoutSec":120
 		},
 		{
-			"queueName":"EntityReplicationReconciliationWorker",
+			"queueName":"ENTITY_REPLICATION_RECONCILIATION",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":60
 		},
 		{
-			"queueName":"EvaluationSubmissionUpdate",
+			"queueName":"EVALUATION_SUBMISSION_UPDATE",
 			"subscribedTopicNames":[
-				"EvaluationSubmissions"
+				"EVALUATION_SUBMISSIONS"
 			],
 			"messageVisibilityTimeoutSec":300
 		},
 		{
-			"queueName":"BulkFileDownload",
+			"queueName":"BULK_FILE_DOWNLOAD",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":600
 		},
 		{
-			"queueName":"FileUpdate",
+			"queueName":"FILE_UPDATE",
 			"subscribedTopicNames":[
-				"File"
+				"FILE"
 			],
 			"messageVisibilityTimeoutSec":1800,
 			"deadLetterQueueMaxFailureCount":5
 		},
 		{
-			"queueName":"MessageUpdate",
+			"queueName":"MESSAGE_UPDATE",
 			"subscribedTopicNames":[
-				"Message"
+				"MESSAGE"
 			],
 			"messageVisibilityTimeoutSec":60
 		},
 		{
-			"queueName":"Migration",
+			"queueName":"MIGRATION",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":600
 		},
 		{
-			"queueName":"Object",
+			"queueName":"OBJECT",
 			"subscribedTopicNames":[
-				"Principal",
-				"AccessControlList",
-				"Entity",
-				"ProjectSetting",
-				"VerificationSubmission",
-				"CertifiedUserPassingRecord",
-				"File"
+				"PRINCIPAL",
+				"ACCESS_CONTROL_LIST",
+				"ENTITY",
+				"PROJECT_SETTING",
+				"VERIFICATION_SUBMISSION",
+				"CERTIFIED_USER_PASSING_RECORD",
+				"FILE"
 			],
 			"messageVisibilityTimeoutSec":120
 		},
 		{
-			"queueName":"PrincipalPrefix",
+			"queueName":"PRINCIPAL_PREFIX",
 			"subscribedTopicNames":[
-				"Principal"
+				"PRINCIPAL"
 			],
 			"messageVisibilityTimeoutSec":60
 		},
 		{
-			"queueName":"ProjectStatsV2",
+			"queueName":"PROJECT_STATS_V2",
 			"subscribedTopicNames":[
-				"Entity",
-				"Wiki",
-				"Table"
+				"ENTITY",
+				"WIKI",
+				"TABLE"
 			],
 			"messageVisibilityTimeoutSec":60
 		},
 		{
-			"queueName":"SearchUpdate",
+			"queueName":"SEARCH_UPDATE",
 			"subscribedTopicNames":[
-				"Entity",
-				"Wiki"
+				"ENTITY",
+				"WIKI"
 			],
 			"messageVisibilityTimeoutSec":600,
 			"deadLetterQueueMaxFailureCount":250
 		},
 		{
-			"queueName":"TableUpdate",
+			"queueName":"TABLE_UPDATE",
 			"subscribedTopicNames":[
-				"Table"
+				"TABLE"
 			],
 			"messageVisibilityTimeoutSec":1200
 		},
 		{
-			"queueName":"UploadCsvToTablePreview",
+			"queueName":"UPLOAD_CSV_TO_TABLE_PREVIEW",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":60
 		},
 		{
-			"queueName":"DownloadCsvFromTable",
+			"queueName":"DOWNLOAD_CSV_FROM_TABLE",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":60
 		},
 		{
-			"queueName":"TableEntityReplicationWorker",
+			"queueName":"TABLE_ENTITY_REPLICATION",
 			"subscribedTopicNames":[
-				"Entity"
+				"ENTITY"
 			],
 			"messageVisibilityTimeoutSec":120,
 			"deadLetterQueueMaxFailureCount":100
 		},
 		{
-			"queueName":"Query",
+			"queueName":"QUERY",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":120
 		},
 		{
-			"queueName":"QueryNextPage",
+			"queueName":"QUERY_NEXT_PAGE",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":120
 		},
 		{
-			"queueName":"TableUpdateTransaction",
+			"queueName":"TABLE_UPDATE_TRANSACTION",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":300
 		},
 		{
-			"queueName":"TableViewWorker",
+			"queueName":"TABLE_VIEW",
 			"subscribedTopicNames":[
-				"EntityView"
+				"ENTITY_VIEW"
 			],
 			"messageVisibilityTimeoutSec":120
 		}
