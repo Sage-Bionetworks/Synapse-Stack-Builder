@@ -474,6 +474,7 @@
 									"aws:userid": [
 										{ "Fn::Join": [ "", [{"Fn::GetAtt": [ "${stack}${instance}SynapesRepoWorkersServiceRole", "RoleId"]}, ":*" ]]},
 										{ "Fn::Join": [ "", [{"Fn::ImportValue": "us-east-1-synapse-${stack}-cmk-SynapseDeploymentRoleId"}, ":*" ]]},
+										{ "Fn::Join": [ "", [{"Fn::ImportValue": "us-east-1-accounts-AWSIAMAdminRoleId"}, ":*" ]]},
 										{
 											"Ref": "AWS::AccountId"
 										}
@@ -496,7 +497,7 @@
 											":root"
 										]
 									]
-								}
+								    }
 							},
 							"Action": [
 								"kms:*"
