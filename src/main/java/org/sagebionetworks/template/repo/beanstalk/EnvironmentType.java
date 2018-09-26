@@ -2,18 +2,20 @@ package org.sagebionetworks.template.repo.beanstalk;
 
 public enum EnvironmentType {
 
-	REPOSITORY_SERVICES("services-repository", "repo", "SynapesRepoWorkersInstanceProfile"),
-	REPOSITORY_WORKERS("services-workers", "workers","SynapesRepoWorkersInstanceProfile"),
-	PORTAL("portal", "portal", "SynapesPortalInstanceProfile");
+	REPOSITORY_SERVICES("services-repository", "repo", "SynapesRepoWorkersInstanceProfile", true),
+	REPOSITORY_WORKERS("services-workers", "workers","SynapesRepoWorkersInstanceProfile", true),
+	PORTAL("portal", "portal", "SynapesPortalInstanceProfile", false);
 
 	String pathName;
 	String cnamePrefix;
 	String instanceProfileSuffix;
+	boolean includeSecrets;
 
-	EnvironmentType(String path, String cnamePrefix, String instanceProfileSuffix) {
+	EnvironmentType(String path, String cnamePrefix, String instanceProfileSuffix, boolean includeSecrets) {
 		this.pathName = path;
 		this.cnamePrefix = cnamePrefix;
 		this.instanceProfileSuffix = instanceProfileSuffix;
+		this.includeSecrets = includeSecrets;
 	}
 
 	/**
@@ -86,5 +88,9 @@ public enum EnvironmentType {
 			}
 		}
 		throw new IllegalArgumentException("Unknown prefix: "+prefix);
+	}
+
+	public boolean shouldIncludeSecrets() {
+		return includeSecrets;
 	}
 }

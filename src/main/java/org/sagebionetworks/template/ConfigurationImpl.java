@@ -40,7 +40,7 @@ public class ConfigurationImpl implements Configuration {
 		}
 		String value = props.getProperty(key);
 		if(value == null) {
-			throw new IllegalArgumentException("Missing property value for key: '"+key+"'");
+			throw new ConfigurationPropertyNotFound(key);
 		}
 		return value;
 	}

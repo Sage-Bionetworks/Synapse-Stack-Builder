@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.sagebionetworks.template.Configuration;
 import org.sagebionetworks.template.ConfigurationImpl;
+import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 
 public class ConfigurationImplTest {
 
@@ -29,7 +30,7 @@ public class ConfigurationImplTest {
 		assertEquals("5", value);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = ConfigurationPropertyNotFound.class)
 	public void testGetDoesNotExist() {
 		// call under test
 		config.getProperty("does not exist");

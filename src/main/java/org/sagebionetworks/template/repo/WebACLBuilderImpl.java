@@ -49,6 +49,10 @@ public class WebACLBuilderImpl implements WebACLBuilder {
 
 	@Override
 	public void buildWebACL(List<String> environmentNames) {
+		if (environmentNames.isEmpty()){
+			return;
+		}
+
 		VelocityContext context = createContext(environmentNames);
 		// Merge the context with the template
 		Template template = this.velocityEngine.getTemplate(TEMPLATES_REPO_WEB_ACL_TEMPLATE_JSON);
