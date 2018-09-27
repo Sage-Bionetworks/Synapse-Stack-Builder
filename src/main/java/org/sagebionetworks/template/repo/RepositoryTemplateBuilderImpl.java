@@ -48,6 +48,7 @@ import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.Configuration;
+import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
@@ -116,13 +117,11 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		SourceBundle secretsSouce = secretBuilder.createSecrets();
 		List<String> environmentNames = new LinkedList<String>();
 		// each environment is treated as its own stack.
-		EnvironmentDescriptor[] environements = createEnvironments(secretsSouce);
-		for (EnvironmentDescriptor environment : environements) {
-			Parameter[] parameters = null;
+		for (EnvironmentDescriptor environment : createEnvironments(secretsSouce)) {
 			VelocityContext context = createEnvironmentContext(sharedStackResults, environment);
 			environmentNames.add(environment.getName());
 			// build this type.
-			buildAndDeployStack(context, environment.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, parameters);
+			buildAndDeployStack(context, environment.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT);
 		}
 		return environmentNames;
 	}
@@ -130,7 +129,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 
 	/**
 	 * Create the context used for each environment
-	 * @param secrets 
+	 * @param sharedStackResults
 	 * @param environment 
 	 * 
 	 * @return
@@ -231,49 +230,49 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	}
 
 	/**
-	 * Create an Environment descriptor for reop, workers, and portal.
+	 * Create an Environment descriptor for reop, workers, and portal if they are defined.
 	 * @param secrets 
 	 * 
 	 * @return
 	 */
-	public EnvironmentDescriptor[] createEnvironments(SourceBundle secrets) {
+	public List<EnvironmentDescriptor> createEnvironments(SourceBundle secrets) {
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
 		String instance = config.getProperty(PROPERTY_KEY_INSTANCE);
-		EnvironmentDescriptor[] environments = new EnvironmentDescriptor[EnvironmentType.values().length];
+		List<EnvironmentDescriptor> environmentDescriptors = new LinkedList<>();
 		// create each type.
-		for (int i = 0; i < EnvironmentType.values().length; i++) {
-			EnvironmentType type = EnvironmentType.values()[i];
-			int number = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + type.getShortName());
-			String name = new StringJoiner("-").add(type.getShortName()).add(stack).add(instance).add("" + number)
-					.toString();
-			String refName = Constants.createCamelCaseName(name, "-");
-			String version = config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName());
-			String healthCheckUrl = config.getProperty(PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL + type.getShortName());
-			int minInstances = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MIN_INSTANCES + type.getShortName());
-			int maxInstances = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MAX_INSTANCES + type.getShortName());
-			String sslCertificateARN = config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN+type.getShortName());
-			String hostedZone = config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE+type.getShortName());
-			String cnamePrefix = name+"-"+hostedZone.replaceAll("\\.", "-");
-			
-			// Environment secrets
-			SourceBundle environmentSecrets = null;
-			if(EnvironmentType.REPOSITORY_SERVICES.equals(type) || EnvironmentType.REPOSITORY_WORKERS.equals(type)) {
-				// secrets are only passed to repo and workers
-				environmentSecrets = secrets;
+		for (EnvironmentType type : EnvironmentType.values()) {
+			try {
+				int number = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + type.getShortName());
+				String name = new StringJoiner("-").add(type.getShortName()).add(stack).add(instance).add("" + number)
+						.toString();
+				String refName = Constants.createCamelCaseName(name, "-");
+				String version = config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName());
+				String healthCheckUrl = config.getProperty(PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL + type.getShortName());
+				int minInstances = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MIN_INSTANCES + type.getShortName());
+				int maxInstances = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MAX_INSTANCES + type.getShortName());
+				String sslCertificateARN = config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN + type.getShortName());
+				String hostedZone = config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE + type.getShortName());
+				String cnamePrefix = name + "-" + hostedZone.replaceAll("\\.", "-");
+
+				// Environment secrets
+				SourceBundle environmentSecrets = type.shouldIncludeSecrets() ? secrets : null;
+
+				// Copy the version from artifactory to S3.
+				SourceBundle bundle = artifactCopy.copyArtifactIfNeeded(type, version);
+				environmentDescriptors.add(new EnvironmentDescriptor().withName(name).withRefName(refName).withNumber(number)
+						.withHealthCheckUrl(healthCheckUrl).withSourceBundle(bundle).withType(type)
+						.withMinInstances(minInstances).withMaxInstances(maxInstances)
+						.withVersionLabel(version)
+						.withSslCertificateARN(sslCertificateARN)
+						.withHostedZone(hostedZone)
+						.withCnamePrefix(cnamePrefix)
+						.withSecretsSource(environmentSecrets));
+			} catch (ConfigurationPropertyNotFound e){
+				//The necessary properties to build up the Environment was not fully defined so we choose not to create a stack for it.
+				logger.warn("The Environment " + type + " was not created because " + e.getMissingKey() + " was not found");
 			}
-			
-			// Copy the version from artifactory to S3.
-			SourceBundle bundle = artifactCopy.copyArtifactIfNeeded(type, version);
-			environments[i] = new EnvironmentDescriptor().withName(name).withRefName(refName).withNumber(number)
-					.withHealthCheckUrl(healthCheckUrl).withSourceBundle(bundle).withType(type)
-					.withMinInstances(minInstances).withMaxInstances(maxInstances)
-					.withVersionLabel(version)
-					.withSslCertificateARN(sslCertificateARN)
-					.withHostedZone(hostedZone)
-					.withCnamePrefix(cnamePrefix)
-					.withSecretsSource(environmentSecrets);
 		}
-		return environments;
+		return environmentDescriptors;
 	}
 
 	/**
@@ -315,8 +314,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	
 	/**
 	 * Extract the database end point suffix from the shared resources output.
-	 * @param stack
-	 * @param instance
 	 * @param sharedResouces
 	 * @return
 	 */

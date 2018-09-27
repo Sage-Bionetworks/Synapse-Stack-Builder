@@ -4,8 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.*;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
@@ -45,6 +47,8 @@ import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
@@ -62,6 +66,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.Configuration;
+import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.TemplateGuiceModule;
@@ -316,11 +321,11 @@ public class RepositoryTemplateBuilderImplTest {
 	@Test
 	public void testCreateEnvironments() {
 		// call under test
-		EnvironmentDescriptor[] descriptors = builder.createEnvironments(secretsSouce);
+		List<EnvironmentDescriptor> descriptors = builder.createEnvironments(secretsSouce);
 		assertNotNull(descriptors);
-		assertEquals(3, descriptors.length);
+		assertEquals(3, descriptors.size());
 		// repo
-		EnvironmentDescriptor desc = descriptors[0];
+		EnvironmentDescriptor desc = descriptors.get(0);
 		assertEquals("repo", desc.getType());
 		assertEquals("repo-dev-101-0", desc.getName());
 		assertEquals("RepoDev1010", desc.getRefName());
@@ -340,7 +345,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(secretsSouce, desc.getSecretsSource());
 
 		// workers
-		desc = descriptors[1];
+		desc = descriptors.get(1);
 		assertEquals("workers", desc.getType());
 		assertEquals("workers-dev-101-0", desc.getName());
 		assertEquals("WorkersDev1010", desc.getRefName());
@@ -356,7 +361,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(secretsSouce, desc.getSecretsSource());
 
 		// portal
-		desc = descriptors[2];
+		desc = descriptors.get(2);
 		assertEquals("portal", desc.getType());
 		assertEquals("portal-dev-101-0", desc.getName());
 		assertEquals("PortalDev1010", desc.getRefName());
@@ -370,6 +375,20 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("SynapesPortalInstanceProfile", desc.getInstanceProfileSuffix());
 		// empty secrets should be passed to portal
 		assertEquals(null, desc.getSecretsSource());
+	}
+
+	@Test
+	public void testCreateEnvironments__missingPropertiesForEnvironment(){
+		//do not include the "workers" environment by making the config throw an exception
+		when(config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + EnvironmentType.REPOSITORY_WORKERS.getShortName()))
+				.thenThrow(new ConfigurationPropertyNotFound("test.key"));
+
+		List<EnvironmentDescriptor> descriptors = builder.createEnvironments(secretsSouce);
+
+		verify(mockLogger).warn(anyString());
+		assertEquals(2, descriptors.size());
+		Set<String> createEnvironmentTypes = descriptors.stream().map(EnvironmentDescriptor::getType).collect(Collectors.toSet());
+		assertEquals(Sets.newHashSet("repo", "portal"), createEnvironmentTypes);
 	}
 
 	@Test

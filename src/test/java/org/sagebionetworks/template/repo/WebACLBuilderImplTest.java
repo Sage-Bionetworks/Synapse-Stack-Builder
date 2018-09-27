@@ -5,12 +5,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.STACK;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -202,5 +204,13 @@ public class WebACLBuilderImplTest {
 		//System.out.println(template.toString(5));
 		verify(mockLogger, times(2)).info(any(String.class));
 	}
+
+	@Test
+	public void testBuildWebACL__emptyList() {
+		// call under test
+		builder.buildWebACL(Collections.emptyList());
+		verifyZeroInteractions(mockCloudFormationClient);
+	}
+
 
 }
