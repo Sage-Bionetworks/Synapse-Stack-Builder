@@ -438,7 +438,7 @@
                     {
                         "Namespace": "aws:elasticbeanstalk:application:environment",
                         "OptionName": "org.sagebionetworks.doi.prefix",
-                        "Value": "10.5072"
+                        "Value": "10.7303"
                     },
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
