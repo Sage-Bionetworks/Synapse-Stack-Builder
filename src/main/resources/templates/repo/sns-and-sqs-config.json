@@ -22,7 +22,8 @@
 		{
 			"queueName":"ADD_FILES_TO_DOWNLOAD_LIST",
 			"subscribedTopicNames":[],
-			"messageVisibilityTimeoutSec":60
+			"messageVisibilityTimeoutSec":60,
+			"oldestMessageInQueueAlarmThresholdSec": 2
 		},
 		{
 			"queueName":"BROADCAST",
@@ -44,7 +45,8 @@
 		{
 			"queueName":"DOI",
 			"subscribedTopicNames":[],
-			"messageVisibilityTimeoutSec":30
+			"messageVisibilityTimeoutSec":30,
+			"oldestMessageInQueueAlarmThresholdSec": 2
 		},
 		{
 			"queueName":"ENTITY_HIERARCHY_CHANGE",
@@ -68,7 +70,8 @@
 		{
 			"queueName":"BULK_FILE_DOWNLOAD",
 			"subscribedTopicNames":[],
-			"messageVisibilityTimeoutSec":600
+			"messageVisibilityTimeoutSec":600,
+			"oldestMessageInQueueAlarmThresholdSec": 2
 		},
 		{
 			"queueName":"FILE_UPDATE",
@@ -143,7 +146,8 @@
 		{
 			"queueName":"DOWNLOAD_CSV_FROM_TABLE",
 			"subscribedTopicNames":[],
-			"messageVisibilityTimeoutSec":60
+			"messageVisibilityTimeoutSec":60,
+			"oldestMessageInQueueAlarmThresholdSec": 2
 		},
 		{
 			"queueName":"TABLE_ENTITY_REPLICATION",
@@ -156,17 +160,20 @@
 		{
 			"queueName":"QUERY",
 			"subscribedTopicNames":[],
-			"messageVisibilityTimeoutSec":120
+			"messageVisibilityTimeoutSec":120,
+			"oldestMessageInQueueAlarmThresholdSec": 2
 		},
 		{
 			"queueName":"QUERY_NEXT_PAGE",
 			"subscribedTopicNames":[],
-			"messageVisibilityTimeoutSec":120
+			"messageVisibilityTimeoutSec":120,
+			"oldestMessageInQueueAlarmThresholdSec": 2
 		},
 		{
 			"queueName":"TABLE_UPDATE_TRANSACTION",
 			"subscribedTopicNames":[],
-			"messageVisibilityTimeoutSec":300
+			"messageVisibilityTimeoutSec":300,
+			"oldestMessageInQueueAlarmThresholdSec": 2
 		},
 		{
 			"queueName":"TABLE_VIEW",
