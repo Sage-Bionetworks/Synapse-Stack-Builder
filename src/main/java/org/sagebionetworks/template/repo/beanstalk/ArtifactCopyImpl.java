@@ -14,16 +14,19 @@ public class ArtifactCopyImpl implements ArtifactCopy {
 	private AmazonS3 s3Client;
 	private Configuration configuration;
 	private ArtifactDownload downloader;
+	private ElasticBeanstalkExtentionBuilder ebBuilder;
+	
 	private Logger logger;
 
 	@Inject
 	public ArtifactCopyImpl(AmazonS3 s3Client, Configuration propertyProvider,
-			ArtifactDownload downloader, LoggerFactory loggerFactory) {
+			ArtifactDownload downloader, LoggerFactory loggerFactory, ElasticBeanstalkExtentionBuilder ebBuilder) {
 		super();
 		this.s3Client = s3Client;
 		this.configuration = propertyProvider;
 		this.downloader = downloader;
 		this.logger = loggerFactory.getLogger(ArtifactCopyImpl.class);
+		this.ebBuilder = ebBuilder;
 	}
 
 	@Override
@@ -41,6 +44,9 @@ public class ArtifactCopyImpl implements ArtifactCopy {
 			logger.info("Downloading artifact: "+artifactoryUrl);
 			File download = downloader.downloadFile(artifactoryUrl);
 			try {
+				logger.info("Adding .ebextentions to war: "+s3Key);
+				// add the .ebextentions to the given war file.
+				ebBuilder.buildWarExtentions(download);
 				logger.info("Uploading artifact to S3: "+s3Key);
 				s3Client.putObject(bucket, s3Key, download);
 			} finally {

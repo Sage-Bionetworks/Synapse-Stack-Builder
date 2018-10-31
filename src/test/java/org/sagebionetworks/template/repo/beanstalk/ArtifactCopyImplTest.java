@@ -41,6 +41,8 @@ public class ArtifactCopyImplTest {
 	LoggerFactory mockLoggerFactory;
 	@Mock
 	Logger mockLogger;
+	@Mock
+	ElasticBeanstalkExtentionBuilder mockEbBuilder;
 	
 	ArtifactCopyImpl copier;
 	
@@ -65,7 +67,7 @@ public class ArtifactCopyImplTest {
 		s3Key = environment.createS3Key(version);
 		artifactoryUrl = environment.createArtifactoryUrl(version);
 		
-		copier = new ArtifactCopyImpl(mockS3Client, mockPropertyProvider, mockDownloader, mockLoggerFactory);
+		copier = new ArtifactCopyImpl(mockS3Client, mockPropertyProvider, mockDownloader, mockLoggerFactory, mockEbBuilder);
 	}
 	
 	@Test
@@ -81,6 +83,7 @@ public class ArtifactCopyImplTest {
 		
 		verify(mockS3Client).doesObjectExist(bucket, s3Key);
 		verify(mockDownloader).downloadFile(artifactoryUrl);
+		verify(mockEbBuilder).buildWarExtentions(mockFile);
 		verify(mockS3Client).putObject(bucket, s3Key, mockFile);
 		verify(mockLogger, times(2)).info(any(String.class));
 		// the temp file should get deleted.
@@ -119,6 +122,7 @@ public class ArtifactCopyImplTest {
 		
 		verify(mockS3Client).doesObjectExist(bucket, s3Key);
 		verify(mockDownloader, never()).downloadFile(artifactoryUrl);
+		verify(mockEbBuilder, never()).buildWarExtentions(mockFile);
 		verify(mockS3Client, never()).putObject(bucket, s3Key, mockFile);
 		verify(mockFile, never()).delete();
 		verify(mockLogger, never()).info(any(String.class));
