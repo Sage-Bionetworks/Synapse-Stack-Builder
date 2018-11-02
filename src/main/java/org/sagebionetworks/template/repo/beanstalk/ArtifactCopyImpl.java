@@ -5,6 +5,7 @@ import java.io.File;
 import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.template.Configuration;
 import org.sagebionetworks.template.LoggerFactory;
+import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilder;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.google.inject.Inject;
@@ -43,15 +44,19 @@ public class ArtifactCopyImpl implements ArtifactCopy {
 			String artifactoryUrl = environment.createArtifactoryUrl(version);
 			logger.info("Downloading artifact: "+artifactoryUrl);
 			File download = downloader.downloadFile(artifactoryUrl);
+			File warWithExtentions = null;
 			try {
 				logger.info("Adding .ebextentions to war: "+s3Key);
-				// add the .ebextentions to the given war file.
-				ebBuilder.buildWarExtentions(download);
+				// add the .eb extensions to the given war file.
+				warWithExtentions = ebBuilder.copyWarWithExtensions(download);
 				logger.info("Uploading artifact to S3: "+s3Key);
-				s3Client.putObject(bucket, s3Key, download);
+				s3Client.putObject(bucket, s3Key, warWithExtentions);
 			} finally {
 				// cleanup the temp file
 				download.delete();
+				if(warWithExtentions != null) {
+					warWithExtentions.delete();
+				}
 			}
 		}
 		return bundle;

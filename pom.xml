@@ -35,9 +35,14 @@
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
 			<artifactId>bcprov-jdk15on</artifactId>
-			<version>1.60</version>
+			<version>${bouncycastle.version}</version>
 		</dependency>
-		<!-- Logging -->
+		<!-- https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk15on -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk15on</artifactId>
+			<version>${bouncycastle.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
@@ -147,5 +152,7 @@
 			</plugin>
 		</plugins>
 	</build>
-
+	<properties>
+		<bouncycastle.version>1.60</bouncycastle.version>
+	</properties>
 </project>

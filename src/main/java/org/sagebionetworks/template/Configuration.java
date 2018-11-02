@@ -47,4 +47,5 @@ public interface Configuration {
 	 */
 	public String getConfigurationBucket();
 	
+	
 }

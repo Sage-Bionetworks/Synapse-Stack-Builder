@@ -22,6 +22,7 @@ import org.sagebionetworks.template.repo.beanstalk.ArtifactCopyImpl;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactDownload;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
+import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilder;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
@@ -37,6 +38,8 @@ public class ArtifactCopyImplTest {
 	ArtifactDownload mockDownloader;
 	@Mock
 	File mockFile;
+	@Mock 
+	File mockCopy;
 	@Mock
 	LoggerFactory mockLoggerFactory;
 	@Mock
@@ -58,6 +61,7 @@ public class ArtifactCopyImplTest {
 		
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 		when(mockDownloader.downloadFile(any(String.class))).thenReturn(mockFile);
+		when(mockEbBuilder.copyWarWithExtensions(mockFile)).thenReturn(mockCopy);
 		
 		environment = EnvironmentType.REPOSITORY_WORKERS;
 		version = "212.4";
@@ -83,17 +87,18 @@ public class ArtifactCopyImplTest {
 		
 		verify(mockS3Client).doesObjectExist(bucket, s3Key);
 		verify(mockDownloader).downloadFile(artifactoryUrl);
-		verify(mockEbBuilder).buildWarExtentions(mockFile);
-		verify(mockS3Client).putObject(bucket, s3Key, mockFile);
-		verify(mockLogger, times(2)).info(any(String.class));
+		verify(mockEbBuilder).copyWarWithExtensions(mockFile);
+		verify(mockS3Client).putObject(bucket, s3Key, mockCopy);
+		verify(mockLogger, times(3)).info(any(String.class));
 		// the temp file should get deleted.
 		verify(mockFile).delete();
+		verify(mockCopy).delete();
 	}
 	
 	@Test
 	public void testCopyArtifactIfNeededUplodFails() {
 		AmazonServiceException exception = new AmazonServiceException("something");
-		when(mockS3Client.putObject(bucket, s3Key, mockFile)).thenThrow(exception);
+		when(mockS3Client.putObject(bucket, s3Key, mockCopy)).thenThrow(exception);
 		
 		// setup object does not exist
 		when(mockS3Client.doesObjectExist(bucket, s3Key)).thenReturn(false);
@@ -122,7 +127,7 @@ public class ArtifactCopyImplTest {
 		
 		verify(mockS3Client).doesObjectExist(bucket, s3Key);
 		verify(mockDownloader, never()).downloadFile(artifactoryUrl);
-		verify(mockEbBuilder, never()).buildWarExtentions(mockFile);
+		verify(mockEbBuilder, never()).copyWarWithExtensions(mockFile);
 		verify(mockS3Client, never()).putObject(bucket, s3Key, mockFile);
 		verify(mockFile, never()).delete();
 		verify(mockLogger, never()).info(any(String.class));
