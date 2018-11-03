@@ -114,4 +114,43 @@ public class CertificateProviderImplTest {
 		assertEquals(privateKeyUrl.toString(), urls.getPrivateKeyUrl());
 		verify(mockS3Client, never()).putObject(anyString(), anyString(), anyString());
 	}
+	
+	@Test
+	public void testProvideCertificateUrlsWihtCertificateWithoutKey() {
+		when(mockS3Client.doesObjectExist(bucketName, certificateS3Key)).thenReturn(true);
+		when(mockS3Client.doesObjectExist(bucketName, certificateS3Key)).thenReturn(false);
+		// Call under test
+		CertificateUrls urls = provider.provideCertificateUrls();
+		assertNotNull(urls);
+		assertEquals(certificateUrl.toString(), urls.getX509CertificateUrl());
+		assertEquals(privateKeyUrl.toString(), urls.getPrivateKeyUrl());
+		// both should be created
+		verify(mockS3Client, times(2)).putObject(anyString(), anyString(), anyString());
+	}
+	
+	@Test
+	public void testProvideCertificateUrlsWihoutCertificateWithKey() {
+		when(mockS3Client.doesObjectExist(bucketName, certificateS3Key)).thenReturn(false);
+		when(mockS3Client.doesObjectExist(bucketName, certificateS3Key)).thenReturn(true);
+		// Call under test
+		CertificateUrls urls = provider.provideCertificateUrls();
+		assertNotNull(urls);
+		assertEquals(certificateUrl.toString(), urls.getX509CertificateUrl());
+		assertEquals(privateKeyUrl.toString(), urls.getPrivateKeyUrl());
+		// both should be created
+		verify(mockS3Client, times(2)).putObject(anyString(), anyString(), anyString());
+	}
+	
+	@Test
+	public void testProvideCertificateUrlsWihoutCertificateWithoutKey() {
+		when(mockS3Client.doesObjectExist(bucketName, certificateS3Key)).thenReturn(false);
+		when(mockS3Client.doesObjectExist(bucketName, certificateS3Key)).thenReturn(false);
+		// Call under test
+		CertificateUrls urls = provider.provideCertificateUrls();
+		assertNotNull(urls);
+		assertEquals(certificateUrl.toString(), urls.getX509CertificateUrl());
+		assertEquals(privateKeyUrl.toString(), urls.getPrivateKeyUrl());
+		// both should be created
+		verify(mockS3Client, times(2)).putObject(anyString(), anyString(), anyString());
+	}
 }

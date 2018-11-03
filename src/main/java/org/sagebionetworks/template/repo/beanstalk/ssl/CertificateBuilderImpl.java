@@ -39,6 +39,14 @@ import org.bouncycastle.util.io.pem.PemWriter;
  */
 public class CertificateBuilderImpl implements CertificateBuilder {
 
+	public static final String CERTIFICATE = "CERTIFICATE";
+	public static final String RSA_PRIVATE_KEY = "RSA PRIVATE KEY";
+	public static final String CERTIFICATE_DISTINGUISHED_NAME = "CN=SageBionetworks,O=SageBionetworks,L=Seattle,ST=Washington,C=US";
+	/**
+	 * See https://en.wikipedia.org/wiki/Key_size
+	 */
+	public static final int RSA_KEY_SIZE_BITS = 2048;
+
 	@Override
 	public CertificatePair buildNewX509CertificatePair() {
 		try {
@@ -47,8 +55,8 @@ public class CertificateBuilderImpl implements CertificateBuilder {
 			// Create the X.509 public key certificate signed with the private key
 			X509Certificate x509Certificate = CertificateBuilderImpl.generateX509Certificate(keyPair);
 			// convert both to PEM.
-			String privateKeyPEM = createPemString("RSA PRIVATE KEY", keyPair.getPrivate().getEncoded());
-			String certificatePEM = createPemString("CERTIFICATE", x509Certificate.getEncoded());
+			String privateKeyPEM = createPemString(RSA_PRIVATE_KEY, keyPair.getPrivate().getEncoded());
+			String certificatePEM = createPemString(CERTIFICATE, x509Certificate.getEncoded());
 			return new CertificatePair(certificatePEM, privateKeyPEM);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -88,13 +96,12 @@ public class CertificateBuilderImpl implements CertificateBuilder {
 		Security.setProperty("crypto.policy", "unlimited");
 		String algorithm = "RSA";
 		int maxKeySize = javax.crypto.Cipher.getMaxAllowedKeyLength(algorithm);
-		int keySize = 2048;
-		if (maxKeySize < keySize) {
+		if (maxKeySize < RSA_KEY_SIZE_BITS) {
 			throw new IllegalStateException(
 					"Cannot create a key with a sufficient number of bits. Max key size: " + maxKeySize);
 		}
 		KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
-		keyGen.initialize(keySize, SecureRandom.getInstanceStrong());
+		keyGen.initialize(RSA_KEY_SIZE_BITS, SecureRandom.getInstanceStrong());
 		return keyGen.generateKeyPair();
 	}
 
@@ -105,11 +112,12 @@ public class CertificateBuilderImpl implements CertificateBuilder {
 	 * 
 	 * @param keyPair RSA public/private key pair.
 	 * @return
-	 * @throws IOException 
-	 * @throws OperatorCreationException 
-	 * @throws CertificateException 
+	 * @throws IOException
+	 * @throws OperatorCreationException
+	 * @throws CertificateException
 	 */
-	public static X509Certificate generateX509Certificate(KeyPair keyPair) throws IOException, OperatorCreationException, CertificateException {
+	public static X509Certificate generateX509Certificate(KeyPair keyPair)
+			throws IOException, OperatorCreationException, CertificateException {
 		// Use the bouncy castle
 		Security.addProvider(new BouncyCastleProvider());
 		// Valid between now and one year from now
@@ -121,7 +129,7 @@ public class CertificateBuilderImpl implements CertificateBuilder {
 		Date endDate = calendar.getTime();
 		// randomly generated serial number
 		BigInteger serialNumber = new BigInteger(64, new SecureRandom());
-		X500Name distinguishedName = new X500Name("CN=SelfSign, L=Seattle, C=SageBionetworks");
+		X500Name distinguishedName = new X500Name(CERTIFICATE_DISTINGUISHED_NAME);
 		SubjectPublicKeyInfo subPubKeyInfo = SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded());
 		// start the builder with name, number, start, end, and public key.
 		X509v3CertificateBuilder v3CertGen = new X509v3CertificateBuilder(distinguishedName, serialNumber, startDate,

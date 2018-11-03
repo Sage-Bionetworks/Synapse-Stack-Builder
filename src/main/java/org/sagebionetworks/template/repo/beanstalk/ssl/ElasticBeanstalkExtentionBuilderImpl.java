@@ -3,11 +3,15 @@ package org.sagebionetworks.template.repo.beanstalk.ssl;
 import java.io.File;
 
 public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExtentionBuilder {
+
+	
+	CertificateProvider certificateProvider;
 	
 
 	@Override
 	public File copyWarWithExtensions(File warFile) {
-		// TODO Auto-generated method stub
+		// Get the certificate information
+		CertificateUrls urls = certificateProvider.provideCertificateUrls();
 		return null;
 	}
 

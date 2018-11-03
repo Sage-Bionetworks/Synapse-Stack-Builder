@@ -36,7 +36,7 @@ public class CertificateProviderImpl implements CertificateProvider {
 		String rsaPrivateKeyS3Key = buildPrivateKeyS3Key();
 		// Do both files exist in S3?
 		if (!s3Client.doesObjectExist(bucketName, certificateS3Key)
-				|| !!s3Client.doesObjectExist(bucketName, rsaPrivateKeyS3Key)) {
+				|| !s3Client.doesObjectExist(bucketName, rsaPrivateKeyS3Key)) {
 			// Build a new certificate and upload the pair to S3.
 			buildAndUploadNewCertificatePair(bucketName, certificateS3Key, rsaPrivateKeyS3Key);
 		}
