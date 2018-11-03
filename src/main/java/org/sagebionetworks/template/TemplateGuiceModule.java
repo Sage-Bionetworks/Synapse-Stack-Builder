@@ -28,6 +28,10 @@ import org.sagebionetworks.template.repo.beanstalk.ArtifactDownload;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactDownloadImpl;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilderImpl;
+import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateBuilder;
+import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateBuilderImpl;
+import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateProvider;
+import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateProviderImpl;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsConfig;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsVelocityContextProvider;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilder;
@@ -69,6 +73,8 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(IdGeneratorBuilder.class).to(IdGeneratorBuilderImpl.class);
 		bind(SecretBuilder.class).to(SecretBuilderImpl.class);
 		bind(WebACLBuilder.class).to(WebACLBuilderImpl.class);
+		bind(CertificateBuilder.class).to(CertificateBuilderImpl.class);
+		bind(CertificateProvider.class).to(CertificateProviderImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(SnsAndSqsVelocityContextProvider.class);
