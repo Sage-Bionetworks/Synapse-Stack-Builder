@@ -91,7 +91,7 @@ public class CertificateBuilderImpl implements CertificateBuilder {
 	 */
 	public static KeyPair createNewKeyPair() throws NoSuchAlgorithmException {
 		// Use the bouncy castle
-		Security.addProvider(new BouncyCastleProvider());
+//		Security.addProvider(new BouncyCastleProvider());
 		// Ensure we can create a key with a sufficient size.
 		Security.setProperty("crypto.policy", "unlimited");
 		String algorithm = "RSA";
@@ -119,7 +119,7 @@ public class CertificateBuilderImpl implements CertificateBuilder {
 	public static X509Certificate generateX509Certificate(KeyPair keyPair)
 			throws IOException, OperatorCreationException, CertificateException {
 		// Use the bouncy castle
-		Security.addProvider(new BouncyCastleProvider());
+//		Security.addProvider(new BouncyCastleProvider());
 		// Valid between now and one year from now
 		long now = System.currentTimeMillis();
 		Date startDate = new Date(now);
@@ -142,7 +142,7 @@ public class CertificateBuilderImpl implements CertificateBuilder {
 		ContentSigner sigGen = new BcRSAContentSignerBuilder(sigAlgId, digAlgId).build(privateKeyAsymKeyParam);
 		// build the certificate
 		X509CertificateHolder certificateHolder = v3CertGen.build(sigGen);
-		return new JcaX509CertificateConverter().setProvider("BC").getCertificate(certificateHolder);
+		return new JcaX509CertificateConverter().setProvider(new BouncyCastleProvider()).getCertificate(certificateHolder);
 	}
 
 }
