@@ -221,7 +221,7 @@
 					{
 						"Namespace": "aws:elbv2:listener:default",
 						"OptionName": "Protocol",
-						"Value": "HTTP"
+						"Value": "HTTPS"
 					},
 					{
 						"Namespace": "aws:elbv2:listener:default",
@@ -306,12 +306,12 @@
 					{
 						"Namespace": "aws:elasticbeanstalk:environment:process:default",
 						"OptionName": "Port",
-						"Value": "80"
+						"Value": "443"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:environment:process:default",
 						"OptionName": "Protocol",
-						"Value": "HTTP"
+						"Value": "HTTPS"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:environment:process:default",
