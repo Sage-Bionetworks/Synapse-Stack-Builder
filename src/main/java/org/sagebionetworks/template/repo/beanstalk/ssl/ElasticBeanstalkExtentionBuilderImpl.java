@@ -12,7 +12,8 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 	public File copyWarWithExtensions(File warFile) {
 		// Get the certificate information
 		CertificateUrls urls = certificateProvider.provideCertificateUrls();
-		return null;
+		// TODO: create new war file.
+		return warFile;
 	}
 
 }
