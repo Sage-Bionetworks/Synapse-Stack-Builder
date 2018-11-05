@@ -453,6 +453,7 @@
 		},
 		"${stack}${instance}CMK": {
 			"Type": "AWS::KMS::Key",
+			"DependsOn":["${stack}${instance}SynapesRepoWorkersServiceRole"],
 			"Properties": {
 				"Description": "The master encryption key for ${stack}-${instance}",
 				"EnableKeyRotation": false,
