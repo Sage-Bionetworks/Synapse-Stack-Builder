@@ -19,46 +19,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 
-public class WarBuilderImpl implements WarBuilder {
-
-	File warToModify;
-	File directoryToAdd;
-
-	File tempDirectory;
-	File resultWar;
-
-	public WarBuilderImpl(File warToModify, File directoryToAdd) {
-		super();
-		this.warToModify = warToModify;
-		this.directoryToAdd = directoryToAdd;
-	}
-
-	@Override
-	public void close() throws IOException {
-		if (tempDirectory != null) {
-			FileUtils.deleteDirectory(tempDirectory);
-		}
-		if (resultWar != null) {
-			resultWar.delete();
-		}
-	}
-
-	@Override
-	public File builder() throws IOException {
-		// create the temporary directory for the war
-		tempDirectory = Files.createTempDirectory(warToModify.getName()).toFile();
-		// Create a new file to contain the resulting war
-		resultWar = Files.createTempFile("WarCopy", ".war").toFile();
-		// unzip the WAR to the temp directory
-		unzipWarToDirectory(warToModify, tempDirectory);
-		// copy the files to the temp directory containing the war contents.
-		FileUtils.copyDirectory(directoryToAdd, tempDirectory);
-		// create the WAR copy
-		zipDirectoryToWar(tempDirectory, resultWar);
-		File finalFile = resultWar;
-		resultWar = null;
-		return finalFile;
-	}
+public class WarUtilities {
 
 	/**
 	 * Unzip the given WAR file to the provided destination. This is from
@@ -121,13 +82,6 @@ public class WarBuilderImpl implements WarBuilder {
 				}
 				zipOut.closeEntry();
 			}
-		}
-	}
-	
-	public static void main(String[] args) throws IOException {
-		try(WarBuilderImpl builder = new WarBuilderImpl(new File(args[0]), new File(args[1]))){
-			File resultWar = builder.builder();
-			System.out.println("Result WAR: "+resultWar.getAbsolutePath());
 		}
 	}
 }
