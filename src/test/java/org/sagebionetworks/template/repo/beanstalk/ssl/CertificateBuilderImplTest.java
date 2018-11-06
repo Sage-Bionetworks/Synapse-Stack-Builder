@@ -77,7 +77,7 @@ public class CertificateBuilderImplTest {
 		assertNotNull(certificate.getPublicKey().getFormat());
 		assertEquals("X.509", certificate.getPublicKey().getFormat());
 		assertEquals("RSA", certificate.getPublicKey().getAlgorithm());
-		assertEquals("SHA256withRSA", certificate.getSigAlgName());
+		assertEquals("SHA256WITHRSA", certificate.getSigAlgName());
 	}
 
 	@Test
