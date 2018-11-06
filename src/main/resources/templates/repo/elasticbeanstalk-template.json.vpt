@@ -221,7 +221,7 @@
 					{
 						"Namespace": "aws:elbv2:listener:default",
 						"OptionName": "Protocol",
-						"Value": "HTTPS"
+						"Value": "HTTP"
 					},
 					{
 						"Namespace": "aws:elbv2:listener:default",
