@@ -33,8 +33,7 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 
 	@Mock
 	CertificateProvider certificateProvider;
-	// Use the actual velocity entity
-	VelocityEngine velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
+	VelocityEngine velocityEngine;
 	@Mock
 	Configuration configuration;
 	@Mock
@@ -63,6 +62,8 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 
 	@Before
 	public void before() {
+		// Use the actual velocity entity
+		velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
 		builder = new ElasticBeanstalkExtentionBuilderImpl(certificateProvider, velocityEngine, configuration,
 				warAppender, fileProvider);
 		// call accept on the consumer.

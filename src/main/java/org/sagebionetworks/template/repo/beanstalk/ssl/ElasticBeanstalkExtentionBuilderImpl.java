@@ -20,7 +20,7 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 
 	public static final String DOT_EBEXTENSIONS = ".ebextensions";
 
-	public static final String TEMPLATE_EBEXTENSIONS_HTTP_INSTANCE_CONFIG = "repo/ebextensions/https-instance.config";
+	public static final String TEMPLATE_EBEXTENSIONS_HTTP_INSTANCE_CONFIG = "templates/repo/ebextensions/https-instance.config";
 	
 	CertificateProvider certificateProvider;
 	VelocityEngine velocityEngine;
