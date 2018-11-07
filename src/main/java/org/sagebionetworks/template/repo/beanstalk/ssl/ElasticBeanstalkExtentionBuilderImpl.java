@@ -22,17 +22,17 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 
 	public static final String TEMPLATE_EBEXTENSIONS_HTTP_INSTANCE_CONFIG = "templates/repo/ebextensions/https-instance.config";
 	
-	CertificateProvider certificateProvider;
+	CertificateBuilder certificateBuilder;
 	VelocityEngine velocityEngine;
 	Configuration configuration;
 	WarAppender warAppender;
 	FileProvider fileProvider;
 
 	@Inject
-	public ElasticBeanstalkExtentionBuilderImpl(CertificateProvider certificateProvider, VelocityEngine velocityEngine,
+	public ElasticBeanstalkExtentionBuilderImpl(CertificateBuilder certificateBuilder, VelocityEngine velocityEngine,
 			Configuration configuration, WarAppender warAppender, FileProvider fileProvider) {
 		super();
-		this.certificateProvider = certificateProvider;
+		this.certificateBuilder = certificateBuilder;
 		this.velocityEngine = velocityEngine;
 		this.configuration = configuration;
 		this.warAppender = warAppender;
@@ -44,7 +44,7 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 		VelocityContext context = new VelocityContext();
 		context.put("s3bucket", configuration.getConfigurationBucket());
 		// Get the certificate information
-		context.put("certificates", certificateProvider.provideCertificateUrls());
+		context.put("certificates", certificateBuilder.buildNewX509CertificatePair());
 		Template httpInstanceTempalte = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_HTTP_INSTANCE_CONFIG);
 
 		// add the files to the copy of the war

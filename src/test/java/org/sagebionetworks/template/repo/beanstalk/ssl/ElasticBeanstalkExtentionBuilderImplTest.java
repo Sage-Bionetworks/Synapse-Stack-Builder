@@ -32,7 +32,8 @@ import org.sagebionetworks.war.WarAppender;
 public class ElasticBeanstalkExtentionBuilderImplTest {
 
 	@Mock
-	CertificateProvider certificateProvider;
+	CertificateBuilder certifiateBuilder;
+	// use the actual engine
 	VelocityEngine velocityEngine;
 	@Mock
 	Configuration configuration;
@@ -56,15 +57,15 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 	StringWriter writer;
 
 	String bucketName;
-	String x509CertificateUrl;
-	String privateKeyUrl;
+	String x509CertificatePem;
+	String privateKeyPem;
 	CertificateUrls certificateUrls;
 
 	@Before
 	public void before() {
 		// Use the actual velocity entity
 		velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
-		builder = new ElasticBeanstalkExtentionBuilderImpl(certificateProvider, velocityEngine, configuration,
+		builder = new ElasticBeanstalkExtentionBuilderImpl(certifiateBuilder, velocityEngine, configuration,
 				warAppender, fileProvider);
 		// call accept on the consumer.
 		doAnswer(new Answer<File>() {
@@ -83,9 +84,9 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 
 		bucketName = "someBucket";
 		when(configuration.getConfigurationBucket()).thenReturn(bucketName);
-		x509CertificateUrl = "x509Url";
-		privateKeyUrl = "privateUrl";
-		when(certificateProvider.provideCertificateUrls()).thenReturn(new CertificateUrls(x509CertificateUrl, privateKeyUrl));
+		x509CertificatePem = "x509pem";
+		privateKeyPem = "privatePem";
+		when(certifiateBuilder.buildNewX509CertificatePair()).thenReturn(new CertificatePair(x509CertificatePem, privateKeyPem));
 	}
 
 	@Test
@@ -99,8 +100,8 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		String httpConfigJson = writer.toString();
 		//System.out.println(httpConfigJson);
 		assertTrue(httpConfigJson.contains(bucketName));
-		assertTrue(httpConfigJson.contains(x509CertificateUrl));
-		assertTrue(httpConfigJson.contains(privateKeyUrl));
+		assertTrue(httpConfigJson.contains(x509CertificatePem));
+		assertTrue(httpConfigJson.contains(privateKeyPem));
 	}
 
 }
