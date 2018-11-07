@@ -2,13 +2,8 @@ package org.sagebionetworks.template;
 
 import static org.sagebionetworks.template.Constants.SNS_AND_SQS_CONFIG_FILE;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.inject.multibindings.Multibinder;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.velocity.app.VelocityEngine;
@@ -38,6 +33,8 @@ import org.sagebionetworks.template.repo.queues.SnsAndSqsConfig;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsVelocityContextProvider;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilder;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilderImpl;
+import org.sagebionetworks.war.WarAppender;
+import org.sagebionetworks.war.WarAppenderImpl;
 
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
@@ -51,7 +48,9 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Provides;
+import com.google.inject.multibindings.Multibinder;
 
 
 public class TemplateGuiceModule extends com.google.inject.AbstractModule {
@@ -78,6 +77,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(CertificateBuilder.class).to(CertificateBuilderImpl.class);
 		bind(CertificateProvider.class).to(CertificateProviderImpl.class);
 		bind(ElasticBeanstalkExtentionBuilder.class).to(ElasticBeanstalkExtentionBuilderImpl.class);
+		bind(WarAppender.class).to(WarAppenderImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(SnsAndSqsVelocityContextProvider.class);

@@ -3,19 +3,25 @@ package org.sagebionetworks.template.repo.beanstalk.ssl;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.function.Consumer;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.sagebionetworks.template.Configuration;
 import org.sagebionetworks.template.FileProvider;
-import org.sagebionetworks.war.AppenderCallback;
 import org.sagebionetworks.war.WarAppender;
 
 import com.google.inject.Inject;
 
 public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExtentionBuilder {
 
+	public static final String HTTPS_INSTANCE_CONFIG = "https-instance.config";
+
+	public static final String DOT_EBEXTENSIONS = ".ebextensions";
+
+	public static final String TEMPLATE_EBEXTENSIONS_HTTP_INSTANCE_CONFIG = "repo/ebextensions/https-instance.config";
+	
 	CertificateProvider certificateProvider;
 	VelocityEngine velocityEngine;
 	Configuration configuration;
@@ -24,15 +30,14 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 
 	@Inject
 	public ElasticBeanstalkExtentionBuilderImpl(CertificateProvider certificateProvider, VelocityEngine velocityEngine,
-			Configuration configuration, WarAppender warAppender) {
+			Configuration configuration, WarAppender warAppender, FileProvider fileProvider) {
 		super();
 		this.certificateProvider = certificateProvider;
 		this.velocityEngine = velocityEngine;
 		this.configuration = configuration;
 		this.warAppender = warAppender;
+		this.fileProvider = fileProvider;
 	}
-
-
 
 	@Override
 	public File copyWarWithExtensions(File warFile) {
@@ -40,22 +45,26 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 		context.put("s3bucket", configuration.getConfigurationBucket());
 		// Get the certificate information
 		context.put("certificates", certificateProvider.provideCertificateUrls());
-		Template httpInstanceTempalte = velocityEngine.getTemplate("ebextensions/https-instance.config");
-		
-		return warAppender.appendFilesCopyOfWar(warFile, new AppenderCallback() {
-			
+		Template httpInstanceTempalte = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_HTTP_INSTANCE_CONFIG);
+
+		// add the files to the copy of the war
+		return warAppender.appendFilesCopyOfWar(warFile, new Consumer<File>() {
+
 			@Override
-			public void appendFilesToDirectory(File dir) throws IOException {
+			public void accept(File directory) {
 				// ensure the .ebextensions directory exists
-				File ebextensions = fileProvider.createNewFile(dir, ".ebextensions");
+				File ebextensions = fileProvider.createNewFile(directory, DOT_EBEXTENSIONS);
 				ebextensions.mkdirs();
-				// write the 
-				try (Writer writer = fileProvider.createFileWriter(fileProvider.createNewFile(ebextensions, "https-instance.config"))){
+				// write the
+				try (Writer writer = fileProvider
+						.createFileWriter(fileProvider.createNewFile(ebextensions, HTTPS_INSTANCE_CONFIG))) {
 					httpInstanceTempalte.merge(context, writer);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
 				}
 			}
 		});
-		
+
 	}
 
 }
