@@ -1,5 +1,17 @@
 package org.sagebionetworks.template.repo.beanstalk.ssl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.net.MalformedURLException;
+import java.util.Calendar;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -8,14 +20,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sagebionetworks.template.Configuration;
 import org.sagebionetworks.template.Constants;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.*;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Calendar;
 
 import com.amazonaws.services.s3.AmazonS3;
 
@@ -39,8 +43,8 @@ public class CertificateProviderImplTest {
 	String certificateS3Key;
 	String privateKeyS3key;
 	
-	URL certificateUrl;
-	URL privateKeyUrl;
+	String certificateUrl;
+	String privateKeyUrl;
 	
 	@Before
 	public void before() throws MalformedURLException {
@@ -57,10 +61,15 @@ public class CertificateProviderImplTest {
 		certificateS3Key = provider.buildCertificateS3Key();
 		privateKeyS3key = provider.buildPrivateKeyS3Key();
 		
-		certificateUrl = new URL("https", "aws", certificateS3Key);
-		privateKeyUrl = new URL("https", "aws", privateKeyS3key);
-		when(mockS3Client.getUrl(bucketName, certificateS3Key)).thenReturn(certificateUrl);
-		when(mockS3Client.getUrl(bucketName, privateKeyS3key)).thenReturn(privateKeyUrl);
+		certificateUrl = provider.createS3Url(bucketName, certificateS3Key);
+		privateKeyUrl = provider.createS3Url(bucketName, privateKeyS3key);
+	}
+	
+	@Test
+	public void testCreateS3Url() {
+		String bucket = "the-bucket";
+		String key = "the-key";
+		assertEquals("https://s3.amazonaws.com/the-bucket/the-key", provider.createS3Url(bucket, key));
 	}
 	
 	@Test

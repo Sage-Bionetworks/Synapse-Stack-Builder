@@ -40,9 +40,24 @@ public class CertificateProviderImpl implements CertificateProvider {
 			// Build a new certificate and upload the pair to S3.
 			buildAndUploadNewCertificatePair(bucketName, certificateS3Key, rsaPrivateKeyS3Key);
 		}
-		String certificateUrl = s3Client.getUrl(bucketName, certificateS3Key).toString();
-		String rsaKeyUrl = s3Client.getUrl(bucketName, rsaPrivateKeyS3Key).toString();
+		String certificateUrl = createS3Url(bucketName, certificateS3Key);
+		String rsaKeyUrl = createS3Url(bucketName, rsaPrivateKeyS3Key);
 		return new CertificateUrls(certificateUrl, rsaKeyUrl);
+	}
+	
+	/**
+	 * Create an S3 URL for the given bucket and key.
+	 * @param bucket
+	 * @param key
+	 * @return
+	 */
+	public String createS3Url(String bucket, String key) {
+		// Note: URL created with s3Client.getUrl(bucket, key) results in a 404.
+		StringJoiner joiner = new StringJoiner("/");
+		joiner.add("https://s3.amazonaws.com");
+		joiner.add(bucket);
+		joiner.add(key);
+		return joiner.toString();
 	}
 
 	/**
