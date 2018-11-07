@@ -99,7 +99,6 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		
 		String httpConfigJson = writer.toString();
 		//System.out.println(httpConfigJson);
-		assertTrue(httpConfigJson.contains(bucketName));
 		assertTrue(httpConfigJson.contains(x509CertificatePem));
 		assertTrue(httpConfigJson.contains(privateKeyPem));
 	}
