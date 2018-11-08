@@ -246,6 +246,15 @@
 						"FromPort": "80",
 						"ToPort": "80",
 						"IpProtocol": "tcp"
+					},
+					{
+						"Description": "Allow HTTPS traffic",
+						"CidrIp": {
+							"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-CIDR"
+						},
+						"FromPort": "443",
+						"ToPort": "443",
+						"IpProtocol": "tcp"
 					}
 				],
                 "SecurityGroupEgress": [{
