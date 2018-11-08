@@ -72,6 +72,7 @@
 			maxThreads="150" SSLEnabled="true" scheme="https" secure="true"
 			clientAuth="false" sslProtocol="TLS" protocols="TLSv1.2"
 			certificateFile="/etc/pki/tls/certs/server.crt"
+			certificateChainFile="/etc/pki/tls/certs/server.crt"
 			certificateKeyFile="/etc/pki/tls/certs/server.key" type=" RSA" />
 
 		<!-- Define an AJP 1.3 Connector on port 8009 -->
