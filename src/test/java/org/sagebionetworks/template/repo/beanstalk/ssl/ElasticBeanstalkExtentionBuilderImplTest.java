@@ -9,7 +9,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilderImpl.DOT_EBEXTENSIONS;
-import static org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilderImpl.HTTPS_INSTANCE_CONFIG;
+import static org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilderImpl.*;
 
 import java.io.File;
 import java.io.StringWriter;
@@ -51,10 +51,13 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 	File mockExtentionsFolder;
 	@Mock
 	File mockHttpConfig;
+	@Mock
+	File mockServerXml;
 
 	ElasticBeanstalkExtentionBuilderImpl builder;
 
-	StringWriter writer;
+	StringWriter configWriter;
+	StringWriter serverWriter;
 
 	String bucketName;
 	String x509CertificatePem;
@@ -79,8 +82,11 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		}).when(warAppender).appendFilesCopyOfWar(any(File.class), any(Consumer.class));
 		when(fileProvider.createNewFile(mockTempDirectory, DOT_EBEXTENSIONS)).thenReturn(mockExtentionsFolder);
 		when(fileProvider.createNewFile(mockExtentionsFolder, HTTPS_INSTANCE_CONFIG)).thenReturn(mockHttpConfig);
-		writer = new StringWriter();
-		when(fileProvider.createFileWriter(mockHttpConfig)).thenReturn(writer);
+		when(fileProvider.createNewFile(mockExtentionsFolder, SERVER_XML)).thenReturn(mockServerXml);
+		configWriter = new StringWriter();
+		when(fileProvider.createFileWriter(mockHttpConfig)).thenReturn(configWriter);
+		serverWriter = new StringWriter();
+		when(fileProvider.createFileWriter(mockServerXml)).thenReturn(serverWriter);
 
 		bucketName = "someBucket";
 		when(configuration.getConfigurationBucket()).thenReturn(bucketName);
@@ -96,11 +102,15 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		assertNotNull(warCopy);
 		assertEquals(mockWarCopy, warCopy);
 		verify(mockExtentionsFolder).mkdirs();
-		
-		String httpConfigJson = writer.toString();
+		// httpconfig
+		String httpConfigJson = configWriter.toString();
 		//System.out.println(httpConfigJson);
 		assertTrue(httpConfigJson.contains(x509CertificatePem));
 		assertTrue(httpConfigJson.contains(privateKeyPem));
+		// server.xml
+		String serverXml = serverWriter.toString();
+		assertTrue(serverXml.contains("certificateFile=\"/etc/pki/tls/certs/server.crt\""));
+		assertTrue(serverXml.contains("certificateKeyFile=\"/etc/pki/tls/certs/server.key\""));
 	}
 
 }

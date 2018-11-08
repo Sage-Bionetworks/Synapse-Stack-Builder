@@ -16,6 +16,8 @@ import com.google.inject.Inject;
 
 public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExtentionBuilder {
 
+	public static final String SERVER_XML = "server.xml";
+
 	public static final String TEMPLATE_EBEXTENSION_SERVER_XML = "/templates/repo/ebextensions/server.xml";
 
 	public static final String HTTPS_INSTANCE_CONFIG = "https-instance.config";
@@ -63,7 +65,7 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 				addTemplateAsFileToDirectory(httpInstanceTempalte, context, ebextensions, HTTPS_INSTANCE_CONFIG);
 				// server.xml
 				Template serverTempalte = velocityEngine.getTemplate(TEMPLATE_EBEXTENSION_SERVER_XML);
-				addTemplateAsFileToDirectory(serverTempalte, context, ebextensions, "server.xml");
+				addTemplateAsFileToDirectory(serverTempalte, context, ebextensions, SERVER_XML);
 			}
 		});
 
