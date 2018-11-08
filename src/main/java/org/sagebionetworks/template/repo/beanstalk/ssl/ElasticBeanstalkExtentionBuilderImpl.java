@@ -16,12 +16,14 @@ import com.google.inject.Inject;
 
 public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExtentionBuilder {
 
+	public static final String TEMPLATE_EBEXTENSION_SERVER_XML = "/templates/repo/ebextensions/server.xml";
+
 	public static final String HTTPS_INSTANCE_CONFIG = "https-instance.config";
 
 	public static final String DOT_EBEXTENSIONS = ".ebextensions";
 
 	public static final String TEMPLATE_EBEXTENSIONS_HTTP_INSTANCE_CONFIG = "templates/repo/ebextensions/https-instance.config";
-	
+
 	CertificateBuilder certificateBuilder;
 	VelocityEngine velocityEngine;
 	Configuration configuration;
@@ -45,7 +47,8 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 		context.put("s3bucket", configuration.getConfigurationBucket());
 		// Get the certificate information
 		context.put("certificates", certificateBuilder.buildNewX509CertificatePair());
-		Template httpInstanceTempalte = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_HTTP_INSTANCE_CONFIG);
+
+
 
 		// add the files to the copy of the war
 		return warAppender.appendFilesCopyOfWar(warFile, new Consumer<File>() {
@@ -55,16 +58,34 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 				// ensure the .ebextensions directory exists
 				File ebextensions = fileProvider.createNewFile(directory, DOT_EBEXTENSIONS);
 				ebextensions.mkdirs();
-				// write the
-				try (Writer writer = fileProvider
-						.createFileWriter(fileProvider.createNewFile(ebextensions, HTTPS_INSTANCE_CONFIG))) {
-					httpInstanceTempalte.merge(context, writer);
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
+				// https-instance.config
+				Template httpInstanceTempalte = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_HTTP_INSTANCE_CONFIG);
+				addTemplateAsFileToDirectory(httpInstanceTempalte, context, ebextensions, HTTPS_INSTANCE_CONFIG);
+				// server.xml
+				Template serverTempalte = velocityEngine.getTemplate(TEMPLATE_EBEXTENSION_SERVER_XML);
+				addTemplateAsFileToDirectory(serverTempalte, context, ebextensions, "server.xml");
 			}
 		});
 
+	}
+
+	/**
+	 * Merge the passed template and context and save the results as a new file in
+	 * the passed directory with the given name.
+	 * 
+	 * @param tempalte
+	 * @param context
+	 * @param destinationDirectory
+	 * @param resultFileName
+	 */
+	public void addTemplateAsFileToDirectory(Template tempalte, VelocityContext context, File destinationDirectory,
+			String resultFileName) {
+		try (Writer writer = fileProvider
+				.createFileWriter(fileProvider.createNewFile(destinationDirectory, resultFileName))) {
+			tempalte.merge(context, writer);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }
