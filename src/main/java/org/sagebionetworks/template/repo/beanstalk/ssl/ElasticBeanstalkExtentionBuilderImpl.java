@@ -16,6 +16,10 @@ import com.google.inject.Inject;
 
 public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExtentionBuilder {
 
+	public static final String HTTPD_CONF_D_SSL_CONF = "httpd/conf.d/ssl.conf";
+
+	public static final String TEMPLATES_REPO_EBEXTENSIONS_HTTPS_SSL_CONF = "templates/repo/ebextensions/https-ssl.conf";
+
 	public static final String SERVER_XML = "server.xml";
 
 	public static final String TEMPLATE_EBEXTENSION_SERVER_XML = "/templates/repo/ebextensions/server.xml";
@@ -63,9 +67,9 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 				// https-instance.config
 				Template httpInstanceTempalte = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_HTTP_INSTANCE_CONFIG);
 				addTemplateAsFileToDirectory(httpInstanceTempalte, context, ebextensions, HTTPS_INSTANCE_CONFIG);
-				// server.xml
-				Template serverTempalte = velocityEngine.getTemplate(TEMPLATE_EBEXTENSION_SERVER_XML);
-				addTemplateAsFileToDirectory(serverTempalte, context, ebextensions, SERVER_XML);
+				// SSL conf
+				Template sslconf = velocityEngine.getTemplate(TEMPLATES_REPO_EBEXTENSIONS_HTTPS_SSL_CONF);
+				addTemplateAsFileToDirectory(sslconf, context, ebextensions, HTTPD_CONF_D_SSL_CONF);
 			}
 		});
 
@@ -82,8 +86,10 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 	 */
 	public void addTemplateAsFileToDirectory(Template tempalte, VelocityContext context, File destinationDirectory,
 			String resultFileName) {
+		File resultFile = fileProvider.createNewFile(destinationDirectory, resultFileName);
+		resultFile.mkdirs();
 		try (Writer writer = fileProvider
-				.createFileWriter(fileProvider.createNewFile(destinationDirectory, resultFileName))) {
+				.createFileWriter(resultFile)) {
 			tempalte.merge(context, writer);
 		} catch (IOException e) {
 			throw new RuntimeException(e);

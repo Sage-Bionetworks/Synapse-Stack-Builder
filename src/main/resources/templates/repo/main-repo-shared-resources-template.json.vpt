@@ -252,8 +252,8 @@
 						"CidrIp": {
 							"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-CIDR"
 						},
-						"FromPort": "8443",
-						"ToPort": "8443",
+						"FromPort": "443",
+						"ToPort": "443",
 						"IpProtocol": "tcp"
 					}
 				],

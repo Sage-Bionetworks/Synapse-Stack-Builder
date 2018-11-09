@@ -306,7 +306,7 @@
 					{
 						"Namespace": "aws:elasticbeanstalk:environment:process:default",
 						"OptionName": "Port",
-						"Value": "8443"
+						"Value": "443"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:environment:process:default",

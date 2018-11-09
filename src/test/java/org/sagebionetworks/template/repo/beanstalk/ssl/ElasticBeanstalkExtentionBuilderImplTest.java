@@ -2,14 +2,11 @@ package org.sagebionetworks.template.repo.beanstalk.ssl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilderImpl.DOT_EBEXTENSIONS;
-import static org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilderImpl.*;
 
 import java.io.File;
 import java.io.StringWriter;
@@ -50,14 +47,14 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 	@Mock
 	File mockExtentionsFolder;
 	@Mock
-	File mockHttpConfig;
+	File mockFile;
 	@Mock
-	File mockServerXml;
+	File mockSslConf;
 
 	ElasticBeanstalkExtentionBuilderImpl builder;
 
 	StringWriter configWriter;
-	StringWriter serverWriter;
+	StringWriter sslConfWriter;
 
 	String bucketName;
 	String x509CertificatePem;
@@ -80,14 +77,10 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 				return mockWarCopy;
 			}
 		}).when(warAppender).appendFilesCopyOfWar(any(File.class), any(Consumer.class));
-		when(fileProvider.createNewFile(mockTempDirectory, DOT_EBEXTENSIONS)).thenReturn(mockExtentionsFolder);
-		when(fileProvider.createNewFile(mockExtentionsFolder, HTTPS_INSTANCE_CONFIG)).thenReturn(mockHttpConfig);
-		when(fileProvider.createNewFile(mockExtentionsFolder, SERVER_XML)).thenReturn(mockServerXml);
+		when(fileProvider.createNewFile(any(File.class), any(String.class))).thenReturn(mockFile);
 		configWriter = new StringWriter();
-		when(fileProvider.createFileWriter(mockHttpConfig)).thenReturn(configWriter);
-		serverWriter = new StringWriter();
-		when(fileProvider.createFileWriter(mockServerXml)).thenReturn(serverWriter);
-
+		sslConfWriter = new StringWriter();
+		when(fileProvider.createFileWriter(any(File.class))).thenReturn(configWriter, sslConfWriter);
 		bucketName = "someBucket";
 		when(configuration.getConfigurationBucket()).thenReturn(bucketName);
 		x509CertificatePem = "x509pem";
@@ -101,16 +94,15 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		File warCopy = builder.copyWarWithExtensions(mockWar);
 		assertNotNull(warCopy);
 		assertEquals(mockWarCopy, warCopy);
-		verify(mockExtentionsFolder).mkdirs();
 		// httpconfig
 		String httpConfigJson = configWriter.toString();
 		//System.out.println(httpConfigJson);
 		assertTrue(httpConfigJson.contains(x509CertificatePem));
 		assertTrue(httpConfigJson.contains(privateKeyPem));
-		// server.xml
-		String serverXml = serverWriter.toString();
-		assertTrue(serverXml.contains("certificateFile=\"/etc/pki/tls/certs/server.crt\""));
-		assertTrue(serverXml.contains("certificateKeyFile=\"/etc/pki/tls/certs/server.key\""));
+		// SSL conf
+		String sslConf = sslConfWriter.toString();
+		assertTrue(sslConf.contains("/etc/pki/tls/certs/server.crt"));
+		assertTrue(sslConf.contains("/etc/pki/tls/certs/server.key"));
 	}
 
 }
