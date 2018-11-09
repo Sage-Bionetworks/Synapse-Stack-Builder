@@ -16,7 +16,10 @@ import com.google.inject.Inject;
 
 public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExtentionBuilder {
 
-	public static final String HTTPD_CONF_D_SSL_CONF = "httpd/conf.d/ssl.conf";
+
+	public static final String SSL_CONF = "ssl.conf";
+
+	public static final String HTTPD_CONF_D = "httpd/conf.d";
 
 	public static final String TEMPLATES_REPO_EBEXTENSIONS_HTTPS_SSL_CONF = "templates/repo/ebextensions/https-ssl.conf";
 
@@ -62,14 +65,17 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 			@Override
 			public void accept(File directory) {
 				// ensure the .ebextensions directory exists
-				File ebextensions = fileProvider.createNewFile(directory, DOT_EBEXTENSIONS);
-				ebextensions.mkdirs();
+				File ebextensionsDirectory = fileProvider.createNewFile(directory, DOT_EBEXTENSIONS);
+				ebextensionsDirectory.mkdirs();
+				// ensure the .ebextensions/httpd/conf.d directory exists.
+				File confDDirectory = fileProvider.createNewFile(ebextensionsDirectory, HTTPD_CONF_D);
+				confDDirectory.mkdir();
 				// https-instance.config
 				Template httpInstanceTempalte = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_HTTP_INSTANCE_CONFIG);
-				File resultFile = fileProvider.createNewFile(ebextensions, HTTPS_INSTANCE_CONFIG);
+				File resultFile = fileProvider.createNewFile(ebextensionsDirectory, HTTPS_INSTANCE_CONFIG);
 				addTemplateAsFileToDirectory(httpInstanceTempalte, context, resultFile);
 				// SSL conf
-				resultFile = fileProvider.createNewFile(ebextensions, HTTPD_CONF_D_SSL_CONF);
+				resultFile = fileProvider.createNewFile(confDDirectory, SSL_CONF);
 				Template sslconf = velocityEngine.getTemplate(TEMPLATES_REPO_EBEXTENSIONS_HTTPS_SSL_CONF);
 				addTemplateAsFileToDirectory(sslconf, context, resultFile);
 			}
