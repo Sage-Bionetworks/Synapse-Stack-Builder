@@ -25,8 +25,6 @@ import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilderImpl;
 import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateBuilder;
 import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateBuilderImpl;
-import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateProvider;
-import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateProviderImpl;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilder;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilderImpl;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsConfig;
@@ -75,7 +73,6 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(SecretBuilder.class).to(SecretBuilderImpl.class);
 		bind(WebACLBuilder.class).to(WebACLBuilderImpl.class);
 		bind(CertificateBuilder.class).to(CertificateBuilderImpl.class);
-		bind(CertificateProvider.class).to(CertificateProviderImpl.class);
 		bind(ElasticBeanstalkExtentionBuilder.class).to(ElasticBeanstalkExtentionBuilderImpl.class);
 		bind(WarAppender.class).to(WarAppenderImpl.class);
 
