@@ -66,10 +66,12 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 				ebextensions.mkdirs();
 				// https-instance.config
 				Template httpInstanceTempalte = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_HTTP_INSTANCE_CONFIG);
-				addTemplateAsFileToDirectory(httpInstanceTempalte, context, ebextensions, HTTPS_INSTANCE_CONFIG);
+				File resultFile = fileProvider.createNewFile(ebextensions, HTTPS_INSTANCE_CONFIG);
+				addTemplateAsFileToDirectory(httpInstanceTempalte, context, resultFile);
 				// SSL conf
+				resultFile = fileProvider.createNewFile(ebextensions, HTTPD_CONF_D_SSL_CONF);
 				Template sslconf = velocityEngine.getTemplate(TEMPLATES_REPO_EBEXTENSIONS_HTTPS_SSL_CONF);
-				addTemplateAsFileToDirectory(sslconf, context, ebextensions, HTTPD_CONF_D_SSL_CONF);
+				addTemplateAsFileToDirectory(sslconf, context, resultFile);
 			}
 		});
 
@@ -84,10 +86,7 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 	 * @param destinationDirectory
 	 * @param resultFileName
 	 */
-	public void addTemplateAsFileToDirectory(Template tempalte, VelocityContext context, File destinationDirectory,
-			String resultFileName) {
-		File resultFile = fileProvider.createNewFile(destinationDirectory, resultFileName);
-		resultFile.mkdirs();
+	public void addTemplateAsFileToDirectory(Template tempalte, VelocityContext context, File resultFile) {
 		try (Writer writer = fileProvider
 				.createFileWriter(resultFile)) {
 			tempalte.merge(context, writer);
