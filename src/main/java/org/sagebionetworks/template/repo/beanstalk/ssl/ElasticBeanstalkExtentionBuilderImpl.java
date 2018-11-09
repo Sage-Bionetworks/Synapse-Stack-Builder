@@ -10,9 +10,12 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.sagebionetworks.template.Configuration;
 import org.sagebionetworks.template.FileProvider;
+import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.war.WarAppender;
 
+import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExtentionBuilder {
 
@@ -69,7 +72,7 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 				ebextensionsDirectory.mkdirs();
 				// ensure the .ebextensions/httpd/conf.d directory exists.
 				File confDDirectory = fileProvider.createNewFile(ebextensionsDirectory, HTTPD_CONF_D);
-				confDDirectory.mkdir();
+				confDDirectory.mkdirs();
 				// https-instance.config
 				Template httpInstanceTempalte = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_HTTP_INSTANCE_CONFIG);
 				File resultFile = fileProvider.createNewFile(ebextensionsDirectory, HTTPS_INSTANCE_CONFIG);
@@ -99,6 +102,17 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+	
+	/**
+	 * Helper to run the actual builder
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		Injector injector = Guice.createInjector(new TemplateGuiceModule());
+		ElasticBeanstalkExtentionBuilder builder = injector.getInstance(ElasticBeanstalkExtentionBuilder.class);
+		File resultWar = builder.copyWarWithExtensions(new File(args[0]));
+		System.out.println(resultWar.getAbsolutePath());
 	}
 
 }
