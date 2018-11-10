@@ -239,16 +239,7 @@
                 },
 				"SecurityGroupIngress": [
 					{
-						"Description": "Allow ${subnetGroupColor} subnet HTTP access",
-						"CidrIp": {
-							"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-CIDR"
-						},
-						"FromPort": "80",
-						"ToPort": "80",
-						"IpProtocol": "tcp"
-					},
-					{
-						"Description": "Allow HTTPS traffic",
+						"Description": "Allow ${subnetGroupColor} subnet HTTPS access",
 						"CidrIp": {
 							"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-CIDR"
 						},
