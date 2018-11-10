@@ -75,7 +75,7 @@ public class CertificateBuilderImplTest {
 		long period = certificate.getNotAfter().getTime() - certificate.getNotBefore().getTime();
 		assertEquals(msPerYear, period);
 		assertNotNull(certificate.getSerialNumber());
-		assertNotNull(certificate.getPublicKey().getFormat());
+		assertNotNull(certificate.getPublicKey());
 		assertEquals("X.509", certificate.getPublicKey().getFormat());
 		assertEquals("RSA", certificate.getPublicKey().getAlgorithm());
 		assertEquals("SHA256WITHRSA", certificate.getSigAlgName());
