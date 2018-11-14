@@ -425,10 +425,20 @@
 						"OptionName": "org.sagebionetworks.s3.bucket",
 						"Value": "${stack}data.sagebase.org"
 					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.ezid.username",
+						"Value": "sagebio"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.ezid.doi.prefix",
+						"Value": "doi:10.7303/"
+					},
                     {
                         "Namespace": "aws:elasticbeanstalk:application:environment",
                         "OptionName": "org.sagebionetworks.doi.prefix",
-                        "Value": "10.7303"
+                        "Value": "10.5072"
                     },
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
