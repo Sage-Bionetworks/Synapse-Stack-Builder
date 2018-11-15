@@ -71,7 +71,7 @@
 			"queueName":"BULK_FILE_DOWNLOAD",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":600,
-			"oldestMessageInQueueAlarmThresholdSec": 2
+			"oldestMessageInQueueAlarmThresholdSec": 3
 		},
 		{
 			"queueName":"FILE_UPDATE",
@@ -147,7 +147,7 @@
 			"queueName":"DOWNLOAD_CSV_FROM_TABLE",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":60,
-			"oldestMessageInQueueAlarmThresholdSec": 2
+			"oldestMessageInQueueAlarmThresholdSec": 4
 		},
 		{
 			"queueName":"TABLE_ENTITY_REPLICATION",
@@ -161,7 +161,7 @@
 			"queueName":"QUERY",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":120,
-			"oldestMessageInQueueAlarmThresholdSec": 2
+			"oldestMessageInQueueAlarmThresholdSec": 6
 		},
 		{
 			"queueName":"QUERY_NEXT_PAGE",
