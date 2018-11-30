@@ -403,8 +403,14 @@
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.repository.database.connection.url",
-						"Value": "jdbc:mysql://${stack}-${instance}-db.${dbEndpointSuffix}/${stack}${instance}"
+						"Value": "jdbc:mysql://${stack}-${instance}-db.${dbEndpointSuffix}/${stack}${instance}?verifyServerCertificate=false&useSSL=true&requireSSL=true"
 					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.table.cluster.use.ssl",
+						"Value": "true"
+					},
+					
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.table.cluster.schema.0",
