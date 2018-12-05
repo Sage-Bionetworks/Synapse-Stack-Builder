@@ -41,6 +41,11 @@
 					},
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
+						"OptionName": "ImageId",
+						"Value": "ami-0fd5dbc355c1bf72b"
+					},
+					{
+						"Namespace": "aws:autoscaling:launchconfiguration",
 						"OptionName": "EC2KeyName",
 						"Value": "${stack}-key-pair"
 					},
@@ -52,7 +57,7 @@
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
 						"OptionName": "InstanceType",
-						"Value": "m1.small"
+						"Value": "m3.medium"
 					},
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
