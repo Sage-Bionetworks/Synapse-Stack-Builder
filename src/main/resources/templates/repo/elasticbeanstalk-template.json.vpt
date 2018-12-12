@@ -42,7 +42,7 @@
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
 						"OptionName": "ImageId",
-						"Value": "{encryptedImageId}"
+						"Value": "${encryptedImageId}"
 					},
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
