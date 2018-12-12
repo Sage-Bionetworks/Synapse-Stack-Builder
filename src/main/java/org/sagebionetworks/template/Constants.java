@@ -117,6 +117,9 @@ public class Constants {
 	public static final String SNS_TOPIC_DESCRIPTORS = "snsTopicDescriptors";
 	public static final String SQS_QUEUE_DESCRIPTORS = "sqsQueueDescriptors";
 
+	public static final String SOLUTION_STACK_NAME = "solutionStackName";
+	public static final String ENCRYPTED_AMI_IMAGE_ID = "encryptedImageId";
+
 
 	/**
 	 * Create a camel case name from dash-separated-name. Given 'foo-bar' will

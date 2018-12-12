@@ -1,34 +1,27 @@
-package org.sagebionetworks.template.repo;
+package org.sagebionetworks.template.repo.beanstalk.image.encrypt;
 
 import java.util.List;
 
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.CopyImageRequest;
 import com.amazonaws.services.ec2.model.CreateTagsRequest;
 import com.amazonaws.services.ec2.model.DescribeImagesRequest;
-import com.amazonaws.services.ec2.model.DescribeImagesResult;
 import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.Image;
 import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClientBuilder;
 import com.amazonaws.services.elasticbeanstalk.model.CustomAmi;
 import com.amazonaws.services.elasticbeanstalk.model.DescribePlatformVersionRequest;
-import com.amazonaws.services.elasticbeanstalk.model.DescribePlatformVersionResult;
 import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
-import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformDescription;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformFilter;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import com.google.inject.Inject;
 import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.template.LoggerFactory;
-import org.sagebionetworks.template.LoggerFactoryImpl;
 
-public class ElasticBeanstalkDefaultAMIEncrypter {
+public class ElasticBeanstalkDefaultAMIEncrypterImpl implements ElasticBeanstalkDefaultAMIEncrypter {
 	AWSElasticBeanstalk elasticBeanstalk;
 	AmazonEC2 ec2;
 	Logger logger;
@@ -37,15 +30,11 @@ public class ElasticBeanstalkDefaultAMIEncrypter {
 	private static final String AMI_VIRTUALIZATION_TYPE = "hvm";
 	private static final String SOURCE_AMI_TAG_KEY = "CopiedFrom";
 
-	public static void main(String... args){
-		new ElasticBeanstalkDefaultAMIEncrypter(AWSElasticBeanstalkClientBuilder.defaultClient(), AmazonEC2ClientBuilder.defaultClient(), new LoggerFactoryImpl()).getEncryptedElasticBeanstalkDefaultAMI("8", "8.5", "3.0.5");
-	}
-
 	@Inject
-	public ElasticBeanstalkDefaultAMIEncrypter(AWSElasticBeanstalk elasticBeanstalk, AmazonEC2 ec2, LoggerFactory loggerFactory) {
+	public ElasticBeanstalkDefaultAMIEncrypterImpl(AWSElasticBeanstalk elasticBeanstalk, AmazonEC2 ec2, LoggerFactory loggerFactory) {
 		this.elasticBeanstalk = elasticBeanstalk;
 		this.ec2 = ec2;
-		this.logger = loggerFactory.getLogger(ElasticBeanstalkDefaultAMIEncrypter.class);
+		this.logger = loggerFactory.getLogger(ElasticBeanstalkDefaultAMIEncrypterImpl.class);
 	}
 
 	/**
@@ -55,7 +44,8 @@ public class ElasticBeanstalkDefaultAMIEncrypter {
 	 * @param amazonLinuxVersion
 	 * @return AMI Id of the encrypted version of the default AWS AMI
 	 */
-	public ElasticBeanstalkPlatformInfo getEncryptedElasticBeanstalkDefaultAMI(String javaVersion, String tomcatVersion, String amazonLinuxVersion){
+	@Override
+	public ElasticBeanstalkEncryptedPlatformInfo getEncryptedElasticBeanstalkInfo(String javaVersion, String tomcatVersion, String amazonLinuxVersion){
 		if(javaVersion == null){
 			throw new IllegalArgumentException("javaVersion cannot be null");
 		}
@@ -80,10 +70,10 @@ public class ElasticBeanstalkDefaultAMIEncrypter {
 		String encryptedAmiId = copyAndEncryptAmiIfNecessary(unencryptedDefaultAmiId);
 
 		String solutionStackName = description.getSolutionStackName();
-		return new ElasticBeanstalkPlatformInfo(encryptedAmiId, solutionStackName);
+		return new ElasticBeanstalkEncryptedPlatformInfo(encryptedAmiId, solutionStackName);
 	}
 
-	private String findDefaultPlatformAmiId(PlatformDescription description) {
+	String findDefaultPlatformAmiId(PlatformDescription description) {
 		for (CustomAmi customAmi : description.getCustomAmiList()){
 			if(AMI_VIRTUALIZATION_TYPE.equals(customAmi.getVirtualizationType())){
 				return customAmi.getImageId();
@@ -93,7 +83,7 @@ public class ElasticBeanstalkDefaultAMIEncrypter {
 		throw new IllegalArgumentException("Could not find an AMI Image Id for the given parameters");
 	}
 
-	private String copyAndEncryptAmiIfNecessary(String defaultAMI) {
+	String copyAndEncryptAmiIfNecessary(String defaultAMI) {
 		//check if we've already copied and encrypted the image by checking tags
 		DescribeImagesRequest describeImagesRequest = new DescribeImagesRequest()
 				.withOwners("self")
@@ -120,7 +110,7 @@ public class ElasticBeanstalkDefaultAMIEncrypter {
 		return encryptedCopyAmiId;
 	}
 
-	private String getPlatformArn(String javaVersion, String tomcatVersion, String amazonLinuxVersion) {
+	String getPlatformArn(String javaVersion, String tomcatVersion, String amazonLinuxVersion) {
 		//filters to be used for finding platform arn
 		PlatformFilter tomcatJavaFilter = new PlatformFilter()
 				.withType("PlatformName")
@@ -141,15 +131,5 @@ public class ElasticBeanstalkDefaultAMIEncrypter {
 		}
 
 		return platformSummaryList.get(0).getPlatformArn();
-	}
-
-	private static class ElasticBeanstalkPlatformInfo{
-		String encryptedAmiId;
-		String solutionStackName;
-
-		public ElasticBeanstalkPlatformInfo(String encryptedAmiId, String solutionStackName) {
-			this.encryptedAmiId = encryptedAmiId;
-			this.solutionStackName = solutionStackName;
-		}
 	}
 }
