@@ -2,11 +2,19 @@ package org.sagebionetworks.template.repo;
 
 import java.util.List;
 
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.CopyImageRequest;
+import com.amazonaws.services.ec2.model.CreateTagsRequest;
 import com.amazonaws.services.ec2.model.DescribeImagesRequest;
+import com.amazonaws.services.ec2.model.DescribeImagesResult;
 import com.amazonaws.services.ec2.model.Filter;
+import com.amazonaws.services.ec2.model.Image;
+import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
+import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
+import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClientBuilder;
 import com.amazonaws.services.elasticbeanstalk.model.CustomAmi;
 import com.amazonaws.services.elasticbeanstalk.model.DescribePlatformVersionRequest;
 import com.amazonaws.services.elasticbeanstalk.model.DescribePlatformVersionResult;
@@ -16,18 +24,28 @@ import com.amazonaws.services.elasticbeanstalk.model.PlatformDescription;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformFilter;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import com.google.inject.Inject;
+import org.apache.logging.log4j.Logger;
+import org.sagebionetworks.template.LoggerFactory;
+import org.sagebionetworks.template.LoggerFactoryImpl;
 
 public class ElasticBeanstalkDefaultAMIEncrypter {
 	AWSElasticBeanstalk elasticBeanstalk;
 	AmazonEC2 ec2;
+	Logger logger;
 
 	private static final String PLATFORM_NAME_TEMPLATE =  "Tomcat %s with Java %s running on 64bit Amazon Linux";
 	private static final String AMI_VIRTUALIZATION_TYPE = "hvm";
+	private static final String SOURCE_AMI_TAG_KEY = "CopiedFrom";
+
+	public static void main(String... args){
+		new ElasticBeanstalkDefaultAMIEncrypter(AWSElasticBeanstalkClientBuilder.defaultClient(), AmazonEC2ClientBuilder.defaultClient(), new LoggerFactoryImpl()).getEncryptedElasticBeanstalkDefaultAMI("8", "8.5", "3.0.5");
+	}
 
 	@Inject
-	public ElasticBeanstalkDefaultAMIEncrypter(AWSElasticBeanstalk elasticBeanstalk, AmazonEC2 ec2) {
+	public ElasticBeanstalkDefaultAMIEncrypter(AWSElasticBeanstalk elasticBeanstalk, AmazonEC2 ec2, LoggerFactory loggerFactory) {
 		this.elasticBeanstalk = elasticBeanstalk;
 		this.ec2 = ec2;
+		this.logger = loggerFactory.getLogger(ElasticBeanstalkDefaultAMIEncrypter.class);
 	}
 
 	/**
@@ -37,7 +55,7 @@ public class ElasticBeanstalkDefaultAMIEncrypter {
 	 * @param amazonLinuxVersion
 	 * @return AMI Id of the encrypted version of the default AWS AMI
 	 */
-	public String getEncryptedElasticBeanstalkDefaultAMI(String javaVersion, String tomcatVersion, String amazonLinuxVersion){
+	public ElasticBeanstalkPlatformInfo getEncryptedElasticBeanstalkDefaultAMI(String javaVersion, String tomcatVersion, String amazonLinuxVersion){
 		if(javaVersion == null){
 			throw new IllegalArgumentException("javaVersion cannot be null");
 		}
@@ -54,40 +72,84 @@ public class ElasticBeanstalkDefaultAMIEncrypter {
 		String platformArn= getPlatformArn(javaVersion, tomcatVersion, amazonLinuxVersion);
 
 		//use the platformArn to retrieve the platform's AMI image id
-		DescribePlatformVersionResult describePlatformResult = elasticBeanstalk.describePlatformVersion(new DescribePlatformVersionRequest().withPlatformArn(platformArn));
-		PlatformDescription description = describePlatformResult.getPlatformDescription();
+		PlatformDescription description = elasticBeanstalk.describePlatformVersion(
+				new DescribePlatformVersionRequest().withPlatformArn(platformArn)
+			).getPlatformDescription();
+
+		String unencryptedDefaultAmiId = findDefaultPlatformAmiId(description);
+		String encryptedAmiId = copyAndEncryptAmiIfNecessary(unencryptedDefaultAmiId);
 
 		String solutionStackName = description.getSolutionStackName();
-		String defaultAMI = null;
+		return new ElasticBeanstalkPlatformInfo(encryptedAmiId, solutionStackName);
+	}
+
+	private String findDefaultPlatformAmiId(PlatformDescription description) {
 		for (CustomAmi customAmi : description.getCustomAmiList()){
 			if(AMI_VIRTUALIZATION_TYPE.equals(customAmi.getVirtualizationType())){
-				defaultAMI = customAmi.getImageId();
+				return customAmi.getImageId();
 			}
 		}
-		if(defaultAMI == null) {
-			throw new IllegalArgumentException("Could not find an AMI Image Id for the given parameters");
+
+		throw new IllegalArgumentException("Could not find an AMI Image Id for the given parameters");
+	}
+
+	private String copyAndEncryptAmiIfNecessary(String defaultAMI) {
+		//check if we've already copied and encrypted the image by checking tags
+		DescribeImagesRequest describeImagesRequest = new DescribeImagesRequest()
+				.withOwners("self")
+				.withFilters(
+						new Filter()
+						.withName("tag:" + SOURCE_AMI_TAG_KEY)
+						.withValues(defaultAMI));
+		List<Image> images = ec2.describeImages(describeImagesRequest).getImages();
+
+		//already been copied before because we got 1 result
+		if(images.size() == 1) {
+			return images.get(0).getImageId();
 		}
 
-		//check if we've already copied and encrypted the image:
-		DescribeImagesRequest describeImagesRequest = new DescribeImagesRequest().withOwners("self").withFilters(new Filter().withName());
+		//copy the image and tag it so we can find it in the future and avoid recopying
+		String encryptedCopyAmiId = ec2.copyImage(new CopyImageRequest().withEncrypted(true).withSourceImageId(defaultAMI).withSourceRegion(Regions.US_EAST_1.getName())).getImageId();
+		ec2.createTags(new CreateTagsRequest()
+				.withResources(encryptedCopyAmiId)
+				.withTags(new Tag()
+						.withKey(SOURCE_AMI_TAG_KEY)
+						.withValue(defaultAMI)));
 
-
-		//copy the image
-		ec2.copyImage(CopyImageRequest co)
-
+		//TODO: maybe need to wait for copied ami state to change from "pending" to "available"
+		return encryptedCopyAmiId;
 	}
 
 	private String getPlatformArn(String javaVersion, String tomcatVersion, String amazonLinuxVersion) {
-		PlatformFilter tomcatJavaFilter = new PlatformFilter().withType("PlatformName").withOperator("=")
+		//filters to be used for finding platform arn
+		PlatformFilter tomcatJavaFilter = new PlatformFilter()
+				.withType("PlatformName")
+				.withOperator("=")
 				.withValues(String.format(PLATFORM_NAME_TEMPLATE, tomcatVersion, javaVersion));
-		PlatformFilter amazonLinuxFilter = new PlatformFilter().withType("PlatformVersion").withOperator("=")
+		PlatformFilter amazonLinuxFilter = new PlatformFilter()
+				.withType("PlatformVersion")
+				.withOperator("=")
 				.withValues(amazonLinuxVersion);
-		ListPlatformVersionsRequest listRequest = new ListPlatformVersionsRequest().withFilters(tomcatJavaFilter, amazonLinuxFilter);
-		ListPlatformVersionsResult listResult = elasticBeanstalk.listPlatformVersions(listRequest);
-		List<PlatformSummary> platformSummaryList = listResult.getPlatformSummaryList();
+
+		List<PlatformSummary> platformSummaryList = elasticBeanstalk.listPlatformVersions(
+				new ListPlatformVersionsRequest()
+					.withFilters(tomcatJavaFilter, amazonLinuxFilter)
+			).getPlatformSummaryList();
+
 		if(platformSummaryList == null || platformSummaryList.size() != 1){
-			throw new IllegalArgumentException("There should only be 1 result matching your parameters");
+			throw new IllegalArgumentException("There should only be 1 result matching your elastic beanstalk platform parameters");
 		}
+
 		return platformSummaryList.get(0).getPlatformArn();
+	}
+
+	private static class ElasticBeanstalkPlatformInfo{
+		String encryptedAmiId;
+		String solutionStackName;
+
+		public ElasticBeanstalkPlatformInfo(String encryptedAmiId, String solutionStackName) {
+			this.encryptedAmiId = encryptedAmiId;
+			this.solutionStackName = solutionStackName;
+		}
 	}
 }
