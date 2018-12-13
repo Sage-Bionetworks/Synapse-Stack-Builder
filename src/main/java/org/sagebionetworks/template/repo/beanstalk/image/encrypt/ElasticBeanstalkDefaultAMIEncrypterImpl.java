@@ -26,9 +26,9 @@ public class ElasticBeanstalkDefaultAMIEncrypterImpl implements ElasticBeanstalk
 	AmazonEC2 ec2;
 	Logger logger;
 
-	private static final String PLATFORM_NAME_TEMPLATE =  "Tomcat %s with Java %s running on 64bit Amazon Linux";
-	private static final String AMI_VIRTUALIZATION_TYPE = "hvm";
-	private static final String SOURCE_AMI_TAG_KEY = "CopiedFrom";
+	static final String PLATFORM_NAME_TEMPLATE =  "Tomcat %s with Java %s running on 64bit Amazon Linux";
+	static final String AMI_VIRTUALIZATION_TYPE = "hvm";
+	static final String SOURCE_AMI_TAG_KEY = "CopiedFrom";
 
 	@Inject
 	public ElasticBeanstalkDefaultAMIEncrypterImpl(AWSElasticBeanstalk elasticBeanstalk, AmazonEC2 ec2, LoggerFactory loggerFactory) {
@@ -37,15 +37,8 @@ public class ElasticBeanstalkDefaultAMIEncrypterImpl implements ElasticBeanstalk
 		this.logger = loggerFactory.getLogger(ElasticBeanstalkDefaultAMIEncrypterImpl.class);
 	}
 
-	/**
-	 *
-	 * @param javaVersion
-	 * @param tomcatVersion
-	 * @param amazonLinuxVersion
-	 * @return AMI Id of the encrypted version of the default AWS AMI
-	 */
 	@Override
-	public ElasticBeanstalkEncryptedPlatformInfo getEncryptedElasticBeanstalkInfo(String javaVersion, String tomcatVersion, String amazonLinuxVersion){
+	public ElasticBeanstalkEncryptedPlatformInfo getEncryptedElasticBeanstalkAMI(String javaVersion, String tomcatVersion, String amazonLinuxVersion){
 		if(javaVersion == null){
 			throw new IllegalArgumentException("javaVersion cannot be null");
 		}
@@ -55,7 +48,7 @@ public class ElasticBeanstalkDefaultAMIEncrypterImpl implements ElasticBeanstalk
 		}
 
 		if (amazonLinuxVersion == null){
-			amazonLinuxVersion = "latest";
+			throw new IllegalArgumentException("amazonLinuxVersion cannot be null");
 		}
 
 		//find the ARN of the platform from passed in parameters
@@ -71,6 +64,30 @@ public class ElasticBeanstalkDefaultAMIEncrypterImpl implements ElasticBeanstalk
 
 		String solutionStackName = description.getSolutionStackName();
 		return new ElasticBeanstalkEncryptedPlatformInfo(encryptedAmiId, solutionStackName);
+	}
+
+
+	String getPlatformArn(String javaVersion, String tomcatVersion, String amazonLinuxVersion) {
+		//filters to be used for finding platform arn
+		PlatformFilter tomcatJavaFilter = new PlatformFilter()
+				.withType("PlatformName")
+				.withOperator("=")
+				.withValues(String.format(PLATFORM_NAME_TEMPLATE, tomcatVersion, javaVersion));
+		PlatformFilter amazonLinuxFilter = new PlatformFilter()
+				.withType("PlatformVersion")
+				.withOperator("=")
+				.withValues(amazonLinuxVersion);
+
+		List<PlatformSummary> platformSummaryList = elasticBeanstalk.listPlatformVersions(
+				new ListPlatformVersionsRequest()
+						.withFilters(tomcatJavaFilter, amazonLinuxFilter)
+		).getPlatformSummaryList();
+
+		if(platformSummaryList == null || platformSummaryList.size() != 1){
+			throw new IllegalArgumentException("There should only be 1 result matching your elastic beanstalk platform parameters");
+		}
+
+		return platformSummaryList.get(0).getPlatformArn();
 	}
 
 	String findDefaultPlatformAmiId(PlatformDescription description) {
@@ -106,30 +123,7 @@ public class ElasticBeanstalkDefaultAMIEncrypterImpl implements ElasticBeanstalk
 						.withKey(SOURCE_AMI_TAG_KEY)
 						.withValue(defaultAMI)));
 
-		//TODO: maybe need to wait for copied ami state to change from "pending" to "available"
 		return encryptedCopyAmiId;
 	}
 
-	String getPlatformArn(String javaVersion, String tomcatVersion, String amazonLinuxVersion) {
-		//filters to be used for finding platform arn
-		PlatformFilter tomcatJavaFilter = new PlatformFilter()
-				.withType("PlatformName")
-				.withOperator("=")
-				.withValues(String.format(PLATFORM_NAME_TEMPLATE, tomcatVersion, javaVersion));
-		PlatformFilter amazonLinuxFilter = new PlatformFilter()
-				.withType("PlatformVersion")
-				.withOperator("=")
-				.withValues(amazonLinuxVersion);
-
-		List<PlatformSummary> platformSummaryList = elasticBeanstalk.listPlatformVersions(
-				new ListPlatformVersionsRequest()
-					.withFilters(tomcatJavaFilter, amazonLinuxFilter)
-			).getPlatformSummaryList();
-
-		if(platformSummaryList == null || platformSummaryList.size() != 1){
-			throw new IllegalArgumentException("There should only be 1 result matching your elastic beanstalk platform parameters");
-		}
-
-		return platformSummaryList.get(0).getPlatformArn();
-	}
 }
