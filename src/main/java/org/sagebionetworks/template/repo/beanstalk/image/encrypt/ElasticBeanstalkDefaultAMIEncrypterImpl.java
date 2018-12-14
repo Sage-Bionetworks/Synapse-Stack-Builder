@@ -18,23 +18,19 @@ import com.amazonaws.services.elasticbeanstalk.model.PlatformDescription;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformFilter;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import com.google.inject.Inject;
-import org.apache.logging.log4j.Logger;
-import org.sagebionetworks.template.LoggerFactory;
 
 public class ElasticBeanstalkDefaultAMIEncrypterImpl implements ElasticBeanstalkDefaultAMIEncrypter {
 	AWSElasticBeanstalk elasticBeanstalk;
 	AmazonEC2 ec2;
-	Logger logger;
 
 	static final String PLATFORM_NAME_TEMPLATE =  "Tomcat %s with Java %s running on 64bit Amazon Linux";
 	static final String AMI_VIRTUALIZATION_TYPE = "hvm";
 	static final String SOURCE_AMI_TAG_KEY = "CopiedFrom";
 
 	@Inject
-	public ElasticBeanstalkDefaultAMIEncrypterImpl(AWSElasticBeanstalk elasticBeanstalk, AmazonEC2 ec2, LoggerFactory loggerFactory) {
+	public ElasticBeanstalkDefaultAMIEncrypterImpl(AWSElasticBeanstalk elasticBeanstalk, AmazonEC2 ec2) {
 		this.elasticBeanstalk = elasticBeanstalk;
 		this.ec2 = ec2;
-		this.logger = loggerFactory.getLogger(ElasticBeanstalkDefaultAMIEncrypterImpl.class);
 	}
 
 	@Override
@@ -122,7 +118,6 @@ public class ElasticBeanstalkDefaultAMIEncrypterImpl implements ElasticBeanstalk
 				.withTags(new Tag()
 						.withKey(SOURCE_AMI_TAG_KEY)
 						.withValue(defaultAMI)));
-
 		return encryptedCopyAmiId;
 	}
 
