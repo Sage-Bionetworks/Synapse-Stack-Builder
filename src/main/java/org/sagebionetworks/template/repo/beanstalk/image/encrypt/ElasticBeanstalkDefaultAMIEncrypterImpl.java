@@ -1,5 +1,9 @@
 package org.sagebionetworks.template.repo.beanstalk.image.encrypt;
 
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT;
+
 import java.util.List;
 
 import com.amazonaws.regions.Regions;
@@ -18,37 +22,32 @@ import com.amazonaws.services.elasticbeanstalk.model.PlatformDescription;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformFilter;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import com.google.inject.Inject;
+import org.sagebionetworks.template.Configuration;
 
 public class ElasticBeanstalkDefaultAMIEncrypterImpl implements ElasticBeanstalkDefaultAMIEncrypter {
 	AWSElasticBeanstalk elasticBeanstalk;
 	AmazonEC2 ec2;
+	Configuration config;
+
 
 	static final String PLATFORM_NAME_TEMPLATE =  "Tomcat %s with Java %s running on 64bit Amazon Linux";
 	static final String AMI_VIRTUALIZATION_TYPE = "hvm";
 	static final String SOURCE_AMI_TAG_KEY = "CopiedFrom";
 
 	@Inject
-	public ElasticBeanstalkDefaultAMIEncrypterImpl(AWSElasticBeanstalk elasticBeanstalk, AmazonEC2 ec2) {
+	public ElasticBeanstalkDefaultAMIEncrypterImpl(AWSElasticBeanstalk elasticBeanstalk, AmazonEC2 ec2, Configuration config) {
 		this.elasticBeanstalk = elasticBeanstalk;
 		this.ec2 = ec2;
+		this.config = config;
 	}
 
 	@Override
-	public ElasticBeanstalkEncryptedPlatformInfo getEncryptedElasticBeanstalkAMI(String javaVersion, String tomcatVersion, String amazonLinuxVersion){
-		if(javaVersion == null){
-			throw new IllegalArgumentException("javaVersion cannot be null");
-		}
-
-		if(tomcatVersion == null){
-			throw new IllegalArgumentException("tomcatVersion cannot be null");
-		}
-
-		if (amazonLinuxVersion == null){
-			throw new IllegalArgumentException("amazonLinuxVersion cannot be null");
-		}
-
-		//find the ARN of the platform from passed in parameters
-		String platformArn= getPlatformArn(javaVersion, tomcatVersion, amazonLinuxVersion);
+	public ElasticBeanstalkEncryptedPlatformInfo getEncryptedElasticBeanstalkAMI(){
+		//find the ARN of the platform from versions in the config
+		String platformArn= getPlatformArn(
+				config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA),
+				config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT),
+				config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX));
 
 		//use the platformArn to retrieve the platform's AMI image id
 		PlatformDescription description = elasticBeanstalk.describePlatformVersion(
@@ -64,6 +63,18 @@ public class ElasticBeanstalkDefaultAMIEncrypterImpl implements ElasticBeanstalk
 
 
 	String getPlatformArn(String javaVersion, String tomcatVersion, String amazonLinuxVersion) {
+		if(javaVersion == null){
+			throw new IllegalArgumentException("javaVersion cannot be null");
+		}
+
+		if(tomcatVersion == null){
+			throw new IllegalArgumentException("tomcatVersion cannot be null");
+		}
+
+		if (amazonLinuxVersion == null){
+			throw new IllegalArgumentException("amazonLinuxVersion cannot be null");
+		}
+
 		//filters to be used for finding platform arn
 		PlatformFilter tomcatJavaFilter = new PlatformFilter()
 				.withType("PlatformName")

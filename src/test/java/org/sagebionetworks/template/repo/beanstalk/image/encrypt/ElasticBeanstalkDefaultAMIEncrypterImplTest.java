@@ -6,6 +6,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.any;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT;
 import static org.sagebionetworks.template.repo.beanstalk.image.encrypt.ElasticBeanstalkDefaultAMIEncrypterImpl.AMI_VIRTUALIZATION_TYPE;
 import static org.sagebionetworks.template.repo.beanstalk.image.encrypt.ElasticBeanstalkDefaultAMIEncrypterImpl.SOURCE_AMI_TAG_KEY;
 
@@ -31,6 +34,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.sagebionetworks.template.Configuration;
 import org.sagebionetworks.template.LoggerFactory;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -40,6 +44,9 @@ public class ElasticBeanstalkDefaultAMIEncrypterImplTest {
 
 	@Mock
 	AmazonEC2Client mockEc2Client;
+
+	@Mock
+	Configuration mockConfig;
 
 	ElasticBeanstalkDefaultAMIEncrypterImpl encrypter;
 
@@ -52,7 +59,7 @@ public class ElasticBeanstalkDefaultAMIEncrypterImplTest {
 
 	@Before
 	public void setUp(){
-		encrypter = new ElasticBeanstalkDefaultAMIEncrypterImpl(mockElasticBeanstalkClient, mockEc2Client);
+		encrypter = new ElasticBeanstalkDefaultAMIEncrypterImpl(mockElasticBeanstalkClient, mockEc2Client, mockConfig);
 		platformDescription = new PlatformDescription()
 				.withSolutionStackName(solutionStackName)
 				.withCustomAmiList(
@@ -68,23 +75,14 @@ public class ElasticBeanstalkDefaultAMIEncrypterImplTest {
 				.thenReturn(new CopyImageResult().withImageId(copiedImageId));
 		when(mockElasticBeanstalkClient.listPlatformVersions(any(ListPlatformVersionsRequest.class)))
 				.thenReturn(new ListPlatformVersionsResult().withPlatformSummaryList(new PlatformSummary().withPlatformArn(platformArn)));
-	}
+
+		when(mockConfig.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("-42");
+		when(mockConfig.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9000.1");
+		when(mockConfig.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("1.2.3");
 
 
-	@Test (expected = IllegalArgumentException.class)
-	public void testGetEncryptedElasticBeanstalkAMI_nullJavaVersion(){
-		encrypter.getEncryptedElasticBeanstalkAMI(null, "9000.1", "1.2.3");
 	}
 
-	@Test (expected = IllegalArgumentException.class)
-	public void testGetEncryptedElasticBeanstalkAMI_nullTomcatVersion(){
-		encrypter.getEncryptedElasticBeanstalkAMI("-42", null, "1.2.3");
-	}
-
-	@Test (expected = IllegalArgumentException.class)
-	public void testGetEncryptedElasticBeanstalkAMI_nullAmazonLinuxVersion(){
-		encrypter.getEncryptedElasticBeanstalkAMI("-42", "9000.1", null);
-	}
 
 	@Test
 	public void testGetEncryptedElasticBeanstalkAMI(){
@@ -93,12 +91,26 @@ public class ElasticBeanstalkDefaultAMIEncrypterImplTest {
 
 		ElasticBeanstalkEncryptedPlatformInfo expectedInfo = new ElasticBeanstalkEncryptedPlatformInfo(copiedImageId, solutionStackName);
 		//method under test
-		assertEquals(expectedInfo, encrypter.getEncryptedElasticBeanstalkAMI("-42", "9000.1", "1.2.3"));
+		assertEquals(expectedInfo, encrypter.getEncryptedElasticBeanstalkAMI());
 	}
 
+	@Test (expected = IllegalArgumentException.class)
+	public void testGetEncryptedElasticBeanstalkAMI_nullJavaVersion(){
+		encrypter.getPlatformArn(null, "9000.1", "1.2.3");
+	}
 
 	@Test (expected = IllegalArgumentException.class)
-	public void testFindDefaultPlatformAmi__noResults(){
+	public void testGetEncryptedElasticBeanstalkAMI_nullTomcatVersion(){
+		encrypter.getPlatformArn("-42", null, "1.2.3");
+	}
+
+	@Test (expected = IllegalArgumentException.class)
+	public void testGetEncryptedElasticBeanstalkAMI_nullAmazonLinuxVersion(){
+		encrypter.getPlatformArn("-42", "9000.1", null);
+	}
+
+	@Test (expected = IllegalArgumentException.class)
+	public void testGetPlatformArn__noResults(){
 		when(mockElasticBeanstalkClient.listPlatformVersions(any(ListPlatformVersionsRequest.class)))
 				.thenReturn(new ListPlatformVersionsResult());
 
@@ -107,7 +119,7 @@ public class ElasticBeanstalkDefaultAMIEncrypterImplTest {
 	}
 
 	@Test
-	public void testFindDefaultPlatformAmi__resultFound(){
+	public void testGetPlatformArn__resultFound(){
 		//method under test
 		String arnResult = encrypter.getPlatformArn("1", "2", "3");
 

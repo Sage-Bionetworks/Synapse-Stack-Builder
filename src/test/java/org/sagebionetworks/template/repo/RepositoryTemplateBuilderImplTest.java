@@ -181,7 +181,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
 		when(mockSecretBuilder.getCMKAlias()).thenReturn(keyAlias);
 
-		when(mockElasticBeanstalkDefaultAMIEncrypter.getEncryptedElasticBeanstalkAMI(anyString(), anyString(), anyString()))
+		when(mockElasticBeanstalkDefaultAMIEncrypter.getEncryptedElasticBeanstalkAMI())
 				.thenReturn(new ElasticBeanstalkEncryptedPlatformInfo("ami-123", "fake stack"));
 	}
 

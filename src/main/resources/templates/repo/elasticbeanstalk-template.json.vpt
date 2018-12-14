@@ -46,6 +46,16 @@
 					},
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
+						"OptionName": "RootVolumeType",
+						"Value": "gp2"
+					},
+					{
+						"Namespace": "aws:autoscaling:launchconfiguration",
+						"OptionName": "RootVolumeSize",
+						"Value": "160"
+					},
+					{
+						"Namespace": "aws:autoscaling:launchconfiguration",
 						"OptionName": "EC2KeyName",
 						"Value": "${stack}-key-pair"
 					},
@@ -336,7 +346,7 @@
 					{
 						"Namespace": "aws:elasticbeanstalk:container:tomcat:jvmoptions",
 						"OptionName": "Xmx",
-						"Value": "1024m"
+						"Value": "3328m"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",

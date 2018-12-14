@@ -16,7 +16,6 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MIN_
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_NUMBER;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERSION;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS;
@@ -157,10 +156,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		context.put(STACK_CMK_ALIAS, secretBuilder.getCMKAlias());
 
 		//use encrypted copies of the default elasticbeanstalk AMI
-		ElasticBeanstalkEncryptedPlatformInfo elasticBeanstalkEncryptedPlatformInfo = elasticBeanstalkDefaultAMIEncrypter.getEncryptedElasticBeanstalkAMI(
-				config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION + "java"),
-				config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION + "tomcat"),
-				config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION + "amazonlinux"));
+		ElasticBeanstalkEncryptedPlatformInfo elasticBeanstalkEncryptedPlatformInfo = elasticBeanstalkDefaultAMIEncrypter.getEncryptedElasticBeanstalkAMI();
 		context.put(SOLUTION_STACK_NAME, elasticBeanstalkEncryptedPlatformInfo.getSolutionStackName());
 		context.put(ENCRYPTED_AMI_IMAGE_ID, elasticBeanstalkEncryptedPlatformInfo.getEncryptedAmiId());
 		return context;
