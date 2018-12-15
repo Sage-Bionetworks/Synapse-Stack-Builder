@@ -3,7 +3,7 @@ package org.sagebionetworks.template.repo;
 import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
-import static org.sagebionetworks.template.Constants.DEFAULT_REPO_PROPERTIES;
+import static org.sagebionetworks.template.Constants.ENCRYPTED_AMI_IMAGE_ID;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
@@ -28,6 +28,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_COL
 import static org.sagebionetworks.template.Constants.REPO_BEANSTALK_NUMBER;
 import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.SHARED_RESOUCES_STACK_NAME;
+import static org.sagebionetworks.template.Constants.SOLUTION_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
 import static org.sagebionetworks.template.Constants.TEMPALTE_BEAN_STALK_ENVIRONMENT;
@@ -47,11 +48,12 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.sagebionetworks.template.CloudFormationClient;
-import org.sagebionetworks.template.Configuration;
+import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
+import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
@@ -62,6 +64,8 @@ import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.google.inject.Inject;
+import org.sagebionetworks.template.repo.beanstalk.image.encrypt.ElasticBeanstalkDefaultAMIEncrypter;
+import org.sagebionetworks.template.repo.beanstalk.image.encrypt.ElasticBeanstalkEncryptedPlatformInfo;
 
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
 
@@ -73,21 +77,23 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	SecretBuilder secretBuilder;
 	WebACLBuilder aclBuilder;
 	Set<VelocityContextProvider> contextProviders;
+	ElasticBeanstalkDefaultAMIEncrypter elasticBeanstalkDefaultAMIEncrypter;
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
-			Configuration configuration, LoggerFactory loggerFactory, ArtifactCopy artifactCopy,
-			SecretBuilder secretBuilder, WebACLBuilder aclBuilder, Set<VelocityContextProvider> contextProviders) {
+										 RepoConfiguration configuration, LoggerFactory loggerFactory, ArtifactCopy artifactCopy,
+										 SecretBuilder secretBuilder, WebACLBuilder aclBuilder, Set<VelocityContextProvider> contextProviders,
+										 ElasticBeanstalkDefaultAMIEncrypter elasticBeanstalkDefaultAMIEncrypter) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.velocityEngine = velocityEngine;
 		this.config = configuration;
-		this.config.initializeWithDefaults(DEFAULT_REPO_PROPERTIES);
 		this.logger = loggerFactory.getLogger(RepositoryTemplateBuilderImpl.class);
 		this.artifactCopy = artifactCopy;
 		this.secretBuilder = secretBuilder;
 		this.aclBuilder = aclBuilder;
 		this.contextProviders = contextProviders;
+		this.elasticBeanstalkDefaultAMIEncrypter = elasticBeanstalkDefaultAMIEncrypter;
 	}
 
 	@Override
@@ -147,6 +153,11 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		context.put(DB_ENDPOINT_SUFFIX, extractDatabaseSuffix(sharedStackResults));
 		context.put(ENVIRONMENT, environment);
 		context.put(STACK_CMK_ALIAS, secretBuilder.getCMKAlias());
+
+		//use encrypted copies of the default elasticbeanstalk AMI
+		ElasticBeanstalkEncryptedPlatformInfo elasticBeanstalkEncryptedPlatformInfo = elasticBeanstalkDefaultAMIEncrypter.getEncryptedElasticBeanstalkAMI();
+		context.put(SOLUTION_STACK_NAME, elasticBeanstalkEncryptedPlatformInfo.getSolutionStackName());
+		context.put(ENCRYPTED_AMI_IMAGE_ID, elasticBeanstalkEncryptedPlatformInfo.getEncryptedAmiId());
 		return context;
 	}
 

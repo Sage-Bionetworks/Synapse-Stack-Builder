@@ -7,7 +7,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.*;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
@@ -41,19 +40,12 @@ import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import org.apache.logging.log4j.Logger;
-import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
@@ -65,18 +57,19 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sagebionetworks.template.CloudFormationClient;
-import org.sagebionetworks.template.Configuration;
+import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.TemplateGuiceModule;
+import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
-import org.sagebionetworks.template.repo.queues.SnsAndSqsConfig;
-import org.sagebionetworks.template.repo.queues.SnsAndSqsVelocityContextProvider;
+import org.sagebionetworks.template.repo.beanstalk.image.encrypt.ElasticBeanstalkDefaultAMIEncrypter;
+import org.sagebionetworks.template.repo.beanstalk.image.encrypt.ElasticBeanstalkEncryptedPlatformInfo;
 import org.sagebionetworks.template.vpc.Color;
 
 import com.amazonaws.services.cloudformation.model.Output;
@@ -90,7 +83,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Mock
 	CloudFormationClient mockCloudFormationClient;
 	@Mock
-	Configuration config;
+	RepoConfiguration config;
 	@Mock
 	LoggerFactory mockLoggerFactory;
 	@Mock
@@ -105,6 +98,8 @@ public class RepositoryTemplateBuilderImplTest {
 	VelocityContextProvider mockContextProvider1;
 	@Mock
 	VelocityContextProvider mockContextProvider2;
+	@Mock
+	ElasticBeanstalkDefaultAMIEncrypter mockElasticBeanstalkDefaultAMIEncrypter;
 
 	@Captor
 	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
@@ -133,7 +128,8 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
-				mockArtifactCopy, mockSecretBuilder, mockACLBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2));
+				mockArtifactCopy, mockSecretBuilder, mockACLBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
+				mockElasticBeanstalkDefaultAMIEncrypter);
 
 		stack = "dev";
 		instance = "101";
@@ -185,6 +181,9 @@ public class RepositoryTemplateBuilderImplTest {
 		
 		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
 		when(mockSecretBuilder.getCMKAlias()).thenReturn(keyAlias);
+
+		when(mockElasticBeanstalkDefaultAMIEncrypter.getEncryptedElasticBeanstalkAMI())
+				.thenReturn(new ElasticBeanstalkEncryptedPlatformInfo("ami-123", "fake stack"));
 	}
 
 	@Test

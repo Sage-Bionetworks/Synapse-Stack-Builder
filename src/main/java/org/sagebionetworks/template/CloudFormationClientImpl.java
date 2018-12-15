@@ -6,6 +6,7 @@ import java.util.UUID;
 import java.util.function.Function;
 
 import org.apache.logging.log4j.Logger;
+import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;

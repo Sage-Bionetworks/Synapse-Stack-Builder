@@ -10,8 +10,8 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_INS
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sagebionetworks.template.Configuration;
-import org.sagebionetworks.template.ConfigurationImpl;
+import org.sagebionetworks.template.config.Configuration;
+import org.sagebionetworks.template.config.ConfigurationImpl;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 
 public class ConfigurationImplTest {

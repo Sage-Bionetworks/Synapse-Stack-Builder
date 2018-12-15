@@ -65,6 +65,12 @@ public class Constants {
 	public static final String PROPERTY_KEY_REPOSITORY_DATABASE_PASSWORD = "org.sagebionetworks.repository.database.password";
 	public static final String PROPERTY_KEY_ID_GENERATOR_DATABASE_PASSWORD = "org.sagebionetworks.id.generator.database.password";
 
+	private static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX = "org.sagebionetworks.beanstalk.image.version.";
+	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA = PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX + "java";
+	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT = PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX + "tomcat";
+	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX = PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX + "amazonlinux";
+
+
 	// templates
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
 	public static final String TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";
@@ -116,6 +122,9 @@ public class Constants {
 
 	public static final String SNS_TOPIC_DESCRIPTORS = "snsTopicDescriptors";
 	public static final String SQS_QUEUE_DESCRIPTORS = "sqsQueueDescriptors";
+
+	public static final String SOLUTION_STACK_NAME = "solutionStackName";
+	public static final String ENCRYPTED_AMI_IMAGE_ID = "encryptedImageId";
 
 
 	/**

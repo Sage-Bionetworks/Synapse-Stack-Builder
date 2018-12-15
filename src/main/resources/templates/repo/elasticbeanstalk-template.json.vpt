@@ -22,7 +22,7 @@
 					"Fn::ImportValue": "${sharedExportPrefix}-Beanstalk-Application-Name"
 				},
 				"Description": "ConfigurationTemplate for ${environment.name}",
-				"SolutionStackName": "64bit Amazon Linux 2018.03 v3.0.5 running Tomcat 8.5 Java 8",
+				"SolutionStackName": ${solutionStackName},
 				"OptionSettings": [
 					{
 						"Namespace": "aws:autoscaling:asg",
@@ -41,6 +41,21 @@
 					},
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
+						"OptionName": "ImageId",
+						"Value": "${encryptedImageId}"
+					},
+					{
+						"Namespace": "aws:autoscaling:launchconfiguration",
+						"OptionName": "RootVolumeType",
+						"Value": "gp2"
+					},
+					{
+						"Namespace": "aws:autoscaling:launchconfiguration",
+						"OptionName": "RootVolumeSize",
+						"Value": "160"
+					},
+					{
+						"Namespace": "aws:autoscaling:launchconfiguration",
 						"OptionName": "EC2KeyName",
 						"Value": "${stack}-key-pair"
 					},
@@ -52,7 +67,7 @@
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
 						"OptionName": "InstanceType",
-						"Value": "m1.small"
+						"Value": "m3.medium"
 					},
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
@@ -331,7 +346,7 @@
 					{
 						"Namespace": "aws:elasticbeanstalk:container:tomcat:jvmoptions",
 						"OptionName": "Xmx",
-						"Value": "1024m"
+						"Value": "3328m"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",

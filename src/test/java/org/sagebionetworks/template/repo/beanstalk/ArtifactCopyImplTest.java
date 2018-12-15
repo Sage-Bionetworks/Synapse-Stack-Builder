@@ -16,12 +16,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sagebionetworks.template.Configuration;
+import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.LoggerFactory;
-import org.sagebionetworks.template.repo.beanstalk.ArtifactCopyImpl;
-import org.sagebionetworks.template.repo.beanstalk.ArtifactDownload;
-import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
-import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilder;
 
 import com.amazonaws.AmazonServiceException;

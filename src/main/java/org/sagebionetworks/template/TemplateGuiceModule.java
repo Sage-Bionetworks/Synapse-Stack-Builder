@@ -4,12 +4,20 @@ import static org.sagebionetworks.template.Constants.SNS_AND_SQS_CONFIG_FILE;
 
 import java.io.IOException;
 
+import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
+import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
+import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClientBuilder;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.apache.velocity.runtime.resource.loader.FileResourceLoader;
+import org.sagebionetworks.template.config.Configuration;
+import org.sagebionetworks.template.config.ConfigurationImpl;
+import org.sagebionetworks.template.config.RepoConfiguration;
+import org.sagebionetworks.template.config.RepoConfigurationImpl;
 import org.sagebionetworks.template.repo.IdGeneratorBuilder;
 import org.sagebionetworks.template.repo.IdGeneratorBuilderImpl;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
@@ -23,6 +31,8 @@ import org.sagebionetworks.template.repo.beanstalk.ArtifactDownload;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactDownloadImpl;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilderImpl;
+import org.sagebionetworks.template.repo.beanstalk.image.encrypt.ElasticBeanstalkDefaultAMIEncrypter;
+import org.sagebionetworks.template.repo.beanstalk.image.encrypt.ElasticBeanstalkDefaultAMIEncrypterImpl;
 import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateBuilder;
 import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateBuilderImpl;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilder;
@@ -63,6 +73,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(CloudFormationClient.class).to(CloudFormationClientImpl.class);
 		bind(VpcTemplateBuilder.class).to(VpcTemplateBuilderImpl.class);
 		bind(Configuration.class).to(ConfigurationImpl.class);
+		bind(RepoConfiguration.class).to(RepoConfigurationImpl.class);
 		bind(LoggerFactory.class).to(LoggerFactoryImpl.class);
 		bind(RepositoryTemplateBuilder.class).to(RepositoryTemplateBuilderImpl.class);
 		bind(ArtifactDownload.class).to(ArtifactDownloadImpl.class);
@@ -75,6 +86,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(CertificateBuilder.class).to(CertificateBuilderImpl.class);
 		bind(ElasticBeanstalkExtentionBuilder.class).to(ElasticBeanstalkExtentionBuilderImpl.class);
 		bind(WarAppender.class).to(WarAppenderImpl.class);
+		bind(ElasticBeanstalkDefaultAMIEncrypter.class).to(ElasticBeanstalkDefaultAMIEncrypterImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(SnsAndSqsVelocityContextProvider.class);
@@ -126,6 +138,22 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public AmazonElasticLoadBalancing provideAmazonElasticLoadBalancing() {
 		AmazonElasticLoadBalancingClientBuilder builder = AmazonElasticLoadBalancingClientBuilder.standard();
+		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
+		builder.withRegion(Regions.US_EAST_1);
+		return builder.build();
+	}
+
+	@Provides
+	public AmazonEC2 provideAmazonEc2(){
+		AmazonEC2ClientBuilder builder = AmazonEC2ClientBuilder.standard();
+		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
+		builder.withRegion(Regions.US_EAST_1);
+		return builder.build();
+	}
+
+	@Provides
+	public AWSElasticBeanstalk provideAmazonElasticBeanstalk(){
+		AWSElasticBeanstalkClientBuilder builder = AWSElasticBeanstalkClientBuilder.standard();
 		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
 		builder.withRegion(Regions.US_EAST_1);
 		return builder.build();

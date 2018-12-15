@@ -1,4 +1,4 @@
-package org.sagebionetworks.template;
+package org.sagebionetworks.template.config;
 
 public interface Configuration {
 	
