@@ -14,6 +14,10 @@ import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.apache.velocity.runtime.resource.loader.FileResourceLoader;
+import org.sagebionetworks.template.config.Configuration;
+import org.sagebionetworks.template.config.ConfigurationImpl;
+import org.sagebionetworks.template.config.RepoConfiguration;
+import org.sagebionetworks.template.config.RepoConfigurationImpl;
 import org.sagebionetworks.template.repo.IdGeneratorBuilder;
 import org.sagebionetworks.template.repo.IdGeneratorBuilderImpl;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
@@ -69,6 +73,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(CloudFormationClient.class).to(CloudFormationClientImpl.class);
 		bind(VpcTemplateBuilder.class).to(VpcTemplateBuilderImpl.class);
 		bind(Configuration.class).to(ConfigurationImpl.class);
+		bind(RepoConfiguration.class).to(RepoConfigurationImpl.class);
 		bind(LoggerFactory.class).to(LoggerFactoryImpl.class);
 		bind(RepositoryTemplateBuilder.class).to(RepositoryTemplateBuilderImpl.class);
 		bind(ArtifactDownload.class).to(ArtifactDownloadImpl.class);

@@ -1,6 +1,5 @@
 package org.sagebionetworks.template.repo.beanstalk;
 
-import static org.sagebionetworks.template.Constants.DEFAULT_REPO_PROPERTIES;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ID_GENERATOR_DATABASE_PASSWORD;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPOSITORY_DATABASE_PASSWORD;
@@ -8,7 +7,6 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_SECRET_KEYS_CS
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -16,7 +14,7 @@ import java.util.Base64;
 import java.util.Properties;
 import java.util.StringJoiner;
 
-import org.sagebionetworks.template.Configuration;
+import org.sagebionetworks.template.config.Configuration;
 
 import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.model.EncryptRequest;
@@ -28,6 +26,7 @@ import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
 import com.google.inject.Inject;
+import org.sagebionetworks.template.config.RepoConfiguration;
 
 public class SecretBuilderImpl implements SecretBuilder {
 	
@@ -43,10 +42,9 @@ public class SecretBuilderImpl implements SecretBuilder {
 	AmazonS3 s3Client;
 	
 	@Inject
-	public SecretBuilderImpl(Configuration config, AWSSecretsManager secretManager, AWSKMS keyManager, AmazonS3 s3Client) {
+	public SecretBuilderImpl(RepoConfiguration config, AWSSecretsManager secretManager, AWSKMS keyManager, AmazonS3 s3Client) {
 		super();
 		this.config = config;
-		this.config.initializeWithDefaults(DEFAULT_REPO_PROPERTIES);
 		this.secretManager = secretManager;
 		this.keyManager = keyManager;
 		this.s3Client = s3Client;

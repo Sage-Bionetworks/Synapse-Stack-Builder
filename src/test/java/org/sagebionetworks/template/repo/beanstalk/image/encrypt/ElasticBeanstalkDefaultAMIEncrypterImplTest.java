@@ -28,14 +28,13 @@ import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest
 import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformDescription;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
-import org.apache.logging.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sagebionetworks.template.Configuration;
-import org.sagebionetworks.template.LoggerFactory;
+import org.sagebionetworks.template.config.Configuration;
+import org.sagebionetworks.template.config.RepoConfiguration;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ElasticBeanstalkDefaultAMIEncrypterImplTest {
@@ -46,7 +45,7 @@ public class ElasticBeanstalkDefaultAMIEncrypterImplTest {
 	AmazonEC2Client mockEc2Client;
 
 	@Mock
-	Configuration mockConfig;
+	RepoConfiguration mockConfig;
 
 	ElasticBeanstalkDefaultAMIEncrypterImpl encrypter;
 

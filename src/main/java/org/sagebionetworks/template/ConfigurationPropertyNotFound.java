@@ -1,5 +1,7 @@
 package org.sagebionetworks.template;
 
+import org.sagebionetworks.template.config.Configuration;
+
 /**
  * Thrown when a property can not be found for a {@link Configuration}
  */

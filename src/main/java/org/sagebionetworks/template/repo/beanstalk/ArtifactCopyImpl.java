@@ -3,7 +3,7 @@ package org.sagebionetworks.template.repo.beanstalk;
 import java.io.File;
 
 import org.apache.logging.log4j.Logger;
-import org.sagebionetworks.template.Configuration;
+import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilder;
 

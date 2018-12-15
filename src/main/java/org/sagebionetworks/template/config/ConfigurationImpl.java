@@ -1,8 +1,13 @@
-package org.sagebionetworks.template;
+package org.sagebionetworks.template.config;
 
 import static org.sagebionetworks.template.Constants.CONFIGURATION_BUCKET_TEMPLATE;
 
 import java.util.Properties;
+
+import org.sagebionetworks.template.ConfigurationPropertyNotFound;
+import org.sagebionetworks.template.Constants;
+import org.sagebionetworks.template.PropertyUtils;
+import org.sagebionetworks.template.config.Configuration;
 
 public class ConfigurationImpl implements Configuration {
 

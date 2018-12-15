@@ -22,7 +22,8 @@ import com.amazonaws.services.elasticbeanstalk.model.PlatformDescription;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformFilter;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import com.google.inject.Inject;
-import org.sagebionetworks.template.Configuration;
+import org.sagebionetworks.template.config.Configuration;
+import org.sagebionetworks.template.config.RepoConfiguration;
 
 public class ElasticBeanstalkDefaultAMIEncrypterImpl implements ElasticBeanstalkDefaultAMIEncrypter {
 	AWSElasticBeanstalk elasticBeanstalk;
@@ -35,7 +36,7 @@ public class ElasticBeanstalkDefaultAMIEncrypterImpl implements ElasticBeanstalk
 	static final String SOURCE_AMI_TAG_KEY = "CopiedFrom";
 
 	@Inject
-	public ElasticBeanstalkDefaultAMIEncrypterImpl(AWSElasticBeanstalk elasticBeanstalk, AmazonEC2 ec2, Configuration config) {
+	public ElasticBeanstalkDefaultAMIEncrypterImpl(AWSElasticBeanstalk elasticBeanstalk, AmazonEC2 ec2, RepoConfiguration config) {
 		this.elasticBeanstalk = elasticBeanstalk;
 		this.ec2 = ec2;
 		this.config = config;

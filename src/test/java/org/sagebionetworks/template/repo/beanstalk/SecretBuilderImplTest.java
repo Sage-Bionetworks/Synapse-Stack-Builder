@@ -21,7 +21,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sagebionetworks.template.Configuration;
+import org.sagebionetworks.template.config.Configuration;
 
 import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.model.EncryptRequest;
@@ -31,12 +31,13 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
+import org.sagebionetworks.template.config.RepoConfiguration;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SecretBuilderImplTest {
 	
 	@Mock
-	Configuration mockConfig;
+	RepoConfiguration mockConfig;
 	@Mock
 	AWSSecretsManager mockSecretManager;
 	@Mock
