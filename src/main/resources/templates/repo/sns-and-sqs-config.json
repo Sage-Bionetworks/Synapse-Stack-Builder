@@ -49,6 +49,12 @@
 			"oldestMessageInQueueAlarmThresholdSec": 2
 		},
 		{
+			"queueName":"COST_REPORT",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":300,
+			"oldestMessageInQueueAlarmThresholdSec": 2
+		},
+		{
 			"queueName":"ENTITY_HIERARCHY_CHANGE",
 			"subscribedTopicNames":[
 				"ENTITY_CONTAINER"
