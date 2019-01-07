@@ -49,7 +49,7 @@
 			"oldestMessageInQueueAlarmThresholdSec": 2
 		},
 		{
-			"queueName":"COST_REPORT",
+			"queueName":"STORAGE_REPORT",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":300,
 			"oldestMessageInQueueAlarmThresholdSec": 2
