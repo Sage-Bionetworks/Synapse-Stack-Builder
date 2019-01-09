@@ -71,7 +71,7 @@
 			"queueName":"BULK_FILE_DOWNLOAD",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":600,
-			"oldestMessageInQueueAlarmThresholdSec": 8
+			"oldestMessageInQueueAlarmThresholdSec": 16
 		},
 		{
 			"queueName":"FILE_UPDATE",
@@ -147,7 +147,7 @@
 			"queueName":"DOWNLOAD_CSV_FROM_TABLE",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":60,
-			"oldestMessageInQueueAlarmThresholdSec": 8
+			"oldestMessageInQueueAlarmThresholdSec": 16
 		},
 		{
 			"queueName":"TABLE_ENTITY_REPLICATION",
