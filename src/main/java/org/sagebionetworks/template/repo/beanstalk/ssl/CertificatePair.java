@@ -1,5 +1,7 @@
 package org.sagebionetworks.template.repo.beanstalk.ssl;
 
+import org.json.JSONStringer;
+
 /**
  * 
  * A X.509 public key certificate and the private key used to sign the
@@ -37,6 +39,22 @@ public class CertificatePair {
 	 */
 	public String getPrivateKeyPEM() {
 		return privateKeyPEM;
+	}
+
+	/**
+	 * JSON escaped String for X.509 public key certificate as PEM.
+	 * @return
+	 */
+	public String getJsonEscapedX509CertificatePEM() {
+		return JSONStringer.valueToString(x509CertificatePEM);
+	}
+
+	/**
+	 * JSON escaped String for private key used to sign the certificate as PEM.
+	 * @return
+	 */
+	public String getJsonEscapedPrivateKeyPEM() {
+		return JSONStringer.valueToString(privateKeyPEM);
 	}
 
 	@Override
