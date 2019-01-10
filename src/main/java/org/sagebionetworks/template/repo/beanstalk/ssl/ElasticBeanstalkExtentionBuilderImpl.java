@@ -30,7 +30,7 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 
 	public static final String TEMPLATE_EBEXTENSION_SERVER_XML = "/templates/repo/ebextensions/server.xml";
 
-	public static final String HTTPS_INSTANCE_CONFIG = "https-instance.config";
+	public static final String HTTPS_INSTANCE_CONFIG = "instance.config";
 
 	public static final String DOT_EBEXTENSIONS = ".ebextensions";
 
