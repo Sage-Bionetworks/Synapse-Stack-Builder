@@ -26,15 +26,11 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 
 	public static final String TEMPLATES_REPO_EBEXTENSIONS_HTTPS_SSL_CONF = "templates/repo/ebextensions/https-ssl.conf";
 
-	public static final String SERVER_XML = "server.xml";
-
-	public static final String TEMPLATE_EBEXTENSION_SERVER_XML = "/templates/repo/ebextensions/server.xml";
-
-	public static final String HTTPS_INSTANCE_CONFIG = "instance.config";
+	public static final String INSTANCE_CONFIG = "instance.config";
 
 	public static final String DOT_EBEXTENSIONS = ".ebextensions";
 
-	public static final String TEMPLATE_EBEXTENSIONS_HTTP_INSTANCE_CONFIG = "templates/repo/ebextensions/instance.config";
+	public static final String TEMPLATE_EBEXTENSIONS_INSTANCE_CONFIG = "templates/repo/ebextensions/instance.config";
 
 	CertificateBuilder certificateBuilder;
 	VelocityEngine velocityEngine;
@@ -74,8 +70,8 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 				File confDDirectory = fileProvider.createNewFile(ebextensionsDirectory, HTTPD_CONF_D);
 				confDDirectory.mkdirs();
 				// https-instance.config
-				Template httpInstanceTempalte = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_HTTP_INSTANCE_CONFIG);
-				File resultFile = fileProvider.createNewFile(ebextensionsDirectory, HTTPS_INSTANCE_CONFIG);
+				Template httpInstanceTempalte = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_INSTANCE_CONFIG);
+				File resultFile = fileProvider.createNewFile(ebextensionsDirectory, INSTANCE_CONFIG);
 				addTemplateAsFileToDirectory(httpInstanceTempalte, context, resultFile);
 				// SSL conf
 				resultFile = fileProvider.createNewFile(confDDirectory, SSL_CONF);
