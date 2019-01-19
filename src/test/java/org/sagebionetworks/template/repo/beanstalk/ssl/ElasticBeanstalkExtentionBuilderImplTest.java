@@ -54,6 +54,7 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 
 	StringWriter configWriter;
 	StringWriter sslConfWriter;
+	StringWriter modSecurityConfWriter;
 
 	String bucketName;
 	String x509CertificatePem;
@@ -78,7 +79,8 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		when(fileProvider.createNewFile(any(File.class), any(String.class))).thenReturn(mockFile);
 		configWriter = new StringWriter();
 		sslConfWriter = new StringWriter();
-		when(fileProvider.createFileWriter(any(File.class))).thenReturn(configWriter, sslConfWriter);
+		modSecurityConfWriter = new StringWriter();
+		when(fileProvider.createFileWriter(any(File.class))).thenReturn(configWriter, sslConfWriter, modSecurityConfWriter);
 		bucketName = "someBucket";
 		when(configuration.getConfigurationBucket()).thenReturn(bucketName);
 		x509CertificatePem = "x509pem";
@@ -101,6 +103,9 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		String sslConf = sslConfWriter.toString();
 		assertTrue(sslConf.contains("/etc/pki/tls/certs/server.crt"));
 		assertTrue(sslConf.contains("/etc/pki/tls/certs/server.key"));
+		//mod_security conf
+		String modSecurityConf = modSecurityConfWriter.toString();
+		assertTrue(modSecurityConf.contains("SecServerSignature"));
 	}
 
 }

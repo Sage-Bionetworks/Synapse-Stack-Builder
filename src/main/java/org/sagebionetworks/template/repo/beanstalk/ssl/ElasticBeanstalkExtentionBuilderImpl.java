@@ -22,9 +22,13 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 
 	public static final String SSL_CONF = "ssl.conf";
 
+	public static final String MOD_SECURITY_CONF = "mod_security.conf";
+
 	public static final String HTTPD_CONF_D = "httpd/conf.d";
 
 	public static final String TEMPLATES_REPO_EBEXTENSIONS_HTTPS_SSL_CONF = "templates/repo/ebextensions/https-ssl.conf";
+
+	public static final String TEMPLATES_REPO_EBEXTENSIONS_MOD_SECURITY_CONF = "templates/repo/ebextensions/mod_security.conf";
 
 	public static final String INSTANCE_CONFIG = "instance.config";
 
@@ -77,6 +81,10 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 				resultFile = fileProvider.createNewFile(confDDirectory, SSL_CONF);
 				Template sslconf = velocityEngine.getTemplate(TEMPLATES_REPO_EBEXTENSIONS_HTTPS_SSL_CONF);
 				addTemplateAsFileToDirectory(sslconf, context, resultFile);
+				// ModSecurity conf
+				resultFile = fileProvider.createNewFile(confDDirectory, MOD_SECURITY_CONF);
+				Template modSecurityConf = velocityEngine.getTemplate(TEMPLATES_REPO_EBEXTENSIONS_MOD_SECURITY_CONF);
+				addTemplateAsFileToDirectory(modSecurityConf, context, resultFile);
 			}
 		});
 
@@ -88,8 +96,7 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 	 * 
 	 * @param tempalte
 	 * @param context
-	 * @param destinationDirectory
-	 * @param resultFileName
+	 * @param resultFile
 	 */
 	public void addTemplateAsFileToDirectory(Template tempalte, VelocityContext context, File resultFile) {
 		try (Writer writer = fileProvider
