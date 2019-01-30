@@ -12,6 +12,9 @@ public class DatabaseDescriptor {
 	String instanceIdentifier;
 	String dbName;
 	boolean multiAZ;
+	// default to standard (magnetic)
+	DatabaseStorageType dbStorageType = DatabaseStorageType.standard;
+	int dbIops = -1;
 
 	/**
 	 * The name of the database instances template resource.
@@ -136,13 +139,55 @@ public class DatabaseDescriptor {
 		this.multiAZ = multiAZ;
 		return this;
 	}
+	
+	/**
+	 * See: https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_CreateDBInstance.html
+	 * @return
+	 */
+	public String getDbStorageType() {
+		return dbStorageType.name();
+	}
+
+	/**
+	 * See: https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_CreateDBInstance.html
+	 * @param dbStorageType
+	 * @return
+	 */
+	public DatabaseDescriptor withDbStorageType(String dbStorageType) {
+		if(dbStorageType == null) {
+			throw new IllegalArgumentException("DatabaseStorageType cannot be null");
+		}
+		this.dbStorageType = DatabaseStorageType.valueOf(dbStorageType);
+		return this;
+	}
+
+	/**
+	 * @return
+	 */
+	public int getDbIops() {
+		return dbIops;
+	}
+
+	/**
+	 * See: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html#USER_PIOPS
+	 * 
+	 * A value of less than zero will be ignored.
+	 * @param dbIops
+	 * @return
+	 */
+	public DatabaseDescriptor withDbIops(int dbIops) {
+		this.dbIops = dbIops;
+		return this;
+	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + allocatedStorage;
+		result = prime * result + dbIops;
 		result = prime * result + ((dbName == null) ? 0 : dbName.hashCode());
+		result = prime * result + ((dbStorageType == null) ? 0 : dbStorageType.hashCode());
 		result = prime * result + ((instanceClass == null) ? 0 : instanceClass.hashCode());
 		result = prime * result + ((instanceIdentifier == null) ? 0 : instanceIdentifier.hashCode());
 		result = prime * result + (multiAZ ? 1231 : 1237);
@@ -161,10 +206,14 @@ public class DatabaseDescriptor {
 		DatabaseDescriptor other = (DatabaseDescriptor) obj;
 		if (allocatedStorage != other.allocatedStorage)
 			return false;
+		if (dbIops != other.dbIops)
+			return false;
 		if (dbName == null) {
 			if (other.dbName != null)
 				return false;
 		} else if (!dbName.equals(other.dbName))
+			return false;
+		if (dbStorageType != other.dbStorageType)
 			return false;
 		if (instanceClass == null) {
 			if (other.instanceClass != null)
@@ -190,7 +239,8 @@ public class DatabaseDescriptor {
 	public String toString() {
 		return "DatabaseDescriptor [resourceName=" + resourceName + ", allocatedStorage=" + allocatedStorage
 				+ ", instanceClass=" + instanceClass + ", instanceIdentifier=" + instanceIdentifier + ", dbName="
-				+ dbName + ", multiAZ=" + multiAZ + "]";
+				+ dbName + ", multiAZ=" + multiAZ + ", dbStorageType=" + dbStorageType + ", dbIops=" + dbIops + "]";
 	}
+
 
 }

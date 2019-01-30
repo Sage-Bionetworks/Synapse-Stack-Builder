@@ -1,6 +1,6 @@
 package org.sagebionetworks.template.repo;
 
-import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
+import static org.sagebionetworks.template.Constants.*;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.ENCRYPTED_AMI_IMAGE_ID;
@@ -228,6 +228,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				.withAllocatedStorage(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE))
 				.withInstanceIdentifier(stack + "-" + instance + "-db").withDbName(stack + instance)
 				.withInstanceClass(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS))
+				.withDbStorageType(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE))
+				.withDbIops(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS))
 				.withMultiAZ(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ));
 
 		// Describe each table database
@@ -235,6 +237,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 			results[i + 1] = new DatabaseDescriptor().withResourceName(stack + instance + "Table" + i + "RepositoryDB")
 					.withAllocatedStorage(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE))
 					.withInstanceIdentifier(stack + "-" + instance + "-table-" + i).withDbName(stack + instance)
+					.withDbStorageType(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE))
+					.withDbIops(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS))
 					.withInstanceClass(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).withMultiAZ(false);
 		}
 		return results;

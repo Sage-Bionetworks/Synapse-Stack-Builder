@@ -144,10 +144,14 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE)).thenReturn(4);
 		when(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS)).thenReturn("db.t2.small");
 		when(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
+		when(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.standard.name());
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS)).thenReturn(-1);
 
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_INSTANCE_COUNT)).thenReturn(2);
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).thenReturn("db.t2.micro");
+		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
@@ -297,6 +301,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("db.t2.small", desc.getInstanceClass());
 		assertEquals("dev-101-db", desc.getInstanceIdentifier());
 		assertEquals("dev101RepositoryDB", desc.getResourceName());
+		assertEquals(DatabaseStorageType.standard.name(), desc.getDbStorageType());
+		assertEquals(-1, desc.getDbIops());
 
 		// table zero
 		desc = descriptors[1];
@@ -305,6 +311,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("db.t2.micro", desc.getInstanceClass());
 		assertEquals("dev-101-table-0", desc.getInstanceIdentifier());
 		assertEquals("dev101Table0RepositoryDB", desc.getResourceName());
+		assertEquals(DatabaseStorageType.io1.name(), desc.getDbStorageType());
+		assertEquals(1000, desc.getDbIops());
 		// table one
 		desc = descriptors[2];
 		assertEquals(3, desc.getAllocatedStorage());
@@ -312,6 +320,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("db.t2.micro", desc.getInstanceClass());
 		assertEquals("dev-101-table-1", desc.getInstanceIdentifier());
 		assertEquals("dev101Table1RepositoryDB", desc.getResourceName());
+		assertEquals(DatabaseStorageType.io1.name(), desc.getDbStorageType());
+		assertEquals(1000, desc.getDbIops());
 
 		verify(mockContextProvider1).addToContext(context);
 		verify(mockContextProvider2).addToContext(context);
