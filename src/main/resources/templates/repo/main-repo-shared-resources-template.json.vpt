@@ -104,8 +104,10 @@
 				"PreferredBackupWindow": "3:00-6:00",
 				"PreferredMaintenanceWindow": "Mon:07:15-Mon:07:45",
 				"PubliclyAccessible": false,
-				"StorageType": "io1",
-				"Iops": 1000,
+				"StorageType": "${descriptor.dbStorageType}",
+				#if (${descriptor.dbIops} > 0)
+				"Iops": ${descriptor.dbIops},
+				#end
 				"VPCSecurityGroups": [
 					{
 						"Ref": "${stack}${instance}VpcDBSecurityGroup"
