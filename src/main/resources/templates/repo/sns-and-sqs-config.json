@@ -77,7 +77,7 @@
 			"queueName":"BULK_FILE_DOWNLOAD",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":600,
-			"oldestMessageInQueueAlarmThresholdSec": 16
+			"oldestMessageInQueueAlarmThresholdSec": 32
 		},
 		{
 			"queueName":"FILE_UPDATE",
