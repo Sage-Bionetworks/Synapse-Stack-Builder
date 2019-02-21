@@ -61,7 +61,7 @@
 			"Type": "AWS::RDS::DBParameterGroup",
 			"Properties": {
 				"Description": "Shared MySQL database parameters",
-				"Family": "mysql5.6",
+				"Family": "mysql8.0",
 				"Parameters": {
 					"slow_query_log": "1",
 					"long_query_time": "1",
