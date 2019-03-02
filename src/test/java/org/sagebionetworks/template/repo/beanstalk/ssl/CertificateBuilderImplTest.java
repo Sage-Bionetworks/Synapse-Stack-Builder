@@ -73,7 +73,7 @@ public class CertificateBuilderImplTest {
 		// expire in one one year
 		long msPerYear = 1000L*60L*60L*24L*365L;
 		long period = certificate.getNotAfter().getTime() - certificate.getNotBefore().getTime();
-		assertEquals(msPerYear, period);
+		assertTrue(period >= msPerYear );
 		assertNotNull(certificate.getSerialNumber());
 		assertNotNull(certificate.getPublicKey());
 		assertEquals("X.509", certificate.getPublicKey().getFormat());
