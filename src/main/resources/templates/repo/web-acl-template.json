@@ -357,7 +357,7 @@
 				"Rules": [
 					{
 						"Action": {
-							"Type": "COUNT"
+							"Type": "BLOCK"
 						},
 						"Priority": 1,
 						"RuleId": {
