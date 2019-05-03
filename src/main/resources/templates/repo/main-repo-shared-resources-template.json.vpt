@@ -95,6 +95,7 @@
 				},
 				"Engine": "MySQL",
 				"EngineVersion": "8.0.11",
+				"EnablePerformanceInsights": true,
 				"LicenseModel": "general-public-license",
 				"MasterUsername": "${stack}${instance}user",
 				"MasterUserPassword": {
