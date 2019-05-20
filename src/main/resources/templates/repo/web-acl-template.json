@@ -59,10 +59,10 @@
 				]
 			}
 		},
-		"${stack}${instance}SQLInjectionSet": {
+		"${stack}${instance}URISQLInjectionSet": {
 			"Type": "AWS::WAFRegional::SqlInjectionMatchSet",
 			"Properties": {
-				"Name": "${stack}-${instance}-SQL-Injection-Set",
+				"Name": "${stack}-${instance}-URI-SQL-Injection-Set",
 				"SqlInjectionMatchTuples": [
 					{
 						"FieldToMatch": {
@@ -75,7 +75,15 @@
 							"Type": "URI"
 						},
 						"TextTransformation": "HTML_ENTITY_DECODE"
-					},
+					}
+				]
+			}
+		},
+		"${stack}${instance}QuerySQLInjectionSet": {
+			"Type": "AWS::WAFRegional::SqlInjectionMatchSet",
+			"Properties": {
+				"Name": "${stack}-${instance}-Query-SQL-Injection-Set",
+				"SqlInjectionMatchTuples": [
 					{
 						"FieldToMatch": {
 							"Type": "QUERY_STRING"
@@ -87,7 +95,15 @@
 							"Type": "QUERY_STRING"
 						},
 						"TextTransformation": "HTML_ENTITY_DECODE"
-					},
+					}
+				]
+			}
+		},
+		"${stack}${instance}BodySQLInjectionSet": {
+			"Type": "AWS::WAFRegional::SqlInjectionMatchSet",
+			"Properties": {
+				"Name": "${stack}-${instance}-Body-SQL-Injection-Set",
+				"SqlInjectionMatchTuples": [
 					{
 						"FieldToMatch": {
 							"Type": "BODY"
@@ -99,7 +115,16 @@
 							"Type": "BODY"
 						},
 						"TextTransformation": "HTML_ENTITY_DECODE"
-					},
+					}
+				]
+			}
+		},
+		"${stack}${instance}HeaderSQLInjectionSet": {
+			"Type": "AWS::WAFRegional::SqlInjectionMatchSet",
+			"Properties": {
+				"Name": "${stack}-${instance}-Header-SQL-Injection-Set",
+				"SqlInjectionMatchTuples": [
+
 					{
 						"FieldToMatch": {
 							"Type": "HEADER",
@@ -117,17 +142,65 @@
 				]
 			}
 		},
-		"${stack}${instance}SQLInjectionRule": {
+		"${stack}${instance}URISQLInjectionRule": {
 			"Type": "AWS::WAFRegional::Rule",
 			"Properties": {
-				"MetricName": "${stack}${instance}SQLInjectionRule",
-				"Name": "${stack}-${instance}-SQL-Injection-Rule",
+				"MetricName": "${stack}${instance}URISQLInjectionRule",
+				"Name": "${stack}-${instance}-URI-SQL-Injection-Rule",
 				"Predicates": [
 					{
 						"Type": "SqlInjectionMatch",
 						"Negated": false,
 						"DataId": {
-							"Ref": "${stack}${instance}SQLInjectionSet"
+							"Ref": "${stack}${instance}URISQLInjectionSet"
+						}
+					}
+				]
+			}
+		},
+		"${stack}${instance}QuerySQLInjectionRule": {
+			"Type": "AWS::WAFRegional::Rule",
+			"Properties": {
+				"MetricName": "${stack}${instance}QuerySQLInjectionRule",
+				"Name": "${stack}-${instance}-Query-SQL-Injection-Rule",
+				"Predicates": [
+					{
+						"Type": "SqlInjectionMatch",
+						"Negated": false,
+						"DataId": {
+							"Ref": "${stack}${instance}QuerySQLInjectionSet"
+						}
+					}
+				]
+			}
+		},
+		"${stack}${instance}BodySQLInjectionRule": {
+			"Type": "AWS::WAFRegional::Rule",
+			"Properties": {
+				"MetricName": "${stack}${instance}BodySQLInjectionRule",
+				"Name": "${stack}-${instance}-Body-SQL-Injection-Rule",
+				"Predicates": [
+					{
+						"Type": "SqlInjectionMatch",
+						"Negated": false,
+						"DataId": {
+							"Ref": "${stack}${instance}BodySQLInjectionSet"
+						}
+					}
+				]
+			}
+		},
+		"${stack}${instance}HeaderSQLInjectionRule": {
+			"Type": "AWS::WAFRegional::Rule",
+			"Properties": {
+				"MetricName": "${stack}${instance}HeaderSQLInjectionRule",
+				"Name": "${stack}-${instance}-Header-SQL-Injection-Rule",
+				"Predicates": [
+					{
+						"Type": "SqlInjectionMatch",
+						"Negated": false,
+						"DataId": {
+							"Ref": "${stack}${instance}HeaderSQLInjectionSet"
 						}
 					}
 				]
