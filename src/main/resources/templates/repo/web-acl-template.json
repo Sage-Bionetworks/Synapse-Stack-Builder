@@ -443,7 +443,7 @@
 						},
 						"Priority": 2,
 						"RuleId": {
-							"Ref": "${stack}${instance}SQLInjectionRule"
+							"Ref": "${stack}${instance}URISQLInjectionRule"
 						}
 					},
 					{
@@ -452,7 +452,7 @@
 						},
 						"Priority": 3,
 						"RuleId": {
-							"Ref": "${stack}${instance}XssRule"
+							"Ref": "${stack}${instance}QuerySQLInjectionRule"
 						}
 					},
 					{
@@ -461,7 +461,7 @@
 						},
 						"Priority": 4,
 						"RuleId": {
-							"Ref": "${stack}${instance}PathsRule"
+							"Ref": "${stack}${instance}BodySQLInjectionRule"
 						}
 					},
 					{
@@ -469,6 +469,33 @@
 							"Type": "COUNT"
 						},
 						"Priority": 5,
+						"RuleId": {
+							"Ref": "${stack}${instance}HeaderSQLInjectionRule"
+						}
+					},
+					{
+						"Action": {
+							"Type": "COUNT"
+						},
+						"Priority": 6,
+						"RuleId": {
+							"Ref": "${stack}${instance}XssRule"
+						}
+					},
+					{
+						"Action": {
+							"Type": "COUNT"
+						},
+						"Priority": 7,
+						"RuleId": {
+							"Ref": "${stack}${instance}PathsRule"
+						}
+					},
+					{
+						"Action": {
+							"Type": "COUNT"
+						},
+						"Priority": 8,
 						"RuleId": {
 							"Ref": "${stack}${instance}AdminAccessRule"
 						}
