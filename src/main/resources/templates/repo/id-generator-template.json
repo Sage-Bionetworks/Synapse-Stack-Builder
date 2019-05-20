@@ -84,7 +84,7 @@
 				"AllowMajorVersionUpgrade": false,
 				"AutoMinorVersionUpgrade": true,
 				"BackupRetentionPeriod": "7",
-				"DBInstanceClass": "db.t2.small",
+				"DBInstanceClass": "db.t3.small",
 				"DBInstanceIdentifier": "${databaseIdentifier}",
 				"DBName": "${stack}idgen",
 				"DBParameterGroupName": {
