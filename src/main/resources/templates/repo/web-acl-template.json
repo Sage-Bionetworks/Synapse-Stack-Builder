@@ -352,94 +352,118 @@
 				]
 			}
 		},
-        "${stack}${instance}PathsStringSet": {
-            "Type": "AWS::WAFRegional::ByteMatchSet",
-            "Properties": {
-                "Name": "${stack}-${instance}-match-rfi-lfi-traversal",
-                "ByteMatchTuples": [
-                    {
-                        "FieldToMatch": {
-                            "Type": "URI"
-                        },
-                        "PositionalConstraint": "CONTAINS",
-                        "TargetString": "../",
-                        "TextTransformation": "URL_DECODE"
-                    },
-                    {
-                        "FieldToMatch": {
-                            "Type": "URI"
-                        },
-                        "PositionalConstraint": "CONTAINS",
-                        "TargetString": "../",
-                        "TextTransformation": "HTML_ENTITY_DECODE"
-                    },
-                    {
-                        "FieldToMatch": {
-                            "Type": "QUERY_STRING"
-                        },
-                        "PositionalConstraint": "CONTAINS",
-                        "TargetString": "../",
-                        "TextTransformation": "URL_DECODE"
-                    },
-                    {
-                        "FieldToMatch": {
-                            "Type": "QUERY_STRING"
-                        },
-                        "PositionalConstraint": "CONTAINS",
-                        "TargetString": "../",
-                        "TextTransformation": "HTML_ENTITY_DECODE"
-                    },
-                    {
-                        "FieldToMatch": {
-                            "Type": "URI"
-                        },
-                        "PositionalConstraint": "CONTAINS",
-                        "TargetString": "://",
-                        "TextTransformation": "URL_DECODE"
-                    },
-                    {
-                        "FieldToMatch": {
-                            "Type": "URI"
-                        },
-                        "PositionalConstraint": "CONTAINS",
-                        "TargetString": "://",
-                        "TextTransformation": "HTML_ENTITY_DECODE"
-                    },
-                    {
-                        "FieldToMatch": {
-                            "Type": "QUERY_STRING"
-                        },
-                        "PositionalConstraint": "CONTAINS",
-                        "TargetString": "://",
-                        "TextTransformation": "URL_DECODE"
-                    },
-                    {
-                        "FieldToMatch": {
-                            "Type": "QUERY_STRING"
-                        },
-                        "PositionalConstraint": "CONTAINS",
-                        "TargetString": "://",
-                        "TextTransformation": "HTML_ENTITY_DECODE"
-                    }
-                ]
-            }
-        },
-        "${stack}${instance}PathsRule": {
-            "Type": "AWS::WAFRegional::Rule",
-            "Properties": {
-                "MetricName": "${stack}${instance}PathsRule",
-                "Name": "${stack}-${instance}-Paths-Rule",
-                "Predicates": [
-                    {
-                        "Type": "ByteMatch",
-                        "Negated": false,
-                        "DataId": {
-                            "Ref": "${stack}${instance}PathsStringSet"
-                        }
-                    }
-                ]
-            }
-        },
+		"${stack}${instance}PathTraversalLocalStringSet": {
+			"Type": "AWS::WAFRegional::ByteMatchSet",
+			"Properties": {
+				"Name": "${stack}-${instance}-match-lfi-traversal",
+				"ByteMatchTuples": [
+					{
+						"FieldToMatch": {
+							"Type": "URI"
+						},
+						"PositionalConstraint": "CONTAINS",
+						"TargetString": "../",
+						"TextTransformation": "URL_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "URI"
+						},
+						"PositionalConstraint": "CONTAINS",
+						"TargetString": "../",
+						"TextTransformation": "HTML_ENTITY_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "QUERY_STRING"
+						},
+						"PositionalConstraint": "CONTAINS",
+						"TargetString": "../",
+						"TextTransformation": "URL_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "QUERY_STRING"
+						},
+						"PositionalConstraint": "CONTAINS",
+						"TargetString": "../",
+						"TextTransformation": "HTML_ENTITY_DECODE"
+					}
+				]
+			}
+		},
+		"${stack}${instance}PathTraversalRemoteStringSet": {
+			"Type": "AWS::WAFRegional::ByteMatchSet",
+			"Properties": {
+				"Name": "${stack}-${instance}-match-rfi-traversal",
+				"ByteMatchTuples": [
+					{
+						"FieldToMatch": {
+							"Type": "URI"
+						},
+						"PositionalConstraint": "CONTAINS",
+						"TargetString": "://",
+						"TextTransformation": "URL_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "URI"
+						},
+						"PositionalConstraint": "CONTAINS",
+						"TargetString": "://",
+						"TextTransformation": "HTML_ENTITY_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "QUERY_STRING"
+						},
+						"PositionalConstraint": "CONTAINS",
+						"TargetString": "://",
+						"TextTransformation": "URL_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "QUERY_STRING"
+						},
+						"PositionalConstraint": "CONTAINS",
+						"TargetString": "://",
+						"TextTransformation": "HTML_ENTITY_DECODE"
+					}
+				]
+			}
+		},
+		"${stack}${instance}PathTraversalLocalRule": {
+			"Type": "AWS::WAFRegional::Rule",
+			"Properties": {
+				"MetricName": "${stack}${instance}PathTraversalLocalRule",
+				"Name": "${stack}-${instance}-Path-Traversal-Local-Rule",
+				"Predicates": [
+					{
+						"Type": "ByteMatch",
+						"Negated": false,
+						"DataId": {
+							"Ref": "${stack}${instance}PathTraversalLocalStringSet"
+						}
+					}
+				]
+			}
+		},
+		"${stack}${instance}PathTraversalRemoteRule": {
+			"Type": "AWS::WAFRegional::Rule",
+			"Properties": {
+				"MetricName": "${stack}${instance}PathTraversalRemoteRule",
+				"Name": "${stack}-${instance}-Path-Traversal-Remote-Rule",
+				"Predicates": [
+					{
+						"Type": "ByteMatch",
+						"Negated": false,
+						"DataId": {
+							"Ref": "${stack}${instance}PathTraversalRemoteStringSet"
+						}
+					}
+				]
+			}
+		},
         "${stack}${instance}AdminUrlStringSet": {
             "Type": "AWS::WAFRegional::ByteMatchSet",
             "Properties": {
@@ -587,7 +611,7 @@
 						},
 						"Priority": 10,
 						"RuleId": {
-							"Ref": "${stack}${instance}PathsRule"
+							"Ref": "${stack}${instance}PathTraversalLocalRule"
 						}
 					},
 					{
@@ -595,6 +619,15 @@
 							"Type": "COUNT"
 						},
 						"Priority": 11,
+						"RuleId": {
+							"Ref": "${stack}${instance}PathTraversalRemoteRule"
+						}
+					},
+					{
+						"Action": {
+							"Type": "COUNT"
+						},
+						"Priority": 12,
 						"RuleId": {
 							"Ref": "${stack}${instance}AdminAccessRule"
 						}
