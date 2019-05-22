@@ -59,10 +59,10 @@
 				]
 			}
 		},
-		"${stack}${instance}SQLInjectionSet": {
+		"${stack}${instance}URIQuerySQLInjectionSet": {
 			"Type": "AWS::WAFRegional::SqlInjectionMatchSet",
 			"Properties": {
-				"Name": "${stack}-${instance}-SQL-Injection-Set",
+				"Name": "${stack}-${instance}-URI-Query-SQL-Injection-Set",
 				"SqlInjectionMatchTuples": [
 					{
 						"FieldToMatch": {
@@ -87,7 +87,15 @@
 							"Type": "QUERY_STRING"
 						},
 						"TextTransformation": "HTML_ENTITY_DECODE"
-					},
+					}
+				]
+			}
+		},
+		"${stack}${instance}BodySQLInjectionSet": {
+			"Type": "AWS::WAFRegional::SqlInjectionMatchSet",
+			"Properties": {
+				"Name": "${stack}-${instance}-Body-SQL-Injection-Set",
+				"SqlInjectionMatchTuples": [
 					{
 						"FieldToMatch": {
 							"Type": "BODY"
@@ -99,7 +107,16 @@
 							"Type": "BODY"
 						},
 						"TextTransformation": "HTML_ENTITY_DECODE"
-					},
+					}
+				]
+			}
+		},
+		"${stack}${instance}HeaderSQLInjectionSet": {
+			"Type": "AWS::WAFRegional::SqlInjectionMatchSet",
+			"Properties": {
+				"Name": "${stack}-${instance}-Header-SQL-Injection-Set",
+				"SqlInjectionMatchTuples": [
+
 					{
 						"FieldToMatch": {
 							"Type": "HEADER",
@@ -117,26 +134,58 @@
 				]
 			}
 		},
-		"${stack}${instance}SQLInjectionRule": {
+		"${stack}${instance}URIQuerySQLInjectionRule": {
 			"Type": "AWS::WAFRegional::Rule",
 			"Properties": {
-				"MetricName": "${stack}${instance}SQLInjectionRule",
-				"Name": "${stack}-${instance}-SQL-Injection-Rule",
+				"MetricName": "${stack}${instance}URIQuerySQLInjectionRule",
+				"Name": "${stack}-${instance}-URI-Query-SQL-Injection-Rule",
 				"Predicates": [
 					{
 						"Type": "SqlInjectionMatch",
 						"Negated": false,
 						"DataId": {
-							"Ref": "${stack}${instance}SQLInjectionSet"
+							"Ref": "${stack}${instance}URIQuerySQLInjectionSet"
 						}
 					}
 				]
 			}
 		},
-		"${stack}${instance}XssSet": {
+		"${stack}${instance}BodySQLInjectionRule": {
+			"Type": "AWS::WAFRegional::Rule",
+			"Properties": {
+				"MetricName": "${stack}${instance}BodySQLInjectionRule",
+				"Name": "${stack}-${instance}-Body-SQL-Injection-Rule",
+				"Predicates": [
+					{
+						"Type": "SqlInjectionMatch",
+						"Negated": false,
+						"DataId": {
+							"Ref": "${stack}${instance}BodySQLInjectionSet"
+						}
+					}
+				]
+			}
+		},
+		"${stack}${instance}HeaderSQLInjectionRule": {
+			"Type": "AWS::WAFRegional::Rule",
+			"Properties": {
+				"MetricName": "${stack}${instance}HeaderSQLInjectionRule",
+				"Name": "${stack}-${instance}-Header-SQL-Injection-Rule",
+				"Predicates": [
+					{
+						"Type": "SqlInjectionMatch",
+						"Negated": false,
+						"DataId": {
+							"Ref": "${stack}${instance}HeaderSQLInjectionSet"
+						}
+					}
+				]
+			}
+		},
+		"${stack}${instance}URIQueryXssSet": {
 			"Type": "AWS::WAFRegional::XssMatchSet",
 			"Properties": {
-				"Name": "${stack}-${instance}-XSS-Rule",
+				"Name": "${stack}-${instance}-URI-Query-XSS-Rule",
 				"XssMatchTuples": [
 					{
 						"FieldToMatch": {
@@ -161,7 +210,15 @@
 							"Type": "QUERY_STRING"
 						},
 						"TextTransformation": "HTML_ENTITY_DECODE"
-					},
+					}
+				]
+			}
+		},
+		"${stack}${instance}BodyXssSet": {
+			"Type": "AWS::WAFRegional::XssMatchSet",
+			"Properties": {
+				"Name": "${stack}-${instance}-Body-XSS-Rule",
+				"XssMatchTuples": [
 					{
 						"FieldToMatch": {
 							"Type": "BODY"
@@ -173,7 +230,15 @@
 							"Type": "BODY"
 						},
 						"TextTransformation": "HTML_ENTITY_DECODE"
-					},
+					}
+				]
+			}
+		},
+		"${stack}${instance}HeaderXssSet": {
+			"Type": "AWS::WAFRegional::XssMatchSet",
+			"Properties": {
+				"Name": "${stack}-${instance}-Header-XSS-Rule",
+				"XssMatchTuples": [
 					{
 						"FieldToMatch": {
 							"Type": "HEADER",
@@ -191,110 +256,166 @@
 				]
 			}
 		},
-		"${stack}${instance}XssRule": {
+		"${stack}${instance}URIQueryXssRule": {
 			"Type": "AWS::WAFRegional::Rule",
 			"Properties": {
-				"MetricName": "${stack}${instance}XssRule",
-				"Name": "${stack}-${instance}-XSS-Rule",
+				"MetricName": "${stack}${instance}URIQueryXssRule",
+				"Name": "${stack}-${instance}-URI-Query-XSS-Rule",
 				"Predicates": [
 					{
 						"Type": "XssMatch",
 						"Negated": false,
 						"DataId": {
-							"Ref": "${stack}${instance}XssSet"
+							"Ref": "${stack}${instance}URIQueryXssSet"
 						}
 					}
 				]
 			}
 		},
-        "${stack}${instance}PathsStringSet": {
-            "Type": "AWS::WAFRegional::ByteMatchSet",
-            "Properties": {
-                "Name": "${stack}-${instance}-match-rfi-lfi-traversal",
-                "ByteMatchTuples": [
-                    {
-                        "FieldToMatch": {
-                            "Type": "URI"
-                        },
-                        "PositionalConstraint": "CONTAINS",
-                        "TargetString": "../",
-                        "TextTransformation": "URL_DECODE"
-                    },
-                    {
-                        "FieldToMatch": {
-                            "Type": "URI"
-                        },
-                        "PositionalConstraint": "CONTAINS",
-                        "TargetString": "../",
-                        "TextTransformation": "HTML_ENTITY_DECODE"
-                    },
-                    {
-                        "FieldToMatch": {
-                            "Type": "QUERY_STRING"
-                        },
-                        "PositionalConstraint": "CONTAINS",
-                        "TargetString": "../",
-                        "TextTransformation": "URL_DECODE"
-                    },
-                    {
-                        "FieldToMatch": {
-                            "Type": "QUERY_STRING"
-                        },
-                        "PositionalConstraint": "CONTAINS",
-                        "TargetString": "../",
-                        "TextTransformation": "HTML_ENTITY_DECODE"
-                    },
-                    {
-                        "FieldToMatch": {
-                            "Type": "URI"
-                        },
-                        "PositionalConstraint": "CONTAINS",
-                        "TargetString": "://",
-                        "TextTransformation": "URL_DECODE"
-                    },
-                    {
-                        "FieldToMatch": {
-                            "Type": "URI"
-                        },
-                        "PositionalConstraint": "CONTAINS",
-                        "TargetString": "://",
-                        "TextTransformation": "HTML_ENTITY_DECODE"
-                    },
-                    {
-                        "FieldToMatch": {
-                            "Type": "QUERY_STRING"
-                        },
-                        "PositionalConstraint": "CONTAINS",
-                        "TargetString": "://",
-                        "TextTransformation": "URL_DECODE"
-                    },
-                    {
-                        "FieldToMatch": {
-                            "Type": "QUERY_STRING"
-                        },
-                        "PositionalConstraint": "CONTAINS",
-                        "TargetString": "://",
-                        "TextTransformation": "HTML_ENTITY_DECODE"
-                    }
-                ]
-            }
-        },
-        "${stack}${instance}PathsRule": {
-            "Type": "AWS::WAFRegional::Rule",
-            "Properties": {
-                "MetricName": "${stack}${instance}PathsRule",
-                "Name": "${stack}-${instance}-Paths-Rule",
-                "Predicates": [
-                    {
-                        "Type": "ByteMatch",
-                        "Negated": false,
-                        "DataId": {
-                            "Ref": "${stack}${instance}PathsStringSet"
-                        }
-                    }
-                ]
-            }
-        },
+		"${stack}${instance}BodyXssRule": {
+			"Type": "AWS::WAFRegional::Rule",
+			"Properties": {
+				"MetricName": "${stack}${instance}BodyXssRule",
+				"Name": "${stack}-${instance}-Body-XSS-Rule",
+				"Predicates": [
+					{
+						"Type": "XssMatch",
+						"Negated": false,
+						"DataId": {
+							"Ref": "${stack}${instance}BodyXssSet"
+						}
+					}
+				]
+			}
+		},
+		"${stack}${instance}HeaderXssRule": {
+			"Type": "AWS::WAFRegional::Rule",
+			"Properties": {
+				"MetricName": "${stack}${instance}HeaderXssRule",
+				"Name": "${stack}-${instance}-Header-XSS-Rule",
+				"Predicates": [
+					{
+						"Type": "XssMatch",
+						"Negated": false,
+						"DataId": {
+							"Ref": "${stack}${instance}HeaderXssSet"
+						}
+					}
+				]
+			}
+		},
+		"${stack}${instance}PathTraversalLocalStringSet": {
+			"Type": "AWS::WAFRegional::ByteMatchSet",
+			"Properties": {
+				"Name": "${stack}-${instance}-match-lfi-traversal",
+				"ByteMatchTuples": [
+					{
+						"FieldToMatch": {
+							"Type": "URI"
+						},
+						"PositionalConstraint": "CONTAINS",
+						"TargetString": "../",
+						"TextTransformation": "URL_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "URI"
+						},
+						"PositionalConstraint": "CONTAINS",
+						"TargetString": "../",
+						"TextTransformation": "HTML_ENTITY_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "QUERY_STRING"
+						},
+						"PositionalConstraint": "CONTAINS",
+						"TargetString": "../",
+						"TextTransformation": "URL_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "QUERY_STRING"
+						},
+						"PositionalConstraint": "CONTAINS",
+						"TargetString": "../",
+						"TextTransformation": "HTML_ENTITY_DECODE"
+					}
+				]
+			}
+		},
+		"${stack}${instance}PathTraversalRemoteStringSet": {
+			"Type": "AWS::WAFRegional::ByteMatchSet",
+			"Properties": {
+				"Name": "${stack}-${instance}-match-rfi-traversal",
+				"ByteMatchTuples": [
+					{
+						"FieldToMatch": {
+							"Type": "URI"
+						},
+						"PositionalConstraint": "CONTAINS",
+						"TargetString": "://",
+						"TextTransformation": "URL_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "URI"
+						},
+						"PositionalConstraint": "CONTAINS",
+						"TargetString": "://",
+						"TextTransformation": "HTML_ENTITY_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "QUERY_STRING"
+						},
+						"PositionalConstraint": "CONTAINS",
+						"TargetString": "://",
+						"TextTransformation": "URL_DECODE"
+					},
+					{
+						"FieldToMatch": {
+							"Type": "QUERY_STRING"
+						},
+						"PositionalConstraint": "CONTAINS",
+						"TargetString": "://",
+						"TextTransformation": "HTML_ENTITY_DECODE"
+					}
+				]
+			}
+		},
+		"${stack}${instance}PathTraversalLocalRule": {
+			"Type": "AWS::WAFRegional::Rule",
+			"Properties": {
+				"MetricName": "${stack}${instance}PathTraversalLocalRule",
+				"Name": "${stack}-${instance}-Path-Traversal-Local-Rule",
+				"Predicates": [
+					{
+						"Type": "ByteMatch",
+						"Negated": false,
+						"DataId": {
+							"Ref": "${stack}${instance}PathTraversalLocalStringSet"
+						}
+					}
+				]
+			}
+		},
+		"${stack}${instance}PathTraversalRemoteRule": {
+			"Type": "AWS::WAFRegional::Rule",
+			"Properties": {
+				"MetricName": "${stack}${instance}PathTraversalRemoteRule",
+				"Name": "${stack}-${instance}-Path-Traversal-Remote-Rule",
+				"Predicates": [
+					{
+						"Type": "ByteMatch",
+						"Negated": false,
+						"DataId": {
+							"Ref": "${stack}${instance}PathTraversalRemoteStringSet"
+						}
+					}
+				]
+			}
+		},
         "${stack}${instance}AdminUrlStringSet": {
             "Type": "AWS::WAFRegional::ByteMatchSet",
             "Properties": {
@@ -370,7 +491,7 @@
 						},
 						"Priority": 2,
 						"RuleId": {
-							"Ref": "${stack}${instance}SQLInjectionRule"
+							"Ref": "${stack}${instance}URIQuerySQLInjectionRule"
 						}
 					},
 					{
@@ -379,7 +500,7 @@
 						},
 						"Priority": 3,
 						"RuleId": {
-							"Ref": "${stack}${instance}XssRule"
+							"Ref": "${stack}${instance}BodySQLInjectionRule"
 						}
 					},
 					{
@@ -388,7 +509,7 @@
 						},
 						"Priority": 4,
 						"RuleId": {
-							"Ref": "${stack}${instance}PathsRule"
+							"Ref": "${stack}${instance}HeaderSQLInjectionRule"
 						}
 					},
 					{
@@ -396,6 +517,51 @@
 							"Type": "COUNT"
 						},
 						"Priority": 5,
+						"RuleId": {
+							"Ref": "${stack}${instance}URIQueryXssRule"
+						}
+					},
+					{
+						"Action": {
+							"Type": "COUNT"
+						},
+						"Priority": 6,
+						"RuleId": {
+							"Ref": "${stack}${instance}BodyXssRule"
+						}
+					},
+					{
+						"Action": {
+							"Type": "COUNT"
+						},
+						"Priority": 7,
+						"RuleId": {
+							"Ref": "${stack}${instance}HeaderXssRule"
+						}
+					},
+					{
+						"Action": {
+							"Type": "COUNT"
+						},
+						"Priority": 8,
+						"RuleId": {
+							"Ref": "${stack}${instance}PathTraversalLocalRule"
+						}
+					},
+					{
+						"Action": {
+							"Type": "COUNT"
+						},
+						"Priority": 9,
+						"RuleId": {
+							"Ref": "${stack}${instance}PathTraversalRemoteRule"
+						}
+					},
+					{
+						"Action": {
+							"Type": "COUNT"
+						},
+						"Priority": 10,
 						"RuleId": {
 							"Ref": "${stack}${instance}AdminAccessRule"
 						}
