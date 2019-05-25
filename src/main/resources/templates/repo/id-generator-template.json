@@ -104,7 +104,7 @@
 				"PreferredBackupWindow": "3:00-6:00",
 				"PreferredMaintenanceWindow": "Mon:07:15-Mon:07:45",
 				"PubliclyAccessible": false,
-				"StorageType": "gp2",
+				"StorageType": "standard",
 				"VPCSecurityGroups": [
 					{
 						"Ref": "${stack}IdGeneratorDBSecurityGroup"
