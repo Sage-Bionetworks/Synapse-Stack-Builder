@@ -132,7 +132,7 @@ public class Constants {
 	public static final String ENCRYPTED_AMI_IMAGE_ID = "encryptedImageId";
 
 	//context keys for kinesis firehose logging
-	public static final String KINESIS_FIREHOSE_STREAM_NAMES = "$kinesisFirehoseStreamNames";
+	public static final String KINESIS_FIREHOSE_STREAM_NAMES = "kinesisFirehoseStreamNames";
 
 
 	/**
