@@ -63,7 +63,7 @@
 	"${kinesisFirehoseStreamName}KinesisStream":{
 		"Type":"AWS::KinesisFirehose::DeliveryStream",
 		"Properties":{
-			"DeliveryStreamName":"${kinesisFirehoseStreamName}",
+			"DeliveryStreamName":"${stack}${instance}${kinesisFirehoseStreamName}",
 			"DeliveryStreamType":"DirectPut",
 			"ExtendedS3DestinationConfiguration":{
 				"BufferingHints":{
