@@ -1,4 +1,4 @@
-#if( $kinesisFirehoseStreamNames && $logBucketInstanceNumber )
+#if( $kinesisFirehoseStreamNames )
 	,"KinesisFirehoseLogRole":{
 		"Type":"AWS::IAM::Role",
 		"Properties":{
@@ -72,8 +72,8 @@
 				},
 				"BucketARN":"arn:aws:s3:::${stack}.log.sagebase.org",
 				"CompressionFormat":"GZIP",
-				"Prefix":"${logBucketInstanceNumber}/${kinesisFirehoseStreamName}/!{timestamp:yyyy-MM-dd}/",
-				"ErrorOutputPrefix":"${logBucketInstanceNumber}/${kinesisFirehoseStreamName}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
+				"Prefix":"${kinesisFirehoseStreamName}/!{timestamp:yyyy-MM-dd}/",
+				"ErrorOutputPrefix":"${kinesisFirehoseStreamName}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
 				"RoleARN":{
 					"Fn::GetAtt":[
 						"KinesisFirehoseLogRole",
