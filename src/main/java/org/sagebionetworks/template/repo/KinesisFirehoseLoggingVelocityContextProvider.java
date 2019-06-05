@@ -5,14 +5,14 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_KINESIS_FIREHO
 
 import com.google.inject.Inject;
 import org.apache.velocity.VelocityContext;
-import org.sagebionetworks.template.config.Configuration;
+import org.sagebionetworks.template.config.RepoConfiguration;
 
 public class KinesisFirehoseLoggingVelocityContextProvider implements VelocityContextProvider{
 
-	Configuration config;
+	RepoConfiguration config;
 
 	@Inject
-	public KinesisFirehoseLoggingVelocityContextProvider(Configuration config) {
+	public KinesisFirehoseLoggingVelocityContextProvider(RepoConfiguration config) {
 		this.config = config;
 	}
 

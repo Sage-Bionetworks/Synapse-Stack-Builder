@@ -12,7 +12,7 @@ public class Constants {
 	 */
 	public static final String CONFIGURATION_BUCKET_TEMPLATE = "%1$s-configuration.sagebase.org";
 
-	public static final String DEFAULT_REPO_PROPERTIES = "templates/repo/defaults.properties";
+	public static final String DEFAULT_REPO_PROPERTIES = "templates/repo/repo-defaults.properties";
 	public static final String SNS_AND_SQS_CONFIG_FILE = "templates/repo/sns-and-sqs-config.json";
 
 	/**

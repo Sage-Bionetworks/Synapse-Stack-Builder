@@ -71,7 +71,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 
 	CloudFormationClient cloudFormationClient;
 	VelocityEngine velocityEngine;
-	Configuration config;
+	RepoConfiguration config;
 	Logger logger;
 	ArtifactCopy artifactCopy;
 	SecretBuilder secretBuilder;
