@@ -5,6 +5,7 @@ import static org.sagebionetworks.template.Constants.SQS_QUEUE_DESCRIPTORS;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;

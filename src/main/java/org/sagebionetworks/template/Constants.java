@@ -12,7 +12,7 @@ public class Constants {
 	 */
 	public static final String CONFIGURATION_BUCKET_TEMPLATE = "%1$s-configuration.sagebase.org";
 
-	public static final String DEFAULT_REPO_PROPERTIES = "templates/repo/defaults.properties";
+	public static final String DEFAULT_REPO_PROPERTIES = "templates/repo/repo-defaults.properties";
 	public static final String SNS_AND_SQS_CONFIG_FILE = "templates/repo/sns-and-sqs-config.json";
 
 	/**
@@ -68,6 +68,7 @@ public class Constants {
 	public static final String PROPERTY_KEY_SECRET_KEYS_CSV = "org.sagebionetworks.secret.keys.csv";
 	public static final String PROPERTY_KEY_REPOSITORY_DATABASE_PASSWORD = "org.sagebionetworks.repository.database.password";
 	public static final String PROPERTY_KEY_ID_GENERATOR_DATABASE_PASSWORD = "org.sagebionetworks.id.generator.database.password";
+	public static final String PROPERTY_KEY_KINESIS_FIREHOSE_LOGGER_STREAM_NAMES = "org.sagebionetworks.kinesis.firehose.log.stream.names";
 
 	private static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX = "org.sagebionetworks.beanstalk.image.version.";
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA = PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX + "java";
@@ -129,6 +130,9 @@ public class Constants {
 
 	public static final String SOLUTION_STACK_NAME = "solutionStackName";
 	public static final String ENCRYPTED_AMI_IMAGE_ID = "encryptedImageId";
+
+	//context keys for kinesis firehose logging
+	public static final String KINESIS_FIREHOSE_STREAM_NAMES = "kinesisFirehoseStreamNames";
 
 
 	/**

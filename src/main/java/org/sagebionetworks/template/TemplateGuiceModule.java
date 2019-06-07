@@ -20,6 +20,7 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.config.RepoConfigurationImpl;
 import org.sagebionetworks.template.repo.IdGeneratorBuilder;
 import org.sagebionetworks.template.repo.IdGeneratorBuilderImpl;
+import org.sagebionetworks.template.repo.KinesisFirehoseLoggingVelocityContextProvider;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilderImpl;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
@@ -90,6 +91,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(SnsAndSqsVelocityContextProvider.class);
+		velocityContextProviderMultibinder.addBinding().to(KinesisFirehoseLoggingVelocityContextProvider.class);
 	}
 	
 	/**
