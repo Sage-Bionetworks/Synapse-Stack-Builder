@@ -386,6 +386,20 @@
 									],
 									"Effect": "Allow",
 									"Resource": "*"
+								},
+								{
+									"Effect": "Allow",
+									"Action": [
+										"firehose:*"
+									],
+									"Resource": "*"
+								},
+								{
+									"Effect": "Allow",
+									"Action": [
+										"kinesis:*"
+									],
+									"Resource": "*"
 								}
 							]
 						}
@@ -523,6 +537,7 @@
 			}
 		}
 		#parse("templates/repo/sns-and-sqs-template.json.vpt")
+		#parse("templates/repo/kinesis-log-streams.json.vpt")
 	},
 	"Outputs": {
 		"BeanstalkApplicationId": {
