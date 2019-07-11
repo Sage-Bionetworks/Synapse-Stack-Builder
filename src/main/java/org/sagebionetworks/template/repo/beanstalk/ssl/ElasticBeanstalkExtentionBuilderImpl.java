@@ -54,13 +54,11 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 	}
 
 	@Override
-	public File copyWarWithExtensions(File warFile) {
+	public File copyWarWithExtensions(File warFile, Boolean includeXFrameOptions) {
 		VelocityContext context = new VelocityContext();
 		context.put("s3bucket", configuration.getConfigurationBucket());
 		// Get the certificate information
 		context.put("certificates", certificateBuilder.buildNewX509CertificatePair());
-
-
 
 		// add the files to the copy of the war
 		return warAppender.appendFilesCopyOfWar(warFile, new Consumer<File>() {
@@ -82,6 +80,7 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 				Template sslconf = velocityEngine.getTemplate(TEMPLATES_REPO_EBEXTENSIONS_HTTPS_SSL_CONF);
 				addTemplateAsFileToDirectory(sslconf, context, resultFile);
 				// ModSecurity conf
+				context.put("includeXFrameOptions", includeXFrameOptions);
 				resultFile = fileProvider.createNewFile(confDDirectory, SECURITY_CONF);
 				Template modSecurityConf = velocityEngine.getTemplate(TEMPLATES_REPO_EBEXTENSIONS_SECURITY_CONF);
 				addTemplateAsFileToDirectory(modSecurityConf, context, resultFile);
@@ -114,7 +113,7 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 	public static void main(String[] args) {
 		Injector injector = Guice.createInjector(new TemplateGuiceModule());
 		ElasticBeanstalkExtentionBuilder builder = injector.getInstance(ElasticBeanstalkExtentionBuilder.class);
-		File resultWar = builder.copyWarWithExtensions(new File(args[0]));
+		File resultWar = builder.copyWarWithExtensions(new File(args[0]), true);
 		System.out.println(resultWar.getAbsolutePath());
 	}
 

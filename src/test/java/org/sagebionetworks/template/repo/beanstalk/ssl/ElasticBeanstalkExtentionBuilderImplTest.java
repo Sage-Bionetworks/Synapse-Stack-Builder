@@ -91,7 +91,7 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 	@Test
 	public void testCopyWarWithExtensions() {
 		// Call under test
-		File warCopy = builder.copyWarWithExtensions(mockWar);
+		File warCopy = builder.copyWarWithExtensions(mockWar, true);
 		assertNotNull(warCopy);
 		assertEquals(mockWarCopy, warCopy);
 		// httpconfig

@@ -42,7 +42,7 @@ public class ArtifactCopyImplTest {
 	Logger mockLogger;
 	@Mock
 	ElasticBeanstalkExtentionBuilder mockEbBuilder;
-	
+
 	ArtifactCopyImpl copier;
 	
 	String stack;
@@ -54,10 +54,10 @@ public class ArtifactCopyImplTest {
 
 	@Before
 	public void before() {
-		
+
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 		when(mockDownloader.downloadFile(any(String.class))).thenReturn(mockFile);
-		when(mockEbBuilder.copyWarWithExtensions(mockFile)).thenReturn(mockCopy);
+		when(mockEbBuilder.copyWarWithExtensions(eq(mockFile), anyBoolean())).thenReturn(mockCopy);
 		
 		environment = EnvironmentType.REPOSITORY_WORKERS;
 		version = "212.4";
@@ -83,7 +83,7 @@ public class ArtifactCopyImplTest {
 		
 		verify(mockS3Client).doesObjectExist(bucket, s3Key);
 		verify(mockDownloader).downloadFile(artifactoryUrl);
-		verify(mockEbBuilder).copyWarWithExtensions(mockFile);
+		verify(mockEbBuilder).copyWarWithExtensions(eq(mockFile), eq(true));
 		verify(mockS3Client).putObject(bucket, s3Key, mockCopy);
 		verify(mockLogger, times(3)).info(any(String.class));
 		// the temp file should get deleted.
@@ -123,9 +123,35 @@ public class ArtifactCopyImplTest {
 		
 		verify(mockS3Client).doesObjectExist(bucket, s3Key);
 		verify(mockDownloader, never()).downloadFile(artifactoryUrl);
-		verify(mockEbBuilder, never()).copyWarWithExtensions(mockFile);
+		verify(mockEbBuilder, never()).copyWarWithExtensions(eq(mockFile), anyBoolean());
 		verify(mockS3Client, never()).putObject(bucket, s3Key, mockFile);
 		verify(mockFile, never()).delete();
 		verify(mockLogger, never()).info(any(String.class));
+	}
+
+	@Test
+	public void testCopyArtifactIfNeededPortal() {
+		// Set env type to portal
+		environment = EnvironmentType.PORTAL;
+		s3Key = environment.createS3Key(version);
+		artifactoryUrl = environment.createArtifactoryUrl(version);
+
+		// setup object does not exist
+		when(mockS3Client.doesObjectExist(bucket, s3Key)).thenReturn(false);
+
+		// call under test
+		SourceBundle result = copier.copyArtifactIfNeeded(environment, version);
+		assertNotNull(result);
+		assertEquals(bucket, result.getBucket());
+		assertEquals(s3Key, result.getKey());
+
+		verify(mockS3Client).doesObjectExist(bucket, s3Key);
+		verify(mockDownloader).downloadFile(artifactoryUrl);
+		verify(mockEbBuilder).copyWarWithExtensions(eq(mockFile), eq(false));
+		verify(mockS3Client).putObject(bucket, s3Key, mockCopy);
+		verify(mockLogger, times(3)).info(any(String.class));
+		// the temp file should get deleted.
+		verify(mockFile).delete();
+		verify(mockCopy).delete();
 	}
 }
