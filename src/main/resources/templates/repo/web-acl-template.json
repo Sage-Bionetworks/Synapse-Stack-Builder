@@ -563,7 +563,7 @@
 					},
 					{
 						"Action": {
-							"Type": "COUNT"
+							"Type": "BLOCK"
 						},
 						"Priority": 10,
 						"RuleId": {
