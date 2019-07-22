@@ -177,6 +177,11 @@
 						"OptionName": "LoadBalancerType",
 						"Value": "application"
 					},
+                    {
+                        "Namespace": "aws:elasticbeanstalk:environment",
+                        "OptionName": "ServiceRole",
+                        "Value": "aws-elasticbeanstalk-service-role"
+                    },
 					{
 						"Namespace": "aws:elasticbeanstalk:hostmanager",
 						"OptionName": "LogPublicationControl",
@@ -188,6 +193,11 @@
 						"Value": {
 							"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"
 						}
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:healthreporting:system",
+						"OptionName": "SystemType",
+						"Value": "enhanced"
 					},
 					{
 					    "Namespace": "aws:elasticbeanstalk:managedactions",
