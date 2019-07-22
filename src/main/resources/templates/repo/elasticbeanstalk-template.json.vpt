@@ -199,6 +199,11 @@
 						"OptionName": "SystemType",
 						"Value": "enhanced"
 					},
+                    {
+                        "Namespace": "aws:elasticbeanstalk:healthreporting:system",
+                        "OptionName": "HealthCheckSuccessThreshold",
+                        "Value": "Degraded"
+                    },
 					{
 					    "Namespace": "aws:elasticbeanstalk:managedactions",
 					    "OptionName": "ManagedActionsEnabled",
