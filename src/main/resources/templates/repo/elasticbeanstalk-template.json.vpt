@@ -177,11 +177,6 @@
 						"OptionName": "LoadBalancerType",
 						"Value": "application"
 					},
-                    {
-                        "Namespace": "aws:elasticbeanstalk:environment",
-                        "OptionName": "ServiceRole",
-                        "Value": "aws-elasticbeanstalk-service-role"
-                    },
 					{
 						"Namespace": "aws:elasticbeanstalk:hostmanager",
 						"OptionName": "LogPublicationControl",
@@ -193,36 +188,6 @@
 						"Value": {
 							"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"
 						}
-					},
-					{
-						"Namespace": "aws:elasticbeanstalk:healthreporting:system",
-						"OptionName": "SystemType",
-						"Value": "enhanced"
-					},
-                    {
-                        "Namespace": "aws:elasticbeanstalk:healthreporting:system",
-                        "OptionName": "HealthCheckSuccessThreshold",
-                        "Value": "Degraded"
-                    },
-					{
-					    "Namespace": "aws:elasticbeanstalk:managedactions",
-					    "OptionName": "ManagedActionsEnabled",
-					    "Value": "true"
-					},
-					{
-					    "Namespace": "aws:elasticbeanstalk:managedactions",
-					    "OptionName": "PreferredStartTime",
-					    "Value": "Tue:03:00"
-					},
-					{
-					    "Namespace": "aws:elasticbeanstalk:managedactions:platformupdate",
-					    "OptionName": "UpdateLevel",
-					    "Value": "minor"
-					},
-					{
-					    "Namespace": "aws:elasticbeanstalk:managedactions:platformupdate",
-					    "OptionName": "InstanceRefreshEnabled",
-					    "Value": "true"
 					},
 					{
 						"Namespace": "aws:elbv2:loadbalancer",
