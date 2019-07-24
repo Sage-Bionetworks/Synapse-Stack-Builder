@@ -563,7 +563,11 @@
 					},
 					{
 						"Action": {
-							"Type": "BLOCK"
+#if ($stack == "prod")
+							"Type":  "BLOCK",
+#else
+							"Type": "COUNT"
+#end
 						},
 						"Priority": 10,
 						"RuleId": {
