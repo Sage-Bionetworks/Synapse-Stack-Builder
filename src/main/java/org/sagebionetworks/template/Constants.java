@@ -14,6 +14,7 @@ public class Constants {
 
 	public static final String DEFAULT_REPO_PROPERTIES = "templates/repo/repo-defaults.properties";
 	public static final String SNS_AND_SQS_CONFIG_FILE = "templates/repo/sns-and-sqs-config.json";
+	public static final String KINESIS_CONFIG_FILE = "templates/repo/kinesis-log-streams.json";
 
 	/**
 	 * A VPC peering role ARN must start with this prefix.
@@ -68,20 +69,17 @@ public class Constants {
 	public static final String PROPERTY_KEY_SECRET_KEYS_CSV = "org.sagebionetworks.secret.keys.csv";
 	public static final String PROPERTY_KEY_REPOSITORY_DATABASE_PASSWORD = "org.sagebionetworks.repository.database.password";
 	public static final String PROPERTY_KEY_ID_GENERATOR_DATABASE_PASSWORD = "org.sagebionetworks.id.generator.database.password";
-	public static final String PROPERTY_KEY_KINESIS_FIREHOSE_LOGGER_STREAM_NAMES = "org.sagebionetworks.kinesis.firehose.log.stream.names";
-
-	private static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX = "org.sagebionetworks.beanstalk.image.version.";
+	
+	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX = "org.sagebionetworks.beanstalk.image.version.";
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA = PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX + "java";
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT = PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX + "tomcat";
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX = PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX + "amazonlinux";
-
 
 	// templates
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
 	public static final String TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";
 	public static final String TEMPALTE_BEAN_STALK_ENVIRONMENT = "templates/repo/elasticbeanstalk-template.json.vpt";
 	public static final String TEMPLATE_ID_GENERATOR = "templates/repo/id-generator-template.json";
-	public static final String TEMPLATE_WORKER_RESOURCES = "templates/repo/sns-and-sqs-template.json.vpt";
 	
 
 	public static final int JSON_INDENT = 5;
@@ -131,8 +129,7 @@ public class Constants {
 	public static final String SOLUTION_STACK_NAME = "solutionStackName";
 	public static final String ENCRYPTED_AMI_IMAGE_ID = "encryptedImageId";
 
-	//context keys for kinesis firehose logging
-	public static final String KINESIS_FIREHOSE_STREAM_NAMES = "kinesisFirehoseStreamNames";
+	public static final String KINESIS_FIREHOSE_STREAM_DESCRIPTORS = "kinesisFirehoseStreams";
 
 
 	/**

@@ -1,0 +1,7 @@
+{
+	"streamDescriptors": [{
+		"name": "cloudsearchDocumentGeneration",
+		"partitionScheme": "!{timestamp:yyyy-MM-dd}",
+		"compressionFormat": "GZIP"
+	}]
+}

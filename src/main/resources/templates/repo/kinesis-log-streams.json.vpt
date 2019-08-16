@@ -1,4 +1,4 @@
-#if( $kinesisFirehoseStreamNames )
+#if( $kinesisFirehoseStreams )
 	,"KinesisFirehoseLogRole":{
 		"Type":"AWS::IAM::Role",
 		"Properties":{
@@ -59,11 +59,11 @@
 			]
 		}
 	},
-	#foreach( $kinesisFirehoseStreamName in $kinesisFirehoseStreamNames)
-	"${kinesisFirehoseStreamName}KinesisStream":{
+	#foreach( $stream in $kinesisFirehoseStreams)
+	"${stream.name}KinesisStream":{
 		"Type":"AWS::KinesisFirehose::DeliveryStream",
 		"Properties":{
-			"DeliveryStreamName":"${stack}${instance}${kinesisFirehoseStreamName}",
+			"DeliveryStreamName":"${stack}${instance}${stream.name}",
 			"DeliveryStreamType":"DirectPut",
 			"ExtendedS3DestinationConfiguration":{
 				"BufferingHints":{
@@ -71,9 +71,9 @@
 					"SizeInMBs":"50"
 				},
 				"BucketARN":"arn:aws:s3:::${stack}.log.sagebase.org",
-				"CompressionFormat":"GZIP",
-				"Prefix":"${kinesisFirehoseStreamName}/!{timestamp:yyyy-MM-dd}/",
-				"ErrorOutputPrefix":"${kinesisFirehoseStreamName}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
+				"CompressionFormat":"${stream.compressionFormat}",
+				"Prefix":"${stream.name}/${stream.partitionScheme}/",
+				"ErrorOutputPrefix":"${stream.name}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
 				"RoleARN":{
 					"Fn::GetAtt":[
 						"KinesisFirehoseLogRole",

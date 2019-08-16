@@ -1,7 +1,5 @@
 package org.sagebionetworks.template.repo.queues;
 
-import static org.junit.Assert.assertFalse;
-
 import java.util.Arrays;
 
 import org.junit.Test;
