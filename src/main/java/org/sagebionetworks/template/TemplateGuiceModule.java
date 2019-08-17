@@ -39,6 +39,7 @@ import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateBuilderImpl;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilder;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilderImpl;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfig;
+import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfigValidator;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseVelocityContextProvider;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsConfig;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsVelocityContextProvider;
@@ -176,12 +177,16 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
 	@Provides
 	public SnsAndSqsConfig snsAndSqsConfigProvider() throws IOException {
-		return OBJECT_MAPPER.readValue(ClassLoader.getSystemClassLoader().getResource(SNS_AND_SQS_CONFIG_FILE), SnsAndSqsConfig.class);
+		return loadFromJsonFile(SNS_AND_SQS_CONFIG_FILE, SnsAndSqsConfig.class);
 	}
 	
 	@Provides
 	public KinesisFirehoseConfig kinesisConfigProvider() throws IOException {
-		return OBJECT_MAPPER.readValue(ClassLoader.getSystemClassLoader().getResource(KINESIS_CONFIG_FILE), KinesisFirehoseConfig.class);
+		return new KinesisFirehoseConfigValidator(loadFromJsonFile(KINESIS_CONFIG_FILE, KinesisFirehoseConfig.class)).validate();
+	}
+	
+	private static <T> T loadFromJsonFile(String file, Class<T> clazz) throws IOException {
+		return OBJECT_MAPPER.readValue(ClassLoader.getSystemClassLoader().getResource(file), clazz);
 	}
 
 }

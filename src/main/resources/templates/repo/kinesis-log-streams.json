@@ -1,7 +1,38 @@
 {
+	"glueTableDescriptors": [
+		{
+			"name": "fileHandleUserEvent",
+			"columns": {
+				"userId": "bigint",
+				"timestamp": "timestamp",
+				"projectId": "bigint",
+				"fileHandleId": "bigint",
+				"associateType": "string",
+				"associateId": "bigint",
+				"stack": "string",
+				"instance": "string"
+			},
+			"partitionKeys": {
+				"year": "string",
+				"month": "string",
+				"day": "string"
+			}
+		}
+	],
 	"streamDescriptors": [{
 		"name": "cloudsearchDocumentGeneration",
-		"partitionScheme": "!{timestamp:yyyy-MM-dd}",
-		"compressionFormat": "GZIP"
+		"partitionScheme": "!{timestamp:yyyy-MM-dd}"
+	},
+	{
+		"name": "fileDownloads",
+		"partitionScheme": "year=!{timestamp:YYYY}/month=!{timestamp:MM}/day=!{timestamp:dd}",
+		"convertToParquet": true,
+		"tableName": "fileHandleUserEvent"
+	},
+	{
+		"name": "fileUploads",
+		"partitionScheme": "year=!{timestamp:YYYY}/month=!{timestamp:MM}/day=!{timestamp:dd}",
+		"convertToParquet": true,
+		"tableName": "fileHandleUserEvent"
 	}]
 }

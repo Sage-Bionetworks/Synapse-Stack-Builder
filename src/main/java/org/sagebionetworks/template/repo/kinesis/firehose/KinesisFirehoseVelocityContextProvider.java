@@ -17,6 +17,7 @@ public class KinesisFirehoseVelocityContextProvider implements VelocityContextPr
 
 	@Override
 	public void addToContext(VelocityContext context) {
+		context.put(Constants.GLUE_TABLE_DESCRIPTORS, config.getGlueTableDescriptors());
 		context.put(Constants.KINESIS_FIREHOSE_STREAM_DESCRIPTORS, config.getStreamDescriptors());
 	}
 

@@ -46,6 +46,15 @@
 							},
 							{
 								"Effect":"Allow",
+								"Action": [
+									"glue:GetTableVersions"
+								],
+								"Resource":[
+									"*"
+								]
+							},
+							{
+								"Effect":"Allow",
 								"Action":[
 									"kms:Decrypt"
 								],
@@ -59,6 +68,60 @@
 			]
 		}
 	},
+	"${stack}${instance}GlueDatabase": {
+		"Type":"AWS::Glue::Database",
+		"Properties":{
+			"CatalogId":{
+				"Ref":"AWS::AccountId"
+			},
+			"DatabaseInput": {}
+		}
+	},
+	#foreach( $table in $glueTables)
+	"${stack}${instance}${table.name}GlueTable": {
+		"Type":"AWS::Glue::Table",
+		"Properties": {
+			"CatalogId": {
+				"Ref":"AWS::AccountId"
+			},
+			"DatabaseName": {
+				"Ref":"${stack}${instance}GlueDatabase"
+			},
+			"TableInput": {
+				"StorageDescriptor": {
+					"Columns": [
+						#foreach($column in $table.columns.entrySet())
+						{
+							"Name":"${column.key}",
+							"Type":"${column.value}"
+						}
+						#if( $foreach.hasNext),#end
+						#end
+					],
+					"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+					"outputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+					"Compressed": false,
+					"SerdeInfo": {
+						"SerializationLibrary": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
+						"Parameters": {
+							"serialization.format": "1"
+						}
+					}
+				},
+				"PartitionKeys": [
+					#foreach($partitionKey in $table.partitionKeys.entrySet())
+					{
+						"Name":"${partitionKey.key}",
+						"Type":"${partitionKey.value}"
+					}
+					#if( $foreach.hasNext),#end
+					#end
+				],
+				"TableType": "EXTERNAL_TABLE"
+			}
+		}
+	},
+	#end
 	#foreach( $stream in $kinesisFirehoseStreams)
 	"${stream.name}KinesisStream":{
 		"Type":"AWS::KinesisFirehose::DeliveryStream",
@@ -66,20 +129,62 @@
 			"DeliveryStreamName":"${stack}${instance}${stream.name}",
 			"DeliveryStreamType":"DirectPut",
 			"ExtendedS3DestinationConfiguration":{
-				"BufferingHints":{
-					"IntervalInSeconds":"60",
-					"SizeInMBs":"50"
-				},
-				"BucketARN":"arn:aws:s3:::${stack}.log.sagebase.org",
-				"CompressionFormat":"${stream.compressionFormat}",
-				"Prefix":"${stream.name}/${stream.partitionScheme}/",
-				"ErrorOutputPrefix":"${stream.name}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
 				"RoleARN":{
 					"Fn::GetAtt":[
 						"KinesisFirehoseLogRole",
 						"Arn"
 					]
+				},
+				"BucketARN":"arn:aws:s3:::${stack}.log.sagebase.org",
+				"Prefix":"${stream.name}/${stream.partitionScheme}/",
+				"ErrorOutputPrefix":"${stream.name}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
+				#if( $stream.convertToParquet )
+				"BufferingHints":{
+					"IntervalInSeconds":"60",
+					"SizeInMBs":"64"
+				},
+				"CompressionFormat":"UNCOMPRESSED",
+				"DataFormatConversionConfiguration": {
+					"SchemaConfiguration": {
+						"CatalogId": {
+							"Ref":"AWS::AccountId"
+						},
+						"RoleARN":{
+							"Fn::GetAtt":[
+								"KinesisFirehoseLogRole",
+								"Arn"
+							]
+						},
+						"DatabaseName": {
+							"Ref":"${stack}${instance}GlueDatabase"
+						},
+						"TableName": {
+							"Ref":"${stack}${instance}${stream.tableName}GlueTable"
+						},
+						"Region": {
+							"Ref":"AWS::Region"
+						},
+						"VersionId":"LATEST"
+					},
+					"InputFormatConfiguration":{
+						"Deserializer": {
+							"OpenXJsonSerDe":{}
+						}
+					},
+					"OutputFormatConfiguration":{
+						"Serializer": {
+							"ParquetSerDe":{}
+						}
+					},
+					"Enabled": true
 				}
+				#else
+				"BufferingHints":{
+					"IntervalInSeconds":"60",
+					"SizeInMBs":"50"
+				},
+				"CompressionFormat":"GZIP"
+				#end
 			}
 		}
 	}

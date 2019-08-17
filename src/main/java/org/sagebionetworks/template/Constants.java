@@ -130,6 +130,8 @@ public class Constants {
 	public static final String ENCRYPTED_AMI_IMAGE_ID = "encryptedImageId";
 
 	public static final String KINESIS_FIREHOSE_STREAM_DESCRIPTORS = "kinesisFirehoseStreams";
+	public static final String GLUE_TABLE_DESCRIPTORS = "glueTables";
+
 
 
 	/**
