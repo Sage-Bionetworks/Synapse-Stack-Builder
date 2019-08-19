@@ -68,7 +68,7 @@
 			]
 		}
 	},
-	"${stack}${instance}GlueDatabase": {
+	"${stack}${instance}FirehoseLogs": {
 		"Type":"AWS::Glue::Database",
 		"Properties":{
 			"CatalogId":{
@@ -78,14 +78,14 @@
 		}
 	},
 	#foreach( $table in $glueTables)
-	"${stack}${instance}${table.name}GlueTable": {
+	"${table.name}": {
 		"Type":"AWS::Glue::Table",
 		"Properties": {
 			"CatalogId": {
 				"Ref":"AWS::AccountId"
 			},
 			"DatabaseName": {
-				"Ref":"${stack}${instance}GlueDatabase"
+				"Ref":"${stack}${instance}FirehoseLogs"
 			},
 			"TableInput": {
 				"StorageDescriptor": {
@@ -99,7 +99,7 @@
 						#end
 					],
 					"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
-					"outputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+					"OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
 					"Compressed": false,
 					"SerdeInfo": {
 						"SerializationLibrary": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
@@ -156,10 +156,10 @@
 							]
 						},
 						"DatabaseName": {
-							"Ref":"${stack}${instance}GlueDatabase"
+							"Ref":"${stack}${instance}FirehoseLogs"
 						},
 						"TableName": {
-							"Ref":"${stack}${instance}${stream.tableName}GlueTable"
+							"Ref":"${stream.tableName}"
 						},
 						"Region": {
 							"Ref":"AWS::Region"
