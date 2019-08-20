@@ -8,6 +8,7 @@
 		"partitionScheme": "year=!{timestamp:YYYY}/month=!{timestamp:MM}/day=!{timestamp:dd}",
 		"convertToParquet": true,
 		"tableDescriptor": {
+			"name": "filedownloadstable",
 			"columns": {
 				"userId": "bigint",
 				"timestamp": "timestamp",
@@ -30,6 +31,7 @@
 		"partitionScheme": "year=!{timestamp:YYYY}/month=!{timestamp:MM}/day=!{timestamp:dd}",
 		"convertToParquet": true,
 		"tableDescriptor": {
+			"name": "fileuploadstable",
 			"columns": {
 				"userId": "bigint",
 				"timestamp": "timestamp",
