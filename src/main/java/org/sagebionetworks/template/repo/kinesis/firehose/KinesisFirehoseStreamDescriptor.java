@@ -7,7 +7,7 @@ public class KinesisFirehoseStreamDescriptor {
 	private String name;
 	private String partitionScheme = "!{timestamp:yyyy-MM-dd}";
 	private boolean convertToParquet = false;
-	private String tableName = null;
+	private GlueTableDescriptor tableDescriptor = null;
 
 	public String getName() {
 		return name;
@@ -33,17 +33,17 @@ public class KinesisFirehoseStreamDescriptor {
 		this.convertToParquet = convertToParquet;
 	}
 
-	public String getTableName() {
-		return tableName;
+	public GlueTableDescriptor getTableDescriptor() {
+		return tableDescriptor;
 	}
 
-	public void setTableName(String tableName) {
-		this.tableName = tableName;
+	public void setTableDescriptor(GlueTableDescriptor tableDescriptor) {
+		this.tableDescriptor = tableDescriptor;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(convertToParquet, name, partitionScheme, tableName);
+		return Objects.hash(convertToParquet, name, partitionScheme, tableDescriptor);
 	}
 
 	@Override
@@ -56,7 +56,8 @@ public class KinesisFirehoseStreamDescriptor {
 			return false;
 		KinesisFirehoseStreamDescriptor other = (KinesisFirehoseStreamDescriptor) obj;
 		return convertToParquet == other.convertToParquet && Objects.equals(name, other.name)
-				&& Objects.equals(partitionScheme, other.partitionScheme) && Objects.equals(tableName, other.tableName);
+				&& Objects.equals(partitionScheme, other.partitionScheme)
+				&& Objects.equals(tableDescriptor, other.tableDescriptor);
 	}
 
 }

@@ -77,8 +77,9 @@
 			"DatabaseInput": {}
 		}
 	},
-	#foreach( $table in $glueTables)
-	"${stack}${instance}${table.name}": {
+	#foreach( $stream in $kinesisFirehoseStreams)
+	#if( $stream.convertToParquet )
+	"${stack}${instance}${stream.name}Table": {
 		"Type":"AWS::Glue::Table",
 		"Properties": {
 			"CatalogId": {
@@ -90,7 +91,7 @@
 			"TableInput": {
 				"StorageDescriptor": {
 					"Columns": [
-						#foreach($column in $table.columns.entrySet())
+						#foreach($column in $stream.tableDescriptor.columns.entrySet())
 						{
 							"Name":"${column.key}",
 							"Type":"${column.value}"
@@ -106,10 +107,11 @@
 						"Parameters": {
 							"serialization.format": "1"
 						}
-					}
+					},
+					"Location": "s3://${stack}.log.sagebase.org/${stream.name}"
 				},
 				"PartitionKeys": [
-					#foreach($partitionKey in $table.partitionKeys.entrySet())
+					#foreach($partitionKey in $stream.tableDescriptor.partitionKeys.entrySet())
 					{
 						"Name":"${partitionKey.key}",
 						"Type":"${partitionKey.value}"
@@ -121,6 +123,7 @@
 			}
 		}
 	},
+	#end
 	#end
 	#foreach( $stream in $kinesisFirehoseStreams)
 	"${stream.name}KinesisStream":{
@@ -136,34 +139,14 @@
 					]
 				},
 				"BucketARN":"arn:aws:s3:::${stack}.log.sagebase.org",
+				"Prefix":"${stream.name}/${stream.partitionScheme}/",
+				"ErrorOutputPrefix":"${stream.name}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
 				#if( $stream.convertToParquet )
 				"BufferingHints":{
 					"IntervalInSeconds":"60",
 					"SizeInMBs":"64"
 				},
 				"CompressionFormat":"UNCOMPRESSED",
-				"Prefix": {
-					"Fn::Join": [
-						"",
-						[
-							{
-								"Ref": "${stack}${instance}${stream.tableName}"
-							},
-							"/${stream.partitionScheme}/"
-						]
-					]
-				},
-				"ErrorOutputPrefix": {
-					"Fn::Join": [
-						"",
-						[
-							{
-								"Ref": "${stack}${instance}${stream.tableName}"
-							},
-							"/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/"
-						]
-					]
-				},
 				"DataFormatConversionConfiguration": {
 					"SchemaConfiguration": {
 						"CatalogId": {
@@ -179,7 +162,7 @@
 							"Ref":"${stack}${instance}FirehoseLogs"
 						},
 						"TableName": {
-							"Ref":"${stack}${instance}${stream.tableName}"
+							"Ref":"${stack}${instance}${stream.name}Table"
 						},
 						"Region": {
 							"Ref":"AWS::Region"
@@ -199,8 +182,6 @@
 					"Enabled": true
 				}
 				#else
-				"Prefix":"${stream.name}/${stream.partitionScheme}/",
-				"ErrorOutputPrefix":"${stream.name}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
 				"BufferingHints":{
 					"IntervalInSeconds":"60",
 					"SizeInMBs":"50"

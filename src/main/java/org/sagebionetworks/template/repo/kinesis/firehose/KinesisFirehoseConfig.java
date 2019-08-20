@@ -5,8 +5,6 @@ import java.util.Set;
 
 public class KinesisFirehoseConfig {
 
-	private Set<GlueTableDescriptor> glueTableDescriptors = new HashSet<>();
-
 	private Set<KinesisFirehoseStreamDescriptor> streamDescriptors = new HashSet<>();
 
 	public Set<KinesisFirehoseStreamDescriptor> getStreamDescriptors() {
@@ -15,14 +13,6 @@ public class KinesisFirehoseConfig {
 
 	public void setStreamDescriptors(Set<KinesisFirehoseStreamDescriptor> streamDescriptors) {
 		this.streamDescriptors = streamDescriptors;
-	}
-	
-	public Set<GlueTableDescriptor> getGlueTableDescriptors() {
-		return glueTableDescriptors;
-	}
-	
-	public void setGlueTableDescriptors(Set<GlueTableDescriptor> glueTableDescriptors) {
-		this.glueTableDescriptors = glueTableDescriptors;
 	}
 
 }
