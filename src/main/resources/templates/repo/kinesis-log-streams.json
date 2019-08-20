@@ -13,9 +13,9 @@
 				"userId": "bigint",
 				"timestamp": "timestamp",
 				"projectId": "bigint",
-				"fileHandleId": "bigint",
+				"fileHandleId": "string",
 				"associateType": "string",
-				"associateId": "bigint",
+				"associateId": "string",
 				"stack": "string",
 				"instance": "string"
 			},
@@ -36,9 +36,9 @@
 				"userId": "bigint",
 				"timestamp": "timestamp",
 				"projectId": "bigint",
-				"fileHandleId": "bigint",
+				"fileHandleId": "string",
 				"associateType": "string",
-				"associateId": "bigint",
+				"associateId": "string",
 				"stack": "string",
 				"instance": "string"
 			},
