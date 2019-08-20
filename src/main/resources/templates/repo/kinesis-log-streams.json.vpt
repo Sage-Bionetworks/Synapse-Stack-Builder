@@ -74,7 +74,9 @@
 			"CatalogId":{
 				"Ref":"AWS::AccountId"
 			},
-			"DatabaseInput": {}
+			"DatabaseInput": {
+				"Name": "${stack}${instance}FirehoseLogs"
+			}
 		}
 	},
 	#foreach( $stream in $kinesisFirehoseStreams)
@@ -89,6 +91,7 @@
 				"Ref":"${stack}${instance}FirehoseLogs"
 			},
 			"TableInput": {
+				"Name": "${stack}${instance}${stream.name}Table",
 				"StorageDescriptor": {
 					"Columns": [
 						#foreach($column in $stream.tableDescriptor.columns.entrySet())
@@ -180,6 +183,23 @@
 						}
 					},
 					"Enabled": true
+				},
+				"S3BackupMode": "Enabled",
+				"S3BackupConfiguration": {
+					"RoleARN":{
+						"Fn::GetAtt":[
+							"KinesisFirehoseLogRole",
+							"Arn"
+						]
+					},
+					"BucketARN":"arn:aws:s3:::${stack}.log.sagebase.org",
+					"BufferingHints":{
+						"IntervalInSeconds":"60",
+						"SizeInMBs":"64"
+					},
+					"CompressionFormat" : "GZIP",
+					"Prefix":"${stream.name}Backup/${stream.partitionScheme}/",
+					"ErrorOutputPrefix":"${stream.name}Backup/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/"
 				}
 				#else
 				"BufferingHints":{
