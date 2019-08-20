@@ -78,7 +78,7 @@
 		}
 	},
 	#foreach( $table in $glueTables)
-	"${table.name}": {
+	"${stack}${instance}${table.name}": {
 		"Type":"AWS::Glue::Table",
 		"Properties": {
 			"CatalogId": {
@@ -136,14 +136,34 @@
 					]
 				},
 				"BucketARN":"arn:aws:s3:::${stack}.log.sagebase.org",
-				"Prefix":"${stream.name}/${stream.partitionScheme}/",
-				"ErrorOutputPrefix":"${stream.name}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
 				#if( $stream.convertToParquet )
 				"BufferingHints":{
 					"IntervalInSeconds":"60",
 					"SizeInMBs":"64"
 				},
 				"CompressionFormat":"UNCOMPRESSED",
+				"Prefix": {
+					"Fn::Join": [
+						"",
+						[
+							{
+								"Ref": "${stack}${instance}${stream.tableName}"
+							},
+							"/${stream.partitionScheme}/"
+						]
+					]
+				},
+				"ErrorOutputPrefix": {
+					"Fn::Join": [
+						"",
+						[
+							{
+								"Ref": "${stack}${instance}${stream.tableName}"
+							},
+							"/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/"
+						]
+					]
+				},
 				"DataFormatConversionConfiguration": {
 					"SchemaConfiguration": {
 						"CatalogId": {
@@ -159,7 +179,7 @@
 							"Ref":"${stack}${instance}FirehoseLogs"
 						},
 						"TableName": {
-							"Ref":"${stream.tableName}"
+							"Ref":"${stack}${instance}${stream.tableName}"
 						},
 						"Region": {
 							"Ref":"AWS::Region"
@@ -179,6 +199,8 @@
 					"Enabled": true
 				}
 				#else
+				"Prefix":"${stream.name}/${stream.partitionScheme}/",
+				"ErrorOutputPrefix":"${stream.name}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
 				"BufferingHints":{
 					"IntervalInSeconds":"60",
 					"SizeInMBs":"50"

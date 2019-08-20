@@ -1,7 +1,25 @@
 {
 	"glueTableDescriptors": [
 		{
-			"name": "fileHandleUserEvent",
+			"name": "fileDownloads",
+			"columns": {
+				"userId": "bigint",
+				"timestamp": "timestamp",
+				"projectId": "bigint",
+				"fileHandleId": "bigint",
+				"associateType": "string",
+				"associateId": "bigint",
+				"stack": "string",
+				"instance": "string"
+			},
+			"partitionKeys": {
+				"year": "string",
+				"month": "string",
+				"day": "string"
+			}
+		},
+		{
+			"name": "fileUploads",
 			"columns": {
 				"userId": "bigint",
 				"timestamp": "timestamp",
@@ -27,12 +45,12 @@
 		"name": "fileDownloads",
 		"partitionScheme": "year=!{timestamp:YYYY}/month=!{timestamp:MM}/day=!{timestamp:dd}",
 		"convertToParquet": true,
-		"tableName": "fileHandleUserEvent"
+		"tableName": "fileDownloads"
 	},
 	{
 		"name": "fileUploads",
 		"partitionScheme": "year=!{timestamp:YYYY}/month=!{timestamp:MM}/day=!{timestamp:dd}",
 		"convertToParquet": true,
-		"tableName": "fileHandleUserEvent"
+		"tableName": "fileUploads"
 	}]
 }
