@@ -111,7 +111,7 @@
 							"serialization.format": "1"
 						}
 					},
-					"Location": "s3://${stack}.log.sagebase.org/${stream.name}"
+					"Location": "s3://${stack}.log.sagebase.org/${stream.name}/records"
 				},
 				"PartitionKeys": [
 					#foreach($partitionKey in $stream.tableDescriptor.partitionKeys.entrySet())
@@ -142,13 +142,13 @@
 					]
 				},
 				"BucketARN":"arn:aws:s3:::${stack}.log.sagebase.org",
-				"Prefix":"${stream.name}/${stream.partitionScheme}/",
+				"Prefix":"${stream.name}/records/${stream.partitionScheme}/",
 				"ErrorOutputPrefix":"${stream.name}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
-				#if( $stream.convertToParquet )
 				"BufferingHints":{
-					"IntervalInSeconds":"60",
-					"SizeInMBs":"64"
+					"IntervalInSeconds":${stream.bufferFlushInterval},
+					"SizeInMBs":${stream.bufferFlushSize}
 				},
+				#if( $stream.convertToParquet )
 				"CompressionFormat":"UNCOMPRESSED",
 				"DataFormatConversionConfiguration": {
 					"SchemaConfiguration": {
@@ -193,19 +193,15 @@
 						]
 					},
 					"BucketARN":"arn:aws:s3:::${stack}.log.sagebase.org",
-					"BufferingHints":{
-						"IntervalInSeconds":"60",
-						"SizeInMBs":"64"
-					},
 					"CompressionFormat" : "GZIP",
-					"Prefix":"${stream.name}/backup/${stream.partitionScheme}/",
-					"ErrorOutputPrefix":"${stream.name}/backup/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/"
+					"Prefix":"${stream.name}/backup/records/${stream.partitionScheme}/",
+					"ErrorOutputPrefix":"${stream.name}/backup/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
+					"BufferingHints":{
+						"IntervalInSeconds":${stream.bufferFlushInterval},
+						"SizeInMBs":${stream.bufferFlushSize}
+					}
 				}
 				#else
-				"BufferingHints":{
-					"IntervalInSeconds":"60",
-					"SizeInMBs":"50"
-				},
 				"CompressionFormat":"GZIP"
 				#end
 			}

@@ -78,5 +78,29 @@ public class KinesisFirehoseConfigValidatorTest {
 
 		validator.validate();
 	}
+	
+	@Test(expected = IllegalStateException.class)
+	public void testWithInvalidBufferInterval() {
+		
+		KinesisFirehoseStreamDescriptor stream = new KinesisFirehoseStreamDescriptor();
+		stream.setBufferFlushInterval(KinesisFirehoseStreamDescriptor.MIN_BUFFER_INTERVAL - 1);
+		
+		when(mockConfig.getStreamDescriptors()).thenReturn(Collections.singleton(stream));
+		
+		validator.validate();
+		
+	}
+	
+	@Test(expected = IllegalStateException.class)
+	public void testWithInvalidBufferSize() {
+		
+		KinesisFirehoseStreamDescriptor stream = new KinesisFirehoseStreamDescriptor();
+		stream.setBufferFlushSize(KinesisFirehoseStreamDescriptor.MIN_BUFFER_SIZE - 1);
+		
+		when(mockConfig.getStreamDescriptors()).thenReturn(Collections.singleton(stream));
+		
+		validator.validate();
+		
+	}
 
 }

@@ -14,5 +14,4 @@ public class KinesisFirehoseConfig {
 	public void setStreamDescriptors(Set<KinesisFirehoseStreamDescriptor> streamDescriptors) {
 		this.streamDescriptors = streamDescriptors;
 	}
-
 }
