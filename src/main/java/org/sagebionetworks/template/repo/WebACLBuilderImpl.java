@@ -16,6 +16,7 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
@@ -36,15 +37,19 @@ public class WebACLBuilderImpl implements WebACLBuilder {
 	Configuration config;
 	AmazonElasticLoadBalancing elbClient;
 	Logger logger;
+	StackTagsProvider stackTagsProvider;
 
 	@Inject
-	public WebACLBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine, Configuration config, AmazonElasticLoadBalancing elbClient, LoggerFactory loggerFactory) {
+	public WebACLBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
+							 Configuration config, AmazonElasticLoadBalancing elbClient,
+							 LoggerFactory loggerFactory, StackTagsProvider stackTagsProvider) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.velocityEngine = velocityEngine;
 		this.config = config;
 		this.elbClient = elbClient;
 		this.logger = loggerFactory.getLogger(WebACLBuilderImpl.class);
+		this.stackTagsProvider = stackTagsProvider;
 	}
 
 	@Override
@@ -68,7 +73,7 @@ public class WebACLBuilderImpl implements WebACLBuilder {
 		this.logger.info(resultJSON);
 		// create or update the template
 		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
-				.withTemplateBody(resultJSON));
+				.withTemplateBody(resultJSON).withTags(stackTagsProvider.getStackTags()));
 	}
 	
 	/**

@@ -80,6 +80,9 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 				if(requestInput.getCapabilities() != null) {
 					request.withCapabilities(requestInput.getCapabilities());
 				}
+				if(requestInput.getTags() != null) {
+					request.withTags(requestInput.getTags());
+				}
 				UpdateStackResult results = cloudFormationClient.updateStack(request);
 				return results.getStackId();
 			}
@@ -101,6 +104,9 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 				}
 				if(requestInput.getCapabilities() != null) {
 					request.withCapabilities(requestInput.getCapabilities());
+				}
+				if(requestInput.getTags() != null) {
+					request.withTags(requestInput.getTags());
 				}
 				CreateStackResult result = cloudFormationClient.createStack(request);
 				return result.getStackId();

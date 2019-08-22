@@ -1,8 +1,10 @@
 package org.sagebionetworks.template;
 
 import java.util.Arrays;
+import java.util.List;
 
 import com.amazonaws.services.cloudformation.model.Parameter;
+import com.amazonaws.services.cloudformation.model.Tag;
 
 /**
  * Request to create or update a stack.
@@ -14,6 +16,7 @@ public class CreateOrUpdateStackRequest {
 	String templateBody;
 	Parameter[] parameters;
 	String[] capabilities;
+	private List<Tag> tags;
 
 	/**
 	 * The name of the stack to create/update.
@@ -94,6 +97,24 @@ public class CreateOrUpdateStackRequest {
 		return capabilities;
 	}
 
+	/**
+	 *	Tags for Cloudformation resources
+	 * @return
+	 * */
+	public List<Tag> getTags() {
+		return tags;
+	}
+
+	/**
+	 * The list of tags passed to the stack being created or updated
+	 *
+	 * @param tags
+	 */
+	public CreateOrUpdateStackRequest withTags(List<Tag> tags) {
+		this.tags = tags;
+		return this;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -101,6 +122,8 @@ public class CreateOrUpdateStackRequest {
 		result = prime * result + Arrays.hashCode(parameters);
 		result = prime * result + ((stackName == null) ? 0 : stackName.hashCode());
 		result = prime * result + ((templateBody == null) ? 0 : templateBody.hashCode());
+		result = prime * result + ((capabilities == null) ? 0 : capabilities.hashCode());
+		result = prime * result + ((tags == null) ? 0 : tags.hashCode());
 		return result;
 	}
 
@@ -125,13 +148,24 @@ public class CreateOrUpdateStackRequest {
 				return false;
 		} else if (!templateBody.equals(other.templateBody))
 			return false;
+		if (capabilities == null) {
+			if (other.capabilities != null)
+				return false;
+		} else if (!capabilities.equals(other.capabilities))
+			return false;
+		if (tags == null) {
+			if (other.tags != null)
+				return false;
+		} else if (!tags.equals(other.tags))
+			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
 		return "CreateOrUpdateStackRequest [stackName=" + stackName + ", templateBody=" + templateBody + ", parameters="
-				+ Arrays.toString(parameters) + "]";
+				+ Arrays.toString(parameters) + "], capabilities=[" + Arrays.toString(capabilities)
+				+ "], tags = [" + tags.toString() + "]";
 	}
 
 }

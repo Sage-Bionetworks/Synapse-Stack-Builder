@@ -88,6 +88,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(ElasticBeanstalkExtentionBuilder.class).to(ElasticBeanstalkExtentionBuilderImpl.class);
 		bind(WarAppender.class).to(WarAppenderImpl.class);
 		bind(ElasticBeanstalkDefaultAMIEncrypter.class).to(ElasticBeanstalkDefaultAMIEncrypterImpl.class);
+		bind(StackTagsProvider.class).to(StackTagsProviderImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(SnsAndSqsVelocityContextProvider.class);

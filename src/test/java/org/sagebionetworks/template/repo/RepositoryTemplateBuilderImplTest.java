@@ -40,10 +40,12 @@ import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.amazonaws.services.cloudformation.model.Tag;
 import com.google.common.collect.Sets;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.VelocityContext;
@@ -56,12 +58,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.*;
 import org.sagebionetworks.template.config.Configuration;
-import org.sagebionetworks.template.ConfigurationPropertyNotFound;
-import org.sagebionetworks.template.CreateOrUpdateStackRequest;
-import org.sagebionetworks.template.LoggerFactory;
-import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
@@ -100,6 +98,7 @@ public class RepositoryTemplateBuilderImplTest {
 	VelocityContextProvider mockContextProvider2;
 	@Mock
 	ElasticBeanstalkDefaultAMIEncrypter mockElasticBeanstalkDefaultAMIEncrypter;
+	StackTagsProvider stackTagsProvider;
 
 	@Captor
 	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
@@ -125,11 +124,13 @@ public class RepositoryTemplateBuilderImplTest {
 		// use a real velocity engine
 		velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
 
+		stackTagsProvider = new StackTagsProviderImpl(config);
+
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder, mockACLBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
-				mockElasticBeanstalkDefaultAMIEncrypter);
+				mockElasticBeanstalkDefaultAMIEncrypter, stackTagsProvider);
 
 		stack = "dev";
 		instance = "101";
@@ -171,6 +172,11 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_AWS_SECRET_KEY)).thenReturn("aws-secret");
 		when(config.getProperty(PROPERTY_KEY_BEANSTALK_ENCRYPTION_KEY)).thenReturn("encryption-key");
 
+		when(config.getProperty(PROPERTY_KEY_STACK_TAG_DEPARTMENT)).thenReturn("aDepartment");
+		when(config.getProperty(PROPERTY_KEY_STACK_TAG_PROJECT)).thenReturn("aProject");
+		when(config.getProperty(PROPERTY_KEY_STACK_TAG_OWNER_EMAIL)).thenReturn("anOwnerEmail");
+		stackTagsProvider = new StackTagsProviderImpl(config);
+
 		sharedResouces = new Stack();
 		Output dbOut = new Output();
 		dbOut.withOutputKey(stack+instance+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
@@ -198,6 +204,7 @@ public class RepositoryTemplateBuilderImplTest {
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
 		assertEquals("dev-101-shared-resources", request.getStackName());
+		assertNotNull(request.getTags());
 		assertNotNull(request.getParameters());
 		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);
@@ -423,4 +430,5 @@ public class RepositoryTemplateBuilderImplTest {
 		String suffix = builder.extractDatabaseSuffix(sharedResouces);
 		assertEquals(databaseEndpointSuffix, suffix);
 	}
+
 }

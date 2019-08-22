@@ -75,6 +75,14 @@ public class Constants {
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT = PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX + "tomcat";
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX = PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX + "amazonlinux";
 
+	// property keys for tags
+	public static final String PROPERTY_KEY_STACK_TAG_DEPARTMENT = "org.sagebionetworks.stack.tag.department";
+	public static final String PROPERTY_KEY_STACK_TAG_PROJECT = "org.sagebionetworks.stack.tag.project";
+	public static final String PROPERTY_KEY_STACK_TAG_OWNER_EMAIL = "org.sagebionetworks.stack.tag.owneremail";
+	// tag keys
+	public static final String TAG_KEY_DEPARTMENT = "Department";
+	public static final String TAG_KEY_PROJECT = "Project";
+	public static final String TAG_KEY_OWNER_EMAIL = "OwnerEmail";
 
 	// templates
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";

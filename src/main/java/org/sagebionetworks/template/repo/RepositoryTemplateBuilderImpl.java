@@ -42,17 +42,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
 
+import com.amazonaws.services.cloudformation.model.Tag;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.*;
 import org.sagebionetworks.template.config.Configuration;
-import org.sagebionetworks.template.ConfigurationPropertyNotFound;
-import org.sagebionetworks.template.Constants;
-import org.sagebionetworks.template.CreateOrUpdateStackRequest;
-import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
@@ -78,12 +75,14 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	WebACLBuilder aclBuilder;
 	Set<VelocityContextProvider> contextProviders;
 	ElasticBeanstalkDefaultAMIEncrypter elasticBeanstalkDefaultAMIEncrypter;
+	StackTagsProvider stackTagsProvider;
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
 										 RepoConfiguration configuration, LoggerFactory loggerFactory, ArtifactCopy artifactCopy,
 										 SecretBuilder secretBuilder, WebACLBuilder aclBuilder, Set<VelocityContextProvider> contextProviders,
-										 ElasticBeanstalkDefaultAMIEncrypter elasticBeanstalkDefaultAMIEncrypter) {
+										 ElasticBeanstalkDefaultAMIEncrypter elasticBeanstalkDefaultAMIEncrypter,
+										 StackTagsProvider stackTagsProvider) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.velocityEngine = velocityEngine;
@@ -94,6 +93,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.aclBuilder = aclBuilder;
 		this.contextProviders = contextProviders;
 		this.elasticBeanstalkDefaultAMIEncrypter = elasticBeanstalkDefaultAMIEncrypter;
+		this.stackTagsProvider = stackTagsProvider;
 	}
 
 	@Override
@@ -104,6 +104,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		Parameter[] sharedParameters = createSharedParameters();
 		// Create the shared-resource stack
 		String sharedResourceStackName = createSharedResourcesStackName();
+
 		buildAndDeployStack(context, sharedResourceStackName, TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP, sharedParameters);
 		// Wait for the shared resources to complete
 		Stack sharedStackResults = cloudFormationClient.waitForStackToComplete(sharedResourceStackName);
@@ -121,6 +122,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	public List<String> buildEnvironments(Stack sharedStackResults) {
 		// Create the repo/worker secrets
 		SourceBundle secretsSouce = secretBuilder.createSecrets();
+
 		List<String> environmentNames = new LinkedList<String>();
 		// each environment is treated as its own stack.
 		for (EnvironmentDescriptor environment : createEnvironments(secretsSouce)) {
@@ -169,6 +171,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 * @param templatePath
 	 */
 	void buildAndDeployStack(VelocityContext context, String stackName, String templatePath, Parameter... parameters) {
+		List<Tag> stackTags = stackTagsProvider.getStackTags();
+
 		// Merge the context with the template
 		Template template = this.velocityEngine.getTemplate(templatePath);
 		StringWriter stringWriter = new StringWriter();
@@ -181,8 +185,12 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.logger.info("Template for stack: " + stackName);
 		this.logger.info(resultJSON);
 		// create or update the template
-		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
-				.withTemplateBody(resultJSON).withParameters(parameters).withCapabilities(CAPABILITY_NAMED_IAM));
+		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(stackName)
+				.withTemplateBody(resultJSON)
+				.withParameters(parameters)
+				.withCapabilities(CAPABILITY_NAMED_IAM)
+				.withTags(stackTags));
 	}
 
 	/**

@@ -31,11 +31,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.*;
 import org.sagebionetworks.template.config.Configuration;
-import org.sagebionetworks.template.CreateOrUpdateStackRequest;
-import org.sagebionetworks.template.LoggerFactory;
-import org.sagebionetworks.template.TemplateGuiceModule;
 
 import com.amazonaws.services.cloudformation.model.Parameter;
 
@@ -50,6 +47,8 @@ public class VpcTemplateBuilderImplTest {
 	LoggerFactory mockLoggerFactory;
 	@Mock
 	Logger mockLogger;
+	StackTagsProvider stackTagsProvider;
+
 	@Captor
 	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
 
@@ -70,8 +69,13 @@ public class VpcTemplateBuilderImplTest {
 		velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
 		
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
-		
-		builder = new VpcTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, mockConfig, mockLoggerFactory);
+
+		when(mockConfig.getProperty(PROPERTY_KEY_STACK_TAG_DEPARTMENT)).thenReturn("aDepartment");
+		when(mockConfig.getProperty(PROPERTY_KEY_STACK_TAG_PROJECT)).thenReturn("aProject");
+		when(mockConfig.getProperty(PROPERTY_KEY_STACK_TAG_OWNER_EMAIL)).thenReturn("anOwnerEmail");
+		stackTagsProvider = new StackTagsProviderImpl(mockConfig);
+
+		builder = new VpcTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, mockConfig, mockLoggerFactory, stackTagsProvider);
 		colors = new String[] {"Red","Green"};
 		subnetPrefix = "10.21";
 		avialabilityZones = new String[] {"us-east-1a","us-east-1b"};
@@ -103,6 +107,7 @@ public class VpcTemplateBuilderImplTest {
 		CreateOrUpdateStackRequest request = requestCaptor.getValue();
 		assertEquals("synapse-dev-vpc", request.getStackName());
 		assertNotNull(request.getParameters());
+		assertNotNull(request.getTags());
 		JSONObject templateJson = new JSONObject(request.getTemplateBody());
 		System.out.println(templateJson.toString(JSON_INDENT));
 		
