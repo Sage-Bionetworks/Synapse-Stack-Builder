@@ -1,12 +1,17 @@
 {
 	"streamDescriptors": [{
 		"name": "cloudsearchDocumentGeneration",
-		"partitionScheme": "!{timestamp:yyyy-MM-dd}"
+		"partitionScheme": "!{timestamp:yyyy-MM-dd}",
+		"format": "JSON",
+		"bufferFlushSize": 64,
+		"bufferFlushInterval": 900
 	},
 	{
 		"name": "fileDownloads",
 		"partitionScheme": "year=!{timestamp:YYYY}/month=!{timestamp:MM}/day=!{timestamp:dd}",
-		"convertToParquet": true,
+		"format": "PARQUET",
+		"bufferFlushSize": 64,
+		"bufferFlushInterval": 900,
 		"tableDescriptor": {
 			"name": "filedownloadstable",
 			"columns": {
@@ -29,7 +34,9 @@
 	{
 		"name": "fileUploads",
 		"partitionScheme": "year=!{timestamp:YYYY}/month=!{timestamp:MM}/day=!{timestamp:dd}",
-		"convertToParquet": true,
+		"format": "PARQUET",
+		"bufferFlushSize": 64,
+		"bufferFlushInterval": 900,
 		"tableDescriptor": {
 			"name": "fileuploadstable",
 			"columns": {

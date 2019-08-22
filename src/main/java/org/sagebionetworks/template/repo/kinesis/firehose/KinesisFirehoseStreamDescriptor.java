@@ -10,12 +10,15 @@ public class KinesisFirehoseStreamDescriptor {
 	public static final int MAX_BUFFER_SIZE = 128;
 
 	private String name;
+	// Partitioning prefix for the stream in S3 (See https://docs.aws.amazon.com/firehose/latest/dev/s3-prefixes.html)
 	private String partitionScheme = "!{timestamp:yyyy-MM-dd}";
 	// Buffer flush interval in seconds
 	private int bufferFlushInterval = MAX_BUFFER_INTERVAL;
 	// Buffer flush max size in MB
 	private int bufferFlushSize = MIN_BUFFER_SIZE;
-	private boolean convertToParquet = false;
+	// The record format in the destination
+	private KinesisFirehoseRecordFormat format = KinesisFirehoseRecordFormat.JSON;
+	// A glue table descriptor for athena, mandatory if the format is PARQUET (used for conversion)
 	private GlueTableDescriptor tableDescriptor = null;
 
 	public String getName() {
@@ -50,12 +53,12 @@ public class KinesisFirehoseStreamDescriptor {
 		this.bufferFlushSize = bufferFlushSize;
 	}
 
-	public boolean isConvertToParquet() {
-		return convertToParquet;
+	public KinesisFirehoseRecordFormat getFormat() {
+		return format;
 	}
 
-	public void setConvertToParquet(boolean convertToParquet) {
-		this.convertToParquet = convertToParquet;
+	public void setFormat(KinesisFirehoseRecordFormat format) {
+		this.format = format;
 	}
 
 	public GlueTableDescriptor getTableDescriptor() {
@@ -68,8 +71,7 @@ public class KinesisFirehoseStreamDescriptor {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(bufferFlushInterval, bufferFlushSize, convertToParquet, name, partitionScheme,
-				tableDescriptor);
+		return Objects.hash(bufferFlushInterval, bufferFlushSize, format, name, partitionScheme, tableDescriptor);
 	}
 
 	@Override
@@ -82,7 +84,7 @@ public class KinesisFirehoseStreamDescriptor {
 			return false;
 		KinesisFirehoseStreamDescriptor other = (KinesisFirehoseStreamDescriptor) obj;
 		return bufferFlushInterval == other.bufferFlushInterval && bufferFlushSize == other.bufferFlushSize
-				&& convertToParquet == other.convertToParquet && Objects.equals(name, other.name)
+				&& format == other.format && Objects.equals(name, other.name)
 				&& Objects.equals(partitionScheme, other.partitionScheme)
 				&& Objects.equals(tableDescriptor, other.tableDescriptor);
 	}

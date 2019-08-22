@@ -12,6 +12,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.sagebionetworks.template.repo.kinesis.firehose.GlueTableDescriptor;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfig;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfigValidator;
+import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseRecordFormat;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseStreamDescriptor;
 
 import com.google.common.collect.ImmutableMap;
@@ -29,7 +30,6 @@ public class KinesisFirehoseConfigValidatorTest {
 	public void testWithNoTables() {
 
 		KinesisFirehoseStreamDescriptor stream = new KinesisFirehoseStreamDescriptor();
-		stream.setConvertToParquet(false);
 
 		when(mockConfig.getStreamDescriptors()).thenReturn(Collections.singleton(stream));
 
@@ -45,7 +45,6 @@ public class KinesisFirehoseConfigValidatorTest {
 		table.setColumns(ImmutableMap.of("someColumn", "string"));
 
 		KinesisFirehoseStreamDescriptor stream = new KinesisFirehoseStreamDescriptor();
-		stream.setConvertToParquet(true);
 		stream.setTableDescriptor(table);
 
 		when(mockConfig.getStreamDescriptors()).thenReturn(Collections.singleton(stream));
@@ -60,7 +59,7 @@ public class KinesisFirehoseConfigValidatorTest {
 		table.setName("someTableRef");
 
 		KinesisFirehoseStreamDescriptor stream = new KinesisFirehoseStreamDescriptor();
-		stream.setConvertToParquet(true);
+		stream.setFormat(KinesisFirehoseRecordFormat.PARQUET);
 		stream.setTableDescriptor(table);
 
 		when(mockConfig.getStreamDescriptors()).thenReturn(Collections.singleton(stream));
@@ -72,35 +71,47 @@ public class KinesisFirehoseConfigValidatorTest {
 	public void testWithMissingTableName() {
 
 		KinesisFirehoseStreamDescriptor stream = new KinesisFirehoseStreamDescriptor();
-		stream.setConvertToParquet(true);
+		stream.setFormat(KinesisFirehoseRecordFormat.PARQUET);
 
 		when(mockConfig.getStreamDescriptors()).thenReturn(Collections.singleton(stream));
 
 		validator.validate();
 	}
-	
+
 	@Test(expected = IllegalStateException.class)
-	public void testWithInvalidBufferInterval() {
-		
+	public void testWithLowBufferInterval() {
+
 		KinesisFirehoseStreamDescriptor stream = new KinesisFirehoseStreamDescriptor();
 		stream.setBufferFlushInterval(KinesisFirehoseStreamDescriptor.MIN_BUFFER_INTERVAL - 1);
-		
+
 		when(mockConfig.getStreamDescriptors()).thenReturn(Collections.singleton(stream));
-		
+
 		validator.validate();
-		
+
 	}
-	
+
 	@Test(expected = IllegalStateException.class)
-	public void testWithInvalidBufferSize() {
-		
+	public void testWithHighBufferInterval() {
+
 		KinesisFirehoseStreamDescriptor stream = new KinesisFirehoseStreamDescriptor();
-		stream.setBufferFlushSize(KinesisFirehoseStreamDescriptor.MIN_BUFFER_SIZE - 1);
-		
+		stream.setBufferFlushInterval(KinesisFirehoseStreamDescriptor.MAX_BUFFER_INTERVAL + 1);
+
 		when(mockConfig.getStreamDescriptors()).thenReturn(Collections.singleton(stream));
-		
+
 		validator.validate();
-		
+
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void testWithHighBufferSize() {
+
+		KinesisFirehoseStreamDescriptor stream = new KinesisFirehoseStreamDescriptor();
+		stream.setBufferFlushSize(KinesisFirehoseStreamDescriptor.MAX_BUFFER_SIZE + 1);
+
+		when(mockConfig.getStreamDescriptors()).thenReturn(Collections.singleton(stream));
+
+		validator.validate();
+
 	}
 
 }

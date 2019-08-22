@@ -7,17 +7,17 @@ import org.sagebionetworks.template.repo.VelocityContextProvider;
 import com.google.inject.Inject;
 
 public class KinesisFirehoseVelocityContextProvider implements VelocityContextProvider {
-	
-	private KinesisFirehoseConfig config;
-	
+
+	private KinesisFirehoseConfig firehoseConfig;
+
 	@Inject
-	public KinesisFirehoseVelocityContextProvider(KinesisFirehoseConfig config) {
-		this.config = config;
+	public KinesisFirehoseVelocityContextProvider(KinesisFirehoseConfig firehoseConfig) {
+		this.firehoseConfig = firehoseConfig;
 	}
 
 	@Override
 	public void addToContext(VelocityContext context) {
-		context.put(Constants.KINESIS_FIREHOSE_STREAM_DESCRIPTORS, config.getStreamDescriptors());
+		context.put(Constants.KINESIS_FIREHOSE_STREAM_DESCRIPTORS, firehoseConfig.getStreamDescriptors());
 	}
 
 }

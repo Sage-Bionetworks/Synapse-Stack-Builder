@@ -68,30 +68,34 @@
 			]
 		}
 	},
-	"${stack}${instance}firehoselogs": {
+	#set ($gluePrefix = "${stack}${instance}")
+	#set ($gluePrefix = "${gluePrefix.toLowerCase()}")
+	#set ($glueDatabaseName = "${gluePrefix}firehoselogs")
+	#macro( glueTableName $name )${gluePrefix}${name.toLowerCase()}#end
+	"${glueDatabaseName}": {
 		"Type":"AWS::Glue::Database",
 		"Properties":{
 			"CatalogId":{
 				"Ref":"AWS::AccountId"
 			},
 			"DatabaseInput": {
-				"Name": "${stack}${instance}firehoselogs"
+				"Name": "${glueDatabaseName}"
 			}
 		}
 	},
 	#foreach( $stream in $kinesisFirehoseStreams)
-	#if( $stream.convertToParquet )
-	"${stack}${instance}${stream.tableDescriptor.name.toLowerCase()}": {
+	#if( $stream.tableDescriptor )
+	"#glueTableName($stream.tableDescriptor.name)": {
 		"Type":"AWS::Glue::Table",
 		"Properties": {
 			"CatalogId": {
 				"Ref":"AWS::AccountId"
 			},
 			"DatabaseName": {
-				"Ref":"${stack}${instance}firehoselogs"
+				"Ref":"${glueDatabaseName}"
 			},
 			"TableInput": {
-				"Name": "${stack}${instance}${stream.tableDescriptor.name.toLowerCase()}",
+				"Name": "#glueTableName($stream.tableDescriptor.name)",
 				"StorageDescriptor": {
 					"Columns": [
 						#foreach($column in $stream.tableDescriptor.columns.entrySet())
@@ -102,15 +106,26 @@
 						#if( $foreach.hasNext),#end
 						#end
 					],
+					#if ($stream.format == "PARQUET")
 					"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
 					"OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
-					"Compressed": false,
 					"SerdeInfo": {
 						"SerializationLibrary": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 						"Parameters": {
 							"serialization.format": "1"
 						}
-					},
+					}
+					#elseif( $stream.format == "JSON" )
+					"InputFormat": "org.apache.hadoop.mapred.TextInputFormat",
+					"OutputFormat": "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat",
+					"SerdeInfo": {
+						"SerializationLibrary": "org.openx.data.jsonserde.JsonSerDe",
+						"Parameters": {
+							"serialization.format": "1"
+						}
+					}
+					#end,
+					"Compressed": false,
 					"Location": "s3://${stack}.log.sagebase.org/${stream.name}/records"
 				},
 				"PartitionKeys": [
@@ -148,7 +163,7 @@
 					"IntervalInSeconds":${stream.bufferFlushInterval},
 					"SizeInMBs":${stream.bufferFlushSize}
 				},
-				#if( $stream.convertToParquet )
+				#if( $stream.format == "PARQUET" )
 				"CompressionFormat":"UNCOMPRESSED",
 				"DataFormatConversionConfiguration": {
 					"SchemaConfiguration": {
@@ -162,10 +177,10 @@
 							]
 						},
 						"DatabaseName": {
-							"Ref":"${stack}${instance}firehoselogs"
+							"Ref":"${glueDatabaseName}"
 						},
 						"TableName": {
-							"Ref":"${stack}${instance}${stream.tableDescriptor.name.toLowerCase()}"
+							"Ref":"#glueTableName($stream.tableDescriptor.name)",
 						},
 						"Region": {
 							"Ref":"AWS::Region"
@@ -201,7 +216,7 @@
 						"SizeInMBs":${stream.bufferFlushSize}
 					}
 				}
-				#else
+				#elseif( $stream.format == "JSON" )
 				"CompressionFormat":"GZIP"
 				#end
 			}

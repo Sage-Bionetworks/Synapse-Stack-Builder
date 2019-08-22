@@ -36,7 +36,7 @@ public class KinesisFirehoseConfigValidator {
 					+ ": The maximum value for the bufferFlushSize is "
 					+ KinesisFirehoseStreamDescriptor.MAX_BUFFER_SIZE + "(was " + stream.getBufferFlushSize() + ")");
 		}
-		if (stream.isConvertToParquet()) {
+		if (KinesisFirehoseRecordFormat.PARQUET.equals(stream.getFormat())) {
 			if (stream.getTableDescriptor() == null) {
 				throw new IllegalStateException("The stream " + stream.getName()
 						+ " is configured to be converted to parquet records, but the tableDescriptor is missing");
