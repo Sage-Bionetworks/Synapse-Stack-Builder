@@ -119,6 +119,7 @@ public class Constants {
 	public static final String REPO_BEANSTALK_NUMBER = "repoBeanstalkNumber";
 	public static final String STACK_CMK_ALIAS = "stackCMKAlias";
 	public static final String DATABASE_IDENTIFIER = "databaseIdentifier";
+	public static final String EXCEPTION_THROWER = "exceptionThrower";
 	
 	public static final String CAPABILITY_NAMED_IAM = "CAPABILITY_NAMED_IAM";
 	public static final String OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT = "RepositoryDBEndpoint";

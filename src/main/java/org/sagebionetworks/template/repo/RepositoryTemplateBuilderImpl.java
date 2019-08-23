@@ -39,6 +39,7 @@ import static org.sagebionetworks.template.Constants.TEMPALTE_BEAN_STALK_ENVIRON
 import static org.sagebionetworks.template.Constants.TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
+import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
 
 import java.io.StringWriter;
 import java.util.LinkedList;
@@ -202,6 +203,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		context.put(SHARED_RESOUCES_STACK_NAME, createSharedResourcesStackName());
 		context.put(VPC_EXPORT_PREFIX, Constants.createVpcExportPrefix(stack));
 		context.put(SHARED_EXPORT_PREFIX, createSharedExportPrefix());
+		context.put(EXCEPTION_THROWER, new VelocityExceptionThrower());
 
 		// Create the descriptors for all of the database.
 		context.put(DATABASE_DESCRIPTORS, createDatabaseDescriptors());

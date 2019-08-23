@@ -120,6 +120,8 @@
 							"serialization.format": "1"
 						}
 					}
+					#else
+					$exceptionThrower.throwException("Unsupported format: ${stream.format}")
 					#end,
 					"Compressed": false,
 					"Location": "s3://${stack}.log.sagebase.org/${stream.name}/records"
@@ -214,6 +216,8 @@
 				}
 				#elseif( $stream.format == "JSON" )
 				"CompressionFormat":"GZIP"
+				#else
+				$exceptionThrower.throwException("Unsupported format: ${stream.format}")
 				#end
 			}
 		}
