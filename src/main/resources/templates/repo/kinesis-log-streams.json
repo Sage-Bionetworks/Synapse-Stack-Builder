@@ -13,7 +13,7 @@
 		"bufferFlushSize": 64,
 		"bufferFlushInterval": 900,
 		"tableDescriptor": {
-			"name": "filedownloadstable",
+			"name": "fileDownloadsRecords",
 			"columns": {
 				"userId": "bigint",
 				"timestamp": "timestamp",
@@ -38,7 +38,7 @@
 		"bufferFlushSize": 64,
 		"bufferFlushInterval": 900,
 		"tableDescriptor": {
-			"name": "fileuploadstable",
+			"name": "fileUploadsRecords",
 			"columns": {
 				"userId": "bigint",
 				"timestamp": "timestamp",

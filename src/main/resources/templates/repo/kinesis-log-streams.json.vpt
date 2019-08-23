@@ -68,34 +68,30 @@
 			]
 		}
 	},
-	#set ($gluePrefix = "${stack}${instance}")
-	#set ($gluePrefix = "${gluePrefix.toLowerCase()}")
-	#set ($glueDatabaseName = "${gluePrefix}firehoselogs")
-	#macro( glueTableName $name )${gluePrefix}${name.toLowerCase()}#end
-	"${glueDatabaseName}": {
+	"${glueDatabaseName}GlueDatabase": {
 		"Type":"AWS::Glue::Database",
 		"Properties":{
 			"CatalogId":{
 				"Ref":"AWS::AccountId"
 			},
 			"DatabaseInput": {
-				"Name": "${glueDatabaseName}"
+				"Name": "${glueDatabaseName.toLowerCase()}"
 			}
 		}
 	},
 	#foreach( $stream in $kinesisFirehoseStreams)
 	#if( $stream.tableDescriptor )
-	"#glueTableName($stream.tableDescriptor.name)": {
+	"${stream.tableDescriptor.name}GlueTable": {
 		"Type":"AWS::Glue::Table",
 		"Properties": {
 			"CatalogId": {
 				"Ref":"AWS::AccountId"
 			},
 			"DatabaseName": {
-				"Ref":"${glueDatabaseName}"
+				"Ref":"${glueDatabaseName}GlueDatabase"
 			},
 			"TableInput": {
-				"Name": "#glueTableName($stream.tableDescriptor.name)",
+				"Name": "$stream.tableDescriptor.name.toLowerCase()",
 				"StorageDescriptor": {
 					"Columns": [
 						#foreach($column in $stream.tableDescriptor.columns.entrySet())
@@ -177,10 +173,10 @@
 							]
 						},
 						"DatabaseName": {
-							"Ref":"${glueDatabaseName}"
+							"Ref":"${glueDatabaseName}GlueDatabase"
 						},
 						"TableName": {
-							"Ref":"#glueTableName($stream.tableDescriptor.name)",
+							"Ref":"${stream.tableDescriptor.name}GlueTable",
 						},
 						"Region": {
 							"Ref":"AWS::Region"
