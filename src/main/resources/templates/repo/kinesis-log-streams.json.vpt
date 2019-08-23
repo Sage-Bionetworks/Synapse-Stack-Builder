@@ -52,15 +52,6 @@
 								"Resource":[
 									"*"
 								]
-							},
-							{
-								"Effect":"Allow",
-								"Action":[
-									"kms:Decrypt"
-								],
-								"Resource":[
-									"*"
-								]
 							}
 						]
 					}
