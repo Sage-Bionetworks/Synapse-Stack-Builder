@@ -68,7 +68,7 @@ public class KinesisFirehoseConfigValidatorTest {
 	}
 
 	@Test(expected = IllegalStateException.class)
-	public void testWithMissingTableName() {
+	public void testWithMissingTableDescriptorForParquet() {
 
 		KinesisFirehoseStreamDescriptor stream = new KinesisFirehoseStreamDescriptor();
 		stream.setFormat(KinesisFirehoseRecordFormat.PARQUET);
@@ -95,6 +95,18 @@ public class KinesisFirehoseConfigValidatorTest {
 
 		KinesisFirehoseStreamDescriptor stream = new KinesisFirehoseStreamDescriptor();
 		stream.setBufferFlushInterval(KinesisFirehoseStreamDescriptor.MAX_BUFFER_INTERVAL + 1);
+
+		when(mockConfig.getStreamDescriptors()).thenReturn(Collections.singleton(stream));
+
+		validator.validate();
+
+	}
+	
+	@Test(expected = IllegalStateException.class)
+	public void testWithLowBufferSize() {
+
+		KinesisFirehoseStreamDescriptor stream = new KinesisFirehoseStreamDescriptor();
+		stream.setBufferFlushSize(KinesisFirehoseStreamDescriptor.MIN_BUFFER_SIZE - 1);
 
 		when(mockConfig.getStreamDescriptors()).thenReturn(Collections.singleton(stream));
 
