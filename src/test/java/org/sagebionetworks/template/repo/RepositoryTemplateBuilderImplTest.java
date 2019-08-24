@@ -59,7 +59,6 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sagebionetworks.template.*;
-import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
@@ -98,7 +97,8 @@ public class RepositoryTemplateBuilderImplTest {
 	VelocityContextProvider mockContextProvider2;
 	@Mock
 	ElasticBeanstalkDefaultAMIEncrypter mockElasticBeanstalkDefaultAMIEncrypter;
-	StackTagsProvider stackTagsProvider;
+	@Mock
+	StackTagsProvider mockStackTagsProvider;
 
 	@Captor
 	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
@@ -119,18 +119,23 @@ public class RepositoryTemplateBuilderImplTest {
 	SourceBundle secretsSouce;
 	String keyAlias;
 
+	List<Tag> expectedTags;
+
 	@Before
 	public void before() throws InterruptedException {
 		// use a real velocity engine
 		velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
 
-		stackTagsProvider = new StackTagsProviderImpl(config);
+		expectedTags = new LinkedList<>();
+		Tag t = new Tag().withKey("aKey").withValue("aValue");
+		expectedTags.add(t);
+		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
 
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder, mockACLBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
-				mockElasticBeanstalkDefaultAMIEncrypter, stackTagsProvider);
+				mockElasticBeanstalkDefaultAMIEncrypter, mockStackTagsProvider);
 
 		stack = "dev";
 		instance = "101";
@@ -172,11 +177,6 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_AWS_SECRET_KEY)).thenReturn("aws-secret");
 		when(config.getProperty(PROPERTY_KEY_BEANSTALK_ENCRYPTION_KEY)).thenReturn("encryption-key");
 
-		when(config.getProperty(PROPERTY_KEY_STACK_TAG_DEPARTMENT)).thenReturn("aDepartment");
-		when(config.getProperty(PROPERTY_KEY_STACK_TAG_PROJECT)).thenReturn("aProject");
-		when(config.getProperty(PROPERTY_KEY_STACK_TAG_OWNER_EMAIL)).thenReturn("anOwnerEmail");
-		stackTagsProvider = new StackTagsProviderImpl(config);
-
 		sharedResouces = new Stack();
 		Output dbOut = new Output();
 		dbOut.withOutputKey(stack+instance+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
@@ -204,7 +204,7 @@ public class RepositoryTemplateBuilderImplTest {
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
 		assertEquals("dev-101-shared-resources", request.getStackName());
-		assertNotNull(request.getTags());
+		assertEquals(expectedTags, request.getTags());
 		assertNotNull(request.getParameters());
 		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);

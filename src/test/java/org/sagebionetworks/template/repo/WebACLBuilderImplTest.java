@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.amazonaws.services.cloudformation.model.Tag;
 import org.apache.logging.log4j.core.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -49,7 +50,8 @@ public class WebACLBuilderImplTest {
 	LoggerFactory mockLoggerFactory;
 	@Mock
 	Logger mockLogger;
-	StackTagsProvider stackTagsProvider;
+	@Mock
+	StackTagsProvider mockStackTagsProvider;
 
 	@Captor
 	ArgumentCaptor<DescribeLoadBalancersRequest> describeRequestCaptor;
@@ -66,16 +68,18 @@ public class WebACLBuilderImplTest {
 	List<Stack> stacks;
 	List<String> endpointUrls;
 
+	List<Tag> expectedTags;
+
 	@Before
 	public void before() throws InterruptedException {
 		// use a real velocity engine
 		velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
 
-		when(config.getProperty(PROPERTY_KEY_STACK_TAG_DEPARTMENT)).thenReturn("aDepartment");
-		when(config.getProperty(PROPERTY_KEY_STACK_TAG_PROJECT)).thenReturn("aProject");
-		when(config.getProperty(PROPERTY_KEY_STACK_TAG_OWNER_EMAIL)).thenReturn("anOwnerEmail");
-		stackTagsProvider = new StackTagsProviderImpl(config);
-		
+		expectedTags = new LinkedList<>();
+		Tag t = new Tag().withKey("aKey").withValue("aValue");
+		expectedTags.add(t);
+		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
+
 		stack = "dev";
 		instance = "101";
 
@@ -84,7 +88,7 @@ public class WebACLBuilderImplTest {
 		
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 
-		builder = new WebACLBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockElbClient, mockLoggerFactory, stackTagsProvider);
+		builder = new WebACLBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockElbClient, mockLoggerFactory, mockStackTagsProvider);
 		
 		environmentNames = new LinkedList<>();
 		stacks = new LinkedList<>();
@@ -201,7 +205,7 @@ public class WebACLBuilderImplTest {
 		assertEquals("dev-101-web-acl", request.getStackName());
 		JSONObject template = new JSONObject(request.getTemplateBody());
 		assertNotNull(template);
-		assertNotNull(request.getTags());
+		assertEquals(expectedTags, request.getTags());
 		//System.out.println(template.toString(5));
 		verify(mockLogger, times(2)).info(any(String.class));
 	}
