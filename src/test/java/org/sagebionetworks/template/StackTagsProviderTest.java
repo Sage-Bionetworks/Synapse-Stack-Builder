@@ -13,6 +13,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.*;
 
@@ -46,6 +47,14 @@ public class StackTagsProviderTest {
 		assertNotNull(tags);
 		assertEquals(3, tags.size());
 		assertEquals(true, tags.containsAll(expectedTags));
+	}
+
+	@Test(expected=ConfigurationPropertyNotFound.class)
+	public void testCreateStackTagsMissingConfig() {
+		when(mockConfig.getProperty(PROPERTY_KEY_STACK_TAG_DEPARTMENT)).thenThrow(new ConfigurationPropertyNotFound(PROPERTY_KEY_STACK_TAG_DEPARTMENT));
+		StackTagsProvider provider = new StackTagsProviderImpl(mockConfig);
+		// call under test
+		List<Tag> tags = provider.getStackTags();
 	}
 
 }
