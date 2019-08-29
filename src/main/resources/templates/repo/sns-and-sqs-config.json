@@ -187,6 +187,11 @@
 				"ENTITY_VIEW"
 			],
 			"messageVisibilityTimeoutSec":120
+		},
+		{
+			"queueName":"STATISTICS_MONTHLY",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":120
 		}
 	]
 }
