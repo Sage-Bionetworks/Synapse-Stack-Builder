@@ -43,15 +43,7 @@
 									"arn:aws:s3:::${stack}.log.sagebase.org",
 									"arn:aws:s3:::${stack}.log.sagebase.org/*"
 								]
-							}
-						]
-					}
-				},
-				{
-					"PolicyName":"kinesisReadFromGluePolicy",
-					"PolicyDocument":{
-						"Version":"2012-10-17",
-						"Statement":[
+							},
 							{
 								"Effect":"Allow",
 								"Action": [
@@ -67,57 +59,6 @@
 			]
 		}
 	},
-	"GlueCrawlerRole": {
-        "Type": "AWS::IAM::Role",
-        "Properties": {
-            "AssumeRolePolicyDocument": {
-                "Version": "2012-10-17",
-                "Statement": [
-                    {
-                        "Effect": "Allow",
-                        "Principal": {
-                            "Service": [
-                                "glue.amazonaws.com"
-                            ]
-                        },
-                        "Action": "sts:AssumeRole",
-						"Condition":{
-							"StringEquals":{
-								"sts:ExternalId":{
-									"Ref":"AWS::AccountId"
-								}
-							}
-						}
-                    }
-                ]
-            },
-            "Path": "/",
-            "Policies": [
-                {
-                    "PolicyName": "glueReadFromS3Policy",
-                    "PolicyDocument": {
-                        "Version": "2012-10-17",
-                        "Statement": [
-                            {
-                                "Effect": "Allow",
-                                "Action": [
-                                	"s3:AbortMultipartUpload",
-									"s3:GetBucketLocation",
-									"s3:GetObject",
-									"s3:ListBucket",
-									"s3:ListBucketMultipartUploads"
-                                ],
-                                "Resource": [
-									"arn:aws:s3:::${stack}.log.sagebase.org",
-									"arn:aws:s3:::${stack}.log.sagebase.org/*"
-								]
-                            }
-                        ]
-                    }
-                }
-            ]
-        }
-    },
 	"${glueDatabaseName}GlueDatabase": {
 		"Type":"AWS::Glue::Database",
 		"Properties":{
@@ -191,37 +132,6 @@
 	},
 	#end
 	#end
-	"KinesisFirehoseTablesGlueCrawler": {
-		"Type" : "AWS::Glue::Crawler",
-		"Properties" : {
-			"Name" : "${stack}${instance}KinesisFirehoseTablesGlueCrawler",
-			"Configuration" : "{\"Version\":1.0,\"CrawlerOutput\":{\"Partitions\":{\"AddOrUpdateBehavior\":\"InheritFromTable\"},\"Tables\":{\"AddOrUpdateBehavior\":\"MergeNewColumns\"}}}",
-		    "DatabaseName" : {
-				"Ref":"${glueDatabaseName}GlueDatabase"
-			},
-		    "Role" : {
-				"Fn::GetAtt":[ "GlueCrawlerRole", "Arn" ]
-			},
-		    "Schedule" : {
-		    	"ScheduleExpression": "cron(0/10 * * * ? *)"
-		    },
-		    "Targets" : {
-		    	"CatalogTargets": [{
-		    		"DatabaseName": {
-		    			"Ref":"${glueDatabaseName}GlueDatabase"
-		    		},
-		    		"Tables": [
-		    			#foreach( $stream in $kinesisFirehoseStreams )
-		    			#if ($stream.tableDescriptor)
-		    			{"Ref":"${stream.tableDescriptor.name}GlueTable"}
-		    			#if( $foreach.hasNext) , #end
-		    			#end
-		    			#end
-		    		]
-		    	}]
-		    }
-		}
-	},	
 	#foreach( $stream in $kinesisFirehoseStreams)
 	"${stream.name}KinesisStream":{
 		"Type":"AWS::KinesisFirehose::DeliveryStream",
@@ -259,7 +169,7 @@
 							"Ref":"${glueDatabaseName}GlueDatabase"
 						},
 						"TableName": {
-							"Ref":"${stream.tableDescriptor.name}GlueTable"
+							"Ref":"${stream.tableDescriptor.name}GlueTable",
 						},
 						"Region": {
 							"Ref":"AWS::Region"
