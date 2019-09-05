@@ -1,4 +1,4 @@
-#if( $kinesisFirehoseStreamNames )
+#if( $kinesisFirehoseStreams )
 	,"KinesisFirehoseLogRole":{
 		"Type":"AWS::IAM::Role",
 		"Properties":{
@@ -46,8 +46,8 @@
 							},
 							{
 								"Effect":"Allow",
-								"Action":[
-									"kms:Decrypt"
+								"Action": [
+									"glue:GetTableVersions"
 								],
 								"Resource":[
 									"*"
@@ -59,27 +59,157 @@
 			]
 		}
 	},
-	#foreach( $kinesisFirehoseStreamName in $kinesisFirehoseStreamNames)
-	"${kinesisFirehoseStreamName}KinesisStream":{
+	"${glueDatabaseName}GlueDatabase": {
+		"Type":"AWS::Glue::Database",
+		"Properties":{
+			"CatalogId":{
+				"Ref":"AWS::AccountId"
+			},
+			"DatabaseInput": {
+				"Name": "${glueDatabaseName.toLowerCase()}"
+			}
+		}
+	},
+	#foreach( $stream in $kinesisFirehoseStreams)
+	#if( $stream.tableDescriptor )
+	"${stream.tableDescriptor.name}GlueTable": {
+		"Type":"AWS::Glue::Table",
+		"Properties": {
+			"CatalogId": {
+				"Ref":"AWS::AccountId"
+			},
+			"DatabaseName": {
+				"Ref":"${glueDatabaseName}GlueDatabase"
+			},
+			"TableInput": {
+				"Name": "$stream.tableDescriptor.name.toLowerCase()",
+				"StorageDescriptor": {
+					"Columns": [
+						#foreach($column in $stream.tableDescriptor.columns.entrySet())
+						{
+							"Name":"${column.key}",
+							"Type":"${column.value}"
+						}
+						#if( $foreach.hasNext),#end
+						#end
+					],
+					#if ($stream.format == "PARQUET")
+					"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+					"OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+					"SerdeInfo": {
+						"SerializationLibrary": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
+						"Parameters": {
+							"serialization.format": "1"
+						}
+					}
+					#elseif( $stream.format == "JSON" )
+					"InputFormat": "org.apache.hadoop.mapred.TextInputFormat",
+					"OutputFormat": "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat",
+					"SerdeInfo": {
+						"SerializationLibrary": "org.openx.data.jsonserde.JsonSerDe",
+						"Parameters": {
+							"serialization.format": "1"
+						}
+					}
+					#else
+					$exceptionThrower.throwException("Unsupported format: ${stream.format}")
+					#end,
+					"Compressed": false,
+					"Location": "s3://${stack}.log.sagebase.org/${stream.name}/records"
+				},
+				"PartitionKeys": [
+					#foreach($partitionKey in $stream.tableDescriptor.partitionKeys.entrySet())
+					{
+						"Name":"${partitionKey.key}",
+						"Type":"${partitionKey.value}"
+					}
+					#if( $foreach.hasNext),#end
+					#end
+				],
+				"TableType": "EXTERNAL_TABLE"
+			}
+		}
+	},
+	#end
+	#end
+	#foreach( $stream in $kinesisFirehoseStreams)
+	"${stream.name}KinesisStream":{
 		"Type":"AWS::KinesisFirehose::DeliveryStream",
 		"Properties":{
-			"DeliveryStreamName":"${stack}${instance}${kinesisFirehoseStreamName}",
+			"DeliveryStreamName":"${stack}${instance}${stream.name}",
 			"DeliveryStreamType":"DirectPut",
 			"ExtendedS3DestinationConfiguration":{
-				"BufferingHints":{
-					"IntervalInSeconds":"60",
-					"SizeInMBs":"50"
-				},
-				"BucketARN":"arn:aws:s3:::${stack}.log.sagebase.org",
-				"CompressionFormat":"GZIP",
-				"Prefix":"${kinesisFirehoseStreamName}/!{timestamp:yyyy-MM-dd}/",
-				"ErrorOutputPrefix":"${kinesisFirehoseStreamName}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
 				"RoleARN":{
 					"Fn::GetAtt":[
 						"KinesisFirehoseLogRole",
 						"Arn"
 					]
+				},
+				"BucketARN":"arn:aws:s3:::${stack}.log.sagebase.org",
+				"Prefix":"${stream.name}/records/${stream.partitionScheme}/",
+				"ErrorOutputPrefix":"${stream.name}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
+				"BufferingHints":{
+					"IntervalInSeconds":${stream.bufferFlushInterval},
+					"SizeInMBs":${stream.bufferFlushSize}
+				},
+				#if( $stream.format == "PARQUET" )
+				"CompressionFormat":"UNCOMPRESSED",
+				"DataFormatConversionConfiguration": {
+					"SchemaConfiguration": {
+						"CatalogId": {
+							"Ref":"AWS::AccountId"
+						},
+						"RoleARN":{
+							"Fn::GetAtt":[
+								"KinesisFirehoseLogRole",
+								"Arn"
+							]
+						},
+						"DatabaseName": {
+							"Ref":"${glueDatabaseName}GlueDatabase"
+						},
+						"TableName": {
+							"Ref":"${stream.tableDescriptor.name}GlueTable",
+						},
+						"Region": {
+							"Ref":"AWS::Region"
+						},
+						"VersionId":"LATEST"
+					},
+					"InputFormatConfiguration":{
+						"Deserializer": {
+							"OpenXJsonSerDe":{}
+						}
+					},
+					"OutputFormatConfiguration":{
+						"Serializer": {
+							"ParquetSerDe":{}
+						}
+					},
+					"Enabled": true
+				},
+				"S3BackupMode": "Enabled",
+				"S3BackupConfiguration": {
+					"RoleARN":{
+						"Fn::GetAtt":[
+							"KinesisFirehoseLogRole",
+							"Arn"
+						]
+					},
+					"BucketARN":"arn:aws:s3:::${stack}.log.sagebase.org",
+					"CompressionFormat" : "GZIP",
+					"Prefix":"${stream.name}/backup/records/${stream.partitionScheme}/",
+					"ErrorOutputPrefix":"${stream.name}/backup/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
+					"BufferingHints":{
+						"IntervalInSeconds":${stream.bufferFlushInterval},
+						"SizeInMBs":${stream.bufferFlushSize}
+					}
 				}
+				#elseif( $stream.format == "JSON" )
+				"CompressionFormat":"GZIP"
+				#else
+				$exceptionThrower.throwException("Unsupported format: ${stream.format}")
+				#end
 			}
 		}
 	}

@@ -1,6 +1,7 @@
 package org.sagebionetworks.template;
 
 import static org.sagebionetworks.template.Constants.SNS_AND_SQS_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.KINESIS_CONFIG_FILE;
 
 import java.io.IOException;
 
@@ -20,7 +21,6 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.config.RepoConfigurationImpl;
 import org.sagebionetworks.template.repo.IdGeneratorBuilder;
 import org.sagebionetworks.template.repo.IdGeneratorBuilderImpl;
-import org.sagebionetworks.template.repo.KinesisFirehoseLoggingVelocityContextProvider;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilderImpl;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
@@ -38,6 +38,9 @@ import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateBuilder;
 import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateBuilderImpl;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilder;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilderImpl;
+import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfig;
+import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfigValidator;
+import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseVelocityContextProvider;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsConfig;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsVelocityContextProvider;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilder;
@@ -64,6 +67,7 @@ import com.google.inject.multibindings.Multibinder;
 
 public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	private static final String RUNTIME_REFERENCES_STRICT = "runtime.references.strict";
 	private static final String CLASSPATH_AND_FILE = "classpath,file";
 	private static final String CLASSPATH_RESOURCE_LOADER_CLASS = "classpath.resource.loader.class";
@@ -92,7 +96,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(SnsAndSqsVelocityContextProvider.class);
-		velocityContextProviderMultibinder.addBinding().to(KinesisFirehoseLoggingVelocityContextProvider.class);
+		velocityContextProviderMultibinder.addBinding().to(KinesisFirehoseVelocityContextProvider.class);
 	}
 	
 	/**
@@ -174,8 +178,16 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
 	@Provides
 	public SnsAndSqsConfig snsAndSqsConfigProvider() throws IOException {
-		ObjectMapper objectMapper = new ObjectMapper();
-		return objectMapper.readValue(ClassLoader.getSystemClassLoader().getResource(SNS_AND_SQS_CONFIG_FILE), SnsAndSqsConfig.class);
+		return loadFromJsonFile(SNS_AND_SQS_CONFIG_FILE, SnsAndSqsConfig.class);
+	}
+	
+	@Provides
+	public KinesisFirehoseConfig kinesisConfigProvider() throws IOException {
+		return new KinesisFirehoseConfigValidator(loadFromJsonFile(KINESIS_CONFIG_FILE, KinesisFirehoseConfig.class)).validate();
+	}
+	
+	private static <T> T loadFromJsonFile(String file, Class<T> clazz) throws IOException {
+		return OBJECT_MAPPER.readValue(ClassLoader.getSystemClassLoader().getResource(file), clazz);
 	}
 
 }
