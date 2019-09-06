@@ -20,14 +20,8 @@ import static org.sagebionetworks.template.Constants.*;
 @RunWith(MockitoJUnitRunner.class)
 public class StackTagsProviderTest {
 
-	@Mock
-	Configuration mockConfig;
-
 	@Before
 	public void before() throws Exception {
-		when(mockConfig.getProperty(PROPERTY_KEY_STACK_TAG_DEPARTMENT)).thenReturn("aDepartment");
-		when(mockConfig.getProperty(PROPERTY_KEY_STACK_TAG_PROJECT)).thenReturn("aProject");
-		when(mockConfig.getProperty(PROPERTY_KEY_STACK_TAG_OWNER_EMAIL)).thenReturn("anOwnerEmail");
 	}
 
 	@After
@@ -37,24 +31,16 @@ public class StackTagsProviderTest {
 	@Test
 	public void testCreateStackTags() {
 		List<Tag> expectedTags = new LinkedList<>();
-		expectedTags.add(new Tag().withKey(TAG_KEY_DEPARTMENT).withValue("aDepartment"));
-		expectedTags.add(new Tag().withKey(TAG_KEY_PROJECT).withValue("aProject"));
-		expectedTags.add(new Tag().withKey(TAG_KEY_OWNER_EMAIL).withValue("anOwnerEmail"));
+		expectedTags.add(new Tag().withKey(TAG_KEY_DEPARTMENT).withValue(TAG_VALUE_DEPARTMENT));
+		expectedTags.add(new Tag().withKey(TAG_KEY_PROJECT).withValue(TAG_VALUE_PROJECT));
+		expectedTags.add(new Tag().withKey(TAG_KEY_OWNER_EMAIL).withValue(TAG_VALUE_OWNER_EMAIL));
 
-		StackTagsProvider provider = new StackTagsProviderImpl(mockConfig);
+		StackTagsProvider provider = new StackTagsProviderImpl();
 		// call under test
 		List<Tag> tags = provider.getStackTags();
 		assertNotNull(tags);
 		assertEquals(3, tags.size());
 		assertEquals(true, tags.containsAll(expectedTags));
-	}
-
-	@Test(expected=ConfigurationPropertyNotFound.class)
-	public void testCreateStackTagsMissingConfig() {
-		when(mockConfig.getProperty(PROPERTY_KEY_STACK_TAG_DEPARTMENT)).thenThrow(new ConfigurationPropertyNotFound(PROPERTY_KEY_STACK_TAG_DEPARTMENT));
-		StackTagsProvider provider = new StackTagsProviderImpl(mockConfig);
-		// call under test
-		List<Tag> tags = provider.getStackTags();
 	}
 
 }
