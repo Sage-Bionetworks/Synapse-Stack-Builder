@@ -99,7 +99,8 @@
 					"SerdeInfo": {
 						"SerializationLibrary": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 						"Parameters": {
-							"serialization.format": "1"
+							"serialization.format": "1",
+							"skip.header.line.count": "1"
 						}
 					}
 					#elseif( $stream.format == "JSON" )
@@ -108,7 +109,8 @@
 					"SerdeInfo": {
 						"SerializationLibrary": "org.openx.data.jsonserde.JsonSerDe",
 						"Parameters": {
-							"serialization.format": "1"
+							"serialization.format": "1",
+							"skip.header.line.count": "1"
 						}
 					}
 					#else
