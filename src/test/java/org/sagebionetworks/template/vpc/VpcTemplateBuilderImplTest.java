@@ -20,6 +20,7 @@ import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.*;
 import static org.sagebionetworks.template.Constants.VPC_CIDR;
 
+import com.amazonaws.services.cloudformation.model.Tag;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -31,13 +32,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.*;
 import org.sagebionetworks.template.config.Configuration;
-import org.sagebionetworks.template.CreateOrUpdateStackRequest;
-import org.sagebionetworks.template.LoggerFactory;
-import org.sagebionetworks.template.TemplateGuiceModule;
 
 import com.amazonaws.services.cloudformation.model.Parameter;
+
+import java.util.LinkedList;
+import java.util.List;
 
 @RunWith(MockitoJUnitRunner.class)
 public class VpcTemplateBuilderImplTest {
@@ -50,6 +51,9 @@ public class VpcTemplateBuilderImplTest {
 	LoggerFactory mockLoggerFactory;
 	@Mock
 	Logger mockLogger;
+	@Mock
+	StackTagsProvider mockStackTagsProvider;
+
 	@Captor
 	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
 
@@ -64,14 +68,20 @@ public class VpcTemplateBuilderImplTest {
 	String stack;
 	String peeringRoleARN;
 
+	List<Tag> expectedTags;
+
 	@Before
 	public void before() {
 		// use a real velocity engine
 		velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
 		
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
-		
-		builder = new VpcTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, mockConfig, mockLoggerFactory);
+
+		expectedTags = new LinkedList<>();
+		Tag t = new Tag().withKey("aKey").withValue("aValue");
+		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
+
+		builder = new VpcTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, mockConfig, mockLoggerFactory, mockStackTagsProvider);
 		colors = new String[] {"Red","Green"};
 		subnetPrefix = "10.21";
 		avialabilityZones = new String[] {"us-east-1a","us-east-1b"};
@@ -103,6 +113,7 @@ public class VpcTemplateBuilderImplTest {
 		CreateOrUpdateStackRequest request = requestCaptor.getValue();
 		assertEquals("synapse-dev-vpc", request.getStackName());
 		assertNotNull(request.getParameters());
+		assertEquals(expectedTags, request.getTags());
 		JSONObject templateJson = new JSONObject(request.getTemplateBody());
 		System.out.println(templateJson.toString(JSON_INDENT));
 		

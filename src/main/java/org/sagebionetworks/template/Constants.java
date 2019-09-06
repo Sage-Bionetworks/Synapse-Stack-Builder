@@ -75,6 +75,15 @@ public class Constants {
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT = PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX + "tomcat";
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX = PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX + "amazonlinux";
 
+	// tag values
+	public static final String TAG_VALUE_DEPARTMENT = "Platform";
+	public static final String TAG_VALUE_PROJECT = "Synapse";
+	public static final String TAG_VALUE_OWNER_EMAIL = "platform@sagebase.org";
+	// tag keys
+	public static final String TAG_KEY_DEPARTMENT = "Department";
+	public static final String TAG_KEY_PROJECT = "Project";
+	public static final String TAG_KEY_OWNER_EMAIL = "OwnerEmail";
+
 	// templates
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
 	public static final String TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";

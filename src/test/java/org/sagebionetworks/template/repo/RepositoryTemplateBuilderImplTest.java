@@ -44,10 +44,13 @@ import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.amazonaws.services.cloudformation.model.Tag;
+import com.google.common.collect.Sets;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -59,11 +62,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sagebionetworks.template.CloudFormationClient;
-import org.sagebionetworks.template.ConfigurationPropertyNotFound;
-import org.sagebionetworks.template.CreateOrUpdateStackRequest;
-import org.sagebionetworks.template.LoggerFactory;
-import org.sagebionetworks.template.TemplateGuiceModule;
+import org.sagebionetworks.template.*;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
@@ -103,6 +102,8 @@ public class RepositoryTemplateBuilderImplTest {
 	VelocityContextProvider mockContextProvider2;
 	@Mock
 	ElasticBeanstalkDefaultAMIEncrypter mockElasticBeanstalkDefaultAMIEncrypter;
+	@Mock
+	StackTagsProvider mockStackTagsProvider;
 
 	@Captor
 	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
@@ -123,16 +124,23 @@ public class RepositoryTemplateBuilderImplTest {
 	SourceBundle secretsSouce;
 	String keyAlias;
 
+	List<Tag> expectedTags;
+
 	@Before
 	public void before() throws InterruptedException {
 		// use a real velocity engine
 		velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
 
+		expectedTags = new LinkedList<>();
+		Tag t = new Tag().withKey("aKey").withValue("aValue");
+		expectedTags.add(t);
+		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
+
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder, mockACLBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
-				mockElasticBeanstalkDefaultAMIEncrypter);
+				mockElasticBeanstalkDefaultAMIEncrypter, mockStackTagsProvider);
 
 		stack = "dev";
 		instance = "101";
@@ -201,6 +209,7 @@ public class RepositoryTemplateBuilderImplTest {
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
 		assertEquals("dev-101-shared-resources", request.getStackName());
+		assertEquals(expectedTags, request.getTags());
 		assertNotNull(request.getParameters());
 		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);
@@ -426,4 +435,5 @@ public class RepositoryTemplateBuilderImplTest {
 		String suffix = builder.extractDatabaseSuffix(sharedResouces);
 		assertEquals(databaseEndpointSuffix, suffix);
 	}
+
 }

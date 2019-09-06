@@ -29,6 +29,7 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
@@ -46,14 +47,16 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 	VelocityEngine velocityEngine;
 	Configuration config;
 	Logger logger;
+	StackTagsProvider stackTagsProvider;
 
 	@Inject
 	public VpcTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
-			Configuration configuration, LoggerFactory loggerFactory) {
+			Configuration configuration, LoggerFactory loggerFactory, StackTagsProvider stackTagsProvider) {
 		this.cloudFormationClient = cloudFormationClient;
 		this.velocityEngine = velocityEngine;
 		this.config = configuration;
 		this.logger = loggerFactory.getLogger(VpcTemplateBuilderImpl.class);
+		this.stackTagsProvider = stackTagsProvider;
 	}
 
 	@Override
@@ -74,8 +77,11 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 		this.logger.info(resultJSON);
 		Parameter[] params = createParameters(stackName);
 		// create or update the template
-		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
-				.withTemplateBody(resultJSON).withParameters(params));
+		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(stackName)
+				.withTemplateBody(resultJSON)
+				.withTags(stackTagsProvider.getStackTags())
+				.withParameters(params));
 	}
 
 	/**
