@@ -191,7 +191,8 @@
 		{
 			"queueName":"STATISTICS_MONTHLY",
 			"subscribedTopicNames":[],
-			"messageVisibilityTimeoutSec":120
+			"messageVisibilityTimeoutSec":120,
+			"oldestMessageInQueueAlarmThresholdSec": 600
 		}
 	]
 }
