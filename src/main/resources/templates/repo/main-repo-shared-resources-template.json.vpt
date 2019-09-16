@@ -401,6 +401,13 @@
 										"kinesis:*"
 									],
 									"Resource": "*"
+								},
+								{
+									"Effect": "Allow",
+									"Action": [
+										"glue:*"
+									],
+									"Resource": "*"
 								}
 							]
 						}
