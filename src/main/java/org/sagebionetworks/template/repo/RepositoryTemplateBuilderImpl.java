@@ -1,46 +1,5 @@
 package org.sagebionetworks.template.repo;
 
-import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
-import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
-import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
-import static org.sagebionetworks.template.Constants.ENCRYPTED_AMI_IMAGE_ID;
-import static org.sagebionetworks.template.Constants.ENVIRONMENT;
-import static org.sagebionetworks.template.Constants.INSTANCE;
-import static org.sagebionetworks.template.Constants.JSON_INDENT;
-import static org.sagebionetworks.template.Constants.OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
-import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MAX_INSTANCES;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MIN_INSTANCES;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_NUMBER;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERSION;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_IOPS;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MULTI_AZ;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_STORAGE_TYPE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ROUTE_53_HOSTED_ZONE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_INSTANCE_COUNT;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_IOPS;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_COLOR;
-import static org.sagebionetworks.template.Constants.REPO_BEANSTALK_NUMBER;
-import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.SHARED_RESOUCES_STACK_NAME;
-import static org.sagebionetworks.template.Constants.SOLUTION_STACK_NAME;
-import static org.sagebionetworks.template.Constants.STACK;
-import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
-import static org.sagebionetworks.template.Constants.TEMPALTE_BEAN_STALK_ENVIRONMENT;
-import static org.sagebionetworks.template.Constants.TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP;
-import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
-import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
-
 import java.io.StringWriter;
 import java.util.LinkedList;
 import java.util.List;
@@ -53,8 +12,12 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
-import org.sagebionetworks.template.*;
-import org.sagebionetworks.template.config.Configuration;
+import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.ConfigurationPropertyNotFound;
+import org.sagebionetworks.template.Constants;
+import org.sagebionetworks.template.CreateOrUpdateStackRequest;
+import org.sagebionetworks.template.LoggerFactory;
+import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
@@ -68,6 +31,8 @@ import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.google.inject.Inject;
+
+import static org.sagebionetworks.template.Constants.*;
 
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
 
@@ -165,6 +130,10 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		ElasticBeanstalkEncryptedPlatformInfo elasticBeanstalkEncryptedPlatformInfo = elasticBeanstalkDefaultAMIEncrypter.getEncryptedElasticBeanstalkAMI();
 		context.put(SOLUTION_STACK_NAME, elasticBeanstalkEncryptedPlatformInfo.getSolutionStackName());
 		context.put(ENCRYPTED_AMI_IMAGE_ID, elasticBeanstalkEncryptedPlatformInfo.getEncryptedAmiId());
+
+		// oauth
+		context.put(OAUTH_ENDPOINT, config.getProperty(PROPERTY_KEY_OAUTH_ENDPOINT));
+
 		return context;
 	}
 
