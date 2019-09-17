@@ -383,6 +383,7 @@
 								{
 									"Action": [
 										"kms:Decrypt",
+										"kms:Encrypt",
 										"kms:ListAliases"
 									],
 									"Effect": "Allow",
