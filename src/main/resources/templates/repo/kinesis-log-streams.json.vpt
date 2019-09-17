@@ -43,7 +43,15 @@
 									"arn:aws:s3:::${stack}.log.sagebase.org",
 									"arn:aws:s3:::${stack}.log.sagebase.org/*"
 								]
-							},
+							}
+						]
+					}
+				},
+				{
+					"PolicyName":"kinesisReadGlueTablesPolicy",
+					"PolicyDocument":{
+						"Version":"2012-10-17",
+						"Statement":[
 							{
 								"Effect":"Allow",
 								"Action": [
@@ -115,7 +123,11 @@
 					$exceptionThrower.throwException("Unsupported format: ${stream.format}")
 					#end,
 					"Compressed": false,
+					#if ($stream.parameterizeDestinationByStack)
+					"Location": "s3://${stack}.log.sagebase.org/${stack}${instance}${stream.name}/records"
+					#else
 					"Location": "s3://${stack}.log.sagebase.org/${stream.name}/records"
+					#end
 				},
 				"PartitionKeys": [
 					#foreach($partitionKey in $stream.tableDescriptor.partitionKeys.entrySet())
@@ -146,8 +158,13 @@
 					]
 				},
 				"BucketARN":"arn:aws:s3:::${stack}.log.sagebase.org",
+				#if ($stream.parameterizeDestinationByStack)
+				"Prefix":"${stack}${instance}${stream.name}/records/${stream.partitionScheme}/",
+				"ErrorOutputPrefix":"${stack}${instance}${stream.name}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
+				#else
 				"Prefix":"${stream.name}/records/${stream.partitionScheme}/",
 				"ErrorOutputPrefix":"${stream.name}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
+				#end
 				"BufferingHints":{
 					"IntervalInSeconds":${stream.bufferFlushInterval},
 					"SizeInMBs":${stream.bufferFlushSize}
@@ -198,8 +215,13 @@
 					},
 					"BucketARN":"arn:aws:s3:::${stack}.log.sagebase.org",
 					"CompressionFormat" : "GZIP",
+					#if ($stream.parameterizeDestinationByStack)
+					"Prefix":"${stack}${instance}${stream.name}/backup/records/${stream.partitionScheme}/",
+					"ErrorOutputPrefix":"${stack}${instance}${stream.name}/backup/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
+					#else
 					"Prefix":"${stream.name}/backup/records/${stream.partitionScheme}/",
 					"ErrorOutputPrefix":"${stream.name}/backup/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
+					#end
 					"BufferingHints":{
 						"IntervalInSeconds":${stream.bufferFlushInterval},
 						"SizeInMBs":${stream.bufferFlushSize}

@@ -55,5 +55,32 @@
 				"day": "string"
 			}
 		}
+	},
+	{
+		"name": "fileDownloadsTest",
+		"devOnly": true,
+		"parameterizeDestinationByStack": true,
+		"partitionScheme": "year=!{timestamp:YYYY}/month=!{timestamp:MM}/day=!{timestamp:dd}",
+		"format": "PARQUET",
+		"bufferFlushSize": 64,
+		"bufferFlushInterval": 60,
+		"tableDescriptor": {
+			"name": "fileDownloadsRecordsTest",
+			"columns": {
+				"userId": "bigint",
+				"timestamp": "timestamp",
+				"projectId": "bigint",
+				"fileHandleId": "string",
+				"associateType": "string",
+				"associateId": "string",
+				"stack": "string",
+				"instance": "string"
+			},
+			"partitionKeys": {
+				"year": "string",
+				"month": "string",
+				"day": "string"
+			}
+		}
 	}]
 }
