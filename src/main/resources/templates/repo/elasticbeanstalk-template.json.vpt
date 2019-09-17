@@ -475,7 +475,13 @@
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.secrets.bucket",
 						"Value": "${environment.secretsSource.bucket}"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.oauth.authorization.endpoint",
+						"Value": "${oauthEndpoint}"
 					}
+
 					#end
 				]
 			}
