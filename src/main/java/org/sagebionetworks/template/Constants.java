@@ -75,6 +75,8 @@ public class Constants {
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT = PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX + "tomcat";
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX = PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX + "amazonlinux";
 
+	public static final String PROPERTY_KEY_OAUTH_ENDPOINT = "org.sagebionetworks.oauth.authorization.endpoint";
+
 	// tag values
 	public static final String TAG_VALUE_DEPARTMENT = "Platform";
 	public static final String TAG_VALUE_PROJECT = "Synapse";
@@ -141,6 +143,8 @@ public class Constants {
 
 	public static final String GLUE_DATABASE_NAME = "glueDatabaseName";
 	public static final String KINESIS_FIREHOSE_STREAM_DESCRIPTORS = "kinesisFirehoseStreams";
+
+	public static final String OAUTH_ENDPOINT = "oauthEndpoint";
 
 	/**
 	 * Create a camel case name from dash-separated-name. Given 'foo-bar' will
