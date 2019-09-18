@@ -54,6 +54,7 @@ public class KinesisFirehoseVelocityContextProviderTest {
 	public void before() {
 		MockitoAnnotations.initMocks(this);
 		testStreams = Collections.singleton(mockStream);
+		when(mockStream.isDevOnly()).thenReturn(false);
 		when(mockRepoConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(testStack);
 		when(mockRepoConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(testInstance);
 		when(mockStream.getTableDescriptor()).thenReturn(mockTable);
@@ -67,6 +68,27 @@ public class KinesisFirehoseVelocityContextProviderTest {
 		
 		verify(mockContext).put(GLUE_DATABASE_NAME, (testStack + testInstance + GLUE_DB_SUFFIX));
 		verify(mockContext).put(KINESIS_FIREHOSE_STREAM_DESCRIPTORS, testStreams);
+	}
+	
+	@Test
+	public void testAddToContextWithoutDevOnlyStreams() {
+		when(mockStream.isDevOnly()).thenReturn(true);
+		
+		contextProvider.addToContext(mockContext);
+		
+		verify(mockContext).put(KINESIS_FIREHOSE_STREAM_DESCRIPTORS, Collections.emptySet());
+	}
+	
+	@Test
+	public void testAddToContextWithDevOnlyStreams() {
+		String devStack = "dev";
+		
+		when(mockRepoConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(devStack);
+		when(mockStream.isDevOnly()).thenReturn(true);
+		
+		contextProvider.addToContext(mockContext);
+		
+		verify(mockContext).put(KINESIS_FIREHOSE_STREAM_DESCRIPTORS, Collections.singleton(mockStream));
 	}
 	
 	@Test
