@@ -16,7 +16,7 @@ import com.google.inject.Inject;
 
 public class KinesisFirehoseVelocityContextProvider implements VelocityContextProvider {
 
-	private static final String DEV_STACK_NAME = "dev";
+	private static final String PROD_STACK_NAME = "prod";
 	public static final String GLUE_DB_SUFFIX = "firehoseLogs";
 
 	private KinesisFirehoseConfig config;
@@ -35,7 +35,7 @@ public class KinesisFirehoseVelocityContextProvider implements VelocityContextPr
 		Set<KinesisFirehoseStreamDescriptor> streams = config.getStreamDescriptors();
 
 		// Does not deploy to prod stacks that are dev only
-		if (!getStack().equalsIgnoreCase(DEV_STACK_NAME)) {
+		if (getStack().equalsIgnoreCase(PROD_STACK_NAME)) {
 			streams = streams.stream().filter(stream -> !stream.isDevOnly()).collect(Collectors.toSet());
 		}
 
