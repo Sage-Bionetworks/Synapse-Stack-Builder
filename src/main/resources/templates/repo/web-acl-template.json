@@ -21,7 +21,7 @@
 						},
 						"TextTransformation": "NONE",
 						"ComparisonOperator": "GT",
-						"Size": 1024
+						"Size": 2048
 					},
 					{
 						"FieldToMatch": {
