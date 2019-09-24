@@ -338,7 +338,7 @@
 		},
 		"SESSynapseOrgBounceTopic": {
 			"Description": "Topic for SES bounces from synapse.org for the ${stack} stack",
-			"Value": { "Ref":"${stack}SESSynapseOrgBounceTopic"},
+			"Value": { "Ref":"SESSynapseOrgBounceTopic"},
 			"Export": {
 				"Name": {
 					"Fn::Join": [
