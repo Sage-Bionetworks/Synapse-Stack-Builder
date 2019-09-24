@@ -19,7 +19,7 @@
 		"ENTITY_VIEW"
 	],
 	"snsGlobalTopicNames": [
-		"SES_SYNPASE_ORG_BOUNCE"
+		"SES_SYNAPSE_ORG_BOUNCE"
 	],
 	"queueDescriptors":[
 		{
@@ -200,7 +200,7 @@
 		{
 			"queueName":"SES_BOUNCES",
 			"subscribedTopicNames":[
-				"SES_SYNPASE_ORG_BOUNCE"
+				"SES_SYNAPSE_ORG_BOUNCE"
 			],
 			"messageVisibilityTimeoutSec":120
 		}
