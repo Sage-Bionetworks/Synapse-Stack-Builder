@@ -18,6 +18,9 @@
 		"TABLE",
 		"ENTITY_VIEW"
 	],
+	"snsGlobalTopicNames": [
+		"SES_SYNAPSE_ORG_BOUNCE"
+	],
 	"queueDescriptors":[
 		{
 			"queueName":"ADD_FILES_TO_DOWNLOAD_LIST",
@@ -193,6 +196,13 @@
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":120,
 			"oldestMessageInQueueAlarmThresholdSec": 600
+		},
+		{
+			"queueName":"SES_BOUNCES",
+			"subscribedTopicNames":[
+				"SES_SYNAPSE_ORG_BOUNCE"
+			],
+			"messageVisibilityTimeoutSec":120
 		}
 	]
 }
