@@ -169,6 +169,13 @@
 					}
 				]
 			}
+		},
+		"SesSynapseOrgBounceTopic": {
+			"Type": "AWS::SNS::Topic",
+			"Properties": {
+				"DisplayName": "${stack}-SesSynapseOrgBounce-Topic",
+				"TopicName": "${stack}-SesSynapseOrgBounce-Topic"
+			}
 		}
 		#parse( "templates/vpc/subnet-resources.json.vtp" )
 	},
@@ -324,6 +331,26 @@
 								"Ref": "AWS::StackName"
 							},
 							"NotificationTopic"
+						]
+					]
+				}
+			}
+		},
+		"SesSynapseOrgBounceTopic": {
+			"Description": "Topic for SES bounces from synapse.org for the ${stack} stack",
+			"Value": { "Ref":"SesSynapseOrgBounceTopic"},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"SesSynapseOrgBounceTopic"
 						]
 					]
 				}
