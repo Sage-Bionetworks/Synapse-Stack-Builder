@@ -1,6 +1,6 @@
 package org.sagebionetworks.template.repo.queues;
 
-import static org.sagebionetworks.template.Constants.SNS_TOPIC_DESCRIPTORS;
+import static org.sagebionetworks.template.Constants.*;
 import static org.sagebionetworks.template.Constants.SQS_QUEUE_DESCRIPTORS;
 
 import org.apache.velocity.VelocityContext;
@@ -23,6 +23,7 @@ public class SnsAndSqsVelocityContextProvider implements VelocityContextProvider
 	@Override
 	public void addToContext(VelocityContext context) {
 		context.put(SNS_TOPIC_DESCRIPTORS, snsAndSqsConfig.processSnsTopicDescriptors());
+		context.put(SNS_GLOBAL_TOPIC_DESCRIPTORS, snsAndSqsConfig.processSnsGlobalTopicDescriptors());
 		context.put(SQS_QUEUE_DESCRIPTORS, snsAndSqsConfig.getQueueDescriptors());
 	}
 }

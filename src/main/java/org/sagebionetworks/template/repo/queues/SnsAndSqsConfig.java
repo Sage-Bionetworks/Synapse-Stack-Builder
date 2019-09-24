@@ -20,24 +20,35 @@ public class SnsAndSqsConfig {
 
 
 	private final Set<String> snsTopicNames;
+	private final Set<String> snsGlobalTopicNames;
 	private final List<SqsQueueDescriptor> queueDescriptors;
 
 	@JsonCreator
 	public SnsAndSqsConfig(@JsonProperty(value = "snsTopicNames", required = true) List<String> snsTopicNames,
+						   @JsonProperty(value = "snsGlobalTopicNames", required = true) List<String> snsGlobalTopicNames,
 						   @JsonProperty(value = "queueDescriptors", required = true) List<SqsQueueDescriptor> queueDescriptors) {
 		SnsAndSqsNameValidator.validateNames(snsTopicNames);
+		SnsAndSqsNameValidator.validateNames(snsGlobalTopicNames);
 
 		this.snsTopicNames = Collections.unmodifiableSet(new LinkedHashSet<>(snsTopicNames));
+		this.snsGlobalTopicNames = Collections.unmodifiableSet(new LinkedHashSet<>(snsGlobalTopicNames));
 		this.queueDescriptors = Collections.unmodifiableList(new ArrayList<>(queueDescriptors));
+	}
+	
+	public List<SnsTopicDescriptor> processSnsGlobalTopicDescriptors() {
+		return processSnsTopicDescriptors(snsGlobalTopicNames);
 	}
 
 	public List<SnsTopicDescriptor> processSnsTopicDescriptors() {
-		Map<String,SnsTopicDescriptor> topicNameToTopicDescriptor = new HashMap<>(snsTopicNames.size());
+		return processSnsTopicDescriptors(snsTopicNames);
+	}
+	
+	private List<SnsTopicDescriptor> processSnsTopicDescriptors(Set<String> snsTopicNames) {
+		Map<String,SnsTopicDescriptor> topicNameToTopicDescriptor = new HashMap<>();
 
 		for(SqsQueueDescriptor sqsQueueDescriptor : queueDescriptors){
-			for(String subscribedTopicName : sqsQueueDescriptor.subscribedTopicNames){
-
-				//check SNS topic type used in the SqsQueueDescriptor exist in the set snsTopicTypes
+			for(String subscribedTopicName : sqsQueueDescriptor.subscribedTopicNames) {
+				// check SNS topic type used in the SqsQueueDescriptor exist in the set snsTopicTypes
 				if(!snsTopicNames.contains(subscribedTopicName)){
 					throw new IllegalArgumentException(subscribedTopicName + " listed in "
 							+ sqsQueueDescriptor.queueName
@@ -52,6 +63,7 @@ public class SnsAndSqsConfig {
 		}
 		return new ArrayList<>(topicNameToTopicDescriptor.values());
 	}
+		
 
 	public List<SqsQueueDescriptor> getQueueDescriptors() {
 		return queueDescriptors;

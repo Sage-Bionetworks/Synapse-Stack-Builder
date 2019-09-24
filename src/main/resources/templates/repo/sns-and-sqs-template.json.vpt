@@ -119,6 +119,22 @@
         }
         #if( $foreach.hasNext) , #end
     #end
+    ,
+    
+    #foreach( $snsTopicDescriptor in $snsGlobalTopicDescriptors)
+    	#foreach($queueResourceName in $snsTopicDescriptor.subscribedQueueReferenceNames)
+	    	"${snsTopicDescriptor.topicReferenceName}TopicSubscription": {
+	            "Type" : "AWS::SNS::Subscription",
+	            "Properties" : {
+	            	"Endpoint":{"Fn::GetAtt" : [ "${queueResourceName}Queue" , "Arn" ]},
+	                "Protocol": "sqs",
+	                "TopicArn" : {"Fn::ImportValue": "${vpcExportPrefix}-${snsTopicDescriptor.topicReferenceName}Topic"}
+	            }
+	        }
+    	#if( $foreach.hasNext ) , #end
+    	#end
+    #if( $foreach.hasNext) , #end
+    #end
 #end
 
 
