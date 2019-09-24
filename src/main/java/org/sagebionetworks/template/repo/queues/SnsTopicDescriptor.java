@@ -9,6 +9,7 @@ import org.sagebionetworks.template.Constants;
 
 public class SnsTopicDescriptor {
 	String topicName;
+	boolean global;
 	Set<String> subscribedQueueNames;
 
 	public SnsTopicDescriptor(String topicName){
@@ -25,6 +26,15 @@ public class SnsTopicDescriptor {
 	public String getTopicName() {
 		return topicName;
 	}
+	
+	public boolean isGlobal() {
+		return global;
+	}
+	
+	public SnsTopicDescriptor setGlobal(boolean global) {
+		this.global = global;
+		return this;
+	}
 
 	public String getTopicReferenceName(){
 		return Constants.createCamelCaseName(topicName, "_");
@@ -34,18 +44,30 @@ public class SnsTopicDescriptor {
 		return Constants.createCamelCaseName(subscribedQueueNames, "_");
 	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		SnsTopicDescriptor that = (SnsTopicDescriptor) o;
-		return Objects.equals(topicName, that.topicName) &&
-				Objects.equals(subscribedQueueNames, that.subscribedQueueNames);
-	}
 
 	@Override
 	public int hashCode() {
-
-		return Objects.hash(topicName, subscribedQueueNames);
+		return Objects.hash(global, subscribedQueueNames, topicName);
 	}
+
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		SnsTopicDescriptor other = (SnsTopicDescriptor) obj;
+		return global == other.global && Objects.equals(subscribedQueueNames, other.subscribedQueueNames)
+				&& Objects.equals(topicName, other.topicName);
+	}
+
+
+	
+	
 }

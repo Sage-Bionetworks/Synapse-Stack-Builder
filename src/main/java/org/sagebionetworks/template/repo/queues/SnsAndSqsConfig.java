@@ -35,19 +35,15 @@ public class SnsAndSqsConfig {
 		this.queueDescriptors = Collections.unmodifiableList(new ArrayList<>(queueDescriptors));
 	}
 	
-	public List<SnsTopicDescriptor> processSnsGlobalTopicDescriptors() {
-		return processSnsTopicDescriptors(snsGlobalTopicNames);
-	}
-
 	public List<SnsTopicDescriptor> processSnsTopicDescriptors() {
-		return processSnsTopicDescriptors(snsTopicNames);
-	}
-	
-	private List<SnsTopicDescriptor> processSnsTopicDescriptors(Set<String> snsTopicNames) {
 		Map<String,SnsTopicDescriptor> topicNameToTopicDescriptor = new HashMap<>();
 
 		for(SqsQueueDescriptor sqsQueueDescriptor : queueDescriptors){
 			for(String subscribedTopicName : sqsQueueDescriptor.subscribedTopicNames) {
+				boolean global = false;
+				if (snsGlobalTopicNames.contains(subscribedTopicName)) {
+					global = true;
+				} else
 				// check SNS topic type used in the SqsQueueDescriptor exist in the set snsTopicTypes
 				if(!snsTopicNames.contains(subscribedTopicName)){
 					throw new IllegalArgumentException(subscribedTopicName + " listed in "
@@ -58,6 +54,7 @@ public class SnsAndSqsConfig {
 
 				//add queue to SnsTopicDescriptors
 				topicNameToTopicDescriptor.computeIfAbsent(subscribedTopicName, SnsTopicDescriptor::new)
+							.setGlobal(global)
 							.addToSubscribedQueues(sqsQueueDescriptor.queueName);
 			}
 		}
