@@ -170,7 +170,7 @@
 				]
 			}
 		},
-		"$SESSynapseOrgBounceTopic": {
+		"SESSynapseOrgBounceTopic": {
 			"Type": "AWS::SNS::Topic",
 			"Properties": {
 				"DisplayName": "${stack}-SESSynapseOrgBounce-Topic",
