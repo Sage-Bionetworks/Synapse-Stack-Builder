@@ -12,13 +12,12 @@ public class SnsTopicDescriptor {
 	boolean global;
 	Set<String> subscribedQueueNames;
 
-	public SnsTopicDescriptor(String topicName){
+	public SnsTopicDescriptor(String topicName) {
 		this.topicName = topicName;
 		this.subscribedQueueNames = new LinkedHashSet<>();
 	}
 
-
-	public SnsTopicDescriptor addToSubscribedQueues(String subscribedQueue){
+	public SnsTopicDescriptor addToSubscribedQueues(String subscribedQueue) {
 		this.subscribedQueueNames.add(subscribedQueue);
 		return this;
 	}
@@ -26,17 +25,17 @@ public class SnsTopicDescriptor {
 	public String getTopicName() {
 		return topicName;
 	}
-	
+
 	public boolean isGlobal() {
 		return global;
 	}
-	
+
 	public SnsTopicDescriptor setGlobal(boolean global) {
 		this.global = global;
 		return this;
 	}
 
-	public String getTopicReferenceName(){
+	public String getTopicReferenceName() {
 		return Constants.createCamelCaseName(topicName, "_");
 	}
 
@@ -44,12 +43,10 @@ public class SnsTopicDescriptor {
 		return Constants.createCamelCaseName(subscribedQueueNames, "_");
 	}
 
-
 	@Override
 	public int hashCode() {
 		return Objects.hash(global, subscribedQueueNames, topicName);
 	}
-
 
 	@Override
 	public boolean equals(Object obj) {
@@ -67,7 +64,4 @@ public class SnsTopicDescriptor {
 				&& Objects.equals(topicName, other.topicName);
 	}
 
-
-	
-	
 }

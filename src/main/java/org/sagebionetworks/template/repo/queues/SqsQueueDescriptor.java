@@ -1,6 +1,7 @@
 package org.sagebionetworks.template.repo.queues;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -20,6 +21,8 @@ public class SqsQueueDescriptor {
 
 	final Integer deadLetterQueueMaxFailureCount;
 	final Integer oldestMessageInQueueAlarmThresholdSec;
+	
+	final Set<SnsTopicDescriptor> subscribedTopicDescriptors;
 
 	@JsonCreator
 	public SqsQueueDescriptor(@JsonProperty(value = "queueName", required=true) String queueName,
@@ -35,6 +38,11 @@ public class SqsQueueDescriptor {
 		this.messageVisibilityTimeoutSec = messageVisibilityTimeoutSec;
 		this.deadLetterQueueMaxFailureCount = deadLetterQueueMaxFailureCount;
 		this.oldestMessageInQueueAlarmThresholdSec = oldestMessageInQueueAlarmThresholdSec;
+		this.subscribedTopicDescriptors = new HashSet<>(subscribedTopicNames.size());
+	}
+	
+	void addTopicDescriptor(SnsTopicDescriptor topicDescriptor) {
+		this.subscribedTopicDescriptors.add(topicDescriptor);
 	}
 
 	///////////////////////////////////////////
@@ -48,8 +56,8 @@ public class SqsQueueDescriptor {
 		return Constants.createCamelCaseName(queueName, "_");
 	}
 
-	public List<String> getSubscribedTopicReferenceNames() {
-		return Constants.createCamelCaseName(subscribedTopicNames, "_");
+	public Set<SnsTopicDescriptor> getSubscribedTopicDescriptors() {
+		return subscribedTopicDescriptors;
 	}
 
 	public Integer getMessageVisibilityTimeoutSec() {
