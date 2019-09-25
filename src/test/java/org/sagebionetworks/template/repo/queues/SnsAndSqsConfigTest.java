@@ -1,18 +1,12 @@
 package org.sagebionetworks.template.repo.queues;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.IOException;
-import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Before;
 import org.junit.Test;
 
 public class SnsAndSqsConfigTest {
@@ -33,7 +27,7 @@ public class SnsAndSqsConfigTest {
 		SqsQueueDescriptor sqsQueueDescriptor = new SqsQueueDescriptor(queueName, Collections.emptyList(), messageVisibilityTimeoutSec, deadLetterQueueMaxFailureCount, oldestMessGeInQueueAlarmThresholdSec);
 
 		try {
-			new SnsAndSqsConfig(Arrays.asList("BAD-NAME"), Arrays.asList(sqsQueueDescriptor));
+			new SnsAndSqsConfig(Arrays.asList("BAD-NAME"), Collections.emptyList(), Arrays.asList(sqsQueueDescriptor));
 			fail();
 		} catch (IllegalArgumentException e){
 			//expected
@@ -48,7 +42,7 @@ public class SnsAndSqsConfigTest {
 		List<String> usedTopics = Arrays.asList(topicName1, topicName2);
 
 		SqsQueueDescriptor sqsQueueDescriptor = new SqsQueueDescriptor(queueName, usedTopics, messageVisibilityTimeoutSec, deadLetterQueueMaxFailureCount, oldestMessGeInQueueAlarmThresholdSec);
-		snsAndSqsConfig = new SnsAndSqsConfig(declaredTopics, Collections.singletonList(sqsQueueDescriptor));
+		snsAndSqsConfig = new SnsAndSqsConfig(declaredTopics, Collections.emptyList(), Collections.singletonList(sqsQueueDescriptor));
 
 		//method under test
 		snsAndSqsConfig.processSnsTopicDescriptors();
@@ -67,7 +61,7 @@ public class SnsAndSqsConfigTest {
 		String queueName2 = "theOtherQueue";
 		SqsQueueDescriptor queue2Config = new SqsQueueDescriptor(queueName2, queue2Topics, messageVisibilityTimeoutSec, deadLetterQueueMaxFailureCount, oldestMessGeInQueueAlarmThresholdSec);
 
-		snsAndSqsConfig = new SnsAndSqsConfig(declaredTopics, Arrays.asList(queue1Config, queue2Config));
+		snsAndSqsConfig = new SnsAndSqsConfig(declaredTopics,Collections.emptyList(), Arrays.asList(queue1Config, queue2Config));
 
 		//method under test
 		List<SnsTopicDescriptor> descriptors = snsAndSqsConfig.processSnsTopicDescriptors();
