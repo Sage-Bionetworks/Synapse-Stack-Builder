@@ -19,7 +19,6 @@ public class SnsAndSqsVelocityContextProvider implements VelocityContextProvider
 		this.snsAndSqsConfig = snsAndSqsConfig;
 	}
 
-
 	@Override
 	public void addToContext(VelocityContext context) {
 		context.put(SNS_TOPIC_DESCRIPTORS, snsAndSqsConfig.processSnsTopicDescriptors());
