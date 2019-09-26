@@ -362,6 +362,26 @@
 					]
 				}
 			}
+		},
+		"SesSynapseOrgComplaintTopic": {
+			"Description": "Topic for SES complaints from synapse.org for the ${stack} stack",
+			"Value": { "Ref":"SesSynapseOrgComplaintTopic"},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"SesSynapseOrgComplaintTopic"
+						]
+					]
+				}
+			}
 		}
 		#parse( "templates/vpc/subnet-output.json.vtp" ) 
 	}
