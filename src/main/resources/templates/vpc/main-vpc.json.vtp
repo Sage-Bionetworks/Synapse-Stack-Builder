@@ -176,6 +176,13 @@
 				"DisplayName": "${stack}-SesSynapseOrgBounce-Topic",
 				"TopicName": "${stack}-SesSynapseOrgBounce-Topic"
 			}
+		},
+		"SesSynapseOrgComplaintTopic": {
+			"Type": "AWS::SNS::Topic",
+			"Properties": {
+				"DisplayName": "${stack}-SesSynapseOrgComplaint-Topic",
+				"TopicName": "${stack}-SesSynapseOrgComplaint-Topic"
+			}
 		}
 		#parse( "templates/vpc/subnet-resources.json.vtp" )
 	},
