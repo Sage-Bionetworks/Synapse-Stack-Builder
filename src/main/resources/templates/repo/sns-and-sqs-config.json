@@ -19,7 +19,8 @@
 		"ENTITY_VIEW"
 	],
 	"snsGlobalTopicNames": [
-		"SES_SYNAPSE_ORG_BOUNCE"
+		"SES_SYNAPSE_ORG_BOUNCE",
+		"SES_SYNAPSE_ORG_COMPLAINT"
 	],
 	"queueDescriptors":[
 		{
@@ -198,9 +199,10 @@
 			"oldestMessageInQueueAlarmThresholdSec": 600
 		},
 		{
-			"queueName":"SES_BOUNCES",
+			"queueName":"SES_NOTIFICATIONS",
 			"subscribedTopicNames":[
-				"SES_SYNAPSE_ORG_BOUNCE"
+				"SES_SYNAPSE_ORG_BOUNCE",
+				"SES_SYNAPSE_ORG_COMPLAINT"
 			],
 			"messageVisibilityTimeoutSec":120
 		}
