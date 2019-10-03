@@ -23,6 +23,8 @@ import org.sagebionetworks.template.repo.IdGeneratorBuilder;
 import org.sagebionetworks.template.repo.IdGeneratorBuilderImpl;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilderImpl;
+import org.sagebionetworks.template.repo.S3BucketBuilder;
+import org.sagebionetworks.template.repo.S3BucketBuilderImpl;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
 import org.sagebionetworks.template.repo.WebACLBuilder;
 import org.sagebionetworks.template.repo.WebACLBuilderImpl;
@@ -93,6 +95,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(WarAppender.class).to(WarAppenderImpl.class);
 		bind(ElasticBeanstalkDefaultAMIEncrypter.class).to(ElasticBeanstalkDefaultAMIEncrypterImpl.class);
 		bind(StackTagsProvider.class).to(StackTagsProviderImpl.class);
+		bind(S3BucketBuilder.class).to(S3BucketBuilderImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(SnsAndSqsVelocityContextProvider.class);

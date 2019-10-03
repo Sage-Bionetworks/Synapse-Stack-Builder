@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
+import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_AWS_ACCESS_KEY_ID;
@@ -40,7 +41,6 @@ import static org.sagebionetworks.template.Constants.REPO_BEANSTALK_NUMBER;
 import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.SHARED_RESOUCES_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
-import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
@@ -50,8 +50,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.amazonaws.services.cloudformation.model.Tag;
-import com.google.common.collect.Sets;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -82,6 +80,7 @@ import org.sagebionetworks.template.vpc.Color;
 import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
+import com.amazonaws.services.cloudformation.model.Tag;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -110,6 +109,8 @@ public class RepositoryTemplateBuilderImplTest {
 	ElasticBeanstalkDefaultAMIEncrypter mockElasticBeanstalkDefaultAMIEncrypter;
 	@Mock
 	StackTagsProvider mockStackTagsProvider;
+	@Mock
+	S3BucketBuilder mockBucketBuilder;
 
 	@Captor
 	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
@@ -146,7 +147,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder, mockACLBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
-				mockElasticBeanstalkDefaultAMIEncrypter, mockStackTagsProvider);
+				mockElasticBeanstalkDefaultAMIEncrypter, mockStackTagsProvider, mockBucketBuilder);
 
 		stack = "dev";
 		instance = "101";
@@ -213,6 +214,7 @@ public class RepositoryTemplateBuilderImplTest {
 	public void testBuildAndDeploy() throws InterruptedException {
 		// call under test
 		builder.buildAndDeploy();
+		verify(mockBucketBuilder).buildAllBuckets();
 		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);

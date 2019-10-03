@@ -46,13 +46,14 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	Set<VelocityContextProvider> contextProviders;
 	ElasticBeanstalkDefaultAMIEncrypter elasticBeanstalkDefaultAMIEncrypter;
 	StackTagsProvider stackTagsProvider;
+	S3BucketBuilder bucketBuilder;
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
 										 RepoConfiguration configuration, LoggerFactory loggerFactory, ArtifactCopy artifactCopy,
 										 SecretBuilder secretBuilder, WebACLBuilder aclBuilder, Set<VelocityContextProvider> contextProviders,
 										 ElasticBeanstalkDefaultAMIEncrypter elasticBeanstalkDefaultAMIEncrypter,
-										 StackTagsProvider stackTagsProvider) {
+										 StackTagsProvider stackTagsProvider, S3BucketBuilder bucketBuilder) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.velocityEngine = velocityEngine;
@@ -64,10 +65,14 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.contextProviders = contextProviders;
 		this.elasticBeanstalkDefaultAMIEncrypter = elasticBeanstalkDefaultAMIEncrypter;
 		this.stackTagsProvider = stackTagsProvider;
+		this.bucketBuilder = bucketBuilder;
 	}
 
 	@Override
 	public void buildAndDeploy() throws InterruptedException {
+		// build all of the buckets
+		this.bucketBuilder.buildAllBuckets();
+		
 		// Create the context from the input
 		VelocityContext context = createSharedContext();
 
