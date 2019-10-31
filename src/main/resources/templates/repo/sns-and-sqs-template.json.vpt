@@ -22,8 +22,7 @@
             }
         }
         #end
-
-        #if($queueDescriptor.oldestMessageInQueueAlarmThresholdSec)
+        #if($queueDescriptor.oldestMessageInQueueAlarmThresholdSec && ${stack} == 'prod')
         ,"${queueDescriptor.queueReferenceName}OldestMessageAlarm":{
             "Type" : "AWS::CloudWatch::Alarm",
             "Properties" : {

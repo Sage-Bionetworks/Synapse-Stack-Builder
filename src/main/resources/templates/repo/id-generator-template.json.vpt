@@ -112,6 +112,7 @@
 				]
 			}
 		},
+		#if(${stack} == 'prod')
 		"${stack}IdGeneratorAlarmSwapUsage": {
 			"Type": "AWS::CloudWatch::Alarm",
 			"Properties": {
@@ -216,6 +217,7 @@
 				"Threshold": 524288
 			}
 		}
+		#end
 	},
 	"Outputs": {
 		"${stack}IdGeneratorEndpoint": {
