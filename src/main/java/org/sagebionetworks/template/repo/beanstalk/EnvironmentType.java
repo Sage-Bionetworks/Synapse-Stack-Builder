@@ -26,7 +26,7 @@ public enum EnvironmentType {
 	 */
 	public String createArtifactoryUrl(String version) {
 		StringBuilder builder = new StringBuilder(
-				"http://sagebionetworks.artifactoryonline.com/sagebionetworks/libs-releases-local/org/sagebionetworks");
+				"http://sagebionetworks.jfrog.io/sagebionetworks/libs-releases-local/org/sagebionetworks");
 		builder.append("/");
 		builder.append(pathName);
 		builder.append("/");
