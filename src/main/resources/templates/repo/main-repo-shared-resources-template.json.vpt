@@ -115,7 +115,9 @@
 				],
 				"StorageEncrypted": true
 			}
-		},
+		}
+		#if(${stack} == 'prod')
+		,
 		"${descriptor.resourceName}AlarmSwapUsage": {
 			"Type" : "AWS::CloudWatch::Alarm",
 			"DependsOn": [
@@ -223,7 +225,8 @@
 				"Statistic" : "Average",
 				"Threshold" : ${descriptor.getTenPercentOfAllocatedStroageBytes()}
 			}
-		}		
+		}
+		#end		
 		#end
 		,
 		"${stack}${instance}Application": {

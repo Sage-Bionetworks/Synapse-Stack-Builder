@@ -1,6 +1,7 @@
 package org.sagebionetworks.template.repo;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
@@ -209,9 +210,59 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockElasticBeanstalkDefaultAMIEncrypter.getEncryptedElasticBeanstalkAMI())
 				.thenReturn(new ElasticBeanstalkEncryptedPlatformInfo("ami-123", "fake stack"));
 	}
+	
+	private void configureStack(String inputStack) throws InterruptedException {
+		stack = inputStack;
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		sharedResouces = new Stack();
+		Output dbOut = new Output();
+		dbOut.withOutputKey(stack+instance+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
+		databaseEndpointSuffix = "something.amazon.com";
+		dbOut.withOutputValue(stack+"-"+instance+"-db."+databaseEndpointSuffix);
+		sharedResouces.withOutputs(dbOut);
+		
+		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(sharedResouces);
+	}
 
 	@Test
-	public void testBuildAndDeploy() throws InterruptedException {
+	public void testBuildAndDeployProd() throws InterruptedException {
+		stack = "prod";
+		configureStack(stack);
+		// call under test
+		builder.buildAndDeploy();
+		verify(mockBucketBuilder).buildAllBuckets();
+		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
+		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
+		CreateOrUpdateStackRequest request = list.get(0);
+		assertEquals("prod-101-shared-resources", request.getStackName());
+		assertEquals(expectedTags, request.getTags());
+		assertNotNull(request.getParameters());
+		String bodyJSONString = request.getTemplateBody();
+		assertNotNull(bodyJSONString);
+		System.out.println(bodyJSONString);
+		JSONObject templateJson = new JSONObject(bodyJSONString);
+		JSONObject resources = templateJson.getJSONObject("Resources");
+		assertNotNull(resources);
+		// database group
+		validateResouceDatabaseSubnetGroup(resources, stack);
+		// database instance
+		validateResouceDatabaseInstance(resources, stack);
+		// tables database
+		validateResouceTablesDatabase(resources, stack);
+		List<String> evironmentNames = Lists.newArrayList("repo-prod-101-0", "workers-prod-101-0", "portal-prod-101-0");
+		verify(mockACLBuilder).buildWebACL(evironmentNames);
+		// prod should have alarms.
+		assertTrue(resources.has("prod101Table1RepositoryDBAlarmSwapUsage"));
+		assertTrue(resources.has("prod101Table1RepositoryDBAlarmSwapUsage"));
+		assertTrue(resources.has("prod101Table1RepositoryDBHighWriteLatency"));
+		assertTrue(resources.has("prod101Table1RepositoryDBHighCPUUtilization"));
+		assertTrue(resources.has("prod101Table1RepositoryDBLowFreeStorageSpace"));
+	}
+	
+	@Test
+	public void testBuildAndDeployDev() throws InterruptedException {
+		stack = "dev";
+		configureStack(stack);
 		// call under test
 		builder.buildAndDeploy();
 		verify(mockBucketBuilder).buildAllBuckets();
@@ -227,18 +278,17 @@ public class RepositoryTemplateBuilderImplTest {
 		JSONObject templateJson = new JSONObject(bodyJSONString);
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		assertNotNull(resources);
-		// database group
-		validateResouceDatabaseSubnetGroup(resources);
-		// database instance
-		validateResouceDatabaseInstance(resources);
-		// tables database
-		validateResouceTablesDatabase(resources);
-		List<String> evironmentNames = Lists.newArrayList("repo-dev-101-0", "workers-dev-101-0", "portal-dev-101-0");
-		verify(mockACLBuilder).buildWebACL(evironmentNames);
+		// dev should not have alarms
+		assertFalse(resources.has("dev101Table1RepositoryDBAlarmSwapUsage"));
+		assertFalse(resources.has("dev101Table1RepositoryDBAlarmSwapUsage"));
+		assertFalse(resources.has("devd101Table1RepositoryDBHighWriteLatency"));
+		assertFalse(resources.has("dev101Table1RepositoryDBHighCPUUtilization"));
+		assertFalse(resources.has("dev101Table1RepositoryDBLowFreeStorageSpace"));
 	}
 
-	public void validateResouceDatabaseSubnetGroup(JSONObject resources) {
-		JSONObject subnetGroup = resources.getJSONObject("dev101DBSubnetGroup");
+
+	public void validateResouceDatabaseSubnetGroup(JSONObject resources, String stack) {
+		JSONObject subnetGroup = resources.getJSONObject(stack+"101DBSubnetGroup");
 		assertNotNull(subnetGroup);
 		JSONObject properties = subnetGroup.getJSONObject("Properties");
 		assertTrue(properties.has("SubnetIds"));
@@ -249,8 +299,8 @@ public class RepositoryTemplateBuilderImplTest {
 	 * 
 	 * @param resources
 	 */
-	public void validateResouceDatabaseInstance(JSONObject resources) {
-		JSONObject instance = resources.getJSONObject("dev101RepositoryDB");
+	public void validateResouceDatabaseInstance(JSONObject resources, String stack) {
+		JSONObject instance = resources.getJSONObject(stack+"101RepositoryDB");
 		assertNotNull(instance);
 		JSONObject properties = instance.getJSONObject("Properties");
 		assertEquals("4", properties.get("AllocatedStorage"));
@@ -263,25 +313,25 @@ public class RepositoryTemplateBuilderImplTest {
 	 * 
 	 * @param resources
 	 */
-	public void validateResouceTablesDatabase(JSONObject resources) {
+	public void validateResouceTablesDatabase(JSONObject resources, String stack) {
 		// zero
-		JSONObject instance = resources.getJSONObject("dev101Table0RepositoryDB");
+		JSONObject instance = resources.getJSONObject(stack+"101Table0RepositoryDB");
 		assertNotNull(instance);
 		JSONObject properties = instance.getJSONObject("Properties");
 		assertEquals("3", properties.get("AllocatedStorage"));
 		assertEquals("db.t2.micro", properties.get("DBInstanceClass"));
 		assertEquals(Boolean.FALSE, properties.get("MultiAZ"));
-		assertEquals("dev-101-table-0", properties.get("DBInstanceIdentifier"));
-		assertEquals("dev101", properties.get("DBName"));
+		assertEquals(stack+"-101-table-0", properties.get("DBInstanceIdentifier"));
+		assertEquals(stack+"101", properties.get("DBName"));
 		// one
-		instance = resources.getJSONObject("dev101Table1RepositoryDB");
+		instance = resources.getJSONObject(stack+"101Table1RepositoryDB");
 		assertNotNull(instance);
 		properties = instance.getJSONObject("Properties");
 		assertEquals("3", properties.get("AllocatedStorage"));
 		assertEquals("db.t2.micro", properties.get("DBInstanceClass"));
 		assertEquals(Boolean.FALSE, properties.get("MultiAZ"));
-		assertEquals("dev-101-table-1", properties.get("DBInstanceIdentifier"));
-		assertEquals("dev101", properties.get("DBName"));
+		assertEquals(stack+"-101-table-1", properties.get("DBInstanceIdentifier"));
+		assertEquals(stack+"101", properties.get("DBName"));
 	}
 
 	@Test

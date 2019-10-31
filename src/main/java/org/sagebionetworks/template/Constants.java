@@ -91,7 +91,7 @@ public class Constants {
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
 	public static final String TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";
 	public static final String TEMPALTE_BEAN_STALK_ENVIRONMENT = "templates/repo/elasticbeanstalk-template.json.vpt";
-	public static final String TEMPLATE_ID_GENERATOR = "templates/repo/id-generator-template.json";
+	public static final String TEMPLATE_ID_GENERATOR = "templates/repo/id-generator-template.json.vpt";
 	
 
 	public static final int JSON_INDENT = 5;
