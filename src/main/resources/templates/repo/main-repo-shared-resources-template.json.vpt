@@ -169,7 +169,7 @@
 				"MetricName" : "WriteLatency",
 				"Namespace" : "AWS/RDS",
 				"Statistic" : "Average",
-				"Threshold" : 0.1
+				"Threshold" : 0.2
 			}
 		},
 		"${descriptor.resourceName}HighCPUUtilization": {
