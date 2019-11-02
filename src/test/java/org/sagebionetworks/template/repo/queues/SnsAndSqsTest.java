@@ -41,13 +41,9 @@ public class SnsAndSqsTest {
 		// the prod stack should have the following alarms:
 		assertTrue(json.has("QueryOldestMessageAlarm"));
 		assertTrue(json.has("QueryNextPageOldestMessageAlarm"));
-		assertTrue(json.has("TableUpdateTransactionOldestMessageAlarm"));
-		assertTrue(json.has("StatisticsMonthlyOldestMessageAlarm"));
 		assertTrue(json.has("AddFilesToDownloadListOldestMessageAlarm"));
 		assertTrue(json.has("DoiOldestMessageAlarm"));
 		assertTrue(json.has("StorageReportOldestMessageAlarm"));
-		assertTrue(json.has("BulkFileDownloadOldestMessageAlarm"));
-		assertTrue(json.has("DownloadCsvFromTableOldestMessageAlarm"));
 	}
 	
 	@Test

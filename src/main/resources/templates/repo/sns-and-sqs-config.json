@@ -80,8 +80,7 @@
 		{
 			"queueName":"BULK_FILE_DOWNLOAD",
 			"subscribedTopicNames":[],
-			"messageVisibilityTimeoutSec":600,
-			"oldestMessageInQueueAlarmThresholdSec": 16
+			"messageVisibilityTimeoutSec":600
 		},
 		{
 			"queueName":"FILE_UPDATE",
@@ -156,8 +155,7 @@
 		{
 			"queueName":"DOWNLOAD_CSV_FROM_TABLE",
 			"subscribedTopicNames":[],
-			"messageVisibilityTimeoutSec":60,
-			"oldestMessageInQueueAlarmThresholdSec": 16
+			"messageVisibilityTimeoutSec":60
 		},
 		{
 			"queueName":"TABLE_ENTITY_REPLICATION",
@@ -171,19 +169,18 @@
 			"queueName":"QUERY",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":120,
-			"oldestMessageInQueueAlarmThresholdSec": 8
+			"oldestMessageInQueueAlarmThresholdSec": 30
 		},
 		{
 			"queueName":"QUERY_NEXT_PAGE",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":120,
-			"oldestMessageInQueueAlarmThresholdSec": 2
+			"oldestMessageInQueueAlarmThresholdSec": 30
 		},
 		{
 			"queueName":"TABLE_UPDATE_TRANSACTION",
 			"subscribedTopicNames":[],
-			"messageVisibilityTimeoutSec":300,
-			"oldestMessageInQueueAlarmThresholdSec": 4
+			"messageVisibilityTimeoutSec":300
 		},
 		{
 			"queueName":"TABLE_VIEW",
@@ -195,8 +192,7 @@
 		{
 			"queueName":"STATISTICS_MONTHLY",
 			"subscribedTopicNames":[],
-			"messageVisibilityTimeoutSec":120,
-			"oldestMessageInQueueAlarmThresholdSec": 600
+			"messageVisibilityTimeoutSec":120
 		},
 		{
 			"queueName":"SES_NOTIFICATIONS",
