@@ -184,6 +184,28 @@
 				"TopicName": "${stack}-SesSynapseOrgComplaint-Topic"
 			}
 		}
+		#if(${stack} == 'prod')
+		,
+		"SesHighBounceRateAlarm": {
+			"Type" : "AWS::CloudWatch::Alarm",
+			"Properties" : {
+				"ActionsEnabled" : true,
+				"AlarmActions" : [
+					{ "Ref":"${stack}NotificationTopic"}
+				],
+				"AlarmDescription" : "Alert when SES bounce rate exceed 5%.",
+				"AlarmName" : "SES-High-Bounce-Rate",
+				"ComparisonOperator" : "GreaterThanThreshold",
+				"EvaluationPeriods" : 1,
+				"Period" : 900,
+				"MetricName" : "Reputation.BounceRate",
+				"Namespace" : "AWS/SES",
+				"Statistic" : "Maximum",
+				"Threshold" : 0.05,
+				"TreatMissingData" : "notBreaching"
+			}
+		}
+		#end	
 		#parse( "templates/vpc/subnet-resources.json.vtp" )
 	},
 	"Outputs": {
