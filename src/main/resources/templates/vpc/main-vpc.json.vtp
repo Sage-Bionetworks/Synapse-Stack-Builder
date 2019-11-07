@@ -184,7 +184,7 @@
 				"TopicName": "${stack}-SesSynapseOrgComplaint-Topic"
 			}
 		}
-		#if(${stack} == 'prod')
+		#if(${stack} == 'dev')
 		,
 		"SesHighBounceRateAlarm": {
 			"Type" : "AWS::CloudWatch::Alarm",
