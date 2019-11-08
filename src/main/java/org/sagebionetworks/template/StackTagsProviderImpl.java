@@ -2,7 +2,6 @@ package org.sagebionetworks.template;
 
 import com.amazonaws.services.cloudformation.model.Tag;
 import com.google.inject.Inject;
-import org.sagebionetworks.template.config.Configuration;
 
 import java.util.LinkedList;
 import java.util.List;
