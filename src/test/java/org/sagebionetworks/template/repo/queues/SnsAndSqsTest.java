@@ -39,8 +39,6 @@ public class SnsAndSqsTest {
 		// call under test
 		JSONObject json = mergeTemplateForStack(stack);
 		// the prod stack should have the following alarms:
-		assertTrue(json.has("QueryOldestMessageAlarm"));
-		assertTrue(json.has("QueryNextPageOldestMessageAlarm"));
 		assertTrue(json.has("AddFilesToDownloadListOldestMessageAlarm"));
 		assertTrue(json.has("DoiOldestMessageAlarm"));
 		assertTrue(json.has("StorageReportOldestMessageAlarm"));
