@@ -202,7 +202,7 @@
 				"Namespace" : "AWS/SES",
 				"Statistic" : "Maximum",
 				"Threshold" : 0.05,
-				"TreatMissingData" : "notBreaching"
+				"TreatMissingData" : "ignore"
 			}
 		}
 		#end	
