@@ -201,14 +201,6 @@
 				"SES_SYNAPSE_ORG_COMPLAINT"
 			],
 			"messageVisibilityTimeoutSec":120
-		},
-		{
-			"queueName":"CONTAINER_CHECKSUM",
-			"subscribedTopicNames":[
-				"ENTITY"
-			],
-			"messageVisibilityTimeoutSec":120,
-			"deadLetterQueueMaxFailureCount":100
 		}
 	]
 }
