@@ -67,7 +67,9 @@
 		},
 		{
 			"queueName":"ENTITY_REPLICATION_RECONCILIATION",
-			"subscribedTopicNames":[],
+			"subscribedTopicNames":[
+				"ENTITY_VIEW"
+			],
 			"messageVisibilityTimeoutSec":60
 		},
 		{
