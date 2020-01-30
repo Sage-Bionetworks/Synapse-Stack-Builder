@@ -55,6 +55,18 @@
 			}
 		}
 	},
+	"${publicSubnet.name}RouteOldVpc": {
+		"Type": "AWS::EC2::Route",
+		"Properties": {
+			"RouteTableId": {
+				"Ref": "${publicSubnet.name}RouteTable"
+			},
+			"DestinationCidrBlock": "10.22.0.0/16",
+			"VpcPeeringConnectionId": {
+				"Ref": "VpcPeeringConnectionOldVpc"
+			}
+		}
+	},
 	"${publicSubnet.name}PublicRoute": {
 		"Type": "AWS::EC2::Route",
 		"DependsOn": "InternetGatewayAttachment",
@@ -177,6 +189,18 @@
 			}
 		}
 	},
+    "${privateSubnet.name}RouteOldVpc": {
+        "Type": "AWS::EC2::Route",
+        "Properties": {
+            "RouteTableId": {
+                "Ref": "${privateSubnet.name}RouteTable"
+            },
+            "DestinationCidrBlock": "10.22.0.0/16",
+            "VpcPeeringConnectionId": {
+                "Ref": "VpcPeeringConnectionOldVpc"
+            }
+        }
+    },
 	"${privateSubnet.name}PrivateRoute": {
 		"Type": "AWS::EC2::Route",
 		"Properties": {

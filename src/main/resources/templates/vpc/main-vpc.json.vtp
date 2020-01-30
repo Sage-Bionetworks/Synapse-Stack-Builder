@@ -10,6 +10,11 @@
 			"Description": "CIDR of the (sophos-utm) VPN",
 			"Type": "String",
 			"Default": "10.1.0.0/16"
+		},
+		"OldVpcId": {
+		    "Description": "VpcId of old Synapse VPC for this stack",
+		    "Type": "String",
+		    "Default": ""
 		}
 	},
 	"Resources": {
@@ -46,6 +51,29 @@
 					{
 						"Key": "Name",
 						"Value": "synapse-${stack}-VPC-peering"
+					}
+				]
+			}
+		},
+		"VpcPeeringConnectionOldVpc" :{
+			"Type" : "AWS::EC2::VPCPeeringConnection",
+			"Properties" : {
+				"PeerVpcId" : {
+				    "Ref": "OldVpcId"
+				},
+				"VpcId" : {
+					"Ref": "VPC"
+				},
+				"Tags": [
+					{
+						"Key": "Application",
+						"Value": {
+							"Ref": "AWS::StackName"
+						}
+					},
+					{
+						"Key": "Name",
+						"Value": "synapse-${stack}-VPC-peering-oldVPC"
 					}
 				]
 			}
@@ -161,7 +189,6 @@
 			"Type": "AWS::SNS::Topic",
 			"Properties": {
 				"DisplayName": "${stack}-Notification-Topic",
-				"TopicName": "${stack}-Notification-Topic",
 				"Subscription": [
 					{
 						"Endpoint": "synapse-ops@sagebase.org",
@@ -174,14 +201,12 @@
 			"Type": "AWS::SNS::Topic",
 			"Properties": {
 				"DisplayName": "${stack}-SesSynapseOrgBounce-Topic",
-				"TopicName": "${stack}-SesSynapseOrgBounce-Topic"
 			}
 		},
 		"SesSynapseOrgComplaintTopic": {
 			"Type": "AWS::SNS::Topic",
 			"Properties": {
 				"DisplayName": "${stack}-SesSynapseOrgComplaint-Topic",
-				"TopicName": "${stack}-SesSynapseOrgComplaint-Topic"
 			}
 		}
 		#if(${stack} == 'prod')
@@ -225,6 +250,7 @@
 							{
 								"Ref": "AWS::StackName"
 							},
+							"2",
 							"VPCId"
 						]
 					]
@@ -250,6 +276,7 @@
 							{
 								"Ref": "AWS::StackName"
 							},
+							"2",
 							"VpcCidr"
 						]
 					]
@@ -272,6 +299,7 @@
 							{
 								"Ref": "AWS::StackName"
 							},
+							"2",
 							"VpnCidr"
 						]
 					]
@@ -297,6 +325,7 @@
 							{
 								"Ref": "AWS::StackName"
 							},
+							"2",
 							"VpcDefaultSecurityGroup"
 						]
 					]
@@ -319,6 +348,7 @@
 							{
 								"Ref": "AWS::StackName"
 							},
+							"2",
 							"VpnSecurityGroup"
 						]
 					]
@@ -339,6 +369,7 @@
 							{
 								"Ref": "AWS::StackName"
 							},
+							"2",
 							"AvailabilityZones"
 						]
 					]
@@ -359,6 +390,7 @@
 							{
 								"Ref": "AWS::StackName"
 							},
+							"2",
 							"NotificationTopic"
 						]
 					]
@@ -379,6 +411,7 @@
 							{
 								"Ref": "AWS::StackName"
 							},
+							"2",
 							"SesSynapseOrgBounceTopic"
 						]
 					]
@@ -399,6 +432,7 @@
 							{
 								"Ref": "AWS::StackName"
 							},
+							"2",
 							"SesSynapseOrgComplaintTopic"
 						]
 					]

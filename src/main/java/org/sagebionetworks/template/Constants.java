@@ -101,14 +101,14 @@ public class Constants {
 	 * subnet with 2,048 address. Note: The subnet mask will be the suffix of each
 	 * subnet CIDR.
 	 */
-	public static final int VPC_SUBNET_NETWORK_MASK = 21;
+	public static final int VPC_SUBNET_NETWORK_MASK = 24;
 
 	/*
 	 * The network mask used to create color group. A mask of 20 will allocate a
 	 * group with 4,096 address. Note: The mask will be the suffix for the color
 	 * group CIDR.
 	 */
-	public static final int VPC_COLOR_GROUP_NETWORK_MASK = 20;
+	public static final int VPC_COLOR_GROUP_NETWORK_MASK = 21;
 
 	public static final String VPC_CIDR_SUFFIX = ".0.0/16";
 
@@ -179,6 +179,7 @@ public class Constants {
 		joiner.add("us-east-1-synapse");
 		joiner.add(stack);
 		joiner.add("vpc");
+		joiner.add("2");
 		return joiner.toString();
 	}
 }

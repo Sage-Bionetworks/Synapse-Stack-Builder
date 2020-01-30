@@ -20,7 +20,7 @@ public class ConstantsTest {
 		String stack = "dev";
 		// call under test
 		String vpcPrefix = Constants.createVpcExportPrefix(stack);
-		assertEquals("us-east-1-synapse-dev-vpc", vpcPrefix);
+		assertEquals("us-east-1-synapse-dev-vpc-2", vpcPrefix);
 	}
 
 	@Test
