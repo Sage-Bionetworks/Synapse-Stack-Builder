@@ -96,7 +96,6 @@
 						{
 							"Ref": "AWS::StackName"
 						},
-						"2",
 						"Public-Subnets"
 					]
 				]
@@ -131,7 +130,6 @@
 						{
 							"Ref": "AWS::StackName"
 						},
-						"2",
 						"${subnetGroup.color}-Private-Subnets"
 					]
 				]

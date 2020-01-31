@@ -14,11 +14,11 @@
 		"OldVpcId": {
 		    "Description": "VpcId of old Synapse VPC for this stack",
 		    "Type": "String",
-		    "Default": "",
+		    "Default": "vpc-c2d49cb9",
 		"OldVpcCidr": {
 		    "Description": "CIDR of the old Synapse VPC for this stack",
 		    "Type": "String",
-		    "Default": "10.22.0.0/16"
+		    "Default": "10.21.0.0/16"
 		}
 		}
 	},
@@ -255,7 +255,6 @@
 							{
 								"Ref": "AWS::StackName"
 							},
-							"2",
 							"VPCId"
 						]
 					]
@@ -281,7 +280,6 @@
 							{
 								"Ref": "AWS::StackName"
 							},
-							"2",
 							"VpcCidr"
 						]
 					]
@@ -304,7 +302,6 @@
 							{
 								"Ref": "AWS::StackName"
 							},
-							"2",
 							"VpnCidr"
 						]
 					]
@@ -330,7 +327,6 @@
 							{
 								"Ref": "AWS::StackName"
 							},
-							"2",
 							"VpcDefaultSecurityGroup"
 						]
 					]
@@ -353,7 +349,6 @@
 							{
 								"Ref": "AWS::StackName"
 							},
-							"2",
 							"VpnSecurityGroup"
 						]
 					]
@@ -374,7 +369,6 @@
 							{
 								"Ref": "AWS::StackName"
 							},
-							"2",
 							"AvailabilityZones"
 						]
 					]
@@ -395,7 +389,6 @@
 							{
 								"Ref": "AWS::StackName"
 							},
-							"2",
 							"NotificationTopic"
 						]
 					]
@@ -416,7 +409,6 @@
 							{
 								"Ref": "AWS::StackName"
 							},
-							"2",
 							"SesSynapseOrgBounceTopic"
 						]
 					]
@@ -437,7 +429,6 @@
 							{
 								"Ref": "AWS::StackName"
 							},
-							"2",
 							"SesSynapseOrgComplaintTopic"
 						]
 					]

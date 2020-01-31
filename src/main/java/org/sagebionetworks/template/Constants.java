@@ -24,7 +24,7 @@ public class Constants {
 	/**
 	 * The unique name assigned to the Synapse VPC stack.
 	 */
-	public static final String VPC_STACK_NAME_FORMAT = "synapse-%1$s-vpc";
+	public static final String VPC_STACK_NAME_FORMAT = "synapse-%1$s-vpc-2020";
 
 	// CloudFormation Parameter names.
 	// VPC
@@ -183,7 +183,7 @@ public class Constants {
 		joiner.add("us-east-1-synapse");
 		joiner.add(stack);
 		joiner.add("vpc");
-		joiner.add("2");
+		joiner.add("2020");
 		return joiner.toString();
 	}
 }

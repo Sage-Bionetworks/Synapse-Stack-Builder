@@ -108,7 +108,7 @@ public class VpcTemplateBuilderImplTest {
 	public void testStackName() {
 		// Call under test
 		String name = builder.createStackName();
-		assertEquals("synapse-dev-vpc", name);
+		assertEquals("synapse-dev-vpc-2020", name);
 	}
 
 	@Test
@@ -117,7 +117,7 @@ public class VpcTemplateBuilderImplTest {
 		builder.buildAndDeploy();
 		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
 		CreateOrUpdateStackRequest request = requestCaptor.getValue();
-		assertEquals("synapse-dev-vpc", request.getStackName());
+		assertEquals("synapse-dev-vpc-2020", request.getStackName());
 		assertNotNull(request.getParameters());
 		assertEquals(expectedTags, request.getTags());
 		JSONObject templateJson = new JSONObject(request.getTemplateBody());
