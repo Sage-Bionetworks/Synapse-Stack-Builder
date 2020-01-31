@@ -67,6 +67,8 @@ public class VpcTemplateBuilderImplTest {
 	String vpnCider;
 	String stack;
 	String peeringRoleARN;
+	String oldVpcId;
+	String oldVpcCidr;
 
 	List<Tag> expectedTags;
 
@@ -88,6 +90,8 @@ public class VpcTemplateBuilderImplTest {
 		vpnCider = "10.1.0.0/16";
 		stack = "dev";
 		peeringRoleARN = PEERING_ROLE_ARN_PREFIX+"/someKey";
+		oldVpcCidr = "10.2.0.0/16";
+		oldVpcId = "vpc-123def";
 		
 		when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_COLORS)).thenReturn(colors);
 		when(mockConfig.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX)).thenReturn(subnetPrefix);
@@ -96,6 +100,8 @@ public class VpcTemplateBuilderImplTest {
 		when(mockConfig.getProperty(PROPERTY_KEY_VPC_VPN_CIDR)).thenReturn(vpnCider);
 		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(mockConfig.getProperty(PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN)).thenReturn(peeringRoleARN);
+		when(mockConfig.getProperty(PROPERTY_KEY_OLD_VPC_ID)).thenReturn(oldVpcId);
+		when(mockConfig.getProperty(PROPERTY_KEY_OLD_VPC_CIDR)).thenReturn(oldVpcCidr);
 	}
 	
 	@Test
@@ -144,13 +150,17 @@ public class VpcTemplateBuilderImplTest {
 		// call under test
 		Parameter[] parameters = builder.createParameters(stackName);
 		assertNotNull(parameters);
-		assertEquals(2, parameters.length);
+		assertEquals(4, parameters.length);
 		// keys
 		assertEquals(PARAMETER_VPC_SUBNET_PREFIX,parameters[0].getParameterKey());
 		assertEquals(PARAMETER_VPN_CIDR,parameters[1].getParameterKey());
+		assertEquals(PARAMETER_OLD_VPC_ID, parameters[2].getParameterKey());
+		assertEquals(PARAMETER_OLD_VPC_CIDR, parameters[3].getParameterKey());
 		// values
 		assertEquals(subnetPrefix, parameters[0].getParameterValue());
 		assertEquals(vpnCider, parameters[1].getParameterValue());
+		assertEquals(oldVpcId, parameters[2].getParameterValue());
+		assertEquals(oldVpcCidr, parameters[3].getParameterValue());
 	}
 	
 	@Test

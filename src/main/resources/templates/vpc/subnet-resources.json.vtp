@@ -61,7 +61,9 @@
 			"RouteTableId": {
 				"Ref": "${publicSubnet.name}RouteTable"
 			},
-			"DestinationCidrBlock": "10.22.0.0/16",
+			"DestinationCidrBlock": {
+			    "Ref": "OldVpcCidr"
+			},
 			"VpcPeeringConnectionId": {
 				"Ref": "VpcPeeringConnectionOldVpc"
 			}
@@ -195,7 +197,9 @@
             "RouteTableId": {
                 "Ref": "${privateSubnet.name}RouteTable"
             },
-            "DestinationCidrBlock": "10.22.0.0/16",
+            "DestinationCidrBlock": {
+                "Ref": "OldVpcCidr"
+            },
             "VpcPeeringConnectionId": {
                 "Ref": "VpcPeeringConnectionOldVpc"
             }

@@ -14,7 +14,12 @@
 		"OldVpcId": {
 		    "Description": "VpcId of old Synapse VPC for this stack",
 		    "Type": "String",
-		    "Default": ""
+		    "Default": "",
+		"OldVpcCidr": {
+		    "Description": "CIDR of the old Synapse VPC for this stack",
+		    "Type": "String",
+		    "Default": "10.22.0.0/16"
+		}
 		}
 	},
 	"Resources": {

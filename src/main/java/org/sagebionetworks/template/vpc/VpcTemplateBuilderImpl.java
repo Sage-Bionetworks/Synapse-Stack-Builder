@@ -2,11 +2,15 @@ package org.sagebionetworks.template.vpc;
 
 import static org.sagebionetworks.template.Constants.AVAILABILITY_ZONES;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
+import static org.sagebionetworks.template.Constants.PARAMETER_OLD_VPC_CIDR;
+import static org.sagebionetworks.template.Constants.PARAMETER_OLD_VPC_ID;
 import static org.sagebionetworks.template.Constants.PARAMETER_VPC_SUBNET_PREFIX;
 import static org.sagebionetworks.template.Constants.PARAMETER_VPN_CIDR;
 import static org.sagebionetworks.template.Constants.PEERING_ROLE_ARN_PREFIX;
 import static org.sagebionetworks.template.Constants.PEER_ROLE_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_COLORS;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OLD_VPC_CIDR;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OLD_VPC_ID;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_AVAILABILITY_ZONES;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN;
@@ -168,6 +172,10 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 				.withParameterValue(config.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX));
 		Parameter VpnCidr = new Parameter().withParameterKey(PARAMETER_VPN_CIDR)
 				.withParameterValue(config.getProperty(PROPERTY_KEY_VPC_VPN_CIDR));
-		return new Parameter[] { VpcSubnetPrefix, VpnCidr };
+		Parameter oldVpcId = new Parameter().withParameterKey(PARAMETER_OLD_VPC_ID)
+				.withParameterValue(config.getProperty(PROPERTY_KEY_OLD_VPC_ID));
+		Parameter oldVpcCidr = new Parameter().withParameterKey(PARAMETER_OLD_VPC_CIDR)
+				.withParameterValue(config.getProperty(PROPERTY_KEY_OLD_VPC_CIDR));
+		return new Parameter[] { VpcSubnetPrefix, VpnCidr, oldVpcId, oldVpcCidr };
 	}
 }
