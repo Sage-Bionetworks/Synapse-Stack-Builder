@@ -14,7 +14,6 @@
 						{
 							"Ref": "AWS::StackName"
 						},
-						"2",
 						"${subnetGroup.color}-CIDR"
 					]
 				]
@@ -39,7 +38,6 @@
 							{
 								"Ref": "AWS::StackName"
 							},
-    						"2",
 							"${subnet.name}-ID"
 						]
 					]
@@ -60,7 +58,6 @@
 							{
 								"Ref": "AWS::StackName"
 							},
-						"2",
 						"${subnet.name}-CIDR"
 						]
 					]
