@@ -13,13 +13,13 @@
 		<repository>
 			<id>sagebionetworks-releases-local</id>
 			<name>sagebionetworks-releases-local</name>
-			<url>http://sagebionetworks.jfrog.io/sagebionetworks/libs-releases-local
+			<url>https://sagebionetworks.jfrog.io/sagebionetworks/libs-releases-local
 			</url>
 		</repository>
 		<repository>
 			<id>sagebionetworks-ext</id>
 			<name>sagebionetworks-releases-ext</name>
-			<url>http://sagebionetworks.jfrog.io/sagebionetworks/ext-releases-local
+			<url>https://sagebionetworks.jfrog.io/sagebionetworks/ext-releases-local
 			</url>
 		</repository>
 	</repositories>

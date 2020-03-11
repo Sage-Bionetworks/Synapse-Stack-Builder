@@ -419,7 +419,14 @@
 										"athena:*"
 									],
 									"Resource": "*"
-								}
+								},
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "sts:*"
+                                    ],
+                                    "Resource": "*"
+                                }
 							]
 						}
 					}
