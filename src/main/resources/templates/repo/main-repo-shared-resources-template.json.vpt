@@ -494,6 +494,51 @@
 				]
 			}
 		},
+		"${stack}${instance}SynapseTempCredentialsServiceRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Principal": {
+								"Service": [
+									"ec2.amazonaws.com"
+								]
+							},
+							"Action": [
+								"sts:AssumeRole"
+							]
+						}
+					]
+				},
+				"Path": "/",
+				"Policies": [
+					{
+						"PolicyName" : "${stack}${instance}SynapseTempCredentialsService",
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [
+								{
+									"Action": [
+										"s3:AbortMultipartUpload",
+										"s3:DeleteObject",
+										"s3:GetObject",
+										"s3:ListBucket",
+										"s3:ListMultipartUploadParts",
+										"s3:PutObject",
+										"s3:ListBucketMultipartUploads"
+									],
+									"Effect": "Allow",
+									"Resource": "*"
+								}
+							]
+						}
+					}
+				]
+			}
+		},
 		"${stack}${instance}CMK": {
 			"Type": "AWS::KMS::Key",
 			"DependsOn":["${stack}${instance}SynapesRepoWorkersServiceRole"],
