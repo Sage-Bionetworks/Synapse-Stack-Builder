@@ -511,6 +511,7 @@
 						}
 					]
 				},
+				"MaxSessionDuration":43200,
 				"Path": "/",
 				"Policies": [
 					{
