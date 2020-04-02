@@ -480,6 +480,11 @@
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.oauth.authorization.endpoint",
 						"Value": "${oauthEndpoint}"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.sts.iam.arn",
+						"Value": {"Fn::ImportValue": "${sharedExportPrefix}-Temp-Credentials-Service-Role-Arn"}
 					}
 
 					#end

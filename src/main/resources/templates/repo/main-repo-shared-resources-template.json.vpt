@@ -423,7 +423,7 @@
                                 {
                                     "Effect": "Allow",
                                     "Action": [
-                                        "sts:*"
+                                        "sts:AssumeRole"
                                     ],
                                     "Resource": "*"
                                 }
@@ -503,7 +503,13 @@
 						{
 							"Effect": "Allow",
 							"Principal": {
-								"AWS": {"Ref": "AWS::AccountId"}
+								"AWS": {
+									#if(${stack} == 'dev')
+										"Ref": "AWS::AccountId"
+									#else
+										"Fn::GetAtt" : ["${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"]
+									#end
+								}
 							},
 							"Action": [
 								"sts:AssumeRole"
@@ -671,6 +677,28 @@
 								"Ref": "AWS::StackName"
 							},
 							"Load-Balancer-Security-Group-ID"
+						]
+					]
+				}
+			}
+		},
+		"TempCredentialsServiceRoleArn":{
+			"Description": "The ARN for the IAM Role that the StsManager uses. We call AssumeRole on this ARN to generate the temporary S3 credentials that we pass to the caller.",
+			"Value": {
+				"Fn::GetAtt" : ["${stack}${instance}SynapseTempCredentialsServiceRole", "Arn"]
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"Temp-Credentials-Service-Role-Arn"
 						]
 					]
 				}
