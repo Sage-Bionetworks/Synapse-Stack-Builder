@@ -362,7 +362,17 @@
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.stack.repo.beanstalk.number",
 						"Value": "${repoBeanstalkNumber}"
-					}
+					},
+                    {
+                        "Namespace": "aws:elasticbeanstalk:cloudwatch:logs",
+                        "OptionName": "StreamLogs",
+                        "Value": "true"
+                    },
+                    {
+                        "Namespace": "aws:elasticbeanstalk:cloudwatch:logs",
+                        "OptionName": "DeleteOnTerminate",
+                        "Value": "true"
+                    }
 					#if ($environment.isTypeRepositoryOrWorkers())
 					,
 					{
