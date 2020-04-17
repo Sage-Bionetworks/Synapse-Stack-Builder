@@ -430,14 +430,7 @@
                                 {
                                     "Effect": "Allow",
                                     "Action": [
-                                        "logs:CreateLogGroup",
-                                        "logs:DeleteLogGroup",
-                                        "logs:CreateLogStream",
-                                        "logs:GetLogEvents",
-                                        "logs:PutLogEvents",
-                                        "logs:DescribeLogGroups",
-                                        "logs:DescribeLogStreams",
-                                        "logs:PutRetentionPolicy"
+                                        "logs:*"
                                     ],
                                     "Resource": "*"
                                 }
