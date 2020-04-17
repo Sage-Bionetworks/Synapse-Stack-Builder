@@ -203,6 +203,11 @@
 				"SES_SYNAPSE_ORG_COMPLAINT"
 			],
 			"messageVisibilityTimeoutSec":120
+		},
+		{
+			"queueName":"JSON_SCHEMA_CREATE",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":300
 		}
 	]
 }
