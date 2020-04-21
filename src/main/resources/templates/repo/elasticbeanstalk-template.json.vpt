@@ -376,7 +376,7 @@
                     {
                         "Namespace": "aws:elasticbeanstalk:cloudwatch:logs",
                         "OptionName": "RetentionInDays",
-                        "Value": "21"
+                        "Value": "30"
                     }
 					#if ($environment.isTypeRepositoryOrWorkers())
 					,
