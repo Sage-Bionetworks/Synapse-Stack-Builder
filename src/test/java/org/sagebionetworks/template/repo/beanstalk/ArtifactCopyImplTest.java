@@ -57,7 +57,7 @@ public class ArtifactCopyImplTest {
 		
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 		when(mockDownloader.downloadFile(any(String.class))).thenReturn(mockFile);
-		when(mockEbBuilder.copyWarWithExtensions(mockFile)).thenReturn(mockCopy);
+		when(mockEbBuilder.copyWarWithExtensions(eq(mockFile), anyString())).thenReturn(mockCopy);
 		
 		environment = EnvironmentType.REPOSITORY_WORKERS;
 		version = "212.4";
@@ -83,7 +83,7 @@ public class ArtifactCopyImplTest {
 		
 		verify(mockS3Client).doesObjectExist(bucket, s3Key);
 		verify(mockDownloader).downloadFile(artifactoryUrl);
-		verify(mockEbBuilder).copyWarWithExtensions(mockFile);
+		verify(mockEbBuilder).copyWarWithExtensions(eq(mockFile), anyString());
 		verify(mockS3Client).putObject(bucket, s3Key, mockCopy);
 		verify(mockLogger, times(3)).info(any(String.class));
 		// the temp file should get deleted.
@@ -123,7 +123,7 @@ public class ArtifactCopyImplTest {
 		
 		verify(mockS3Client).doesObjectExist(bucket, s3Key);
 		verify(mockDownloader, never()).downloadFile(artifactoryUrl);
-		verify(mockEbBuilder, never()).copyWarWithExtensions(mockFile);
+		verify(mockEbBuilder, never()).copyWarWithExtensions(eq(mockFile), anyString());
 		verify(mockS3Client, never()).putObject(bucket, s3Key, mockFile);
 		verify(mockFile, never()).delete();
 		verify(mockLogger, never()).info(any(String.class));

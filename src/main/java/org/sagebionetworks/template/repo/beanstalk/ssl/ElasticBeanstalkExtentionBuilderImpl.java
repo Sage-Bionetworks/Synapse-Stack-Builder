@@ -11,6 +11,7 @@ import org.apache.velocity.app.VelocityEngine;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.FileProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
+import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import org.sagebionetworks.war.WarAppender;
 
 import com.google.inject.Guice;
@@ -58,12 +59,13 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 	}
 
 	@Override
-	public File copyWarWithExtensions(File warFile) {
+	public File copyWarWithExtensions(File warFile, String envType) {
 		VelocityContext context = new VelocityContext();
 		context.put("s3bucket", configuration.getConfigurationBucket());
 		// Get the certificate information
 		context.put("certificates", certificateBuilder.buildNewX509CertificatePair());
-
+		// EnvironmentType in context
+		context.put("envType", envType);
 
 
 		// add the files to the copy of the war
@@ -122,7 +124,7 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 	public static void main(String[] args) {
 		Injector injector = Guice.createInjector(new TemplateGuiceModule());
 		ElasticBeanstalkExtentionBuilder builder = injector.getInstance(ElasticBeanstalkExtentionBuilder.class);
-		File resultWar = builder.copyWarWithExtensions(new File(args[0]));
+		File resultWar = builder.copyWarWithExtensions(new File(args[0]), "repo");
 		System.out.println(resultWar.getAbsolutePath());
 	}
 

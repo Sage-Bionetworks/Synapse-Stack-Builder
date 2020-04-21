@@ -14,6 +14,6 @@ public interface ElasticBeanstalkExtentionBuilder {
 	 * 
 	 * @param warFile
 	 */
-	public File copyWarWithExtensions(File warFile);
+	public File copyWarWithExtensions(File warFile, String envType);
 
 }

@@ -371,7 +371,12 @@
                     {
                         "Namespace": "aws:elasticbeanstalk:cloudwatch:logs",
                         "OptionName": "DeleteOnTerminate",
-                        "Value": "true"
+                        "Value": "false"
+                    },
+                    {
+                        "Namespace": "aws:elasticbeanstalk:cloudwatch:logs",
+                        "OptionName": "RetentionInDays",
+                        "Value": "21"
                     }
 					#if ($environment.isTypeRepositoryOrWorkers())
 					,
