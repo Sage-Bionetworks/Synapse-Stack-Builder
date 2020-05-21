@@ -1,5 +1,5 @@
     ,${environment.refName}CWLogGroup: {
-        "Type": "AWS::Logs::Logroup",
+        "Type": "AWS::Logs::LogGroup",
         "Properties": {
             #if (${environment.type} == 'services-repository')
             "LogGroupName": "/aws/elasticbeanstak/${environment.name}/var/cache/tomcat8/temp/synapse/logs/repo-services.log",
