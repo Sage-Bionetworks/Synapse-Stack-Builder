@@ -15,6 +15,7 @@ public class Constants {
 	public static final String DEFAULT_REPO_PROPERTIES = "templates/repo/repo-defaults.properties";
 	public static final String SNS_AND_SQS_CONFIG_FILE = "templates/repo/sns-and-sqs-config.json";
 	public static final String KINESIS_CONFIG_FILE = "templates/repo/kinesis-log-streams.json";
+	public static final String CLOUDWATCH_LOGS_CONFIG_FILE = "templates/repo/cloudwatch-logs-config.json";
 
 	/**
 	 * A VPC peering role ARN must start with this prefix.

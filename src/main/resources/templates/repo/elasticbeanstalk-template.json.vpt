@@ -535,6 +535,9 @@
 				"Type": "CNAME"
 			}
 		}
+		#if ($environment.isTypeRepositoryOrWorkers())
+		#parse("templates/repo/cloudwatch-logs-template.json.vpt")
+		#end
 	},
 	"Outputs": {
 		"URL": {

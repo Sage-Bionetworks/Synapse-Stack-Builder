@@ -1,0 +1,11 @@
+    ,${environment.refName}CWLogGroup: {
+        "Type": "AWS::Logs::Logroup",
+        "Properties": {
+            #if (${environment.type} == 'services-repository')
+            "LogGroupName": "/aws/elasticbeanstak/${environment.name}/var/cache/tomcat8/temp/synapse/logs/repo-services.log",
+            #else
+            "LogGroupName": "/aws/elasticbeanstak/${environment.name}/var/cache/tomcat8/temp/synapse/logs/repo-trace-profile.log",
+            #end
+            "RetentionInDays": 30
+        }
+    }
