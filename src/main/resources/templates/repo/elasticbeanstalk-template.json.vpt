@@ -376,7 +376,7 @@
                     {
                         "Namespace": "aws:elasticbeanstalk:cloudwatch:logs",
                         "OptionName": "RetentionInDays",
-                        "Value": "30"
+                        "Value": "14"
                     }
 					#if ($environment.isTypeRepositoryOrWorkers())
 					,
@@ -535,9 +535,7 @@
 				"Type": "CNAME"
 			}
 		}
-		#if ($environment.isTypeRepositoryOrWorkers())
 		#parse("templates/repo/cloudwatch-logs-template.json.vpt")
-		#end
 	},
 	"Outputs": {
 		"URL": {

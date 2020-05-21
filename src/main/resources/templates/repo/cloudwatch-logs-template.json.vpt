@@ -3,8 +3,12 @@
         "Properties": {
             #if (${environment.type} == 'repo')
             "LogGroupName": "/aws/elasticbeanstalk/${environment.name}/var/cache/tomcat8/temp/synapse/logs/repo-services.log",
-            #else
+            #end
+            #if (${environment.type} == 'worker')
             "LogGroupName": "/aws/elasticbeanstalk/${environment.name}/var/cache/tomcat8/temp/repo-workers/logs/repo-workers.log",
+            #end
+            #if (${environment.type} == 'portal')
+            "LogGroupName": "/aws/elasticbeanstalk/${environment.name}/var/cache/tomcat8/temp/portal/logs/portal.log",
             #end
             "RetentionInDays": 30
         }
@@ -14,9 +18,21 @@
         "Properties": {
             #if (${environment.type} == 'repo')
             "LogGroupName": "/aws/elasticbeanstalk/${environment.name}/var/cache/tomcat8/temp/synapse/logs/repo-trace-profile.log",
-            #else
+            #end
+            #if (${environment.type} == 'worker')
             "LogGroupName": "/aws/elasticbeanstalk/${environment.name}/var/cache/tomcat8/temp/repo-workers/logs/worker-trace-profile.log",
+            #end
+            #if (${environment.type} == 'portal')
+            "LogGroupName": "/aws/elasticbeanstalk/${environment.name}/var/cache/tomcat8/temp/portal/logs/portal-profile.log",
             #end
             "RetentionInDays": 30
         }
+    }
+    ,
+    ${environment.refName}CWLogGroupCatalina: {
+         "Type": "AWS::Logs::LogGroup",
+         "Properties": {
+             "LogGroupName": "/aws/elasticbeanstalk/${environment.name}/var/log/tomcat8/catalina.out",
+             "RetentionInDays": 30
+         }
     }
