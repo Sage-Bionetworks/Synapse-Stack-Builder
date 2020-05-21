@@ -2,9 +2,9 @@
         "Type": "AWS::Logs::LogGroup",
         "Properties": {
             #if (${environment.type} == 'repo')
-            "LogGroupName": "/aws/elasticbeanstak/${environment.name}/var/cache/tomcat8/temp/synapse/logs/repo-services.log",
+            "LogGroupName": "/aws/elasticbeanstalk/${environment.name}/var/cache/tomcat8/temp/synapse/logs/repo-services.log",
             #else
-            "LogGroupName": "/aws/elasticbeanstak/${environment.name}/var/cache/tomcat8/temp/repo-workers/logs/repo-workers.log",
+            "LogGroupName": "/aws/elasticbeanstalk/${environment.name}/var/cache/tomcat8/temp/repo-workers/logs/repo-workers.log",
             #end
             "RetentionInDays": 30
         }
@@ -13,9 +13,9 @@
         "Type": "AWS::Logs::LogGroup",
         "Properties": {
             #if (${environment.type} == 'repo')
-            "LogGroupName": "/aws/elasticbeanstak/${environment.name}/var/cache/tomcat8/temp/synapse/logs/repo-trace-profile.log",
+            "LogGroupName": "/aws/elasticbeanstalk/${environment.name}/var/cache/tomcat8/temp/synapse/logs/repo-trace-profile.log",
             #else
-            "LogGroupName": "/aws/elasticbeanstak/${environment.name}/var/cache/tomcat8/temp/repo-workers/logs/worker-trace-profile.log",
+            "LogGroupName": "/aws/elasticbeanstalk/${environment.name}/var/cache/tomcat8/temp/repo-workers/logs/worker-trace-profile.log",
             #end
             "RetentionInDays": 30
         }
