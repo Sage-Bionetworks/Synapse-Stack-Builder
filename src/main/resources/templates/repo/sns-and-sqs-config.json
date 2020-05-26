@@ -16,7 +16,8 @@
 		"CERTIFIED_USER_PASSING_RECORD",
 		"WIKI",
 		"TABLE",
-		"ENTITY_VIEW"
+		"ENTITY_VIEW",
+		"SUBMISSION"
 	],
 	"snsGlobalTopicNames": [
 		"SES_SYNAPSE_ORG_BOUNCE",
