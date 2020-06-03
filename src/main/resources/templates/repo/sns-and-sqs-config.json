@@ -210,6 +210,11 @@
 			"queueName":"JSON_SCHEMA_CREATE",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":300
+		},
+		{
+			"queueName":"VIEW_COLUMN_MODEL_REQUEST",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":300
 		}
 	]
 }
