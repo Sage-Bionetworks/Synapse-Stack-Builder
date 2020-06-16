@@ -3,18 +3,10 @@ package org.sagebionetworks.template.repo.cloudwatchlogs;
 import com.google.inject.Inject;
 import org.apache.velocity.VelocityContext;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
+import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 
-public class CloudwatchLogsVelocityContextProvider  implements VelocityContextProvider {
+import java.util.List;
 
-    private CloudwatchLogsConfig config;
-
-    @Inject
-    public CloudwatchLogsVelocityContextProvider(CloudwatchLogsConfig config) {
-        this.config = config;
-    }
-
-    @Override
-    public void addToContext(VelocityContext context) {
-
-    }
+public interface CloudwatchLogsVelocityContextProvider<T> {
+    List<T> getLogDescriptors(EnvironmentType envType);
 }
