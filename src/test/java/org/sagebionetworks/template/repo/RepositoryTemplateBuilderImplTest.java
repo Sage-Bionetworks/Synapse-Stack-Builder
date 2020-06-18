@@ -204,7 +204,7 @@ public class RepositoryTemplateBuilderImplTest {
 		tableDBOutput1.withOutputKey(stack+instance+"Table0"+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
 		tableDBOutput1.withOutputValue(stack+"-"+instance+"-table-0."+databaseEndpointSuffix);
 		Output tableDBOutput2 = new Output();
-		tableDBOutput2.withOutputKey(stack+instance+"Table0"+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
+		tableDBOutput2.withOutputKey(stack+instance+"Table1"+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
 		tableDBOutput2.withOutputValue(stack+"-"+instance+"-table-1."+databaseEndpointSuffix);
 
 		sharedResouces.withOutputs(dbOut, tableDBOutput1, tableDBOutput2);
@@ -261,6 +261,9 @@ public class RepositoryTemplateBuilderImplTest {
 		validateResouceDatabaseInstance(resources, stack);
 		// tables database
 		validateResouceTablesDatabase(resources, stack);
+		// readonly users: this test stack only has one repodb
+		verify(mockJdbcTemplate, times(2)).update(anyString());
+
 		List<String> evironmentNames = Lists.newArrayList("repo-prod-101-0", "workers-prod-101-0", "portal-prod-101-0");
 		verify(mockACLBuilder).buildWebACL(evironmentNames);
 		// prod should have alarms.
@@ -290,6 +293,9 @@ public class RepositoryTemplateBuilderImplTest {
 		JSONObject templateJson = new JSONObject(bodyJSONString);
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		assertNotNull(resources);
+
+		verify(mockJdbcTemplate, times(2)).update(anyString());
+
 		// dev should not have alarms
 		assertFalse(resources.has("dev101Table1RepositoryDBAlarmSwapUsage"));
 		assertFalse(resources.has("dev101Table1RepositoryDBAlarmSwapUsage"));
