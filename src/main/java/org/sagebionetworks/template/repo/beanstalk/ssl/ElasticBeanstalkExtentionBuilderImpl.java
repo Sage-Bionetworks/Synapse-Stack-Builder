@@ -8,10 +8,12 @@ import java.util.function.Consumer;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.FileProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
+import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
 import org.sagebionetworks.war.WarAppender;
 
 import com.google.inject.Guice;
@@ -46,16 +48,18 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 	Configuration configuration;
 	WarAppender warAppender;
 	FileProvider fileProvider;
+	CloudwatchLogsVelocityContextProvider cwlContextprovider;
 
 	@Inject
 	public ElasticBeanstalkExtentionBuilderImpl(CertificateBuilder certificateBuilder, VelocityEngine velocityEngine,
-			Configuration configuration, WarAppender warAppender, FileProvider fileProvider) {
+			Configuration configuration, WarAppender warAppender, FileProvider fileProvider, CloudwatchLogsVelocityContextProvider cwlCtxtProvider) {
 		super();
 		this.certificateBuilder = certificateBuilder;
 		this.velocityEngine = velocityEngine;
 		this.configuration = configuration;
 		this.warAppender = warAppender;
 		this.fileProvider = fileProvider;
+		this.cwlContextprovider = cwlCtxtProvider;
 	}
 
 	@Override
@@ -66,6 +70,8 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 		context.put("certificates", certificateBuilder.buildNewX509CertificatePair());
 		// EnvironmentType in context
 		context.put("envType", envType);
+		// CloudwatchLog descriptors
+		context.put(Constants.CLOUDWATCH_LOGS_DESCRIPTORS, cwlContextprovider.getLogDescriptors(EnvironmentType.valueOfPrefix(envType)));
 
 
 		// add the files to the copy of the war

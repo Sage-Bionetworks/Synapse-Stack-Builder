@@ -31,6 +31,8 @@ import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.google.inject.Inject;
+import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
+import org.sagebionetworks.template.repo.cloudwatchlogs.LogDescriptor;
 
 import static org.sagebionetworks.template.Constants.*;
 
@@ -47,13 +49,15 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	ElasticBeanstalkDefaultAMIEncrypter elasticBeanstalkDefaultAMIEncrypter;
 	StackTagsProvider stackTagsProvider;
 	S3BucketBuilder bucketBuilder;
+	CloudwatchLogsVelocityContextProvider cwlContextProvider;
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
 										 RepoConfiguration configuration, LoggerFactory loggerFactory, ArtifactCopy artifactCopy,
 										 SecretBuilder secretBuilder, WebACLBuilder aclBuilder, Set<VelocityContextProvider> contextProviders,
 										 ElasticBeanstalkDefaultAMIEncrypter elasticBeanstalkDefaultAMIEncrypter,
-										 StackTagsProvider stackTagsProvider, S3BucketBuilder bucketBuilder) {
+										 StackTagsProvider stackTagsProvider, S3BucketBuilder bucketBuilder,
+										 CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.velocityEngine = velocityEngine;
@@ -66,6 +70,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.elasticBeanstalkDefaultAMIEncrypter = elasticBeanstalkDefaultAMIEncrypter;
 		this.stackTagsProvider = stackTagsProvider;
 		this.bucketBuilder = bucketBuilder;
+		this.cwlContextProvider = cloudwatchLogsVelocityContextProvider;
+
 	}
 
 	@Override
@@ -138,6 +144,9 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 
 		// oauth
 		context.put(OAUTH_ENDPOINT, config.getProperty(PROPERTY_KEY_OAUTH_ENDPOINT));
+
+		// CloudwatchLogs
+		context.put(CLOUDWATCH_LOGS_DESCRIPTORS, cwlContextProvider.getLogDescriptors(EnvironmentType.valueOfPrefix(environment.getType())));
 
 		return context;
 	}

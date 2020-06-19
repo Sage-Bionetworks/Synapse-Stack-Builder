@@ -33,11 +33,7 @@ public class CloudwatchLogsConfigValidator {
     private void validateLogDescriptor(LogDescriptor logDescriptor) {
         if (!(logDescriptor.getLogType() != null &&
                 logDescriptor.getLogPath() != null &&
-                logDescriptor.getDateFormat() != null &&
-                logDescriptor.getMultilineStartPattern() != null &&
-                (logDescriptor.getRetentionInDays() == 7 ||
-                        logDescriptor.getRetentionInDays() == 14 ||
-                        logDescriptor.getRetentionInDays() == 30))) {
+                logDescriptor.getDateFormat() != null)) {
             throw new IllegalStateException("Invalid logGroupDescriptor!");
         }
     }

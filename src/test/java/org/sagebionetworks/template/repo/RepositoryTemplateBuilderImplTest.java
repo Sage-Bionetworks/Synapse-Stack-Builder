@@ -76,6 +76,9 @@ import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 import org.sagebionetworks.template.repo.beanstalk.image.encrypt.ElasticBeanstalkDefaultAMIEncrypter;
 import org.sagebionetworks.template.repo.beanstalk.image.encrypt.ElasticBeanstalkEncryptedPlatformInfo;
+import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
+import org.sagebionetworks.template.repo.cloudwatchlogs.LogDescriptor;
+import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
 import org.sagebionetworks.template.vpc.Color;
 
 import com.amazonaws.services.cloudformation.model.Output;
@@ -84,6 +87,7 @@ import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.Tag;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import sun.rmi.runtime.Log;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RepositoryTemplateBuilderImplTest {
@@ -112,6 +116,8 @@ public class RepositoryTemplateBuilderImplTest {
 	StackTagsProvider mockStackTagsProvider;
 	@Mock
 	S3BucketBuilder mockBucketBuilder;
+	@Mock
+	CloudwatchLogsVelocityContextProvider mockCwlContextProvider;
 
 	@Captor
 	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
@@ -148,7 +154,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder, mockACLBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
-				mockElasticBeanstalkDefaultAMIEncrypter, mockStackTagsProvider, mockBucketBuilder);
+				mockElasticBeanstalkDefaultAMIEncrypter, mockStackTagsProvider, mockBucketBuilder, mockCwlContextProvider);
 
 		stack = "dev";
 		instance = "101";
@@ -209,6 +215,10 @@ public class RepositoryTemplateBuilderImplTest {
 
 		when(mockElasticBeanstalkDefaultAMIEncrypter.getEncryptedElasticBeanstalkAMI())
 				.thenReturn(new ElasticBeanstalkEncryptedPlatformInfo("ami-123", "fake stack"));
+
+		// CloudwatchLogs
+		List<LogDescriptor> logDescriptors = this.generateLogDescriptors();
+		when(mockCwlContextProvider.getLogDescriptors(any(EnvironmentType.class))).thenReturn(logDescriptors);
 	}
 	
 	private void configureStack(String inputStack) throws InterruptedException {
@@ -249,6 +259,9 @@ public class RepositoryTemplateBuilderImplTest {
 		validateResouceDatabaseInstance(resources, stack);
 		// tables database
 		validateResouceTablesDatabase(resources, stack);
+
+		verify(mockCwlContextProvider, times(3)).getLogDescriptors(any(EnvironmentType.class));
+
 		List<String> evironmentNames = Lists.newArrayList("repo-prod-101-0", "workers-prod-101-0", "portal-prod-101-0");
 		verify(mockACLBuilder).buildWebACL(evironmentNames);
 		// prod should have alarms.
@@ -278,6 +291,9 @@ public class RepositoryTemplateBuilderImplTest {
 		JSONObject templateJson = new JSONObject(bodyJSONString);
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		assertNotNull(resources);
+
+		verify(mockCwlContextProvider, times(3)).getLogDescriptors(any(EnvironmentType.class));
+
 		// dev should not have alarms
 		assertFalse(resources.has("dev101Table1RepositoryDBAlarmSwapUsage"));
 		assertFalse(resources.has("dev101Table1RepositoryDBAlarmSwapUsage"));
@@ -474,9 +490,11 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testCreateEnvironmentContext() {
-		EnvironmentDescriptor environment = new EnvironmentDescriptor();
+		EnvironmentDescriptor environment = new EnvironmentDescriptor().withType(EnvironmentType.REPOSITORY_SERVICES);
+
 		// call under test
 		VelocityContext context = builder.createEnvironmentContext(sharedResouces, environment);
+
 		assertNotNull(context);
 		assertEquals("dev", context.get(STACK));
 		assertEquals("101", context.get(INSTANCE));
@@ -494,6 +512,18 @@ public class RepositoryTemplateBuilderImplTest {
 		// call under test
 		String suffix = builder.extractDatabaseSuffix(sharedResouces);
 		assertEquals(databaseEndpointSuffix, suffix);
+	}
+
+	private List<LogDescriptor> generateLogDescriptors() {
+		List<LogDescriptor> descriptors = new LinkedList<>();
+		for (LogType t: LogType.values()) {
+			LogDescriptor d = new LogDescriptor();
+			d.setLogType(t);
+			d.setLogPath("/var/log/mypath.log");
+			d.setDateFormat("YYYY-MM-DD");
+			descriptors.add(d);
+		}
+		return descriptors;
 	}
 
 }

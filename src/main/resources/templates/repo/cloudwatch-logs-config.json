@@ -1,19 +1,19 @@
 {
   "logDescriptors": {
     "REPOSITORY_SERVICES": [
-      {"logType": "CATALINA", "logPath": "var/log/tomcat8/catalina.out", "retentionInDays": 30, "dateFormat":  "YYYY-MM-DD HH:MM:SS", "multilineStartPattern":  "{datetime}"},
-      {"logType": "SERVICE", "logPath": "var/cache/tomcat8/temp/synapse/logs/repo-services.log", "retentionInDays": 30, "dateFormat":  "YYYY-MM-DD HH:MM:SS", "multilineStartPattern":  "{datetime}"},
-      {"logType": "TRACE", "logPath": "var/cache/tomcat8/temp/synapse/logs/repo-trace-profile.log", "retentionInDays": 30, "dateFormat":  "YYYY-MM-DD HH:MM:SS", "multilineStartPattern":  "{datetime}"}
+      {"logType": "CATALINA", "logPath": "var/log/tomcat8/catalina.out", "dateFormat":  "YYYY-MM-DD HH:MM:SS"},
+      {"logType": "SERVICE", "logPath": "var/cache/tomcat8/temp/synapse/logs/repo-services.log", "dateFormat":  "YYYY-MM-DD HH:MM:SS"},
+      {"logType": "TRACE", "logPath": "var/cache/tomcat8/temp/synapse/logs/repo-trace-profile.log", "dateFormat":  "YYYY-MM-DD HH:MM:SS"}
     ],
     "REPOSITORY_WORKERS": [
-      {"logType": "CATALINA", "logPath": "var/log/tomcat8/catalina.out", "retentionInDays": 30, "dateFormat":  "YYYY-MM-DD HH:MM:SS", "multilineStartPattern":  "{datetime}"},
-      {"logType": "SERVICE", "logPath": "var/cache/tomcat8/temp/repo-workers/logs/repo-workers.log", "retentionInDays": 30, "dateFormat":  "YYYY-MM-DD HH:MM:SS", "multilineStartPattern":  "{datetime}"},
-      {"logType": "TRACE", "logPath": "var/cache/tomcat8/temp/repo-workers/logs/worker-trace-profile.log", "retentionInDays": 30, "dateFormat":  "YYYY-MM-DD HH:MM:SS", "multilineStartPattern":  "{datetime}"}
+      {"logType": "CATALINA", "logPath": "var/log/tomcat8/catalina.out", "dateFormat":  "YYYY-MM-DD HH:MM:SS"},
+      {"logType": "SERVICE", "logPath": "var/cache/tomcat8/temp/repo-workers/logs/repo-workers.log", "dateFormat":  "YYYY-MM-DD HH:MM:SS"},
+      {"logType": "TRACE", "logPath": "var/cache/tomcat8/temp/repo-workers/logs/worker-trace-profile.log", "dateFormat":  "YYYY-MM-DD HH:MM:SS"}
     ],
     "PORTAL": [
-      {"logType": "CATALINA", "logPath": "var/log/tomcat8/catalina.out", "retentionInDays": 30, "dateFormat":  "YYYY-MM-DD HH:MM:SS", "multilineStartPattern":  "{datetime}"},
-      {"logType": "SERVICE", "logPath": "var/cache/tomcat8/temp/portal/logs/portal.log", "retentionInDays": 30, "dateFormat":  "YYYY-MM-DD HH:MM:SS", "multilineStartPattern":  "{datetime}"},
-      {"logType": "CATALINA", "logPath": "var/cache/tomcat8/temp/portal/logs/portal-profile.log", "retentionInDays": 30, "dateFormat":  "YYYY-MM-DD HH:MM:SS", "multilineStartPattern":  "{datetime}"}
+      {"logType": "CATALINA", "logPath": "var/log/tomcat8/catalina.out", "dateFormat":  "YYYY-MM-DD HH:MM:SS"},
+      {"logType": "SERVICE", "logPath": "var/cache/tomcat8/temp/portal/logs/portal.log", "dateFormat":  "YYYY-MM-DD HH:MM:SS"},
+      {"logType": "CATALINA", "logPath": "var/cache/tomcat8/temp/portal/logs/portal-profile.log", "dateFormat":  "YYYY-MM-DD HH:MM:SS"}
     ]
   }
 }

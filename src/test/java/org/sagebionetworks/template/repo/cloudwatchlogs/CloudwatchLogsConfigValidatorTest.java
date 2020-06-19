@@ -58,7 +58,6 @@ public class CloudwatchLogsConfigValidatorTest {
         envLogDescriptors.put(EnvironmentType.REPOSITORY_WORKERS, generateEnvironmentLogs(2));
         LogDescriptor LogDescriptor = new LogDescriptor();
         LogDescriptor.setLogPath("someName");
-        LogDescriptor.setRetentionInDays(8);
         envLogDescriptors.get(EnvironmentType.REPOSITORY_WORKERS).add(LogDescriptor);
         when(mockConfig.getLogDescriptors()).thenReturn(envLogDescriptors);
 
@@ -73,7 +72,6 @@ public class CloudwatchLogsConfigValidatorTest {
         envLogDescriptors.put(EnvironmentType.PORTAL, generateEnvironmentLogs(3));
         envLogDescriptors.put(EnvironmentType.REPOSITORY_WORKERS, generateEnvironmentLogs(2));
         LogDescriptor LogDescriptor = new LogDescriptor();
-        LogDescriptor.setRetentionInDays(8);
         envLogDescriptors.get(EnvironmentType.REPOSITORY_WORKERS).add(LogDescriptor);
         when(mockConfig.getLogDescriptors()).thenReturn(envLogDescriptors);
 
@@ -99,9 +97,7 @@ public class CloudwatchLogsConfigValidatorTest {
         LogDescriptor LogDescriptor = new LogDescriptor();
         LogDescriptor.setLogType(LogType.SERVICE);
         LogDescriptor.setLogPath("someName");
-        LogDescriptor.setRetentionInDays(7);
         LogDescriptor.setDateFormat("YYYY-MM-DD");
-        LogDescriptor.setMultilineStartPattern("{datetime}");
         for (int i = 0; i < numDescriptors; i++) {
             LogDescriptors.add(LogDescriptor);
         }
