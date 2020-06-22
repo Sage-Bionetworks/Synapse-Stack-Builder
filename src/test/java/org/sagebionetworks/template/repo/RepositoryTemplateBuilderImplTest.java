@@ -46,6 +46,7 @@ import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
+import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -62,12 +63,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sagebionetworks.template.CloudFormationClient;
-import org.sagebionetworks.template.ConfigurationPropertyNotFound;
-import org.sagebionetworks.template.CreateOrUpdateStackRequest;
-import org.sagebionetworks.template.LoggerFactory;
-import org.sagebionetworks.template.StackTagsProvider;
-import org.sagebionetworks.template.TemplateGuiceModule;
+import org.sagebionetworks.template.*;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
@@ -84,6 +80,7 @@ import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.Tag;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RepositoryTemplateBuilderImplTest {
@@ -112,6 +109,10 @@ public class RepositoryTemplateBuilderImplTest {
 	StackTagsProvider mockStackTagsProvider;
 	@Mock
 	S3BucketBuilder mockBucketBuilder;
+	@Mock
+	JdbcTemplateBuilder mockJdbcTemplateBuilder;
+	@Mock
+	JdbcTemplate mockJdbcTemplate;
 
 	@Captor
 	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
@@ -135,7 +136,7 @@ public class RepositoryTemplateBuilderImplTest {
 	List<Tag> expectedTags;
 
 	@Before
-	public void before() throws InterruptedException {
+	public void before() throws InterruptedException, SQLException {
 		// use a real velocity engine
 		velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
 
@@ -148,7 +149,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder, mockACLBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
-				mockElasticBeanstalkDefaultAMIEncrypter, mockStackTagsProvider, mockBucketBuilder);
+				mockElasticBeanstalkDefaultAMIEncrypter, mockStackTagsProvider, mockBucketBuilder, mockJdbcTemplateBuilder);
 
 		stack = "dev";
 		instance = "101";
@@ -193,11 +194,20 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_BEANSTALK_ENCRYPTION_KEY)).thenReturn("encryption-key");
 
 		sharedResouces = new Stack();
+		// RepoDB output
 		Output dbOut = new Output();
 		dbOut.withOutputKey(stack+instance+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
 		databaseEndpointSuffix = "something.amazon.com";
 		dbOut.withOutputValue(stack+"-"+instance+"-db."+databaseEndpointSuffix);
-		sharedResouces.withOutputs(dbOut);
+		// TableDB output
+		Output tableDBOutput1 = new Output();
+		tableDBOutput1.withOutputKey(stack+instance+"Table0"+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
+		tableDBOutput1.withOutputValue(stack+"-"+instance+"-table-0."+databaseEndpointSuffix);
+		Output tableDBOutput2 = new Output();
+		tableDBOutput2.withOutputKey(stack+instance+"Table1"+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
+		tableDBOutput2.withOutputValue(stack+"-"+instance+"-table-1."+databaseEndpointSuffix);
+
+		sharedResouces.withOutputs(dbOut, tableDBOutput1, tableDBOutput2);
 		
 		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(sharedResouces);
 		
@@ -209,6 +219,8 @@ public class RepositoryTemplateBuilderImplTest {
 
 		when(mockElasticBeanstalkDefaultAMIEncrypter.getEncryptedElasticBeanstalkAMI())
 				.thenReturn(new ElasticBeanstalkEncryptedPlatformInfo("ami-123", "fake stack"));
+
+		when(mockJdbcTemplateBuilder.getJdbcTemplate(anyString(), anyString(), anyString())).thenReturn(mockJdbcTemplate);
 	}
 	
 	private void configureStack(String inputStack) throws InterruptedException {
@@ -249,6 +261,9 @@ public class RepositoryTemplateBuilderImplTest {
 		validateResouceDatabaseInstance(resources, stack);
 		// tables database
 		validateResouceTablesDatabase(resources, stack);
+		// readonly users: this test stack only has one repodb
+		verify(mockJdbcTemplate, times(2)).update(anyString());
+
 		List<String> evironmentNames = Lists.newArrayList("repo-prod-101-0", "workers-prod-101-0", "portal-prod-101-0");
 		verify(mockACLBuilder).buildWebACL(evironmentNames);
 		// prod should have alarms.
@@ -278,6 +293,9 @@ public class RepositoryTemplateBuilderImplTest {
 		JSONObject templateJson = new JSONObject(bodyJSONString);
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		assertNotNull(resources);
+
+		verify(mockJdbcTemplate, times(2)).update(anyString());
+
 		// dev should not have alarms
 		assertFalse(resources.has("dev101Table1RepositoryDBAlarmSwapUsage"));
 		assertFalse(resources.has("dev101Table1RepositoryDBAlarmSwapUsage"));
@@ -494,6 +512,18 @@ public class RepositoryTemplateBuilderImplTest {
 		// call under test
 		String suffix = builder.extractDatabaseSuffix(sharedResouces);
 		assertEquals(databaseEndpointSuffix, suffix);
+	}
+
+	@Test
+	public void testExtractDatabaseEndpoints() {
+		// call under test
+		List<String> endpoints = builder.extractDatabaseEndpoints(sharedResouces);
+
+		assertNotNull(endpoints);
+		assertEquals(3, endpoints.size());
+		assertTrue(endpoints.contains("dev-101-db.something.amazon.com"));
+		assertTrue(endpoints.contains("dev-101-table-0.something.amazon.com"));
+		assertTrue(endpoints.contains("dev-101-table-1.something.amazon.com"));
 	}
 
 }
