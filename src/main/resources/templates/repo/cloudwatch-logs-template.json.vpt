@@ -2,7 +2,7 @@
     ,${environment.refName}CWLLogGroup${logDesc.logType}: {
         "Type": "AWS::Logs::LogGroup",
         "Properties": {
-            "LogGroupName": "/aws/elasticbeanstalk/${environment.name}/${logDesc.logPath}",
+            "LogGroupName": "/aws/elasticbeanstalk/${environment.name}${logDesc.logPath}",
             "RetentionInDays": 30
         }
     }

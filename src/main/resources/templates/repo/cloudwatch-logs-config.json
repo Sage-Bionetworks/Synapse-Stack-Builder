@@ -13,7 +13,7 @@
     "PORTAL": [
       {"logType": "CATALINA", "logPath": "/var/log/tomcat8/catalina.out", "dateFormat":  "%b %d, %Y %I:%M:%S"},
       {"logType": "SERVICE", "logPath": "/var/cache/tomcat8/temp/portal/logs/portal.log", "dateFormat":  "%Y-%m-%dT%H:%M:%S"},
-      {"logType": "CATALINA", "logPath": "/var/cache/tomcat8/temp/portal/logs/portal-profile.log", "dateFormat":  "%Y-%m-%dT%H:%M:%S"}
+      {"logType": "TRACE", "logPath": "/var/cache/tomcat8/temp/portal/logs/portal-profile.log", "dateFormat":  "%Y-%m-%dT%H:%M:%S"}
     ]
   }
 }
