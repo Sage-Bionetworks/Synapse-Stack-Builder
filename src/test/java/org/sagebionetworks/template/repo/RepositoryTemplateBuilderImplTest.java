@@ -272,8 +272,10 @@ public class RepositoryTemplateBuilderImplTest {
 		// tables database
 		validateResouceTablesDatabase(resources, stack);
 
-		verify(mockCwlContextProvider, times(3)).getLogDescriptors(any(EnvironmentType.class));
-		
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_WORKERS);
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.PORTAL);
+
 		// readonly users: this test stack only has one repodb
 		verify(mockJdbcTemplate, times(2)).update(anyString());
 
@@ -307,8 +309,10 @@ public class RepositoryTemplateBuilderImplTest {
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		assertNotNull(resources);
 
-		verify(mockCwlContextProvider, times(3)).getLogDescriptors(any(EnvironmentType.class));
-		
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_WORKERS);
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.PORTAL);
+
 		verify(mockJdbcTemplate, times(2)).update(anyString());
 
 		// dev should not have alarms

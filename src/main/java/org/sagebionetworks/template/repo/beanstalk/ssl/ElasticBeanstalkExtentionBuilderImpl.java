@@ -63,7 +63,7 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 	}
 
 	@Override
-	public File copyWarWithExtensions(File warFile, String envType) {
+	public File copyWarWithExtensions(File warFile, EnvironmentType envType) {
 		VelocityContext context = new VelocityContext();
 		context.put("s3bucket", configuration.getConfigurationBucket());
 		// Get the certificate information
@@ -71,7 +71,7 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 		// EnvironmentType in context
 		context.put("envType", envType);
 		// CloudwatchLog descriptors
-		context.put(Constants.CLOUDWATCH_LOGS_DESCRIPTORS, cwlContextprovider.getLogDescriptors(EnvironmentType.valueOfPrefix(envType)));
+		context.put(Constants.CLOUDWATCH_LOGS_DESCRIPTORS, cwlContextprovider.getLogDescriptors(envType));
 
 
 		// add the files to the copy of the war
@@ -130,7 +130,7 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 	public static void main(String[] args) {
 		Injector injector = Guice.createInjector(new TemplateGuiceModule());
 		ElasticBeanstalkExtentionBuilder builder = injector.getInstance(ElasticBeanstalkExtentionBuilder.class);
-		File resultWar = builder.copyWarWithExtensions(new File(args[0]), "repo");
+		File resultWar = builder.copyWarWithExtensions(new File(args[0]), EnvironmentType.REPOSITORY_SERVICES);
 		System.out.println(resultWar.getAbsolutePath());
 	}
 

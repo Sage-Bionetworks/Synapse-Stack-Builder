@@ -20,12 +20,6 @@ public class ReadOnlyUserProviderImpl implements ReadOnlyUserProvider {
         jdbcTemplate.update(sql);
     }
 
-    @Override
-    public void dropReadOnlyUser(String readOnlyUserName, String schema) {
-        String sql = dropUser(readOnlyUserName);
-        jdbcTemplate.update(sql);
-    }
-
     private static final String CREATE_USER_FMT = "CREATE USER IF NOT EXISTS '%s'@'%%' IDENTIFIED BY '%s'";
     public static String createUserSql(String userName, String password) {
         String sqlCreateUSer = String.format(CREATE_USER_FMT, userName, password);
@@ -37,12 +31,5 @@ public class ReadOnlyUserProviderImpl implements ReadOnlyUserProvider {
         String sqlGrantUser = String.format(GRANT_SELECT_USER_FMT, userName, schema);
         return sqlGrantUser;
     }
-
-    private static final String DROP_USER_FMT = "DROP USER IF EXISTS '%s'@'%%'";
-    public static String dropUser(String userName) {
-        String sqlDropUser = String.format(DROP_USER_FMT, userName);
-        return sqlDropUser;
-    }
-
 
 }

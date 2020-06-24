@@ -58,8 +58,6 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 	File mockSslConf;
 	@Mock
 	CloudwatchLogsVelocityContextProvider mockCwlVelocityContextProvider;
-	@Captor
-	ArgumentCaptor<EnvironmentType> envTypeCaptor;
 
 	ElasticBeanstalkExtentionBuilderImpl builder;
 
@@ -103,7 +101,7 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 	@Test
 	public void testCopyWarWithExtensions() {
 		// Call under test
-		File warCopy = builder.copyWarWithExtensions(mockWar, "repo");
+		File warCopy = builder.copyWarWithExtensions(mockWar, EnvironmentType.REPOSITORY_SERVICES);
 
 		assertNotNull(warCopy);
 		assertEquals(mockWarCopy, warCopy);
@@ -120,8 +118,7 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		String modSecurityConf = modSecurityConfWriter.toString();
 		assertTrue(modSecurityConf.contains("SecServerSignature"));
 
-		verify(mockCwlVelocityContextProvider).getLogDescriptors(envTypeCaptor.capture());
-		assertEquals(EnvironmentType.REPOSITORY_SERVICES, envTypeCaptor.getValue());
+		verify(mockCwlVelocityContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
 	}
 
 	private List<LogDescriptor> generateLogDescriptors() {

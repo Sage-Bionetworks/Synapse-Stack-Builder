@@ -67,8 +67,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 
-import static org.sagebionetworks.template.Constants.*;
-
+import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.KINESIS_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.SNS_AND_SQS_CONFIG_FILE;
 
 public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 

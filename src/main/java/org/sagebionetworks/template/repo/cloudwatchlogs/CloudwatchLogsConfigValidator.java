@@ -1,6 +1,7 @@
 package org.sagebionetworks.template.repo.cloudwatchlogs;
 
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
+import org.sagebionetworks.util.ValidateArgument;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,16 +32,19 @@ public class CloudwatchLogsConfigValidator {
     }
 
     private void validateLogDescriptor(LogDescriptor logDescriptor) {
-        if (!(logDescriptor.getLogType() != null &&
-                logDescriptor.getLogPath() != null &&
-                logDescriptor.getDateFormat() != null)) {
-            throw new IllegalStateException("Invalid logGroupDescriptor!");
+        try {
+            ValidateArgument.required(logDescriptor.getLogType(), "LogType");
+            ValidateArgument.required(logDescriptor.getDateFormat(), "dateFormat");
+            ValidateArgument.required(logDescriptor.getLogPath(), "logPath");
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("Invalid log descriptor", e);
         }
     }
 
     private void validateEnvironments(Map<EnvironmentType, List<LogDescriptor>> logDescriptors) {
         Set<EnvironmentType> environmentTypes = logDescriptors.keySet();
-        if (! (environmentTypes.containsAll(Arrays.asList(EnvironmentType.values())) && environmentTypes.size()==3)) {
+        if ((environmentTypes.size()!=3) ||
+                (!environmentTypes.containsAll(Arrays.asList(EnvironmentType.values())))) {
             throw new IllegalStateException("All environments types should appear once in configuration.");
         }
     }
