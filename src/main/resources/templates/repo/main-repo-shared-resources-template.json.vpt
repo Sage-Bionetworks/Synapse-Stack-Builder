@@ -426,6 +426,13 @@
                                         "sts:AssumeRole"
                                     ],
                                     "Resource": "*"
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "logs:*"
+                                    ],
+                                    "Resource": "*"
                                 }
 							]
 						}
@@ -475,6 +482,11 @@
 									"Action": "s3:*",
 									"Effect": "Allow",
 									"Resource": "arn:aws:s3:::elasticbeanstalk-us-east-1*/*"
+								},
+								{
+									"Action": "logs:*",
+									"Effect": "Allow",
+									"Resource": "*"
 								}
 							]
 						}

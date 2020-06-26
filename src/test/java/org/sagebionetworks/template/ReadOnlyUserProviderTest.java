@@ -44,13 +44,4 @@ public class ReadOnlyUserProviderTest {
         assertEquals("GRANT SELECT ON schema.* TO 'user'@'%'", queries.get(1));
     }
 
-    @Test
-    public void testDropReadOnlyUser() throws Exception {
-        ReadOnlyUserProviderImpl provider = new ReadOnlyUserProviderImpl(mockTemplate);
-        provider.dropReadOnlyUser("user", "schema");
-        verify(mockTemplate).update(sqlCaptor.capture());
-        String query = sqlCaptor.getValue();
-        assertEquals("DROP USER IF EXISTS 'user'@'%'", query);
-    }
-
 }

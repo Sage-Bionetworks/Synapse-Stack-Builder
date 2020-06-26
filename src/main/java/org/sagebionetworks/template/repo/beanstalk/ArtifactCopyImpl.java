@@ -48,7 +48,7 @@ public class ArtifactCopyImpl implements ArtifactCopy {
 			try {
 				logger.info("Adding .ebextentions to war: "+s3Key);
 				// add the .eb extensions to the given war file.
-				warWithExtentions = ebBuilder.copyWarWithExtensions(download);
+				warWithExtentions = ebBuilder.copyWarWithExtensions(download, environment);
 				logger.info("Uploading artifact to S3: "+s3Key);
 				s3Client.putObject(bucket, s3Key, warWithExtentions);
 			} finally {

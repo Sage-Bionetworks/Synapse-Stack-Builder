@@ -72,6 +72,9 @@ import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 import org.sagebionetworks.template.repo.beanstalk.image.encrypt.ElasticBeanstalkDefaultAMIEncrypter;
 import org.sagebionetworks.template.repo.beanstalk.image.encrypt.ElasticBeanstalkEncryptedPlatformInfo;
+import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
+import org.sagebionetworks.template.repo.cloudwatchlogs.LogDescriptor;
+import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
 import org.sagebionetworks.template.vpc.Color;
 
 import com.amazonaws.services.cloudformation.model.Output;
@@ -109,6 +112,9 @@ public class RepositoryTemplateBuilderImplTest {
 	StackTagsProvider mockStackTagsProvider;
 	@Mock
 	S3BucketBuilder mockBucketBuilder;
+	@Mock
+	CloudwatchLogsVelocityContextProvider mockCwlContextProvider;
+
 	@Mock
 	JdbcTemplateBuilder mockJdbcTemplateBuilder;
 	@Mock
@@ -149,7 +155,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder, mockACLBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
-				mockElasticBeanstalkDefaultAMIEncrypter, mockStackTagsProvider, mockBucketBuilder, mockJdbcTemplateBuilder);
+				mockElasticBeanstalkDefaultAMIEncrypter, mockStackTagsProvider, mockBucketBuilder, mockCwlContextProvider, mockJdbcTemplateBuilder);
 
 		stack = "dev";
 		instance = "101";
@@ -220,6 +226,10 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockElasticBeanstalkDefaultAMIEncrypter.getEncryptedElasticBeanstalkAMI())
 				.thenReturn(new ElasticBeanstalkEncryptedPlatformInfo("ami-123", "fake stack"));
 
+		// CloudwatchLogs
+		List<LogDescriptor> logDescriptors = this.generateLogDescriptors();
+		when(mockCwlContextProvider.getLogDescriptors(any(EnvironmentType.class))).thenReturn(logDescriptors);
+		
 		when(mockJdbcTemplateBuilder.getJdbcTemplate(anyString(), anyString(), anyString())).thenReturn(mockJdbcTemplate);
 	}
 	
@@ -261,6 +271,11 @@ public class RepositoryTemplateBuilderImplTest {
 		validateResouceDatabaseInstance(resources, stack);
 		// tables database
 		validateResouceTablesDatabase(resources, stack);
+
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_WORKERS);
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.PORTAL);
+
 		// readonly users: this test stack only has one repodb
 		verify(mockJdbcTemplate, times(2)).update(anyString());
 
@@ -293,6 +308,10 @@ public class RepositoryTemplateBuilderImplTest {
 		JSONObject templateJson = new JSONObject(bodyJSONString);
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		assertNotNull(resources);
+
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_WORKERS);
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.PORTAL);
 
 		verify(mockJdbcTemplate, times(2)).update(anyString());
 
@@ -492,9 +511,11 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testCreateEnvironmentContext() {
-		EnvironmentDescriptor environment = new EnvironmentDescriptor();
+		EnvironmentDescriptor environment = new EnvironmentDescriptor().withType(EnvironmentType.REPOSITORY_SERVICES);
+
 		// call under test
 		VelocityContext context = builder.createEnvironmentContext(sharedResouces, environment);
+
 		assertNotNull(context);
 		assertEquals("dev", context.get(STACK));
 		assertEquals("101", context.get(INSTANCE));
@@ -514,6 +535,18 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(databaseEndpointSuffix, suffix);
 	}
 
+	private List<LogDescriptor> generateLogDescriptors() {
+		List<LogDescriptor> descriptors = new LinkedList<>();
+		for (LogType t: LogType.values()) {
+			LogDescriptor d = new LogDescriptor();
+			d.setLogType(t);
+			d.setLogPath("/var/log/mypath.log");
+			d.setDateFormat("YYYY-MM-DD");
+			descriptors.add(d);
+		}
+		return descriptors;
+	}
+		
 	@Test
 	public void testExtractDatabaseEndpoints() {
 		// call under test

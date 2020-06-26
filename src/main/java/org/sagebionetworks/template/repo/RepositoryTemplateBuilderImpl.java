@@ -24,6 +24,8 @@ import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.google.inject.Inject;
+import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
+import org.sagebionetworks.template.repo.cloudwatchlogs.LogDescriptor;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import static org.sagebionetworks.template.Constants.*;
@@ -41,6 +43,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	ElasticBeanstalkDefaultAMIEncrypter elasticBeanstalkDefaultAMIEncrypter;
 	StackTagsProvider stackTagsProvider;
 	S3BucketBuilder bucketBuilder;
+	CloudwatchLogsVelocityContextProvider cwlContextProvider;
 	JdbcTemplateBuilder jdbcTemplateBuilder;
 
 	@Inject
@@ -49,6 +52,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 										 SecretBuilder secretBuilder, WebACLBuilder aclBuilder, Set<VelocityContextProvider> contextProviders,
 										 ElasticBeanstalkDefaultAMIEncrypter elasticBeanstalkDefaultAMIEncrypter,
 										 StackTagsProvider stackTagsProvider, S3BucketBuilder bucketBuilder,
+										 CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
 										 JdbcTemplateBuilder jdbcTemplateBuilder) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
@@ -62,6 +66,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.elasticBeanstalkDefaultAMIEncrypter = elasticBeanstalkDefaultAMIEncrypter;
 		this.stackTagsProvider = stackTagsProvider;
 		this.bucketBuilder = bucketBuilder;
+		this.cwlContextProvider = cloudwatchLogsVelocityContextProvider;
 		this.jdbcTemplateBuilder = jdbcTemplateBuilder;
 	}
 
@@ -96,15 +101,15 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		String schema = config.getProperty(PROPERTY_KEY_STACK)+config.getProperty(PROPERTY_KEY_INSTANCE);
 		String rootUser = config.getProperty(PROPERTY_KEY_STACK)+config.getProperty(PROPERTY_KEY_INSTANCE)+"user";
 		String rootPwd = secretBuilder.getRepositoryDatabasePassword();
-		try {
 			for (String endpoint: dbEndpoints) {
-				JdbcTemplate t = jdbcTemplateBuilder.getJdbcTemplate(endpoint, rootUser, rootPwd);
-				ReadOnlyUserProviderImpl roUserProvider = new ReadOnlyUserProviderImpl(t);
-				roUserProvider.createReadOnlyUser(readOnlyUser, readOnlyPassword, schema);
+				try {
+					JdbcTemplate t = jdbcTemplateBuilder.getJdbcTemplate(endpoint, rootUser, rootPwd);
+					ReadOnlyUserProviderImpl roUserProvider = new ReadOnlyUserProviderImpl(t);
+					roUserProvider.createReadOnlyUser(readOnlyUser, readOnlyPassword, schema);
+				} catch (SQLException e) {
+					throw new RuntimeException(String.format("Error creating read-only user on %s", endpoint), e);
+				}
 			}
-		} catch (SQLException e) {
-			throw new RuntimeException("Error creating read-only users", e);
-		}
 	}
 
 	/**
@@ -155,6 +160,9 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 
 		// oauth
 		context.put(OAUTH_ENDPOINT, config.getProperty(PROPERTY_KEY_OAUTH_ENDPOINT));
+
+		// CloudwatchLogs
+		context.put(CLOUDWATCH_LOGS_DESCRIPTORS, cwlContextProvider.getLogDescriptors(EnvironmentType.valueOfPrefix(environment.getType())));
 
 		return context;
 	}
