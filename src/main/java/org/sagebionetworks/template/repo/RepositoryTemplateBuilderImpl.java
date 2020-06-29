@@ -86,7 +86,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		// Wait for the shared resources to complete
 		Stack sharedStackResults = cloudFormationClient.waitForStackToComplete(sharedResourceStackName);
 
-		createReadOnlyUsers(sharedStackResults);
+		// TODO: Re-enable when builder location fixed in prod account
+		//createReadOnlyUsers(sharedStackResults);
 
 		// Build each bean stalk environment.
 		List<String> environmentNames = buildEnvironments(sharedStackResults);
