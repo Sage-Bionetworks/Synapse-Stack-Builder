@@ -79,8 +79,6 @@ public class Constants {
 
 	public static final String PROPERTY_KEY_OAUTH_ENDPOINT = "org.sagebionetworks.oauth.authorization.endpoint";
 
-	public static final String PROPERTY_KEY_READONLYUSER_PASSWORD = "org.sagebionetworks.rds.readonlyuser.password";
-
 	// tag values
 	public static final String TAG_VALUE_DEPARTMENT = "Platform";
 	public static final String TAG_VALUE_PROJECT = "Synapse";

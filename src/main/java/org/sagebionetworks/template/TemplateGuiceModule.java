@@ -101,7 +101,6 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(StackTagsProvider.class).to(StackTagsProviderImpl.class);
 		bind(S3BucketBuilder.class).to(S3BucketBuilderImpl.class);
 		bind(CloudwatchLogsVelocityContextProvider.class).to(CloudwatchLogsVelocityContextProviderImpl.class);
-		bind(JdbcTemplateBuilder.class).to(JdbcTemplateBuilderImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(SnsAndSqsVelocityContextProvider.class);

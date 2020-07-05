@@ -46,7 +46,6 @@ import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
-import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -63,7 +62,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sagebionetworks.template.*;
+import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.ConfigurationPropertyNotFound;
+import org.sagebionetworks.template.CreateOrUpdateStackRequest;
+import org.sagebionetworks.template.LoggerFactory;
+import org.sagebionetworks.template.StackTagsProvider;
+import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
@@ -83,7 +87,6 @@ import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.Tag;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RepositoryTemplateBuilderImplTest {
@@ -114,12 +117,6 @@ public class RepositoryTemplateBuilderImplTest {
 	S3BucketBuilder mockBucketBuilder;
 	@Mock
 	CloudwatchLogsVelocityContextProvider mockCwlContextProvider;
-
-	@Mock
-	JdbcTemplateBuilder mockJdbcTemplateBuilder;
-	@Mock
-	JdbcTemplate mockJdbcTemplate;
-
 	@Captor
 	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
 
@@ -142,7 +139,7 @@ public class RepositoryTemplateBuilderImplTest {
 	List<Tag> expectedTags;
 
 	@Before
-	public void before() throws InterruptedException, SQLException {
+	public void before() throws InterruptedException {
 		// use a real velocity engine
 		velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
 
@@ -155,7 +152,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder, mockACLBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
-				mockElasticBeanstalkDefaultAMIEncrypter, mockStackTagsProvider, mockBucketBuilder, mockCwlContextProvider, mockJdbcTemplateBuilder);
+				mockElasticBeanstalkDefaultAMIEncrypter, mockStackTagsProvider, mockBucketBuilder, mockCwlContextProvider);
 
 		stack = "dev";
 		instance = "101";
@@ -200,7 +197,6 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_BEANSTALK_ENCRYPTION_KEY)).thenReturn("encryption-key");
 
 		sharedResouces = new Stack();
-		// RepoDB output
 		Output dbOut = new Output();
 		dbOut.withOutputKey(stack+instance+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
 		databaseEndpointSuffix = "something.amazon.com";
@@ -214,7 +210,7 @@ public class RepositoryTemplateBuilderImplTest {
 		tableDBOutput2.withOutputValue(stack+"-"+instance+"-table-1."+databaseEndpointSuffix);
 
 		sharedResouces.withOutputs(dbOut, tableDBOutput1, tableDBOutput2);
-		
+
 		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(sharedResouces);
 		
 		secretsSouce = new SourceBundle("secretBucket", "secretKey");
@@ -230,7 +226,6 @@ public class RepositoryTemplateBuilderImplTest {
 		List<LogDescriptor> logDescriptors = this.generateLogDescriptors();
 		when(mockCwlContextProvider.getLogDescriptors(any(EnvironmentType.class))).thenReturn(logDescriptors);
 		
-		when(mockJdbcTemplateBuilder.getJdbcTemplate(anyString(), anyString(), anyString())).thenReturn(mockJdbcTemplate);
 	}
 	
 	private void configureStack(String inputStack) throws InterruptedException {
@@ -276,9 +271,6 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_WORKERS);
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.PORTAL);
 
-		// readonly users: this test stack only has one repodb
-		verify(mockJdbcTemplate, times(2)).update(anyString());
-
 		List<String> evironmentNames = Lists.newArrayList("repo-prod-101-0", "workers-prod-101-0", "portal-prod-101-0");
 		verify(mockACLBuilder).buildWebACL(evironmentNames);
 		// prod should have alarms.
@@ -312,8 +304,6 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_WORKERS);
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.PORTAL);
-
-		verify(mockJdbcTemplate, times(2)).update(anyString());
 
 		// dev should not have alarms
 		assertFalse(resources.has("dev101Table1RepositoryDBAlarmSwapUsage"));
@@ -547,16 +537,4 @@ public class RepositoryTemplateBuilderImplTest {
 		return descriptors;
 	}
 		
-	@Test
-	public void testExtractDatabaseEndpoints() {
-		// call under test
-		List<String> endpoints = builder.extractDatabaseEndpoints(sharedResouces);
-
-		assertNotNull(endpoints);
-		assertEquals(3, endpoints.size());
-		assertTrue(endpoints.contains("dev-101-db.something.amazon.com"));
-		assertTrue(endpoints.contains("dev-101-table-0.something.amazon.com"));
-		assertTrue(endpoints.contains("dev-101-table-1.something.amazon.com"));
-	}
-
 }
