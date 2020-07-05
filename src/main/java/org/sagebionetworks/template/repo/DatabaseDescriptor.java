@@ -8,6 +8,7 @@ public class DatabaseDescriptor {
 
 	String resourceName;
 	int allocatedStorage;
+	int maxAllocatedStorage;
 	String instanceClass;
 	String instanceIdentifier;
 	String dbName;
@@ -33,6 +34,13 @@ public class DatabaseDescriptor {
 	public int getAllocatedStorage() {
 		return allocatedStorage;
 	}
+
+	/**
+	 * Maximum allocated storage in GB
+	 *
+	 * @return
+	 */
+	public int getMaxAllocatedStorage() { return maxAllocatedStorage; }
 
 	/**
 	 * Calculate 10% of the allocated storage in bytes.
@@ -93,6 +101,17 @@ public class DatabaseDescriptor {
 	 */
 	public DatabaseDescriptor withAllocatedStorage(int allocatedStorage) {
 		this.allocatedStorage = allocatedStorage;
+		return this;
+	}
+
+	/**
+	 * Max allocated storage in GB
+	 *
+	 * @param maxAllocatedStorage
+	 * @return
+	 */
+	public DatabaseDescriptor withMaxAllocatedStorage(int maxAllocatedStorage) {
+		this.maxAllocatedStorage = maxAllocatedStorage;
 		return this;
 	}
 
@@ -185,6 +204,7 @@ public class DatabaseDescriptor {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + allocatedStorage;
+		result = prime * result + maxAllocatedStorage;
 		result = prime * result + dbIops;
 		result = prime * result + ((dbName == null) ? 0 : dbName.hashCode());
 		result = prime * result + ((dbStorageType == null) ? 0 : dbStorageType.hashCode());
@@ -205,6 +225,8 @@ public class DatabaseDescriptor {
 			return false;
 		DatabaseDescriptor other = (DatabaseDescriptor) obj;
 		if (allocatedStorage != other.allocatedStorage)
+			return false;
+		if (maxAllocatedStorage != other.maxAllocatedStorage)
 			return false;
 		if (dbIops != other.dbIops)
 			return false;
@@ -237,8 +259,8 @@ public class DatabaseDescriptor {
 
 	@Override
 	public String toString() {
-		return "DatabaseDescriptor [resourceName=" + resourceName + ", allocatedStorage=" + allocatedStorage
-				+ ", instanceClass=" + instanceClass + ", instanceIdentifier=" + instanceIdentifier + ", dbName="
+		return "DatabaseDescriptor [resourceName=" + resourceName + ", allocatedStorage=" + allocatedStorage + ", maxAllocatedStorage="
+				+ maxAllocatedStorage + ", instanceClass=" + instanceClass + ", instanceIdentifier=" + instanceIdentifier + ", dbName="
 				+ dbName + ", multiAZ=" + multiAZ + ", dbStorageType=" + dbStorageType + ", dbIops=" + dbIops + "]";
 	}
 

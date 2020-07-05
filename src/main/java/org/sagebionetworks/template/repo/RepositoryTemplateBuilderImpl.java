@@ -222,6 +222,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		// Describe the repository database.
 		results[0] = new DatabaseDescriptor().withResourceName(stack + instance + "RepositoryDB")
 				.withAllocatedStorage(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE))
+				.withMaxAllocatedStorage(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE))
 				.withInstanceIdentifier(stack + "-" + instance + "-db").withDbName(stack + instance)
 				.withInstanceClass(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS))
 				.withDbStorageType(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE))
@@ -232,6 +233,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		for (int i = 0; i < numberOfTablesDatabase; i++) {
 			results[i + 1] = new DatabaseDescriptor().withResourceName(stack + instance + "Table" + i + "RepositoryDB")
 					.withAllocatedStorage(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE))
+					.withMaxAllocatedStorage(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE))
 					.withInstanceIdentifier(stack + "-" + instance + "-table-" + i).withDbName(stack + instance)
 					.withDbStorageType(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE))
 					.withDbIops(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS))
