@@ -1,8 +1,10 @@
 package org.sagebionetworks.template.repo;
 
 import java.io.StringWriter;
-import java.sql.SQLException;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.StringJoiner;
 
 import com.amazonaws.services.cloudformation.model.Tag;
 import org.apache.logging.log4j.Logger;
@@ -10,7 +12,12 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
-import org.sagebionetworks.template.*;
+import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.ConfigurationPropertyNotFound;
+import org.sagebionetworks.template.Constants;
+import org.sagebionetworks.template.CreateOrUpdateStackRequest;
+import org.sagebionetworks.template.LoggerFactory;
+import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
@@ -26,7 +33,6 @@ import com.amazonaws.services.cloudformation.model.Stack;
 import com.google.inject.Inject;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogDescriptor;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import static org.sagebionetworks.template.Constants.*;
 
@@ -44,7 +50,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	StackTagsProvider stackTagsProvider;
 	S3BucketBuilder bucketBuilder;
 	CloudwatchLogsVelocityContextProvider cwlContextProvider;
-	JdbcTemplateBuilder jdbcTemplateBuilder;
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
@@ -52,8 +57,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 										 SecretBuilder secretBuilder, WebACLBuilder aclBuilder, Set<VelocityContextProvider> contextProviders,
 										 ElasticBeanstalkDefaultAMIEncrypter elasticBeanstalkDefaultAMIEncrypter,
 										 StackTagsProvider stackTagsProvider, S3BucketBuilder bucketBuilder,
-										 CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
-										 JdbcTemplateBuilder jdbcTemplateBuilder) {
+										 CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.velocityEngine = velocityEngine;
@@ -67,7 +71,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.stackTagsProvider = stackTagsProvider;
 		this.bucketBuilder = bucketBuilder;
 		this.cwlContextProvider = cloudwatchLogsVelocityContextProvider;
-		this.jdbcTemplateBuilder = jdbcTemplateBuilder;
 	}
 
 	@Override
@@ -85,31 +88,11 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		buildAndDeployStack(context, sharedResourceStackName, TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP, sharedParameters);
 		// Wait for the shared resources to complete
 		Stack sharedStackResults = cloudFormationClient.waitForStackToComplete(sharedResourceStackName);
-
-		createReadOnlyUsers(sharedStackResults);
-
+		
 		// Build each bean stalk environment.
 		List<String> environmentNames = buildEnvironments(sharedStackResults);
 		// setup a web-ACL for each environment
 		aclBuilder.buildWebACL(environmentNames);
-	}
-
-	private void createReadOnlyUsers(Stack sharedStackResults)  {
-		List<String> dbEndpoints = extractDatabaseEndpoints(sharedStackResults);
-		String readOnlyUser = config.getProperty(PROPERTY_KEY_STACK)+config.getProperty(PROPERTY_KEY_INSTANCE)+"readonlyuser";
-		String readOnlyPassword = config.getProperty(PROPERTY_KEY_READONLYUSER_PASSWORD);
-		String schema = config.getProperty(PROPERTY_KEY_STACK)+config.getProperty(PROPERTY_KEY_INSTANCE);
-		String rootUser = config.getProperty(PROPERTY_KEY_STACK)+config.getProperty(PROPERTY_KEY_INSTANCE)+"user";
-		String rootPwd = secretBuilder.getRepositoryDatabasePassword();
-			for (String endpoint: dbEndpoints) {
-				try {
-					JdbcTemplate t = jdbcTemplateBuilder.getJdbcTemplate(endpoint, rootUser, rootPwd);
-					ReadOnlyUserProviderImpl roUserProvider = new ReadOnlyUserProviderImpl(t);
-					roUserProvider.createReadOnlyUser(readOnlyUser, readOnlyPassword, schema);
-				} catch (SQLException e) {
-					throw new RuntimeException(String.format("Error creating read-only user on %s", endpoint), e);
-				}
-			}
 	}
 
 	/**
@@ -357,26 +340,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 			}
 		}
 		throw new RuntimeException("Failed to find shared resources output: "+outputName);
-	}
-
-	List<String> extractDatabaseEndpoints(Stack sharedResources) {
-		String stack = config.getProperty(PROPERTY_KEY_STACK);
-		String instance = config.getProperty(PROPERTY_KEY_INSTANCE);
-		String outputNameRepoDb = stack+instance+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
-		List<String> targetOutputNames = new LinkedList<>();
-		targetOutputNames.add(outputNameRepoDb);
-		for (int i=0; i < config.getIntegerProperty(PROPERTY_KEY_TABLES_INSTANCE_COUNT); i++) {
-			String outputName = String.format("%s%sTable%d%s", stack, instance, i, OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT );
-			targetOutputNames.add(outputName);
-		}
-		// Need to loop over outputs and check if in outputNameDbs, then extract outputvalue like above...
-		List<String> targetEndpoints = new LinkedList<>();
-		for (Output o: sharedResources.getOutputs()) {
-			if (targetOutputNames.contains(o.getOutputKey())) {
-				targetEndpoints.add(o.getOutputValue());
-			}
-		}
-		return targetEndpoints;
 	}
 
 }
