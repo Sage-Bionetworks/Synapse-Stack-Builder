@@ -26,6 +26,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERS
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OAUTH_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_IOPS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MULTI_AZ;
@@ -34,6 +35,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ROUTE_53_HOSTE
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_INSTANCE_COUNT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_IOPS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE;
@@ -165,12 +167,14 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockSecretBuilder.getRepositoryDatabasePassword()).thenReturn("somePassword");
 
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE)).thenReturn(4);
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(8);
 		when(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS)).thenReturn("db.t2.small");
 		when(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
 		when(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.standard.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS)).thenReturn(-1);
 
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(6);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_INSTANCE_COUNT)).thenReturn(2);
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).thenReturn("db.t2.micro");
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
@@ -331,6 +335,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(instance);
 		JSONObject properties = instance.getJSONObject("Properties");
 		assertEquals("4", properties.get("AllocatedStorage"));
+		assertEquals("8", properties.get("MaxAllocatedStorage"));
 		assertEquals("db.t2.small", properties.get("DBInstanceClass"));
 		assertEquals(Boolean.TRUE, properties.get("MultiAZ"));
 	}
@@ -346,6 +351,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(instance);
 		JSONObject properties = instance.getJSONObject("Properties");
 		assertEquals("3", properties.get("AllocatedStorage"));
+		assertEquals("6", properties.get("MaxAllocatedStorage"));
 		assertEquals("db.t2.micro", properties.get("DBInstanceClass"));
 		assertEquals(Boolean.FALSE, properties.get("MultiAZ"));
 		assertEquals(stack+"-101-table-0", properties.get("DBInstanceIdentifier"));
@@ -355,6 +361,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(instance);
 		properties = instance.getJSONObject("Properties");
 		assertEquals("3", properties.get("AllocatedStorage"));
+		assertEquals("6", properties.get("MaxAllocatedStorage"));
 		assertEquals("db.t2.micro", properties.get("DBInstanceClass"));
 		assertEquals(Boolean.FALSE, properties.get("MultiAZ"));
 		assertEquals(stack+"-101-table-1", properties.get("DBInstanceIdentifier"));
@@ -396,6 +403,7 @@ public class RepositoryTemplateBuilderImplTest {
 		// repo database
 		DatabaseDescriptor desc = descriptors[0];
 		assertEquals(4, desc.getAllocatedStorage());
+		assertEquals(8, desc.getMaxAllocatedStorage());
 		assertEquals("dev101", desc.getDbName());
 		assertEquals("db.t2.small", desc.getInstanceClass());
 		assertEquals("dev-101-db", desc.getInstanceIdentifier());
@@ -406,6 +414,7 @@ public class RepositoryTemplateBuilderImplTest {
 		// table zero
 		desc = descriptors[1];
 		assertEquals(3, desc.getAllocatedStorage());
+		assertEquals(6, desc.getMaxAllocatedStorage());
 		assertEquals("dev101", desc.getDbName());
 		assertEquals("db.t2.micro", desc.getInstanceClass());
 		assertEquals("dev-101-table-0", desc.getInstanceIdentifier());
@@ -415,6 +424,7 @@ public class RepositoryTemplateBuilderImplTest {
 		// table one
 		desc = descriptors[2];
 		assertEquals(3, desc.getAllocatedStorage());
+		assertEquals(6, desc.getMaxAllocatedStorage());
 		assertEquals("dev101", desc.getDbName());
 		assertEquals("db.t2.micro", desc.getInstanceClass());
 		assertEquals("dev-101-table-1", desc.getInstanceIdentifier());
