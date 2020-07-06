@@ -51,12 +51,12 @@
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
-			<version>2.7</version>
+			<version>${log4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-jcl</artifactId>
-			<version>2.7</version>
+			<version>${log4j.version}</version>
 		</dependency>
 		<!-- Base64 support -->
 		<dependency>
@@ -190,5 +190,6 @@
 	<properties>
 		<bouncycastle.version>1.60</bouncycastle.version>
 		<amazon.sdk.version>1.11.338</amazon.sdk.version>
+		<log4j.version>2.13.3</log4j.version>
 	</properties>
 </project>
