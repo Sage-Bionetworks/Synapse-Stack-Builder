@@ -215,6 +215,11 @@
 			"queueName":"VIEW_COLUMN_MODEL_REQUEST",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":300
+		},
+		{
+			"queueName":"GET_VALIDATION_SCHEMA",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":300
 		}
 	]
 }
