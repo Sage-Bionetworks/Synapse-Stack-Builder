@@ -71,9 +71,11 @@ public class WebACLBuilderImpl implements WebACLBuilder {
 		String stackName = createStackName();
 		this.logger.info("Template for stack: " + stackName);
 		this.logger.info(resultJSON);
+		boolean enableTerminationProtection = ("prod".equals(config.getProperty(PROPERTY_KEY_STACK)));
 		// create or update the template
 		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
-				.withTemplateBody(resultJSON).withTags(stackTagsProvider.getStackTags()));
+				.withTemplateBody(resultJSON).withTags(stackTagsProvider.getStackTags())
+				.withEnableTerminationProtection(enableTerminationProtection));
 	}
 	
 	/**

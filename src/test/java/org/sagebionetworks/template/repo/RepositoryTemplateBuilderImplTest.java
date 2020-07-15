@@ -257,6 +257,7 @@ public class RepositoryTemplateBuilderImplTest {
 		CreateOrUpdateStackRequest request = list.get(0);
 		assertEquals("prod-101-shared-resources", request.getStackName());
 		assertEquals(expectedTags, request.getTags());
+		assertEquals(true, request.getEnableTerminationProtection());
 		assertNotNull(request.getParameters());
 		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);
@@ -297,6 +298,7 @@ public class RepositoryTemplateBuilderImplTest {
 		CreateOrUpdateStackRequest request = list.get(0);
 		assertEquals("dev-101-shared-resources", request.getStackName());
 		assertEquals(expectedTags, request.getTags());
+		assertEquals(false, request.getEnableTerminationProtection());
 		assertNotNull(request.getParameters());
 		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);
