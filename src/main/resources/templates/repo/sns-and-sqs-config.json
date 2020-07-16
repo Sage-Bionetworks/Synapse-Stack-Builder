@@ -17,7 +17,8 @@
 		"WIKI",
 		"TABLE",
 		"ENTITY_VIEW",
-		"SUBMISSION"
+		"SUBMISSION",
+		"ACCESS_APPROVAL"
 	],
 	"snsGlobalTopicNames": [
 		"SES_SYNAPSE_ORG_BOUNCE",
@@ -220,6 +221,13 @@
 			"queueName":"GET_VALIDATION_SCHEMA",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":300
+		},
+		{
+			"queueName":"DATA_ACCESS_NOTIFICATIONS",
+			"subscribedTopicNames":[
+				"ACCESS_APPROVAL"
+			],
+			"messageVisibilityTimeoutSec":60
 		}
 	]
 }
