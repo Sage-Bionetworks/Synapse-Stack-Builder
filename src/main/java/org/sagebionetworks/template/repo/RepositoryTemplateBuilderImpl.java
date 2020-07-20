@@ -158,6 +158,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 * @param templatePath
 	 */
 	void buildAndDeployStack(VelocityContext context, String stackName, String templatePath, Parameter... parameters) {
+		String stack = config.getProperty(PROPERTY_KEY_STACK);
+		boolean enableTerminationProtection = ("prod".equals(stack)); // enable on prod stack
 		List<Tag> stackTags = stackTagsProvider.getStackTags();
 
 		// Merge the context with the template
@@ -177,7 +179,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				.withTemplateBody(resultJSON)
 				.withParameters(parameters)
 				.withCapabilities(CAPABILITY_NAMED_IAM)
-				.withTags(stackTags));
+				.withTags(stackTags)
+				.withEnableTerminationProtection(enableTerminationProtection));
 	}
 
 	/**

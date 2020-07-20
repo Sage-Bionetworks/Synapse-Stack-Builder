@@ -206,6 +206,7 @@ public class WebACLBuilderImplTest {
 		JSONObject template = new JSONObject(request.getTemplateBody());
 		assertNotNull(template);
 		assertEquals(expectedTags, request.getTags());
+		assertEquals(false, request.getEnableTerminationProtection());
 		//System.out.println(template.toString(5));
 		verify(mockLogger, times(2)).info(any(String.class));
 	}
