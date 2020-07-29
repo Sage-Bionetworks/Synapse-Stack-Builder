@@ -1,6 +1,7 @@
     #foreach($logDesc in ${logDescriptors})
     ,${environment.refName}CWLLogGroup${logDesc.logType}: {
         "Type": "AWS::Logs::LogGroup",
+        "DeletionPolicy" : "Retain",
         "Properties": {
             "LogGroupName": "/aws/elasticbeanstalk/${environment.name}${logDesc.logPath}",
             "RetentionInDays": 30
