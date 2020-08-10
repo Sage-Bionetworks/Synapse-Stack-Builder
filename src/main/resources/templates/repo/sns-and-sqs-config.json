@@ -228,6 +228,13 @@
 				"ACCESS_APPROVAL"
 			],
 			"messageVisibilityTimeoutSec":60
+		},
+		{
+			"queueName":"SCHEMA_VALIDATION",
+			"subscribedTopicNames":[
+				"ENTITY"
+			],
+			"messageVisibilityTimeoutSec":120
 		}
 	]
 }
