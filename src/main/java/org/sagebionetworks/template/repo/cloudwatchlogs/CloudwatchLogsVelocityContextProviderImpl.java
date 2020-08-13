@@ -1,15 +1,10 @@
 package org.sagebionetworks.template.repo.cloudwatchlogs;
 
-import com.google.inject.Inject;
-import org.apache.velocity.VelocityContext;
-import org.sagebionetworks.template.Constants;
-import org.sagebionetworks.template.repo.VelocityContextProvider;
-import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
-import sun.rmi.runtime.Log;
-
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
+
+import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
+
+import com.google.inject.Inject;
 
 public class CloudwatchLogsVelocityContextProviderImpl implements CloudwatchLogsVelocityContextProvider {
 
