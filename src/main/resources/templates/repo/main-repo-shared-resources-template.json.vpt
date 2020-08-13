@@ -627,6 +627,7 @@
 		}
 		#parse("templates/repo/sns-and-sqs-template.json.vpt")
 		#parse("templates/repo/kinesis-log-streams.json.vpt")
+		#parse("templates/repo/cloudwatch-alarms-template.json.vpt")
 	},
 	"Outputs": {
 		"BeanstalkApplicationId": {
