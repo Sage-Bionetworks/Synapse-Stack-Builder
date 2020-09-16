@@ -60,29 +60,6 @@
 				]
 			}
 		},
-		"VpcPeeringConnectionOldVpc" :{
-			"Type" : "AWS::EC2::VPCPeeringConnection",
-			"Properties" : {
-				"PeerVpcId" : {
-				    "Ref": "OldVpcId"
-				},
-				"VpcId" : {
-					"Ref": "VPC"
-				},
-				"Tags": [
-					{
-						"Key": "Application",
-						"Value": {
-							"Ref": "AWS::StackName"
-						}
-					},
-					{
-						"Key": "Name",
-						"Value": "synapse-${stack}-VPC-peering-oldVPC"
-					}
-				]
-			}
-		},
 		"InternetGateway": {
 			"Type": "AWS::EC2::InternetGateway",
 			"Properties": {
