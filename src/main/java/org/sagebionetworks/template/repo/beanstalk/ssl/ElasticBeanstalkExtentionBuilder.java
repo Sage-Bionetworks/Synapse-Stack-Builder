@@ -1,5 +1,6 @@
 package org.sagebionetworks.template.repo.beanstalk.ssl;
 
+import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import java.io.File;
 
 /**
@@ -14,6 +15,6 @@ public interface ElasticBeanstalkExtentionBuilder {
 	 * 
 	 * @param warFile
 	 */
-	public File copyWarWithExtensions(File warFile);
+	public File copyWarWithExtensions(File warFile, EnvironmentType envType);
 
 }

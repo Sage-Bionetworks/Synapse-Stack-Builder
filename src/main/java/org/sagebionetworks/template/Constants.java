@@ -15,6 +15,7 @@ public class Constants {
 	public static final String DEFAULT_REPO_PROPERTIES = "templates/repo/repo-defaults.properties";
 	public static final String SNS_AND_SQS_CONFIG_FILE = "templates/repo/sns-and-sqs-config.json";
 	public static final String KINESIS_CONFIG_FILE = "templates/repo/kinesis-log-streams.json";
+	public static final String CLOUDWATCH_LOGS_CONFIG_FILE = "templates/repo/cloudwatch-logs-config.json";
 
 	/**
 	 * A VPC peering role ARN must start with this prefix.
@@ -57,9 +58,11 @@ public class Constants {
 	public static final String PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE = "org.sagebionetworks.tables.rds.storage.type";
 	public static final String PROPERTY_KEY_TABLES_RDS_IOPS = "org.sagebionetworks.tables.rds.iops";
 	public static final String PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE = "org.sagebionetworks.repo.rds.allocated.storage";
+	public static final String PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE = "org.sagebionetworks.repo.rds.max.allocated.storage";
 	public static final String PROPERTY_KEY_TABLES_INSTANCE_COUNT = "org.sagebionetworks.tables.rds.instance.count";
 	public static final String PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS = "org.sagebionetworks.tables.rds.instance.class";
 	public static final String PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE = "org.sagebionetworks.tables.rds.allocated.storage";
+	public static final String PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE = "org.sagebionetworks.tables.rds.max.allocated.storage";
 	public static final String PROPERTY_KEY_BEANSTALK_ENCRYPTION_KEY = "org.sagebionetworks.beanstalk.encryption.key";
 	public static final String PROPERTY_KEY_AWS_SECRET_KEY = "aws.secretKey";
 	public static final String PROPERTY_KEY_AWS_ACCESS_KEY_ID = "aws.accessKeyId";
@@ -148,6 +151,8 @@ public class Constants {
 
 	public static final String GLUE_DATABASE_NAME = "glueDatabaseName";
 	public static final String KINESIS_FIREHOSE_STREAM_DESCRIPTORS = "kinesisFirehoseStreams";
+
+	public static final String CLOUDWATCH_LOGS_DESCRIPTORS = "logDescriptors";
 
 	public static final String OAUTH_ENDPOINT = "oauthEndpoint";
 

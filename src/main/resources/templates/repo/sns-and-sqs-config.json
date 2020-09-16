@@ -16,7 +16,9 @@
 		"CERTIFIED_USER_PASSING_RECORD",
 		"WIKI",
 		"TABLE",
-		"ENTITY_VIEW"
+		"ENTITY_VIEW",
+		"SUBMISSION",
+		"ACCESS_APPROVAL"
 	],
 	"snsGlobalTopicNames": [
 		"SES_SYNAPSE_ORG_BOUNCE",
@@ -162,7 +164,8 @@
 		{
 			"queueName":"TABLE_ENTITY_REPLICATION",
 			"subscribedTopicNames":[
-				"ENTITY"
+				"ENTITY",
+				"SUBMISSION"
 			],
 			"messageVisibilityTimeoutSec":120,
 			"deadLetterQueueMaxFailureCount":100
@@ -201,6 +204,35 @@
 			"subscribedTopicNames":[
 				"SES_SYNAPSE_ORG_BOUNCE",
 				"SES_SYNAPSE_ORG_COMPLAINT"
+			],
+			"messageVisibilityTimeoutSec":120
+		},
+		{
+			"queueName":"JSON_SCHEMA_CREATE",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":300
+		},
+		{
+			"queueName":"VIEW_COLUMN_MODEL_REQUEST",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":300
+		},
+		{
+			"queueName":"GET_VALIDATION_SCHEMA",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":300
+		},
+		{
+			"queueName":"DATA_ACCESS_NOTIFICATIONS",
+			"subscribedTopicNames":[
+				"ACCESS_APPROVAL"
+			],
+			"messageVisibilityTimeoutSec":60
+		},
+		{
+			"queueName":"SCHEMA_VALIDATION",
+			"subscribedTopicNames":[
+				"ENTITY"
 			],
 			"messageVisibilityTimeoutSec":120
 		}

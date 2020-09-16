@@ -17,6 +17,7 @@ public class CreateOrUpdateStackRequest {
 	Parameter[] parameters;
 	String[] capabilities;
 	private List<Tag> tags;
+	private Boolean enableTerminationProtection;
 
 	/**
 	 * The name of the stack to create/update.
@@ -115,6 +116,26 @@ public class CreateOrUpdateStackRequest {
 		return this;
 	}
 
+	/**
+	 * Flag to enable termination protection
+	 *
+	 * @return
+	 */
+	public Boolean getEnableTerminationProtection() {
+		return this.enableTerminationProtection;
+	}
+
+	/**
+	 * Set enable termination protection on stack
+	 *
+	 * @param enableTerminationProtection
+	 * @return
+	 */
+	public CreateOrUpdateStackRequest withEnableTerminationProtection(Boolean enableTerminationProtection) {
+		this.enableTerminationProtection = enableTerminationProtection;
+		return this;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -124,6 +145,7 @@ public class CreateOrUpdateStackRequest {
 		result = prime * result + ((templateBody == null) ? 0 : templateBody.hashCode());
 		result = prime * result + ((capabilities == null) ? 0 : capabilities.hashCode());
 		result = prime * result + ((tags == null) ? 0 : tags.hashCode());
+		result = prime * result + ((enableTerminationProtection == null) ? 0: enableTerminationProtection.hashCode());
 		return result;
 	}
 
@@ -157,6 +179,11 @@ public class CreateOrUpdateStackRequest {
 			if (other.tags != null)
 				return false;
 		} else if (!tags.equals(other.tags))
+			return false;
+		if (enableTerminationProtection == null) {
+			if (other.enableTerminationProtection != null)
+				return false;
+		} else if (!enableTerminationProtection.equals(other.enableTerminationProtection))
 			return false;
 		return true;
 	}

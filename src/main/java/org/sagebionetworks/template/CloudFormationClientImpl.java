@@ -108,6 +108,9 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 				if(requestInput.getTags() != null) {
 					request.withTags(requestInput.getTags());
 				}
+				if (requestInput.getEnableTerminationProtection() != null) {
+					request.withEnableTerminationProtection(requestInput.getEnableTerminationProtection());
+				}
 				CreateStackResult result = cloudFormationClient.createStack(request);
 				return result.getStackId();
 			}

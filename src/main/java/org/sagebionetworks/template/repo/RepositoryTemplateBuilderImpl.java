@@ -31,6 +31,8 @@ import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.google.inject.Inject;
+import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
+import org.sagebionetworks.template.repo.cloudwatchlogs.LogDescriptor;
 
 import static org.sagebionetworks.template.Constants.*;
 
@@ -47,13 +49,15 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	ElasticBeanstalkDefaultAMIEncrypter elasticBeanstalkDefaultAMIEncrypter;
 	StackTagsProvider stackTagsProvider;
 	S3BucketBuilder bucketBuilder;
+	CloudwatchLogsVelocityContextProvider cwlContextProvider;
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
 										 RepoConfiguration configuration, LoggerFactory loggerFactory, ArtifactCopy artifactCopy,
 										 SecretBuilder secretBuilder, WebACLBuilder aclBuilder, Set<VelocityContextProvider> contextProviders,
 										 ElasticBeanstalkDefaultAMIEncrypter elasticBeanstalkDefaultAMIEncrypter,
-										 StackTagsProvider stackTagsProvider, S3BucketBuilder bucketBuilder) {
+										 StackTagsProvider stackTagsProvider, S3BucketBuilder bucketBuilder,
+										 CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.velocityEngine = velocityEngine;
@@ -66,6 +70,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.elasticBeanstalkDefaultAMIEncrypter = elasticBeanstalkDefaultAMIEncrypter;
 		this.stackTagsProvider = stackTagsProvider;
 		this.bucketBuilder = bucketBuilder;
+		this.cwlContextProvider = cloudwatchLogsVelocityContextProvider;
 	}
 
 	@Override
@@ -139,6 +144,9 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		// oauth
 		context.put(OAUTH_ENDPOINT, config.getProperty(PROPERTY_KEY_OAUTH_ENDPOINT));
 
+		// CloudwatchLogs
+		context.put(CLOUDWATCH_LOGS_DESCRIPTORS, cwlContextProvider.getLogDescriptors(EnvironmentType.valueOfPrefix(environment.getType())));
+
 		return context;
 	}
 
@@ -150,6 +158,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 * @param templatePath
 	 */
 	void buildAndDeployStack(VelocityContext context, String stackName, String templatePath, Parameter... parameters) {
+		String stack = config.getProperty(PROPERTY_KEY_STACK);
+		boolean enableTerminationProtection = ("prod".equals(stack)); // enable on prod stack
 		List<Tag> stackTags = stackTagsProvider.getStackTags();
 
 		// Merge the context with the template
@@ -169,7 +179,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				.withTemplateBody(resultJSON)
 				.withParameters(parameters)
 				.withCapabilities(CAPABILITY_NAMED_IAM)
-				.withTags(stackTags));
+				.withTags(stackTags)
+				.withEnableTerminationProtection(enableTerminationProtection));
 	}
 
 	/**
@@ -214,6 +225,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		// Describe the repository database.
 		results[0] = new DatabaseDescriptor().withResourceName(stack + instance + "RepositoryDB")
 				.withAllocatedStorage(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE))
+				.withMaxAllocatedStorage(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE))
 				.withInstanceIdentifier(stack + "-" + instance + "-db").withDbName(stack + instance)
 				.withInstanceClass(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS))
 				.withDbStorageType(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE))
@@ -224,6 +236,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		for (int i = 0; i < numberOfTablesDatabase; i++) {
 			results[i + 1] = new DatabaseDescriptor().withResourceName(stack + instance + "Table" + i + "RepositoryDB")
 					.withAllocatedStorage(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE))
+					.withMaxAllocatedStorage(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE))
 					.withInstanceIdentifier(stack + "-" + instance + "-table-" + i).withDbName(stack + instance)
 					.withDbStorageType(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE))
 					.withDbIops(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS))

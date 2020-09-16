@@ -362,7 +362,22 @@
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.stack.repo.beanstalk.number",
 						"Value": "${repoBeanstalkNumber}"
-					}
+					},
+                    {
+                        "Namespace": "aws:elasticbeanstalk:cloudwatch:logs",
+                        "OptionName": "StreamLogs",
+                        "Value": "true"
+                    },
+                    {
+                        "Namespace": "aws:elasticbeanstalk:cloudwatch:logs",
+                        "OptionName": "DeleteOnTerminate",
+                        "Value": "false"
+                    },
+                    {
+                        "Namespace": "aws:elasticbeanstalk:cloudwatch:logs",
+                        "OptionName": "RetentionInDays",
+                        "Value": "14"
+                    }
 					#if ($environment.isTypeRepositoryOrWorkers())
 					,
 					{
@@ -480,6 +495,11 @@
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.oauth.authorization.endpoint",
 						"Value": "${oauthEndpoint}"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.sts.iam.arn",
+						"Value": {"Fn::ImportValue": "${sharedExportPrefix}-Temp-Credentials-Service-Role-Arn"}
 					}
 
 					#end
@@ -515,6 +535,7 @@
 				"Type": "CNAME"
 			}
 		}
+		#parse("templates/repo/cloudwatch-logs-template.json.vpt")
 	},
 	"Outputs": {
 		"URL": {

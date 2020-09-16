@@ -26,6 +26,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERS
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OAUTH_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_IOPS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MULTI_AZ;
@@ -34,6 +35,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ROUTE_53_HOSTE
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_INSTANCE_COUNT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_IOPS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE;
@@ -76,6 +78,9 @@ import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 import org.sagebionetworks.template.repo.beanstalk.image.encrypt.ElasticBeanstalkDefaultAMIEncrypter;
 import org.sagebionetworks.template.repo.beanstalk.image.encrypt.ElasticBeanstalkEncryptedPlatformInfo;
+import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
+import org.sagebionetworks.template.repo.cloudwatchlogs.LogDescriptor;
+import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
 import org.sagebionetworks.template.vpc.Color;
 
 import com.amazonaws.services.cloudformation.model.Output;
@@ -112,7 +117,8 @@ public class RepositoryTemplateBuilderImplTest {
 	StackTagsProvider mockStackTagsProvider;
 	@Mock
 	S3BucketBuilder mockBucketBuilder;
-
+	@Mock
+	CloudwatchLogsVelocityContextProvider mockCwlContextProvider;
 	@Captor
 	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
 
@@ -148,7 +154,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder, mockACLBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
-				mockElasticBeanstalkDefaultAMIEncrypter, mockStackTagsProvider, mockBucketBuilder);
+				mockElasticBeanstalkDefaultAMIEncrypter, mockStackTagsProvider, mockBucketBuilder, mockCwlContextProvider);
 
 		stack = "dev";
 		instance = "101";
@@ -161,12 +167,14 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockSecretBuilder.getRepositoryDatabasePassword()).thenReturn("somePassword");
 
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE)).thenReturn(4);
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(8);
 		when(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS)).thenReturn("db.t2.small");
 		when(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
 		when(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.standard.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS)).thenReturn(-1);
 
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(6);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_INSTANCE_COUNT)).thenReturn(2);
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).thenReturn("db.t2.micro");
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
@@ -197,8 +205,16 @@ public class RepositoryTemplateBuilderImplTest {
 		dbOut.withOutputKey(stack+instance+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
 		databaseEndpointSuffix = "something.amazon.com";
 		dbOut.withOutputValue(stack+"-"+instance+"-db."+databaseEndpointSuffix);
-		sharedResouces.withOutputs(dbOut);
-		
+		// TableDB output
+		Output tableDBOutput1 = new Output();
+		tableDBOutput1.withOutputKey(stack+instance+"Table0"+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
+		tableDBOutput1.withOutputValue(stack+"-"+instance+"-table-0."+databaseEndpointSuffix);
+		Output tableDBOutput2 = new Output();
+		tableDBOutput2.withOutputKey(stack+instance+"Table1"+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
+		tableDBOutput2.withOutputValue(stack+"-"+instance+"-table-1."+databaseEndpointSuffix);
+
+		sharedResouces.withOutputs(dbOut, tableDBOutput1, tableDBOutput2);
+
 		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(sharedResouces);
 		
 		secretsSouce = new SourceBundle("secretBucket", "secretKey");
@@ -209,6 +225,11 @@ public class RepositoryTemplateBuilderImplTest {
 
 		when(mockElasticBeanstalkDefaultAMIEncrypter.getEncryptedElasticBeanstalkAMI())
 				.thenReturn(new ElasticBeanstalkEncryptedPlatformInfo("ami-123", "fake stack"));
+
+		// CloudwatchLogs
+		List<LogDescriptor> logDescriptors = this.generateLogDescriptors();
+		when(mockCwlContextProvider.getLogDescriptors(any(EnvironmentType.class))).thenReturn(logDescriptors);
+		
 	}
 	
 	private void configureStack(String inputStack) throws InterruptedException {
@@ -236,6 +257,7 @@ public class RepositoryTemplateBuilderImplTest {
 		CreateOrUpdateStackRequest request = list.get(0);
 		assertEquals("prod-101-shared-resources", request.getStackName());
 		assertEquals(expectedTags, request.getTags());
+		assertEquals(true, request.getEnableTerminationProtection());
 		assertNotNull(request.getParameters());
 		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);
@@ -249,6 +271,11 @@ public class RepositoryTemplateBuilderImplTest {
 		validateResouceDatabaseInstance(resources, stack);
 		// tables database
 		validateResouceTablesDatabase(resources, stack);
+
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_WORKERS);
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.PORTAL);
+
 		List<String> evironmentNames = Lists.newArrayList("repo-prod-101-0", "workers-prod-101-0", "portal-prod-101-0");
 		verify(mockACLBuilder).buildWebACL(evironmentNames);
 		// prod should have alarms.
@@ -271,6 +298,7 @@ public class RepositoryTemplateBuilderImplTest {
 		CreateOrUpdateStackRequest request = list.get(0);
 		assertEquals("dev-101-shared-resources", request.getStackName());
 		assertEquals(expectedTags, request.getTags());
+		assertEquals(false, request.getEnableTerminationProtection());
 		assertNotNull(request.getParameters());
 		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);
@@ -278,6 +306,11 @@ public class RepositoryTemplateBuilderImplTest {
 		JSONObject templateJson = new JSONObject(bodyJSONString);
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		assertNotNull(resources);
+
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_WORKERS);
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.PORTAL);
+
 		// dev should not have alarms
 		assertFalse(resources.has("dev101Table1RepositoryDBAlarmSwapUsage"));
 		assertFalse(resources.has("dev101Table1RepositoryDBAlarmSwapUsage"));
@@ -304,6 +337,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(instance);
 		JSONObject properties = instance.getJSONObject("Properties");
 		assertEquals("4", properties.get("AllocatedStorage"));
+		assertEquals("8", properties.get("MaxAllocatedStorage"));
 		assertEquals("db.t2.small", properties.get("DBInstanceClass"));
 		assertEquals(Boolean.TRUE, properties.get("MultiAZ"));
 	}
@@ -319,6 +353,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(instance);
 		JSONObject properties = instance.getJSONObject("Properties");
 		assertEquals("3", properties.get("AllocatedStorage"));
+		assertEquals("6", properties.get("MaxAllocatedStorage"));
 		assertEquals("db.t2.micro", properties.get("DBInstanceClass"));
 		assertEquals(Boolean.FALSE, properties.get("MultiAZ"));
 		assertEquals(stack+"-101-table-0", properties.get("DBInstanceIdentifier"));
@@ -328,6 +363,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(instance);
 		properties = instance.getJSONObject("Properties");
 		assertEquals("3", properties.get("AllocatedStorage"));
+		assertEquals("6", properties.get("MaxAllocatedStorage"));
 		assertEquals("db.t2.micro", properties.get("DBInstanceClass"));
 		assertEquals(Boolean.FALSE, properties.get("MultiAZ"));
 		assertEquals(stack+"-101-table-1", properties.get("DBInstanceIdentifier"));
@@ -369,6 +405,7 @@ public class RepositoryTemplateBuilderImplTest {
 		// repo database
 		DatabaseDescriptor desc = descriptors[0];
 		assertEquals(4, desc.getAllocatedStorage());
+		assertEquals(8, desc.getMaxAllocatedStorage());
 		assertEquals("dev101", desc.getDbName());
 		assertEquals("db.t2.small", desc.getInstanceClass());
 		assertEquals("dev-101-db", desc.getInstanceIdentifier());
@@ -379,6 +416,7 @@ public class RepositoryTemplateBuilderImplTest {
 		// table zero
 		desc = descriptors[1];
 		assertEquals(3, desc.getAllocatedStorage());
+		assertEquals(6, desc.getMaxAllocatedStorage());
 		assertEquals("dev101", desc.getDbName());
 		assertEquals("db.t2.micro", desc.getInstanceClass());
 		assertEquals("dev-101-table-0", desc.getInstanceIdentifier());
@@ -388,6 +426,7 @@ public class RepositoryTemplateBuilderImplTest {
 		// table one
 		desc = descriptors[2];
 		assertEquals(3, desc.getAllocatedStorage());
+		assertEquals(6, desc.getMaxAllocatedStorage());
 		assertEquals("dev101", desc.getDbName());
 		assertEquals("db.t2.micro", desc.getInstanceClass());
 		assertEquals("dev-101-table-1", desc.getInstanceIdentifier());
@@ -474,9 +513,11 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testCreateEnvironmentContext() {
-		EnvironmentDescriptor environment = new EnvironmentDescriptor();
+		EnvironmentDescriptor environment = new EnvironmentDescriptor().withType(EnvironmentType.REPOSITORY_SERVICES);
+
 		// call under test
 		VelocityContext context = builder.createEnvironmentContext(sharedResouces, environment);
+
 		assertNotNull(context);
 		assertEquals("dev", context.get(STACK));
 		assertEquals("101", context.get(INSTANCE));
@@ -496,4 +537,16 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(databaseEndpointSuffix, suffix);
 	}
 
+	private List<LogDescriptor> generateLogDescriptors() {
+		List<LogDescriptor> descriptors = new LinkedList<>();
+		for (LogType t: LogType.values()) {
+			LogDescriptor d = new LogDescriptor();
+			d.setLogType(t);
+			d.setLogPath("/var/log/mypath.log");
+			d.setDateFormat("YYYY-MM-DD");
+			descriptors.add(d);
+		}
+		return descriptors;
+	}
+		
 }
