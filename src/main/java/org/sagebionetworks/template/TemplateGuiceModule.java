@@ -20,8 +20,6 @@ import org.sagebionetworks.template.repo.IdGeneratorBuilder;
 import org.sagebionetworks.template.repo.IdGeneratorBuilderImpl;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilderImpl;
-import org.sagebionetworks.template.repo.S3BucketBuilder;
-import org.sagebionetworks.template.repo.S3BucketBuilderImpl;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
 import org.sagebionetworks.template.repo.WebACLBuilder;
 import org.sagebionetworks.template.repo.WebACLBuilderImpl;
@@ -46,6 +44,8 @@ import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfigV
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseVelocityContextProvider;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsConfig;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsVelocityContextProvider;
+import org.sagebionetworks.template.s3.S3BucketBuilder;
+import org.sagebionetworks.template.s3.S3BucketBuilderImpl;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilder;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilderImpl;
 import org.sagebionetworks.war.WarAppender;

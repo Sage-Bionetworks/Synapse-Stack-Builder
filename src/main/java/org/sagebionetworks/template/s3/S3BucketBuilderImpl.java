@@ -1,9 +1,8 @@
-package org.sagebionetworks.template.repo;
+package org.sagebionetworks.template.s3;
 
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_S3_BUCKETS_CSV;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
-import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
 import com.amazonaws.AmazonServiceException;
@@ -13,9 +12,7 @@ import com.amazonaws.services.s3.model.ServerSideEncryptionByDefault;
 import com.amazonaws.services.s3.model.ServerSideEncryptionConfiguration;
 import com.amazonaws.services.s3.model.ServerSideEncryptionRule;
 import com.amazonaws.services.s3.model.SetBucketEncryptionRequest;
-import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 
 public class S3BucketBuilderImpl implements S3BucketBuilder {
 
@@ -56,12 +53,6 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 				}
 			} 
 		}
-	}
-	
-	public static void main(String[] args) throws InterruptedException {
-		Injector injector = Guice.createInjector(new TemplateGuiceModule());
-		S3BucketBuilder builder = injector.getInstance(S3BucketBuilder.class);
-		builder.buildAllBuckets();
 	}
 
 }

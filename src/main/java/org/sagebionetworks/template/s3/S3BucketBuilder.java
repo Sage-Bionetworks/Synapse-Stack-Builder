@@ -1,4 +1,4 @@
-package org.sagebionetworks.template.repo;
+package org.sagebionetworks.template.s3;
 
 public interface S3BucketBuilder {
 
