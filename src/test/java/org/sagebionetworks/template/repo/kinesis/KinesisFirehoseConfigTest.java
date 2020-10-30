@@ -2,7 +2,7 @@ package org.sagebionetworks.template.repo.kinesis;
 
 import static org.junit.Assert.assertNotNull;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfig;
 
