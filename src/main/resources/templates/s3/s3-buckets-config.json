@@ -1,0 +1,31 @@
+{
+	"buckets": [
+		{
+			"name": "${stack}.inventory.sagebase.org",
+			"retentionDays": 30
+		},
+		{
+			"name": "${stack}data.sagebase.org",
+			"inventoryEnabled": true
+		},
+		{
+			"name": "${stack}.table.row.changes"
+		},
+		{
+			"name": "${stack}.access.record.sagebase.org"
+		},
+		{
+			"name": "${stack}.snapshot.record.sagebase.org"
+		},
+		{
+			"name": "${stack}.discussion.sagebase.org"
+		},
+		{
+			"name": "${stack}.log.sagebase.org"
+		},
+		{
+			"name": "${stack}.view.snapshots"
+		}
+	],
+	"inventoryBucket": "${stack}.inventory.sagebase.org"
+}
