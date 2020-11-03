@@ -1,6 +1,7 @@
 package org.sagebionetworks.template.vpc;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
@@ -60,7 +61,6 @@ public class VpcTemplateBuilderImplTest {
 	VelocityEngine velocityEngine;
 	VpcTemplateBuilderImpl builder;
 	
-	String[] colors;
 	String subnetPrefix;
 	String[] avialabilityZones;
 	String[] publicZones;
@@ -84,7 +84,6 @@ public class VpcTemplateBuilderImplTest {
 		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
 
 		builder = new VpcTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, mockConfig, mockLoggerFactory, mockStackTagsProvider);
-		colors = new String[] {"Red","Green"};
 		subnetPrefix = "10.21";
 		avialabilityZones = new String[] {"us-east-1a","us-east-1b"};
 		vpnCider = "10.1.0.0/16";
@@ -93,7 +92,6 @@ public class VpcTemplateBuilderImplTest {
 		oldVpcCidr = "10.2.0.0/16";
 		oldVpcId = "vpc-123def";
 		
-		when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_COLORS)).thenReturn(colors);
 		when(mockConfig.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX)).thenReturn(subnetPrefix);
 		when(mockConfig.getProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn("us-east-1a,us-east-1b");
 		when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn(avialabilityZones);
@@ -112,7 +110,7 @@ public class VpcTemplateBuilderImplTest {
 	}
 
 	@Test
-	public void testBuildAndDepoy() {
+	public void testBuildAndDeploy() {
 		// call under test
 		builder.buildAndDeploy();
 		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
@@ -130,18 +128,21 @@ public class VpcTemplateBuilderImplTest {
 		assertTrue(resouces.has("InternetGateway"));
 		assertTrue(resouces.has("InternetGatewayAttachment"));
 		assertTrue(resouces.has("VpnSecurityGroup"));
-		// color subnets
+		// should not contain public subnets
+		assertFalse(resouces.has("PublicUsEast1a"));
+		assertFalse(resouces.has("PublicUsEast1b"));
+		// should not contain color subnets
 		// Red subnets
-		assertTrue(resouces.has("RedPrivateUsEast1a"));
-		assertTrue(resouces.has("RedPrivateUsEast1b"));
-		assertTrue(resouces.has("RedPrivateUsEast1aRouteTableAssociation"));
-		assertTrue(resouces.has("RedPrivateUsEast1bRouteTableAssociation"));
+		assertFalse(resouces.has("RedPrivateUsEast1a"));
+		assertFalse(resouces.has("RedPrivateUsEast1b"));
+		assertFalse(resouces.has("RedPrivateUsEast1aRouteTableAssociation"));
+		assertFalse(resouces.has("RedPrivateUsEast1bRouteTableAssociation"));
 		// Green
 		// Green subnets
-		assertTrue(resouces.has("GreenPrivateUsEast1a"));
-		assertTrue(resouces.has("GreenPrivateUsEast1b"));
-		assertTrue(resouces.has("GreenPrivateUsEast1aRouteTableAssociation"));
-		assertTrue(resouces.has("GreenPrivateUsEast1bRouteTableAssociation"));
+		assertFalse(resouces.has("GreenPrivateUsEast1a"));
+		assertFalse(resouces.has("GreenPrivateUsEast1b"));
+		assertFalse(resouces.has("GreenPrivateUsEast1aRouteTableAssociation"));
+		assertFalse(resouces.has("GreenPrivateUsEast1bRouteTableAssociation"));
 	}
 	
 	@Test
@@ -164,29 +165,11 @@ public class VpcTemplateBuilderImplTest {
 	}
 	
 	@Test
-	public void testGetColorsFromProperty() {
-		// Call under test
-		Color[] colors = builder.getColorsFromProperty();
-		assertNotNull(colors);
-		assertEquals(2, colors.length);
-		assertEquals(Color.Red, colors[0]);
-		assertEquals(Color.Green, colors[1]);
-	}
-	
-	@Test
 	public void testCreateContext() {
 		// call under test
 		VelocityContext context = builder.createContext();
 		assertNotNull(context);
-		Subnets subnets = (Subnets) context.get(SUBNETS);
-		assertEquals(2, subnets.getPublicSubnets().length);
-		assertEquals("PublicUsEast1a", subnets.getPublicSubnets()[0].getName());
-		assertEquals("PublicUsEast1b", subnets.getPublicSubnets()[1].getName());
-		
-		assertEquals(2, subnets.getPrivateSubnetGroups().length);
-		assertEquals("Red", subnets.getPrivateSubnetGroups()[0].getColor());
-		assertEquals("Green", subnets.getPrivateSubnetGroups()[1].getColor());
-		
+
 		assertEquals("10.21.0.0/16", context.get(VPC_CIDR));
 		assertEquals("dev", context.get(STACK));
 		assertEquals(peeringRoleARN, context.get(PEER_ROLE_ARN));

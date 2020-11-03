@@ -8,7 +8,6 @@ import static org.sagebionetworks.template.Constants.PARAMETER_VPC_SUBNET_PREFIX
 import static org.sagebionetworks.template.Constants.PARAMETER_VPN_CIDR;
 import static org.sagebionetworks.template.Constants.PEERING_ROLE_ARN_PREFIX;
 import static org.sagebionetworks.template.Constants.PEER_ROLE_ARN;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_COLORS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OLD_VPC_CIDR;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OLD_VPC_ID;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
@@ -17,13 +16,10 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_PEERING_AC
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_PREFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_VPN_CIDR;
 import static org.sagebionetworks.template.Constants.STACK;
-import static org.sagebionetworks.template.Constants.SUBNETS;
 import static org.sagebionetworks.template.Constants.TEMPLATES_VPC_MAIN_VPC_JSON_VTP;
 import static org.sagebionetworks.template.Constants.VPC_CIDR;
 import static org.sagebionetworks.template.Constants.VPC_CIDR_SUFFIX;
-import static org.sagebionetworks.template.Constants.VPC_COLOR_GROUP_NETWORK_MASK;
 import static org.sagebionetworks.template.Constants.VPC_STACK_NAME_FORMAT;
-import static org.sagebionetworks.template.Constants.VPC_SUBNET_NETWORK_MASK;
 
 import java.io.StringWriter;
 
@@ -108,18 +104,6 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 		String availabilityZonesRaw = config.getProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES);
 		context.put(AVAILABILITY_ZONES, availabilityZonesRaw);
 
-		String[] availabilityZones = config.getComaSeparatedProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES);
-
-		// Create the sub-nets
-		SubnetBuilder builder = new SubnetBuilder();
-		builder.withCidrPrefix(vpcSubnetPrefix);
-		builder.withColors(getColorsFromProperty());
-		builder.withSubnetMask(VPC_SUBNET_NETWORK_MASK);
-		builder.withColorGroupNetMaskSubnetMask(VPC_COLOR_GROUP_NETWORK_MASK);
-		builder.withAvailabilityZones(availabilityZones);
-		Subnets subnets = builder.build();
-		context.put(SUBNETS, subnets);
-
 		context.put(STACK, config.getProperty(PROPERTY_KEY_STACK));
 
 		return context;
@@ -137,20 +121,6 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 					PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN + " must start with: " + PEERING_ROLE_ARN_PREFIX);
 		}
 		return peeringRoleArn;
-	}
-
-	/**
-	 * Get the colors from the property CSV.
-	 * 
-	 * @return
-	 */
-	Color[] getColorsFromProperty() {
-		String[] colorString = config.getComaSeparatedProperty(PROPERTY_KEY_COLORS);
-		Color[] colors = new Color[colorString.length];
-		for (int i = 0; i < colorString.length; i++) {
-			colors[i] = Color.valueOf(colorString[i]);
-		}
-		return colors;
 	}
 
 	/**

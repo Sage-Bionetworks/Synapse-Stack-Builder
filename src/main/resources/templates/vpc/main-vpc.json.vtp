@@ -213,7 +213,6 @@
 			}
 		}
 		#end	
-		#parse( "templates/vpc/subnet-resources.json.vtp" )
 	},
 	"Outputs": {
 		"VPCId": {
@@ -285,6 +284,28 @@
 				}
 			}
 		},
+		"VpcGatewayAttachment": {
+		    "Description": "Intenet Gateway used for this VPC",
+		    "Value": {
+		        "Ref": "InternetGatewayAttachment"
+		    },
+            "Export": {
+                "Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"VpcGatewayAttachment"
+						]
+					]
+                }
+            }
+		},
 		"VpcDefaultSecurityGroup": {
 			"Description": "VPC DefaultSecurityGroup Id ",
 			"Value": {
@@ -352,6 +373,26 @@
 				}
 			}
 		},
+		"networkAcl": {
+		    "Description": "Network ACL for the ${stack} stack",
+		    "Value": { "Ref": "NetworkAcl" },
+		    "Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"NetworkAcl"
+						]
+					]
+				}
+		    }
+		},
 		"notificationTopic": {
 			"Description": "Notification topic for the ${stack} stack",
 			"Value": { "Ref":"${stack}NotificationTopic"},
@@ -412,6 +453,5 @@
 				}
 			}
 		}
-		#parse( "templates/vpc/subnet-output.json.vtp" ) 
 	}
 }
