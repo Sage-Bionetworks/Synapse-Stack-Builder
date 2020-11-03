@@ -79,7 +79,7 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		doAnswer(new Answer<File>() {
 			@Override
 			public File answer(InvocationOnMock invocation) throws Throwable {
-				Consumer<File> consumer = invocation.getArgumentAt(1, Consumer.class);
+				Consumer<File> consumer = invocation.getArgument(1, Consumer.class);
 				// forward the request to the consumer
 				consumer.accept(mockTempDirectory);
 				return mockWarCopy;

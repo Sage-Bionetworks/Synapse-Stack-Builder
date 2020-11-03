@@ -20,8 +20,6 @@ import org.sagebionetworks.template.repo.IdGeneratorBuilder;
 import org.sagebionetworks.template.repo.IdGeneratorBuilderImpl;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilderImpl;
-import org.sagebionetworks.template.repo.S3BucketBuilder;
-import org.sagebionetworks.template.repo.S3BucketBuilderImpl;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
 import org.sagebionetworks.template.repo.WebACLBuilder;
 import org.sagebionetworks.template.repo.WebACLBuilderImpl;
@@ -46,6 +44,10 @@ import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfigV
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseVelocityContextProvider;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsConfig;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsVelocityContextProvider;
+import org.sagebionetworks.template.s3.S3BucketBuilder;
+import org.sagebionetworks.template.s3.S3BucketBuilderImpl;
+import org.sagebionetworks.template.s3.S3Config;
+import org.sagebionetworks.template.s3.S3ConfigValidator;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilder;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilderImpl;
 import org.sagebionetworks.war.WarAppender;
@@ -63,6 +65,9 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
@@ -70,6 +75,7 @@ import com.google.inject.multibindings.Multibinder;
 import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.KINESIS_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.SNS_AND_SQS_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.S3_CONFIG_FILE;
 
 public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
@@ -103,6 +109,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(CloudwatchLogsVelocityContextProvider.class).to(CloudwatchLogsVelocityContextProviderImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
+		
 		velocityContextProviderMultibinder.addBinding().to(SnsAndSqsVelocityContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(KinesisFirehoseVelocityContextProvider.class);
 	}
@@ -175,6 +182,14 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 	
 	@Provides
+	public AWSSecurityTokenService provideAmazonSts() {
+		AWSSecurityTokenServiceClientBuilder builder = AWSSecurityTokenServiceClientBuilder.standard();
+		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
+		builder.withRegion(Regions.US_EAST_1);
+		return builder.build();
+	}
+	
+	@Provides
 	public VelocityEngine velocityEngineProvider() {
 		VelocityEngine engine = new VelocityEngine();
 		engine.setProperty(RuntimeConstants.RESOURCE_LOADER, CLASSPATH_AND_FILE); 
@@ -197,6 +212,11 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public CloudwatchLogsConfig cloudwatchLogsConfigProvider() throws IOException {
 		return new CloudwatchLogsConfigValidator(loadFromJsonFile(CLOUDWATCH_LOGS_CONFIG_FILE, CloudwatchLogsConfig.class)).validate();
+	}
+	
+	@Provides
+	public S3Config s3ConfigProvider() throws IOException {
+		return new S3ConfigValidator(loadFromJsonFile(S3_CONFIG_FILE, S3Config.class)).validate();
 	}
 	
 	private static <T> T loadFromJsonFile(String file, Class<T> clazz) throws IOException {

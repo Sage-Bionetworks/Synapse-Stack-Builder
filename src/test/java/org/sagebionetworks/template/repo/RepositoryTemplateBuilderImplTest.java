@@ -4,8 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -15,9 +15,6 @@ import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_AWS_ACCESS_KEY_ID;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_AWS_SECRET_KEY;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_ENCRYPTION_KEY;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MAX_INSTANCES;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MIN_INSTANCES;
@@ -26,18 +23,18 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERS
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OAUTH_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_IOPS;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MULTI_AZ;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_STORAGE_TYPE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ROUTE_53_HOSTED_ZONE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_INSTANCE_COUNT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_IOPS;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_COLOR;
 import static org.sagebionetworks.template.Constants.REPO_BEANSTALK_NUMBER;
@@ -63,7 +60,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
@@ -116,8 +113,6 @@ public class RepositoryTemplateBuilderImplTest {
 	@Mock
 	StackTagsProvider mockStackTagsProvider;
 	@Mock
-	S3BucketBuilder mockBucketBuilder;
-	@Mock
 	CloudwatchLogsVelocityContextProvider mockCwlContextProvider;
 	@Captor
 	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
@@ -154,7 +149,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder, mockACLBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
-				mockElasticBeanstalkDefaultAMIEncrypter, mockStackTagsProvider, mockBucketBuilder, mockCwlContextProvider);
+				mockElasticBeanstalkDefaultAMIEncrypter, mockStackTagsProvider, mockCwlContextProvider);
 
 		stack = "dev";
 		instance = "101";
@@ -196,10 +191,6 @@ public class RepositoryTemplateBuilderImplTest {
 
 		when(config.getProperty((PROPERTY_KEY_OAUTH_ENDPOINT))).thenReturn("https://oauthendpoint");
 
-		when(config.getProperty(PROPERTY_KEY_AWS_ACCESS_KEY_ID)).thenReturn("aws-key");
-		when(config.getProperty(PROPERTY_KEY_AWS_SECRET_KEY)).thenReturn("aws-secret");
-		when(config.getProperty(PROPERTY_KEY_BEANSTALK_ENCRYPTION_KEY)).thenReturn("encryption-key");
-
 		sharedResouces = new Stack();
 		Output dbOut = new Output();
 		dbOut.withOutputKey(stack+instance+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
@@ -214,8 +205,6 @@ public class RepositoryTemplateBuilderImplTest {
 		tableDBOutput2.withOutputValue(stack+"-"+instance+"-table-1."+databaseEndpointSuffix);
 
 		sharedResouces.withOutputs(dbOut, tableDBOutput1, tableDBOutput2);
-
-		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(sharedResouces);
 		
 		secretsSouce = new SourceBundle("secretBucket", "secretKey");
 		keyAlias = "alias/some/alias";
@@ -251,7 +240,6 @@ public class RepositoryTemplateBuilderImplTest {
 		configureStack(stack);
 		// call under test
 		builder.buildAndDeploy();
-		verify(mockBucketBuilder).buildAllBuckets();
 		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
@@ -292,7 +280,6 @@ public class RepositoryTemplateBuilderImplTest {
 		configureStack(stack);
 		// call under test
 		builder.buildAndDeploy();
-		verify(mockBucketBuilder).buildAllBuckets();
 		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
@@ -310,7 +297,7 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_WORKERS);
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.PORTAL);
-
+		
 		// dev should not have alarms
 		assertFalse(resources.has("dev101Table1RepositoryDBAlarmSwapUsage"));
 		assertFalse(resources.has("dev101Table1RepositoryDBAlarmSwapUsage"));

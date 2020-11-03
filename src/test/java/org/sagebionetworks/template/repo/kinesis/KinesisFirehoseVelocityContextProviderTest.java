@@ -12,13 +12,12 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.apache.velocity.VelocityContext;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.repo.kinesis.firehose.GlueTableDescriptor;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfig;
@@ -27,7 +26,7 @@ import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseVelocit
 
 import com.google.common.collect.ImmutableSet;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class KinesisFirehoseVelocityContextProviderTest {
 
 	@Mock
@@ -55,11 +54,9 @@ public class KinesisFirehoseVelocityContextProviderTest {
 	private String testInstance = "TestInstance";
 	private Set<KinesisFirehoseStreamDescriptor> testStreams;
 	
-	@Before
+	@BeforeEach
 	public void before() {
-		MockitoAnnotations.initMocks(this);
 		testStreams = Collections.singleton(mockStream);
-		when(mockStream.isDevOnly()).thenReturn(false);
 		when(mockRepoConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(testStack);
 		when(mockRepoConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(testInstance);
 		when(mockStream.getTableDescriptor()).thenReturn(mockTable);
@@ -94,30 +91,10 @@ public class KinesisFirehoseVelocityContextProviderTest {
 		String devStack = "someOtherStack";
 		
 		when(mockRepoConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(devStack);
-		when(mockStream.isDevOnly()).thenReturn(true);
 		
 		contextProvider.addToContext(mockContext);
 		
 		verify(mockContext).put(KINESIS_FIREHOSE_STREAM_DESCRIPTORS, Collections.singleton(mockStream));
-	}
-	
-	@Test
-	public void testAddToContextWithDevOnlyStreamsMixed() {
-		
-		// A stack different than prod
-		String prodStack = "someOtherStack";
-		
-		// Second stream is dev only
-		when(mockStream2.isDevOnly()).thenReturn(true);
-		
-		Set<KinesisFirehoseStreamDescriptor> streams = ImmutableSet.of(mockStream, mockStream2);
-		
-		when(mockConfig.getStreamDescriptors()).thenReturn(streams);
-		when(mockRepoConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(prodStack);
-		
-		contextProvider.addToContext(mockContext);
-		
-		verify(mockContext).put(KINESIS_FIREHOSE_STREAM_DESCRIPTORS, streams);
 	}
 	
 	@Test
