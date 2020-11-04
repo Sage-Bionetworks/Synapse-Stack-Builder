@@ -26,6 +26,8 @@ public class Constants {
 	 * The unique name assigned to the Synapse VPC stack.
 	 */
 	public static final String VPC_STACK_NAME_FORMAT = "synapse-%1$s-vpc-2020";
+	public static final String VPC_PUBLIC_SUBNETS_STACKNAME_FORMAT = "synapse-%1$s-vpc-2020-public-subnets";
+	public static final String VPC_PRIVATE_SUBNET_STACKNAME_FORMAT = "synapse-%1$s-vpc-2020-private-subnets-%2$s";
 
 	// CloudFormation Parameter names.
 	// VPC
@@ -96,6 +98,8 @@ public class Constants {
 
 	// templates
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
+	public static final String TEMPLATES_VPC_PUBLIC_SUBNETS_JSON_VTP = "templates/vpc/public-subnets-resources.json.vtp";
+	public static final String TEMPLATES_VPC_PRIVATE_SUBNET_JSON_VTP = "templates/vpc/private-subnet-resources.json.vtp";
 	public static final String TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";
 	public static final String TEMPALTE_BEAN_STALK_ENVIRONMENT = "templates/repo/elasticbeanstalk-template.json.vpt";
 	public static final String TEMPLATE_ID_GENERATOR = "templates/repo/id-generator-template.json.vpt";
@@ -139,6 +143,8 @@ public class Constants {
 	public static final String STACK_CMK_ALIAS = "stackCMKAlias";
 	public static final String DATABASE_IDENTIFIER = "databaseIdentifier";
 	public static final String EXCEPTION_THROWER = "exceptionThrower";
+	public static final String VPC_STACKNAME = "vpcStackName";
+	public static final String PRIVATE_SUBNET_IDX = "privateSubnetIdx";
 	
 	public static final String CAPABILITY_NAMED_IAM = "CAPABILITY_NAMED_IAM";
 	public static final String OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT = "RepositoryDBEndpoint";

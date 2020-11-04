@@ -1,0 +1,151 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Creates one public subnet per availability zone.",
+	"Resources": {
+
+    #set($subnetGroups=$subnets.privateSubnetGroups)
+    #set($subnetGroup=$subnetGroups[$privateSubnetIdx])
+    #foreach ( $privateSubnet in $subnetGroup.subnets )
+        "${privateSubnet.name}": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "MapPublicIpOnLaunch": false,
+                "VpcId": {
+                     "Fn::ImportValue": {
+                         "Fn::Join": [
+                             "-",
+                             [
+                                 {
+                                     "Ref": "AWS::Region"
+                                 },
+                                 "${vpcStackName}",
+                                 "VPCId"
+                             ]
+                         ]
+                     }
+                 },
+                "CidrBlock": "${privateSubnet.cidr}",
+                "AvailabilityZone": "${privateSubnet.availabilityZone}",
+                "Tags": [
+                    {
+                        "Key": "Application",
+                        "Value": {
+                            "Ref": "AWS::StackName"
+                        }
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": "${privateSubnet.name}"
+                    }
+                ]
+            }
+        },
+        "${privateSubnet.name}RouteTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {
+                      "Fn::ImportValue": {
+                          "Fn::Join": [
+                              "-",
+                              [
+                                  {
+                                      "Ref": "AWS::Region"
+                                  },
+                                  "${vpcStackName}",
+                                  "VPCId"
+                              ]
+                          ]
+                      }
+                  },
+                "Tags": [
+                    {
+                        "Key": "Application",
+                        "Value": {
+                            "Ref": "AWS::StackName"
+                        }
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": "${privateSubnet.name}"
+                    }
+                ]
+            }
+        },
+        "${privateSubnet.name}RouteVPN": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "${privateSubnet.name}RouteTable"
+                },
+                "DestinationCidrBlock": "10.1.0.0/16",
+                "VpcPeeringConnectionId": {
+                    "Fn::ImportValue": {
+                        "Fn::Join": [
+                          "-",
+                          [
+                              {
+                                  "Ref": "AWS::Region"
+                              },
+                              "${vpcStackName}",
+                              "VPCPeeringConnectionId"
+                          ]
+                        ]
+                    }
+                }
+            }
+        },
+        "${privateSubnet.name}PrivateRoute": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "${privateSubnet.name}RouteTable"
+                },
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "NatGatewayId": {
+                    "Fn::ImportValue": {
+                        "Fn::Join": [
+                          "-",
+                          [
+                              { "Ref": "AWS::Region" },
+                              "${vpcStackName}-public-subnets",
+                              "Public${privateSubnet.getAvailabilityZoneRef()}NATGatway"
+                          ]
+                        ]
+                    }
+                }
+            }
+        },
+        "${privateSubnet.name}RouteTableAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "${privateSubnet.name}"
+                },
+                "RouteTableId": {
+                    "Ref": "${privateSubnet.name}RouteTable"
+                }
+            }
+        },
+        "${privateSubnet.name}NetworkAclAssociation": {
+            "Type": "AWS::EC2::SubnetNetworkAclAssociation",
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "${privateSubnet.name}"
+                },
+                "NetworkAclId": {
+                    "Fn::ImportValue": {
+                        "Fn::Join": [
+                          "-",
+                          [
+                              { "Ref": "AWS::Region" },
+                              "${vpcStackName}",
+                              "NetworkAcl"
+                          ]
+                        ]
+                    }
+                }
+            }
+        },
+    #end
+    }
+}

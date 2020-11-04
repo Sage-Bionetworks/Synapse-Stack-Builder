@@ -46,6 +46,8 @@ import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfigV
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseVelocityContextProvider;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsConfig;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsVelocityContextProvider;
+import org.sagebionetworks.template.vpc.SubnetTemplateBuilder;
+import org.sagebionetworks.template.vpc.SubnetTemplateBuilderImpl;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilder;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilderImpl;
 import org.sagebionetworks.war.WarAppender;
@@ -83,6 +85,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	protected void configure() {
 		bind(CloudFormationClient.class).to(CloudFormationClientImpl.class);
 		bind(VpcTemplateBuilder.class).to(VpcTemplateBuilderImpl.class);
+		bind(SubnetTemplateBuilder.class).to(SubnetTemplateBuilderImpl.class);
 		bind(Configuration.class).to(ConfigurationImpl.class);
 		bind(RepoConfiguration.class).to(RepoConfigurationImpl.class);
 		bind(LoggerFactory.class).to(LoggerFactoryImpl.class);

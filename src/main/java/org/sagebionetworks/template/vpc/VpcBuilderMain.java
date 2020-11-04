@@ -15,8 +15,8 @@ public class VpcBuilderMain {
 		Injector injector = Guice.createInjector(new TemplateGuiceModule());
 		VpcTemplateBuilder builder = injector.getInstance(VpcTemplateBuilder.class);
 		builder.buildAndDeploy();
-		//SubnetTemplateBuilder subnetBuilder = injector.getInstance(SubnetTemplateBuilder.class);
-		//subnetBuilder.buildAndDeploy(Color.Blue);
+		SubnetTemplateBuilder subnetBuilder = injector.getInstance(SubnetTemplateBuilder.class);
+		subnetBuilder.buildAndDeployPublicSubnets();
 	}
 
 }
