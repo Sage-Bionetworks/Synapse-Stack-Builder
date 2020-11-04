@@ -37,7 +37,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 
 	private static final Logger logger = LogManager.getLogger(S3BucketBuilderImpl.class);
 
-	static final String INVENTORY_ID = "inventoryConfig";
+	static final String INVENTORY_ID = "defaultInventory";
 	static final String INVENTORY_FORMAT = "Parquet";
 	static final String INVENTORY_PREFIX = "inventory";
 	static final List<String> INVENTORY_FIELDS = Arrays.asList(
