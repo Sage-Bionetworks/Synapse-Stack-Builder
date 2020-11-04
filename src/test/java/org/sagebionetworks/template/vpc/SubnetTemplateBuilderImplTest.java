@@ -105,7 +105,7 @@ public class SubnetTemplateBuilderImplTest {
     @Test
     public void testCreatePrivateSubnetStackName() {
         String name = builder.createPrivateSubnetStackName("red");
-        assertEquals("synapse-dev-vpc-2020-private-subnet-red", name);
+        assertEquals("synapse-dev-vpc-2020-private-subnets-red", name);
     }
 
     @Test
