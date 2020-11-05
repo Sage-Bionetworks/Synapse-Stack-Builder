@@ -123,7 +123,7 @@ public class SubnetTemplateBuilderImplTest {
     }
 
     @Test
-    public void testBuildAndDeployPublicSubnets() {
+    public void testBuildAndDeployPublicSubnets() throws Exception {
         // call under test
         builder.buildAndDeployPublicSubnets();
 
@@ -138,7 +138,7 @@ public class SubnetTemplateBuilderImplTest {
     }
 
     @Test
-    public void testBuildAndDeployPrivateSubnets() {
+    public void testBuildAndDeployPrivateSubnets() throws Exception {
         // call under test
         builder.buildAndDeployPrivateSubnets();
 

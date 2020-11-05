@@ -110,7 +110,7 @@ public class VpcTemplateBuilderImplTest {
 	}
 
 	@Test
-	public void testBuildAndDeploy() {
+	public void testBuildAndDeploy() throws Exception {
 		// call under test
 		builder.buildAndDeploy();
 		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
