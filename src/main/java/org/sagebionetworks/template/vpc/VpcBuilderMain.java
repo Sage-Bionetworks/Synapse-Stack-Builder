@@ -18,6 +18,7 @@ public class VpcBuilderMain {
 		builder.buildAndDeploy();
 		SubnetTemplateBuilder subnetBuilder = injector.getInstance(SubnetTemplateBuilder.class);
 		subnetBuilder.buildAndDeployPublicSubnets();
+		subnetBuilder.buildAndDeployPrivateSubnets();
 	}
 
 }

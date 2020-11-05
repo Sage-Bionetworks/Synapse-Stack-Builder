@@ -139,7 +139,7 @@
                           [
                               { "Ref": "AWS::Region" },
                               "${vpcStackName}",
-                              "NetworkAcl"
+                              "NetworkAclId"
                           ]
                         ]
                     }
