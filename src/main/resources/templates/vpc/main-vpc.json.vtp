@@ -387,7 +387,7 @@
 							{
 								"Ref": "AWS::StackName"
 							},
-							"NetworkAcl"
+							"NetworkAclId"
 						]
 					]
 				}
