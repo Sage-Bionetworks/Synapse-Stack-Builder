@@ -84,7 +84,7 @@
                                     "Ref": "AWS::Region"
                                 },
                                 "${vpcStackName}",
-                                "VPCPeeringConnectionId"
+                                "VpcPeeringConnectionId"
                             ]
                         ]
                     }
