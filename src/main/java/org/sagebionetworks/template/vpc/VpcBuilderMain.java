@@ -1,5 +1,6 @@
 package org.sagebionetworks.template.vpc;
 
+import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.TemplateGuiceModule;
 
 import com.google.inject.Guice;
@@ -11,7 +12,7 @@ import com.google.inject.Injector;
  */
 public class VpcBuilderMain {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		Injector injector = Guice.createInjector(new TemplateGuiceModule());
 		VpcTemplateBuilder builder = injector.getInstance(VpcTemplateBuilder.class);
 		builder.buildAndDeploy();

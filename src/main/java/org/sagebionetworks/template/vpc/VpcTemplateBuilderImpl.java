@@ -60,7 +60,7 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 	}
 
 	@Override
-	public void buildAndDeploy() {
+	public void buildAndDeploy() throws InterruptedException {
 		String stackName = createStackName();
 		// Create the context from the input
 		VelocityContext context = createContext();
@@ -82,6 +82,7 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 				.withTemplateBody(resultJSON)
 				.withTags(stackTagsProvider.getStackTags())
 				.withParameters(params));
+		this.cloudFormationClient.waitForStackToComplete(stackName);
 	}
 
 	/**

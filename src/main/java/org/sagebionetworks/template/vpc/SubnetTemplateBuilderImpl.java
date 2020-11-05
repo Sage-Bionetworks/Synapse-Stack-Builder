@@ -37,7 +37,7 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
     }
 
     @Override
-    public void buildAndDeployPublicSubnets() {
+    public void buildAndDeployPublicSubnets() throws InterruptedException {
         String stackName = createPublicSubnetsStackName();
         // Create the context from the input
         VelocityContext context = createContext();
@@ -54,10 +54,12 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
                 .withTemplateBody(resultJSON)
                 .withTags(stackTagsProvider.getStackTags())
         );
+
+        this.cloudFormationClient.waitForStackToComplete(stackName);
     }
 
     @Override
-    public void buildAndDeployPrivateSubnets() {
+    public void buildAndDeployPrivateSubnets() throws InterruptedException {
 
         Color[] colors = getColorsFromProperty();
         VelocityContext context = createContext();
@@ -81,6 +83,8 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
                             .withTemplateBody(resultJSON)
                             .withTags(stackTagsProvider.getStackTags())
             );
+
+            this.cloudFormationClient.waitForStackToComplete(stackName);
         }
     }
 
