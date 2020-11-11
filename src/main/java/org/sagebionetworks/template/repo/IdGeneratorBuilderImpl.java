@@ -50,7 +50,7 @@ public class IdGeneratorBuilderImpl implements IdGeneratorBuilder {
 		VelocityContext context = new VelocityContext();
 		String color = config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR);
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
-		String databaseIdentifier = stack+"-id-generator-db-"+color.toLowerCase();
+		String databaseIdentifier = stack+"-id-generator-db"+color.toLowerCase();
 		context.put(STACK, stack);
 		context.put(VPC_EXPORT_PREFIX, Constants.createVpcExportPrefix(stack));
 		context.put(VPC_SUBNET_COLOR, color);
