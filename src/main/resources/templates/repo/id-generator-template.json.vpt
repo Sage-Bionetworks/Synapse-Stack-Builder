@@ -17,7 +17,7 @@
 					"Fn::Split": [
 						",",
 						{
-							"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-Private-Subnets"
+							"Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-Private-Subnets"
 						}
 					]
 				}
@@ -68,7 +68,7 @@
 			"Type": "AWS::RDS::DBParameterGroup",
 			"Properties": {
 				"Description": "Shared MySQL database parameters",
-				"Family": "mysql5.6",
+				"Family": "mysql8.0",
 				"Parameters": {
 					"slow_query_log": "1",
 					"long_query_time": "1",
@@ -84,7 +84,7 @@
 				"AllowMajorVersionUpgrade": false,
 				"AutoMinorVersionUpgrade": true,
 				"BackupRetentionPeriod": "7",
-				"DBInstanceClass": "db.t3.small",
+				"DBInstanceClass": "db.m5.large",
 				"DBInstanceIdentifier": "${databaseIdentifier}",
 				"DBName": "${stack}idgen",
 				"DBParameterGroupName": {
@@ -94,7 +94,7 @@
 					"Ref": "${stack}IdGeneratorDBSubnetGroup"
 				},
 				"Engine": "MySQL",
-				"EngineVersion": "5.6.34",
+				"EngineVersion": "8.0.21",
 				"LicenseModel": "general-public-license",
 				"MasterUsername": "${stack}idgenuser",
 				"MasterUserPassword": {
