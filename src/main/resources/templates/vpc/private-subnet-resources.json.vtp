@@ -181,5 +181,25 @@
                 }
             }
         },
+        "SubnetGroupCIDR": {
+            "Description": "CIDR for this subnetgroup",
+            "Value": "$subnetGroup.cidr",
+            "Export": {
+                "Name": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "CIDR"
+                        ]
+                    ]
+                }
+            }
+        }
     }
 }
