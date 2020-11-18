@@ -13,7 +13,7 @@
 			"Type": "AWS::RDS::DBSubnetGroup",
 			"Properties": {
 				"DBSubnetGroupDescription": "Repository database subnet group defines where RDS instances can be deployed.",
-				"SubnetIds": { "Fn::Split" : [ ",", {"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-Private-Subnets"} ] },
+				"SubnetIds": { "Fn::Split" : [ ",", {"Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-Private-Subnets"} ] },
 			}
 		},
 		"${stack}${instance}VpcDBSecurityGroup": {
@@ -36,7 +36,7 @@
 					{
 						"Description": "Allow ${subnetGroupColor} subnet one access to MySQL",
 						"CidrIp": {
-							"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-CIDR"
+							"Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-CIDR"
 						},
 						"FromPort": "3306",
 						"ToPort": "3306",
@@ -248,7 +248,7 @@
 					{
 						"Description": "Allow ${subnetGroupColor} subnet HTTPS access",
 						"CidrIp": {
-							"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-CIDR"
+							"Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-CIDR"
 						},
 						"FromPort": "443",
 						"ToPort": "443",
