@@ -81,6 +81,9 @@ public class Constants {
 
 	public static final String PROPERTY_KEY_OAUTH_ENDPOINT = "org.sagebionetworks.oauth.authorization.endpoint";
 
+	public static final String PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER = "org.sagebionetworks.repo.snapshot.identifier";
+	public static final String PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS = "org.sagbionetworks.tables.snapshot.identifiers";
+
 	// tag values
 	public static final String TAG_VALUE_DEPARTMENT = "Platform";
 	public static final String TAG_VALUE_PROJECT = "Synapse";

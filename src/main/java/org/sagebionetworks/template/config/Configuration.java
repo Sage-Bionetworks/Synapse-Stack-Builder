@@ -16,6 +16,8 @@ public interface Configuration {
 	 * @return
 	 */
 	String getProperty(String key);
+
+	public String getOptionalProperty(String key);
 	
 	/**
 	 * For properties that are comma separated lists of values,

@@ -9,41 +9,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
-import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
-import static org.sagebionetworks.template.Constants.ENVIRONMENT;
-import static org.sagebionetworks.template.Constants.INSTANCE;
-import static org.sagebionetworks.template.Constants.OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
-import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MAX_INSTANCES;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MIN_INSTANCES;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERSION;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OAUTH_ENDPOINT;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_IOPS;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MULTI_AZ;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_STORAGE_TYPE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ROUTE_53_HOSTED_ZONE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_INSTANCE_COUNT;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_IOPS;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_COLOR;
-import static org.sagebionetworks.template.Constants.REPO_BEANSTALK_NUMBER;
-import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.SHARED_RESOUCES_STACK_NAME;
-import static org.sagebionetworks.template.Constants.STACK;
-import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
-import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
+import static org.sagebionetworks.template.Constants.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -236,10 +202,13 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testBuildAndDeployProd() throws InterruptedException {
+		when(config.getOptionalProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(null);
 		stack = "prod";
 		configureStack(stack);
+
 		// call under test
 		builder.buildAndDeploy();
+
 		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
@@ -276,10 +245,13 @@ public class RepositoryTemplateBuilderImplTest {
 	
 	@Test
 	public void testBuildAndDeployDev() throws InterruptedException {
+		when(config.getOptionalProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(null);
 		stack = "dev";
 		configureStack(stack);
+
 		// call under test
 		builder.buildAndDeploy();
+
 		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
@@ -304,8 +276,56 @@ public class RepositoryTemplateBuilderImplTest {
 		assertFalse(resources.has("devd101Table1RepositoryDBHighWriteLatency"));
 		assertFalse(resources.has("dev101Table1RepositoryDBHighCPUUtilization"));
 		assertFalse(resources.has("dev101Table1RepositoryDBLowFreeStorageSpace"));
+
+		assertTrue(resources.has("dev101RepositoryDB"));
+		JSONObject repoDB = (JSONObject)resources.get("dev101RepositoryDB");
+		JSONObject dbProps = (JSONObject)repoDB.get("Properties");
+		assertFalse(dbProps.has("DBSnapshotIdentifier"));
+		assertTrue(dbProps.has("DBName"));
 	}
 
+	@Test
+	public void testBuildAndDeployDevFromSnapshot() throws InterruptedException {
+		when(config.getOptionalProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn("repoSnapshotIdentifier");
+		String[] tableSnaphotIdentifiers = {"table0SnapshotIdentifier", "table1SnapshotIdentifier"};
+		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(tableSnaphotIdentifiers);
+		stack = "dev";
+		configureStack(stack);
+
+		// call under test
+		builder.buildAndDeploy();
+
+		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
+		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
+		CreateOrUpdateStackRequest request = list.get(0);
+		assertEquals("dev-101-shared-resources", request.getStackName());
+		assertEquals(expectedTags, request.getTags());
+		assertEquals(false, request.getEnableTerminationProtection());
+		assertNotNull(request.getParameters());
+		String bodyJSONString = request.getTemplateBody();
+		assertNotNull(bodyJSONString);
+		System.out.println(bodyJSONString);
+		JSONObject templateJson = new JSONObject(bodyJSONString);
+		JSONObject resources = templateJson.getJSONObject("Resources");
+		assertNotNull(resources);
+
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_WORKERS);
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.PORTAL);
+
+		// dev should not have alarms
+		assertFalse(resources.has("dev101Table1RepositoryDBAlarmSwapUsage"));
+		assertFalse(resources.has("dev101Table1RepositoryDBAlarmSwapUsage"));
+		assertFalse(resources.has("devd101Table1RepositoryDBHighWriteLatency"));
+		assertFalse(resources.has("dev101Table1RepositoryDBHighCPUUtilization"));
+		assertFalse(resources.has("dev101Table1RepositoryDBLowFreeStorageSpace"));
+
+		assertTrue(resources.has("dev101RepositoryDB"));
+		JSONObject repoDB = (JSONObject)resources.get("dev101RepositoryDB");
+		JSONObject dbProps = (JSONObject)repoDB.get("Properties");
+		assertTrue(dbProps.has("DBSnapshotIdentifier"));
+		assertFalse(dbProps.has("DBName"));
+	}
 
 	public void validateResouceDatabaseSubnetGroup(JSONObject resources, String stack) {
 		JSONObject subnetGroup = resources.getJSONObject(stack+"101DBSubnetGroup");
