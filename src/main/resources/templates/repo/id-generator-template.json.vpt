@@ -112,6 +112,18 @@
 				]
 			}
 		},
+		"${stack}idGeneratorCNAME": {
+             "Type" : "AWS::Route53::RecordSet",
+             "Properties" : {
+                "HostedZoneId" : "${hostedZone}",
+                "Name" : "${databaseIdentifier}.${stack}.sagebase.org",
+                "ResourceRecords" : [
+                   { "Fn::GetAtt" : [ "${stack}IdGenerator", "Endpoint.Address" ] }
+                ],
+                "TTL" : "300",
+                "Type" : "CNAME"
+             }
+		},
 		#if(${stack} == 'prod')
 		"${stack}IdGeneratorAlarmSwapUsage": {
 			"Type": "AWS::CloudWatch::Alarm",
