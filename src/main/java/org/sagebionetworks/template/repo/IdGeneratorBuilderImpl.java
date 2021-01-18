@@ -50,6 +50,7 @@ public class IdGeneratorBuilderImpl implements IdGeneratorBuilder {
 		context.put(VPC_SUBNET_COLOR, color);
 		context.put(DATABASE_IDENTIFIER, databaseIdentifier);
 		context.put(HOSTED_ZONE, hostedZoneId);
+		context.put(TEMP_VPC_CIDR, config.getProperty(PROPERTY_KEY_OLD_VPC_CIDR));
 
 		Parameter parameter = new Parameter();
 		parameter.withParameterKey(Constants.PARAMETER_MYSQL_PASSWORD);
