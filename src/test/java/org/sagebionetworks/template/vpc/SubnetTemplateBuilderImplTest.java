@@ -76,12 +76,12 @@ public class SubnetTemplateBuilderImplTest {
         builder = new SubnetTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, mockConfig, mockLoggerFactory, mockStackTagsProvider);
 
         colors = new String[] {"Red", "Green"};
-        subnetPrefix = "10.21";
+        subnetPrefix = "10.24";
         avialabilityZones = new String[] {"us-east-1a","us-east-1b"};
         vpnCider = "10.1.0.0/16";
         stack = "dev";
         peeringRoleARN = PEERING_ROLE_ARN_PREFIX+"/someKey";
-        oldVpcCidr = "10.2.0.0/16";
+        oldVpcCidr = "10.21.0.0/16";
         oldVpcId = "vpc-123def";
 
         when(mockConfig.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX)).thenReturn(subnetPrefix);
@@ -114,12 +114,15 @@ public class SubnetTemplateBuilderImplTest {
         VelocityContext context = builder.createContext();
 
         assertNotNull(context);
-        assertEquals("10.21.0.0/16", context.get(VPC_CIDR));
+        assertEquals("10.24.0.0/16", context.get(VPC_CIDR));
         String avZonesStr = (String)context.get(AVAILABILITY_ZONES);
         assertEquals("us-east-1a,us-east-1b", avZonesStr);
         assertEquals("dev", context.get(STACK));
         assertEquals("synapse-dev-vpc-2020", context.get(VPC_STACKNAME));
         assertNotNull(context.get(SUBNETS));
+
+        assertEquals("10.21.0.0/16", context.get(TEMP_VPC_CIDR));
+
     }
 
     @Test

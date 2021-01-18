@@ -2,10 +2,6 @@
 	"AWSTemplateFormatVersion": "2010-09-09",
 	"Description": "Creates a VPC with public and private subnets for the Synapse stacks.",
 	"Parameters": {
-		"VpcSubnetPrefix": {
-			"Description": "The VPC subnet prefix (i.e. 10.40)",
-			"Type": "String"
-		},
 		"VpnCidr": {
 			"Description": "CIDR of the (sophos-utm) VPN",
 			"Type": "String",
@@ -60,6 +56,27 @@
 				]
 			}
 		},
+        "TempVpcPeeringConnection" :{
+            "Type" : "AWS::EC2::VPCPeeringConnection",
+            "Properties" : {
+                "PeerVpcId" : { "Ref": "OldVpcId" },
+                "VpcId" : {
+                    "Ref": "VPC"
+                },
+                "Tags": [
+                    {
+                        "Key": "Application",
+                        "Value": {
+                            "Ref": "AWS::StackName"
+                        }
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": "synapse-${stack}-tempVPC-peering"
+                    }
+                ]
+            }
+        },
 		"InternetGateway": {
 			"Type": "AWS::EC2::InternetGateway",
 			"Properties": {
@@ -113,6 +130,31 @@
                 }]
             }
         },
+        "TempVpcSecurityGroup": {
+             "DependsOn": "VPC",
+             "Type": "AWS::EC2::SecurityGroup",
+             "Properties": {
+                 "GroupDescription": "Security Group for VPN",
+                 "VpcId": {
+                     "Ref": "VPC"
+                 },
+                 "SecurityGroupIngress": [{
+                     "CidrIp": {
+                         "Ref": "OldVpcCidr"
+                     },
+                     "FromPort": "-1",
+                     "ToPort": "-1",
+                     "IpProtocol": "-1",
+                     "Description": "Allow all traffic from the old VPC"
+                 }],
+                 "SecurityGroupEgress": [{
+                     "CidrIp": "0.0.0.0/0",
+                     "FromPort": "-1",
+                     "ToPort": "-1",
+                     "IpProtocol": "-1"
+                 }]
+             }
+         },
 		"NetworkAcl": {
 			"Type": "AWS::EC2::NetworkAcl",
 			"Properties": {
@@ -393,6 +435,26 @@
 				}
 		    }
 		},
+        "TempVpcPeeringConnection": {
+            "Description": "Temporary VpcPeeringConnection for the ${stack} stack",
+            "Value": { "Ref": "TempVpcPeeringConnection" },
+            "Export": {
+                "Name": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "TempVpcPeeringConnectionId"
+                        ]
+                    ]
+                }
+            }
+        },
 		"NetworkAcl": {
 		    "Description": "Network ACL for the ${stack} stack",
 		    "Value": { "Ref": "NetworkAcl" },

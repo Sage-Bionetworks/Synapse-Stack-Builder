@@ -91,6 +91,29 @@
                 }
             }
         },
+         "${publicSubnet.name}TempRoute": {
+             "Type": "AWS::EC2::Route",
+             "Properties": {
+                 "RouteTableId": {
+                     "Ref": "${publicSubnet.name}RouteTable"
+                 },
+                 "DestinationCidrBlock": "${tempVpcCidr}",
+                 "VpcPeeringConnectionId": {
+                     "Fn::ImportValue": {
+                         "Fn::Join": [
+                             "-",
+                             [
+                                 {
+                                     "Ref": "AWS::Region"
+                                 },
+                                 "${vpcStackName}",
+                                 "TempVpcPeeringConnectionId"
+                             ]
+                         ]
+                     }
+                 }
+             }
+         },
         "${publicSubnet.name}PublicRoute": {
             "Type": "AWS::EC2::Route",
             "Properties": {
