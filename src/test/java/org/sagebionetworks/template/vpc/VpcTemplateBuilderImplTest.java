@@ -151,17 +151,15 @@ public class VpcTemplateBuilderImplTest {
 		// call under test
 		Parameter[] parameters = builder.createParameters(stackName);
 		assertNotNull(parameters);
-		assertEquals(4, parameters.length);
+		assertEquals(3, parameters.length);
 		// keys
-		assertEquals(PARAMETER_VPC_SUBNET_PREFIX,parameters[0].getParameterKey());
-		assertEquals(PARAMETER_VPN_CIDR,parameters[1].getParameterKey());
-		assertEquals(PARAMETER_OLD_VPC_ID, parameters[2].getParameterKey());
-		assertEquals(PARAMETER_OLD_VPC_CIDR, parameters[3].getParameterKey());
+		assertEquals(PARAMETER_VPN_CIDR,parameters[0].getParameterKey());
+		assertEquals(PARAMETER_OLD_VPC_ID, parameters[1].getParameterKey());
+		assertEquals(PARAMETER_OLD_VPC_CIDR, parameters[2].getParameterKey());
 		// values
-		assertEquals(subnetPrefix, parameters[0].getParameterValue());
-		assertEquals(vpnCider, parameters[1].getParameterValue());
-		assertEquals(oldVpcId, parameters[2].getParameterValue());
-		assertEquals(oldVpcCidr, parameters[3].getParameterValue());
+		assertEquals(vpnCider, parameters[0].getParameterValue());
+		assertEquals(oldVpcId, parameters[1].getParameterValue());
+		assertEquals(oldVpcCidr, parameters[2].getParameterValue());
 	}
 	
 	@Test

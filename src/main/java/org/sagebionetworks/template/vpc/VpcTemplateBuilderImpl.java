@@ -139,14 +139,12 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 	 * @return
 	 */
 	public Parameter[] createParameters(String stackName) {
-		Parameter VpcSubnetPrefix = new Parameter().withParameterKey(PARAMETER_VPC_SUBNET_PREFIX)
-				.withParameterValue(config.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX));
 		Parameter VpnCidr = new Parameter().withParameterKey(PARAMETER_VPN_CIDR)
 				.withParameterValue(config.getProperty(PROPERTY_KEY_VPC_VPN_CIDR));
 		Parameter oldVpcId = new Parameter().withParameterKey(PARAMETER_OLD_VPC_ID)
 				.withParameterValue(config.getProperty(PROPERTY_KEY_OLD_VPC_ID));
 		Parameter oldVpcCidr = new Parameter().withParameterKey(PARAMETER_OLD_VPC_CIDR)
 				.withParameterValue(config.getProperty(PROPERTY_KEY_OLD_VPC_CIDR));
-		return new Parameter[] { VpcSubnetPrefix, VpnCidr, oldVpcId, oldVpcCidr };
+		return new Parameter[] { VpnCidr, oldVpcId, oldVpcCidr };
 	}
 }
