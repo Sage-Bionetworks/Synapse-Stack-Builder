@@ -87,10 +87,7 @@ public class SubnetTemplateBuilderImplTest {
         when(mockConfig.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX)).thenReturn(subnetPrefix);
         when(mockConfig.getProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn("us-east-1a,us-east-1b");
         when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn(avialabilityZones);
-        when(mockConfig.getProperty(PROPERTY_KEY_VPC_VPN_CIDR)).thenReturn(vpnCider);
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
-        when(mockConfig.getProperty(PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN)).thenReturn(peeringRoleARN);
-        when(mockConfig.getProperty(PROPERTY_KEY_OLD_VPC_ID)).thenReturn(oldVpcId);
         when(mockConfig.getProperty(PROPERTY_KEY_OLD_VPC_CIDR)).thenReturn(oldVpcCidr);
         when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_COLORS)).thenReturn(colors);
 

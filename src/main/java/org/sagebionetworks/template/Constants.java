@@ -16,6 +16,7 @@ public class Constants {
 	public static final String SNS_AND_SQS_CONFIG_FILE = "templates/repo/sns-and-sqs-config.json";
 	public static final String KINESIS_CONFIG_FILE = "templates/repo/kinesis-log-streams.json";
 	public static final String CLOUDWATCH_LOGS_CONFIG_FILE = "templates/repo/cloudwatch-logs-config.json";
+	public static final String S3_CONFIG_FILE = "templates/s3/s3-buckets-config.json";
 
 	/**
 	 * A VPC peering role ARN must start with this prefix.
@@ -78,7 +79,6 @@ public class Constants {
 	public static final String PROPERTY_KEY_SECRET_KEYS_CSV = "org.sagebionetworks.secret.keys.csv";
 	public static final String PROPERTY_KEY_REPOSITORY_DATABASE_PASSWORD = "org.sagebionetworks.repository.database.password";
 	public static final String PROPERTY_KEY_ID_GENERATOR_DATABASE_PASSWORD = "org.sagebionetworks.id.generator.database.password";
-	public static final String PROPERTY_KEY_S3_BUCKETS_CSV = "org.sagebionetworks.s3.buckets";
 	public static final String PROPERTY_KEY_ID_GENERATOR_HOSTED_ZONE_ID = "org.sagebionetworks.id.generator.hosted.zone.id";
 
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX = "org.sagebionetworks.beanstalk.image.version.";
@@ -104,6 +104,7 @@ public class Constants {
 	public static final String TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";
 	public static final String TEMPALTE_BEAN_STALK_ENVIRONMENT = "templates/repo/elasticbeanstalk-template.json.vpt";
 	public static final String TEMPLATE_ID_GENERATOR = "templates/repo/id-generator-template.json.vpt";
+	public static final String TEMPLATE_INVENTORY_BUCKET_POLICY_TEMPLATE = "templates/s3/s3-inventory-bucket-policy.json.vpt";
 	
 
 	public static final int JSON_INDENT = 5;

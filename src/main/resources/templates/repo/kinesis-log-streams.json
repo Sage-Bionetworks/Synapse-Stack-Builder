@@ -8,7 +8,7 @@
 	},
 	{
 		"name": "fileDownloads",
-		"partitionScheme": "year=!{timestamp:YYYY}/month=!{timestamp:MM}/day=!{timestamp:dd}",
+		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
 		"format": "PARQUET",
 		"bufferFlushSize": 64,
 		"bufferFlushInterval": 900,
@@ -33,7 +33,7 @@
 	},
 	{
 		"name": "fileUploads",
-		"partitionScheme": "year=!{timestamp:YYYY}/month=!{timestamp:MM}/day=!{timestamp:dd}",
+		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
 		"format": "PARQUET",
 		"bufferFlushSize": 64,
 		"bufferFlushInterval": 900,
@@ -60,7 +60,7 @@
 		"name": "fileDownloadsTest",
 		"devOnly": true,
 		"parameterizeDestinationByStack": true,
-		"partitionScheme": "year=!{timestamp:YYYY}/month=!{timestamp:MM}/day=!{timestamp:dd}",
+		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
 		"format": "PARQUET",
 		"bufferFlushSize": 64,
 		"bufferFlushInterval": 60,
