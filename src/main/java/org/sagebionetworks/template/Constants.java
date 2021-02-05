@@ -26,9 +26,9 @@ public class Constants {
 	/**
 	 * The unique name assigned to the Synapse VPC stack.
 	 */
-	public static final String VPC_STACK_NAME_FORMAT = "synapse-%1$s-vpc-2020";
-	public static final String VPC_PUBLIC_SUBNETS_STACKNAME_FORMAT = "synapse-%1$s-vpc-2020-public-subnets";
-	public static final String VPC_PRIVATE_SUBNET_STACKNAME_FORMAT = "synapse-%1$s-vpc-2020-private-subnets-%2$s";
+	public static final String VPC_STACK_NAME_FORMAT = "synapse-%1$s-vpc-2";
+	public static final String VPC_PUBLIC_SUBNETS_STACKNAME_FORMAT = "synapse-%1$s-vpc-2-public-subnets";
+	public static final String VPC_PRIVATE_SUBNET_STACKNAME_FORMAT = "synapse-%1$s-vpc-2-private-subnets-%2$s";
 
 	// CloudFormation Parameter names.
 	// VPC
@@ -117,8 +117,8 @@ public class Constants {
 	public static final int VPC_SUBNET_NETWORK_MASK = 24;
 
 	/*
-	 * The network mask used to create color group. A mask of 20 will allocate a
-	 * group with 4,096 address. Note: The mask will be the suffix for the color
+	 * The network mask used to create color group. A mask of 21 will allocate a
+	 * group with 2048 address. Note: The mask will be the suffix for the color
 	 * group CIDR.
 	 */
 	public static final int VPC_COLOR_GROUP_NETWORK_MASK = 21;
@@ -166,6 +166,10 @@ public class Constants {
 
 	public static final String OAUTH_ENDPOINT = "oauthEndpoint";
 
+	public static final String SES_SYNAPSE_DOMAIN = "synapse.org";
+	public static final String VPC_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC = "SesSynapseOrgComplaintTopic";
+	public static final String VPC_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC = "SesSynapseOrgBounceTopic";
+
 	/**
 	 * Create a camel case name from dash-separated-name. Given 'foo-bar' will
 	 * return 'FooBar'
@@ -198,7 +202,7 @@ public class Constants {
 		joiner.add("us-east-1-synapse");
 		joiner.add(stack);
 		joiner.add("vpc");
-		joiner.add("2020");
+		joiner.add("2");
 		return joiner.toString();
 	}
 }

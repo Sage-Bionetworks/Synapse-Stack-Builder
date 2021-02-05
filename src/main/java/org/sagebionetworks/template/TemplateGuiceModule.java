@@ -6,6 +6,8 @@ import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClientBuilder;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.velocity.app.VelocityEngine;
@@ -109,6 +111,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(ElasticBeanstalkDefaultAMIEncrypter.class).to(ElasticBeanstalkDefaultAMIEncrypterImpl.class);
 		bind(StackTagsProvider.class).to(StackTagsProviderImpl.class);
 		bind(S3BucketBuilder.class).to(S3BucketBuilderImpl.class);
+		bind(SesClient.class).to(SesClientImpl.class);
 		bind(CloudwatchLogsVelocityContextProvider.class).to(CloudwatchLogsVelocityContextProviderImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
@@ -132,6 +135,14 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public AmazonS3 provideAmazonS3Client() {
 		AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
+		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
+		builder.withRegion(Regions.US_EAST_1);
+		return builder.build();
+	}
+
+	@Provides
+	public AmazonSimpleEmailService provideAmazonSimpleEmalService() {
+		AmazonSimpleEmailServiceClientBuilder builder = AmazonSimpleEmailServiceClientBuilder.standard();
 		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
 		builder.withRegion(Regions.US_EAST_1);
 		return builder.build();

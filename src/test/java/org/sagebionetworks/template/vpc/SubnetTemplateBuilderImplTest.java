@@ -96,13 +96,13 @@ public class SubnetTemplateBuilderImplTest {
     @Test
     public void testCreatePublicSubnetsStackName() {
         String name = builder.createPublicSubnetsStackName();
-        assertEquals("synapse-dev-vpc-2020-public-subnets", name);
+        assertEquals("synapse-dev-vpc-2-public-subnets", name);
     }
 
     @Test
     public void testCreatePrivateSubnetStackName() {
         String name = builder.createPrivateSubnetStackName("red");
-        assertEquals("synapse-dev-vpc-2020-private-subnets-red", name);
+        assertEquals("synapse-dev-vpc-2-private-subnets-red", name);
     }
 
     @Test
@@ -115,7 +115,7 @@ public class SubnetTemplateBuilderImplTest {
         String avZonesStr = (String)context.get(AVAILABILITY_ZONES);
         assertEquals("us-east-1a,us-east-1b", avZonesStr);
         assertEquals("dev", context.get(STACK));
-        assertEquals("synapse-dev-vpc-2020", context.get(VPC_STACKNAME));
+        assertEquals("synapse-dev-vpc-2", context.get(VPC_STACKNAME));
         assertNotNull(context.get(SUBNETS));
 
         assertEquals("10.21.0.0/16", context.get(TEMP_VPC_CIDR));
@@ -129,7 +129,7 @@ public class SubnetTemplateBuilderImplTest {
 
         verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
         CreateOrUpdateStackRequest request = requestCaptor.getValue();
-        assertEquals("synapse-dev-vpc-2020-public-subnets", request.getStackName());
+        assertEquals("synapse-dev-vpc-2-public-subnets", request.getStackName());
         assertNull(request.getParameters());
         assertEquals(expectedTags, request.getTags());
         JSONObject templateJson = new JSONObject(request.getTemplateBody());
@@ -146,10 +146,10 @@ public class SubnetTemplateBuilderImplTest {
         List<CreateOrUpdateStackRequest> requests = requestCaptor.getAllValues();
 
         assertEquals(2, requests.size());
-        assertEquals("synapse-dev-vpc-2020-private-subnets-Red", requests.get(0).getStackName());
+        assertEquals("synapse-dev-vpc-2-private-subnets-Red", requests.get(0).getStackName());
         assertNull(requests.get(0).getParameters());
         assertEquals(expectedTags, requests.get(0).getTags());
-        assertEquals("synapse-dev-vpc-2020-private-subnets-Green", requests.get(1).getStackName());
+        assertEquals("synapse-dev-vpc-2-private-subnets-Green", requests.get(1).getStackName());
         assertNull(requests.get(1).getParameters());
         assertEquals(expectedTags, requests.get(1).getTags());
 

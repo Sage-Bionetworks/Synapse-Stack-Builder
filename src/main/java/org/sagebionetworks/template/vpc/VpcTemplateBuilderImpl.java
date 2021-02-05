@@ -1,26 +1,5 @@
 package org.sagebionetworks.template.vpc;
 
-import static org.sagebionetworks.template.Constants.AVAILABILITY_ZONES;
-import static org.sagebionetworks.template.Constants.JSON_INDENT;
-import static org.sagebionetworks.template.Constants.PARAMETER_OLD_VPC_CIDR;
-import static org.sagebionetworks.template.Constants.PARAMETER_OLD_VPC_ID;
-import static org.sagebionetworks.template.Constants.PARAMETER_VPC_SUBNET_PREFIX;
-import static org.sagebionetworks.template.Constants.PARAMETER_VPN_CIDR;
-import static org.sagebionetworks.template.Constants.PEERING_ROLE_ARN_PREFIX;
-import static org.sagebionetworks.template.Constants.PEER_ROLE_ARN;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OLD_VPC_CIDR;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OLD_VPC_ID;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_AVAILABILITY_ZONES;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_PREFIX;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_VPN_CIDR;
-import static org.sagebionetworks.template.Constants.STACK;
-import static org.sagebionetworks.template.Constants.TEMPLATES_VPC_MAIN_VPC_JSON_VTP;
-import static org.sagebionetworks.template.Constants.VPC_CIDR;
-import static org.sagebionetworks.template.Constants.VPC_CIDR_SUFFIX;
-import static org.sagebionetworks.template.Constants.VPC_STACK_NAME_FORMAT;
-
 import java.io.StringWriter;
 
 import org.apache.logging.log4j.Logger;
@@ -29,6 +8,7 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.SesClient;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
@@ -36,6 +16,8 @@ import org.sagebionetworks.template.LoggerFactory;
 
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.google.inject.Inject;
+
+import static org.sagebionetworks.template.Constants.*;
 
 /**
  * Builder for the VPC template.
@@ -48,15 +30,18 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 	Configuration config;
 	Logger logger;
 	StackTagsProvider stackTagsProvider;
+	SesClient sesClient;
 
 	@Inject
 	public VpcTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
-			Configuration configuration, LoggerFactory loggerFactory, StackTagsProvider stackTagsProvider) {
+								  Configuration configuration, LoggerFactory loggerFactory, StackTagsProvider stackTagsProvider,
+								  SesClient sesClient) {
 		this.cloudFormationClient = cloudFormationClient;
 		this.velocityEngine = velocityEngine;
 		this.config = configuration;
 		this.logger = loggerFactory.getLogger(VpcTemplateBuilderImpl.class);
 		this.stackTagsProvider = stackTagsProvider;
+		this.sesClient = sesClient;
 	}
 
 	@Override
@@ -83,6 +68,18 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 				.withTags(stackTagsProvider.getStackTags())
 				.withParameters(params));
 		this.cloudFormationClient.waitForStackToComplete(stackName);
+		// Wire SES with SNS endpoints on prod
+		setupSesTopics(stackName);
+
+	}
+
+	public void setupSesTopics(String stackName) {
+		if (config.getProperty(PROPERTY_KEY_STACK) == "prod") {
+			String sesComplaintSnsTopic = this.cloudFormationClient.getOutput(stackName, VPC_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC);
+			String sesBounceSnsTopic = this.cloudFormationClient.getOutput(stackName, VPC_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC);
+			sesClient.setComplaintNotificationTopic(SES_SYNAPSE_DOMAIN, sesComplaintSnsTopic);
+			sesClient.setBounceNotificationTopic(SES_SYNAPSE_DOMAIN, sesBounceSnsTopic);
+		}
 	}
 
 	/**
