@@ -80,7 +80,7 @@
                                         #foreach ( $subscribedTopicDescriptor in $queueDescriptor.subscribedTopicDescriptors)
                                         	#if ($subscribedTopicDescriptor.global)
 	                                            {
-	                                            	"Fn::ImportValue": "${vpcExportPrefix}-${subscribedTopicDescriptor.topicReferenceName}Topic"
+	                                            	"Fn::ImportValue": "${globalResourcesPrefix}-${subscribedTopicDescriptor.topicReferenceName}Topic"
 	                                            }    
                                         	#else
                                        			{

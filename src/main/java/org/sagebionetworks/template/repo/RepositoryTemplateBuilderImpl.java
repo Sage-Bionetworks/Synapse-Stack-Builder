@@ -7,6 +7,7 @@ import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.ENCRYPTED_AMI_IMAGE_ID;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
+import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_PREFIX;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.OAUTH_ENDPOINT;
@@ -233,6 +234,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		context.put(INSTANCE, config.getProperty(PROPERTY_KEY_INSTANCE));
 		context.put(VPC_SUBNET_COLOR, config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR));
 		context.put(SHARED_RESOUCES_STACK_NAME, createSharedResourcesStackName());
+		context.put(GLOBAL_RESOURCES_PREFIX, Constants.createGlobalResourcesExportPrefix(stack));
 		context.put(VPC_EXPORT_PREFIX, Constants.createVpcExportPrefix(stack));
 		context.put(SHARED_EXPORT_PREFIX, createSharedExportPrefix());
 		context.put(EXCEPTION_THROWER, new VelocityExceptionThrower());
