@@ -4,17 +4,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.sagebionetworks.template.Constants.PARAMETER_VPC_SUBNET_PREFIX;
 import static org.sagebionetworks.template.Constants.PARAMETER_VPN_CIDR;
 import static org.sagebionetworks.template.Constants.PEERING_ROLE_ARN_PREFIX;
 import static org.sagebionetworks.template.Constants.PEER_ROLE_ARN;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_COLORS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_AVAILABILITY_ZONES;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN;
@@ -57,8 +54,6 @@ public class VpcTemplateBuilderImplTest {
 	Logger mockLogger;
 	@Mock
 	StackTagsProvider mockStackTagsProvider;
-	@Mock
-	SesClient mockSesClient;
 
 	@Captor
 	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
@@ -92,7 +87,7 @@ public class VpcTemplateBuilderImplTest {
 		Tag t = new Tag().withKey("aKey").withValue("aValue");
 		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
 
-		builder = new VpcTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, mockConfig, mockLoggerFactory, mockStackTagsProvider, mockSesClient);
+		builder = new VpcTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, mockConfig, mockLoggerFactory, mockStackTagsProvider);
 		subnetPrefix = "10.21";
 		avialabilityZones = new String[] {"us-east-1a","us-east-1b"};
 		vpnCider = "10.1.0.0/16";
@@ -128,10 +123,6 @@ public class VpcTemplateBuilderImplTest {
 		assertEquals("synapse-dev-vpc-2", request.getStackName());
 		assertNotNull(request.getParameters());
 		assertEquals(expectedTags, request.getTags());
-
-		// this is a dev stack
-		verify(mockSesClient, never()).setBounceNotificationTopic(anyString(), anyString());
-		verify(mockSesClient, never()).setComplaintNotificationTopic(anyString(), anyString());
 
 		JSONObject templateJson = new JSONObject(request.getTemplateBody());
 		System.out.println(templateJson.toString(JSON_INDENT));
@@ -202,29 +193,4 @@ public class VpcTemplateBuilderImplTest {
 		assertEquals(peeringRoleARN, arn);
 	}
 
-	@Test
-	public void testSetupSesTopicsDev() {
-		String stackName = "devStackName";
-
-		// call under test
-		builder.setupSesTopics(stackName);
-
-		verify(mockSesClient, never()).setComplaintNotificationTopic(anyString(), anyString());
-		verify(mockSesClient, never()).setBounceNotificationTopic(anyString(), anyString());
-
-	}
-
-	@Test
-	public void testSetupSesTopicsProd() {
-		String stackName = "prodStackName";
-		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("prod");
-		when(mockCloudFormationClient.getOutput(stackName, VPC_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC)).thenReturn("theComplaintTopic");
-		when(mockCloudFormationClient.getOutput(stackName, VPC_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC)).thenReturn("theBounceTopic");
-
-		// call under test
-		builder.setupSesTopics(stackName);
-
-		verify(mockSesClient).setComplaintNotificationTopic(SES_SYNAPSE_DOMAIN, "theComplaintTopic");
-		verify(mockSesClient).setBounceNotificationTopic(SES_SYNAPSE_DOMAIN, "theBounceTopic");
-	}
 }

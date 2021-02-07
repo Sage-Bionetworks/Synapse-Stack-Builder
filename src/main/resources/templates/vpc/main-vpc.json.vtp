@@ -208,53 +208,7 @@
 					"To": "65535"
 				}
 			}
-		},
-		"${stack}NotificationTopic": {
-			"Type": "AWS::SNS::Topic",
-			"Properties": {
-				"DisplayName": "${stack}-Notification-Topic",
-				"Subscription": [
-					{
-						"Endpoint": "synapse-ops@sagebase.org",
-						"Protocol": "email"
-					}
-				]
-			}
-		},
-		"SesSynapseOrgBounceTopic": {
-			"Type": "AWS::SNS::Topic",
-			"Properties": {
-				"DisplayName": "${stack}-SesSynapseOrgBounce-Topic",
-			}
-		},
-		"SesSynapseOrgComplaintTopic": {
-			"Type": "AWS::SNS::Topic",
-			"Properties": {
-				"DisplayName": "${stack}-SesSynapseOrgComplaint-Topic",
-			}
 		}
-		#if(${stack} == 'prod')
-		,
-		"SesHighBounceRateAlarm": {
-			"Type" : "AWS::CloudWatch::Alarm",
-			"Properties" : {
-				"ActionsEnabled" : true,
-				"AlarmActions" : [
-					{ "Ref":"${stack}NotificationTopic"}
-				],
-				"AlarmDescription" : "Alert when SES bounce rate exceed 5%.",
-				"AlarmName" : "SES-High-Bounce-Rate",
-				"ComparisonOperator" : "GreaterThanThreshold",
-				"EvaluationPeriods" : 1,
-				"Period" : 900,
-				"MetricName" : "Reputation.BounceRate",
-				"Namespace" : "AWS/SES",
-				"Statistic" : "Maximum",
-				"Threshold" : 0.05,
-				"TreatMissingData" : "ignore"
-			}
-		}
-		#end	
 	},
 	"Outputs": {
 		"VPCId": {
@@ -494,66 +448,6 @@
 					]
 				}
 		    }
-		},
-		"NotificationTopic": {
-			"Description": "Notification topic for the ${stack} stack",
-			"Value": { "Ref":"${stack}NotificationTopic"},
-			"Export": {
-				"Name": {
-					"Fn::Join": [
-						"-",
-						[
-							{
-								"Ref": "AWS::Region"
-							},
-							{
-								"Ref": "AWS::StackName"
-							},
-							"NotificationTopic"
-						]
-					]
-				}
-			}
-		},
-		"SesSynapseOrgBounceTopic": {
-			"Description": "Topic for SES bounces from synapse.org for the ${stack} stack",
-			"Value": { "Ref":"SesSynapseOrgBounceTopic"},
-			"Export": {
-				"Name": {
-					"Fn::Join": [
-						"-",
-						[
-							{
-								"Ref": "AWS::Region"
-							},
-							{
-								"Ref": "AWS::StackName"
-							},
-							"SesSynapseOrgBounceTopic"
-						]
-					]
-				}
-			}
-		},
-		"SesSynapseOrgComplaintTopic": {
-			"Description": "Topic for SES complaints from synapse.org for the ${stack} stack",
-			"Value": { "Ref":"SesSynapseOrgComplaintTopic"},
-			"Export": {
-				"Name": {
-					"Fn::Join": [
-						"-",
-						[
-							{
-								"Ref": "AWS::Region"
-							},
-							{
-								"Ref": "AWS::StackName"
-							},
-							"SesSynapseOrgComplaintTopic"
-						]
-					]
-				}
-			}
 		}
 	}
 }

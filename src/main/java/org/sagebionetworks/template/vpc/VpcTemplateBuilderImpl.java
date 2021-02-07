@@ -30,18 +30,15 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 	Configuration config;
 	Logger logger;
 	StackTagsProvider stackTagsProvider;
-	SesClient sesClient;
 
 	@Inject
 	public VpcTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
-								  Configuration configuration, LoggerFactory loggerFactory, StackTagsProvider stackTagsProvider,
-								  SesClient sesClient) {
+								  Configuration configuration, LoggerFactory loggerFactory, StackTagsProvider stackTagsProvider) {
 		this.cloudFormationClient = cloudFormationClient;
 		this.velocityEngine = velocityEngine;
 		this.config = configuration;
 		this.logger = loggerFactory.getLogger(VpcTemplateBuilderImpl.class);
 		this.stackTagsProvider = stackTagsProvider;
-		this.sesClient = sesClient;
 	}
 
 	@Override
@@ -68,18 +65,6 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 				.withTags(stackTagsProvider.getStackTags())
 				.withParameters(params));
 		this.cloudFormationClient.waitForStackToComplete(stackName);
-		// Wire SES with SNS endpoints on prod
-		setupSesTopics(stackName);
-
-	}
-
-	public void setupSesTopics(String stackName) {
-		if (config.getProperty(PROPERTY_KEY_STACK) == "prod") {
-			String sesComplaintSnsTopic = this.cloudFormationClient.getOutput(stackName, VPC_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC);
-			String sesBounceSnsTopic = this.cloudFormationClient.getOutput(stackName, VPC_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC);
-			sesClient.setComplaintNotificationTopic(SES_SYNAPSE_DOMAIN, sesComplaintSnsTopic);
-			sesClient.setBounceNotificationTopic(SES_SYNAPSE_DOMAIN, sesBounceSnsTopic);
-		}
 	}
 
 	/**

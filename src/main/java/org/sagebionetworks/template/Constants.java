@@ -30,6 +30,11 @@ public class Constants {
 	public static final String VPC_PUBLIC_SUBNETS_STACKNAME_FORMAT = "synapse-%1$s-vpc-2-public-subnets";
 	public static final String VPC_PRIVATE_SUBNET_STACKNAME_FORMAT = "synapse-%1$s-vpc-2-private-subnets-%2$s";
 
+	/**
+	 * Name assigned to Synapse Global Resources stack
+	 */
+	public static final String GLOBAL_RESOURCES_STACK_NAME_FORMAT = "synapse-%1$s-global-resources";
+
 	// CloudFormation Parameter names.
 	// VPC
 	public static final String PARAMETER_VPN_CIDR = "VpnCidr";
@@ -105,6 +110,7 @@ public class Constants {
 	public static final String TEMPALTE_BEAN_STALK_ENVIRONMENT = "templates/repo/elasticbeanstalk-template.json.vpt";
 	public static final String TEMPLATE_ID_GENERATOR = "templates/repo/id-generator-template.json.vpt";
 	public static final String TEMPLATE_INVENTORY_BUCKET_POLICY_TEMPLATE = "templates/s3/s3-inventory-bucket-policy.json.vpt";
+	public static final String TEMPLATE_GLOBAL_RESOURCES_SNS = "templates/global/sns.vpt";
 	
 
 	public static final int JSON_INDENT = 5;
@@ -134,6 +140,7 @@ public class Constants {
 	public static final String SHARED_RESOUCES_STACK_NAME = "sharedRresourcesStackName";
 	public static final String VPC_EXPORT_PREFIX = "vpcExportPrefix";
 	public static final String SHARED_EXPORT_PREFIX = "sharedExportPrefix";
+	public static final String GLOBAL_RESOURCES_PREFIX = "globalResourcesPrefix";
 	public static final String PROPS = "props";
 	public static final String PEER_ROLE_ARN = "peerRoleArn";
 	public static final String AVAILABILITY_ZONES = "availabilityZones";
@@ -167,8 +174,8 @@ public class Constants {
 	public static final String OAUTH_ENDPOINT = "oauthEndpoint";
 
 	public static final String SES_SYNAPSE_DOMAIN = "synapse.org";
-	public static final String VPC_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC = "SesSynapseOrgComplaintTopic";
-	public static final String VPC_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC = "SesSynapseOrgBounceTopic";
+	public static final String GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC = "SesSynapseOrgComplaintTopic";
+	public static final String GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC = "SesSynapseOrgBounceTopic";
 
 	/**
 	 * Create a camel case name from dash-separated-name. Given 'foo-bar' will
@@ -203,6 +210,13 @@ public class Constants {
 		joiner.add(stack);
 		joiner.add("vpc");
 		joiner.add("2");
+		return joiner.toString();
+	}
+
+	public static String createGlobalResourcesExportPrefix(String stack) {
+		StringJoiner joiner = new StringJoiner("-");
+		joiner.add("us-east-1");
+		joiner.add(String.format(GLOBAL_RESOURCES_STACK_NAME_FORMAT, stack));
 		return joiner.toString();
 	}
 }
