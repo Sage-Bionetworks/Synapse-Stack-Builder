@@ -2,7 +2,7 @@ package org.sagebionetworks.template.repo.queues;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_PREFIX;
+import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
@@ -66,7 +66,7 @@ public class SnsAndSqsTest {
 		context.put(STACK, stack);
 		context.put(INSTANCE, "101");
 		context.put(VPC_EXPORT_PREFIX, Constants.createVpcExportPrefix(stack));
-		context.put(GLOBAL_RESOURCES_PREFIX, Constants.createGlobalResourcesExportPrefix(stack));
+		context.put(GLOBAL_RESOURCES_EXPORT_PREFIX, Constants.createGlobalResourcesExportPrefix(stack));
 		contextProvider.addToContext(context);
 		
 		Template template = this.velocityEngine.getTemplate("templates/repo/sns-and-sqs-template.json.vpt");

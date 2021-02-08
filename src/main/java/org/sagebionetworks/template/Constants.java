@@ -131,7 +131,7 @@ public class Constants {
 	public static final String SHARED_RESOUCES_STACK_NAME = "sharedRresourcesStackName";
 	public static final String VPC_EXPORT_PREFIX = "vpcExportPrefix";
 	public static final String SHARED_EXPORT_PREFIX = "sharedExportPrefix";
-	public static final String GLOBAL_RESOURCES_PREFIX = "globalResourcesPrefix";
+	public static final String GLOBAL_RESOURCES_EXPORT_PREFIX = "globalResourcesExportPrefix";
 	public static final String PROPS = "props";
 	public static final String PEER_ROLE_ARN = "peerRoleArn";
 	public static final String AVAILABILITY_ZONES = "availabilityZones";
