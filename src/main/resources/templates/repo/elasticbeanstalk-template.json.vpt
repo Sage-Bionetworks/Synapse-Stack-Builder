@@ -186,7 +186,7 @@
 						"Namespace": "aws:elasticbeanstalk:sns:topics",
 						"OptionName": "Notification Topic ARN",
 						"Value": {
-							"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"
+							"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"
 						}
 					},
 					{
