@@ -27,7 +27,7 @@
             "Type" : "AWS::CloudWatch::Alarm",
             "Properties" : {
                 "ActionsEnabled" : true,
-                "AlarmActions" : [{"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"}],
+                "AlarmActions" : [{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}],
                 "AlarmDescription" : "Alarm when oldest message in the ${queueDescriptor.queueName} queue exceeds ${queueDescriptor.oldestMessageInQueueAlarmThresholdSec} seconds",
                 "AlarmName" : "${stack}-${instance}-${queueDescriptor.queueName}-queue-oldest-message-exceed-time",
                 "ComparisonOperator" : "GreaterThanOrEqualToThreshold",
@@ -80,7 +80,7 @@
                                         #foreach ( $subscribedTopicDescriptor in $queueDescriptor.subscribedTopicDescriptors)
                                         	#if ($subscribedTopicDescriptor.global)
 	                                            {
-	                                            	"Fn::ImportValue": "${vpcExportPrefix}-${subscribedTopicDescriptor.topicReferenceName}Topic"
+	                                            	"Fn::ImportValue": "${globalResourcesExportPrefix}-${subscribedTopicDescriptor.topicReferenceName}Topic"
 	                                            }    
                                         	#else
                                        			{
@@ -114,7 +114,7 @@
 		            "Properties" : {
 		            	"Endpoint":{"Fn::GetAtt" : [ "${queueResourceName}Queue" , "Arn" ]},
 		                "Protocol": "sqs",
-		                "TopicArn" : {"Fn::ImportValue": "${vpcExportPrefix}-${snsTopicDescriptor.topicReferenceName}Topic"}
+		                "TopicArn" : {"Fn::ImportValue": "${globalResourcesExportPrefix}-${snsTopicDescriptor.topicReferenceName}Topic"}
 		            }
 		        }
 	    	#if( $foreach.hasNext ) , #end
