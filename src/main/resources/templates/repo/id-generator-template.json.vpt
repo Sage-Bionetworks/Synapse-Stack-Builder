@@ -138,7 +138,7 @@
 				"ActionsEnabled": true,
 				"AlarmActions": [
 					{
-						"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"
+						"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"
 					}
 				],
 				"AlarmDescription": "Alert when database swap usage is exceeded.",
@@ -164,7 +164,7 @@
 				"ActionsEnabled": true,
 				"AlarmActions": [
 					{
-						"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"
+						"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"
 					}
 				],
 				"AlarmDescription": "Alert when database write latency is exceeded.",
@@ -190,7 +190,7 @@
 				"ActionsEnabled": true,
 				"AlarmActions": [
 					{
-						"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"
+						"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"
 					}
 				],
 				"AlarmDescription": "Alert when database CPU utilization is exceeded.",
@@ -216,7 +216,7 @@
 				"ActionsEnabled": true,
 				"AlarmActions": [
 					{
-						"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"
+						"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"
 					}
 				],
 				"AlarmDescription": "Alert when database free storage space is low.",
