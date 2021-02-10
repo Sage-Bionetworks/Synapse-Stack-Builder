@@ -67,7 +67,7 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
         );
         cloudFormationClient.waitForStackToComplete(stackName);
         // setup SES notifications on prod stack
-        if ("prod".equals(config.getProperty(PROPERTY_KEY_STACK))) {
+        if ("prod".equalsIgnoreCase(config.getProperty(PROPERTY_KEY_STACK))) {
             setupSesTopics(stackName);
         }
     }
