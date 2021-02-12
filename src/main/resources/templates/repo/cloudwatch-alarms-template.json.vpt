@@ -5,7 +5,7 @@
 		"Properties" : {
 			"ActionsEnabled" : true,
 			"AlarmActions" : [
-				{"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"}			
+				{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
 			],
 			"AlarmDescription" : "Alert when the docker registry authentication filter reports bad credentials.",
 			"AlarmName" : "${stack}-${instance}-Docker-Registry-Bad-Credentials",
@@ -30,7 +30,7 @@
 		"Properties" : {
 			"ActionsEnabled" : true,
 			"AlarmActions" : [
-				{"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"}			
+				{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
 			],
 			"AlarmDescription" : "Alert when the cloud mail in authentication filter reports bad credentials.",
 			"AlarmName" : "${stack}-${instance}-Cloud-MailIn-Bad-Credentials",

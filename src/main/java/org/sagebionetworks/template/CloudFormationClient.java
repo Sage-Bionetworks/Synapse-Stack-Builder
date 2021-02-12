@@ -63,4 +63,11 @@ public interface CloudFormationClient {
 	 * @throws InterruptedException 
 	 */
 	public Stack waitForStackToComplete(String stackName) throws InterruptedException;
+
+	/**
+	 *
+	 * @param stackName
+	 * @return
+	 */
+	public String getOutput(String stackName, String outputKey);
 }

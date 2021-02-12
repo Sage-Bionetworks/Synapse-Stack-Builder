@@ -2,9 +2,11 @@ package org.sagebionetworks.template;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
+import com.amazonaws.services.cloudformation.model.Output;
 import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
@@ -231,6 +233,23 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 				throw new RuntimeException("Stack '"+stackName+"' did not complete.  Status: "+status.name()+" with reason: "+stack.getStackStatusReason());
 			}
 		}
+	}
+
+	@Override
+	public String getOutput(String stackName, String outputKey) {
+		String res = null;
+		Stack stack = describeStack(stackName);
+		List<Output> outputs = stack.getOutputs();
+		for (Output output: outputs) {
+			if (output.getOutputKey().equals(outputKey)) {
+				res = output.getOutputValue();
+				break;
+			}
+		}
+		if (res == null) {
+			throw new IllegalArgumentException("The output key " + outputKey + " was not found.");
+		}
+		return res;
 	}
 
 }
