@@ -219,4 +219,5 @@ public class Constants {
 		joiner.add(String.format(GLOBAL_RESOURCES_STACK_NAME_FORMAT, stack));
 		return joiner.toString();
 	}
+
 }

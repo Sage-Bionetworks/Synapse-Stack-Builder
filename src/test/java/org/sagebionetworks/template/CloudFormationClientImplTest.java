@@ -14,12 +14,10 @@ import static org.mockito.Mockito.*;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.function.Function;
 
 import com.amazonaws.services.cloudformation.model.Output;
-import net.bytebuddy.build.ToStringPlugin;
 import org.apache.logging.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
@@ -394,5 +392,5 @@ public class CloudFormationClientImplTest {
 		String output = client.getOutput(stackName, "invalidKey");
 
 	}
-	
+
 }

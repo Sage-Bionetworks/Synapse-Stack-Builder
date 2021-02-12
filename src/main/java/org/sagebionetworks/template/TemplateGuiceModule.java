@@ -150,9 +150,8 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		builder.withRegion(Regions.US_EAST_1);
 		return builder.build();
 	}
-	
-	
-	@Provides
+
+ 	@Provides
 	public HttpClient provideHttpClient() {
 		HttpClientBuilder builder = HttpClientBuilder.create();
 		return builder.build();

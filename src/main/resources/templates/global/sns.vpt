@@ -36,7 +36,7 @@
 					{ "Ref":"${stack}NotificationTopic"}
 				],
 				"AlarmDescription" : "Alert when SES bounce rate exceed 5%.",
-				"AlarmName" : "SES-High-Bounce-Rate",
+				"AlarmName" : "SES-High-Bounce-Rate-2",
 				"ComparisonOperator" : "GreaterThanThreshold",
 				"EvaluationPeriods" : 1,
 				"Period" : 900,
