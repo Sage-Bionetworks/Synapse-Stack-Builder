@@ -384,7 +384,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("101", context.get(INSTANCE));
 		assertEquals("Green", context.get(VPC_SUBNET_COLOR));
 		assertEquals("dev-101-shared-resources", context.get(SHARED_RESOUCES_STACK_NAME));
-		assertEquals("us-east-1-synapse-dev-vpc", context.get(VPC_EXPORT_PREFIX));
+		assertEquals("us-east-1-synapse-dev-vpc-2", context.get(VPC_EXPORT_PREFIX));
 
 		DatabaseDescriptor[] descriptors = (DatabaseDescriptor[]) context.get(DATABASE_DESCRIPTORS);
 		assertNotNull(descriptors);
@@ -509,7 +509,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("dev", context.get(STACK));
 		assertEquals("101", context.get(INSTANCE));
 		assertEquals("Green", context.get(VPC_SUBNET_COLOR));
-		assertEquals("us-east-1-synapse-dev-vpc", context.get(VPC_EXPORT_PREFIX));
+		assertEquals("us-east-1-synapse-dev-vpc-2", context.get(VPC_EXPORT_PREFIX));
 		assertEquals("us-east-1-dev-101-shared-resources", context.get(SHARED_EXPORT_PREFIX));
 		assertEquals(environment, context.get(ENVIRONMENT));
 		assertEquals(0, context.get(REPO_BEANSTALK_NUMBER));

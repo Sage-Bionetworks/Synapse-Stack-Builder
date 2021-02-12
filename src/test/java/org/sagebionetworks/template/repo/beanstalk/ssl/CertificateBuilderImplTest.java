@@ -10,6 +10,9 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 
 import org.junit.Test;
@@ -71,9 +74,10 @@ public class CertificateBuilderImplTest {
 		assertNotNull(certificate.getNotBefore());
 		assertNotNull(certificate.getNotAfter());
 		// expire in one one year
-		long msPerYear = 1000L*60L*60L*24L*365L;
-		long period = certificate.getNotAfter().getTime() - certificate.getNotBefore().getTime();
-		assertTrue(period >= msPerYear );
+		ZonedDateTime endDate = ZonedDateTime.ofInstant(certificate.getNotAfter().toInstant(), ZoneId.of("UTC"));
+		ZonedDateTime startDate = ZonedDateTime.ofInstant(certificate.getNotBefore().toInstant(), ZoneId.of("UTC"));
+		long months = ChronoUnit.MONTHS.between(startDate, endDate);
+		assertTrue( months >= 12);
 		assertNotNull(certificate.getSerialNumber());
 		assertNotNull(certificate.getPublicKey());
 		assertEquals("X.509", certificate.getPublicKey().getFormat());

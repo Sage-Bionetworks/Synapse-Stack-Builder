@@ -121,8 +121,6 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 	
 	/**
 	 * Execute a create or update using a template that is temporarily uploaded to S3.
-	 * @param stackName
-	 * @param templateBody
 	 * @param function
 	 * @return
 	 */

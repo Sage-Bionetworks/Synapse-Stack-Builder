@@ -48,6 +48,8 @@ import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfigV
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseVelocityContextProvider;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsConfig;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsVelocityContextProvider;
+import org.sagebionetworks.template.vpc.SubnetTemplateBuilder;
+import org.sagebionetworks.template.vpc.SubnetTemplateBuilderImpl;
 import org.sagebionetworks.template.s3.S3BucketBuilder;
 import org.sagebionetworks.template.s3.S3BucketBuilderImpl;
 import org.sagebionetworks.template.s3.S3Config;
@@ -93,6 +95,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	protected void configure() {
 		bind(CloudFormationClient.class).to(CloudFormationClientImpl.class);
 		bind(VpcTemplateBuilder.class).to(VpcTemplateBuilderImpl.class);
+		bind(SubnetTemplateBuilder.class).to(SubnetTemplateBuilderImpl.class);
 		bind(Configuration.class).to(ConfigurationImpl.class);
 		bind(RepoConfiguration.class).to(RepoConfigurationImpl.class);
 		bind(LoggerFactory.class).to(LoggerFactoryImpl.class);
@@ -148,7 +151,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		return builder.build();
 	}
 
-	@Provides
+ 	@Provides
 	public HttpClient provideHttpClient() {
 		HttpClientBuilder builder = HttpClientBuilder.create();
 		return builder.build();

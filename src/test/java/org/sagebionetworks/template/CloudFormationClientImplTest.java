@@ -99,7 +99,6 @@ public class CloudFormationClientImplTest {
 		client = new CloudFormationClientImpl(mockCloudFormationClient, mockS3Client, mockConfig, mockLoggerFactory, mockThreadProvider);
 
 		stackId = "theStackId";
-		stack = new Stack().withStackId(stackId);
 		Collection<Output> outputs = new ArrayList<>();
 		Output output1 = new Output().withOutputKey(SES_SYNAPSE_ORG_COMPLAINT_TOPIC_KEY).withOutputValue(SES_SYNAPSE_ORG_COMPLAINT_TOPIC_VALUE);
 		Output output2 = new Output().withOutputKey(SES_SYNAPSE_ORG_BOUNCE_TOPIC_KEY).withOutputValue(SES_SYNAPSE_ORG_BOUNCE_TOPIC_VALUE);
@@ -127,7 +126,7 @@ public class CloudFormationClientImplTest {
 		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(describeResult);
 		when(mockCloudFormationClient.createStack(any(CreateStackRequest.class))).thenReturn(createResult);
 		when(mockCloudFormationClient.updateStack(any(UpdateStackRequest.class))).thenReturn(updateResult);
-		
+
 		bucket = "theBucket";
 		when(mockConfig.getConfigurationBucket()).thenReturn(bucket);
 		
@@ -393,4 +392,5 @@ public class CloudFormationClientImplTest {
 		String output = client.getOutput(stackName, "invalidKey");
 
 	}
+
 }

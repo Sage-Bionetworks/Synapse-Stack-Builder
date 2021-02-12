@@ -1,14 +1,5 @@
 package org.sagebionetworks.template.repo;
 
-import static org.sagebionetworks.template.Constants.DATABASE_IDENTIFIER;
-import static org.sagebionetworks.template.Constants.JSON_INDENT;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_COLOR;
-import static org.sagebionetworks.template.Constants.STACK;
-import static org.sagebionetworks.template.Constants.TEMPLATE_ID_GENERATOR;
-import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
-
 import java.io.StringWriter;
 
 import org.apache.logging.log4j.Logger;
@@ -25,6 +16,8 @@ import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.google.inject.Inject;
+
+import static org.sagebionetworks.template.Constants.*;
 
 public class IdGeneratorBuilderImpl implements IdGeneratorBuilder {
 
@@ -50,11 +43,15 @@ public class IdGeneratorBuilderImpl implements IdGeneratorBuilder {
 		VelocityContext context = new VelocityContext();
 		String color = config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR);
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
+		String hostedZoneId = config.getProperty(PROPERTY_KEY_ID_GENERATOR_HOSTED_ZONE_ID);
 		String databaseIdentifier = stack+"-id-generator-db-"+color.toLowerCase();
 		context.put(STACK, stack);
+		context.put(GLOBAL_RESOURCES_EXPORT_PREFIX, Constants.createGlobalResourcesExportPrefix(stack));
 		context.put(VPC_EXPORT_PREFIX, Constants.createVpcExportPrefix(stack));
 		context.put(VPC_SUBNET_COLOR, color);
 		context.put(DATABASE_IDENTIFIER, databaseIdentifier);
+		context.put(HOSTED_ZONE, hostedZoneId);
+		context.put(TEMP_VPC_CIDR, config.getProperty(PROPERTY_KEY_OLD_VPC_CIDR));
 
 		Parameter parameter = new Parameter();
 		parameter.withParameterKey(Constants.PARAMETER_MYSQL_PASSWORD);

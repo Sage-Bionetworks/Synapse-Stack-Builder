@@ -17,7 +17,7 @@
 					"Fn::Split": [
 						",",
 						{
-							"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-Private-Subnets"
+							"Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-Private-Subnets"
 						}
 					]
 				}
@@ -48,7 +48,14 @@
 						"FromPort": "3306",
 						"ToPort": "3306",
 						"IpProtocol": "tcp"
-					}
+					},
+                    {
+                        "Description": "Allow access to all instances within the old Synapse VPC",
+                        "CidrIp": "${tempVpcCidr}",
+                        "FromPort": "3306",
+                        "ToPort": "3306",
+                        "IpProtocol": "tcp"
+                    }
 				],
 				"Tags": [
 					{
@@ -68,7 +75,7 @@
 			"Type": "AWS::RDS::DBParameterGroup",
 			"Properties": {
 				"Description": "Shared MySQL database parameters",
-				"Family": "mysql5.6",
+				"Family": "mysql8.0",
 				"Parameters": {
 					"slow_query_log": "1",
 					"long_query_time": "1",
@@ -84,7 +91,7 @@
 				"AllowMajorVersionUpgrade": false,
 				"AutoMinorVersionUpgrade": true,
 				"BackupRetentionPeriod": "7",
-				"DBInstanceClass": "db.t3.small",
+				"DBInstanceClass": "db.m5.large",
 				"DBInstanceIdentifier": "${databaseIdentifier}",
 				"DBName": "${stack}idgen",
 				"DBParameterGroupName": {
@@ -94,7 +101,7 @@
 					"Ref": "${stack}IdGeneratorDBSubnetGroup"
 				},
 				"Engine": "MySQL",
-				"EngineVersion": "5.6.34",
+				"EngineVersion": "8.0.21",
 				"LicenseModel": "general-public-license",
 				"MasterUsername": "${stack}idgenuser",
 				"MasterUserPassword": {
@@ -104,13 +111,25 @@
 				"PreferredBackupWindow": "3:00-6:00",
 				"PreferredMaintenanceWindow": "Mon:07:15-Mon:07:45",
 				"PubliclyAccessible": false,
-				"StorageType": "standard",
+				"StorageType": "gp2",
 				"VPCSecurityGroups": [
 					{
 						"Ref": "${stack}IdGeneratorDBSecurityGroup"
 					}
 				]
 			}
+		},
+		"${stack}idGeneratorCNAME": {
+             "Type" : "AWS::Route53::RecordSet",
+             "Properties" : {
+                "HostedZoneId" : "${hostedZone}",
+                "Name" : "${databaseIdentifier}.${stack}.sagebase.org",
+                "ResourceRecords" : [
+                   { "Fn::GetAtt" : [ "${stack}IdGenerator", "Endpoint.Address" ] }
+                ],
+                "TTL" : "300",
+                "Type" : "CNAME"
+             }
 		},
 		#if(${stack} == 'prod')
 		"${stack}IdGeneratorAlarmSwapUsage": {
@@ -119,7 +138,7 @@
 				"ActionsEnabled": true,
 				"AlarmActions": [
 					{
-						"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"
+						"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"
 					}
 				],
 				"AlarmDescription": "Alert when database swap usage is exceeded.",
@@ -145,7 +164,7 @@
 				"ActionsEnabled": true,
 				"AlarmActions": [
 					{
-						"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"
+						"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"
 					}
 				],
 				"AlarmDescription": "Alert when database write latency is exceeded.",
@@ -171,7 +190,7 @@
 				"ActionsEnabled": true,
 				"AlarmActions": [
 					{
-						"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"
+						"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"
 					}
 				],
 				"AlarmDescription": "Alert when database CPU utilization is exceeded.",
@@ -197,7 +216,7 @@
 				"ActionsEnabled": true,
 				"AlarmActions": [
 					{
-						"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"
+						"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"
 					}
 				],
 				"AlarmDescription": "Alert when database free storage space is low.",

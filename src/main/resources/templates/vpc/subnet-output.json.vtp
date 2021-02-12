@@ -58,7 +58,7 @@
 							{
 								"Ref": "AWS::StackName"
 							},
-							"${subnet.name}-CIDR"
+						"${subnet.name}-CIDR"
 						]
 					]
 				}

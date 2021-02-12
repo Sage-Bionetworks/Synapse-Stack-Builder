@@ -152,14 +152,14 @@
 						"Namespace": "aws:ec2:vpc",
 						"OptionName": "Subnets",
 						"Value": {
-							"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-Private-Subnets"
+							"Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-Private-Subnets"
 						}
 					},
 					{
 						"Namespace": "aws:ec2:vpc",
 						"OptionName": "ELBSubnets",
 						"Value": {
-							"Fn::ImportValue": "${vpcExportPrefix}-Public-Subnets"
+							"Fn::ImportValue": "${vpcExportPrefix}-public-subnets-Public-Subnets"
 						}
 					},
 					{
@@ -423,7 +423,7 @@
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.id.generator.database.connection.url",
-						"Value": "jdbc:mysql://${stack}-id-generator-db.${stack}.sagebase.org/${stack}idgen"
+						"Value": "jdbc:mysql://${stack}-id-generator-db-orange.${stack}.sagebase.org/${stack}idgen"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",

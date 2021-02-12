@@ -1,6 +1,7 @@
 package org.sagebionetworks.template;
 
 import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException;
+import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Stack;
 
 /**
@@ -70,4 +71,5 @@ public interface CloudFormationClient {
 	 * @return
 	 */
 	public String getOutput(String stackName, String outputKey);
+
 }

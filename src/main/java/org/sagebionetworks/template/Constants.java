@@ -26,7 +26,9 @@ public class Constants {
 	/**
 	 * The unique name assigned to the Synapse VPC stack.
 	 */
-	public static final String VPC_STACK_NAME_FORMAT = "synapse-%1$s-vpc";
+	public static final String VPC_STACK_NAME_FORMAT = "synapse-%1$s-vpc-2";
+	public static final String VPC_PUBLIC_SUBNETS_STACKNAME_FORMAT = "synapse-%1$s-vpc-2-public-subnets";
+	public static final String VPC_PRIVATE_SUBNET_STACKNAME_FORMAT = "synapse-%1$s-vpc-2-private-subnets-%2$s";
 
 	/**
 	 * Name assigned to Synapse Global Resources stack
@@ -37,6 +39,8 @@ public class Constants {
 	// VPC
 	public static final String PARAMETER_VPN_CIDR = "VpnCidr";
 	public static final String PARAMETER_VPC_SUBNET_PREFIX = "VpcSubnetPrefix";
+	public static final String PARAMETER_OLD_VPC_ID = "OldVpcId";
+	public static final String PARAMETER_OLD_VPC_CIDR = "OldVpcCidr";
 	// repo
 	public static final String PARAMETER_MYSQL_PASSWORD = "MySQLDatabaseMasterPassword";
 	public static final String PARAMETER_ENCRYPTION_KEY = "EncryptionKey";
@@ -49,6 +53,8 @@ public class Constants {
 	public static final String PROPERTY_KEY_VPC_SUBNET_PREFIX = "org.sagebionetworks.vpc.subnet.prefix";
 	public static final String PROPERTY_KEY_COLORS = "org.sagebionetworks.vpc.colors.csv";
 	public static final String PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN = "org.sagebionetworks.vpc.peering.accept.role.arn";
+	public static final String PROPERTY_KEY_OLD_VPC_ID = "org.sagebionetworks.vpc.old.vpc.id";
+	public static final String PROPERTY_KEY_OLD_VPC_CIDR = "org.sagebionetworks.vpc.old.vpc.cidr";
 	// repo
 	public static final String PROPERTY_KEY_STACK = "org.sagebionetworks.stack";
 	public static final String PROPERTY_KEY_INSTANCE = "org.sagebionetworks.instance";
@@ -78,7 +84,8 @@ public class Constants {
 	public static final String PROPERTY_KEY_SECRET_KEYS_CSV = "org.sagebionetworks.secret.keys.csv";
 	public static final String PROPERTY_KEY_REPOSITORY_DATABASE_PASSWORD = "org.sagebionetworks.repository.database.password";
 	public static final String PROPERTY_KEY_ID_GENERATOR_DATABASE_PASSWORD = "org.sagebionetworks.id.generator.database.password";
-	
+	public static final String PROPERTY_KEY_ID_GENERATOR_HOSTED_ZONE_ID = "org.sagebionetworks.id.generator.hosted.zone.id";
+
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX = "org.sagebionetworks.beanstalk.image.version.";
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA = PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX + "java";
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT = PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX + "tomcat";
@@ -97,6 +104,8 @@ public class Constants {
 
 	// templates
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
+	public static final String TEMPLATES_VPC_PUBLIC_SUBNETS_JSON_VTP = "templates/vpc/public-subnets-resources.json.vtp";
+	public static final String TEMPLATES_VPC_PRIVATE_SUBNET_JSON_VTP = "templates/vpc/private-subnet-resources.json.vtp";
 	public static final String TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";
 	public static final String TEMPALTE_BEAN_STALK_ENVIRONMENT = "templates/repo/elasticbeanstalk-template.json.vpt";
 	public static final String TEMPLATE_ID_GENERATOR = "templates/repo/id-generator-template.json.vpt";
@@ -111,14 +120,14 @@ public class Constants {
 	 * subnet with 2,048 address. Note: The subnet mask will be the suffix of each
 	 * subnet CIDR.
 	 */
-	public static final int VPC_SUBNET_NETWORK_MASK = 21;
+	public static final int VPC_SUBNET_NETWORK_MASK = 24;
 
 	/*
-	 * The network mask used to create color group. A mask of 20 will allocate a
-	 * group with 4,096 address. Note: The mask will be the suffix for the color
+	 * The network mask used to create color group. A mask of 21 will allocate a
+	 * group with 2048 address. Note: The mask will be the suffix for the color
 	 * group CIDR.
 	 */
-	public static final int VPC_COLOR_GROUP_NETWORK_MASK = 20;
+	public static final int VPC_COLOR_GROUP_NETWORK_MASK = 21;
 
 	public static final String VPC_CIDR_SUFFIX = ".0.0/16";
 
@@ -143,7 +152,11 @@ public class Constants {
 	public static final String STACK_CMK_ALIAS = "stackCMKAlias";
 	public static final String DATABASE_IDENTIFIER = "databaseIdentifier";
 	public static final String EXCEPTION_THROWER = "exceptionThrower";
-	
+	public static final String VPC_STACKNAME = "vpcStackName";
+	public static final String PRIVATE_SUBNET_IDX = "privateSubnetIdx";
+	public static final String HOSTED_ZONE = "hostedZone";
+	public static final String TEMP_VPC_CIDR = "tempVpcCidr";
+
 	public static final String CAPABILITY_NAMED_IAM = "CAPABILITY_NAMED_IAM";
 	public static final String OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT = "RepositoryDBEndpoint";
 
@@ -196,6 +209,7 @@ public class Constants {
 		joiner.add("us-east-1-synapse");
 		joiner.add(stack);
 		joiner.add("vpc");
+		joiner.add("2");
 		return joiner.toString();
 	}
 
@@ -205,4 +219,5 @@ public class Constants {
 		joiner.add(String.format(GLOBAL_RESOURCES_STACK_NAME_FORMAT, stack));
 		return joiner.toString();
 	}
+
 }

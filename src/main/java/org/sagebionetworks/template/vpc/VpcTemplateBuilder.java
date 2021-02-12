@@ -5,5 +5,5 @@ public interface VpcTemplateBuilder {
 	/**
 	 * Build and deploy the VCP template.
 	 */
-	public void buildAndDeploy();
+	public void buildAndDeploy() throws InterruptedException;
 }

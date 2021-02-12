@@ -1,0 +1,255 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Creates one public subnet per availability zone.",
+	"Resources": {
+#foreach( $publicSubnet in $subnets.publicSubnets )
+        "${publicSubnet.name}": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "MapPublicIpOnLaunch": true,
+                "VpcId": {
+                    "Fn::ImportValue": {
+                        "Fn::Join": [
+                            "-",
+                            [
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "${vpcStackName}",
+                                "VPCId"
+                            ]
+                        ]
+                    }
+                },
+                "CidrBlock": "${publicSubnet.cidr}",
+                "AvailabilityZone": "${publicSubnet.availabilityZone}",
+                "Tags": [
+                    {
+                        "Key": "Application",
+                        "Value": {
+                            "Ref": "AWS::StackName"
+                        }
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": "${publicSubnet.name}"
+                    }
+                ]
+            }
+        },
+        "${publicSubnet.name}RouteTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {
+                    "Fn::ImportValue": {
+                        "Fn::Join": [
+                            "-",
+                            [
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "${vpcStackName}",
+                                "VPCId"
+                            ]
+                        ]
+                    }
+                },
+                "Tags": [
+                    {
+                        "Key": "Application",
+                        "Value": {
+                            "Ref": "AWS::StackName"
+                        }
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": "${publicSubnet.name}"
+                    }
+                ]
+            }
+        },
+        "${publicSubnet.name}RouteVPN": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "${publicSubnet.name}RouteTable"
+                },
+                "DestinationCidrBlock": "10.1.0.0/16",
+                "VpcPeeringConnectionId": {
+                    "Fn::ImportValue": {
+                        "Fn::Join": [
+                            "-",
+                            [
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "${vpcStackName}",
+                                "VpcPeeringConnectionId"
+                            ]
+                        ]
+                    }
+                }
+            }
+        },
+         "${publicSubnet.name}TempRoute": {
+             "Type": "AWS::EC2::Route",
+             "Properties": {
+                 "RouteTableId": {
+                     "Ref": "${publicSubnet.name}RouteTable"
+                 },
+                 "DestinationCidrBlock": "${tempVpcCidr}",
+                 "VpcPeeringConnectionId": {
+                     "Fn::ImportValue": {
+                         "Fn::Join": [
+                             "-",
+                             [
+                                 {
+                                     "Ref": "AWS::Region"
+                                 },
+                                 "${vpcStackName}",
+                                 "TempVpcPeeringConnectionId"
+                             ]
+                         ]
+                     }
+                 }
+             }
+         },
+        "${publicSubnet.name}PublicRoute": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "${publicSubnet.name}RouteTable"
+                },
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "GatewayId": {
+                    "Fn::ImportValue": {
+                        "Fn::Join": [
+                            "-",
+                            [
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "${vpcStackName}",
+                                "InternetGatewayId"
+                            ]
+                        ]
+                    }
+                }
+            }
+        },
+        "${publicSubnet.name}RouteTableAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "${publicSubnet.name}"
+                },
+                "RouteTableId": {
+                    "Ref": "${publicSubnet.name}RouteTable"
+                }
+            }
+        },
+        "${publicSubnet.name}NetworkAclAssociation": {
+            "Type": "AWS::EC2::SubnetNetworkAclAssociation",
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "${publicSubnet.name}"
+                },
+                "NetworkAclId": {
+                    "Fn::ImportValue": {
+                        "Fn::Join": [
+                            "-",
+                            [
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "${vpcStackName}",
+                                "NetworkAclId"
+                            ]
+                        ]
+                    }
+                }
+            }
+        },
+        "${publicSubnet.name}NATGatwayEIP" : {
+            "Type" : "AWS::EC2::EIP",
+            "Properties" : {
+                "Domain" : "vpc"
+            }
+        },
+        "${publicSubnet.name}NATGatway" : {
+            "Type" : "AWS::EC2::NatGateway",
+            "Properties" : {
+                "AllocationId" : {
+                    "Fn::GetAtt" : ["${publicSubnet.name}NATGatwayEIP", "AllocationId"]
+                },
+                "SubnetId" : { "Ref" : "${publicSubnet.name}"},
+                "Tags": [
+                    {
+                        "Key": "Application",
+                        "Value": {
+                            "Ref": "AWS::StackName"
+                        }
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": "${publicSubnet.name}"
+                    }
+                ]
+            }
+        }
+        ,
+#end
+    },
+    "Outputs": {
+        "PublicSubnets": {
+            "Description": "Comma separated list of all public sub-nets",
+            "Value" : {
+                "Fn::Join": [
+                    ", ",
+                    [
+                        #set($i = 0)
+                        #foreach( $publicSubnet in $subnets.publicSubnets )
+                        #if( $i > 0 ) , #end
+                        {"Ref":"${publicSubnet.name}"}
+                        #set($i = $i+1)
+                        #end
+                    ]
+                ]
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "Public-Subnets"
+                        ]
+                    ]
+                }
+            }
+        },
+        #foreach( $publicSubnet in $subnets.publicSubnets)
+        "${publicSubnet.name}NATGateway": {
+            "Description": "NAT Gateway for ${publicSubnet.name}",
+            "Value": { "Ref": "${publicSubnet.name}NATGatway" },
+            "Export": {
+                "Name": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            { "Ref": "AWS::Region" },
+                            { "Ref": "AWS::StackName" },
+                            "${publicSubnet.name}NATGatway"
+                        ]
+                    ]
+                }
+            }
+        },
+        #end
+    }
+}
