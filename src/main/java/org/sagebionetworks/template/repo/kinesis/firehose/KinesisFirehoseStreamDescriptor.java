@@ -27,7 +27,9 @@ public class KinesisFirehoseStreamDescriptor {
 	private KinesisFirehoseRecordFormat format = KinesisFirehoseRecordFormat.JSON;
 	// A glue table descriptor for athena, mandatory if the format is PARQUET (used for conversion)
 	private GlueTableDescriptor tableDescriptor = null;
-
+	// When the format is PARQUET by default we create a backup of the raw JSON data, setting this to true will disable the backup
+	private boolean backupDisabled = false;
+	
 	public String getName() {
 		return name;
 	}
@@ -99,11 +101,19 @@ public class KinesisFirehoseStreamDescriptor {
 	public void setTableDescriptor(GlueTableDescriptor tableDescriptor) {
 		this.tableDescriptor = tableDescriptor;
 	}
+	
+	public boolean isBackupDisabled() {
+		return backupDisabled;
+	}
+	
+	public void setBackupDisabled(boolean backupDisabled) {
+		this.backupDisabled = backupDisabled;
+	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(bucket, bufferFlushInterval, bufferFlushSize, devOnly, format, name, parameterizeDestinationByStack,
-				partitionScheme, tableDescriptor);
+		return Objects.hash(backupDisabled, bucket, bufferFlushInterval, bufferFlushSize, devOnly, format, name,
+				parameterizeDestinationByStack, partitionScheme, tableDescriptor);
 	}
 
 	@Override
@@ -118,11 +128,11 @@ public class KinesisFirehoseStreamDescriptor {
 			return false;
 		}
 		KinesisFirehoseStreamDescriptor other = (KinesisFirehoseStreamDescriptor) obj;
-		return Objects.equals(bucket, other.bucket) && bufferFlushInterval == other.bufferFlushInterval
-				&& bufferFlushSize == other.bufferFlushSize && devOnly == other.devOnly && format == other.format
-				&& Objects.equals(name, other.name) && parameterizeDestinationByStack == other.parameterizeDestinationByStack
+		return backupDisabled == other.backupDisabled && Objects.equals(bucket, other.bucket)
+				&& bufferFlushInterval == other.bufferFlushInterval && bufferFlushSize == other.bufferFlushSize && devOnly == other.devOnly
+				&& format == other.format && Objects.equals(name, other.name)
+				&& parameterizeDestinationByStack == other.parameterizeDestinationByStack
 				&& Objects.equals(partitionScheme, other.partitionScheme) && Objects.equals(tableDescriptor, other.tableDescriptor);
-	}
-	
+	}	
 
 }

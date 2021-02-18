@@ -1,12 +1,11 @@
 package org.sagebionetworks.template.repo.kinesis.firehose;
 
 import static org.sagebionetworks.template.Constants.GLUE_DATABASE_NAME;
-import static org.sagebionetworks.template.Constants.KINESIS_FIREHOSE_STREAM_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.KINESIS_FIREHOSE_BUCKETS;
+import static org.sagebionetworks.template.Constants.KINESIS_FIREHOSE_STREAM_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 

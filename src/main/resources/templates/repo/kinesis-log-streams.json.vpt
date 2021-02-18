@@ -207,7 +207,7 @@
 						},
 						"Enabled": true
 					},
-					"S3BackupMode": "Enabled",
+					"S3BackupMode": #if ($stream.backupDisabled) "Disabled" #else "Enabled" #end,
 					"S3BackupConfiguration": {
 						"RoleARN":{
 							"Fn::GetAtt":[
