@@ -232,6 +232,11 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
+	        <plugin>
+	            <groupId>org.apache.maven.plugins</groupId>
+	            <artifactId>maven-surefire-plugin</artifactId>
+				<version>3.0.0-M3</version>
+	        </plugin>	    
 		</plugins>
 	</build>
 	<properties>
@@ -242,5 +247,7 @@
 		<junit.vintage.version>5.4.1</junit.vintage.version>
 		<junit.platform.version>1.4.1</junit.platform.version>
 		<mockito.version>2.27.0</mockito.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    	<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
 </project>
