@@ -16,6 +16,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.TemplateGuiceModule;
+import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
 import com.amazonaws.services.s3.AmazonS3;
@@ -77,27 +78,7 @@ public class S3BucketBuilderIntegrationTest {
 		when(mockS3Config.getInventoryBucket()).thenReturn(inventoryBucket.getName());
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(inventoryBucket, bucket));
 		
-		String expectedPolicy = "{\n"
-				+ "  \"Version\":\"2012-10-17\",\n"
-				+ "  \"Statement\":[\n"
-				+ "    {\n"
-				+ "      \"Sid\":\"InventoryPolicy\",\n"
-				+ "      \"Effect\":\"Allow\",\n"
-				+ "      \"Principal\": {\"Service\": \"s3.amazonaws.com\"},\n"
-				+ "      \"Action\":\"s3:PutObject\",\n"
-				+ "      \"Resource\":[\"arn:aws:s3:::dev.inventory/*\"],\n"
-				+ "      \"Condition\": {\n"
-				+ "          \"ArnLike\": {\n"
-				+ "              \"aws:SourceArn\": [\"arn:aws:s3:::dev.bucket\"]\n"
-				+ "         },\n"
-				+ "         \"StringEquals\": {\n"
-				+ "             \"aws:SourceAccount\": \"12345\",\n"
-				+ "             \"s3:x-amz-acl\": \"bucket-owner-full-control\"\n"
-				+ "          }\n"
-				+ "       }\n"
-				+ "    }\n"
-				+ "  ]\n"
-				+ "}";
+		String expectedPolicy = TemplateUtils.loadContentFromFile("s3/inventoryBucketPolicy.json");
 		
 		// Call under test
 		builder.buildAllBuckets();
@@ -125,27 +106,7 @@ public class S3BucketBuilderIntegrationTest {
 		when(mockS3Config.getInventoryBucket()).thenReturn(inventoryBucket.getName());
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(inventoryBucket, bucketOne, bucketTwo));
 		
-		String expectedPolicy = "{\n"
-				+ "  \"Version\":\"2012-10-17\",\n"
-				+ "  \"Statement\":[\n"
-				+ "    {\n"
-				+ "      \"Sid\":\"InventoryPolicy\",\n"
-				+ "      \"Effect\":\"Allow\",\n"
-				+ "      \"Principal\": {\"Service\": \"s3.amazonaws.com\"},\n"
-				+ "      \"Action\":\"s3:PutObject\",\n"
-				+ "      \"Resource\":[\"arn:aws:s3:::dev.inventory/*\"],\n"
-				+ "      \"Condition\": {\n"
-				+ "          \"ArnLike\": {\n"
-				+ "              \"aws:SourceArn\": [\"arn:aws:s3:::dev.bucketOne\",\"arn:aws:s3:::dev.bucketTwo\"]\n"
-				+ "         },\n"
-				+ "         \"StringEquals\": {\n"
-				+ "             \"aws:SourceAccount\": \"12345\",\n"
-				+ "             \"s3:x-amz-acl\": \"bucket-owner-full-control\"\n"
-				+ "          }\n"
-				+ "       }\n"
-				+ "    }\n"
-				+ "  ]\n"
-				+ "}";
+		String expectedPolicy = TemplateUtils.loadContentFromFile("s3/inventoryBucketPolicyMultiple.json");
 		
 		// Call under test
 		builder.buildAllBuckets();

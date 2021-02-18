@@ -4,6 +4,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.TEMPLATE_INVENTORY_BUCKET_POLICY_TEMPLATE;
 
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -215,7 +216,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		context.put("inventoryBucket", inventoryBucket);
 		context.put("sourceBuckets", sourceBuckets);
 		
-		Template policyTemplate = velocity.getTemplate(TEMPLATE_INVENTORY_BUCKET_POLICY_TEMPLATE);
+		Template policyTemplate = velocity.getTemplate(TEMPLATE_INVENTORY_BUCKET_POLICY_TEMPLATE, StandardCharsets.UTF_8.name());
 		
 		StringWriter stringWriter = new StringWriter();
 		

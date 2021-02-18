@@ -2,7 +2,17 @@ package org.sagebionetworks.template;
 
 import static org.sagebionetworks.template.Constants.STACK;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
+import org.apache.commons.io.IOUtils;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class TemplateUtils {
+	
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	
 	public static String replaceStackVariable(String input, String stack) {
 		if (input == null) {
@@ -18,4 +28,19 @@ public class TemplateUtils {
 		return input;
 	}
 
+	public static <T> T loadFromJsonFile(String file, Class<T> clazz) throws IOException {
+		return OBJECT_MAPPER.readValue(ClassLoader.getSystemClassLoader().getResource(file), clazz);
+	}
+	
+	public static String loadContentFromFile(String file) {
+		try(InputStream in = ClassLoader.getSystemClassLoader().getResourceAsStream(file)) {
+			if(in == null){
+				throw new RuntimeException("Failed to load file content from the classpath: " + file);
+			}
+			return IOUtils.toString(in, StandardCharsets.UTF_8.name());
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
 }

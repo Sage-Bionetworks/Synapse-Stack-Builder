@@ -202,7 +202,7 @@ public class S3BucketBuilderImplTest {
 		// No inventory configuration set
 		doThrow(notFound).when(mockS3Client).getBucketInventoryConfiguration(anyString(), anyString());
 		
-		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+		when(mockVelocity.getTemplate(any(), any())).thenReturn(mockTemplate);
 		
 		doAnswer(new Answer<Void>() {
 			@Override
@@ -282,7 +282,7 @@ public class S3BucketBuilderImplTest {
 						.withEnabled(true))
 		);
 		
-		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+		when(mockVelocity.getTemplate(any(), any())).thenReturn(mockTemplate);
 		
 		// Call under test
 		builder.buildAllBuckets();
