@@ -140,6 +140,13 @@
 					#if( $foreach.hasNext),#end
 					#end
 				],
+				#if ($stream.tableDescriptor.parameters)
+				"Parameters": {
+					#foreach($parameter in $stream.tableDescriptor.parameters.entrySet())
+					"$parameter.key": "$parameter.value"
+					#if($foreach.hasNext),#end
+				},
+				#end
 				"TableType": "EXTERNAL_TABLE"
 			}
 		}
