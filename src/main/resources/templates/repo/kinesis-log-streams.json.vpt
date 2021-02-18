@@ -132,10 +132,10 @@
 					#end
 				},
 				"PartitionKeys": [
-					#foreach($partitionKey in $stream.tableDescriptor.partitionKeys.entrySet())
+					#foreach($partition in $stream.tableDescriptor.partitionKeys.entrySet())
 					{
-						"Name":"${partitionKey.key}",
-						"Type":"${partitionKey.value}"
+						"Name":"${partition.key}",
+						"Type":"${partition.value}"
 					}
 					#if( $foreach.hasNext),#end
 					#end
@@ -143,8 +143,8 @@
 				#if ($stream.tableDescriptor.parameters)
 				"Parameters": {
 					#foreach($parameter in $stream.tableDescriptor.parameters.entrySet())
-					"$parameter.key": "$parameter.value"
-					#if($foreach.hasNext),#end
+					"${parameter.key}": "${parameter.value}" #if($foreach.hasNext),#end
+					#end
 				},
 				#end
 				"TableType": "EXTERNAL_TABLE"
