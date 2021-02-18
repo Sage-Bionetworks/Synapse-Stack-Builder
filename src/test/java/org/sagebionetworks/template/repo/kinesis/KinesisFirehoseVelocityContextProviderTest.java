@@ -79,6 +79,7 @@ public class KinesisFirehoseVelocityContextProviderTest {
 		when(mockRepoConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(prodStack);
 		when(mockStream.isDevOnly()).thenReturn(true);
 		
+		// Call under test
 		contextProvider.addToContext(mockContext);
 		
 		verify(mockContext).put(KINESIS_FIREHOSE_STREAM_DESCRIPTORS, Collections.emptySet());
@@ -92,6 +93,7 @@ public class KinesisFirehoseVelocityContextProviderTest {
 		
 		when(mockRepoConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(devStack);
 		
+		// Call under test
 		contextProvider.addToContext(mockContext);
 		
 		verify(mockContext).put(KINESIS_FIREHOSE_STREAM_DESCRIPTORS, Collections.singleton(mockStream));
@@ -110,20 +112,66 @@ public class KinesisFirehoseVelocityContextProviderTest {
 		when(mockConfig.getStreamDescriptors()).thenReturn(streams);
 		when(mockRepoConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(prodStack);
 		
+		// Call under test
 		contextProvider.addToContext(mockContext);
 		
 		verify(mockContext).put(KINESIS_FIREHOSE_STREAM_DESCRIPTORS, Collections.singleton(mockStream));
 	}
 	
 	@Test
-	public void testParameterizedTableName() {
+	public void testAddToContextWithParameterizedTableName() {
 		
 		String originalTableName = "TestTable";
 		
 		when(mockTable.getName()).thenReturn(originalTableName);
 		
+		// Call under test
 		contextProvider.addToContext(mockContext);
 		
 		verify(mockTable).setName((testStack + testInstance + originalTableName));
+	}
+	
+	@Test
+	public void testAddToContextWithDefaultBucket() {
+		
+		String originalTableName = "TestTable";
+		
+		when(mockStream.getBucket()).thenReturn(KinesisFirehoseStreamDescriptor.DEFAULT_BUCKET);
+		when(mockTable.getName()).thenReturn(originalTableName);
+		
+		// Call under test
+		contextProvider.addToContext(mockContext);
+		
+		verify(mockStream).setBucket(testStack + ".log.sagebase.org");
+	}
+	
+	@Test
+	public void testAddToContextWithCustomBucket() {
+		
+		String originalTableName = "TestTable";
+		String customBucket = "customBucket";
+		
+		when(mockStream.getBucket()).thenReturn(customBucket);
+		when(mockTable.getName()).thenReturn(originalTableName);
+		
+		// Call under test
+		contextProvider.addToContext(mockContext);
+		
+		verify(mockStream).setBucket(customBucket);
+	}
+	
+	@Test
+	public void testAddToContextWithCustomStackBucket() {
+		
+		String originalTableName = "TestTable";
+		String customBucket = "${stack}.customBucket";
+		
+		when(mockStream.getBucket()).thenReturn(customBucket);
+		when(mockTable.getName()).thenReturn(originalTableName);
+		
+		// Call under test
+		contextProvider.addToContext(mockContext);
+		
+		verify(mockStream).setBucket(testStack + ".customBucket");
 	}
 }

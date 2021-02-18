@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.velocity.VelocityContext;
+import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
 
@@ -47,9 +48,12 @@ public class KinesisFirehoseVelocityContextProvider implements VelocityContextPr
 		if (stream == null) {
 			return;
 		}
+		
+		stream.setBucket(TemplateUtils.replaceStackVariable(stream.getBucket(), getStack()));
+		
 		postProcessTable(stream.getTableDescriptor());
 	}
-
+	
 	private void postProcessTable(GlueTableDescriptor table) {
 		if (table == null) {
 			return;

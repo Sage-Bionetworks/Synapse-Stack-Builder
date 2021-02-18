@@ -40,8 +40,10 @@
 									"s3:PutObject"
 								],
 								"Resource":[
-									"arn:aws:s3:::${stack}.log.sagebase.org",
-									"arn:aws:s3:::${stack}.log.sagebase.org/*"
+									#foreach( $kinesisBucket in $kinesisBuckets)
+									"arn:aws:s3:::$kinesisBucket",
+									"arn:aws:s3:::$kinesisBucket/*"#if( $foreach.hasNext),#end
+									#end
 								]
 							}
 						]
@@ -124,9 +126,9 @@
 					#end,
 					"Compressed": false,
 					#if ($stream.parameterizeDestinationByStack)
-					"Location": "s3://${stack}.log.sagebase.org/${stack}${instance}${stream.name}/records"
+					"Location": "s3://${stream.bucket}/${stack}${instance}${stream.name}/records"
 					#else
-					"Location": "s3://${stack}.log.sagebase.org/${stream.name}/records"
+					"Location": "s3://${stream.bucket}/${stream.name}/records"
 					#end
 				},
 				"PartitionKeys": [
@@ -157,7 +159,7 @@
 						"Arn"
 					]
 				},
-				"BucketARN":"arn:aws:s3:::${stack}.log.sagebase.org",
+				"BucketARN":"arn:aws:s3:::${stream.bucket}",
 				#if ($stream.parameterizeDestinationByStack)
 				"Prefix":"${stack}${instance}${stream.name}/records/${stream.partitionScheme}/",
 				"ErrorOutputPrefix":"${stack}${instance}${stream.name}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
@@ -170,65 +172,65 @@
 					"SizeInMBs":${stream.bufferFlushSize}
 				},
 				#if( $stream.format == "PARQUET" )
-				"CompressionFormat":"UNCOMPRESSED",
-				"DataFormatConversionConfiguration": {
-					"SchemaConfiguration": {
-						"CatalogId": {
-							"Ref":"AWS::AccountId"
+					"CompressionFormat":"UNCOMPRESSED",
+					"DataFormatConversionConfiguration": {
+						"SchemaConfiguration": {
+							"CatalogId": {
+								"Ref":"AWS::AccountId"
+							},
+							"RoleARN":{
+								"Fn::GetAtt":[
+									"KinesisFirehoseLogRole",
+									"Arn"
+								]
+							},
+							"DatabaseName": {
+								"Ref":"${glueDatabaseName}GlueDatabase"
+							},
+							"TableName": {
+								"Ref":"${stream.tableDescriptor.name}GlueTable",
+							},
+							"Region": {
+								"Ref":"AWS::Region"
+							},
+							"VersionId":"LATEST"
 						},
+						"InputFormatConfiguration":{
+							"Deserializer": {
+								"OpenXJsonSerDe":{}
+							}
+						},
+						"OutputFormatConfiguration":{
+							"Serializer": {
+								"ParquetSerDe":{}
+							}
+						},
+						"Enabled": true
+					},
+					"S3BackupMode": "Enabled",
+					"S3BackupConfiguration": {
 						"RoleARN":{
 							"Fn::GetAtt":[
 								"KinesisFirehoseLogRole",
 								"Arn"
 							]
 						},
-						"DatabaseName": {
-							"Ref":"${glueDatabaseName}GlueDatabase"
-						},
-						"TableName": {
-							"Ref":"${stream.tableDescriptor.name}GlueTable",
-						},
-						"Region": {
-							"Ref":"AWS::Region"
-						},
-						"VersionId":"LATEST"
-					},
-					"InputFormatConfiguration":{
-						"Deserializer": {
-							"OpenXJsonSerDe":{}
+						"BucketARN":"arn:aws:s3:::${stream.bucket}",
+						"CompressionFormat" : "GZIP",
+						#if ($stream.parameterizeDestinationByStack)
+						"Prefix":"${stack}${instance}${stream.name}/backup/records/${stream.partitionScheme}/",
+						"ErrorOutputPrefix":"${stack}${instance}${stream.name}/backup/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
+						#else
+						"Prefix":"${stream.name}/backup/records/${stream.partitionScheme}/",
+						"ErrorOutputPrefix":"${stream.name}/backup/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
+						#end
+						"BufferingHints":{
+							"IntervalInSeconds":${stream.bufferFlushInterval},
+							"SizeInMBs":${stream.bufferFlushSize}
 						}
-					},
-					"OutputFormatConfiguration":{
-						"Serializer": {
-							"ParquetSerDe":{}
-						}
-					},
-					"Enabled": true
-				},
-				"S3BackupMode": "Enabled",
-				"S3BackupConfiguration": {
-					"RoleARN":{
-						"Fn::GetAtt":[
-							"KinesisFirehoseLogRole",
-							"Arn"
-						]
-					},
-					"BucketARN":"arn:aws:s3:::${stack}.log.sagebase.org",
-					"CompressionFormat" : "GZIP",
-					#if ($stream.parameterizeDestinationByStack)
-					"Prefix":"${stack}${instance}${stream.name}/backup/records/${stream.partitionScheme}/",
-					"ErrorOutputPrefix":"${stack}${instance}${stream.name}/backup/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
-					#else
-					"Prefix":"${stream.name}/backup/records/${stream.partitionScheme}/",
-					"ErrorOutputPrefix":"${stream.name}/backup/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
-					#end
-					"BufferingHints":{
-						"IntervalInSeconds":${stream.bufferFlushInterval},
-						"SizeInMBs":${stream.bufferFlushSize}
 					}
-				}
 				#elseif( $stream.format == "JSON" )
-				"CompressionFormat":"GZIP"
+					"CompressionFormat":"GZIP"
 				#else
 				$exceptionThrower.throwException("Unsupported format: ${stream.format}")
 				#end
