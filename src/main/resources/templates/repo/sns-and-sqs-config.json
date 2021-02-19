@@ -235,6 +235,12 @@
 				"ENTITY"
 			],
 			"messageVisibilityTimeoutSec":120
+		},
+		{
+			"queueName":"FILE_HANDLE_SCAN_REQUEST",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":300,
+			"oldestMessageInQueueAlarmThresholdSec": 43200
 		}
 	]
 }
