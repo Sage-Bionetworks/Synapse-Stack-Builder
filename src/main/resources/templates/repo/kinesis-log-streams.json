@@ -58,7 +58,7 @@
 	},
 	{
 		"name": "fileHandleAssociations",
-		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}",
+		"partitionScheme": "dt=!{timestamp:yyyy-MM}",
 		"bucket": "${stack}.filehandles.sagebase.org",
 		"format": "PARQUET",
 		"bufferFlushSize": 64,
@@ -75,15 +75,15 @@
 				"instance": "string"
 			},
 			"partitionKeys": {
-				"year": "integer",
-				"month": "integer"
+				"dt": "string"
 			},
 			"parameters": {
 				"projection.enabled": "true",
-				"projection.year.type": "integer",
-				"projection.year.range": "2020, 2022",
-				"projection.month.type": "integer",
-				"projection.month.range": "01, 12"
+				"projection.dt.type": "date",
+				"projection.dt.format": "yyyy-MM",
+				"projection.dt.range": "2020-01,NOW",
+				"projection.dt.interval": "1",
+				"projection.dt.interval.unit": "MONTHS"
 			}
 		}
 	},
