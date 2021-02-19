@@ -74,6 +74,10 @@
 				"stack": "string",
 				"instance": "string"
 			},
+			"partitionKeys": {
+				"year": "integer",
+				"month": "integer"
+			},
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.year.type": "integer",
