@@ -62,7 +62,7 @@
 		"bucket": "${stack}.filehandles.sagebase.org",
 		"format": "PARQUET",
 		"bufferFlushSize": 64,
-		"bufferFlushInterval": 60,
+		"bufferFlushInterval": 900,
 		"backupDisabled": true,
 		"tableDescriptor": {
 			"name": "fileHandleAssociationsRecords",
