@@ -168,6 +168,7 @@ public class Constants {
 
 	public static final String GLUE_DATABASE_NAME = "glueDatabaseName";
 	public static final String KINESIS_FIREHOSE_STREAM_DESCRIPTORS = "kinesisFirehoseStreams";
+	public static final String KINESIS_FIREHOSE_BUCKETS = "kinesisBuckets";
 
 	public static final String CLOUDWATCH_LOGS_DESCRIPTORS = "logDescriptors";
 

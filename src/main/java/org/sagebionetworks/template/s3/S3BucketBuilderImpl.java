@@ -4,6 +4,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.TEMPLATE_INVENTORY_BUCKET_POLICY_TEMPLATE;
 
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -13,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
 import com.amazonaws.AmazonServiceException;
@@ -66,12 +68,12 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		
 		String accountId = stsClient.getCallerIdentity(new GetCallerIdentityRequest()).getAccount();
 		
-		String inventoryBucket = replaceStackVariable(s3Config.getInventoryBucket(), stack);
+		String inventoryBucket = TemplateUtils.replaceStackVariable(s3Config.getInventoryBucket(), stack);
 		List<String> inventoriedBuckets = new ArrayList<>();
 		
 		// Configure all buckets first
 		for (S3BucketDescriptor bucket : s3Config.getBuckets()) {
-			String bucketName = replaceStackVariable(bucket.getName(), stack);
+			String bucketName = TemplateUtils.replaceStackVariable(bucket.getName(), stack);
 			
 			createBucket(bucketName);
 			configureEncryption(bucketName);	
@@ -86,20 +88,6 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		
 		// Makes sure the bucket policy on the inventory is correct
 		configureInventoryBucketPolicy(stack, accountId, inventoryBucket, inventoriedBuckets);
-	}
-	
-	private String replaceStackVariable(String bucketName, String stack) {
-		if (bucketName == null) {
-			return null;
-		}
-		
-		bucketName = bucketName.replace("${stack}", stack);
-		
-		if(bucketName.contains("$")) {
-			throw new IllegalArgumentException("Unable to read bucket name: "+bucketName);
-		}
-		
-		return bucketName;
 	}
 	
 	private void createBucket(String bucketName) {
@@ -228,7 +216,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		context.put("inventoryBucket", inventoryBucket);
 		context.put("sourceBuckets", sourceBuckets);
 		
-		Template policyTemplate = velocity.getTemplate(TEMPLATE_INVENTORY_BUCKET_POLICY_TEMPLATE);
+		Template policyTemplate = velocity.getTemplate(TEMPLATE_INVENTORY_BUCKET_POLICY_TEMPLATE, StandardCharsets.UTF_8.name());
 		
 		StringWriter stringWriter = new StringWriter();
 		

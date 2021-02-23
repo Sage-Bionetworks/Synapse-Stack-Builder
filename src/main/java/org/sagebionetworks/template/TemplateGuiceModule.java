@@ -1,13 +1,13 @@
 package org.sagebionetworks.template;
 
+import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.KINESIS_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.S3_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.SNS_AND_SQS_CONFIG_FILE;
+import static org.sagebionetworks.template.TemplateUtils.loadFromJsonFile;
+
 import java.io.IOException;
 
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClientBuilder;
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.velocity.app.VelocityEngine;
@@ -48,12 +48,12 @@ import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfigV
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseVelocityContextProvider;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsConfig;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsVelocityContextProvider;
-import org.sagebionetworks.template.vpc.SubnetTemplateBuilder;
-import org.sagebionetworks.template.vpc.SubnetTemplateBuilderImpl;
 import org.sagebionetworks.template.s3.S3BucketBuilder;
 import org.sagebionetworks.template.s3.S3BucketBuilderImpl;
 import org.sagebionetworks.template.s3.S3Config;
 import org.sagebionetworks.template.s3.S3ConfigValidator;
+import org.sagebionetworks.template.vpc.SubnetTemplateBuilder;
+import org.sagebionetworks.template.vpc.SubnetTemplateBuilderImpl;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilder;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilderImpl;
 import org.sagebionetworks.war.WarAppender;
@@ -63,6 +63,10 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
+import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
+import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
+import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClientBuilder;
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClientBuilder;
 import com.amazonaws.services.kms.AWSKMS;
@@ -72,20 +76,14 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 
-import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_CONFIG_FILE;
-import static org.sagebionetworks.template.Constants.KINESIS_CONFIG_FILE;
-import static org.sagebionetworks.template.Constants.SNS_AND_SQS_CONFIG_FILE;
-import static org.sagebionetworks.template.Constants.S3_CONFIG_FILE;
-
 public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
-	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	private static final String RUNTIME_REFERENCES_STRICT = "runtime.references.strict";
 	private static final String CLASSPATH_AND_FILE = "classpath,file";
 	private static final String CLASSPATH_RESOURCE_LOADER_CLASS = "classpath.resource.loader.class";
@@ -235,8 +233,6 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		return new S3ConfigValidator(loadFromJsonFile(S3_CONFIG_FILE, S3Config.class)).validate();
 	}
 	
-	private static <T> T loadFromJsonFile(String file, Class<T> clazz) throws IOException {
-		return OBJECT_MAPPER.readValue(ClassLoader.getSystemClassLoader().getResource(file), clazz);
-	}
+	
 
 }
