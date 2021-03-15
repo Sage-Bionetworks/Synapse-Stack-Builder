@@ -88,29 +88,33 @@
 		}
 	},
 	{
-		"name": "fileDownloadsTest",
+		"name": "testStream",
 		"devOnly": true,
 		"parameterizeDestinationByStack": true,
-		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
+		"partitionScheme": "dt=!{timestamp:yyyy-MM}",
+		"bucket": "${stack}.testdata.sagebase.org",
 		"format": "PARQUET",
 		"bufferFlushSize": 64,
 		"bufferFlushInterval": 60,
 		"tableDescriptor": {
-			"name": "fileDownloadsRecordsTest",
+			"name": "testStreamRecords",
 			"columns": {
-				"userId": "bigint",
+				"id": "bigint",
 				"timestamp": "timestamp",
-				"projectId": "bigint",
-				"fileHandleId": "string",
-				"associateType": "string",
-				"associateId": "string",
+				"someField": "string",
 				"stack": "string",
 				"instance": "string"
 			},
 			"partitionKeys": {
-				"year": "string",
-				"month": "string",
-				"day": "string"
+				"dt": "string"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.dt.type": "date",
+				"projection.dt.format": "yyyy-MM",
+				"projection.dt.range": "2020-01,NOW",
+				"projection.dt.interval": "1",
+				"projection.dt.interval.unit": "MONTHS"
 			}
 		}
 	}]
