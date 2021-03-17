@@ -29,6 +29,10 @@
 		{
 			"name": "${stack}.filehandles.sagebase.org",
 			"retentionDays": 30
+		},
+		{
+			"name": "${stack}.testdata.sagebase.org",
+			"retentionDays": 30
 		}
 	],
 	"inventoryBucket": "${stack}.inventory.sagebase.org"
