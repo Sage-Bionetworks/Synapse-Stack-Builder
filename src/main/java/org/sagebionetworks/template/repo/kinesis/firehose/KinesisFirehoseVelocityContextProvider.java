@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.velocity.VelocityContext;
+import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
@@ -18,7 +19,6 @@ import com.google.inject.Inject;
 
 public class KinesisFirehoseVelocityContextProvider implements VelocityContextProvider {
 
-	private static final String PROD_STACK_NAME = "prod";
 	public static final String GLUE_DB_SUFFIX = "firehoseLogs";
 
 	private KinesisFirehoseConfig config;
@@ -37,7 +37,7 @@ public class KinesisFirehoseVelocityContextProvider implements VelocityContextPr
 		streams.forEach(this::postProcessStream);
 
 		// Does not deploy to prod stacks that are dev only
-		if (getStack().equalsIgnoreCase(PROD_STACK_NAME)) {
+		if (getStack().equalsIgnoreCase(Constants.PROD_STACK_NAME)) {
 			streams = streams.stream().filter(stream -> !stream.isDevOnly()).collect(Collectors.toSet());
 		}
 
