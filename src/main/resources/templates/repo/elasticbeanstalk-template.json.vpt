@@ -190,6 +190,26 @@
 						}
 					},
 					{
+					    "Namespace": "aws:elasticbeanstalk:managedactions",
+					    "OptionName": "ManagedActionsEnabled",
+					    "Value": "true"
+					},
+					{
+					    "Namespace": "aws:elasticbeanstalk:managedactions",
+					    "OptionName": "PreferredStartTime",
+					    "Value": "Wed:03:00"
+					},
+					{
+					    "Namespace": "aws:elasticbeanstalk:managedactions:platformupdate",
+					    "OptionName": "UpdateLevel",
+					    "Value": "minor"
+					},
+					{
+					    "Namespace": "aws:elasticbeanstalk:managedactions:platformupdate",
+					    "OptionName": "InstanceRefreshEnabled",
+					    "Value": "true"
+					},
+				    {
 						"Namespace": "aws:elbv2:loadbalancer",
 						"OptionName": "AccessLogsS3Bucket",
 						"Value": "${stack}.alb.access.logs"
