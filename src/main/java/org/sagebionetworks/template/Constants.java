@@ -221,4 +221,6 @@ public class Constants {
 		return joiner.toString();
 	}
 
+	public static final String PROD_STACK_NAME = "prod";
+
 }

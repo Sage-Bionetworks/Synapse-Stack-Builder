@@ -18,6 +18,11 @@ public class S3BucketDescriptor {
 	 * If set will setup a retention life cycle rule for the specified number of days
 	 */
 	private Integer retentionDays;
+	
+	/**
+	 * True if the bucket should be created only in dev
+	 */
+	private boolean devOnly = false;
 
 	public S3BucketDescriptor() {
 	}
@@ -45,10 +50,18 @@ public class S3BucketDescriptor {
 	public void setRetentionDays(Integer retentionDays) {
 		this.retentionDays = retentionDays;
 	}
+	
+	public boolean isDevOnly() {
+		return devOnly;
+	}
+	
+	public void setDevOnly(boolean devOnly) {
+		this.devOnly = devOnly;
+	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(inventoryEnabled, name, retentionDays);
+		return Objects.hash(devOnly, inventoryEnabled, name, retentionDays);
 	}
 
 	@Override
@@ -63,14 +76,14 @@ public class S3BucketDescriptor {
 			return false;
 		}
 		S3BucketDescriptor other = (S3BucketDescriptor) obj;
-		return inventoryEnabled == other.inventoryEnabled && Objects.equals(name, other.name)
+		return devOnly == other.devOnly && inventoryEnabled == other.inventoryEnabled && Objects.equals(name, other.name)
 				&& Objects.equals(retentionDays, other.retentionDays);
 	}
 
 	@Override
 	public String toString() {
-		return "S3BucketDescriptor [name=" + name + ", inventoryEnabled=" + inventoryEnabled + ", retentionDays="
-				+ retentionDays + "]";
+		return "S3BucketDescriptor [name=" + name + ", inventoryEnabled=" + inventoryEnabled + ", retentionDays=" + retentionDays
+				+ ", devOnly=" + devOnly + "]";
 	}
 
 }
