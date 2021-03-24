@@ -29,6 +29,9 @@
 		{
 			"name": "${stack}.filehandles.sagebase.org",
 			"retentionDays": 30
+		},
+		{
+			"name": "${stack}.analytics.sagebase.org"
 		}
 	],
 	"inventoryBucket": "${stack}.inventory.sagebase.org"
