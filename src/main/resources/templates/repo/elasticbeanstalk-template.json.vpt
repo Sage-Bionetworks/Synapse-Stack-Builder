@@ -214,6 +214,16 @@
 					    "OptionName": "InstanceRefreshEnabled",
 					    "Value": "true"
 					},
+ 					{
+						"Namespace": "aws:elasticbeanstalk:healthreporting:system",
+						"OptionName": "SystemType",
+						"Value": "enhanced"
+					},
+  					{
+ 						"Namespace": "aws:elasticbeanstalk:healthreporting:system",
+						"OptionName": "EnhancedHealthAuthEnabled",
+ 						"Value": "true"
+ 					},
 				    {
 						"Namespace": "aws:elbv2:loadbalancer",
 						"OptionName": "AccessLogsS3Bucket",
