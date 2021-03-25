@@ -31,7 +31,7 @@ public class ElasticBeanstalkDefaultAMIEncrypterImpl implements ElasticBeanstalk
 	Configuration config;
 
 
-	static final String PLATFORM_NAME_TEMPLATE =  "Tomcat %s with Java %s running on 64bit Amazon Linux";
+	static final String PLATFORM_NAME_TEMPLATE =  "Tomcat %s with Corretto %s running on 64bit Amazon Linux 2";
 	static final String AMI_VIRTUALIZATION_TYPE = "hvm";
 	static final String SOURCE_AMI_TAG_KEY = "CopiedFrom";
 
