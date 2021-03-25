@@ -374,6 +374,11 @@
 						"Value": "5"
 					},
 					{
+					    "Namespace": "aws:elasticbeanstalk:environment",
+					    "OptionName": "ServiceRole",
+					    "Value": "AWSServiceRoleForElasticBeanstalk"
+					},
+					{
 						"Namespace": "aws:elasticbeanstalk:container:tomcat:jvmoptions",
 						"OptionName": "Xms",
 						"Value": "256m"
