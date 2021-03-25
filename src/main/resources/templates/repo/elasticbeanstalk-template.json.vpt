@@ -339,6 +339,11 @@
 						"Value": "5"
 					},
 					{
+					    "Namespace": "aws:elasticbeanstalk:environment:proxy",
+					    "OptionName": "ProxyServer",
+					    "Value": "apache"
+					},
+					{
 						"Namespace": "aws:elasticbeanstalk:container:tomcat:jvmoptions",
 						"OptionName": "Xms",
 						"Value": "256m"
