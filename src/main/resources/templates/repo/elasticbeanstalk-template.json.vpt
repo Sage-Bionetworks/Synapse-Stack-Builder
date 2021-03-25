@@ -199,6 +199,11 @@
 					    "OptionName": "PreferredStartTime",
 					    "Value": "Wed:03:00"
 					},
+                    {
+                        "Namespace": "aws:elasticbeanstalk:managedactions",
+                        "OptionName": "ServiceRoleForManagedUpdates",
+                        "Value": "AWSServiceRoleForElasticBeanstalkManagedUpdates"
+                    },
 					{
 					    "Namespace": "aws:elasticbeanstalk:managedactions:platformupdate",
 					    "OptionName": "UpdateLevel",
