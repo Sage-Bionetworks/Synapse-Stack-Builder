@@ -88,6 +88,37 @@
 		}
 	},
 	{
+		"name": "fileHandleData",
+		"partitionScheme": "dt=!{timestamp:yyyy-MM}",
+		"bucket": "${stack}.filehandles.sagebase.org",
+		"format": "PARQUET",
+		"bufferFlushSize": 64,
+		"bufferFlushInterval": 900,
+		"backupDisabled": true,
+		"tableDescriptor": {
+			"name": "fileHandleDataRecords",
+			"columns": {
+				"id": "bigint",
+				"createdOn": "timestamp",
+				"status": "string",
+				"isPreview": "boolean",
+				"stack": "string",
+				"instance": "string"
+			},
+			"partitionKeys": {
+				"dt": "string"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.dt.type": "date",
+				"projection.dt.format": "yyyy-MM",
+				"projection.dt.range": "2020-01,NOW",
+				"projection.dt.interval": "1",
+				"projection.dt.interval.unit": "MONTHS"
+			}
+		}
+	},
+	{
 		"name": "testStream",
 		"devOnly": true,
 		"parameterizeDestinationByStack": true,
