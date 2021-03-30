@@ -1,5 +1,8 @@
 package org.sagebionetworks.template.repo.beanstalk.ssl;
 
+import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PREFIX;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
@@ -42,6 +45,10 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 	public static final String TEMPLATE_EBEXTENSIONS_BEANSTALK_LOGS_CW_CONFIG = "templates/repo/ebextensions/beanstalk_logs_cloudwatch.config";
 
 	public static final String BEANSTALK_LOGS_CW_CONFIG = "beanstalk_cwlogs.config";
+	
+	public static final String TEMPLATE_EBEXTENSIONS_BEANSTALK_ALARMS = "templates/repo/ebextensions/beanstalk_alarms.config";
+
+	public static final String BEANSTALK_ALARMS_CONFIG = "beanstalk_alarms.config";
 
 	CertificateBuilder certificateBuilder;
 	VelocityEngine velocityEngine;
@@ -72,7 +79,8 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 		context.put("envType", envType);
 		// CloudwatchLog descriptors
 		context.put(Constants.CLOUDWATCH_LOGS_DESCRIPTORS, cwlContextprovider.getLogDescriptors(envType));
-
+		// Exported resources prefix
+		context.put(GLOBAL_RESOURCES_EXPORT_PREFIX, Constants.createGlobalResourcesExportPrefix(configuration.getProperty(PROPERTY_KEY_STACK)));
 
 		// add the files to the copy of the war
 		return warAppender.appendFilesCopyOfWar(warFile, new Consumer<File>() {
@@ -101,6 +109,10 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 				resultFile = fileProvider.createNewFile(ebextensionsDirectory, BEANSTALK_LOGS_CW_CONFIG);
 				Template beanstalkClodwatchConf = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_BEANSTALK_LOGS_CW_CONFIG);
 				addTemplateAsFileToDirectory(beanstalkClodwatchConf, context, resultFile);
+				// Beanstalk environment alarms
+				resultFile = fileProvider.createNewFile(ebextensionsDirectory, BEANSTALK_ALARMS_CONFIG);
+				Template beanstalkAlarms = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_BEANSTALK_ALARMS);
+				addTemplateAsFileToDirectory(beanstalkAlarms, context, resultFile);
 			}
 		});
 
