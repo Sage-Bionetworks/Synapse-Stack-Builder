@@ -43,6 +43,8 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 
 	public static final String BEANSTALK_LOGS_CW_CONFIG = "beanstalk_cwlogs.config";
 
+	public static final String DOT_PLATFORM = ".platform";
+
 	CertificateBuilder certificateBuilder;
 	VelocityEngine velocityEngine;
 	Configuration configuration;
@@ -79,25 +81,33 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 
 			@Override
 			public void accept(File directory) {
+
 				// ensure the .ebextensions directory exists
 				File ebextensionsDirectory = fileProvider.createNewFile(directory, DOT_EBEXTENSIONS);
 				ebextensionsDirectory.mkdirs();
-				// ensure the .ebextensions/httpd/conf.d directory exists.
-				File confDDirectory = fileProvider.createNewFile(ebextensionsDirectory, HTTPD_CONF_D);
+				// ensure the .platform directory exists
+				File platformDirectory = fileProvider.createNewFile(directory, DOT_PLATFORM);
+				platformDirectory.mkdirs();
+				// ensure the .platform/httpd/conf.d directory exists.
+				File confDDirectory = fileProvider.createNewFile(platformDirectory, HTTPD_CONF_D);
 				confDDirectory.mkdirs();
-				// https-instance.config
+
+				// https-instance.config in .ebextensions
 				Template httpInstanceTempalte = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_INSTANCE_CONFIG);
 				File resultFile = fileProvider.createNewFile(ebextensionsDirectory, INSTANCE_CONFIG);
 				addTemplateAsFileToDirectory(httpInstanceTempalte, context, resultFile);
-				// SSL conf
+
+				// SSL conf in .platform/httpd/conf.d
 				resultFile = fileProvider.createNewFile(confDDirectory, SSL_CONF);
 				Template sslconf = velocityEngine.getTemplate(TEMPLATES_REPO_EBEXTENSIONS_HTTPS_SSL_CONF);
 				addTemplateAsFileToDirectory(sslconf, context, resultFile);
-				// ModSecurity conf
+
+				// ModSecurity conf in .platform/httpd/conf.d/
 				resultFile = fileProvider.createNewFile(confDDirectory, SECURITY_CONF);
 				Template modSecurityConf = velocityEngine.getTemplate(TEMPLATES_REPO_EBEXTENSIONS_SECURITY_CONF);
 				addTemplateAsFileToDirectory(modSecurityConf, context, resultFile);
-				// Beanstalk logs CloudwatchLogs config
+
+				// Beanstalk logs CloudwatchLogs config in .ebextensions
 				resultFile = fileProvider.createNewFile(ebextensionsDirectory, BEANSTALK_LOGS_CW_CONFIG);
 				Template beanstalkClodwatchConf = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_BEANSTALK_LOGS_CW_CONFIG);
 				addTemplateAsFileToDirectory(beanstalkClodwatchConf, context, resultFile);
