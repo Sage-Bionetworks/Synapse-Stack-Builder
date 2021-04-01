@@ -207,7 +207,7 @@
 					{
 					    "Namespace": "aws:elasticbeanstalk:managedactions:platformupdate",
 					    "OptionName": "UpdateLevel",
-					    "Value": "minor"
+					    "Value": "patch"
 					},
 					{
 					    "Namespace": "aws:elasticbeanstalk:managedactions:platformupdate",
