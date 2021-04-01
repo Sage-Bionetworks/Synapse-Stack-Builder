@@ -1,0 +1,23 @@
+{
+	"REPOSITORY_SERVICES": [{
+		"name": "AWS-ELB-500-High-Rate-Alarm",
+		"description": "Alarm when a high rate of 500 is returned by the load balancer",
+		"metric": "HTTPCode_ELB_5XX_Count",
+		"statistic": "Sum",
+		"period": 60,
+		"evaluationPeriods": 1,
+		"threshold": 20,
+		"comparisonOperator": "GreaterThanOrEqualToThreshold"
+	}],
+	"PORTAL": [{
+		"name": "AWS-ELB-500-High-Rate-Alarm",
+		"description": "Alarm when a high rate of 500 is returned by the load balancer",
+		"metric": "HTTPCode_ELB_5XX_Count",
+		"statistic": "Sum",
+		"period": 60,
+		"evaluationPeriods": 1,
+		"threshold": 20,
+		"comparisonOperator": "GreaterThanOrEqualToThreshold"
+	}]
+
+}
