@@ -197,7 +197,7 @@
 					{
 					    "Namespace": "aws:elasticbeanstalk:managedactions",
 					    "OptionName": "PreferredStartTime",
-					    "Value": "Wed:03:00"
+					    "Value": "Mon:06:00"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:managedactions",
