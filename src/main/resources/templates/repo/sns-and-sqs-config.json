@@ -241,6 +241,13 @@
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":300,
 			"oldestMessageInQueueAlarmThresholdSec": 43200
+		},
+		{
+			"queueName":"FILE_HANDLE_STREAM",
+			"subscribedTopicNames":[
+				"FILE"
+			],
+			"messageVisibilityTimeoutSec":120
 		}
 	]
 }

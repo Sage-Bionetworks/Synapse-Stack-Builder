@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
@@ -37,7 +38,7 @@ import com.google.inject.Inject;
 
 public class S3BucketBuilderImpl implements S3BucketBuilder {
 
-	private static final Logger logger = LogManager.getLogger(S3BucketBuilderImpl.class);
+	private static final Logger LOG = LogManager.getLogger(S3BucketBuilderImpl.class);
 
 	static final String INVENTORY_ID = "defaultInventory";
 	static final String INVENTORY_FORMAT = "Parquet";
@@ -75,6 +76,11 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		for (S3BucketDescriptor bucket : s3Config.getBuckets()) {
 			String bucketName = TemplateUtils.replaceStackVariable(bucket.getName(), stack);
 			
+			if (bucket.isDevOnly() && stack.equalsIgnoreCase(Constants.PROD_STACK_NAME)) {
+				LOG.warn("The bucket {} is deployed only on non-prod stacks.", bucketName);
+				continue;
+			}
+			
 			createBucket(bucketName);
 			configureEncryption(bucketName);	
 			configureInventory(bucketName, accountId, inventoryBucket, bucket.isInventoryEnabled());
@@ -91,7 +97,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	}
 	
 	private void createBucket(String bucketName) {
-		logger.info("Creating bucket: {}.", bucketName);
+		LOG.info("Creating bucket: {}.", bucketName);
 		
 		// This is idempotent
 		s3Client.createBucket(bucketName);
@@ -104,7 +110,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		} catch (AmazonServiceException e) {
 			if(e.getStatusCode() == 404) {
 				// The bucket is not currently encrypted so configure it for encryption.
-				logger.info("Setting server side encryption for bucket: {}.", bucketName);
+				LOG.info("Setting server side encryption for bucket: {}.", bucketName);
 				
 				s3Client.setBucketEncryption(new SetBucketEncryptionRequest().withBucketName(bucketName)
 						.withServerSideEncryptionConfiguration(new ServerSideEncryptionConfiguration()
@@ -136,16 +142,16 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		}
 		
 		if (enabled) {
-			logger.warn("An inventory configuration for bucket {} exists already, will not update.", bucketName);
+			LOG.warn("An inventory configuration for bucket {} exists already, will not update.", bucketName);
 		} else {
-			logger.info("Removing inventory configuration for bucket {}.", bucketName);
+			LOG.info("Removing inventory configuration for bucket {}.", bucketName);
 			s3Client.deleteBucketInventoryConfiguration(bucketName, INVENTORY_ID);
 		}
 		
 	}
 	
 	private void setInventoryConfiguration(String bucketName, String accountId, String inventoryBucket) {
-		logger.info("Configuring inventory for bucket: {}.", bucketName);
+		LOG.info("Configuring inventory for bucket: {}.", bucketName);
 		
 		InventoryConfiguration config = new InventoryConfiguration()
 				.withId(INVENTORY_ID)
@@ -176,7 +182,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		BucketLifecycleConfiguration config = s3Client.getBucketLifecycleConfiguration(bucketName);
 		
 		if (config != null) {
-			logger.warn("A bucket lifecycle configuration for bucket {} already exists, will not update.", bucketName);
+			LOG.warn("A bucket lifecycle configuration for bucket {} already exists, will not update.", bucketName);
 			return;
 		}
 		
@@ -186,7 +192,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 						.withExpirationInDays(retentionDays)
 						.withStatus(BucketLifecycleConfiguration.ENABLED));
 		
-		logger.info("Configuring bucket {} lifecycle with {} days of retention.", bucketName, retentionDays);
+		LOG.info("Configuring bucket {} lifecycle with {} days of retention.", bucketName, retentionDays);
 		
 		s3Client.setBucketLifecycleConfiguration(bucketName, config);
 		
@@ -194,12 +200,12 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	
 	private void configureInventoryBucketPolicy(String stack, String accountId, String inventoryBucket, List<String> sourceBuckets) {
 		if (inventoryBucket == null) {
-			logger.warn("An inventory bucket was not specified.");
+			LOG.warn("An inventory bucket was not specified.");
 			return;
 		} 
 		
 		if (sourceBuckets == null || sourceBuckets.isEmpty()) {
-			logger.warn("No bucket had the inventory enabled, removing bucket policy.");
+			LOG.warn("No bucket had the inventory enabled, removing bucket policy.");
 			s3Client.deleteBucketPolicy(inventoryBucket);
 			return;
 		}
@@ -224,7 +230,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		
 		String jsonPolicy = stringWriter.toString();
 		
-		logger.info("Updating inventory bucket {} policy.", inventoryBucket);
+		LOG.info("Updating inventory bucket {} policy.", inventoryBucket);
 		
 		s3Client.setBucketPolicy(inventoryBucket, jsonPolicy);
 	}

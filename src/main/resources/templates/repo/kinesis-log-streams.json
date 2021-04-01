@@ -88,29 +88,64 @@
 		}
 	},
 	{
-		"name": "fileDownloadsTest",
-		"devOnly": true,
-		"parameterizeDestinationByStack": true,
-		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
+		"name": "fileHandleData",
+		"partitionScheme": "dt=!{timestamp:yyyy-MM}",
+		"bucket": "${stack}.filehandles.sagebase.org",
 		"format": "PARQUET",
 		"bufferFlushSize": 64,
-		"bufferFlushInterval": 60,
+		"bufferFlushInterval": 900,
+		"backupDisabled": true,
 		"tableDescriptor": {
-			"name": "fileDownloadsRecordsTest",
+			"name": "fileHandleDataRecords",
 			"columns": {
-				"userId": "bigint",
-				"timestamp": "timestamp",
-				"projectId": "bigint",
-				"fileHandleId": "string",
-				"associateType": "string",
-				"associateId": "string",
+				"id": "bigint",
+				"createdOn": "timestamp",
+				"status": "string",
+				"isPreview": "boolean",
 				"stack": "string",
 				"instance": "string"
 			},
 			"partitionKeys": {
-				"year": "string",
-				"month": "string",
-				"day": "string"
+				"dt": "string"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.dt.type": "date",
+				"projection.dt.format": "yyyy-MM",
+				"projection.dt.range": "2020-01,NOW",
+				"projection.dt.interval": "1",
+				"projection.dt.interval.unit": "MONTHS"
+			}
+		}
+	},
+	{
+		"name": "testStream",
+		"devOnly": true,
+		"parameterizeDestinationByStack": true,
+		"partitionScheme": "dt=!{timestamp:yyyy-MM}",
+		"bucket": "${stack}.testdata.sagebase.org",
+		"format": "PARQUET",
+		"bufferFlushSize": 64,
+		"bufferFlushInterval": 60,
+		"tableDescriptor": {
+			"name": "testStreamRecords",
+			"columns": {
+				"id": "bigint",
+				"timestamp": "timestamp",
+				"someField": "string",
+				"stack": "string",
+				"instance": "string"
+			},
+			"partitionKeys": {
+				"dt": "string"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.dt.type": "date",
+				"projection.dt.format": "yyyy-MM",
+				"projection.dt.range": "2020-01,NOW",
+				"projection.dt.interval": "1",
+				"projection.dt.interval.unit": "MONTHS"
 			}
 		}
 	}]
