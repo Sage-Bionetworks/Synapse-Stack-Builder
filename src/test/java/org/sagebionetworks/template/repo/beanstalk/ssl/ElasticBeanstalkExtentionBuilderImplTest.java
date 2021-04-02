@@ -143,7 +143,7 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		String alarmsConf = alarmsConfWriter.toString();
 		
 		assertTrue(alarmsConf.contains("AWSELBSomeAlarm"));
-		assertTrue(alarmsConf.contains("dev-123-AWS-ELB-Some-Alarm"));
+		assertTrue(alarmsConf.contains("-AWS-ELB-Some-Alarm"));
 		
 	}
 
