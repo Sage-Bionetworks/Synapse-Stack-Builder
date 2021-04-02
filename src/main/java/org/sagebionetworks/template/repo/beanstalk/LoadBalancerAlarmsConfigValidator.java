@@ -4,9 +4,6 @@ import java.util.List;
 
 import org.sagebionetworks.util.ValidateArgument;
 
-import com.amazonaws.services.cloudwatch.model.ComparisonOperator;
-import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
-
 public class LoadBalancerAlarmsConfigValidator {
 	
 	private LoadBalancerAlarmsConfig config;

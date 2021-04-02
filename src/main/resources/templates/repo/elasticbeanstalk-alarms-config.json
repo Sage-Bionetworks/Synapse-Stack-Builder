@@ -1,6 +1,6 @@
 {
 	"REPOSITORY_SERVICES": [{
-		"name": "500-High-Rate-Alarm",
+		"name": "5xx-High-Rate-Alarm",
 		"description": "Alarm when a high rate of 500 is returned by the load balancer",
 		"metric": "HTTPCode_ELB_5XX_Count",
 		"statistic": "Sum",
@@ -10,8 +10,8 @@
 		"comparisonOperator": "GreaterThanOrEqualToThreshold"
 	},
 	{
-		"name": "Target-500-High-Rate-Alarm",
-		"description": "Alarm when a high rate of 500 is returned from the targets",
+		"name": "Target-5xx-High-Rate-Alarm",
+		"description": "Alarm when an high rate of 500 is returned from the targets",
 		"metric": "HTTPCode_Target_5XX_Count",
 		"statistic": "Sum",
 		"period": 60,
@@ -21,8 +21,8 @@
 	},
 	{
 		"name": "Target-High-Average-Response-Time-Alarm",
-		"description": "Alarm when a high average response time is detected from the targets",
-		"metric": "HTTPCode_Target_5XX_Count",
+		"description": "Alarm when an high average response time is detected from the targets",
+		"metric": "TargetResponseTime",
 		"statistic": "Average",
 		"period": 300,
 		"evaluationPeriods": 1,
@@ -31,7 +31,7 @@
 	},
 	{
 		"name": "Rejected-Connections-Alarm",
-		"description": "Alarm when a the load balancer is rejecting connections after reaching its maximum capacity",
+		"description": "Alarm when the load balancer is rejecting connections after reaching its maximum capacity",
 		"metric": "RejectedConnectionCount",
 		"statistic": "Sum",
 		"period": 60,
@@ -41,7 +41,7 @@
 	},
 	{
 		"name": "Target-Connections-Error-Alarm",
-		"description": "Alarm when a the load balancer cannot connect to the targets",
+		"description": "Alarm when the load balancer cannot connect to the targets",
 		"metric": "TargetConnectionErrorCount",
 		"statistic": "Sum",
 		"period": 60,
@@ -50,8 +50,8 @@
 		"comparisonOperator": "GreaterThanThreshold"
 	}],
 	"PORTAL": [{
-		"name": "500-High-Rate-Alarm",
-		"description": "Alarm when a high rate of 500 is returned by the load balancer",
+		"name": "5xx-High-Rate-Alarm",
+		"description": "Alarm when an high rate of 500 is returned by the load balancer",
 		"metric": "HTTPCode_ELB_5XX_Count",
 		"statistic": "Sum",
 		"period": 60,
@@ -60,8 +60,8 @@
 		"comparisonOperator": "GreaterThanOrEqualToThreshold"
 	},
 	{
-		"name": "Target-500-High-Rate-Alarm",
-		"description": "Alarm when a high rate of 500 is returned from the targets",
+		"name": "Target-5xx-High-Rate-Alarm",
+		"description": "Alarm when an high rate of 500 is returned from the targets",
 		"metric": "HTTPCode_Target_5XX_Count",
 		"statistic": "Sum",
 		"period": 60,
@@ -71,8 +71,8 @@
 	},
 	{
 		"name": "Target-High-Average-Response-Time-Alarm",
-		"description": "Alarm when a high average response time is detected from the targets",
-		"metric": "HTTPCode_Target_5XX_Count",
+		"description": "Alarm when an high average response time is detected from the targets",
+		"metric": "TargetResponseTime",
 		"statistic": "Average",
 		"period": 300,
 		"evaluationPeriods": 1,
@@ -81,7 +81,7 @@
 	},
 	{
 		"name": "Rejected-Connections-Alarm",
-		"description": "Alarm when a the load balancer is rejecting connections after reaching its maximum capacity",
+		"description": "Alarm when the load balancer is rejecting connections after reaching its maximum capacity",
 		"metric": "RejectedConnectionCount",
 		"statistic": "Sum",
 		"period": 60,
@@ -91,7 +91,7 @@
 	},
 	{
 		"name": "Target-Connections-Error-Alarm",
-		"description": "Alarm when a the load balancer cannot connect to the targets",
+		"description": "Alarm when the load balancer cannot connect to the targets",
 		"metric": "TargetConnectionErrorCount",
 		"statistic": "Sum",
 		"period": 60,
