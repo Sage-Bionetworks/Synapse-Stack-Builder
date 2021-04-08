@@ -239,8 +239,7 @@
 		{
 			"queueName":"FILE_HANDLE_SCAN_REQUEST",
 			"subscribedTopicNames":[],
-			"messageVisibilityTimeoutSec":300,
-			"oldestMessageInQueueAlarmThresholdSec": 43200
+			"messageVisibilityTimeoutSec":300
 		},
 		{
 			"queueName":"FILE_HANDLE_STREAM",
