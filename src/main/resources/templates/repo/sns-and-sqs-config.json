@@ -248,6 +248,11 @@
 				"FILE"
 			],
 			"messageVisibilityTimeoutSec":120
+		},
+		{
+			"queueName":"QUERY_DOWNLOAD_LIST",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":300
 		}
 	]
 }
