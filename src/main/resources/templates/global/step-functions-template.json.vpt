@@ -56,6 +56,9 @@
 		]
 	}
 },
+## Since this is a velocity template and we need a $$ for referencing the global context below 
+## we set a dd variable that represents the double dollar 
+#set($dd = "$$")
 "${stack}AthenaQueryStateMachine": {
     "Type": "AWS::StepFunctions::StateMachine",
     "Properties": {
@@ -75,7 +78,7 @@
 				       },
 				       "WorkGroup": "primary",
 				       "ResultConfiguration": {
-				       		"OutputLocation": "s3://${stack}.athena-queries.sagebase.org/states"
+				       		"OutputLocation.$": "States.Format('s3://${stack}.athena-queries.sagebase.org/states/{}', ${dd}.Execution.Id)"
 				       }
 				    },
 				    "End": true
