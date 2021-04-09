@@ -34,6 +34,10 @@
 			"name": "${stack}.testdata.sagebase.org",
 			"retentionDays": 30,
 			"devOnly": true
+		},
+		{
+			"name": "${stack}.athena-queries.sagebase.org",
+			"retentionDays": 30
 		}
 	],
 	"inventoryBucket": "${stack}.inventory.sagebase.org"
