@@ -209,11 +209,6 @@
 					    "OptionName": "UpdateLevel",
 					    "Value": "patch"
 					},
-					{
-					    "Namespace": "aws:elasticbeanstalk:managedactions:platformupdate",
-					    "OptionName": "InstanceRefreshEnabled",
-					    "Value": "true"
-					},
  					{
 						"Namespace": "aws:elasticbeanstalk:healthreporting:system",
 						"OptionName": "SystemType",
