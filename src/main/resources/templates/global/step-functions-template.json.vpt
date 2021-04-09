@@ -1,89 +1,136 @@
-"${stack}AthenaQueryStateMachineExecutionRole": {
-	"Type": "AWS::IAM::Role",
-	"Properties": {
-		"AssumeRolePolicyDocument": {
-			"Version": "2012-10-17",
-			"Statement": [
-				{
-					"Effect": "Allow",
-					"Principal": {
-						"Service": [
-							"states.amazonaws.com"
-						]
-					},
-					"Action": [
-						"sts:AssumeRole"
-					]
-				}
-			]
-		},
-		"Path": "/",
-		"Policies": [
-			{
-				"PolicyName" : "${stack}AthenaQueryStateMachineExecutionPolicy",
-				"PolicyDocument": {
+		"${stack}AthenaQueryStateMachineExecutionRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"AssumeRolePolicyDocument": {
 					"Version": "2012-10-17",
 					"Statement": [
 						{
-							"Action": "s3:*",
 							"Effect": "Allow",
-							"Resource": "*"
-						},
-						{
-				            "Action": [
-				                "sqs:*"
-				            ],
-				            "Effect": "Allow",
-				            "Resource": "*"
-				        },
-				        {
+							"Principal": {
+								"Service": [
+									"states.amazonaws.com"
+								]
+							},
 							"Action": [
-								"athena:*"
-							],
-							"Effect": "Allow",
-							"Resource": "*"
-						},
-						{
-							"Action": [
-								"glue:*"
-							],
-							"Effect": "Allow",
-							"Resource": "*"
+								"sts:AssumeRole"
+							]
 						}
 					]
-				}
+				},
+				"Path": "/",
+				"Policies": [
+					{
+						"PolicyName" : "${stack}AthenaQueryStateMachineExecutionPolicy",
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [
+								{
+									"Action": "s3:*",
+									"Effect": "Allow",
+									"Resource": "*"
+								},
+								{
+						            "Action": [
+						                "sqs:*"
+						            ],
+						            "Effect": "Allow",
+						            "Resource": "*"
+						        },
+						        {
+									"Action": [
+										"athena:*"
+									],
+									"Effect": "Allow",
+									"Resource": "*"
+								},
+								{
+									"Action": [
+										"glue:*"
+									],
+									"Effect": "Allow",
+									"Resource": "*"
+								}
+							]
+						}
+					}
+				]
 			}
-		]
-	}
-},
-## Since this is a velocity template and we need a $$ for referencing the global context below 
-## we set a dd variable that represents the double dollar 
-#set($dd = "$$")
-"${stack}AthenaQueryStateMachine": {
-    "Type": "AWS::StepFunctions::StateMachine",
-    "Properties": {
-     	"RoleArn": {
-            "Fn::GetAtt": [ "${stack}AthenaQueryStateMachineExecutionRole", "Arn" ]
-        },
-        "Definition": {
-        	"StartAt": "Start Query Execution",
-        	"States": {
-        		"Start Query Execution": {
-        			"Type": "Task",
-        			"Resource": "arn:aws:states:::athena:startQueryExecution.sync",
-				    "Parameters": {
-				       "QueryString.$": "$.queryString",
-				       "QueryExecutionContext": {
-				       		"Database.$": "$.dataBase"
-				       },
-				       "WorkGroup": "primary",
-				       "ResultConfiguration": {
-				       		"OutputLocation.$": "States.Format('s3://${stack}.athena-queries.sagebase.org/states/{}', ${dd}.Execution.Id)"
-				       }
-				    },
-				    "End": true
-        		}
-        	}
-        }
-    }
-}
+		},
+		## Since this is a velocity template and we need a $$ for referencing the global context below 
+		## we set a dd variable that represents the double dollar 
+		
+		#set($dd = "$$")
+		
+		"${stack}AthenaQueryStateMachine": {
+		    "Type": "AWS::StepFunctions::StateMachine",
+		    "Properties": {
+		     	"RoleArn": {
+		            "Fn::GetAtt": [ "${stack}AthenaQueryStateMachineExecutionRole", "Arn" ]
+		        },
+		        "Definition": {
+		        	"StartAt": "Start Query Execution",
+		        	"States": {
+		        		"Start Query Execution": {
+		        			"Type": "Task",
+		        			"Resource": "arn:aws:states:::athena:startQueryExecution.sync",
+						    "Parameters": {
+						       "QueryString.$": "$.queryString",
+						       "QueryExecutionContext": {
+						       		"Database.$": "$.dataBase"
+						       },
+						       "WorkGroup": "primary",
+						       "ResultConfiguration": {
+						       		"OutputLocation.$": "States.Format('s3://${stack}.athena-queries.sagebase.org/states/{}', ${dd}.Execution.Id)"
+						       }
+						    },
+						    "Next": "Wait For Status"
+		        		},
+		        		"Wait For Status": {
+		        			"Type": "Wait",
+		        			"Seconds": 5,
+		        			"Next": "Fetch Query Status"
+		        		},
+		        		"Fetch Query Status": {
+		        			"Type": "Task",
+		        			"Resource": "arn:aws:states:::athena:getQueryExecution",
+		        			"Parameters": {
+						        "QueryExecutionId.$": "$.QueryExecution.QueryExecutionId"
+						    },
+						    "Next": "Check Query Status"
+		        		},
+		        		"Check Query Status": {
+		        			"Type": "Choice",
+		        			"Choices": [
+		        				{
+		        					"Or": [
+			        					{
+			        						"Variable": "$.QueryExecution.Status.State",
+					        				"StringEquals": "QUEUED"
+			        					},
+			        					{
+			        						"Variable": "$.QueryExecution.Status.State",
+					        				"StringEquals": "RUNNING"
+		        						}
+		        					],
+		        					"Next": "Wait For Status"
+		        				},
+		        				{
+			        				"Variable": "$.QueryExecution.Status.State",
+			        				"StringEquals": "SUCCEEDED",
+			        				"Next": "Query Succeeded"
+		        				}
+		        			],
+		        			"Default": "Query Failed"
+		        		},
+		        		"Query Succeeded": {
+		        			"Type": "Succeed"
+		        		},
+		        		"Query Failed": {
+		        			"Type": "Fail",
+		        			"Cause": "Athena Query Execution Failed",
+		  					"Error": "Athena Query Execution Failed"
+		        		}
+		        	}
+		        }
+		    }
+		}

@@ -2,9 +2,9 @@
 	"AWSTemplateFormatVersion": "2010-09-09",
 	"Description": "Creates a VPC with public and private subnets for the Synapse stacks.",
 	"Resources": {
-		#parse("templates/global/sns-template.json.vpt")
-		,
-		#parse("templates/global/step-functions-template.json.vpt")
+#parse("templates/global/sns-template.json.vpt"),
+#parse("templates/global/step-functions-template.json.vpt")
+
 	},
 	"Outputs": {
 		"NotificationTopic": {
