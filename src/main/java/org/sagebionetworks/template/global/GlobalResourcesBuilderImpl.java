@@ -21,6 +21,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.SES_SYNAPSE_DOMAIN;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.TEMPLATE_GLOBAL_RESOURCES;
+import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
 import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC;
 import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC;
 
@@ -63,6 +64,7 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
         cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest()
             .withStackName(stackName)
             .withTemplateBody(resultJSON)
+            .withCapabilities(CAPABILITY_NAMED_IAM)
             .withTags(stackTagsProvider.getStackTags())
         );
         cloudFormationClient.waitForStackToComplete(stackName);
