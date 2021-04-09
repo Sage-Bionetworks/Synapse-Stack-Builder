@@ -1,0 +1,46 @@
+"${stack}NotificationTopic": {
+	"Type": "AWS::SNS::Topic",
+	"Properties": {
+		"DisplayName": "${stack}-Notification-Topic",
+		"Subscription": [
+			{
+				"Endpoint": "synapse-ops@sagebase.org",
+				"Protocol": "email"
+			}
+		]
+	}
+},
+"SesSynapseOrgBounceTopic": {
+	"Type": "AWS::SNS::Topic",
+	"Properties": {
+		"DisplayName": "${stack}-SesSynapseOrgBounce-Topic"
+	}
+},
+"SesSynapseOrgComplaintTopic": {
+	"Type": "AWS::SNS::Topic",
+	"Properties": {
+		"DisplayName": "${stack}-SesSynapseOrgComplaint-Topic"
+	}
+}
+#if(${stack} == 'prod')
+,
+"SesHighBounceRateAlarm": {
+	"Type" : "AWS::CloudWatch::Alarm",
+	"Properties" : {
+		"ActionsEnabled" : true,
+		"AlarmActions" : [
+			{ "Ref":"${stack}NotificationTopic"}
+		],
+		"AlarmDescription" : "Alert when SES bounce rate exceed 5%.",
+		"AlarmName" : "SES-High-Bounce-Rate-2",
+		"ComparisonOperator" : "GreaterThanThreshold",
+		"EvaluationPeriods" : 1,
+		"Period" : 900,
+		"MetricName" : "Reputation.BounceRate",
+		"Namespace" : "AWS/SES",
+		"Statistic" : "Maximum",
+		"Threshold" : 0.05,
+		"TreatMissingData" : "ignore"
+	}
+}
+#end

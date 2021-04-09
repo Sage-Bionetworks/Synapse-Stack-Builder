@@ -111,7 +111,7 @@ public class Constants {
 	public static final String TEMPALTE_BEAN_STALK_ENVIRONMENT = "templates/repo/elasticbeanstalk-template.json.vpt";
 	public static final String TEMPLATE_ID_GENERATOR = "templates/repo/id-generator-template.json.vpt";
 	public static final String TEMPLATE_INVENTORY_BUCKET_POLICY_TEMPLATE = "templates/s3/s3-inventory-bucket-policy.json.vpt";
-	public static final String TEMPLATE_GLOBAL_RESOURCES_SNS = "templates/global/sns.vpt";
+	public static final String TEMPLATE_GLOBAL_RESOURCES = "templates/global/global-template.json.vpt";
 	
 
 	public static final int JSON_INDENT = 5;

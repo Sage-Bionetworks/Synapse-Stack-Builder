@@ -20,7 +20,7 @@ import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.SES_SYNAPSE_DOMAIN;
 import static org.sagebionetworks.template.Constants.STACK;
-import static org.sagebionetworks.template.Constants.TEMPLATE_GLOBAL_RESOURCES_SNS;
+import static org.sagebionetworks.template.Constants.TEMPLATE_GLOBAL_RESOURCES;
 import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC;
 import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC;
 
@@ -52,14 +52,14 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
     public void buildGlobalResources() throws InterruptedException {
         String stackName = createStackName();
         VelocityContext context = createContext();
-        Template template = velocityEngine.getTemplate(TEMPLATE_GLOBAL_RESOURCES_SNS);
+        Template template = velocityEngine.getTemplate(TEMPLATE_GLOBAL_RESOURCES);
         StringWriter stringWriter = new StringWriter();
         template.merge(context, stringWriter);
         String resultJSON = stringWriter.toString();
+        System.out.println(resultJSON);
         JSONObject templateJson = new JSONObject(resultJSON);
         resultJSON = templateJson.toString(JSON_INDENT);
         //this.logger.info(resultJSON);
-        //System.out.println(resultJSON);
         cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest()
             .withStackName(stackName)
             .withTemplateBody(resultJSON)

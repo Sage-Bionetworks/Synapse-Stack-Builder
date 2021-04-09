@@ -1,0 +1,80 @@
+"${stack}AthenaQueryStateMachineExecutionRole": {
+	"Type": "AWS::IAM::Role",
+	"Properties": {
+		"AssumeRolePolicyDocument": {
+			"Version": "2012-10-17",
+			"Statement": [
+				{
+					"Effect": "Allow",
+					"Principal": {
+						"Service": [
+							"states.amazonaws.com"
+						]
+					},
+					"Action": [
+						"sts:AssumeRole"
+					]
+				}
+			]
+		},
+		"Path": "/",
+		"Policies": [
+			{
+				"PolicyName" : "${stack}AthenaQueryStateMachineExecutionPolicy",
+				"PolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Action": "s3:*",
+							"Effect": "Allow",
+							"Resource": "*"
+						},
+						{
+				            "Action": [
+				                "sqs:*"
+				            ],
+				            "Effect": "Allow",
+				            "Resource": "*"
+				        },
+				        {
+							"Action": [
+								"athena:*"
+							],
+							"Effect": "Allow",
+							"Resource": "*"
+						},
+						{
+							"Action": [
+								"glue:*"
+							],
+							"Effect": "Allow",
+							"Resource": "*"
+						}
+					]
+				}
+			}
+		]
+	}
+},
+"${stack}AthenaQueryStateMachine": {
+    "Type": "AWS::StepFunctions::StateMachine",
+    "Properties": {
+     	"RoleArn": {
+            "Fn::GetAtt": [ "${stack}AthenaQueryStateMachineExecutionRole", "Arn" ]
+        },
+        "Definition": {
+        	"StartAt": "Start Query Execution",
+        	"States": {
+        		"Start Query Execution": {
+        			"Type": "Task",
+        			"Resource": "arn:aws:states:::athena:startQueryExecution.sync",
+				    "Parameters": {
+				       "QueryString.$": "$.queryString",
+				       "WorkGroup.$": "$.workGroup"
+				    },
+				    "End": true
+        		}
+        	}
+        }
+    }
+}
