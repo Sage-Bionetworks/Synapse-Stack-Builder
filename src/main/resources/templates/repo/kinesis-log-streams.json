@@ -69,8 +69,8 @@
 			"columns": {
 				"timestamp": "timestamp",
 				"associateType": "string",
-				"associateId": "string",
-				"fileHandleId": "string",
+				"associateId": "bigint",
+				"fileHandleId": "bigint",
 				"stack": "string",
 				"instance": "string"
 			},
@@ -102,6 +102,9 @@
 				"createdOn": "timestamp",
 				"status": "string",
 				"isPreview": "boolean",
+				"contentSize": "bigint",
+				"bucket": "string",
+				"key": "string",
 				"stack": "string",
 				"instance": "string"
 			},

@@ -67,7 +67,7 @@
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
 						"OptionName": "InstanceType",
-						"Value": "m3.medium"
+						"Value": "m5.large"
 					},
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
@@ -109,7 +109,7 @@
 					{
 						"Namespace": "aws:autoscaling:trigger",
 						"OptionName": "LowerThreshold",
-						"Value": "60"
+						"Value": "40"
 					},
 					{
 						"Namespace": "aws:autoscaling:trigger",
