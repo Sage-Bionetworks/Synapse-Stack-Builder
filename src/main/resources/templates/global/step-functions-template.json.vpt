@@ -70,7 +70,13 @@
         			"Resource": "arn:aws:states:::athena:startQueryExecution.sync",
 				    "Parameters": {
 				       "QueryString.$": "$.queryString",
-				       "WorkGroup.$": "$.workGroup"
+				       "QueryExecutionContext": {
+				       		"Database.$": "$.dataBase"
+				       },
+				       "WorkGroup": "primary",
+				       "ResultConfiguration": {
+				       		"OutputLocation": "s3://${stack}.athena-queries.sagebase.org/states"
+				       }
 				    },
 				    "End": true
         		}
