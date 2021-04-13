@@ -190,6 +190,36 @@
 						}
 					},
 					{
+					    "Namespace": "aws:elasticbeanstalk:managedactions",
+					    "OptionName": "ManagedActionsEnabled",
+					    "Value": "true"
+					},
+					{
+					    "Namespace": "aws:elasticbeanstalk:managedactions",
+					    "OptionName": "PreferredStartTime",
+					    "Value": "Mon:06:00"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:managedactions",
+						"OptionName": "ServiceRoleForManagedUpdates",
+						"Value": "AWSServiceRoleForElasticBeanstalkManagedUpdates"
+					},
+					{
+					    "Namespace": "aws:elasticbeanstalk:managedactions:platformupdate",
+					    "OptionName": "UpdateLevel",
+					    "Value": "patch"
+					},
+ 					{
+						"Namespace": "aws:elasticbeanstalk:healthreporting:system",
+						"OptionName": "SystemType",
+						"Value": "enhanced"
+					},
+  					{
+ 						"Namespace": "aws:elasticbeanstalk:healthreporting:system",
+						"OptionName": "EnhancedHealthAuthEnabled",
+ 						"Value": "true"
+ 					},
+				    {
 						"Namespace": "aws:elbv2:loadbalancer",
 						"OptionName": "AccessLogsS3Bucket",
 						"Value": "${stack}.alb.access.logs"
@@ -337,6 +367,11 @@
 						"Namespace": "aws:elasticbeanstalk:environment:process:default",
 						"OptionName": "UnhealthyThresholdCount",
 						"Value": "5"
+					},
+					{
+					    "Namespace": "aws:elasticbeanstalk:environment",
+					    "OptionName": "ServiceRole",
+					    "Value": "AWSServiceRoleForElasticBeanstalk"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:container:tomcat:jvmoptions",

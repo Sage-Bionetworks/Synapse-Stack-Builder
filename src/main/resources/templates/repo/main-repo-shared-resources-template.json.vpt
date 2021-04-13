@@ -421,20 +421,25 @@
 									],
 									"Resource": "*"
 								},
-                                {
-                                    "Effect": "Allow",
-                                    "Action": [
-                                        "sts:AssumeRole"
-                                    ],
-                                    "Resource": "*"
-                                },
-                                {
-                                    "Effect": "Allow",
-                                    "Action": [
-                                        "logs:*"
-                                    ],
-                                    "Resource": "*"
-                                }
+								{
+									"Effect": "Allow",
+									"Action": [
+										"sts:AssumeRole"
+									],
+									"Resource": "*"
+								},
+								{
+									"Effect": "Allow",
+									"Action": [
+										"logs:*"
+									],
+									"Resource": "*"
+								},
+								{
+									"Effect": "Allow",
+									"Action": "elasticbeanstalk:*",
+									"Resource": "*"
+								}
 							]
 						}
 					}
@@ -487,6 +492,11 @@
 								{
 									"Action": "logs:*",
 									"Effect": "Allow",
+									"Resource": "*"
+								},
+								{
+									"Effect": "Allow",
+									"Action": "elasticbeanstalk:*",
 									"Resource": "*"
 								}
 							]
