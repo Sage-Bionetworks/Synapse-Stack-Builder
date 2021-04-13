@@ -1,37 +1,45 @@
 package org.sagebionetworks.template.repo.beanstalk.ssl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 
 import org.apache.velocity.app.VelocityEngine;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
-import org.sagebionetworks.template.config.Configuration;
+import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.FileProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
+import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
+import org.sagebionetworks.template.repo.beanstalk.LoadBalancerAlarm;
+import org.sagebionetworks.template.repo.beanstalk.LoadBalancerAlarmsConfig;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogDescriptor;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
 import org.sagebionetworks.war.WarAppender;
 
-@RunWith(MockitoJUnitRunner.class)
+import com.amazonaws.services.cloudwatch.model.ComparisonOperator;
+import com.amazonaws.services.cloudwatch.model.Statistic;
+
+@ExtendWith(MockitoExtension.class)
 public class ElasticBeanstalkExtentionBuilderImplTest {
 
 	@Mock
@@ -58,23 +66,31 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 	File mockSslConf;
 	@Mock
 	CloudwatchLogsVelocityContextProvider mockCwlVelocityContextProvider;
+	@Mock
+	LoadBalancerAlarmsConfig mockLoadBalanacerAlarmsConfig;
 
 	ElasticBeanstalkExtentionBuilderImpl builder;
 
 	StringWriter configWriter;
 	StringWriter sslConfWriter;
 	StringWriter modSecurityConfWriter;
+	StringWriter logsConfWriter;
+	StringWriter alarmsConfWriter;
 
 	String bucketName;
 	String x509CertificatePem;
 	String privateKeyPem;
 
-	@Before
+	@BeforeEach
 	public void before() {
+		MockitoAnnotations.initMocks(this);
+		
+		when(configuration.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
+		when(configuration.getProperty(Constants.PROPERTY_KEY_INSTANCE)).thenReturn("123");
 		// Use the actual velocity entity
 		velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
 		builder = new ElasticBeanstalkExtentionBuilderImpl(certifiateBuilder, velocityEngine, configuration,
-				warAppender, fileProvider, mockCwlVelocityContextProvider);
+				warAppender, fileProvider, mockCwlVelocityContextProvider, mockLoadBalanacerAlarmsConfig);
 		// call accept on the consumer.
 		doAnswer(new Answer<File>() {
 			@Override
@@ -89,13 +105,17 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		configWriter = new StringWriter();
 		sslConfWriter = new StringWriter();
 		modSecurityConfWriter = new StringWriter();
-		when(fileProvider.createFileWriter(any(File.class))).thenReturn(configWriter, sslConfWriter, modSecurityConfWriter);
+		logsConfWriter = new StringWriter();
+		alarmsConfWriter = new StringWriter();
+		
+		when(fileProvider.createFileWriter(any(File.class))).thenReturn(configWriter, sslConfWriter, modSecurityConfWriter, logsConfWriter, alarmsConfWriter);
 		bucketName = "someBucket";
 		when(configuration.getConfigurationBucket()).thenReturn(bucketName);
 		x509CertificatePem = "x509pem";
 		privateKeyPem = "privatePem";
 		when(certifiateBuilder.buildNewX509CertificatePair()).thenReturn(new CertificatePair(x509CertificatePem, privateKeyPem));
 		when(mockCwlVelocityContextProvider.getLogDescriptors(any(EnvironmentType.class))).thenReturn(generateLogDescriptors());
+		when(mockLoadBalanacerAlarmsConfig.getOrDefault(any(), any())).thenReturn(generateLoadBalancerAlarms());
 	}
 
 	@Test
@@ -119,6 +139,12 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		assertTrue(modSecurityConf.contains("SecServerSignature"));
 
 		verify(mockCwlVelocityContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
+		
+		String alarmsConf = alarmsConfWriter.toString();
+		
+		assertTrue(alarmsConf.contains("AWSELBSomeAlarm"));
+		assertTrue(alarmsConf.contains("-AWS-ELB-Some-Alarm"));
+		
 	}
 
 	private List<LogDescriptor> generateLogDescriptors() {
@@ -133,6 +159,18 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		return descriptors;
 	}
 
+	private List<LoadBalancerAlarm> generateLoadBalancerAlarms() {
+		LoadBalancerAlarm alarm = new LoadBalancerAlarm();
+		alarm.setName("Some-Alarm");
+		alarm.setDescription("Description");
+		alarm.setMetric("HTTPCode_ELB_5XX_Count");
+		alarm.setComparisonOperator(ComparisonOperator.GreaterThanOrEqualToThreshold);
+		alarm.setEvaluationPeriods(1);
+		alarm.setStatistic(Statistic.Sum);
+		alarm.setPeriod(60);
+		alarm.setThreshold(20D);
+		return Arrays.asList(alarm);
+	}
 
 
 }

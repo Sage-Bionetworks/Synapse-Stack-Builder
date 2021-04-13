@@ -239,8 +239,19 @@
 		{
 			"queueName":"FILE_HANDLE_SCAN_REQUEST",
 			"subscribedTopicNames":[],
-			"messageVisibilityTimeoutSec":300,
-			"oldestMessageInQueueAlarmThresholdSec": 43200
+			"messageVisibilityTimeoutSec":300
+		},
+		{
+			"queueName":"FILE_HANDLE_STREAM",
+			"subscribedTopicNames":[
+				"FILE"
+			],
+			"messageVisibilityTimeoutSec":120
+		},
+		{
+			"queueName":"QUERY_DOWNLOAD_LIST",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":300
 		}
 	]
 }

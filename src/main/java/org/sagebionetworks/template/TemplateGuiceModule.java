@@ -4,6 +4,7 @@ import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_CONFIG_FILE
 import static org.sagebionetworks.template.Constants.KINESIS_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.S3_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.SNS_AND_SQS_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARM_CONFIG_FILE;
 import static org.sagebionetworks.template.TemplateUtils.loadFromJsonFile;
 
 import java.io.IOException;
@@ -31,6 +32,8 @@ import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopyImpl;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactDownload;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactDownloadImpl;
+import org.sagebionetworks.template.repo.beanstalk.LoadBalancerAlarmsConfig;
+import org.sagebionetworks.template.repo.beanstalk.LoadBalancerAlarmsConfigValidator;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilderImpl;
 import org.sagebionetworks.template.repo.beanstalk.image.encrypt.ElasticBeanstalkDefaultAMIEncrypter;
@@ -233,6 +236,9 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		return new S3ConfigValidator(loadFromJsonFile(S3_CONFIG_FILE, S3Config.class)).validate();
 	}
 	
-	
+	@Provides
+	public LoadBalancerAlarmsConfig loadBalanacerConfigProvider() throws IOException {
+		return new LoadBalancerAlarmsConfigValidator(loadFromJsonFile(LOAD_BALANCER_ALARM_CONFIG_FILE, LoadBalancerAlarmsConfig.class)).validate();
+	}
 
 }
