@@ -2,17 +2,28 @@ package org.sagebionetworks.template.repo.athena;
 
 import java.util.Objects;
 
+import org.sagebionetworks.template.Constants;
+
 /**
  * DTO that describes an Athena query that is run on a cron schedule, a separate step function that
  * executes the query will be created for each query
  */
 public class RecurrentAthenaQuery {
 
+	private String dataBase;
 	private String queryName;
 	private String queryPath;
 	private String queryString;
 	private String cronExpression;
 	private String destinationQueue;
+	
+	public String getDataBase() {
+		return dataBase;
+	}
+	
+	public void setDataBase(String dataBase) {
+		this.dataBase = dataBase;
+	}
 
 	public String getQueryName() {
 		return queryName;
@@ -53,10 +64,14 @@ public class RecurrentAthenaQuery {
 	public void setDestinationQueue(String destinationQueue) {
 		this.destinationQueue = destinationQueue;
 	}
+	
+	public String getDestinationQueueReferenceName() {
+		return Constants.createCamelCaseName(destinationQueue, "_");
+	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(cronExpression, destinationQueue, queryName, queryPath, queryString);
+		return Objects.hash(cronExpression, dataBase, destinationQueue, queryName, queryPath, queryString);
 	}
 
 	@Override
@@ -71,15 +86,15 @@ public class RecurrentAthenaQuery {
 			return false;
 		}
 		RecurrentAthenaQuery other = (RecurrentAthenaQuery) obj;
-		return Objects.equals(cronExpression, other.cronExpression) && Objects.equals(destinationQueue, other.destinationQueue)
-				&& Objects.equals(queryName, other.queryName) && Objects.equals(queryPath, other.queryPath)
-				&& Objects.equals(queryString, other.queryString);
+		return Objects.equals(cronExpression, other.cronExpression) && Objects.equals(dataBase, other.dataBase)
+				&& Objects.equals(destinationQueue, other.destinationQueue) && Objects.equals(queryName, other.queryName)
+				&& Objects.equals(queryPath, other.queryPath) && Objects.equals(queryString, other.queryString);
 	}
 
 	@Override
 	public String toString() {
-		return "RecurrentAthenaQuery [queryName=" + queryName + ", queryPath=" + queryPath + ", queryString=" + queryString
-				+ ", cronExpression=" + cronExpression + ", destinationQueue=" + destinationQueue + "]";
+		return "RecurrentAthenaQuery [dataBase=" + dataBase + ", queryName=" + queryName + ", queryPath=" + queryPath + ", queryString="
+				+ queryString + ", cronExpression=" + cronExpression + ", destinationQueue=" + destinationQueue + "]";
 	}
 
 }

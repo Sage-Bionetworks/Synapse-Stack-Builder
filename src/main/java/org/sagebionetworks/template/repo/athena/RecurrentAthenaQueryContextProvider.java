@@ -9,11 +9,16 @@ import java.util.List;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
+import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfig;
+import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfigValidator;
+import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseVelocityContextProvider;
 
 import com.google.inject.Inject;
 
 public class RecurrentAthenaQueryContextProvider implements VelocityContextProvider {
 
+	public static final String DEFAULT_DATABASE = KinesisFirehoseVelocityContextProvider.GLUE_DB_SUFFIX;
+	
 	private RecurrentAthenaQueryConfig config;
 
 	@Inject
@@ -31,16 +36,23 @@ public class RecurrentAthenaQueryContextProvider implements VelocityContextProvi
 		}
 
 		queries.forEach((query) -> {
-			String queryStringTemplate = AthenaQueryUtils.loadQueryFromPath(query.getQueryPath());
-
-			StringWriter writer = new StringWriter();
-
-			Velocity.evaluate(context, writer, "VTL", queryStringTemplate);
-
-			query.setQueryString(writer.toString());
+			query.setQueryString(processQueryString(context, query));
+			if (query.getDataBase() == null) {
+				query.setDataBase(DEFAULT_DATABASE);
+			}
 		});
 
 		context.put(ATHENA_QUERY_DESCRIPTORS, queries);
+	}
+	
+	private String processQueryString(VelocityContext context, RecurrentAthenaQuery query) {
+		String queryStringTemplate = AthenaQueryUtils.loadQueryFromPath(query.getQueryPath());
+
+		StringWriter writer = new StringWriter();
+
+		Velocity.evaluate(context, writer, "VTL", queryStringTemplate);
+		
+		return writer.toString();
 	}
 
 }

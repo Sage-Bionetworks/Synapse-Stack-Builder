@@ -64,26 +64,6 @@
 					]
 				}
 			}
-		},
-		"AthenaQueryStateMachine": {
-			"Description": "Step function that can be used to run Athena queries on the ${stack} stack",
-			"Value": { "Ref": "${stack}AthenaQueryStateMachine"},
-			"Export": {
-				"Name": {
-					"Fn::Join": [
-						"-",
-						[
-							{
-								"Ref": "AWS::Region"
-							},
-							{
-								"Ref": "AWS::StackName"
-							},
-							"AthenaQueryStateMachine"
-						]
-					]
-				}
-			}
 		}
 	}
 }

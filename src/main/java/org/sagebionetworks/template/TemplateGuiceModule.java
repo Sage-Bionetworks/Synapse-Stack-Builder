@@ -31,6 +31,7 @@ import org.sagebionetworks.template.repo.WebACLBuilder;
 import org.sagebionetworks.template.repo.WebACLBuilderImpl;
 import org.sagebionetworks.template.repo.athena.RecurrentAthenaQueryConfig;
 import org.sagebionetworks.template.repo.athena.RecurrentAthenaQueryConfigValidator;
+import org.sagebionetworks.template.repo.athena.RecurrentAthenaQueryContextProvider;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopyImpl;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactDownload;
@@ -125,6 +126,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		
 		velocityContextProviderMultibinder.addBinding().to(SnsAndSqsVelocityContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(KinesisFirehoseVelocityContextProvider.class);
+		velocityContextProviderMultibinder.addBinding().to(RecurrentAthenaQueryContextProvider.class);
 	}
 	
 	/**

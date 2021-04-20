@@ -1,0 +1,112 @@
+#if( $athenaQueryDescriptors )
+	## The role is used by the step functions in order to run athena and SQS and read from the glue catalog 
+	,"${stack}${instance}AthenaQueryStateMachineExecutionRole": {
+		"Type": "AWS::IAM::Role",
+		"Properties": {
+			"AssumeRolePolicyDocument": {
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Principal": {
+							"Service": [
+								"states.amazonaws.com"
+							]
+						},
+						"Action": [
+							"sts:AssumeRole"
+						]
+					}
+				]
+			},
+			"Path": "/",
+			"Policies": [
+				{
+					"PolicyName" : "${stack}${instance}AthenaQueryStateMachineExecutionPolicy",
+					"PolicyDocument": {
+						"Version": "2012-10-17",
+						"Statement": [
+							{
+								"Action": "s3:*",
+								"Effect": "Allow",
+								"Resource": "*"
+							},
+							{
+					            "Action": [
+					                "sqs:*"
+					            ],
+					            "Effect": "Allow",
+					            "Resource": "*"
+					        },
+					        {
+								"Action": [
+									"athena:*"
+								],
+								"Effect": "Allow",
+								"Resource": "*"
+							},
+							{
+								"Action": [
+									"glue:*"
+								],
+								"Effect": "Allow",
+								"Resource": "*"
+							}
+						]
+					}
+				}
+			]
+		}
+	},
+
+## Since this is a velocity template and we need a $$ for referencing the global context below 
+## we set a dd variable that represents the double dollar
+
+#set($dd = "$$") 
+#foreach( $query in $athenaQueryDescriptors)
+	"${stack}${instance}${query.queryName}QueryStateMachine": {
+	    "Type": "AWS::StepFunctions::StateMachine",
+	    "Properties": {
+	     	"RoleArn": {
+	            "Fn::GetAtt": [ "${stack}${instance}AthenaQueryStateMachineExecutionRole", "Arn" ]
+	        },
+	        "Definition": {
+	        	"StartAt": "Submit Query",
+	        	"States": {
+	        		"Start Query": {
+	        			"Type": "Task",
+	        			"Resource": "arn:aws:states:::athena:startQueryExecution.sync",
+					    "Parameters": {
+					       "QueryString": "${query.queryString}",
+					       "QueryExecutionContext": {
+					       		"Database": "${stack}${instance}${query.database}"
+					       },
+					       "WorkGroup": "primary",
+					       "ResultConfiguration": {
+					       		"OutputLocation.$": "States.Format('s3://${stack}.athena-queries.sagebase.org/states/{}', ${dd}.Execution.Id)"
+					       }
+					    },
+					    "Next": "Publish Query Results"
+	        		},
+	        		"Publish Query Results": {
+	        			 "Type":"Task",
+				         "Resource":"arn:aws:states:::sqs:sendMessage",
+				         "Parameters":{  
+				            "QueueUrl": {
+				            	"Ref": "${query.destinationQueueReferenceName}Queue"
+				            },
+				            "MessageBody":{
+				               "QueryName": "${query.queryName}"
+				               "FunctionExecutionId.$": "${dd}.Execution.Id",
+				               "QueryExecution.$": "$.QueryExecution",
+				            }
+				         },
+				         "End":true
+	        		}
+	        	}
+	        }
+	    }
+	}
+#if( $foreach.hasNext), #end
+#end
+#end

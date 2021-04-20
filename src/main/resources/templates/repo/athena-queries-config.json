@@ -1,5 +1,10 @@
 {
 	"queries": [
-		
+		{
+			"queryName": "UnlinkedFileHandles",
+			"queryPath": "unlinkedFileHandles.sql",
+			"cronExpression": "* * * * * *",
+			"destinationQueue": "UNLINKED_FILE_HANDLES"
+		}
 	]
 }
