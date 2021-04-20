@@ -57,7 +57,6 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
         StringWriter stringWriter = new StringWriter();
         template.merge(context, stringWriter);
         String resultJSON = stringWriter.toString();
-        System.out.println(resultJSON);
         JSONObject templateJson = new JSONObject(resultJSON);
         resultJSON = templateJson.toString(JSON_INDENT);
         //this.logger.info(resultJSON);
