@@ -69,9 +69,7 @@
 						            "athena:stopQueryExecution",
 						            "athena:getQueryExecution"
 								],
-								"Resource": [
-									"arn:aws:athena:${d}{AWS::Region}:${d}{AWS::AccountId}:workgroup/primary"
-								]
+								"Resource": "*"
 							},
 							{
 						        "Effect": "Allow",
@@ -84,13 +82,7 @@
 						            "glue:GetPartitions",
 						            "glue:BatchGetPartition"
 						        ],
-						        "Resource": [
-						            "arn:aws:glue:${d}{AWS::Region}:${d}{AWS::AccountId}:catalog",
-						            #foreach( $query in $athenaQueryDescriptors)
-						            "arn:aws:glue:${d}{AWS::Region}:${d}{AWS::AccountId}:database/${query.database}",
-									#end
-						            "arn:aws:glue:${d}{AWS::Region}:${d}{AWS::AccountId}:table/*"						            
-						        ]
+						        "Resource": "*"
 						    }
 						]
 					}
