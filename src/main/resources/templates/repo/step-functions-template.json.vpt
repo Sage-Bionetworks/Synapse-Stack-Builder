@@ -1,4 +1,10 @@
 #if( $athenaQueryDescriptors )
+
+	## Since this is a velocity template and we need a $ for referencing the AWS functions below 
+	## we set a d variable that represents the dollar sign
+
+	#set($d = "$")
+	
 	## The role is used by the step functions in order to run athena and SQS and read from the glue catalog 
 	,"${stack}${instance}AthenaQueryStateMachineExecutionRole": {
 		"Type": "AWS::IAM::Role",
@@ -64,7 +70,7 @@
 						            "athena:getQueryExecution"
 								],
 								"Resource": [
-									"arn:aws:athena:{{region}}:{{accountId}}:workgroup/primary"
+									"arn:aws:athena:${d}{AWS::Region}:${d}{AWS::AccountId}:workgroup/primary"
 								]
 							},
 							{
@@ -79,11 +85,11 @@
 						            "glue:BatchGetPartition"
 						        ],
 						        "Resource": [
-						            "arn:aws:glue:{{region}}:{{accountId}}:catalog",
+						            "arn:aws:glue:${d}{AWS::Region}:${d}{AWS::AccountId}:catalog",
 						            #foreach( $query in $athenaQueryDescriptors)
-						            "arn:aws:glue:{{region}}:{{accountId}}:database/${query.database}",
+						            "arn:aws:glue:${d}{AWS::Region}:${d}{AWS::AccountId}:database/${query.database}",
 									#end
-						            "arn:aws:glue:{{region}}:{{accountId}}:table/*"						            
+						            "arn:aws:glue:${d}{AWS::Region}:${d}{AWS::AccountId}:table/*"						            
 						        ]
 						    }
 						]
