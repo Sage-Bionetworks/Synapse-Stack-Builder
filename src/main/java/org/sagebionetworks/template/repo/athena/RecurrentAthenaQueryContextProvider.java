@@ -37,8 +37,8 @@ public class RecurrentAthenaQueryContextProvider implements VelocityContextProvi
 
 		queries.forEach((query) -> {
 			query.setQueryString(processQueryString(context, query));
-			if (query.getDataBase() == null) {
-				query.setDataBase(DEFAULT_DATABASE);
+			if (query.getDatabase() == null) {
+				query.setDatabase(DEFAULT_DATABASE);
 			}
 		});
 
