@@ -73,7 +73,7 @@
 	        "Definition": {
 	        	"StartAt": "Submit Query",
 	        	"States": {
-	        		"Start Query": {
+	        		"Submit Query": {
 	        			"Type": "Task",
 	        			"Resource": "arn:aws:states:::athena:startQueryExecution.sync",
 					    "Parameters": {
