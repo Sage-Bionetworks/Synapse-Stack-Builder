@@ -87,7 +87,7 @@
 						        "Resource": [
 						            { "Fn::Sub": "arn:aws:glue:${d}{AWS::Region}:${d}{AWS::AccountId}:catalog" },
 						            #foreach( $query in $athenaQueryDescriptors)
-						            { "Fn::Sub": "arn:aws:glue:${d}{AWS::Region}:${d}{AWS::AccountId}:database/${stack}${instance}${query.database}" },
+						            { "Fn::Sub": "arn:aws:glue:${d}{AWS::Region}:${d}{AWS::AccountId}:database/${stack}${instance}${query.database.toLowerCase()}" },
 									#end
 						            { "Fn::Sub": "arn:aws:glue:${d}{AWS::Region}:${d}{AWS::AccountId}:table/*" }
 						        ]
