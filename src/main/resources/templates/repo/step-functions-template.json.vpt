@@ -59,11 +59,11 @@
 		}
 	},
 
-## Since this is a velocity template and we need a $$ for referencing the global context below 
-## we set a dd variable that represents the double dollar
+	## Since this is a velocity template and we need a $$ for referencing the global context below 
+	## we set a dd variable that represents the double dollar
 
-#set($dd = "$$") 
-#foreach( $query in $athenaQueryDescriptors)
+	#set($dd = "$$") 
+	#foreach( $query in $athenaQueryDescriptors)
 	"${stack}${instance}${query.queryName}QueryStateMachine": {
 	    "Type": "AWS::StepFunctions::StateMachine",
 	    "Properties": {
@@ -107,6 +107,6 @@
 	        }
 	    }
 	}
-#if( $foreach.hasNext), #end
-#end
+	#if( $foreach.hasNext), #end
+	#end
 #end

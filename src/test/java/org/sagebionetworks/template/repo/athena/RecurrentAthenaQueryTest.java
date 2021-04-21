@@ -33,7 +33,7 @@ public class RecurrentAthenaQueryTest {
 	}
 	
 	@Test
-	public void test() {
+	public void testStepFunctionsTemplate() {
 		VelocityContext context = new VelocityContext();
 		
 		String stack = "dev";
@@ -44,7 +44,7 @@ public class RecurrentAthenaQueryTest {
 		context.put(GLOBAL_RESOURCES_EXPORT_PREFIX, Constants.createGlobalResourcesExportPrefix(stack));
 		contextProvider.addToContext(context);
 		
-		Template template = this.velocityEngine.getTemplate("templates/repo/athena-queries-template.json.vpt");
+		Template template = this.velocityEngine.getTemplate("templates/repo/step-functions-template.json.vpt");
 		StringWriter stringWriter = new StringWriter();
 		template.merge(context, stringWriter);
 		// Parse the resulting template
