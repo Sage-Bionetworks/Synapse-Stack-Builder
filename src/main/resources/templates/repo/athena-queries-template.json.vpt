@@ -96,12 +96,12 @@
 				            	"Ref": "${query.destinationQueueReferenceName}Queue"
 				            },
 				            "MessageBody":{
-				               "QueryName": "${query.queryName}"
+				               "QueryName": "${query.queryName}",
 				               "FunctionExecutionId.$": "${dd}.Execution.Id",
 				               "QueryExecution.$": "$.QueryExecution",
 				            }
 				         },
-				         "End":true
+				         "End": true
 	        		}
 	        	}
 	        }
