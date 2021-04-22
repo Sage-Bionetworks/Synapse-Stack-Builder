@@ -242,6 +242,31 @@
 	        	}
 	        ]
         }
+	},
+	"${stack}${instance}${query.queryName}QueryStateMachineFailedExecutionAlarm": {
+		"Type" : "AWS::CloudWatch::Alarm",
+		"Properties" : {
+			"ActionsEnabled" : true,
+			"AlarmActions" : [
+				{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
+			],
+			"AlarmDescription" : "Alert when the ${stack}${instance}${query.queryName}QueryStateMachine step function fails its execution.",
+			"AlarmName" : "${stack}-${instance}-${query.queryName}-Query-State-Machine-Failed-Execution",
+			"ComparisonOperator" : "GreaterThanOrEqualToThreshold",
+			"Dimensions" : [
+				{
+					"Name" : "StateMachineArn",
+					"Value" : { "Ref": "${stack}${instance}${query.queryName}QueryStateMachine" }
+				}
+			],
+			"EvaluationPeriods" : 1,
+			"Period" : 300,
+			"MetricName" : "ExecutionsFailed",
+			"Namespace" : "AWS/States",
+			"Statistic" : "SampleCount",
+			"Threshold" : 1,
+			"TreatMissingData": "notBreaching"
+		}
 	}
 	#end
 #end
