@@ -228,6 +228,7 @@
 	"${stack}${instance}${query.queryName}EventRule": {
 		"Type": "AWS::Events::Rule",
 		"Properties": {
+		 	"Name" : "${stack}${instance}${query.queryName}EventRule",
 	        "Description": "Rule on a cron expression that starts the ${stack}${instance}${query.queryName}QueryStateMachine step function",
 	        "ScheduleExpression": "${query.scheduleExpression}",
 	        "State": "ENABLED",
