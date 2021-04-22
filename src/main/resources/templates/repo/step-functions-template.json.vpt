@@ -28,40 +28,10 @@
 			"Path": "/",
 			"Policies": [
 				{
-					"PolicyName" : "${stack}${instance}AthenaQueryStateMachineExecutionPolicy",
+					"PolicyName" : "${stack}${instance}AthenaQueryStateMachineExecutionPolicyAthena",
 					"PolicyDocument": {
 						"Version": "2012-10-17",
 						"Statement": [
-							{
-								"Effect": "Allow",
-								"Action": [
-						            "s3:GetBucketLocation",
-						            "s3:GetObject",
-						            "s3:ListBucket",
-						            "s3:ListBucketMultipartUploads",
-						            "s3:ListMultipartUploadParts",
-						            "s3:AbortMultipartUpload",
-						            "s3:CreateBucket",
-						            "s3:PutObject"
-						        ],
-								"Resource": [
-									"arn:aws:s3:::${stack}.athena-queries.sagebase.org",
-									"arn:aws:s3:::${stack}.athena-queries.sagebase.org/states/*",
-									"arn:aws:s3:::${stack}.filehandles.sagebase.org",
-									"arn:aws:s3:::${stack}.filehandles.sagebase.org/*"
-								]
-							},
-							{
-					            "Effect": "Allow",
-					            "Action": [
-					                "sqs:SendMessage"
-					            ],
-					            "Resource": [
-					            	#foreach( $query in $athenaQueryDescriptors)
-					                {"Fn::GetAtt" : [ "${query.destinationQueueReferenceName}Queue" , "Arn" ]}#if( $foreach.hasNext), #end
-									#end
-					            ]
-					        },
 					        {
 								"Effect": "Allow",
 								"Action": [
@@ -94,6 +64,50 @@
 						    }
 						]
 					}
+				},
+				{
+					"PolicyName" : "${stack}${instance}AthenaQueryStateMachineExecutionPolicyS3Read",
+					"PolicyDocument": {
+						"Version": "2012-10-17",
+						"Statement": [
+							{
+								"Effect": "Allow",
+								"Action": [
+						            "s3:GetBucketLocation",
+						            "s3:GetObject",
+						            "s3:ListBucket"
+						        ],
+								"Resource": [
+									"arn:aws:s3:::${stack}.filehandles.sagebase.org",
+									"arn:aws:s3:::${stack}.filehandles.sagebase.org/*"
+								]
+							}
+						]
+					}
+				},
+				{
+					"PolicyName" : "${stack}${instance}AthenaQueryStateMachineExecutionPolicyS3Write",
+					"PolicyDocument": {
+						"Version": "2012-10-17",
+						"Statement": [
+							{
+								"Effect": "Allow",
+								"Action": [
+						            "s3:GetBucketLocation",
+						            "s3:GetObject",
+						            "s3:ListBucket",
+						            "s3:ListBucketMultipartUploads",
+						            "s3:ListMultipartUploadParts",
+						            "s3:AbortMultipartUpload",
+						            "s3:PutObject"
+						        ],
+								"Resource": [
+									"arn:aws:s3:::${stack}.athena-queries.sagebase.org",
+									"arn:aws:s3:::${stack}.athena-queries.sagebase.org/states/*"
+								]
+							}
+						]
+					}
 				}
 			]
 		}
@@ -102,7 +116,8 @@
 	## Since this is a velocity template and we need a $$ for referencing the global context below 
 	## we set a dd variable that represents the double dollar
 
-	#set($dd = "$$") 
+	#set($dd = "$$")
+	
 	#foreach( $query in $athenaQueryDescriptors)
 	"${stack}${instance}${query.queryName}QueryStateMachine": {
 	    "Type": "AWS::StepFunctions::StateMachine",
@@ -123,7 +138,7 @@
 					       },
 					       "WorkGroup": "primary",
 					       "ResultConfiguration": {
-					       		"OutputLocation.$": "States.Format('s3://${stack}.athena-queries.sagebase.org/states/{}', ${dd}.Execution.Id)"
+					       		"OutputLocation": "s3://${stack}.athena-queries.sagebase.org/states/${stack}${instance}${query.queryName}"
 					       }
 					    },
 					    "Next": "Publish Query Results"

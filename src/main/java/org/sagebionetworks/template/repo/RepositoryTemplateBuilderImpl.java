@@ -239,7 +239,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		context.put(VPC_EXPORT_PREFIX, Constants.createVpcExportPrefix(stack));
 		context.put(SHARED_EXPORT_PREFIX, createSharedExportPrefix());
 		context.put(EXCEPTION_THROWER, new VelocityExceptionThrower());
-
+		
 		// Create the descriptors for all of the database.
 		context.put(DATABASE_DESCRIPTORS, createDatabaseDescriptors());
 

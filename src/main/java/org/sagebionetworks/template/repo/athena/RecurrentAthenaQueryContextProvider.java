@@ -9,8 +9,6 @@ import java.util.List;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
-import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfig;
-import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfigValidator;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseVelocityContextProvider;
 
 import com.google.inject.Inject;
