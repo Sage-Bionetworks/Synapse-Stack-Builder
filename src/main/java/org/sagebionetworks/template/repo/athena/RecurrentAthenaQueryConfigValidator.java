@@ -44,7 +44,7 @@ public class RecurrentAthenaQueryConfigValidator {
 	private void validate(RecurrentAthenaQuery query) {
 		ValidateArgument.required(query.getQueryName(), "The queryName");
 		ValidateArgument.required(query.getQueryPath(), "The queryPath");
-		ValidateArgument.required(query.getCronExpression(), "The cronExpression");
+		ValidateArgument.required(query.getScheduleExpression(), "The scheduleExpression");
 		ValidateArgument.required(query.getDestinationQueue(), "The destinationQueue");
 	}
 

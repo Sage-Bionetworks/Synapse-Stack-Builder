@@ -96,7 +96,7 @@ public class RecurrentAthenaQueryConfigValidatorTest {
 	}
 	
 	@Test
-	public void testValidateWithNoCronExpression() {
+	public void testValidateWithNoScheduleExpression() {
 		when(mockSqsConfig.getQueueDescriptors()).thenReturn(Arrays.asList(
 			queue("QUEUE")
 		));
@@ -110,7 +110,7 @@ public class RecurrentAthenaQueryConfigValidatorTest {
 			validator.validate();
 		}).getMessage();
 		
-		assertEquals("The cronExpression is required.", message);
+		assertEquals("The scheduleExpression is required.", message);
 	}
 	
 	@Test

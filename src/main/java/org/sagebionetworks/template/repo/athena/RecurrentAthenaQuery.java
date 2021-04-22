@@ -14,7 +14,7 @@ public class RecurrentAthenaQuery {
 	private String queryName;
 	private String queryPath;
 	private String queryString;
-	private String cronExpression;
+	private String scheduleExpression;
 	private String destinationQueue;
 	
 	public String getDatabase() {
@@ -49,12 +49,12 @@ public class RecurrentAthenaQuery {
 		this.queryString = queryString;
 	}
 
-	public String getCronExpression() {
-		return cronExpression;
+	public String getScheduleExpression() {
+		return scheduleExpression;
 	}
 
-	public void setCronExpression(String cronExpression) {
-		this.cronExpression = cronExpression;
+	public void setScheduleExpression(String scheduleExpression) {
+		this.scheduleExpression = scheduleExpression;
 	}
 
 	public String getDestinationQueue() {
@@ -71,7 +71,7 @@ public class RecurrentAthenaQuery {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(cronExpression, database, destinationQueue, queryName, queryPath, queryString);
+		return Objects.hash(scheduleExpression, database, destinationQueue, queryName, queryPath, queryString);
 	}
 
 	@Override
@@ -86,7 +86,7 @@ public class RecurrentAthenaQuery {
 			return false;
 		}
 		RecurrentAthenaQuery other = (RecurrentAthenaQuery) obj;
-		return Objects.equals(cronExpression, other.cronExpression) && Objects.equals(database, other.database)
+		return Objects.equals(scheduleExpression, other.scheduleExpression) && Objects.equals(database, other.database)
 				&& Objects.equals(destinationQueue, other.destinationQueue) && Objects.equals(queryName, other.queryName)
 				&& Objects.equals(queryPath, other.queryPath) && Objects.equals(queryString, other.queryString);
 	}
@@ -94,7 +94,7 @@ public class RecurrentAthenaQuery {
 	@Override
 	public String toString() {
 		return "RecurrentAthenaQuery [dataBase=" + database + ", queryName=" + queryName + ", queryPath=" + queryPath + ", queryString="
-				+ queryString + ", cronExpression=" + cronExpression + ", destinationQueue=" + destinationQueue + "]";
+				+ queryString + ", cronExpression=" + scheduleExpression + ", destinationQueue=" + destinationQueue + "]";
 	}
 
 }

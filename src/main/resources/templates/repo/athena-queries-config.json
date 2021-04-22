@@ -3,7 +3,7 @@
 		{
 			"queryName": "UnlinkedFileHandles",
 			"queryPath": "unlinkedFileHandles.sql",
-			"cronExpression": "* * * * * *",
+			"scheduleExpression": "cron(0/5 * * * ? *)",
 			"destinationQueue": "UNLINKED_FILE_HANDLES"
 		}
 	]

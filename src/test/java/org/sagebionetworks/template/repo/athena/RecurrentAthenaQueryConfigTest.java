@@ -25,7 +25,7 @@ public class RecurrentAthenaQueryConfigTest {
 		RecurrentAthenaQuery query = new RecurrentAthenaQuery();
 		query.setQueryName(name);
 		query.setQueryPath(path);
-		query.setCronExpression(cronExpression);
+		query.setScheduleExpression(cronExpression);
 		query.setDestinationQueue(destinationQueue);
 		return query;
 	}
