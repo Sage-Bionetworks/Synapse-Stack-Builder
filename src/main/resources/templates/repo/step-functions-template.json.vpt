@@ -229,7 +229,7 @@
 		"Type": "AWS::Events::Rule",
 		"Properties": {
 		 	"Name" : "${stack}${instance}${query.queryName}EventRule",
-	        "Description": "Rule on a cron expression that starts the ${stack}${instance}${query.queryName}QueryStateMachine step function",
+	        "Description": "Scheduled expression that starts the ${stack}${instance}${query.queryName}QueryStateMachine step function on ${query.scheduleExpression}",
 	        "ScheduleExpression": "${query.scheduleExpression}",
 	        "State":#if(${stack} == 'dev') "DISABLED" #else "ENABLED" #end,
 	        "Targets": [
