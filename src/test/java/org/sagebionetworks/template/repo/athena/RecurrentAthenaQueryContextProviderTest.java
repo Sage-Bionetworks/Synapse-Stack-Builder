@@ -112,5 +112,27 @@ public class RecurrentAthenaQueryContextProviderTest {
 		));
 		
 	}
+	
+	@Test
+	public void testAddToContextWithQueryWithNewLines() {
+		
+		RecurrentAthenaQuery query = query("id", "query_with_newlines.sql", "* * * * *", "QUEUE");
+		
+		when(mockConfig.getQueries()).thenReturn(Arrays.asList(
+			query
+		));
+		
+		// Call under test
+		provider.addToContext(mockContext);
+		
+		RecurrentAthenaQuery expected = query("id", "query_with_newlines.sql", "* * * * *", "QUEUE");
+		expected.setQueryString("WITH T AS (  SELECT * FROM someTable WHERE id = 123 ) SELECT * FROM T");
+		expected.setDatabase(RecurrentAthenaQueryContextProvider.DEFAULT_DATABASE);
+		
+		verify(mockContext).put(ATHENA_QUERY_DESCRIPTORS, Arrays.asList(
+			expected
+		));
+		
+	}
 
 }

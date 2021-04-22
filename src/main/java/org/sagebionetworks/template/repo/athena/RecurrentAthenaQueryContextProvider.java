@@ -50,7 +50,7 @@ public class RecurrentAthenaQueryContextProvider implements VelocityContextProvi
 
 		Velocity.evaluate(context, writer, "VTL", queryStringTemplate);
 		
-		return writer.toString();
+		return writer.toString().replaceAll("\\t|\\r\\n|\\r|\\n", " ");
 	}
 
 }
