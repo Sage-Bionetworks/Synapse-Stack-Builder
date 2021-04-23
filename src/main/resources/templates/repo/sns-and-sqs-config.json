@@ -252,6 +252,11 @@
 			"queueName":"QUERY_DOWNLOAD_LIST",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":300
+		},
+		{
+			"queueName": "UNLINKED_FILE_HANDLES",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":300
 		}
 	]
 }

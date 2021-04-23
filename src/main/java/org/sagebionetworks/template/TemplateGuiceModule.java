@@ -1,10 +1,11 @@
 package org.sagebionetworks.template;
 
+import static org.sagebionetworks.template.Constants.ATHENA_QUERIES_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.KINESIS_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARM_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.S3_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.SNS_AND_SQS_CONFIG_FILE;
-import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARM_CONFIG_FILE;
 import static org.sagebionetworks.template.TemplateUtils.loadFromJsonFile;
 
 import java.io.IOException;
@@ -28,6 +29,9 @@ import org.sagebionetworks.template.repo.RepositoryTemplateBuilderImpl;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
 import org.sagebionetworks.template.repo.WebACLBuilder;
 import org.sagebionetworks.template.repo.WebACLBuilderImpl;
+import org.sagebionetworks.template.repo.athena.RecurrentAthenaQueryConfig;
+import org.sagebionetworks.template.repo.athena.RecurrentAthenaQueryConfigValidator;
+import org.sagebionetworks.template.repo.athena.RecurrentAthenaQueryContextProvider;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopyImpl;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactDownload;
@@ -122,6 +126,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		
 		velocityContextProviderMultibinder.addBinding().to(SnsAndSqsVelocityContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(KinesisFirehoseVelocityContextProvider.class);
+		velocityContextProviderMultibinder.addBinding().to(RecurrentAthenaQueryContextProvider.class);
 	}
 	
 	/**
@@ -224,6 +229,11 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public KinesisFirehoseConfig kinesisConfigProvider() throws IOException {
 		return new KinesisFirehoseConfigValidator(loadFromJsonFile(KINESIS_CONFIG_FILE, KinesisFirehoseConfig.class)).validate();
+	}
+	
+	@Provides
+	public RecurrentAthenaQueryConfig athenaQueryConfigProvider(SnsAndSqsConfig sqsConfig) throws IOException {
+		return new RecurrentAthenaQueryConfigValidator(loadFromJsonFile(ATHENA_QUERIES_CONFIG_FILE, RecurrentAthenaQueryConfig.class), sqsConfig).validate();
 	}
 
 	@Provides
