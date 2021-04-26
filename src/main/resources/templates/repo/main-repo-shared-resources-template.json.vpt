@@ -13,7 +13,7 @@
 			"Type": "AWS::RDS::DBSubnetGroup",
 			"Properties": {
 				"DBSubnetGroupDescription": "Repository database subnet group defines where RDS instances can be deployed.",
-				"SubnetIds": { "Fn::Split" : [ ",", {"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-Private-Subnets"} ] },
+				"SubnetIds": { "Fn::Split" : [ ",", {"Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-Private-Subnets"} ] },
 			}
 		},
 		"${stack}${instance}VpcDBSecurityGroup": {
@@ -36,7 +36,7 @@
 					{
 						"Description": "Allow ${subnetGroupColor} subnet one access to MySQL",
 						"CidrIp": {
-							"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-CIDR"
+							"Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-CIDR"
 						},
 						"FromPort": "3306",
 						"ToPort": "3306",
@@ -131,7 +131,7 @@
 			"Properties" : {
 				"ActionsEnabled" : true,
 				"AlarmActions" : [
-					{"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"}			
+					{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
 				],
 				"AlarmDescription" : "Alert when database swap usage is exceeded.",
 				"AlarmName" : "${descriptor.instanceIdentifier}-Swap-Usage",
@@ -158,7 +158,7 @@
 			"Properties" : {
 				"ActionsEnabled" : true,
 				"AlarmActions" : [
-					{"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"}			
+					{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
 				],
 				"AlarmDescription" : "Alert when database write latency is exceeded.",
 				"AlarmName" : "${descriptor.instanceIdentifier}-High-Write-Latency",
@@ -185,7 +185,7 @@
 			"Properties" : {
 				"ActionsEnabled" : true,
 				"AlarmActions" : [
-					{"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"}			
+					{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
 				],
 				"AlarmDescription" : "Alert when database CPU utilization is exceeded.",
 				"AlarmName" : "${descriptor.instanceIdentifier}-High-CPU-Utilization",
@@ -212,7 +212,7 @@
 			"Properties" : {
 				"ActionsEnabled" : true,
 				"AlarmActions" : [
-					{"Fn::ImportValue": "${vpcExportPrefix}-NotificationTopic"}			
+					{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
 				],
 				"AlarmDescription" : "Alert when database free storage space is low.",
 				"AlarmName" : "${descriptor.instanceIdentifier}-Low-Free-Storage-Space",
@@ -252,7 +252,7 @@
 					{
 						"Description": "Allow ${subnetGroupColor} subnet HTTPS access",
 						"CidrIp": {
-							"Fn::ImportValue": "${vpcExportPrefix}-${subnetGroupColor}-CIDR"
+							"Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-CIDR"
 						},
 						"FromPort": "443",
 						"ToPort": "443",
@@ -425,20 +425,25 @@
 									],
 									"Resource": "*"
 								},
-                                {
-                                    "Effect": "Allow",
-                                    "Action": [
-                                        "sts:AssumeRole"
-                                    ],
-                                    "Resource": "*"
-                                },
-                                {
-                                    "Effect": "Allow",
-                                    "Action": [
-                                        "logs:*"
-                                    ],
-                                    "Resource": "*"
-                                }
+								{
+									"Effect": "Allow",
+									"Action": [
+										"sts:AssumeRole"
+									],
+									"Resource": "*"
+								},
+								{
+									"Effect": "Allow",
+									"Action": [
+										"logs:*"
+									],
+									"Resource": "*"
+								},
+								{
+									"Effect": "Allow",
+									"Action": "elasticbeanstalk:*",
+									"Resource": "*"
+								}
 							]
 						}
 					}
@@ -491,6 +496,11 @@
 								{
 									"Action": "logs:*",
 									"Effect": "Allow",
+									"Resource": "*"
+								},
+								{
+									"Effect": "Allow",
+									"Action": "elasticbeanstalk:*",
 									"Resource": "*"
 								}
 							]
@@ -631,6 +641,7 @@
 		}
 		#parse("templates/repo/sns-and-sqs-template.json.vpt")
 		#parse("templates/repo/kinesis-log-streams.json.vpt")
+		#parse("templates/repo/step-functions-template.json.vpt")
 		#parse("templates/repo/cloudwatch-alarms-template.json.vpt")
 	},
 	"Outputs": {

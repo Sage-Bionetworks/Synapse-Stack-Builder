@@ -1,0 +1,1 @@
+SELECT * FROM ${stack}${instance}table

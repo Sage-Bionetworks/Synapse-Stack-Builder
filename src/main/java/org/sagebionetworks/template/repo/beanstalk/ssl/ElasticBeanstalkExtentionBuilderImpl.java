@@ -1,8 +1,15 @@
 package org.sagebionetworks.template.repo.beanstalk.ssl;
 
+import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PREFIX;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
+import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_DESCRIPTORS;
+import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARMS;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Collections;
 import java.util.function.Consumer;
 
 import org.apache.velocity.Template;
@@ -13,6 +20,7 @@ import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.FileProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
+import org.sagebionetworks.template.repo.beanstalk.LoadBalancerAlarmsConfig;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
 import org.sagebionetworks.war.WarAppender;
 
@@ -42,6 +50,10 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 	public static final String TEMPLATE_EBEXTENSIONS_BEANSTALK_LOGS_CW_CONFIG = "templates/repo/ebextensions/beanstalk_logs_cloudwatch.config";
 
 	public static final String BEANSTALK_LOGS_CW_CONFIG = "beanstalk_cwlogs.config";
+	
+	public static final String TEMPLATE_EBEXTENSIONS_BEANSTALK_ALARMS = "templates/repo/ebextensions/beanstalk_alarms.config";
+
+	public static final String BEANSTALK_ALARMS_CONFIG = "beanstalk_alarms.config";
 
 	CertificateBuilder certificateBuilder;
 	VelocityEngine velocityEngine;
@@ -49,10 +61,12 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 	WarAppender warAppender;
 	FileProvider fileProvider;
 	CloudwatchLogsVelocityContextProvider cwlContextprovider;
+	LoadBalancerAlarmsConfig loadBalancerAlarmsConfig;
 
 	@Inject
 	public ElasticBeanstalkExtentionBuilderImpl(CertificateBuilder certificateBuilder, VelocityEngine velocityEngine,
-			Configuration configuration, WarAppender warAppender, FileProvider fileProvider, CloudwatchLogsVelocityContextProvider cwlCtxtProvider) {
+			Configuration configuration, WarAppender warAppender, FileProvider fileProvider, CloudwatchLogsVelocityContextProvider cwlCtxtProvider,
+			LoadBalancerAlarmsConfig loadBalancerAlarmsConfig) {
 		super();
 		this.certificateBuilder = certificateBuilder;
 		this.velocityEngine = velocityEngine;
@@ -60,6 +74,7 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 		this.warAppender = warAppender;
 		this.fileProvider = fileProvider;
 		this.cwlContextprovider = cwlCtxtProvider;
+		this.loadBalancerAlarmsConfig = loadBalancerAlarmsConfig;
 	}
 
 	@Override
@@ -71,8 +86,18 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 		// EnvironmentType in context
 		context.put("envType", envType);
 		// CloudwatchLog descriptors
-		context.put(Constants.CLOUDWATCH_LOGS_DESCRIPTORS, cwlContextprovider.getLogDescriptors(envType));
-
+		context.put(CLOUDWATCH_LOGS_DESCRIPTORS, cwlContextprovider.getLogDescriptors(envType));
+		
+		String stack = configuration.getProperty(PROPERTY_KEY_STACK);
+		String instance = configuration.getProperty(PROPERTY_KEY_INSTANCE);
+		
+		context.put("stack", stack);
+		context.put("instance", instance);
+		
+		// Exported resources prefix
+		context.put(GLOBAL_RESOURCES_EXPORT_PREFIX, Constants.createGlobalResourcesExportPrefix(stack));
+		// Inject the alarms configuration for the environment
+		context.put(LOAD_BALANCER_ALARMS, loadBalancerAlarmsConfig.getOrDefault(envType, Collections.emptyList()));
 
 		// add the files to the copy of the war
 		return warAppender.appendFilesCopyOfWar(warFile, new Consumer<File>() {
@@ -101,6 +126,10 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 				resultFile = fileProvider.createNewFile(ebextensionsDirectory, BEANSTALK_LOGS_CW_CONFIG);
 				Template beanstalkClodwatchConf = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_BEANSTALK_LOGS_CW_CONFIG);
 				addTemplateAsFileToDirectory(beanstalkClodwatchConf, context, resultFile);
+				// Beanstalk environment alarms
+				resultFile = fileProvider.createNewFile(ebextensionsDirectory, BEANSTALK_ALARMS_CONFIG);
+				Template beanstalkAlarms = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_BEANSTALK_ALARMS);
+				addTemplateAsFileToDirectory(beanstalkAlarms, context, resultFile);
 			}
 		});
 

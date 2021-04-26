@@ -202,7 +202,7 @@ public class S3BucketBuilderImplTest {
 		// No inventory configuration set
 		doThrow(notFound).when(mockS3Client).getBucketInventoryConfiguration(anyString(), anyString());
 		
-		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+		when(mockVelocity.getTemplate(any(), any())).thenReturn(mockTemplate);
 		
 		doAnswer(new Answer<Void>() {
 			@Override
@@ -282,7 +282,7 @@ public class S3BucketBuilderImplTest {
 						.withEnabled(true))
 		);
 		
-		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+		when(mockVelocity.getTemplate(any(), any())).thenReturn(mockTemplate);
 		
 		// Call under test
 		builder.buildAllBuckets();
@@ -446,5 +446,55 @@ public class S3BucketBuilderImplTest {
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		
 		verify(mockS3Client, never()).setBucketLifecycleConfiguration(any(), any());
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithDevOnly() {
+		
+		stack = "someStackOtherThanProd";
+		
+		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		bucket.setName("${stack}.bucket");
+		bucket.setDevOnly(true);
+
+		String expectedBucketName = stack + ".bucket";
+		
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+
+		// Call under test
+		builder.buildAllBuckets();
+
+		verify(mockS3Client).createBucket(expectedBucketName);
+		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+
+		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
+		verify(mockS3Client, never()).deleteBucketInventoryConfiguration(any(), any());
+		verify(mockS3Client, never()).getBucketLifecycleConfiguration(anyString());
+		verify(mockS3Client, never()).setBucketLifecycleConfiguration(any(), any());
+		verify(mockS3Client, never()).setBucketPolicy(any(), any());
+
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithDevAndProd() {
+		
+		stack = "prod";
+		
+		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		bucket.setName("${stack}.bucket");
+		bucket.setDevOnly(true);
+
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+
+		// Call under test
+		builder.buildAllBuckets();
+		
+		verifyNoMoreInteractions(mockS3Client);
+
 	}
 }

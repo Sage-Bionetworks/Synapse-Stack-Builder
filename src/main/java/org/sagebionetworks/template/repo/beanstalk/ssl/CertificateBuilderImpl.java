@@ -11,6 +11,11 @@ import java.security.SecureRandom;
 import java.security.Security;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -121,12 +126,11 @@ public class CertificateBuilderImpl implements CertificateBuilder {
 		// Use the bouncy castle
 		Security.addProvider(new BouncyCastleProvider());
 		// Valid between now and one year from now
-		long now = System.currentTimeMillis();
-		Date startDate = new Date(now);
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(startDate);
-		calendar.add(Calendar.YEAR, 1);
-		Date endDate = calendar.getTime();
+		ZonedDateTime now = ZonedDateTime.ofInstant(Instant.now(), ZoneId.of("UTC"));
+		ZonedDateTime end = now.plusYears(1);
+		Date startDate = Date.from(now.toInstant());
+		Date endDate = Date.from(end.toInstant());
+
 		// randomly generated serial number
 		BigInteger serialNumber = new BigInteger(64, new SecureRandom());
 		X500Name distinguishedName = new X500Name(CERTIFICATE_DISTINGUISHED_NAME);

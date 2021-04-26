@@ -1,0 +1,4 @@
+WITH T AS (
+	SELECT * FROM someTable WHERE id = 123
+)
+SELECT * FROM T

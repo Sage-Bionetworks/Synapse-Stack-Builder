@@ -235,6 +235,28 @@
 				"ENTITY"
 			],
 			"messageVisibilityTimeoutSec":120
+		},
+		{
+			"queueName":"FILE_HANDLE_SCAN_REQUEST",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":300
+		},
+		{
+			"queueName":"FILE_HANDLE_STREAM",
+			"subscribedTopicNames":[
+				"FILE"
+			],
+			"messageVisibilityTimeoutSec":120
+		},
+		{
+			"queueName":"QUERY_DOWNLOAD_LIST",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":300
+		},
+		{
+			"queueName": "UNLINKED_FILE_HANDLES",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":300
 		}
 	]
 }

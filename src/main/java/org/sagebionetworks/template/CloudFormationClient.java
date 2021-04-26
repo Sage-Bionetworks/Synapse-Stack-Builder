@@ -1,6 +1,7 @@
 package org.sagebionetworks.template;
 
 import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException;
+import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Stack;
 
 /**
@@ -63,4 +64,12 @@ public interface CloudFormationClient {
 	 * @throws InterruptedException 
 	 */
 	public Stack waitForStackToComplete(String stackName) throws InterruptedException;
+
+	/**
+	 *
+	 * @param stackName
+	 * @return
+	 */
+	public String getOutput(String stackName, String outputKey);
+
 }

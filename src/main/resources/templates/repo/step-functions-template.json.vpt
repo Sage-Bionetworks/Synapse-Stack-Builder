@@ -1,0 +1,272 @@
+#if( $athenaQueryDescriptors )
+
+	## Since this is a velocity template and we need a $ for referencing the AWS functions below 
+	## we set a d variable that represents the dollar sign
+
+	#set($d = "$")
+	
+	## The role is used by the step functions in order to run athena and SQS and read from the glue catalog 
+	,"${stack}${instance}AthenaQueryStateMachineExecutionRole": {
+		"Type": "AWS::IAM::Role",
+		"Properties": {
+			"AssumeRolePolicyDocument": {
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Principal": {
+							"Service": [
+								"states.amazonaws.com"
+							]
+						},
+						"Action": [
+							"sts:AssumeRole"
+						]
+					}
+				]
+			},
+			"Path": "/",
+			"Policies": [
+				{
+					"PolicyName" : "${stack}${instance}AthenaQueryStateMachineExecutionPolicyAthena",
+					"PolicyDocument": {
+						"Version": "2012-10-17",
+						"Statement": [
+					        {
+								"Effect": "Allow",
+								"Action": [
+									"athena:startQueryExecution",
+						            "athena:stopQueryExecution",
+						            "athena:getQueryExecution"
+								],
+								"Resource": [
+									{ "Fn::Sub": "arn:aws:athena:${d}{AWS::Region}:${d}{AWS::AccountId}:workgroup/primary" }
+								]
+							},
+							{
+						        "Effect": "Allow",
+						        "Action": [
+						            "glue:GetDatabase",
+						            "glue:GetDatabases",
+						            "glue:GetTable",
+						            "glue:GetTables",
+						            "glue:GetPartition",
+						            "glue:GetPartitions",
+						            "glue:BatchGetPartition"
+						        ],
+						        "Resource": [
+						            { "Fn::Sub": "arn:aws:glue:${d}{AWS::Region}:${d}{AWS::AccountId}:catalog" },
+						            #foreach( $query in $athenaQueryDescriptors)
+						            { "Fn::Sub": "arn:aws:glue:${d}{AWS::Region}:${d}{AWS::AccountId}:database/${stack}${instance}${query.database.toLowerCase()}" },
+									#end
+						            { "Fn::Sub": "arn:aws:glue:${d}{AWS::Region}:${d}{AWS::AccountId}:table/*" }
+						        ]
+						    }
+						]
+					}
+				},
+				{
+					"PolicyName" : "${stack}${instance}AthenaQueryStateMachineExecutionPolicyS3Read",
+					"PolicyDocument": {
+						"Version": "2012-10-17",
+						"Statement": [
+							{
+								"Effect": "Allow",
+								"Action": [
+						            "s3:GetBucketLocation",
+						            "s3:GetObject",
+						            "s3:ListBucket"
+						        ],
+								"Resource": [
+									"arn:aws:s3:::${stack}.filehandles.sagebase.org",
+									"arn:aws:s3:::${stack}.filehandles.sagebase.org/*"
+								]
+							}
+						]
+					}
+				},
+				{
+					"PolicyName" : "${stack}${instance}AthenaQueryStateMachineExecutionPolicyS3Write",
+					"PolicyDocument": {
+						"Version": "2012-10-17",
+						"Statement": [
+							{
+								"Effect": "Allow",
+								"Action": [
+						            "s3:GetBucketLocation",
+						            "s3:GetObject",
+						            "s3:ListBucket",
+						            "s3:ListBucketMultipartUploads",
+						            "s3:ListMultipartUploadParts",
+						            "s3:AbortMultipartUpload",
+						            "s3:PutObject"
+						        ],
+								"Resource": [
+									"arn:aws:s3:::${stack}.athena-queries.sagebase.org",
+									"arn:aws:s3:::${stack}.athena-queries.sagebase.org/states/*"
+								]
+							}
+						]
+					}
+				},
+				{
+					"PolicyName" : "${stack}${instance}AthenaQueryStateMachineExecutionPolicySQSPublish",
+					"PolicyDocument": {
+						"Version": "2012-10-17",
+						"Statement": [
+							{
+					            "Effect": "Allow",
+					            "Action": [
+					                "sqs:SendMessage"
+					            ],
+					            "Resource": [
+					            	#foreach( $query in $athenaQueryDescriptors)
+					                {"Fn::GetAtt" : [ "${query.destinationQueueReferenceName}Queue" , "Arn" ]}#if( $foreach.hasNext), #end
+									#end
+					            ]
+					        }
+						]
+					}
+				}				
+			]
+		}
+	}
+	## The role is used by the AWS event bridge to invoke step functions
+	,"${stack}${instance}AthenaQueryStateMachineEventsInvokationRole": {
+		"Type": "AWS::IAM::Role",
+		"Properties": {
+			"AssumeRolePolicyDocument": {
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Principal": {
+							"Service": [
+								"events.amazonaws.com"
+							]
+						},
+						"Action": [
+							"sts:AssumeRole"
+						]
+					}
+				]
+			},
+			"Path": "/",
+			"Policies": [
+				{
+					"PolicyName" : "${stack}${instance}AthenaQueryStateMachineEventsPolicy",
+					"PolicyDocument": {
+						"Version": "2012-10-17",
+						"Statement": [
+					        {
+								"Effect": "Allow",
+								"Action": [
+									"states:StartExecution"
+								],
+								"Resource": [
+									#foreach( $query in $athenaQueryDescriptors)
+									{ "Ref": "${stack}${instance}${query.queryName}QueryStateMachine" }#if( $foreach.hasNext), #end
+									#end
+								]
+							}
+						]
+					}
+				}			
+			]
+		}
+	}
+
+	## Since this is a velocity template and we need a $$ for referencing the global context below 
+	## we set a dd variable that represents the double dollar
+
+	#set($dd = "$$")
+	
+	#foreach( $query in $athenaQueryDescriptors)
+	,"${stack}${instance}${query.queryName}QueryStateMachine": {
+	    "Type": "AWS::StepFunctions::StateMachine",
+	    "Properties": {
+	     	"RoleArn": {
+	            "Fn::GetAtt": [ "${stack}${instance}AthenaQueryStateMachineExecutionRole", "Arn" ]
+	        },
+	        "Definition": {
+	        	"StartAt": "Submit Query",
+	        	"States": {
+	        		"Submit Query": {
+	        			"Type": "Task",
+	        			"Resource": "arn:aws:states:::athena:startQueryExecution.sync",
+					    "Parameters": {
+					       "QueryString": "${query.queryString}",
+					       "QueryExecutionContext": {
+					       		"Database": "${stack}${instance}${query.database}"
+					       },
+					       "WorkGroup": "primary",
+					       "ResultConfiguration": {
+					       		"OutputLocation": "s3://${stack}.athena-queries.sagebase.org/states/${stack}${instance}${query.queryName}"
+					       }
+					    },
+					    "Next": "Publish Query Results"
+	        		},
+	        		"Publish Query Results": {
+	        			 "Type":"Task",
+				         "Resource":"arn:aws:states:::sqs:sendMessage",
+				         "Parameters":{  
+				            "QueueUrl": {
+				            	"Ref": "${query.destinationQueueReferenceName}Queue"
+				            },
+				            "MessageBody":{
+				               "QueryName": "${query.queryName}",
+				               "FunctionExecutionId.$": "${dd}.Execution.Id",
+				               "QueryExecution.$": "$.QueryExecution"
+				            }
+				         },
+				         "End": true
+	        		}
+	        	}
+	        }
+	    }
+	},
+	"${stack}${instance}${query.queryName}EventRule": {
+		"Type": "AWS::Events::Rule",
+		"Properties": {
+		 	"Name" : "${stack}${instance}${query.queryName}EventRule",
+	        "Description": "Scheduled expression that starts the ${stack}${instance}${query.queryName}QueryStateMachine step function on ${query.scheduleExpression}",
+	        "ScheduleExpression": "${query.scheduleExpression}",
+	        "State":#if(${stack} == 'dev') "DISABLED" #else "ENABLED" #end,
+	        "Targets": [
+	        	{
+	        		"Id": "${stack}${instance}${query.queryName}QueryStateMachine",
+	        		"RoleArn": {
+			            "Fn::GetAtt": [ "${stack}${instance}AthenaQueryStateMachineEventsInvokationRole", "Arn" ]
+			        },
+			        "Arn": { "Ref": "${stack}${instance}${query.queryName}QueryStateMachine" }
+	        	}
+	        ]
+        }
+	},
+	"${stack}${instance}${query.queryName}QueryStateMachineFailedExecutionAlarm": {
+		"Type" : "AWS::CloudWatch::Alarm",
+		"Properties" : {
+			"ActionsEnabled" : true,
+			"AlarmActions" : [
+				{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
+			],
+			"AlarmDescription" : "Alert when the ${stack}${instance}${query.queryName}QueryStateMachine step function fails its execution.",
+			"AlarmName" : "${stack}-${instance}-${query.queryName}-Query-State-Machine-Failed-Execution",
+			"ComparisonOperator" : "GreaterThanOrEqualToThreshold",
+			"Dimensions" : [
+				{
+					"Name" : "StateMachineArn",
+					"Value" : { "Ref": "${stack}${instance}${query.queryName}QueryStateMachine" }
+				}
+			],
+			"EvaluationPeriods" : 1,
+			"Period" : 300,
+			"MetricName" : "ExecutionsFailed",
+			"Namespace" : "AWS/States",
+			"Statistic" : "Sum",
+			"Threshold" : 1,
+			"TreatMissingData": "notBreaching"
+		}
+	}
+	#end
+#end

@@ -12,9 +12,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.*;
 
 import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
+import com.amazonaws.services.cloudformation.model.Output;
 import org.apache.logging.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,6 +45,11 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CloudFormationClientImplTest {
+
+	public static final String SES_SYNAPSE_ORG_COMPLAINT_TOPIC_KEY = "SesSynapseOrgComplaintTopic";
+	public static final String SES_SYNAPSE_ORG_COMPLAINT_TOPIC_VALUE = "theSesComplaintTopicArn";
+	public static final String SES_SYNAPSE_ORG_BOUNCE_TOPIC_KEY = "SesSynapseOrgBounceTopic";
+	public static final String SES_SYNAPSE_ORG_BOUNCE_TOPIC_VALUE = "theSesBounceTopicArn";
 
 	@Mock
 	AmazonCloudFormation mockCloudFormationClient;
@@ -91,7 +99,12 @@ public class CloudFormationClientImplTest {
 		client = new CloudFormationClientImpl(mockCloudFormationClient, mockS3Client, mockConfig, mockLoggerFactory, mockThreadProvider);
 
 		stackId = "theStackId";
-		stack = new Stack().withStackId(stackId);
+		Collection<Output> outputs = new ArrayList<>();
+		Output output1 = new Output().withOutputKey(SES_SYNAPSE_ORG_COMPLAINT_TOPIC_KEY).withOutputValue(SES_SYNAPSE_ORG_COMPLAINT_TOPIC_VALUE);
+		Output output2 = new Output().withOutputKey(SES_SYNAPSE_ORG_BOUNCE_TOPIC_KEY).withOutputValue(SES_SYNAPSE_ORG_BOUNCE_TOPIC_VALUE);
+		outputs.add(output1);
+		outputs.add(output2);
+		stack = new Stack().withStackId(stackId).withOutputs(outputs);
 		describeResult = new DescribeStacksResult().withStacks(stack);
 
 		updateResult = new UpdateStackResult().withStackId(stackId);
@@ -113,7 +126,7 @@ public class CloudFormationClientImplTest {
 		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(describeResult);
 		when(mockCloudFormationClient.createStack(any(CreateStackRequest.class))).thenReturn(createResult);
 		when(mockCloudFormationClient.updateStack(any(UpdateStackRequest.class))).thenReturn(updateResult);
-		
+
 		bucket = "theBucket";
 		when(mockConfig.getConfigurationBucket()).thenReturn(bucket);
 		
@@ -364,5 +377,20 @@ public class CloudFormationClientImplTest {
 		// call under test
 		client.waitForStackToComplete(stackName);
 	}
-	
+
+	@Test
+	public void testGetOutput() {
+		// call under test
+		String output = client.getOutput(stackName, SES_SYNAPSE_ORG_COMPLAINT_TOPIC_KEY);
+
+		assertEquals(SES_SYNAPSE_ORG_COMPLAINT_TOPIC_VALUE, output);
+	}
+
+	@Test (expected=IllegalArgumentException.class)
+	public void testGetOutputInvalid() {
+		// call under test
+		String output = client.getOutput(stackName, "invalidKey");
+
+	}
+
 }
