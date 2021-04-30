@@ -67,7 +67,11 @@
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
 						"OptionName": "InstanceType",
+#if(${stack} == 'prod')
 						"Value": "m5.large"
+#else
+						"Value": "t3.medium"
+#end
 					},
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
