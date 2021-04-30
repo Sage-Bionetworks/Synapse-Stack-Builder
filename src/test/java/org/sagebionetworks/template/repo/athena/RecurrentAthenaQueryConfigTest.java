@@ -46,7 +46,7 @@ public class RecurrentAthenaQueryConfigTest {
 
 		String expectedCron = "0 10 ? * 2#1 *";
 		assertEquals("cron(" + expectedCron + ")", query.getScheduleExpression());
-		assertEquals("UNLINKED_FILE_HANDLES", query.getDestinationQueue());
+		assertEquals("RECURRENT_ATHENA_QUERIES", query.getDestinationQueue());
 
 		// Event Bridge does not support second resolution, so we "fake" running at second 0
 		CronExpression cron = new CronExpression("0 " + expectedCron);
