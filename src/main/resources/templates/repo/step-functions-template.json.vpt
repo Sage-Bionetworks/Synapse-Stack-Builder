@@ -216,7 +216,7 @@
 				            "MessageBody":{
 				               "queryName": "${query.queryName}",
 				               "functionExecutionId.$": "${dd}.Execution.Id",
-				               "queryExecution.$": "$.QueryExecution"
+				               "queryExecutionId.$": "$.QueryExecution.QueryExecutionId"
 				            }
 				         },
 				         "End": true
