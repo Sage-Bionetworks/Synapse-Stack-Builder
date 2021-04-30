@@ -175,7 +175,7 @@
 				"ErrorOutputPrefix":"${stream.name}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
 				#end
 				"BufferingHints":{
-					"IntervalInSeconds": #if(${stack} == 'dev') 60 #else ${stream.bufferFlushInterval} #end,
+					"IntervalInSeconds":#if(${stack} == 'prod') ${stream.bufferFlushInterval} #else 60 #end,
 					"SizeInMBs": ${stream.bufferFlushSize}
 				},
 				#if( $stream.format == "PARQUET" )
