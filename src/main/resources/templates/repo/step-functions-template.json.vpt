@@ -214,9 +214,9 @@
 				            	"Ref": "${query.destinationQueueReferenceName}Queue"
 				            },
 				            "MessageBody":{
-				               "QueryName": "${query.queryName}",
-				               "FunctionExecutionId.$": "${dd}.Execution.Id",
-				               "QueryExecution.$": "$.QueryExecution"
+				               "queryName": "${query.queryName}",
+				               "functionExecutionId.$": "${dd}.Execution.Id",
+				               "queryExecutionId.$": "$.QueryExecution.QueryExecutionId"
 				            }
 				         },
 				         "End": true
