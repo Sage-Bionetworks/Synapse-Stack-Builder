@@ -231,7 +231,7 @@
 		 	"Name" : "${stack}${instance}${query.queryName}EventRule",
 	        "Description": "Scheduled expression that starts the ${stack}${instance}${query.queryName}QueryStateMachine step function on ${query.scheduleExpression}",
 	        "ScheduleExpression": "${query.scheduleExpression}",
-	        "State":#if(${stack} == 'dev') "DISABLED" #else "ENABLED" #end,
+	        "State":#if(${stack} == 'prod') "ENABLED" #else "DISABLED" #end,
 	        "Targets": [
 	        	{
 	        		"Id": "${stack}${instance}${query.queryName}QueryStateMachine",
