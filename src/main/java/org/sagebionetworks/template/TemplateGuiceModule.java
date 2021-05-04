@@ -121,6 +121,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(SesClient.class).to(SesClientImpl.class);
 		bind(GlobalResourcesBuilder.class).to(GlobalResourcesBuilderImpl.class);
 		bind(CloudwatchLogsVelocityContextProvider.class).to(CloudwatchLogsVelocityContextProviderImpl.class);
+		bind(Ec2Client.class).to(Ec2ClientImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 		

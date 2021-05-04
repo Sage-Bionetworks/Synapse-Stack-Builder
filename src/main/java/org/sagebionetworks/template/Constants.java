@@ -87,6 +87,7 @@ public class Constants {
 	public static final String PROPERTY_KEY_REPOSITORY_DATABASE_PASSWORD = "org.sagebionetworks.repository.database.password";
 	public static final String PROPERTY_KEY_ID_GENERATOR_DATABASE_PASSWORD = "org.sagebionetworks.id.generator.database.password";
 	public static final String PROPERTY_KEY_ID_GENERATOR_HOSTED_ZONE_ID = "org.sagebionetworks.id.generator.hosted.zone.id";
+	public static final String PROPERTY_KEY_EC2_INSTANCE_TYPE = "org.sagebionetwroks.beanstalk.instance.type";
 
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX = "org.sagebionetworks.beanstalk.image.version.";
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA = PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX + "java";
@@ -183,6 +184,9 @@ public class Constants {
 	public static final String SES_SYNAPSE_DOMAIN = "synapse.org";
 	public static final String GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC = "SesSynapseOrgComplaintTopic";
 	public static final String GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC = "SesSynapseOrgBounceTopic";
+
+	public static final String EC2_INSTANCE_TYPE = "Ec2InstanceType";
+	public static final String BEANSTALK_INSTANCES_SUBNETS = "BeanstalkInstancesSubnets";
 
 	/**
 	 * Create a camel case name from dash-separated-name. Given 'foo-bar' will

@@ -67,11 +67,7 @@
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
 						"OptionName": "InstanceType",
-#if(${stack} == 'prod')
-						"Value": "m5.large"
-#else
-						"Value": "t3.medium"
-#end
+						"Value": "$Ec2InstanceType"
 					},
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
@@ -156,7 +152,7 @@
 						"Namespace": "aws:ec2:vpc",
 						"OptionName": "Subnets",
 						"Value": {
-							"Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-Private-Subnets"
+							"Fn::ImportValue": "${BeanstalkInstancesSubnets}"
 						}
 					},
 					{

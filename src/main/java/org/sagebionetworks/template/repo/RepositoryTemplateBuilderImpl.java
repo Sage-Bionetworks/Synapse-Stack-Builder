@@ -1,9 +1,11 @@
 package org.sagebionetworks.template.repo;
 
+import static org.sagebionetworks.template.Constants.BEANSTALK_INSTANCES_SUBNETS;
 import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
 import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
+import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.ENCRYPTED_AMI_IMAGE_ID;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
@@ -19,6 +21,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MIN_
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_NUMBER;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERSION;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OAUTH_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
@@ -46,12 +49,15 @@ import static org.sagebionetworks.template.Constants.TEMPALTE_BEAN_STALK_ENVIRON
 import static org.sagebionetworks.template.Constants.TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
+import static org.sagebionetworks.template.Constants.createVpcExportPrefix;
 
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
@@ -62,6 +68,7 @@ import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
+import org.sagebionetworks.template.Ec2Client;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.RepoConfiguration;
@@ -83,6 +90,7 @@ import com.google.inject.Inject;
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
 
 	CloudFormationClient cloudFormationClient;
+	Ec2Client ec2Client;
 	VelocityEngine velocityEngine;
 	RepoConfiguration config;
 	Logger logger;
@@ -99,9 +107,11 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 										 RepoConfiguration configuration, LoggerFactory loggerFactory, ArtifactCopy artifactCopy,
 										 SecretBuilder secretBuilder, WebACLBuilder aclBuilder, Set<VelocityContextProvider> contextProviders,
 										 ElasticBeanstalkDefaultAMIEncrypter elasticBeanstalkDefaultAMIEncrypter,
-										 StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider) {
+										 StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
+										 Ec2Client ec2Client) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
+		this.ec2Client = ec2Client;
 		this.velocityEngine = velocityEngine;
 		this.config = configuration;
 		this.logger = loggerFactory.getLogger(RepositoryTemplateBuilderImpl.class);
@@ -186,6 +196,16 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 
 		// CloudwatchLogs
 		context.put(CLOUDWATCH_LOGS_DESCRIPTORS, cwlContextProvider.getLogDescriptors(EnvironmentType.valueOfPrefix(environment.getType())));
+
+		// EC2 instance type
+		String ec2InstanceType = config.getProperty(PROPERTY_KEY_EC2_INSTANCE_TYPE);
+		context.put(EC2_INSTANCE_TYPE, ec2InstanceType);
+
+		// Determine Beanstalk subnets for instances
+		List<String> vpcSubnets = getPrivateSubnets(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR));
+		List<String> beanstalkSubnets = ec2Client.getAvailableSubnetsForInstanceType(ec2InstanceType, vpcSubnets);
+		String beanstalkSubnetsAsString = String.join(",", beanstalkSubnets);
+		context.put(BEANSTALK_INSTANCES_SUBNETS, beanstalkSubnetsAsString);
 
 		return context;
 	}
@@ -386,6 +406,37 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 			}
 		}
 		throw new RuntimeException("Failed to find shared resources output: "+outputName);
+	}
+
+	String createVpcPrivateSubnetsStackName(String color) {
+		StringJoiner joiner = new StringJoiner("-");
+		joiner.add("synapse");
+		joiner.add(config.getProperty(PROPERTY_KEY_STACK));
+		joiner.add("vpc-2");
+		joiner.add("private-subnets");
+		joiner.add(color);
+		return joiner.toString();
+	}
+
+	String createVpcPrivateSubnetListExportName(String color) {
+		StringJoiner joiner = new StringJoiner("-");
+		createVpcExportPrefix(config.getProperty(PROPERTY_KEY_STACK));
+		joiner.add("private-subnets");
+		joiner.add(color);
+		joiner.add("Private-Subnets");
+		return joiner.toString();
+	}
+
+	/***
+	 * Return the private subnet ids for a color
+	 * @param color
+	 * @return
+	 */
+	List<String> getPrivateSubnets(String color) {
+		String privateSubnets = cloudFormationClient.getOutput(createVpcPrivateSubnetsStackName(color), createVpcPrivateSubnetListExportName(color));
+		String[] privateSubnetIds = privateSubnets.split(",");
+
+		return Arrays.asList(privateSubnetIds);
 	}
 
 }
