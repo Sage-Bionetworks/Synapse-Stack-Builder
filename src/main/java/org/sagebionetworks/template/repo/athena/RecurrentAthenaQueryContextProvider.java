@@ -6,6 +6,7 @@ import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
@@ -50,7 +51,7 @@ public class RecurrentAthenaQueryContextProvider implements VelocityContextProvi
 
 		Velocity.evaluate(context, writer, "VTL", queryStringTemplate);
 		
-		return writer.toString().replaceAll("\\t|\\r\\n|\\r|\\n", " ");
+		return StringUtils.normalizeSpace(writer.toString());
 	}
 
 }
