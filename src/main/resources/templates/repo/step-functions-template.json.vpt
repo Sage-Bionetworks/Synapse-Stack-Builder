@@ -73,8 +73,10 @@
 						            "s3:ListBucket"
 						        ],
 								"Resource": [
-									"arn:aws:s3:::${stack}.filehandles.sagebase.org",
-									"arn:aws:s3:::${stack}.filehandles.sagebase.org/*"
+									#foreach( $bucket in $athenaQueryDataBuckets)
+									"arn:aws:s3:::${bucket}",
+									"arn:aws:s3:::${bucket}/*"#if( $foreach.hasNext), #end
+									#end
 								]
 							}
 						]

@@ -175,6 +175,7 @@ public class Constants {
 	public static final String CLOUDWATCH_LOGS_DESCRIPTORS = "logDescriptors";
 	
 	public static final String ATHENA_QUERY_DESCRIPTORS = "athenaQueryDescriptors";
+	public static final String ATHENA_QUERY_DATA_BUCKETS = "athenaQueryDataBuckets";
 	
 	public static final String LOAD_BALANCER_ALARMS = "loadBalancerAlarms";
 

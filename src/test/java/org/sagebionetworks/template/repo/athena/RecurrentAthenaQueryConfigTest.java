@@ -86,12 +86,13 @@ public class RecurrentAthenaQueryConfigTest {
 
 	}
 
-	static RecurrentAthenaQuery query(String name, String path, String cronExpression, String destinationQueue) {
+	static RecurrentAthenaQuery query(String name, String path, String cronExpression, String destinationQueue, String dataBucket) {
 		RecurrentAthenaQuery query = new RecurrentAthenaQuery();
 		query.setQueryName(name);
 		query.setQueryPath(path);
 		query.setScheduleExpression(cronExpression);
 		query.setDestinationQueue(destinationQueue);
+		query.setDataBucket(dataBucket);
 		return query;
 	}
 

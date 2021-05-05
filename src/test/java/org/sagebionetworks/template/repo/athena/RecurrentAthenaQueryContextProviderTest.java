@@ -51,13 +51,13 @@ public class RecurrentAthenaQueryContextProviderTest {
 	public void testAddToContextWithQuery() {
 		
 		when(mockConfig.getQueries()).thenReturn(Arrays.asList(
-			query("id", "query.sql", "* * * * *", "QUEUE")	
+			query("id", "query.sql", "* * * * *", "QUEUE", "bucket")
 		));
 		
 		// Call under test
 		provider.addToContext(mockContext);
 		
-		RecurrentAthenaQuery expected = query("id", "query.sql", "* * * * *", "QUEUE");
+		RecurrentAthenaQuery expected = query("id", "query.sql", "* * * * *", "QUEUE", "bucket");
 		expected.setQueryString("SELECT * FROM ${stack}${instance}table");
 		expected.setDatabase(RecurrentAthenaQueryContextProvider.DEFAULT_DATABASE);
 		
@@ -71,7 +71,7 @@ public class RecurrentAthenaQueryContextProviderTest {
 	public void testAddToContextWithQueryAndVariableSubstitution() {
 		
 		when(mockConfig.getQueries()).thenReturn(Arrays.asList(
-			query("id", "query.sql", "* * * * *", "QUEUE")	
+			query("id", "query.sql", "* * * * *", "QUEUE", "bucket")	
 		));
 		
 		when(mockContext.get("stack")).thenReturn("Stack");
@@ -80,7 +80,7 @@ public class RecurrentAthenaQueryContextProviderTest {
 		// Call under test
 		provider.addToContext(mockContext);
 		
-		RecurrentAthenaQuery expected = query("id", "query.sql", "* * * * *", "QUEUE");
+		RecurrentAthenaQuery expected = query("id", "query.sql", "* * * * *", "QUEUE", "bucket");
 		expected.setQueryString("SELECT * FROM StackInstancetable");
 		expected.setDatabase(RecurrentAthenaQueryContextProvider.DEFAULT_DATABASE);
 		
@@ -93,7 +93,7 @@ public class RecurrentAthenaQueryContextProviderTest {
 	@Test
 	public void testAddToContextWithCustomDatabase() {
 		
-		RecurrentAthenaQuery query = query("id", "query.sql", "* * * * *", "QUEUE");
+		RecurrentAthenaQuery query = query("id", "query.sql", "* * * * *", "QUEUE", "bucket");
 		query.setDatabase("CustomDB");
 		
 		when(mockConfig.getQueries()).thenReturn(Arrays.asList(
@@ -103,7 +103,7 @@ public class RecurrentAthenaQueryContextProviderTest {
 		// Call under test
 		provider.addToContext(mockContext);
 		
-		RecurrentAthenaQuery expected = query("id", "query.sql", "* * * * *", "QUEUE");
+		RecurrentAthenaQuery expected = query("id", "query.sql", "* * * * *", "QUEUE", "bucket");
 		expected.setQueryString("SELECT * FROM ${stack}${instance}table");
 		expected.setDatabase("CustomDB");
 		
@@ -116,7 +116,7 @@ public class RecurrentAthenaQueryContextProviderTest {
 	@Test
 	public void testAddToContextWithQueryWithNewLines() {
 		
-		RecurrentAthenaQuery query = query("id", "query_with_newlines.sql", "* * * * *", "QUEUE");
+		RecurrentAthenaQuery query = query("id", "query_with_newlines.sql", "* * * * *", "QUEUE", "bucket");
 		
 		when(mockConfig.getQueries()).thenReturn(Arrays.asList(
 			query
@@ -125,7 +125,7 @@ public class RecurrentAthenaQueryContextProviderTest {
 		// Call under test
 		provider.addToContext(mockContext);
 		
-		RecurrentAthenaQuery expected = query("id", "query_with_newlines.sql", "* * * * *", "QUEUE");
+		RecurrentAthenaQuery expected = query("id", "query_with_newlines.sql", "* * * * *", "QUEUE", "bucket");
 		expected.setQueryString("WITH T AS ( SELECT * FROM someTable WHERE id = 123 ) SELECT * FROM T");
 		expected.setDatabase(RecurrentAthenaQueryContextProvider.DEFAULT_DATABASE);
 		
