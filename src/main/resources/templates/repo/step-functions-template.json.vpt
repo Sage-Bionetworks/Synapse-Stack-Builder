@@ -1,9 +1,4 @@
 #if( $athenaQueryDescriptors )
-
-	## Since this is a velocity template and we need a $ for referencing the AWS functions below 
-	## we set a d variable that represents the dollar sign
-
-	#set($d = "$")
 	
 	## The role is used by the step functions in order to run athena and SQS and read from the glue catalog 
 	,"${stack}${instance}AthenaQueryStateMachineExecutionRole": {
@@ -40,7 +35,7 @@
 						            "athena:getQueryExecution"
 								],
 								"Resource": [
-									{ "Fn::Sub": "arn:aws:athena:${d}{AWS::Region}:${d}{AWS::AccountId}:workgroup/primary" }
+									{ "Fn::Join": [ ":", [ "arn:aws:athena", { "Ref": "AWS::Region" }, { "Ref": "AWS::AccountId" }, "workgroup/primary" ]] }
 								]
 							},
 							{
@@ -55,11 +50,11 @@
 						            "glue:BatchGetPartition"
 						        ],
 						        "Resource": [
-						            { "Fn::Sub": "arn:aws:glue:${d}{AWS::Region}:${d}{AWS::AccountId}:catalog" },
+						        	{ "Fn::Join": [ ":", [ "arn:aws:glue", { "Ref": "AWS::Region" }, { "Ref": "AWS::AccountId" }, "catalog" ]] },
 						            #foreach( $query in $athenaQueryDescriptors)
-						            { "Fn::Sub": "arn:aws:glue:${d}{AWS::Region}:${d}{AWS::AccountId}:database/${stack}${instance}${query.database.toLowerCase()}" },
+						            { "Fn::Join": [ ":", [ "arn:aws:glue", { "Ref": "AWS::Region" }, { "Ref": "AWS::AccountId" }, "database/${stack}${instance}${query.database.toLowerCase()}" ]] },
 									#end
-						            { "Fn::Sub": "arn:aws:glue:${d}{AWS::Region}:${d}{AWS::AccountId}:table/*" }
+									{ "Fn::Join": [ ":", [ "arn:aws:glue", { "Ref": "AWS::Region" }, { "Ref": "AWS::AccountId" }, "table/*" ]] }
 						        ]
 						    }
 						]
