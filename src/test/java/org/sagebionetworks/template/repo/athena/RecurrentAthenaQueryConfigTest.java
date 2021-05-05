@@ -21,7 +21,7 @@ import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.repo.queues.SqsQueueDescriptor;
 
 import com.cronutils.model.Cron;
-import com.cronutils.model.CronType;
+import com.cronutils.model.definition.CronDefinition;
 import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
@@ -31,7 +31,7 @@ import com.google.inject.Injector;
 public class RecurrentAthenaQueryConfigTest {
 
 	private Map<String, RecurrentAthenaQuery> queryMap;
-	private CronParser cronParser;
+	private CronParser eventBridgeCronParser;
 
 	@BeforeEach
 	public void before() {
@@ -39,7 +39,17 @@ public class RecurrentAthenaQueryConfigTest {
 		RecurrentAthenaQueryConfig config = injector.getInstance(RecurrentAthenaQueryConfig.class);
 		assertNotNull(config);
 		this.queryMap = config.getQueries().stream().collect(Collectors.toMap(RecurrentAthenaQuery::getQueryName, Function.identity()));
-		this.cronParser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.QUARTZ));
+		// For the cron parser definition supported by event bridge see: https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-schedule-expressions.html
+		CronDefinition eventBridgeCronDefinition = CronDefinitionBuilder.defineCron()
+		        .withMinutes().and()
+		        .withHours().and()
+		        .withDayOfMonth().supportsL().supportsW().supportsQuestionMark().and()
+		        .withMonth().and()
+		        .withDayOfWeek().withMondayDoWValue(2).supportsL().supportsHash().supportsQuestionMark().and()
+		        .withYear().and()
+		        .instance();
+		
+		this.eventBridgeCronParser = new CronParser(eventBridgeCronDefinition);
 	}
 
 	@Test
@@ -52,14 +62,11 @@ public class RecurrentAthenaQueryConfigTest {
 		assertEquals("cron(" + expectedCron + ")", query.getScheduleExpression());
 		assertEquals("RECURRENT_ATHENA_QUERIES", query.getDestinationQueue());
 		
-		// Event Bridge does not support second resolution, so we "fake" running at second 0
-		Cron cron = cronParser.parse("0 " + expectedCron);
+		Cron cron = eventBridgeCronParser.parse(expectedCron);
 
 		ExecutionTime executionTime = ExecutionTime.forCron(cron);
 
 		ZoneOffset utcZone = ZoneOffset.UTC;
-
-		// cron.setTimeZone(TimeZone.getTimeZone(utcZone));
 
 		LocalDate firstMondayOfMonth = LocalDate.now(utcZone).with(firstInMonth(DayOfWeek.MONDAY));
 		ZonedDateTime expected = firstMondayOfMonth.atTime(10, 0).atZone(utcZone);
