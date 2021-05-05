@@ -7,28 +7,31 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.text.ParseException;
 import java.time.DayOfWeek;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.core.util.CronExpression;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.repo.queues.SqsQueueDescriptor;
 
+import com.cronutils.model.Cron;
+import com.cronutils.model.CronType;
+import com.cronutils.model.definition.CronDefinitionBuilder;
+import com.cronutils.model.time.ExecutionTime;
+import com.cronutils.parser.CronParser;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 public class RecurrentAthenaQueryConfigTest {
 
 	private Map<String, RecurrentAthenaQuery> queryMap;
+	private CronParser cronParser;
 
 	@BeforeEach
 	public void before() {
@@ -36,6 +39,7 @@ public class RecurrentAthenaQueryConfigTest {
 		RecurrentAthenaQueryConfig config = injector.getInstance(RecurrentAthenaQueryConfig.class);
 		assertNotNull(config);
 		this.queryMap = config.getQueries().stream().collect(Collectors.toMap(RecurrentAthenaQuery::getQueryName, Function.identity()));
+		this.cronParser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.QUARTZ));
 	}
 
 	@Test
@@ -47,27 +51,29 @@ public class RecurrentAthenaQueryConfigTest {
 		String expectedCron = "0 10 ? * 2#1 *";
 		assertEquals("cron(" + expectedCron + ")", query.getScheduleExpression());
 		assertEquals("RECURRENT_ATHENA_QUERIES", query.getDestinationQueue());
-
+		
 		// Event Bridge does not support second resolution, so we "fake" running at second 0
-		CronExpression cron = new CronExpression("0 " + expectedCron);
+		Cron cron = cronParser.parse("0 " + expectedCron);
+
+		ExecutionTime executionTime = ExecutionTime.forCron(cron);
 
 		ZoneOffset utcZone = ZoneOffset.UTC;
 
-		cron.setTimeZone(TimeZone.getTimeZone(utcZone));
+		// cron.setTimeZone(TimeZone.getTimeZone(utcZone));
 
 		LocalDate firstMondayOfMonth = LocalDate.now(utcZone).with(firstInMonth(DayOfWeek.MONDAY));
-		Date expected = Date.from(firstMondayOfMonth.atTime(10, 0).toInstant(utcZone));
+		ZonedDateTime expected = firstMondayOfMonth.atTime(10, 0).atZone(utcZone);
 
 		// Test for the next 12 months
 		for (int i = 0; i < 12; i++) {
-			Instant testingInstant = firstMondayOfMonth.atTime(10, 0).toInstant(utcZone);
+			ZonedDateTime testingDateTime = firstMondayOfMonth.atTime(10, 0).atZone(utcZone);
 			
-			assertTrue(cron.isSatisfiedBy(Date.from(testingInstant)));
-			assertEquals(expected, Date.from(testingInstant));
+			assertTrue(executionTime.isMatch(testingDateTime));
+			assertEquals(expected, expected);
 			
 			firstMondayOfMonth = firstMondayOfMonth.plusMonths(1).with(firstInMonth(DayOfWeek.MONDAY));
 			
-			expected = cron.getNextValidTimeAfter(Date.from(testingInstant));
+			expected = executionTime.nextExecution(testingDateTime).get();
 			
 		}
 
