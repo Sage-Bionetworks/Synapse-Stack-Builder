@@ -134,6 +134,8 @@ public class Constants {
 
 	public static final String VPC_CIDR_SUFFIX = ".0.0/16";
 
+	public static final String VPC_PRIVATE_SUBNETS_STACK_PRIVATE_SUBNETS_OUPUT_KEY = "PrivateSubnets";
+
 	// context keys
 	public static final String SUBNETS = "subnets";
 	public static final String VPC_CIDR = "vpcCidr";

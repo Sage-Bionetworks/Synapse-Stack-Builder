@@ -417,7 +417,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
 		String privateSubnets = cloudFormationClient.getOutput(
 				Constants.createVpcPrivateSubnetsStackName(stack, color),
-				Constants.createVpcPrivateSubnetListExportName(stack, color));
+				Constants.VPC_PRIVATE_SUBNETS_STACK_PRIVATE_SUBNETS_OUPUT_KEY);
 		String[] privateSubnetIds = privateSubnets.split(",");
 
 		return Arrays.asList(privateSubnetIds);
