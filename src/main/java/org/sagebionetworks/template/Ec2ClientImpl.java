@@ -17,6 +17,7 @@ import org.sagebionetworks.template.config.Configuration;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,7 +54,11 @@ public class Ec2ClientImpl implements Ec2Client {
 		DescribeSubnetsRequest req = new DescribeSubnetsRequest().withFilters(filter);
 		DescribeSubnetsResult res = ec2.describeSubnets(req);
 		List<Subnet> subnets = res.getSubnets();
-		Map<String, String> map = subnets.stream().collect(Collectors.toMap(Subnet::getAvailabilityZone, Subnet::getSubnetId));
+//		Map<String, String> map = subnets.stream().collect(Collectors.toMap(Subnet::getAvailabilityZone, Subnet::getSubnetId));
+		Map<String, String> map = new HashMap<>();
+		for (Subnet s:subnets) {
+			map.put(s.getAvailabilityZone(), s.getSubnetId());
+		}
 		return map;
 	}
 
