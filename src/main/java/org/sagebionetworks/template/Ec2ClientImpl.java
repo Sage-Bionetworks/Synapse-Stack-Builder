@@ -54,6 +54,7 @@ public class Ec2ClientImpl implements Ec2Client {
 		DescribeSubnetsRequest req = new DescribeSubnetsRequest().withFilters(filter);
 		DescribeSubnetsResult res = ec2.describeSubnets(req);
 		List<Subnet> subnets = res.getSubnets();
+		logger.info(String.format("Subnets: %s", subnets.toString()));
 //		Map<String, String> map = subnets.stream().collect(Collectors.toMap(Subnet::getAvailabilityZone, Subnet::getSubnetId));
 		Map<String, String> map = new HashMap<>();
 		for (Subnet s:subnets) {
