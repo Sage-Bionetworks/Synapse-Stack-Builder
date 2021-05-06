@@ -5,12 +5,15 @@ import com.amazonaws.services.ec2.model.DescribeInstanceTypeOfferingsRequest;
 import com.amazonaws.services.ec2.model.DescribeInstanceTypeOfferingsResult;
 import com.amazonaws.services.ec2.model.DescribeSubnetsRequest;
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult;
+import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.InstanceTypeOffering;
 import com.amazonaws.services.ec2.model.Subnet;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.config.Configuration;
@@ -25,6 +28,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,7 +47,10 @@ class Ec2ClientImplTest {
 	DescribeSubnetsResult mockDescribeSubnetsResult;
 	@Mock
 	DescribeInstanceTypeOfferingsResult mockDescribeInstanceTyepOfferingsResult;
-
+	@Captor
+	ArgumentCaptor<DescribeSubnetsRequest> describeSubnetRequestCaptor;
+	@Captor
+	ArgumentCaptor<DescribeInstanceTypeOfferingsRequest> describeInstanceOfferingsRequestCaptor;
 	Ec2Client ec2Client;
 
 	@BeforeEach
@@ -54,7 +61,7 @@ class Ec2ClientImplTest {
 
 	@Test
 	void getAvailabityZoneToSubnetMap() {
-		when(mockEC2.describeSubnets(any(DescribeSubnetsRequest.class))).thenReturn(mockDescribeSubnetsResult);
+		when(mockEC2.describeSubnets(describeSubnetRequestCaptor.capture())).thenReturn(mockDescribeSubnetsResult);
 		// Expect 6 subnets mapped to 6 zones
 		List<Subnet> expectedSubnets = generateSubnets(6);
 		when(mockDescribeSubnetsResult.getSubnets()).thenReturn(expectedSubnets);
@@ -62,19 +69,27 @@ class Ec2ClientImplTest {
 		Map<String, String> azToSubnetMap = ec2Client.getAvailabityZoneToSubnetMap(Arrays.asList("subnet1", "subnet2", "subnet3", "subnet4", "subnet5", "subnet6"));
 		assertNotNull(azToSubnetMap);
 		assertEquals(expectedSubnets.size(), azToSubnetMap.size());
-		// TODO: check content here
-
+		assertEquals(1, describeSubnetRequestCaptor.getValue().getFilters().size());
+		Filter f = describeSubnetRequestCaptor.getValue().getFilters().get(0);
+		assertEquals("subnet-id", f.getName());
+		assertEquals(Arrays.asList("subnet1", "subnet2", "subnet3", "subnet4", "subnet5", "subnet6"), f.getValues());
 	}
 
 	@Test
 	void getAvailabilityZonesForInstanceType() {
-		when(mockEC2.describeInstanceTypeOfferings(any(DescribeInstanceTypeOfferingsRequest.class))).thenReturn(mockDescribeInstanceTyepOfferingsResult);
+		when(mockEC2.describeInstanceTypeOfferings(describeInstanceOfferingsRequestCaptor.capture())).thenReturn(mockDescribeInstanceTyepOfferingsResult);
 		List<InstanceTypeOffering> expectedOfferings = generateInstanceOfferings(INSTANCE_TYPE);
 		when(mockDescribeInstanceTyepOfferingsResult.getInstanceTypeOfferings()).thenReturn(expectedOfferings);
 		// Call under test
 		List<String> azsForInstanceType = ec2Client.getAvailabilityZonesForInstanceType(INSTANCE_TYPE);
 		assertNotNull(azsForInstanceType);
 		assertEquals(4, azsForInstanceType.size());
+		DescribeInstanceTypeOfferingsRequest r = describeInstanceOfferingsRequestCaptor.getValue();
+		assertEquals(1, r.getFilters().size());
+		Filter f = r.getFilters().get(0);
+		assertEquals("instance-type", f.getName());
+		assertEquals(1, f.getValues().size());
+		assertEquals(INSTANCE_TYPE, f.getValues().get(0));
 	}
 
 	@Test
