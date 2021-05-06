@@ -4,7 +4,8 @@
 			"queryName": "UnlinkedFileHandles",
 			"queryPath": "unlinkedFileHandles.sql",
 			"scheduleExpression": "cron(0 10 ? * 2#1 *)",
-			"destinationQueue": "RECURRENT_ATHENA_QUERIES"
+			"destinationQueue": "RECURRENT_ATHENA_QUERIES",
+			"dataBucket": "${stack}.filehandles.sagebase.org"
 		}
 	]
 }

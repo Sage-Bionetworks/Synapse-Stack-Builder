@@ -66,7 +66,7 @@ public class RecurrentAthenaQueryConfigValidatorTest {
 		));
 		
 		when(mockConfig.getQueries()).thenReturn(Arrays.asList(
-			query(null, "query.sql", "* * * * *", "QUEUE")
+			query(null, "query.sql", "* * * * *", "QUEUE", "bucket")
 		));
 		
 		String message = assertThrows(IllegalArgumentException.class, () -> {			
@@ -84,7 +84,7 @@ public class RecurrentAthenaQueryConfigValidatorTest {
 		));
 		
 		when(mockConfig.getQueries()).thenReturn(Arrays.asList(
-			query("id", null, "* * * * *", "QUEUE")
+			query("id", null, "* * * * *", "QUEUE", "bucket")
 		));
 		
 		String message = assertThrows(IllegalArgumentException.class, () -> {			
@@ -102,7 +102,7 @@ public class RecurrentAthenaQueryConfigValidatorTest {
 		));
 		
 		when(mockConfig.getQueries()).thenReturn(Arrays.asList(
-			query("id", "query.sql", null, "QUEUE")
+			query("id", "query.sql", null, "QUEUE", "bucket")
 		));
 		
 		String message = assertThrows(IllegalArgumentException.class, () -> {			
@@ -120,7 +120,7 @@ public class RecurrentAthenaQueryConfigValidatorTest {
 		));
 		
 		when(mockConfig.getQueries()).thenReturn(Arrays.asList(
-			query("id", "query.sql", "* * * * *", null)
+			query("id", "query.sql", "* * * * *", null, "bucket")
 		));
 		
 		String message = assertThrows(IllegalArgumentException.class, () -> {			
@@ -129,6 +129,24 @@ public class RecurrentAthenaQueryConfigValidatorTest {
 		}).getMessage();
 		
 		assertEquals("The destinationQueue is required.", message);
+	}
+	
+	@Test
+	public void testValidateWithNoDataBucket() {
+		when(mockSqsConfig.getQueueDescriptors()).thenReturn(Arrays.asList(
+			queue("QUEUE")
+		));
+		
+		when(mockConfig.getQueries()).thenReturn(Arrays.asList(
+			query("id", "query.sql", "* * * * *", "QUEUE", null)
+		));
+		
+		String message = assertThrows(IllegalArgumentException.class, () -> {			
+			// Call under test
+			validator.validate();
+		}).getMessage();
+		
+		assertEquals("The dataBucket is required.", message);
 	}
 		
 	@Test
@@ -139,8 +157,8 @@ public class RecurrentAthenaQueryConfigValidatorTest {
 		));
 		
 		when(mockConfig.getQueries()).thenReturn(Arrays.asList(
-			query("id", "query.sql", "* * * * *", "QUEUE"),
-			query("id", "query.sql", "* * * * *", "QUEUE_2")
+			query("id", "query.sql", "* * * * *", "QUEUE", "bucket"),
+			query("id", "query.sql", "* * * * *", "QUEUE_2", "bucket")
 		));
 		
 		String message = assertThrows(IllegalArgumentException.class, () -> {			
@@ -158,8 +176,8 @@ public class RecurrentAthenaQueryConfigValidatorTest {
 		));
 		
 		when(mockConfig.getQueries()).thenReturn(Arrays.asList(
-			query("id", "query.sql", "* * * * *", "QUEUE"),
-			query("id2", "query.sql", "* * * * *", "QUEUE_2")
+			query("id", "query.sql", "* * * * *", "QUEUE", "bucket"),
+			query("id2", "query.sql", "* * * * *", "QUEUE_2", "bucket")
 		));
 		
 		String message = assertThrows(IllegalArgumentException.class, () -> {			
