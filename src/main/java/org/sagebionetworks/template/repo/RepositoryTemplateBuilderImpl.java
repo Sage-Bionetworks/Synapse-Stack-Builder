@@ -408,32 +408,16 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		throw new RuntimeException("Failed to find shared resources output: "+outputName);
 	}
 
-	String createVpcPrivateSubnetsStackName(String color) {
-		StringJoiner joiner = new StringJoiner("-");
-		joiner.add("synapse");
-		joiner.add(config.getProperty(PROPERTY_KEY_STACK));
-		joiner.add("vpc-2");
-		joiner.add("private-subnets");
-		joiner.add(color);
-		return joiner.toString();
-	}
-
-	String createVpcPrivateSubnetListExportName(String color) {
-		StringJoiner joiner = new StringJoiner("-");
-		createVpcExportPrefix(config.getProperty(PROPERTY_KEY_STACK));
-		joiner.add("private-subnets");
-		joiner.add(color);
-		joiner.add("Private-Subnets");
-		return joiner.toString();
-	}
-
 	/***
 	 * Return the private subnet ids for a color
 	 * @param color
 	 * @return
 	 */
 	List<String> getPrivateSubnets(String color) {
-		String privateSubnets = cloudFormationClient.getOutput(createVpcPrivateSubnetsStackName(color), createVpcPrivateSubnetListExportName(color));
+		String stack = config.getProperty(PROPERTY_KEY_STACK);
+		String privateSubnets = cloudFormationClient.getOutput(
+				Constants.createVpcPrivateSubnetsStackName(stack, color),
+				Constants.createVpcPrivateSubnetListExportName(stack, color));
 		String[] privateSubnetIds = privateSubnets.split(",");
 
 		return Arrays.asList(privateSubnetIds);

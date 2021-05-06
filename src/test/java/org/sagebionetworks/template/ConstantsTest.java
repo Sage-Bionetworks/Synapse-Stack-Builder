@@ -42,4 +42,16 @@ public class ConstantsTest {
 		List<String> result = Constants.createCamelCaseName(Arrays.asList("TEST_Name_oNe", "test2"), "_");
 		assertEquals(Arrays.asList("TestNameOne","Test2"), result);
 	}
+
+	@Test
+	public void testCreateVpcPrivateSubnetsStackName() {
+		String stackName = Constants.createVpcPrivateSubnetsStackName("dev", "Blue");
+		assertEquals("synapse-dev-vpc-2-private-subnets-Blue", stackName);
+	}
+
+	@Test
+	public void testcreateVpcPrivateSubnetListExportName() {
+		String exportName = Constants.createVpcPrivateSubnetListExportName("dev", "Blue");
+		assertEquals("us-east-1-synapse-dev-vpc-2-private-subnets-Blue-Private-Subnets", exportName);
+	}
 }
