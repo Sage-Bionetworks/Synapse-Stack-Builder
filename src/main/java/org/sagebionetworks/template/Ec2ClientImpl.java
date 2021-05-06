@@ -60,8 +60,11 @@ public class Ec2ClientImpl implements Ec2Client {
 	@Override
 	public List<String> getAvailableSubnetsForInstanceType(String instanceType, List<String> subnets) {
 		Map<String, String> zoneToSubnetMap = getAvailabityZoneToSubnetMap(subnets);
+		logger.info(zoneToSubnetMap);
 		List<String> availableZones = getAvailabilityZonesForInstanceType(instanceType);
+		logger.info(availableZones);
 		List<String> availableSubnets = availableZones.stream().map(z -> zoneToSubnetMap.get(z)).filter(Objects::nonNull).collect(Collectors.toList());
+		logger.info(availableSubnets);
 		if (availableSubnets.size() < 2) {
 			throw new IllegalArgumentException(String.format("Could not find 2 available subnets for type %s in %s ", instanceType, subnets));
 		}
