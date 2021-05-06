@@ -419,8 +419,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				Constants.createVpcPrivateSubnetsStackName(stack, color),
 				Constants.VPC_PRIVATE_SUBNETS_STACK_PRIVATE_SUBNETS_OUPUT_KEY);
 		String[] privateSubnetIds = privateSubnets.split(",");
-
-		return Arrays.asList(privateSubnetIds);
+		List<String> trimmedIds = Arrays.stream(privateSubnetIds).map(v -> v.trim()).collect(Collectors.toList());
+		return trimmedIds;
 	}
 
 }
