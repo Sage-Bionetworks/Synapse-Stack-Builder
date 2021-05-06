@@ -243,16 +243,6 @@ public class Constants {
 		return joiner.toString();
 	}
 
-	public static String createVpcPrivateSubnetListExportName(String stack, String color) {
-		String vpcExportPrefix = createVpcExportPrefix(stack);
-		StringJoiner joiner = new StringJoiner("-");
-		joiner.add(createVpcExportPrefix(stack));
-		joiner.add("private-subnets");
-		joiner.add(color);
-		joiner.add("Private-Subnets");
-		return joiner.toString();
-	}
-
 	public static final String PROD_STACK_NAME = "prod";
 
 }

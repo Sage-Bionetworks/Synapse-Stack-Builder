@@ -49,9 +49,4 @@ public class ConstantsTest {
 		assertEquals("synapse-dev-vpc-2-private-subnets-Blue", stackName);
 	}
 
-	@Test
-	public void testcreateVpcPrivateSubnetListExportName() {
-		String exportName = Constants.createVpcPrivateSubnetListExportName("dev", "Blue");
-		assertEquals("us-east-1-synapse-dev-vpc-2-private-subnets-Blue-Private-Subnets", exportName);
-	}
 }
