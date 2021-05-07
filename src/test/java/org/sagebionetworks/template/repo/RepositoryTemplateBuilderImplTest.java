@@ -9,8 +9,10 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.sagebionetworks.template.Constants.BEANSTALK_INSTANCES_SUBNETS;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
+import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
@@ -20,6 +22,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MAX_
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MIN_INSTANCES;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERSION;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OAUTH_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
@@ -45,8 +48,11 @@ import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -64,6 +70,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
+import org.sagebionetworks.template.Ec2Client;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
@@ -92,6 +99,8 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Mock
 	CloudFormationClient mockCloudFormationClient;
+	@Mock
+	Ec2Client mockEc2Client;
 	@Mock
 	RepoConfiguration config;
 	@Mock
@@ -149,7 +158,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder, mockACLBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
-				mockElasticBeanstalkDefaultAMIEncrypter, mockStackTagsProvider, mockCwlContextProvider);
+				mockElasticBeanstalkDefaultAMIEncrypter, mockStackTagsProvider, mockCwlContextProvider, mockEc2Client);
 
 		stack = "dev";
 		instance = "101";
@@ -190,6 +199,8 @@ public class RepositoryTemplateBuilderImplTest {
 		}
 
 		when(config.getProperty((PROPERTY_KEY_OAUTH_ENDPOINT))).thenReturn("https://oauthendpoint");
+
+		when(config.getProperty(PROPERTY_KEY_EC2_INSTANCE_TYPE)).thenReturn("t2.medium");
 
 		sharedResouces = new Stack();
 		Output dbOut = new Output();
@@ -236,6 +247,9 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testBuildAndDeployProd() throws InterruptedException {
+		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
+		when(mockCloudFormationClient.getOutput(anyString(), anyString())).thenReturn(String.join(",", EXPECTED_SUBNETS));
+		when(mockEc2Client.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		stack = "prod";
 		configureStack(stack);
 		// call under test
@@ -276,6 +290,9 @@ public class RepositoryTemplateBuilderImplTest {
 	
 	@Test
 	public void testBuildAndDeployDev() throws InterruptedException {
+		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
+		when(mockCloudFormationClient.getOutput(anyString(), anyString())).thenReturn(String.join(",", EXPECTED_SUBNETS));
+		when(mockEc2Client.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		stack = "dev";
 		configureStack(stack);
 		// call under test
@@ -500,6 +517,10 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testCreateEnvironmentContext() {
+		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
+		when(mockCloudFormationClient.getOutput(anyString(), anyString())).thenReturn(String.join(",", EXPECTED_SUBNETS));
+		when(mockEc2Client.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
+
 		EnvironmentDescriptor environment = new EnvironmentDescriptor().withType(EnvironmentType.REPOSITORY_SERVICES);
 
 		// call under test
@@ -515,6 +536,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(0, context.get(REPO_BEANSTALK_NUMBER));
 		assertEquals(keyAlias, context.get(STACK_CMK_ALIAS));
 		assertEquals(databaseEndpointSuffix, context.get(DB_ENDPOINT_SUFFIX));
+		assertEquals("t2.medium", context.get(EC2_INSTANCE_TYPE));
+		assertEquals(String.join(",", EXPECTED_SUBNETS), context.get(BEANSTALK_INSTANCES_SUBNETS));
 	}
 	
 	@Test
