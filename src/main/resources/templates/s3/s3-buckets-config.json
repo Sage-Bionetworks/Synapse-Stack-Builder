@@ -38,6 +38,10 @@
 		{
 			"name": "${stack}.athena-queries.sagebase.org",
 			"retentionDays": 30
+		},
+		{
+			"name": "${stack}.backups.sagebase.org",
+			"retentionDays": 30
 		}
 	],
 	"inventoryBucket": "${stack}.inventory.sagebase.org"
