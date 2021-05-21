@@ -49,5 +49,31 @@
 			"Threshold" : 1,
 			"TreatMissingData": "notBreaching"
 		}
+	},
+	"${stack}${instance}FileHandleAssociationsScannerFailureAlarm": {
+		"Type" : "AWS::CloudWatch::Alarm",
+		"Properties" : {
+			"ActionsEnabled" : true,
+			"AlarmActions" : [
+				{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
+			],
+			"AlarmDescription" : "Alert when the fail handle associations scanner reports a failure for more than 1 time in 2 runs",
+			"AlarmName" : "${stack}-${instance}-File-Handle-Associations-Scanner-Failure",
+			"ComparisonOperator" : "GreaterThanOrEqualToThreshold",
+			"Dimensions" : [
+				{
+					"Name" : "workerClass",
+					"Value" : "FileHandleAssociationScanRangeWorker"
+				}
+			],
+			"EvaluationPeriods" : 2,
+			"DatapointsToAlarm": 2,
+			"Period" : 604800,
+			"MetricName" : "JobFailedCount",
+			"Namespace" : "Asynchronous Workers - ${instance}",
+			"Statistic" : "Sum",
+			"Threshold" : 1,
+			"TreatMissingData": "notBreaching"
+		}
 	}
 #end
