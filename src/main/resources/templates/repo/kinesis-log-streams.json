@@ -152,5 +152,13 @@
 				"projection.dt.interval.unit": "MONTHS"
 			}
 		}
+	},
+	{
+		"name": "aclSnapshots",
+		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
+		"bucket": "${stack}.xschildw.snapshots.sagebase.org",
+		"format": "JSON",
+		"bufferFlushSize": 32,
+		"bufferFlushInterval": 120
 	}]
 }
