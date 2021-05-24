@@ -42,9 +42,6 @@
 		{
 			"name": "${stack}.backups.sagebase.org",
 			"retentionDays": 30
-		},
-		{
-			"name": "${stack}.xschildw.snapshots.sagebase.org"
 		}
 	],
 	"inventoryBucket": "${stack}.inventory.sagebase.org"
