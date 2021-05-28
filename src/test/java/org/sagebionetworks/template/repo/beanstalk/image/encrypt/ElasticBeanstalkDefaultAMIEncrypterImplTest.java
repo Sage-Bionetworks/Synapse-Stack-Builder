@@ -104,11 +104,6 @@ public class ElasticBeanstalkDefaultAMIEncrypterImplTest {
 	}
 
 	@Test (expected = IllegalArgumentException.class)
-	public void testGetEncryptedElasticBeanstalkAMI_nullAmazonLinuxVersion(){
-		encrypter.getPlatformArn("-42", "9000.1", null);
-	}
-
-	@Test (expected = IllegalArgumentException.class)
 	public void testGetPlatformArn__noResults(){
 		when(mockElasticBeanstalkClient.listPlatformVersions(any(ListPlatformVersionsRequest.class)))
 				.thenReturn(new ListPlatformVersionsResult());

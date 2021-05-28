@@ -23,6 +23,9 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MIN_
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERSION;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_TYPE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OAUTH_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
@@ -56,6 +59,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
+import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
+import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
+import com.amazonaws.services.elasticbeanstalk.model.PlatformFilter;
+import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -101,6 +109,8 @@ public class RepositoryTemplateBuilderImplTest {
 	CloudFormationClient mockCloudFormationClient;
 	@Mock
 	Ec2Client mockEc2Client;
+	@Mock
+	AWSElasticBeanstalk mockBeanstalkClient;
 	@Mock
 	RepoConfiguration config;
 	@Mock
@@ -158,7 +168,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder, mockACLBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
-				mockElasticBeanstalkDefaultAMIEncrypter, mockStackTagsProvider, mockCwlContextProvider, mockEc2Client);
+				mockElasticBeanstalkDefaultAMIEncrypter, mockStackTagsProvider, mockCwlContextProvider, mockEc2Client, mockBeanstalkClient);
 
 		stack = "dev";
 		instance = "101";
@@ -247,6 +257,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testBuildAndDeployProd() throws InterruptedException {
+		setupValidBeanstalkConfig();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
 		when(mockCloudFormationClient.getOutput(anyString(), anyString())).thenReturn(String.join(",", EXPECTED_SUBNETS));
 		when(mockEc2Client.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
@@ -290,6 +301,7 @@ public class RepositoryTemplateBuilderImplTest {
 	
 	@Test
 	public void testBuildAndDeployDev() throws InterruptedException {
+		setupValidBeanstalkConfig();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
 		when(mockCloudFormationClient.getOutput(anyString(), anyString())).thenReturn(String.join(",", EXPECTED_SUBNETS));
 		when(mockEc2Client.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
@@ -558,5 +570,64 @@ public class RepositoryTemplateBuilderImplTest {
 		}
 		return descriptors;
 	}
-		
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testValidateConfigInvalid1() {
+
+		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");
+		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
+		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("4.5.6");
+		String expectedPlatformName = "Tomcat 9.0 with Java 11 running on 64bit Amazon Linux";
+		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=").withValues(expectedPlatformName);
+		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
+		List<PlatformSummary> expectedSummaries = new LinkedList<>();
+		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult().withPlatformSummaryList(expectedSummaries);
+		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
+
+		// call under test
+		builder.validateConfig();
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void testValidateConfigNotLatest() {
+
+		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");
+		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
+		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("3.4.6");
+		String expectedPlatformName = "Tomcat 9.0 with Java 11 running on 64bit Amazon Linux";
+		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=").withValues(expectedPlatformName);
+		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
+		List<PlatformSummary> expectedSummaries = new LinkedList<>();
+		PlatformSummary summary = new PlatformSummary().withPlatformVersion("3.4.6");
+		expectedSummaries.add(summary);
+		summary = new PlatformSummary().withPlatformVersion("3.4.7");
+		expectedSummaries.add(summary);
+		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult().withPlatformSummaryList(expectedSummaries);
+		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
+
+		// call under test
+		builder.validateConfig();
+	}
+
+	@Test
+	public void testValidateConfig() {
+		setupValidBeanstalkConfig();
+		// call under test
+		builder.validateConfig();
+	}
+
+	private void setupValidBeanstalkConfig() {
+		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");
+		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
+		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("3.4.7");
+		String expectedPlatformName = "Tomcat 9.0 with Java 11 running on 64bit Amazon Linux";
+		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=").withValues(expectedPlatformName);
+		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
+		List<PlatformSummary> expectedSummaries = new LinkedList<>();
+		PlatformSummary summary = new PlatformSummary().withPlatformVersion("3.4.7");
+		expectedSummaries.add(summary);
+		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult().withPlatformSummaryList(expectedSummaries);
+		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
+	}
+
 }

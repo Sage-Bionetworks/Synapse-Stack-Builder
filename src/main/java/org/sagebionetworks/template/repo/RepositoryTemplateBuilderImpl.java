@@ -22,6 +22,9 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_NUMB
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERSION;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_TYPE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OAUTH_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
@@ -59,6 +62,10 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
+import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
+import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
+import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
+import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -73,6 +80,7 @@ import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
+import org.sagebionetworks.template.repo.beanstalk.BeanstalkUtils;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
@@ -101,6 +109,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	ElasticBeanstalkDefaultAMIEncrypter elasticBeanstalkDefaultAMIEncrypter;
 	StackTagsProvider stackTagsProvider;
 	CloudwatchLogsVelocityContextProvider cwlContextProvider;
+	AWSElasticBeanstalk beanstalkClient;
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
@@ -108,7 +117,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 										 SecretBuilder secretBuilder, WebACLBuilder aclBuilder, Set<VelocityContextProvider> contextProviders,
 										 ElasticBeanstalkDefaultAMIEncrypter elasticBeanstalkDefaultAMIEncrypter,
 										 StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
-										 Ec2Client ec2Client) {
+										 Ec2Client ec2Client, AWSElasticBeanstalk beanstalkClient) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.ec2Client = ec2Client;
@@ -122,11 +131,29 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.elasticBeanstalkDefaultAMIEncrypter = elasticBeanstalkDefaultAMIEncrypter;
 		this.stackTagsProvider = stackTagsProvider;
 		this.cwlContextProvider = cloudwatchLogsVelocityContextProvider;
+		this.beanstalkClient = beanstalkClient;
+	}
+
+	public void validateConfig() {
+		// Check AWS Beanstalk current platform vs what we have in config
+		String javaVersion = config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA);
+		String tomcatVersion = config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT);
+		String requestedPlatformVersion = config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX);
+		ListPlatformVersionsRequest lpvReq = BeanstalkUtils.buildListPlatformVersionsRequest(javaVersion, tomcatVersion, null);
+		ListPlatformVersionsResult lpvRes = this.beanstalkClient.listPlatformVersions(lpvReq);
+		List<PlatformSummary> summaries = lpvRes.getPlatformSummaryList();
+		String latestPlatformVersion = BeanstalkUtils.getLatestPlatformVersion(summaries);
+		if (! requestedPlatformVersion.equals(latestPlatformVersion)) {
+			throw new IllegalStateException(String.format("The latest platform version is %s. Please update the default configuration.", latestPlatformVersion));
+		}
 	}
 
 	@Override
 	public void buildAndDeploy() throws InterruptedException {
-		
+
+		//	Check that we are requeesting the latest Beanstalk plaform
+		validateConfig();
+
 		// Create the context from the input
 		VelocityContext context = createSharedContext();
 

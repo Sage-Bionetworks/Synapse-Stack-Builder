@@ -202,11 +202,6 @@
 						"OptionName": "ServiceRoleForManagedUpdates",
 						"Value": "AWSServiceRoleForElasticBeanstalkManagedUpdates"
 					},
-					{
-					    "Namespace": "aws:elasticbeanstalk:managedactions:platformupdate",
-					    "OptionName": "UpdateLevel",
-					    "Value": "patch"
-					},
  					{
 						"Namespace": "aws:elasticbeanstalk:healthreporting:system",
 						"OptionName": "SystemType",

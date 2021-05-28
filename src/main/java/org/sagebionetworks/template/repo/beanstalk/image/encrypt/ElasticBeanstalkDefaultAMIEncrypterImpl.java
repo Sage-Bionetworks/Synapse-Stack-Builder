@@ -24,14 +24,13 @@ import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import com.google.inject.Inject;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.config.RepoConfiguration;
+import org.sagebionetworks.template.repo.beanstalk.BeanstalkUtils;
 
 public class ElasticBeanstalkDefaultAMIEncrypterImpl implements ElasticBeanstalkDefaultAMIEncrypter {
 	AWSElasticBeanstalk elasticBeanstalk;
 	AmazonEC2 ec2;
 	Configuration config;
 
-
-	static final String PLATFORM_NAME_TEMPLATE =  "Tomcat %s with Java %s running on 64bit Amazon Linux";
 	static final String AMI_VIRTUALIZATION_TYPE = "hvm";
 	static final String SOURCE_AMI_TAG_KEY = "CopiedFrom";
 
@@ -64,31 +63,12 @@ public class ElasticBeanstalkDefaultAMIEncrypterImpl implements ElasticBeanstalk
 
 
 	String getPlatformArn(String javaVersion, String tomcatVersion, String amazonLinuxVersion) {
-		if(javaVersion == null){
-			throw new IllegalArgumentException("javaVersion cannot be null");
-		}
-
-		if(tomcatVersion == null){
-			throw new IllegalArgumentException("tomcatVersion cannot be null");
-		}
-
-		if (amazonLinuxVersion == null){
+		// This can be null in buildListPlatformVersionsRequest so check here
+		if(amazonLinuxVersion == null){
 			throw new IllegalArgumentException("amazonLinuxVersion cannot be null");
 		}
-
-		//filters to be used for finding platform arn
-		PlatformFilter tomcatJavaFilter = new PlatformFilter()
-				.withType("PlatformName")
-				.withOperator("=")
-				.withValues(String.format(PLATFORM_NAME_TEMPLATE, tomcatVersion, javaVersion));
-		PlatformFilter amazonLinuxFilter = new PlatformFilter()
-				.withType("PlatformVersion")
-				.withOperator("=")
-				.withValues(amazonLinuxVersion);
-
 		List<PlatformSummary> platformSummaryList = elasticBeanstalk.listPlatformVersions(
-				new ListPlatformVersionsRequest()
-						.withFilters(tomcatJavaFilter, amazonLinuxFilter)
+				BeanstalkUtils.buildListPlatformVersionsRequest(javaVersion, tomcatVersion, amazonLinuxVersion)
 		).getPlatformSummaryList();
 
 		if(platformSummaryList == null || platformSummaryList.size() != 1){
