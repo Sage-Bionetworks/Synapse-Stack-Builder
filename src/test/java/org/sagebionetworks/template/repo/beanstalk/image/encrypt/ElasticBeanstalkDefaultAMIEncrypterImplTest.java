@@ -99,6 +99,11 @@ public class ElasticBeanstalkDefaultAMIEncrypterImplTest {
 	}
 
 	@Test (expected = IllegalArgumentException.class)
+	public void testGetEncryptedElasticBeanstalkAMI_nullAmazonLinuxVersion(){
+		encrypter.getPlatformArn("-42", "9000.1", null);
+	}
+
+	@Test (expected = IllegalArgumentException.class)
 	public void testGetEncryptedElasticBeanstalkAMI_nullTomcatVersion(){
 		encrypter.getPlatformArn("-42", null, "1.2.3");
 	}
