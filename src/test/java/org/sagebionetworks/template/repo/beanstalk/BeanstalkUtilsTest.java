@@ -58,7 +58,7 @@ class BeanstalkUtilsTest {
 		PlatformSummary s1 = new PlatformSummary().withPlatformVersion("1.2.3");
 		PlatformSummary s2 = new PlatformSummary().withPlatformVersion("4.5.6");
 		PlatformSummary s3 = new PlatformSummary().withPlatformVersion("2.3.4");
-		List<PlatformSummary> summaries = Arrays.asList(s1, s2);
+		List<PlatformSummary> summaries = Arrays.asList(s1, s2, s3);
 
 		String latestVersion =  BeanstalkUtils.getLatestPlatformVersion(summaries);
 		assertEquals("4.5.6", latestVersion);
