@@ -50,6 +50,25 @@
 			"TreatMissingData": "notBreaching"
 		}
 	},
+	"${stack}${instance}UnavailableFileHandleAccessedAlarm": {
+		"Type" : "AWS::CloudWatch::Alarm",
+		"Properties" : {
+			"ActionsEnabled" : true,
+			"AlarmActions" : [
+				{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
+			],
+			"AlarmDescription" : "Alert when a user requests a pre-signed URL for an unavailable file handle.",
+			"AlarmName" : "${stack}-${instance}-Unavailable-File-Handle-Accessed",
+			"ComparisonOperator" : "GreaterThanOrEqualToThreshold",
+			"EvaluationPeriods" : 1,
+			"Period" : 300,
+			"MetricName" : "UnavailableFileHandleAccessed",
+			"Namespace" : "File Handles - ${instance}",
+			"Statistic" : "SampleCount",
+			"Threshold" : 1,
+			"TreatMissingData": "notBreaching"
+		}
+	},
 	"${stack}${instance}FileHandleAssociationsScannerFailureAlarm": {
 		"Type" : "AWS::CloudWatch::Alarm",
 		"Properties" : {
