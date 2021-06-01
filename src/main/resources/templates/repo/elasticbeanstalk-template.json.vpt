@@ -217,6 +217,11 @@
 						"OptionName": "EnhancedHealthAuthEnabled",
  						"Value": "true"
  					},
+ 					{
+ 						"Namespace": "aws:elasticbeanstalk:healthreporting:system",
+						"OptionName": "ConfigDocument",
+ 						"Value": "{\"Rules\": { \"Environment\": { \"Application\": { \"ApplicationRequests4xx\": { \"Enabled\": false } }, \"ELB\": { \"ELBRequests4xx\": {\"Enabled\": true } } } }, \"Version\": 1 }"
+ 					},
 				    {
 						"Namespace": "aws:elbv2:loadbalancer",
 						"OptionName": "AccessLogsS3Bucket",
