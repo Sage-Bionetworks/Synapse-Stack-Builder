@@ -1,5 +1,12 @@
 package org.sagebionetworks.template.s3;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import org.sagebionetworks.util.ValidateArgument;
+
+import com.amazonaws.services.s3.model.StorageClass;
+
 public class S3ConfigValidator {
 	
 	private S3Config config;
@@ -30,7 +37,24 @@ public class S3ConfigValidator {
 				});
 		}
 		
+		config.getBuckets().stream().forEach(this::validateStorageClassTransitions);
+		
+		
 		return config;
+	}
+	
+	private void validateStorageClassTransitions(S3BucketDescriptor bucket) {
+		if (bucket.getStorageClassTransitions() == null || bucket.getStorageClassTransitions().isEmpty()) {
+			return;
+		}
+		
+		Set<StorageClass> classes = new HashSet<>();
+		
+		for (S3BucketClassTransition transition : bucket.getStorageClassTransitions()) {
+			ValidateArgument.required(transition.getStorageClass(), "The storageClass for the transition in bucket " + bucket.getName());
+			ValidateArgument.requirement(transition.getDays() != null && transition.getDays() > 0, "The days value must be greater than 0 for transition in bucket " + bucket.getName());
+			ValidateArgument.requirement(classes.add(transition.getStorageClass()), "Duplicate storageClass transition found for bucket " + bucket.getName() + ": " + transition);
+		}
 	}
 	
 }

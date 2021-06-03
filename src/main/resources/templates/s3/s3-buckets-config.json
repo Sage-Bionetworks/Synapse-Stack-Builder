@@ -6,7 +6,13 @@
 		},
 		{
 			"name": "${stack}data.sagebase.org",
-			"inventoryEnabled": true
+			"inventoryEnabled": true,
+			"storageClassTransitions": [
+				{
+					"storageClass": "IntelligentTiering",
+					"days": 35
+				}
+			]
 		},
 		{
 			"name": "${stack}.table.row.changes"

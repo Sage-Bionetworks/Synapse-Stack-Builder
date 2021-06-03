@@ -1,5 +1,6 @@
 package org.sagebionetworks.template.s3;
 
+import java.util.List;
 import java.util.Objects;
 
 public class S3BucketDescriptor {
@@ -23,6 +24,11 @@ public class S3BucketDescriptor {
 	 * True if the bucket should be created only in dev
 	 */
 	private boolean devOnly = false;
+	
+	/**
+	 * Optional list of storage class transition rules
+	 */
+	private List<S3BucketClassTransition> storageClassTransitions;
 
 	public S3BucketDescriptor() {
 	}
@@ -58,10 +64,18 @@ public class S3BucketDescriptor {
 	public void setDevOnly(boolean devOnly) {
 		this.devOnly = devOnly;
 	}
+	
+	public List<S3BucketClassTransition> getStorageClassTransitions() {
+		return storageClassTransitions;
+	}
+	
+	public void setStorageClassTransitions(List<S3BucketClassTransition> storageClassTransitions) {
+		this.storageClassTransitions = storageClassTransitions;
+	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(devOnly, inventoryEnabled, name, retentionDays);
+		return Objects.hash(devOnly, inventoryEnabled, name, retentionDays, storageClassTransitions);
 	}
 
 	@Override
@@ -77,13 +91,14 @@ public class S3BucketDescriptor {
 		}
 		S3BucketDescriptor other = (S3BucketDescriptor) obj;
 		return devOnly == other.devOnly && inventoryEnabled == other.inventoryEnabled && Objects.equals(name, other.name)
-				&& Objects.equals(retentionDays, other.retentionDays);
+				&& Objects.equals(retentionDays, other.retentionDays)
+				&& Objects.equals(storageClassTransitions, other.storageClassTransitions);
 	}
 
 	@Override
 	public String toString() {
 		return "S3BucketDescriptor [name=" + name + ", inventoryEnabled=" + inventoryEnabled + ", retentionDays=" + retentionDays
-				+ ", devOnly=" + devOnly + "]";
+				+ ", devOnly=" + devOnly + ", storageClassTransitions=" + storageClassTransitions + "]";
 	}
 
 }

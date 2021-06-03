@@ -8,6 +8,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,6 +23,8 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration;
+import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Rule;
+import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Transition;
 import com.amazonaws.services.s3.model.SSEAlgorithm;
 import com.amazonaws.services.s3.model.ServerSideEncryptionByDefault;
 import com.amazonaws.services.s3.model.ServerSideEncryptionConfiguration;
@@ -46,7 +50,9 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	static final List<String> INVENTORY_FIELDS = Arrays.asList(
 			"Size", "LastModifiedDate", "ETag", "IsMultipartUploaded"
 	);
-	static final String RETENTION_RULE_ID = "retentionRule";
+	
+	static final String RULE_ID_RETENTION = "retentionRule";
+	static final String RULE_ID_CLASS_TRANSITION = "ClassTransitionRule";
 	
 	private AmazonS3 s3Client;
 	private AWSSecurityTokenService stsClient;
@@ -74,20 +80,21 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		
 		// Configure all buckets first
 		for (S3BucketDescriptor bucket : s3Config.getBuckets()) {
-			String bucketName = TemplateUtils.replaceStackVariable(bucket.getName(), stack);
+			
+			bucket.setName(TemplateUtils.replaceStackVariable(bucket.getName(), stack));
 			
 			if (bucket.isDevOnly() && stack.equalsIgnoreCase(Constants.PROD_STACK_NAME)) {
-				LOG.warn("The bucket {} is deployed only on non-prod stacks.", bucketName);
+				LOG.warn("The bucket {} is deployed only on non-prod stacks.", bucket.getName());
 				continue;
 			}
 			
-			createBucket(bucketName);
-			configureEncryption(bucketName);	
-			configureInventory(bucketName, accountId, inventoryBucket, bucket.isInventoryEnabled());
-			configureBucketLifeCycle(bucketName, bucket.getRetentionDays());
+			createBucket(bucket.getName());
+			configureEncryption(bucket.getName());	
+			configureInventory(bucket.getName(), accountId, inventoryBucket, bucket.isInventoryEnabled());
+			configureBucketLifeCycle(bucket);
 			
 			if (bucket.isInventoryEnabled()) {
-				inventoriedBuckets.add(bucketName);
+				inventoriedBuckets.add(bucket.getName());
 			}
 			
 		}
@@ -173,29 +180,60 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		s3Client.setBucketInventoryConfiguration(bucketName, config);
 	}
 	
-	private void configureBucketLifeCycle(String bucketName, Integer retentionDays) {
-		if (retentionDays == null) {
-			return;
-		}
+	private void configureBucketLifeCycle(S3BucketDescriptor bucket) {
 		
 		// Returns null if no life cycle configuration was found
-		BucketLifecycleConfiguration config = s3Client.getBucketLifecycleConfiguration(bucketName);
+		BucketLifecycleConfiguration config = s3Client.getBucketLifecycleConfiguration(bucket.getName());
 		
-		if (config != null) {
-			LOG.warn("A bucket lifecycle configuration for bucket {} already exists, will not update.", bucketName);
-			return;
+		if (config == null) {
+			config = new BucketLifecycleConfiguration();
 		}
 		
-		config = new BucketLifecycleConfiguration()
-				.withRules(new BucketLifecycleConfiguration.Rule()
-						.withId(RETENTION_RULE_ID)
-						.withExpirationInDays(retentionDays)
-						.withStatus(BucketLifecycleConfiguration.ENABLED));
+		boolean update = false;
 		
-		LOG.info("Configuring bucket {} lifecycle with {} days of retention.", bucketName, retentionDays);
+		List<Rule> rules = config.getRules() == null ? new ArrayList<>() : config.getRules();
 		
-		s3Client.setBucketLifecycleConfiguration(bucketName, config);
+		if (bucket.getRetentionDays() != null) {
+			update = addRuleIfNotPresent(rules, bucket.getName(), RULE_ID_RETENTION, () -> 
+				new Rule().withExpirationInDays(bucket.getRetentionDays())
+			);
+		}
+
+		if (bucket.getStorageClassTransitions() != null) {
+			for (S3BucketClassTransition transition : bucket.getStorageClassTransitions()) {
+				String transitionRuleName = transition.getStorageClass().name() + RULE_ID_CLASS_TRANSITION;
+
+				update = addRuleIfNotPresent(rules, transitionRuleName, transitionRuleName, () -> 
+					new Rule().withTransitions(Arrays.asList(
+							new Transition().withStorageClass(transition.getStorageClass()).withDays(transition.getDays())
+					)));
+			}
+		}
 		
+		if (!rules.isEmpty() && update) {
+			config.setRules(rules);
+			LOG.info("Updating bucket {} lifecycle.", bucket.getName());
+			s3Client.setBucketLifecycleConfiguration(bucket.getName(), config);
+		}
+		
+	}
+	
+	private static boolean addRuleIfNotPresent(List<Rule> rules, String bucket, String ruleName, Supplier<Rule> ruleSupplier) {
+		Optional<Rule> rule = findRule(ruleName, rules);
+		
+		if (rule.isPresent()) {
+			LOG.warn("The {} rule was found on bucket {}, will not update.", ruleName, bucket);
+			return false;
+		}
+		
+		rules.add(ruleSupplier.get().withId(ruleName).withStatus(BucketLifecycleConfiguration.ENABLED));
+		
+		return true;
+		
+	}
+	
+	private static Optional<Rule> findRule(String ruleName, List<Rule> rules) {
+		return rules.stream().filter(rule -> rule.getId().equals(ruleName)).findFirst();
 	}
 	
 	private void configureInventoryBucketPolicy(String stack, String accountId, String inventoryBucket, List<String> sourceBuckets) {
