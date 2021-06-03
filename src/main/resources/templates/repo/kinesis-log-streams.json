@@ -161,12 +161,20 @@
 		"bufferFlushSize": 64,
 		"bufferFlushInterval": 180
 	},
-		{
-			"name": "nodeSnapshots",
-			"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
-			"bucket": "${stack}.xschildw.snapshots.sagebase.org",
-			"format": "JSON",
-			"bufferFlushSize": 64,
-			"bufferFlushInterval": 180
-		}]
+	{
+		"name": "nodeSnapshots",
+		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
+		"bucket": "${stack}.xschildw.snapshots.sagebase.org",
+		"format": "JSON",
+		"bufferFlushSize": 64,
+		"bufferFlushInterval": 180
+	},
+	{
+		"name": "deletedNodeSnapshots",
+		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
+		"bucket": "${stack}.xschildw.snapshots.sagebase.org",
+		"format": "JSON",
+		"bufferFlushSize": 64,
+		"bufferFlushInterval": 180
+	}]
 }
