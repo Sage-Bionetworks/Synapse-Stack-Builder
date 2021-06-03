@@ -52,7 +52,6 @@ import static org.sagebionetworks.template.Constants.TEMPALTE_BEAN_STALK_ENVIRON
 import static org.sagebionetworks.template.Constants.TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
-import static org.sagebionetworks.template.Constants.createVpcExportPrefix;
 
 import java.io.StringWriter;
 import java.util.Arrays;
@@ -134,7 +133,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.beanstalkClient = beanstalkClient;
 	}
 
-	public void validateConfig() {
+	public String getActualBeanstalkAmazonLinuxPlatform() {
+		final String LATEST = "latest";	// default is to request latest version
 		// Check AWS Beanstalk current platform vs what we have in config
 		String javaVersion = config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA);
 		String tomcatVersion = config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT);
@@ -143,16 +143,19 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		ListPlatformVersionsResult lpvRes = this.beanstalkClient.listPlatformVersions(lpvReq);
 		List<PlatformSummary> summaries = lpvRes.getPlatformSummaryList();
 		String latestPlatformVersion = BeanstalkUtils.getLatestPlatformVersion(summaries);
-		if (! requestedPlatformVersion.equals(latestPlatformVersion)) {
-			throw new IllegalStateException(String.format("The latest platform version is %s. Please update the default configuration.", latestPlatformVersion));
+		String actualVersion = requestedPlatformVersion;
+		if (LATEST.equals(requestedPlatformVersion)) {
+			actualVersion = latestPlatformVersion;
+		} else {
+			if (! latestPlatformVersion.equals(actualVersion)) { // The version specified is not the latest, log
+				logger.info(String.format("The latest platform version is %s. Please update the default configuration.", latestPlatformVersion));
+			}
 		}
+		return actualVersion;
 	}
 
 	@Override
 	public void buildAndDeploy() throws InterruptedException {
-
-		//	Check that we are requeesting the latest Beanstalk plaform
-		validateConfig();
 
 		// Create the context from the input
 		VelocityContext context = createSharedContext();
@@ -214,7 +217,10 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		context.put(STACK_CMK_ALIAS, secretBuilder.getCMKAlias());
 
 		//use encrypted copies of the default elasticbeanstalk AMI
-		ElasticBeanstalkEncryptedPlatformInfo elasticBeanstalkEncryptedPlatformInfo = elasticBeanstalkDefaultAMIEncrypter.getEncryptedElasticBeanstalkAMI();
+		String javaVersion = config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA);
+		String tomcatVersion = config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT);
+		String linuxVersion = getActualBeanstalkAmazonLinuxPlatform();
+		ElasticBeanstalkEncryptedPlatformInfo elasticBeanstalkEncryptedPlatformInfo = elasticBeanstalkDefaultAMIEncrypter.getEncryptedElasticBeanstalkAMI(tomcatVersion, javaVersion, linuxVersion);
 		context.put(SOLUTION_STACK_NAME, elasticBeanstalkEncryptedPlatformInfo.getSolutionStackName());
 		context.put(ENCRYPTED_AMI_IMAGE_ID, elasticBeanstalkEncryptedPlatformInfo.getEncryptedAmiId());
 

@@ -42,12 +42,12 @@ public class ElasticBeanstalkDefaultAMIEncrypterImpl implements ElasticBeanstalk
 	}
 
 	@Override
-	public ElasticBeanstalkEncryptedPlatformInfo getEncryptedElasticBeanstalkAMI(){
+	public ElasticBeanstalkEncryptedPlatformInfo getEncryptedElasticBeanstalkAMI(String tomcatVersion, String javaVersion, String linuxVersion){
 		//find the ARN of the platform from versions in the config
 		String platformArn= getPlatformArn(
-				config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA),
-				config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT),
-				config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX));
+				javaVersion,
+				tomcatVersion,
+				linuxVersion);
 
 		//use the platformArn to retrieve the platform's AMI image id
 		PlatformDescription description = elasticBeanstalk.describePlatformVersion(
