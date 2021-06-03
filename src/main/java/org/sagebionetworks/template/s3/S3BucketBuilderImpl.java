@@ -22,6 +22,7 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AbortIncompleteMultipartUpload;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Rule;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Transition;
@@ -53,6 +54,8 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	
 	static final String RULE_ID_RETENTION = "retentionRule";
 	static final String RULE_ID_CLASS_TRANSITION = "ClassTransitionRule";
+	static final String RULE_ID_ABORT_MULTIPART_UPLOADS = "abortMultipartUploadsRule";
+	static final int ABORT_MULTIPART_UPLOAD_DAYS = 60;
 	
 	private AmazonS3 s3Client;
 	private AWSSecurityTokenService stsClient;
@@ -209,6 +212,11 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 					)));
 			}
 		}
+		
+		// Always checks for a default multipart upload cleanup rule
+		update = addRuleIfNotPresent(rules, bucket.getName(), RULE_ID_ABORT_MULTIPART_UPLOADS, () -> 
+			new Rule().withAbortIncompleteMultipartUpload(new AbortIncompleteMultipartUpload().withDaysAfterInitiation(ABORT_MULTIPART_UPLOAD_DAYS))
+		);	
 		
 		if (!rules.isEmpty() && update) {
 			config.setRules(rules);

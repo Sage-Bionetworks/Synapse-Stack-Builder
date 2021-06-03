@@ -115,12 +115,53 @@ public class S3BucketBuilderImplTest {
 		verify(mockS3Client).createBucket(expectedBucketName);
 		verify(mockS3Client).getBucketEncryption(expectedBucketName);
 		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
+		verify(mockS3Client).setBucketLifecycleConfiguration(eq(expectedBucketName), bucketLifeCycleConfigurationCaptor.capture());
+		
+		BucketLifecycleConfiguration config = bucketLifeCycleConfigurationCaptor.getValue();
+		
+		assertEquals(1, config.getRules().size());
+
+		Rule rule = config.getRules().get(0);
+		
+		assertEquals(S3BucketBuilderImpl.RULE_ID_ABORT_MULTIPART_UPLOADS, rule.getId());
+		assertEquals(S3BucketBuilderImpl.ABORT_MULTIPART_UPLOAD_DAYS, rule.getAbortIncompleteMultipartUpload().getDaysAfterInitiation());
+		assertEquals(BucketLifecycleConfiguration.ENABLED, rule.getStatus());
 
 		verify(mockS3Client, never()).setBucketEncryption(any());
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		verify(mockS3Client, never()).deleteBucketInventoryConfiguration(any(), any());
-		verify(mockS3Client, never()).setBucketLifecycleConfiguration(any(), any());
 		verify(mockS3Client, never()).setBucketPolicy(any(), any());
+
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithExistingAbportMultipartRule() {
+
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		bucket.setName("${stack}.bucket");
+
+		String expectedBucketName = stack + ".bucket";
+		
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		
+		// Mimics an existing life cycle with the abort rule already present
+		when(mockS3Client.getBucketLifecycleConfiguration(anyString())).thenReturn(new BucketLifecycleConfiguration()
+			.withRules(
+					new Rule().withId(S3BucketBuilderImpl.RULE_ID_ABORT_MULTIPART_UPLOADS)
+			));
+
+		// Call under test
+		builder.buildAllBuckets();
+
+		verify(mockS3Client).createBucket(expectedBucketName);
+		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
+		
+		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
+		verify(mockS3Client, never()).deleteBucketInventoryConfiguration(any(), any());
+		verify(mockS3Client, never()).setBucketPolicy(any(), any());
+		verify(mockS3Client, never()).setBucketLifecycleConfiguration(any(), any());
 
 	}
 
@@ -159,7 +200,6 @@ public class S3BucketBuilderImplTest {
 		
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		verify(mockS3Client, never()).deleteBucketInventoryConfiguration(any(), any());
-		verify(mockS3Client, never()).setBucketLifecycleConfiguration(any(), any());
 		verify(mockS3Client, never()).setBucketPolicy(any(), any());
 
 	}
@@ -246,8 +286,7 @@ public class S3BucketBuilderImplTest {
 		assertEquals(S3BucketBuilderImpl.INVENTORY_FORMAT, destination.getFormat());
 		
 		verify(mockS3Client, never()).deleteBucketInventoryConfiguration(any(), any());
-		verify(mockS3Client, never()).setBucketLifecycleConfiguration(any(), any());
-		
+				
 		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
 		
 		VelocityContext context = velocityContextCaptor.getValue();
@@ -413,14 +452,11 @@ public class S3BucketBuilderImplTest {
 		
 		BucketLifecycleConfiguration config = bucketLifeCycleConfigurationCaptor.getValue();
 		
-		assertEquals(1, config.getRules().size());
-
-		Rule rule = config.getRules().get(0);
+		assertEquals(2, config.getRules().size());
 		
-		assertEquals(S3BucketBuilderImpl.RULE_ID_RETENTION, rule.getId());
-		assertEquals(bucket.getRetentionDays(), rule.getExpirationInDays());
-		assertEquals(BucketLifecycleConfiguration.ENABLED, rule.getStatus());
-
+		assertEquals(S3BucketBuilderImpl.RULE_ID_RETENTION, config.getRules().get(0).getId());
+		assertEquals(bucket.getRetentionDays(), config.getRules().get(0).getExpirationInDays());
+		assertEquals(BucketLifecycleConfiguration.ENABLED, config.getRules().get(0).getStatus());
 	}
 	
 	@Test
@@ -451,13 +487,11 @@ public class S3BucketBuilderImplTest {
 		
 		BucketLifecycleConfiguration config = bucketLifeCycleConfigurationCaptor.getValue();
 		
-		assertEquals(1, config.getRules().size());
-
-		Rule rule = config.getRules().get(0);
+		assertEquals(2, config.getRules().size());
 		
-		assertEquals(S3BucketBuilderImpl.RULE_ID_RETENTION, rule.getId());
-		assertEquals(bucket.getRetentionDays(), rule.getExpirationInDays());
-		assertEquals(BucketLifecycleConfiguration.ENABLED, rule.getStatus());
+		assertEquals(S3BucketBuilderImpl.RULE_ID_RETENTION, config.getRules().get(0).getId());
+		assertEquals(bucket.getRetentionDays(), config.getRules().get(0).getExpirationInDays());
+		assertEquals(BucketLifecycleConfiguration.ENABLED, config.getRules().get(0).getStatus());
 	}
 	
 	@Test
@@ -473,7 +507,7 @@ public class S3BucketBuilderImplTest {
 		
 		// Mimics an existing life cycle with a retention rule already present
 		when(mockS3Client.getBucketLifecycleConfiguration(anyString())).thenReturn(new BucketLifecycleConfiguration()
-				.withRules(new Rule().withId(S3BucketBuilderImpl.RULE_ID_RETENTION)));
+				.withRules(new Rule().withId(S3BucketBuilderImpl.RULE_ID_RETENTION), new Rule().withId(S3BucketBuilderImpl.RULE_ID_ABORT_MULTIPART_UPLOADS)));
 		
 		// Call under test
 		builder.buildAllBuckets();
@@ -517,7 +551,7 @@ public class S3BucketBuilderImplTest {
 		
 		BucketLifecycleConfiguration config = bucketLifeCycleConfigurationCaptor.getValue();
 		
-		assertEquals(1, config.getRules().size());
+		assertEquals(2, config.getRules().size());
 
 		Rule rule = config.getRules().get(0);
 		
@@ -546,7 +580,10 @@ public class S3BucketBuilderImplTest {
 		
 		// Mimics an existing life cycle with a transition rule already present
 		when(mockS3Client.getBucketLifecycleConfiguration(anyString())).thenReturn(new BucketLifecycleConfiguration()
-				.withRules(new Rule().withId(StorageClass.IntelligentTiering.name() + S3BucketBuilderImpl.RULE_ID_CLASS_TRANSITION)));
+				.withRules(
+						new Rule().withId(StorageClass.IntelligentTiering.name() + S3BucketBuilderImpl.RULE_ID_CLASS_TRANSITION),
+						new Rule().withId(S3BucketBuilderImpl.RULE_ID_ABORT_MULTIPART_UPLOADS)
+				));
 				
 		// Call under test
 		builder.buildAllBuckets();
@@ -594,7 +631,7 @@ public class S3BucketBuilderImplTest {
 		
 		BucketLifecycleConfiguration config = bucketLifeCycleConfigurationCaptor.getValue();
 		
-		assertEquals(2, config.getRules().size());
+		assertEquals(3, config.getRules().size());
 		
 		assertEquals(StorageClass.IntelligentTiering.name() + S3BucketBuilderImpl.RULE_ID_CLASS_TRANSITION, config.getRules().get(0).getId());
 		assertEquals(30, config.getRules().get(0).getTransitions().get(0).getDays());
@@ -632,7 +669,6 @@ public class S3BucketBuilderImplTest {
 		verify(mockS3Client, never()).setBucketEncryption(any());
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		verify(mockS3Client, never()).deleteBucketInventoryConfiguration(any(), any());
-		verify(mockS3Client, never()).setBucketLifecycleConfiguration(any(), any());
 		verify(mockS3Client, never()).setBucketPolicy(any(), any());
 
 	}
