@@ -15,5 +15,5 @@ public interface ElasticBeanstalkDefaultAMIEncrypter {
 	 * @see <a href="https://docs.aws.amazon.com/elasticbeanstalk/latest/platforms/platforms-supported.html#platforms-supported.java">Details about the available versions</a>
 	 * @return AMI Id of the encrypted version of the default AWS AMI
 	 */
-	ElasticBeanstalkEncryptedPlatformInfo getEncryptedElasticBeanstalkAMI();
+	ElasticBeanstalkEncryptedPlatformInfo getEncryptedElasticBeanstalkAMI(String tomcatVersion, String javaVersion, String LinuxVersion);
 }

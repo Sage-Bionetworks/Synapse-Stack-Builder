@@ -75,13 +75,7 @@ public class ElasticBeanstalkDefaultAMIEncrypterImplTest {
 		when(mockElasticBeanstalkClient.listPlatformVersions(any(ListPlatformVersionsRequest.class)))
 				.thenReturn(new ListPlatformVersionsResult().withPlatformSummaryList(new PlatformSummary().withPlatformArn(platformArn)));
 
-		when(mockConfig.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("-42");
-		when(mockConfig.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9000.1");
-		when(mockConfig.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("1.2.3");
-
-
 	}
-
 
 	@Test
 	public void testGetEncryptedElasticBeanstalkAMI(){
@@ -90,7 +84,7 @@ public class ElasticBeanstalkDefaultAMIEncrypterImplTest {
 
 		ElasticBeanstalkEncryptedPlatformInfo expectedInfo = new ElasticBeanstalkEncryptedPlatformInfo(copiedImageId, solutionStackName);
 		//method under test
-		assertEquals(expectedInfo, encrypter.getEncryptedElasticBeanstalkAMI());
+		assertEquals(expectedInfo, encrypter.getEncryptedElasticBeanstalkAMI("tomcatVersion", "javaVersion", "linuxVersion"));
 	}
 
 	@Test (expected = IllegalArgumentException.class)
@@ -99,13 +93,13 @@ public class ElasticBeanstalkDefaultAMIEncrypterImplTest {
 	}
 
 	@Test (expected = IllegalArgumentException.class)
-	public void testGetEncryptedElasticBeanstalkAMI_nullTomcatVersion(){
-		encrypter.getPlatformArn("-42", null, "1.2.3");
+	public void testGetEncryptedElasticBeanstalkAMI_nullAmazonLinuxVersion(){
+		encrypter.getPlatformArn("-42", "9000.1", null);
 	}
 
 	@Test (expected = IllegalArgumentException.class)
-	public void testGetEncryptedElasticBeanstalkAMI_nullAmazonLinuxVersion(){
-		encrypter.getPlatformArn("-42", "9000.1", null);
+	public void testGetEncryptedElasticBeanstalkAMI_nullTomcatVersion(){
+		encrypter.getPlatformArn("-42", null, "1.2.3");
 	}
 
 	@Test (expected = IllegalArgumentException.class)
