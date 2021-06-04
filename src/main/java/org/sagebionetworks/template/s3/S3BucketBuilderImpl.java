@@ -294,7 +294,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		
 		if (rule.isPresent()) {
 			LOG.info("The {} rule was found on bucket {}", ruleName, bucket);
-			Rule existingRule = rule.get();
+			Rule existingRule = rule.get().withPrefix(null);
 			return ruleUpdate.apply(existingRule, definition);
 		} else {
 			Rule newRule = ruleCreator.apply(definition).withId(ruleName).withStatus(BucketLifecycleConfiguration.ENABLED).withPrefix(null);
