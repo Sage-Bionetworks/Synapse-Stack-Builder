@@ -55,6 +55,9 @@ public class S3BucketBuilderIntegrationTest {
 		Injector injector = Guice.createInjector(new TemplateGuiceModule());
 		VelocityEngine velocityEngine = injector.getInstance(VelocityEngine.class);
 		
+		// Validate the real S3Config
+		injector.getInstance(S3Config.class);
+		
 		builder = new S3BucketBuilderImpl(mockS3Client, mockStsClient, mockConfig, mockS3Config, velocityEngine);
 		
 		stack = "dev";
