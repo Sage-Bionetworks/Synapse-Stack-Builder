@@ -9,6 +9,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
@@ -31,12 +35,14 @@ import com.amazonaws.services.s3.model.ServerSideEncryptionByDefault;
 import com.amazonaws.services.s3.model.ServerSideEncryptionConfiguration;
 import com.amazonaws.services.s3.model.ServerSideEncryptionRule;
 import com.amazonaws.services.s3.model.SetBucketEncryptionRequest;
+import com.amazonaws.services.s3.model.SetBucketLifecycleConfigurationRequest;
 import com.amazonaws.services.s3.model.inventory.InventoryConfiguration;
 import com.amazonaws.services.s3.model.inventory.InventoryDestination;
 import com.amazonaws.services.s3.model.inventory.InventoryFrequency;
 import com.amazonaws.services.s3.model.inventory.InventoryIncludedObjectVersions;
 import com.amazonaws.services.s3.model.inventory.InventoryS3BucketDestination;
 import com.amazonaws.services.s3.model.inventory.InventorySchedule;
+import com.amazonaws.services.s3.model.lifecycle.LifecycleFilter;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.google.inject.Inject;
@@ -194,53 +200,107 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		
 		boolean update = false;
 		
-		List<Rule> rules = config.getRules() == null ? new ArrayList<>() : config.getRules();
-		
+		List<Rule> rules = config.getRules() == null ? new ArrayList<>() : new ArrayList<>(config.getRules());
+
 		if (bucket.getRetentionDays() != null) {
-			update = addRuleIfNotPresent(rules, bucket.getName(), RULE_ID_RETENTION, () -> 
-				new Rule().withExpirationInDays(bucket.getRetentionDays())
-			);
+			update = addOrUpdateRule(rules, bucket.getName(), RULE_ID_RETENTION, bucket, this::createRetentionRule, this::updateRetentionRule);
 		}
 
 		if (bucket.getStorageClassTransitions() != null) {
 			for (S3BucketClassTransition transition : bucket.getStorageClassTransitions()) {
 				String transitionRuleName = transition.getStorageClass().name() + RULE_ID_CLASS_TRANSITION;
 
-				update = addRuleIfNotPresent(rules, transitionRuleName, transitionRuleName, () -> 
-					new Rule().withTransitions(Arrays.asList(
-							new Transition().withStorageClass(transition.getStorageClass()).withDays(transition.getDays())
-					)));
+				update |= addOrUpdateRule(rules, bucket.getName(), transitionRuleName, transition, this::createClassTransitionRule, this::updateClassTransitionRule);
 			}
 		}
 		
 		// Always checks for a default multipart upload cleanup rule
-		update = addRuleIfNotPresent(rules, bucket.getName(), RULE_ID_ABORT_MULTIPART_UPLOADS, () -> 
-			new Rule().withAbortIncompleteMultipartUpload(new AbortIncompleteMultipartUpload().withDaysAfterInitiation(ABORT_MULTIPART_UPLOAD_DAYS))
-		);	
+		update |= addOrUpdateRule(rules, bucket.getName(), RULE_ID_ABORT_MULTIPART_UPLOADS, bucket, this::createAbortMultipartRule, this::updateAbortMultipartRule);
 		
 		if (!rules.isEmpty() && update) {
 			config.setRules(rules);
-			LOG.info("Updating bucket {} lifecycle, rules:", bucket.getName());
+			
+			LOG.info("Updating bucket {} lifecycle, rules: ", bucket.getName());
+			
 			for (Rule rule : rules) {
-				LOG.info("	{} (Prefix: {}, Filter: {})", rule.getId(), rule.getPrefix(), rule.getFilter());
+				LOG.info("	{}", rule.getId());
 			}
+			
 			s3Client.setBucketLifecycleConfiguration(bucket.getName(), config);
 		}
 		
 	}
 	
-	private static boolean addRuleIfNotPresent(List<Rule> rules, String bucket, String ruleName, Supplier<Rule> ruleSupplier) {
+	private Rule createAbortMultipartRule(S3BucketDescriptor bucket) {
+		return new Rule()
+				.withAbortIncompleteMultipartUpload(new AbortIncompleteMultipartUpload().withDaysAfterInitiation(ABORT_MULTIPART_UPLOAD_DAYS))
+				.withFilter(allBucketLifecycletFilter());
+	}
+	
+	private boolean updateAbortMultipartRule(Rule rule, S3BucketDescriptor bucket) {
+		if (rule.getAbortIncompleteMultipartUpload() == null || ABORT_MULTIPART_UPLOAD_DAYS != rule.getAbortIncompleteMultipartUpload().getDaysAfterInitiation() || rule.getFilter() == null) {
+			rule.withAbortIncompleteMultipartUpload(new AbortIncompleteMultipartUpload().withDaysAfterInitiation(ABORT_MULTIPART_UPLOAD_DAYS)).withFilter(allBucketLifecycletFilter());
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	private Rule createRetentionRule(S3BucketDescriptor bucket) {
+		return new Rule().withExpirationInDays(bucket.getRetentionDays()).withFilter(allBucketLifecycletFilter());
+	}
+	
+	private boolean updateRetentionRule(Rule rule, S3BucketDescriptor bucket) {
+		if (!bucket.getRetentionDays().equals(rule.getExpirationInDays()) || rule.getFilter() == null) {
+			rule.withExpirationInDays(bucket.getRetentionDays())
+				.withFilter(allBucketLifecycletFilter());
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	private Rule createClassTransitionRule(S3BucketClassTransition transition) {
+		return new Rule()
+			.addTransition(new Transition().withStorageClass(transition.getStorageClass()).withDays(transition.getDays()))
+			.withFilter(allBucketLifecycletFilter());
+	}
+	
+	private boolean updateClassTransitionRule(Rule rule, S3BucketClassTransition transition) {
+		Transition existingTransition = null;
+		
+		if (rule.getTransitions() != null && !rule.getTransitions().isEmpty()) {
+			existingTransition = rule.getTransitions().get(0);
+		} else {
+			existingTransition = new Transition();
+			rule.addTransition(existingTransition);
+		}
+		
+		if (!transition.getStorageClass().toString().equals(existingTransition.getStorageClassAsString()) || !transition.getDays().equals(existingTransition.getDays()) || rule.getFilter() == null) {
+			existingTransition.withStorageClass(transition.getStorageClass()).withDays(transition.getDays());
+			rule.withFilter(allBucketLifecycletFilter());
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	private static LifecycleFilter allBucketLifecycletFilter() {
+		return new LifecycleFilter(null);
+	}
+	
+	private static <T> boolean addOrUpdateRule(List<Rule> rules, String bucket, String ruleName, T definition, Function<T, Rule> ruleCreator, BiFunction<Rule, T, Boolean> ruleUpdate) {
 		Optional<Rule> rule = findRule(ruleName, rules);
 		
 		if (rule.isPresent()) {
-			LOG.warn("The {} rule was found on bucket {}, will not update.", ruleName, bucket);
-			rule.get().setPrefix(null);
-			return false;
+			LOG.info("The {} rule was found on bucket {}", ruleName, bucket);
+			Rule existingRule = rule.get();
+			return ruleUpdate.apply(existingRule, definition);
+		} else {
+			Rule newRule = ruleCreator.apply(definition).withId(ruleName).withStatus(BucketLifecycleConfiguration.ENABLED).withPrefix(null);
+			rules.add(newRule);
+			return true;
 		}
-		
-		rules.add(ruleSupplier.get().withId(ruleName).withStatus(BucketLifecycleConfiguration.ENABLED));
-		
-		return true;
 		
 	}
 	
