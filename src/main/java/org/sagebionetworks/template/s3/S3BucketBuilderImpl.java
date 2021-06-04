@@ -234,6 +234,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		
 		if (rule.isPresent()) {
 			LOG.warn("The {} rule was found on bucket {}, will not update.", ruleName, bucket);
+			rule.get().setPrefix(null);
 			return false;
 		}
 		
