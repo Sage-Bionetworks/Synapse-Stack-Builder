@@ -220,7 +220,10 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		
 		if (!rules.isEmpty() && update) {
 			config.setRules(rules);
-			LOG.info("Updating bucket {} lifecycle.", bucket.getName());
+			LOG.info("Updating bucket {} lifecycle, rules:", bucket.getName());
+			for (Rule rule : rules) {
+				LOG.info("	{} (Prefix: {}, Filter: {})", rule.getId(), rule.getPrefix(), rule.getFilter());
+			}
 			s3Client.setBucketLifecycleConfiguration(bucket.getName(), config);
 		}
 		
