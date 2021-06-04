@@ -10,10 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,7 +32,6 @@ import com.amazonaws.services.s3.model.ServerSideEncryptionByDefault;
 import com.amazonaws.services.s3.model.ServerSideEncryptionConfiguration;
 import com.amazonaws.services.s3.model.ServerSideEncryptionRule;
 import com.amazonaws.services.s3.model.SetBucketEncryptionRequest;
-import com.amazonaws.services.s3.model.SetBucketLifecycleConfigurationRequest;
 import com.amazonaws.services.s3.model.inventory.InventoryConfiguration;
 import com.amazonaws.services.s3.model.inventory.InventoryDestination;
 import com.amazonaws.services.s3.model.inventory.InventoryFrequency;
@@ -292,15 +288,25 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	private static <T> boolean addOrUpdateRule(List<Rule> rules, String bucket, String ruleName, T definition, Function<T, Rule> ruleCreator, BiFunction<Rule, T, Boolean> ruleUpdate) {
 		Optional<Rule> rule = findRule(ruleName, rules);
 		
+		boolean updateLifecycle = false;
+		
 		if (rule.isPresent()) {
-			LOG.info("The {} rule was found on bucket {}", ruleName, bucket);
 			Rule existingRule = rule.get().withPrefix(null);
-			return ruleUpdate.apply(existingRule, definition);
+			
+			updateLifecycle = ruleUpdate.apply(existingRule, definition);
+			
+			LOG.info("The {} rule was found on bucket {} and was {}", ruleName, bucket, updateLifecycle ? "outdated, will update." : "up to date.");
 		} else {
 			Rule newRule = ruleCreator.apply(definition).withId(ruleName).withStatus(BucketLifecycleConfiguration.ENABLED).withPrefix(null);
+			
 			rules.add(newRule);
-			return true;
+			
+			LOG.info("The {} rule was not found on bucket {}, will be added.", ruleName, bucket);
+			
+			updateLifecycle = true;
 		}
+		
+		return updateLifecycle;
 		
 	}
 	
