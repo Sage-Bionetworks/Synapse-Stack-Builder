@@ -187,21 +187,6 @@
 							"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"
 						}
 					},
-					{
-					    "Namespace": "aws:elasticbeanstalk:managedactions",
-					    "OptionName": "ManagedActionsEnabled",
-					    "Value": "true"
-					},
-					{
-					    "Namespace": "aws:elasticbeanstalk:managedactions",
-					    "OptionName": "PreferredStartTime",
-					    "Value": "Mon:06:00"
-					},
-					{
-						"Namespace": "aws:elasticbeanstalk:managedactions",
-						"OptionName": "ServiceRoleForManagedUpdates",
-						"Value": "AWSServiceRoleForElasticBeanstalkManagedUpdates"
-					},
  					{
 						"Namespace": "aws:elasticbeanstalk:healthreporting:system",
 						"OptionName": "SystemType",
