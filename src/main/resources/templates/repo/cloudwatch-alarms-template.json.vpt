@@ -86,7 +86,7 @@
 			],
 			"EvaluationPeriods" : 2,
 			"DatapointsToAlarm": 2,
-			"Period" : 518400,
+			"Period" : 43200,
 			"MetricName" : "JobFailedCount",
 			"Namespace" : "Asynchronous Workers - ${instance}",
 			"Statistic" : "Sum",
@@ -111,7 +111,7 @@
 				}
 			],
 			"EvaluationPeriods" : 1,
-			"Period" : 1036800,
+			"Period" : 86400,
 			"MetricName" : "AllJobsCompletedCount",
 			"Namespace" : "Asynchronous Workers - ${instance}",
 			"Statistic" : "Sum",
