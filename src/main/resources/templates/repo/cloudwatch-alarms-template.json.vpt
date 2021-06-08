@@ -68,56 +68,5 @@
 			"Threshold" : 1,
 			"TreatMissingData": "notBreaching"
 		}
-	},
-	"${stack}${instance}FileHandleAssociationsScannerFailureAlarm": {
-		"Type" : "AWS::CloudWatch::Alarm",
-		"Properties" : {
-			"ActionsEnabled" : true,
-			"AlarmActions" : [
-				{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
-			],
-			"AlarmDescription" : "Alert when the file handle associations scanner reports a failure for more than 1 time in 2 runs",
-			"AlarmName" : "${stack}-${instance}-File-Handle-Associations-Scanner-Failure",
-			"Dimensions" : [
-				{
-					"Name" : "workerClass",
-					"Value" : "FileHandleAssociationScanRangeWorker"
-				}
-			],
-			"EvaluationPeriods" : 2,
-			"DatapointsToAlarm": 2,
-			"Period" : 518400,
-			"MetricName" : "JobFailedCount",
-			"Namespace" : "Asynchronous Workers - ${instance}",
-			"Statistic" : "Sum",
-			"Threshold" : 1,
-			"ComparisonOperator" : "GreaterThanOrEqualToThreshold",
-			"TreatMissingData": "notBreaching"
-		}
-	},
-	"${stack}${instance}FileHandleAssociationsScannerNotCompletedAlarm": {
-		"Type" : "AWS::CloudWatch::Alarm",
-		"Properties" : {
-			"ActionsEnabled" : true,
-			"AlarmActions" : [
-				{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
-			],
-			"AlarmDescription" : "Alert when the file handle associations scanner does not report at least one complete scan in the last 12 days",
-			"AlarmName" : "${stack}-${instance}-File-Handle-Associations-Scanner-Not-Complete",
-			"Dimensions" : [
-				{
-					"Name" : "workerClass",
-					"Value" : "FileHandleAssociationScanRangeWorker"
-				}
-			],
-			"EvaluationPeriods" : 1,
-			"Period" : 1036800,
-			"MetricName" : "AllJobsCompletedCount",
-			"Namespace" : "Asynchronous Workers - ${instance}",
-			"Statistic" : "Sum",
-			"Threshold" : 1,
-			"ComparisonOperator" : "LessThanThreshold",
-			"TreatMissingData": "breaching"
-		}
 	}
 #end
