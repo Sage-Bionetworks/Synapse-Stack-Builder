@@ -98,6 +98,7 @@ public class Constants {
 
 	public static final String PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER = "org.sagebionetworks.repo.snapshot.identifier";
 	public static final String PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS = "org.sagbionetworks.tables.snapshot.identifiers";
+	public static final String NOSNAPSHOT = "NOSNAPSHOT"; // value to indicate a snapshot is not used to init a stack
 
 	// tag values
 	public static final String TAG_VALUE_DEPARTMENT = "Platform";

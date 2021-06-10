@@ -16,6 +16,7 @@ import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.INSTANCE;
+import static org.sagebionetworks.template.Constants.NOSNAPSHOT;
 import static org.sagebionetworks.template.Constants.OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL;
@@ -258,7 +259,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testBuildAndDeployProd() throws InterruptedException {
-		when(config.getOptionalProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(null);
+		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		setupValidBeanstalkConfig();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
 		when(mockCloudFormationClient.getOutput(anyString(), anyString())).thenReturn(String.join(",", EXPECTED_SUBNETS));
@@ -305,7 +306,7 @@ public class RepositoryTemplateBuilderImplTest {
 	
 	@Test
 	public void testBuildAndDeployDev() throws InterruptedException {
-		when(config.getOptionalProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(null);
+		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		setupValidBeanstalkConfig();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
 		when(mockCloudFormationClient.getOutput(anyString(), anyString())).thenReturn(String.join(",", EXPECTED_SUBNETS));
@@ -354,7 +355,7 @@ public class RepositoryTemplateBuilderImplTest {
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
 		when(mockCloudFormationClient.getOutput(anyString(), anyString())).thenReturn(String.join(",", EXPECTED_SUBNETS));
 		when(mockEc2Client.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
-		when(config.getOptionalProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn("repoSnapshotIdentifier");
+		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn("repoSnapshotIdentifier");
 		String[] tableSnaphotIdentifiers = {"table0SnapshotIdentifier", "table1SnapshotIdentifier"};
 		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(tableSnaphotIdentifiers);
 		stack = "dev";

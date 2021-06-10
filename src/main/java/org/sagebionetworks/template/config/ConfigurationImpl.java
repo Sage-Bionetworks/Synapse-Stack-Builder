@@ -40,20 +40,11 @@ public class ConfigurationImpl implements Configuration {
 
 	@Override
 	public String getProperty(String key) {
-		return getProperty(key, false);
-	}
-
-	@Override
-	public String getOptionalProperty(String key) {
-		return getProperty(key, true);
-	}
-
-	private String getProperty(String key, boolean opt) {
 		if (key == null) {
 			throw new IllegalArgumentException("Key cannot be null");
 		}
 		String value = props.getProperty(key);
-		if (value == null && !opt) {
+		if (value == null) {
 			throw new ConfigurationPropertyNotFound(key);
 		}
 		return value;

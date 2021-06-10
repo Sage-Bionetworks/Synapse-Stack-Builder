@@ -327,8 +327,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				.withDbStorageType(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE))
 				.withDbIops(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS))
 				.withMultiAZ(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ));
-		String repoSnapshotIdentifier = config.getOptionalProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER);
-		if (repoSnapshotIdentifier != null) {
+		String repoSnapshotIdentifier = config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER);
+		if (! NOSNAPSHOT.equals(repoSnapshotIdentifier)) {
 			results[0] = repoDbDescriptor.withSnapshotIdentifier(repoSnapshotIdentifier);
 		} else {
 			results[0] = repoDbDescriptor;
