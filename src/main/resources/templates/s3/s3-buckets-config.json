@@ -6,7 +6,13 @@
 		},
 		{
 			"name": "${stack}data.sagebase.org",
-			"inventoryEnabled": true
+			"inventoryEnabled": true,
+			"storageClassTransitions": [
+				{
+					"storageClass": "IntelligentTiering",
+					"days": 35
+				}
+			]
 		},
 		{
 			"name": "${stack}.table.row.changes"
@@ -37,6 +43,10 @@
 		},
 		{
 			"name": "${stack}.athena-queries.sagebase.org",
+			"retentionDays": 30
+		},
+		{
+			"name": "${stack}.backups.sagebase.org",
 			"retentionDays": 30
 		}
 	],

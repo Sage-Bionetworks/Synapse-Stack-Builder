@@ -16,6 +16,7 @@ public class RecurrentAthenaQuery {
 	private String queryString;
 	private String scheduleExpression;
 	private String destinationQueue;
+	private String dataBucket;
 	
 	public String getDatabase() {
 		return database;
@@ -68,10 +69,18 @@ public class RecurrentAthenaQuery {
 	public String getDestinationQueueReferenceName() {
 		return Constants.createCamelCaseName(destinationQueue, "_");
 	}
+	
+	public String getDataBucket() {
+		return dataBucket;
+	}
+	
+	public void setDataBucket(String dataBucket) {
+		this.dataBucket = dataBucket;
+	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(scheduleExpression, database, destinationQueue, queryName, queryPath, queryString);
+		return Objects.hash(dataBucket, database, destinationQueue, queryName, queryPath, queryString, scheduleExpression);
 	}
 
 	@Override
@@ -86,15 +95,17 @@ public class RecurrentAthenaQuery {
 			return false;
 		}
 		RecurrentAthenaQuery other = (RecurrentAthenaQuery) obj;
-		return Objects.equals(scheduleExpression, other.scheduleExpression) && Objects.equals(database, other.database)
+		return Objects.equals(dataBucket, other.dataBucket) && Objects.equals(database, other.database)
 				&& Objects.equals(destinationQueue, other.destinationQueue) && Objects.equals(queryName, other.queryName)
-				&& Objects.equals(queryPath, other.queryPath) && Objects.equals(queryString, other.queryString);
+				&& Objects.equals(queryPath, other.queryPath) && Objects.equals(queryString, other.queryString)
+				&& Objects.equals(scheduleExpression, other.scheduleExpression);
 	}
 
 	@Override
 	public String toString() {
-		return "RecurrentAthenaQuery [dataBase=" + database + ", queryName=" + queryName + ", queryPath=" + queryPath + ", queryString="
-				+ queryString + ", cronExpression=" + scheduleExpression + ", destinationQueue=" + destinationQueue + "]";
+		return "RecurrentAthenaQuery [database=" + database + ", queryName=" + queryName + ", queryPath=" + queryPath + ", queryString="
+				+ queryString + ", scheduleExpression=" + scheduleExpression + ", destinationQueue=" + destinationQueue + ", dataBucket="
+				+ dataBucket + "]";
 	}
 
 }

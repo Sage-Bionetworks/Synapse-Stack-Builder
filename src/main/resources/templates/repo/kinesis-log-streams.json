@@ -100,6 +100,7 @@
 			"columns": {
 				"id": "bigint",
 				"createdOn": "timestamp",
+				"updatedOn": "timestamp",
 				"status": "string",
 				"isPreview": "boolean",
 				"contentSize": "bigint",

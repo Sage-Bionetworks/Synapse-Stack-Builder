@@ -175,8 +175,8 @@
 				"ErrorOutputPrefix":"${stream.name}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
 				#end
 				"BufferingHints":{
-					"IntervalInSeconds":${stream.bufferFlushInterval},
-					"SizeInMBs":${stream.bufferFlushSize}
+					"IntervalInSeconds":#if(${stack} == 'prod') ${stream.bufferFlushInterval} #else 60 #end,
+					"SizeInMBs": ${stream.bufferFlushSize}
 				},
 				#if( $stream.format == "PARQUET" )
 					"CompressionFormat":"UNCOMPRESSED",
@@ -232,8 +232,8 @@
 						"ErrorOutputPrefix":"${stream.name}/backup/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
 						#end
 						"BufferingHints":{
-							"IntervalInSeconds":${stream.bufferFlushInterval},
-							"SizeInMBs":${stream.bufferFlushSize}
+							"IntervalInSeconds": ${stream.bufferFlushInterval},
+							"SizeInMBs": ${stream.bufferFlushSize}
 						}
 					}
 				#elseif( $stream.format == "JSON" )

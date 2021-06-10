@@ -254,7 +254,12 @@
 			"messageVisibilityTimeoutSec":300
 		},
 		{
-			"queueName": "UNLINKED_FILE_HANDLES",
+			"queueName":"ADD_TO_DOWNLOAD_LIST",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":300
+		},
+		{
+			"queueName": "RECURRENT_ATHENA_QUERIES",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":300
 		}

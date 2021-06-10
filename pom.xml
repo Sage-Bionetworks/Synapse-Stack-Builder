@@ -197,6 +197,11 @@
 			<version>${mockito.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+		  <groupId>com.cronutils</groupId>
+		  <artifactId>cron-utils</artifactId>
+		  <version>${cron.utils.version}</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<resources>
@@ -251,6 +256,7 @@
 		<junit.jupiter.version>5.4.1</junit.jupiter.version>
 		<junit.vintage.version>5.4.1</junit.vintage.version>
 		<junit.platform.version>1.4.1</junit.platform.version>
+		<cron.utils.version>9.1.5</cron.utils.version>
 		<mockito.version>2.27.0</mockito.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     	<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

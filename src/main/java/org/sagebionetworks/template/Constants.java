@@ -87,6 +87,7 @@ public class Constants {
 	public static final String PROPERTY_KEY_REPOSITORY_DATABASE_PASSWORD = "org.sagebionetworks.repository.database.password";
 	public static final String PROPERTY_KEY_ID_GENERATOR_DATABASE_PASSWORD = "org.sagebionetworks.id.generator.database.password";
 	public static final String PROPERTY_KEY_ID_GENERATOR_HOSTED_ZONE_ID = "org.sagebionetworks.id.generator.hosted.zone.id";
+	public static final String PROPERTY_KEY_EC2_INSTANCE_TYPE = "org.sagebionetworks.beanstalk.instance.type";
 
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX = "org.sagebionetworks.beanstalk.image.version.";
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA = PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX + "java";
@@ -136,6 +137,8 @@ public class Constants {
 
 	public static final String VPC_CIDR_SUFFIX = ".0.0/16";
 
+	public static final String VPC_PRIVATE_SUBNETS_STACK_PRIVATE_SUBNETS_OUPUT_KEY = "PrivateSubnets";
+
 	// context keys
 	public static final String SUBNETS = "subnets";
 	public static final String VPC_CIDR = "vpcCidr";
@@ -178,6 +181,7 @@ public class Constants {
 	public static final String CLOUDWATCH_LOGS_DESCRIPTORS = "logDescriptors";
 	
 	public static final String ATHENA_QUERY_DESCRIPTORS = "athenaQueryDescriptors";
+	public static final String ATHENA_QUERY_DATA_BUCKETS = "athenaQueryDataBuckets";
 	
 	public static final String LOAD_BALANCER_ALARMS = "loadBalancerAlarms";
 
@@ -186,6 +190,9 @@ public class Constants {
 	public static final String SES_SYNAPSE_DOMAIN = "synapse.org";
 	public static final String GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC = "SesSynapseOrgComplaintTopic";
 	public static final String GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC = "SesSynapseOrgBounceTopic";
+
+	public static final String EC2_INSTANCE_TYPE = "Ec2InstanceType";
+	public static final String BEANSTALK_INSTANCES_SUBNETS = "BeanstalkInstancesSubnets";
 
 	/**
 	 * Create a camel case name from dash-separated-name. Given 'foo-bar' will
@@ -227,6 +234,16 @@ public class Constants {
 		StringJoiner joiner = new StringJoiner("-");
 		joiner.add("us-east-1");
 		joiner.add(String.format(GLOBAL_RESOURCES_STACK_NAME_FORMAT, stack));
+		return joiner.toString();
+	}
+
+	public static String createVpcPrivateSubnetsStackName(String stack, String color) {
+		StringJoiner joiner = new StringJoiner("-");
+		joiner.add("synapse");
+		joiner.add(stack);
+		joiner.add("vpc-2");
+		joiner.add("private-subnets");
+		joiner.add(color);
 		return joiner.toString();
 	}
 

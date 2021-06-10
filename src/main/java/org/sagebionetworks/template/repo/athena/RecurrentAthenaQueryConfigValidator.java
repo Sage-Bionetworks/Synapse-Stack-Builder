@@ -46,6 +46,7 @@ public class RecurrentAthenaQueryConfigValidator {
 		ValidateArgument.required(query.getQueryPath(), "The queryPath");
 		ValidateArgument.required(query.getScheduleExpression(), "The scheduleExpression");
 		ValidateArgument.required(query.getDestinationQueue(), "The destinationQueue");
+		ValidateArgument.required(query.getDataBucket(), "The dataBucket");
 	}
 
 }

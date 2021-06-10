@@ -67,7 +67,7 @@
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
 						"OptionName": "InstanceType",
-						"Value": "m5.large"
+						"Value": "$Ec2InstanceType"
 					},
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
@@ -151,9 +151,7 @@
 					{
 						"Namespace": "aws:ec2:vpc",
 						"OptionName": "Subnets",
-						"Value": {
-							"Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-Private-Subnets"
-						}
+						"Value": "${BeanstalkInstancesSubnets}"
 					},
 					{
 						"Namespace": "aws:ec2:vpc",
@@ -204,11 +202,6 @@
 						"OptionName": "ServiceRoleForManagedUpdates",
 						"Value": "AWSServiceRoleForElasticBeanstalkManagedUpdates"
 					},
-					{
-					    "Namespace": "aws:elasticbeanstalk:managedactions:platformupdate",
-					    "OptionName": "UpdateLevel",
-					    "Value": "patch"
-					},
  					{
 						"Namespace": "aws:elasticbeanstalk:healthreporting:system",
 						"OptionName": "SystemType",
@@ -218,6 +211,11 @@
  						"Namespace": "aws:elasticbeanstalk:healthreporting:system",
 						"OptionName": "EnhancedHealthAuthEnabled",
  						"Value": "true"
+ 					},
+ 					{
+ 						"Namespace": "aws:elasticbeanstalk:healthreporting:system",
+						"OptionName": "ConfigDocument",
+ 						"Value": "{\"Rules\": { \"Environment\": { \"Application\": { \"ApplicationRequests4xx\": { \"Enabled\": false } }, \"ELB\": { \"ELBRequests4xx\": {\"Enabled\": true } } } }, \"Version\": 1 }"
  					},
 				    {
 						"Namespace": "aws:elbv2:loadbalancer",

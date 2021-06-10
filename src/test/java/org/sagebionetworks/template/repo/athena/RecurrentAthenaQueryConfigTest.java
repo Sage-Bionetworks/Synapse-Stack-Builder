@@ -7,28 +7,31 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.text.ParseException;
 import java.time.DayOfWeek;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.core.util.CronExpression;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.repo.queues.SqsQueueDescriptor;
 
+import com.cronutils.model.Cron;
+import com.cronutils.model.definition.CronDefinition;
+import com.cronutils.model.definition.CronDefinitionBuilder;
+import com.cronutils.model.time.ExecutionTime;
+import com.cronutils.parser.CronParser;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 public class RecurrentAthenaQueryConfigTest {
 
 	private Map<String, RecurrentAthenaQuery> queryMap;
+	private CronParser eventBridgeCronParser;
 
 	@BeforeEach
 	public void before() {
@@ -36,6 +39,17 @@ public class RecurrentAthenaQueryConfigTest {
 		RecurrentAthenaQueryConfig config = injector.getInstance(RecurrentAthenaQueryConfig.class);
 		assertNotNull(config);
 		this.queryMap = config.getQueries().stream().collect(Collectors.toMap(RecurrentAthenaQuery::getQueryName, Function.identity()));
+		// For the cron parser definition supported by event bridge see: https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-schedule-expressions.html
+		CronDefinition eventBridgeCronDefinition = CronDefinitionBuilder.defineCron()
+		        .withMinutes().and()
+		        .withHours().and()
+		        .withDayOfMonth().supportsL().supportsW().supportsQuestionMark().and()
+		        .withMonth().and()
+		        .withDayOfWeek().withMondayDoWValue(2).supportsL().supportsHash().supportsQuestionMark().and()
+		        .withYear().and()
+		        .instance();
+		
+		this.eventBridgeCronParser = new CronParser(eventBridgeCronDefinition);
 	}
 
 	@Test
@@ -46,39 +60,39 @@ public class RecurrentAthenaQueryConfigTest {
 
 		String expectedCron = "0 10 ? * 2#1 *";
 		assertEquals("cron(" + expectedCron + ")", query.getScheduleExpression());
-		assertEquals("UNLINKED_FILE_HANDLES", query.getDestinationQueue());
+		assertEquals("RECURRENT_ATHENA_QUERIES", query.getDestinationQueue());
+		
+		Cron cron = eventBridgeCronParser.parse(expectedCron);
 
-		// Event Bridge does not support second resolution, so we "fake" running at second 0
-		CronExpression cron = new CronExpression("0 " + expectedCron);
+		ExecutionTime executionTime = ExecutionTime.forCron(cron);
 
 		ZoneOffset utcZone = ZoneOffset.UTC;
 
-		cron.setTimeZone(TimeZone.getTimeZone(utcZone));
-
 		LocalDate firstMondayOfMonth = LocalDate.now(utcZone).with(firstInMonth(DayOfWeek.MONDAY));
-		Date expected = Date.from(firstMondayOfMonth.atTime(10, 0).toInstant(utcZone));
+		ZonedDateTime expected = firstMondayOfMonth.atTime(10, 0).atZone(utcZone);
 
 		// Test for the next 12 months
 		for (int i = 0; i < 12; i++) {
-			Instant testingInstant = firstMondayOfMonth.atTime(10, 0).toInstant(utcZone);
+			ZonedDateTime testingDateTime = firstMondayOfMonth.atTime(10, 0).atZone(utcZone);
 			
-			assertTrue(cron.isSatisfiedBy(Date.from(testingInstant)));
-			assertEquals(expected, Date.from(testingInstant));
+			assertTrue(executionTime.isMatch(testingDateTime));
+			assertEquals(expected, expected);
 			
 			firstMondayOfMonth = firstMondayOfMonth.plusMonths(1).with(firstInMonth(DayOfWeek.MONDAY));
 			
-			expected = cron.getNextValidTimeAfter(Date.from(testingInstant));
+			expected = executionTime.nextExecution(testingDateTime).get();
 			
 		}
 
 	}
 
-	static RecurrentAthenaQuery query(String name, String path, String cronExpression, String destinationQueue) {
+	static RecurrentAthenaQuery query(String name, String path, String cronExpression, String destinationQueue, String dataBucket) {
 		RecurrentAthenaQuery query = new RecurrentAthenaQuery();
 		query.setQueryName(name);
 		query.setQueryPath(path);
 		query.setScheduleExpression(cronExpression);
 		query.setDestinationQueue(destinationQueue);
+		query.setDataBucket(dataBucket);
 		return query;
 	}
 
