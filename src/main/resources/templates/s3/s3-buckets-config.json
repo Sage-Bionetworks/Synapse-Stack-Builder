@@ -48,6 +48,12 @@
 		{
 			"name": "${stack}.backups.sagebase.org",
 			"retentionDays": 30
+		},
+		{
+			"name": "${stack}.datawarehouse.object-snapshots.sagebase.org"
+		},
+		{
+			"name": "${stack}.datawarehouse.event-records.sagebase.org"
 		}
 	],
 	"inventoryBucket": "${stack}.inventory.sagebase.org"
