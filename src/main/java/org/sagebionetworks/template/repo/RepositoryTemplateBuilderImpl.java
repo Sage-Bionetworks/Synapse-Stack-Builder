@@ -327,17 +327,20 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				.withDbStorageType(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE))
 				.withDbIops(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS))
 				.withMultiAZ(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ));
+
 		String repoSnapshotIdentifier = config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER);
-		if (! NOSNAPSHOT.equals(repoSnapshotIdentifier)) {
-			results[0] = repoDbDescriptor.withSnapshotIdentifier(repoSnapshotIdentifier);
-		} else {
-			results[0] = repoDbDescriptor;
+		boolean useSnapshotForRepoDB = ! NOSNAPSHOT.equals(repoSnapshotIdentifier);
+		if (useSnapshotForRepoDB) {
+			repoDbDescriptor = repoDbDescriptor.withSnapshotIdentifier(repoSnapshotIdentifier);
+		}
+		results[0] = repoDbDescriptor;
+
+		String[] repoTableSnapshotIdentifiers = config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS);
+		boolean useSnapshotsForTablesDbs = !(repoTableSnapshotIdentifiers.length == 1 && NOSNAPSHOT.equals(repoTableSnapshotIdentifiers[0]));
+		if (useSnapshotForRepoDB != useSnapshotsForTablesDbs) {
+			throw new IllegalStateException("The repo database is set to use a snapshot but the tables database are not set to use snapshots, or vice-versa");
 		}
 
-		String[] repoTableSnapshotIdentifiers = null;
-		if (repoSnapshotIdentifier != null) {
-			repoTableSnapshotIdentifiers = config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS);
-		}
 		// Describe each table database
 		for (int i = 0; i < numberOfTablesDatabase; i++) {
 			DatabaseDescriptor tableDbDescriptor = new DatabaseDescriptor()
@@ -348,7 +351,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				.withDbStorageType(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE))
 				.withDbIops(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS))
 				.withInstanceClass(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).withMultiAZ(false);
-			if (repoTableSnapshotIdentifiers != null) {
+			if (useSnapshotForRepoDB) {
 				String snapshotIdentifier = repoTableSnapshotIdentifiers[i];
 				tableDbDescriptor = tableDbDescriptor.withSnapshotIdentifier(snapshotIdentifier);
 			}
