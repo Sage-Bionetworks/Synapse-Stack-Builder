@@ -178,4 +178,5 @@ public class KinesisFirehoseVelocityContextProviderTest {
 		
 		verify(mockStream).setBucket(TemplateUtils.replaceStackVariable(customBucket, testStack));
 	}
+
 }

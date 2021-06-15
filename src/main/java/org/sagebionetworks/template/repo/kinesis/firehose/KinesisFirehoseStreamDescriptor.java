@@ -13,6 +13,8 @@ public class KinesisFirehoseStreamDescriptor {
 	private String name;
 	// Optional destination bucket for the streamed data, by default is {stack}.log.sagebase.org
 	private String bucket = DEFAULT_BUCKET;
+	// Optional prefix for the streamed data, by default ""
+	private String bucketPrefix = "";
 	// True if the stream data destination should be parameterized by the stack instance
 	private boolean parameterizeDestinationByStack = false;
 	// True if the stream should be deployed only in the dev stack
@@ -45,6 +47,10 @@ public class KinesisFirehoseStreamDescriptor {
 	public void setBucket(String bucket) {
 		this.bucket = bucket;
 	}
+
+	public String getBucketPrefix() { return bucketPrefix; }
+
+	public void setBucketPrefix(String bucketPrefix) { this.bucketPrefix = bucketPrefix; }
 
 	public boolean isParameterizeDestinationByStack() {
 		return parameterizeDestinationByStack;
@@ -112,7 +118,7 @@ public class KinesisFirehoseStreamDescriptor {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(backupDisabled, bucket, bufferFlushInterval, bufferFlushSize, devOnly, format, name,
+		return Objects.hash(backupDisabled, bucket, bucketPrefix, bufferFlushInterval, bufferFlushSize, devOnly, format, name,
 				parameterizeDestinationByStack, partitionScheme, tableDescriptor);
 	}
 
@@ -129,7 +135,8 @@ public class KinesisFirehoseStreamDescriptor {
 		}
 		KinesisFirehoseStreamDescriptor other = (KinesisFirehoseStreamDescriptor) obj;
 		return backupDisabled == other.backupDisabled && Objects.equals(bucket, other.bucket)
-				&& bufferFlushInterval == other.bufferFlushInterval && bufferFlushSize == other.bufferFlushSize && devOnly == other.devOnly
+				&& bucketPrefix == other.bucketPrefix && bufferFlushInterval == other.bufferFlushInterval
+				&& bufferFlushSize == other.bufferFlushSize && devOnly == other.devOnly
 				&& format == other.format && Objects.equals(name, other.name)
 				&& parameterizeDestinationByStack == other.parameterizeDestinationByStack
 				&& Objects.equals(partitionScheme, other.partitionScheme) && Objects.equals(tableDescriptor, other.tableDescriptor);

@@ -156,65 +156,73 @@
 	{
 		"name": "aclSnapshots",
 		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
-		"bucket": "${stack}.datawarehouse.object-snapshots.snapshots.sagebase.org",
+		"bucket": "${stack}.datawarehouse.sagebase.org",
+		"bucketPrefix": "object-snapshots",
 		"format": "JSON",
 		"bufferFlushSize": 64,
-		"bufferFlushInterval": 180
+		"bufferFlushInterval": 900
 	},
 	{
 		"name": "deletedNodeSnapshots",
 		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
-		"bucket": "${stack}.datawarehouse.object-snapshots.snapshots.sagebase.org",
+		"bucket": "${stack}.datawarehouse.sagebase.org",
+		"bucketPrefix": "object-snapshots",
 		"format": "JSON",
 		"bufferFlushSize": 64,
-		"bufferFlushInterval": 180
+		"bufferFlushInterval": 900
 	},
 	{
 		"name": "filehandleSnapshots",
 		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
-		"bucket": "${stack}.datawarehouse.object-snapshots.snapshots.sagebase.org",
+		"bucket": "${stack}.datawarehouse.object-snapshots.sagebase.org",
+		"bucketPrefix": "object-snapshots",
 		"format": "JSON",
 		"bufferFlushSize": 64,
-		"bufferFlushInterval": 180
+		"bufferFlushInterval": 900
 	},
 	{
 		"name": "nodeSnapshots",
 		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
-		"bucket": "${stack}.datawarehouse.object-snapshots.snapshots.sagebase.org",
+		"bucket": "${stack}.datawarehouse.sagebase.org",
+		"bucketPrefix": "object-snapshots",
 		"format": "JSON",
 		"bufferFlushSize": 64,
-		"bufferFlushInterval": 180
+		"bufferFlushInterval": 900
 	},
 	{
 		"name": "teamSnapshots",
 		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
-		"bucket": "${stack}.datawarehouse.object-snapshots.snapshots.sagebase.org",
+		"bucket": "${stack}.datawarehouse.sagebase.org",
+		"bucketPrefix": "object-snapshots",
 		"format": "JSON",
 		"bufferFlushSize": 64,
-		"bufferFlushInterval": 180
+		"bufferFlushInterval": 900
 	},
 	{
 		"name": "teamMemberSnapshots",
 		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
-		"bucket": "${stack}.datawarehouse.object-snapshots.snapshots.sagebase.org",
+		"bucket": "${stack}.datawarehouse.sagebase.org",
+		"bucketPrefix": "object-snapshots",
 		"format": "JSON",
 		"bufferFlushSize": 64,
-		"bufferFlushInterval": 180
+		"bufferFlushInterval": 900
 	},
 	{
 		"name": "uploadDestinationSettingSnapshots",
 		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
-		"bucket": "${stack}.datawarehouse.object-snapshots.snapshots.sagebase.org",
+		"bucket": "${stack}.datawarehouse.sagebase.org",
+		"bucketPrefix": "object-snapshots",
 		"format": "JSON",
 		"bufferFlushSize": 64,
-		"bufferFlushInterval": 180
+		"bufferFlushInterval": 900
 	},
 	{
 		"name": "userGroupSnapshots",
 		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
-		"bucket": "${stack}.datawarehouse.object-snapshots.snapshots.sagebase.org",
+		"bucket": "${stack}.datawarehouse.sagebase.org",
+		"bucketPrefix": "object-snapshots",
 		"format": "JSON",
 		"bufferFlushSize": 64,
-		"bufferFlushInterval": 180
+		"bufferFlushInterval": 900
 	}]
 }

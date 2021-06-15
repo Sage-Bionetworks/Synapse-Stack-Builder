@@ -200,4 +200,17 @@ public class KinesisFirehoseConfigValidatorTest {
 		assertEquals(KinesisFirehoseStreamDescriptor.DEFAULT_BUCKET, stream.getBucket());
 	}
 
+	@Test
+	public void testWithDefaultPrefix() {
+		KinesisFirehoseStreamDescriptor stream = new KinesisFirehoseStreamDescriptor();
+		stream.setName(STREAM_NAME);
+
+		when(mockConfig.getStreamDescriptors()).thenReturn(Collections.singleton(stream));
+
+		validator.validate();
+
+		assertEquals(KinesisFirehoseStreamDescriptor.DEFAULT_BUCKET, stream.getBucket());
+		assertEquals("", stream.getBucketPrefix());
+	}
+
 }
