@@ -86,7 +86,11 @@
 				"BackupRetentionPeriod": "7",
 				"DBInstanceClass": "${descriptor.instanceClass}",
 				"DBInstanceIdentifier": "${descriptor.instanceIdentifier}",
+				#if ($descriptor.snapshotIdentifier)
+				"DBSnapshotIdentifier": "${descriptor.snapshotIdentifier}",
+				#else
 				"DBName": "${descriptor.dbName}",
+				#end
 				"DBParameterGroupName": {
 					"Ref": "${stack}${instance}DBParameterGroup"
 				},

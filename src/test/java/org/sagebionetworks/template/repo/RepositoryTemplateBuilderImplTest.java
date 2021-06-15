@@ -16,6 +16,7 @@ import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.INSTANCE;
+import static org.sagebionetworks.template.Constants.NOSNAPSHOT;
 import static org.sagebionetworks.template.Constants.OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL;
@@ -51,6 +52,8 @@ import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -256,14 +259,19 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testBuildAndDeployProd() throws InterruptedException {
+		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
+		String[] noSnapshots = new String[] {NOSNAPSHOT};
+		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 		setupValidBeanstalkConfig();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
 		when(mockCloudFormationClient.getOutput(anyString(), anyString())).thenReturn(String.join(",", EXPECTED_SUBNETS));
 		when(mockEc2Client.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		stack = "prod";
 		configureStack(stack);
+
 		// call under test
 		builder.buildAndDeploy();
+
 		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
@@ -296,18 +304,41 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.has("prod101Table1RepositoryDBHighWriteLatency"));
 		assertTrue(resources.has("prod101Table1RepositoryDBHighCPUUtilization"));
 		assertTrue(resources.has("prod101Table1RepositoryDBLowFreeStorageSpace"));
+
+		assertTrue(resources.has("prod101RepositoryDB"));
+		JSONObject repoDB = (JSONObject)resources.get("prod101RepositoryDB");
+		JSONObject dbProps = (JSONObject)repoDB.get("Properties");
+		assertFalse(dbProps.has("DBSnapshotIdentifier"));
+		assertTrue(dbProps.has("DBName"));
+
+		assertTrue(resources.has("prod101Table0RepositoryDB"));
+		JSONObject tableDB = (JSONObject)resources.get("prod101Table0RepositoryDB");
+		JSONObject tDbProps = (JSONObject)tableDB.get("Properties");
+		assertFalse(tDbProps.has("DBSnapshotIdentifier"));
+		assertTrue(tDbProps.has("DBName"));
+
+		assertTrue(resources.has("prod101Table1RepositoryDB"));
+		tableDB = (JSONObject)resources.get("prod101Table1RepositoryDB");
+		tDbProps = (JSONObject)tableDB.get("Properties");
+		assertFalse(tDbProps.has("DBSnapshotIdentifier"));
+		assertTrue(tDbProps.has("DBName"));
 	}
 	
 	@Test
 	public void testBuildAndDeployDev() throws InterruptedException {
+		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
+		String[] noSnapshots = new String[] {NOSNAPSHOT};
+		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 		setupValidBeanstalkConfig();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
 		when(mockCloudFormationClient.getOutput(anyString(), anyString())).thenReturn(String.join(",", EXPECTED_SUBNETS));
 		when(mockEc2Client.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		stack = "dev";
 		configureStack(stack);
+
 		// call under test
 		builder.buildAndDeploy();
+
 		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
@@ -332,8 +363,87 @@ public class RepositoryTemplateBuilderImplTest {
 		assertFalse(resources.has("devd101Table1RepositoryDBHighWriteLatency"));
 		assertFalse(resources.has("dev101Table1RepositoryDBHighCPUUtilization"));
 		assertFalse(resources.has("dev101Table1RepositoryDBLowFreeStorageSpace"));
+
+		assertTrue(resources.has("dev101RepositoryDB"));
+		JSONObject repoDB = (JSONObject)resources.get("dev101RepositoryDB");
+		JSONObject dbProps = (JSONObject)repoDB.get("Properties");
+		assertFalse(dbProps.has("DBSnapshotIdentifier"));
+		assertTrue(dbProps.has("DBName"));
+
+		assertTrue(resources.has("dev101Table0RepositoryDB"));
+		JSONObject tableDB = (JSONObject)resources.get("dev101Table0RepositoryDB");
+		JSONObject tDbProps = (JSONObject)tableDB.get("Properties");
+		assertFalse(tDbProps.has("DBSnapshotIdentifier"));
+		assertTrue(tDbProps.has("DBName"));
+
+		assertTrue(resources.has("dev101Table1RepositoryDB"));
+		tableDB = (JSONObject)resources.get("dev101Table1RepositoryDB");
+		tDbProps = (JSONObject)tableDB.get("Properties");
+		assertFalse(tDbProps.has("DBSnapshotIdentifier"));
+		assertTrue(tDbProps.has("DBName"));
+
 	}
 
+	@Test
+	public void testBuildAndDeployDevFromSnapshot() throws InterruptedException {
+		setupValidBeanstalkConfig();
+		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
+		when(mockCloudFormationClient.getOutput(anyString(), anyString())).thenReturn(String.join(",", EXPECTED_SUBNETS));
+		when(mockEc2Client.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
+		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn("repoSnapshotIdentifier");
+		String[] tableSnaphotIdentifiers = {"table0SnapshotIdentifier", "table1SnapshotIdentifier"};
+		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(tableSnaphotIdentifiers);
+		stack = "dev";
+		configureStack(stack);
+
+		// call under test
+		builder.buildAndDeploy();
+
+		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
+		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
+		CreateOrUpdateStackRequest request = list.get(0);
+		assertEquals("dev-101-shared-resources", request.getStackName());
+		assertEquals(expectedTags, request.getTags());
+		assertEquals(false, request.getEnableTerminationProtection());
+		assertNotNull(request.getParameters());
+		String bodyJSONString = request.getTemplateBody();
+		assertNotNull(bodyJSONString);
+		System.out.println(bodyJSONString);
+		JSONObject templateJson = new JSONObject(bodyJSONString);
+		JSONObject resources = templateJson.getJSONObject("Resources");
+		assertNotNull(resources);
+
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_WORKERS);
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.PORTAL);
+
+		// dev should not have alarms
+		assertFalse(resources.has("dev101Table1RepositoryDBAlarmSwapUsage"));
+		assertFalse(resources.has("dev101Table1RepositoryDBAlarmSwapUsage"));
+		assertFalse(resources.has("devd101Table1RepositoryDBHighWriteLatency"));
+		assertFalse(resources.has("dev101Table1RepositoryDBHighCPUUtilization"));
+		assertFalse(resources.has("dev101Table1RepositoryDBLowFreeStorageSpace"));
+
+		assertTrue(resources.has("dev101RepositoryDB"));
+		JSONObject repoDB = (JSONObject)resources.get("dev101RepositoryDB");
+		JSONObject dbProps = (JSONObject)repoDB.get("Properties");
+		assertTrue(dbProps.has("DBSnapshotIdentifier"));
+		assertFalse(dbProps.has("DBName"));
+
+		assertTrue(resources.has("dev101Table0RepositoryDB"));
+		JSONObject tableDB = (JSONObject)resources.get("dev101Table0RepositoryDB");
+		JSONObject tDbProps = (JSONObject)tableDB.get("Properties");
+		assertTrue(tDbProps.has("DBSnapshotIdentifier"));
+		assertEquals("table0SnapshotIdentifier", tDbProps.get("DBSnapshotIdentifier"));
+		assertFalse(tDbProps.has("DBName"));
+
+		assertTrue(resources.has("dev101Table1RepositoryDB"));
+		tableDB = (JSONObject)resources.get("dev101Table1RepositoryDB");
+		tDbProps = (JSONObject)tableDB.get("Properties");
+		assertTrue(tDbProps.has("DBSnapshotIdentifier"));
+		assertEquals("table1SnapshotIdentifier", tDbProps.get("DBSnapshotIdentifier"));
+		assertFalse(tDbProps.has("DBName"));
+	}
 
 	public void validateResouceDatabaseSubnetGroup(JSONObject resources, String stack) {
 		JSONObject subnetGroup = resources.getJSONObject(stack+"101DBSubnetGroup");
@@ -403,10 +513,26 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("dev-101-shared-resources", name);
 	}
 
-	@Test
-	public void testCreateContext() {
+	@Test(expected = IllegalStateException.class)
+	public void testCreateContextInvalidSnapshotState() {
+		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn("aSnapshotId");
+		String[] noSnapshots = new String[]{NOSNAPSHOT};
+		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
+
 		// call under test
 		VelocityContext context = builder.createSharedContext();
+
+	}
+
+	@Test
+	public void testCreateContext() {
+		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
+		String[] noSnapshots = new String[] {NOSNAPSHOT};
+		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
+
+		// call under test
+		VelocityContext context = builder.createSharedContext();
+
 		assertNotNull(context);
 		assertEquals("dev", context.get(STACK));
 		assertEquals("101", context.get(INSTANCE));

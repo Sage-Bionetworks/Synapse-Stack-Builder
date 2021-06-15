@@ -99,4 +99,17 @@ public class ConfigurationImplTest {
 		assertEquals("foobar", result[2]);
 	}
 
+	@Test
+	public void testGetComaSeparatedPropertySingle() {
+		String key = "org.sagebionetworks.somekey";
+		String value = "foo";
+		System.setProperty(key, value);
+		config = new ConfigurationImpl();
+		// call under test
+		String[] result = config.getComaSeparatedProperty(key);
+		assertNotNull(result);
+		assertEquals(1, result.length);
+		assertEquals("foo", result[0]);
+	}
+
 }

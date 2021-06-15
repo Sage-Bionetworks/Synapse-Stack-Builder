@@ -40,15 +40,17 @@ public class ConfigurationImpl implements Configuration {
 
 	@Override
 	public String getProperty(String key) {
-		if(key == null) {
+		if (key == null) {
 			throw new IllegalArgumentException("Key cannot be null");
 		}
 		String value = props.getProperty(key);
-		if(value == null) {
+		if (value == null) {
 			throw new ConfigurationPropertyNotFound(key);
 		}
 		return value;
 	}
+
+
 
 	@Override
 	public String[] getComaSeparatedProperty(String key) {

@@ -11,6 +11,7 @@ public class DatabaseDescriptor {
 	int maxAllocatedStorage;
 	String instanceClass;
 	String instanceIdentifier;
+	String snapshotIdentifier;
 	String dbName;
 	boolean multiAZ;
 	// default to standard (magnetic)
@@ -63,6 +64,8 @@ public class DatabaseDescriptor {
 	public String getInstanceIdentifier() {
 		return instanceIdentifier;
 	}
+
+	public String getSnapshotIdentifier() { return snapshotIdentifier; }
 
 	/**
 	 * The name of the DB.
@@ -158,6 +161,11 @@ public class DatabaseDescriptor {
 		this.multiAZ = multiAZ;
 		return this;
 	}
+
+	public DatabaseDescriptor withSnapshotIdentifier(String snapshotIdentifier) {
+		this.snapshotIdentifier = snapshotIdentifier;
+		return this;
+	}
 	
 	/**
 	 * See: https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_CreateDBInstance.html
@@ -210,6 +218,7 @@ public class DatabaseDescriptor {
 		result = prime * result + ((dbStorageType == null) ? 0 : dbStorageType.hashCode());
 		result = prime * result + ((instanceClass == null) ? 0 : instanceClass.hashCode());
 		result = prime * result + ((instanceIdentifier == null) ? 0 : instanceIdentifier.hashCode());
+		result = prime * result + ((snapshotIdentifier == null) ? 0 : snapshotIdentifier.hashCode());
 		result = prime * result + (multiAZ ? 1231 : 1237);
 		result = prime * result + ((resourceName == null) ? 0 : resourceName.hashCode());
 		return result;
@@ -247,6 +256,11 @@ public class DatabaseDescriptor {
 				return false;
 		} else if (!instanceIdentifier.equals(other.instanceIdentifier))
 			return false;
+		if (snapshotIdentifier == null) {
+			if (other.snapshotIdentifier != null)
+				return false;
+		} else if (!snapshotIdentifier.equals(other.snapshotIdentifier))
+			return false;
 		if (multiAZ != other.multiAZ)
 			return false;
 		if (resourceName == null) {
@@ -261,7 +275,7 @@ public class DatabaseDescriptor {
 	public String toString() {
 		return "DatabaseDescriptor [resourceName=" + resourceName + ", allocatedStorage=" + allocatedStorage + ", maxAllocatedStorage="
 				+ maxAllocatedStorage + ", instanceClass=" + instanceClass + ", instanceIdentifier=" + instanceIdentifier + ", dbName="
-				+ dbName + ", multiAZ=" + multiAZ + ", dbStorageType=" + dbStorageType + ", dbIops=" + dbIops + "]";
+				+ dbName + ", snapshotIdentifier=" + snapshotIdentifier + ", multiAZ=" + multiAZ + ", dbStorageType=" + dbStorageType + ", dbIops=" + dbIops + "]";
 	}
 
 
