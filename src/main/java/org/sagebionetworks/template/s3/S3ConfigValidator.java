@@ -37,7 +37,10 @@ public class S3ConfigValidator {
 				});
 		}
 		
-		config.getBuckets().stream().forEach(this::validateStorageClassTransitions);
+		config.getBuckets().stream().forEach(bucket -> {
+			validateStorageClassTransitions(bucket);
+			validateIntArchiveConfiguration(bucket);
+		});
 		
 		
 		return config;
@@ -55,6 +58,19 @@ public class S3ConfigValidator {
 			ValidateArgument.requirement(transition.getDays() != null && transition.getDays() > 0, "The days value must be greater than 0 for transition in bucket " + bucket.getName());
 			ValidateArgument.requirement(classes.add(transition.getStorageClass()), "Duplicate storageClass transition found for bucket " + bucket.getName() + ": " + transition);
 		}
+	}
+	
+	private void validateIntArchiveConfiguration(S3BucketDescriptor bucket) {
+		if (bucket.getIntArchiveConfiguration() == null) {
+			return;
+		}
+		
+		S3IntArchiveConfiguration config = bucket.getIntArchiveConfiguration();
+		
+		ValidateArgument.requirement(config.getArchiveAccessDays() == null || config.getArchiveAccessDays() >= 90, "The minimum number of days for INT archive access is 90 days.");
+		ValidateArgument.requirement(config.getDeepArchiveAccessDays() == null || config.getDeepArchiveAccessDays() >= 180, "The minimum number of days for INT deep archive access is 180 days.");
+		ValidateArgument.requirement(config.getArchiveAccessDays() != null || config.getDeepArchiveAccessDays() != null, "At least one of archive or deep archive number of days should be specified.");
+
 	}
 	
 }
