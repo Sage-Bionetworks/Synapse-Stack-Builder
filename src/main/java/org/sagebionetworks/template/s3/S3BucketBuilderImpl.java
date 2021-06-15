@@ -210,19 +210,25 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		List<Rule> rules = config.getRules() == null ? new ArrayList<>() : new ArrayList<>(config.getRules());
 
 		if (bucket.getRetentionDays() != null) {
-			update = addOrUpdateRule(rules, bucket.getName(), RULE_ID_RETENTION, bucket, this::createRetentionRule, this::updateRetentionRule);
+			if (addOrUpdateRule(rules, bucket.getName(), RULE_ID_RETENTION, bucket, this::createRetentionRule, this::updateRetentionRule)) {
+				update = true;
+			}
 		}
 
 		if (bucket.getStorageClassTransitions() != null) {
 			for (S3BucketClassTransition transition : bucket.getStorageClassTransitions()) {
 				String transitionRuleName = transition.getStorageClass().name() + RULE_ID_CLASS_TRANSITION;
 
-				update |= addOrUpdateRule(rules, bucket.getName(), transitionRuleName, transition, this::createClassTransitionRule, this::updateClassTransitionRule);
+				if (addOrUpdateRule(rules, bucket.getName(), transitionRuleName, transition, this::createClassTransitionRule, this::updateClassTransitionRule)) {
+					update = true;
+				}
 			}
 		}
 		
 		// Always checks for a default multipart upload cleanup rule
-		update |= addOrUpdateRule(rules, bucket.getName(), RULE_ID_ABORT_MULTIPART_UPLOADS, bucket, this::createAbortMultipartRule, this::updateAbortMultipartRule);
+		if (addOrUpdateRule(rules, bucket.getName(), RULE_ID_ABORT_MULTIPART_UPLOADS, bucket, this::createAbortMultipartRule, this::updateAbortMultipartRule)) {
+			update = true;
+		}
 		
 		if (!rules.isEmpty() && update) {
 			config.setRules(rules);
