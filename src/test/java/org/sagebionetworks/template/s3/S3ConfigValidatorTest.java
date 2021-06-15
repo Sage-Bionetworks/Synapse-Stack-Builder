@@ -199,4 +199,72 @@ public class S3ConfigValidatorTest {
 		
 		assertEquals("The days value must be greater than 0 for transition in bucket bucket", ex.getMessage());
 	}
+	
+	@Test
+	public void testValidateWithIntArchiveConfiguration() {
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+
+		bucket.setName("bucket");
+		bucket.setIntArchiveConfiguration(new S3IntArchiveConfiguration()
+				.withArchiveAccessDays(90)
+				.withDeepArchiveAccessDays(180)
+				.withTagFilter(new S3TagFilter().withName("tag").withValue("test"))
+		);
+
+		when(mockConfig.getBuckets()).thenReturn(Arrays.asList(bucket));
+		
+		validator.validate();
+	}
+	
+	@Test
+	public void testValidateWithIntArchiveConfigurationWithArchiveMinDays() {
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+
+		bucket.setName("bucket");
+		bucket.setIntArchiveConfiguration(new S3IntArchiveConfiguration()
+				.withArchiveAccessDays(60)
+		);
+
+		when(mockConfig.getBuckets()).thenReturn(Arrays.asList(bucket));
+		
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {			
+			validator.validate();
+		});
+		
+		assertEquals("The minimum number of days for INT archive access is 90 days.", ex.getMessage());
+	}
+	
+	@Test
+	public void testValidateWithIntArchiveConfigurationWithDeepArchiveMinDays() {
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+
+		bucket.setName("bucket");
+		bucket.setIntArchiveConfiguration(new S3IntArchiveConfiguration()
+				.withDeepArchiveAccessDays(80)
+		);
+
+		when(mockConfig.getBuckets()).thenReturn(Arrays.asList(bucket));
+		
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {			
+			validator.validate();
+		});
+		
+		assertEquals("The minimum number of days for INT deep archive access is 180 days.", ex.getMessage());
+	}
+	
+	@Test
+	public void testValidateWithIntArchiveConfigurationWithMissingTier() {
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+
+		bucket.setName("bucket");
+		bucket.setIntArchiveConfiguration(new S3IntArchiveConfiguration());
+
+		when(mockConfig.getBuckets()).thenReturn(Arrays.asList(bucket));
+		
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {			
+			validator.validate();
+		});
+		
+		assertEquals("At least one of archive or deep archive number of days should be specified.", ex.getMessage());
+	}
 }
