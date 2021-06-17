@@ -104,6 +104,8 @@ class Ec2ClientImplTest {
 		// Call under test
 		List<String> availableSubnets = ec2Client.getAvailableSubnetsForInstanceType(INSTANCE_TYPE, subnets);
 		assertNotNull(availableSubnets);
+		List<String> sortedAvailableSubnets = availableSubnets.stream().sorted().collect(Collectors.toList());
+		assertEquals(sortedAvailableSubnets, availableSubnets);
 		List<String> expectedAvailableSubnets = Arrays.asList("subnet1", "subnet2", "subnet4", "subnet5");
 		assertEquals(expectedAvailableSubnets, availableSubnets);
 	}
@@ -143,7 +145,7 @@ class Ec2ClientImplTest {
 	 * @return
 	 */
 	private List<InstanceTypeOffering> generateInstanceOfferings(String instanceType) {
-		String[] offeredAzs = {"us-east-1a", "us-east-1b", "us-east-1d", "us-east-1e"};
+		String[] offeredAzs = {"us-east-1b", "us-east-1a", "us-east-1d", "us-east-1e"};
 		List<InstanceTypeOffering> l = new ArrayList<>(4);
 		for (int i = 0; i < 4; i++) {
 			InstanceTypeOffering io = new InstanceTypeOffering().withInstanceType(instanceType).withLocation(offeredAzs[i]);
