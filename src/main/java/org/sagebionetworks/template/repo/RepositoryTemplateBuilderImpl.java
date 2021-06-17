@@ -94,6 +94,8 @@ import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.Tag;
 import com.google.inject.Inject;
 
+import static org.sagebionetworks.template.Constants.*;
+
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
 
 	CloudFormationClient cloudFormationClient;
@@ -317,7 +319,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		String instance = config.getProperty(PROPERTY_KEY_INSTANCE);
 
 		// Describe the repository database.
-		results[0] = new DatabaseDescriptor().withResourceName(stack + instance + "RepositoryDB")
+		DatabaseDescriptor repoDbDescriptor = new DatabaseDescriptor().withResourceName(stack + instance + "RepositoryDB")
 				.withAllocatedStorage(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE))
 				.withMaxAllocatedStorage(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE))
 				.withInstanceIdentifier(stack + "-" + instance + "-db").withDbName(stack + instance)
@@ -326,15 +328,34 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				.withDbIops(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS))
 				.withMultiAZ(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ));
 
+		String repoSnapshotIdentifier = config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER);
+		boolean useSnapshotForRepoDB = ! NOSNAPSHOT.equals(repoSnapshotIdentifier);
+		if (useSnapshotForRepoDB) {
+			repoDbDescriptor = repoDbDescriptor.withSnapshotIdentifier(repoSnapshotIdentifier);
+		}
+		results[0] = repoDbDescriptor;
+
+		String[] repoTableSnapshotIdentifiers = config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS);
+		boolean useSnapshotsForTablesDbs = !(repoTableSnapshotIdentifiers.length == 1 && NOSNAPSHOT.equals(repoTableSnapshotIdentifiers[0]));
+		if (useSnapshotForRepoDB != useSnapshotsForTablesDbs) {
+			throw new IllegalStateException("The repo database is set to use a snapshot but the tables database are not set to use snapshots, or vice-versa");
+		}
+
 		// Describe each table database
 		for (int i = 0; i < numberOfTablesDatabase; i++) {
-			results[i + 1] = new DatabaseDescriptor().withResourceName(stack + instance + "Table" + i + "RepositoryDB")
-					.withAllocatedStorage(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE))
-					.withMaxAllocatedStorage(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE))
-					.withInstanceIdentifier(stack + "-" + instance + "-table-" + i).withDbName(stack + instance)
-					.withDbStorageType(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE))
-					.withDbIops(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS))
-					.withInstanceClass(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).withMultiAZ(false);
+			DatabaseDescriptor tableDbDescriptor = new DatabaseDescriptor()
+				.withResourceName(stack + instance + "Table" + i + "RepositoryDB")
+				.withAllocatedStorage(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE))
+				.withMaxAllocatedStorage(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE))
+				.withInstanceIdentifier(stack + "-" + instance + "-table-" + i).withDbName(stack + instance)
+				.withDbStorageType(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE))
+				.withDbIops(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS))
+				.withInstanceClass(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).withMultiAZ(false);
+			if (useSnapshotForRepoDB) {
+				String snapshotIdentifier = repoTableSnapshotIdentifiers[i];
+				tableDbDescriptor = tableDbDescriptor.withSnapshotIdentifier(snapshotIdentifier);
+			}
+			results[i+1] = tableDbDescriptor;
 		}
 		return results;
 	}

@@ -16,7 +16,7 @@ public interface Configuration {
 	 * @return
 	 */
 	String getProperty(String key);
-	
+
 	/**
 	 * For properties that are comma separated lists of values,
 	 * get the values as String[] array.

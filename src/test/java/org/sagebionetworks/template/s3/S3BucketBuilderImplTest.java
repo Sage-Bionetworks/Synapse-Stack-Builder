@@ -36,14 +36,21 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AbortIncompleteMultipartUpload;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Rule;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Transition;
+import com.amazonaws.services.s3.model.GetBucketIntelligentTieringConfigurationResult;
 import com.amazonaws.services.s3.model.GetBucketInventoryConfigurationResult;
 import com.amazonaws.services.s3.model.SSEAlgorithm;
 import com.amazonaws.services.s3.model.ServerSideEncryptionRule;
 import com.amazonaws.services.s3.model.SetBucketEncryptionRequest;
 import com.amazonaws.services.s3.model.StorageClass;
+import com.amazonaws.services.s3.model.Tag;
+import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringAccessTier;
+import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringConfiguration;
+import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringTagPredicate;
+import com.amazonaws.services.s3.model.intelligenttiering.Tiering;
 import com.amazonaws.services.s3.model.inventory.InventoryConfiguration;
 import com.amazonaws.services.s3.model.inventory.InventoryFrequency;
 import com.amazonaws.services.s3.model.inventory.InventoryS3BucketDestination;
@@ -89,6 +96,9 @@ public class S3BucketBuilderImplTest {
 	
 	@Captor
 	private ArgumentCaptor<VelocityContext> velocityContextCaptor;
+	
+	@Captor
+	private ArgumentCaptor<IntelligentTieringConfiguration> intConfigurationCaptor;
 
 	private String stack;
 	private String accountId;
@@ -824,7 +834,7 @@ public class S3BucketBuilderImplTest {
 		verify(mockS3Client).createBucket(expectedBucketName);
 		verify(mockS3Client).getBucketEncryption(expectedBucketName);
 		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
-		
+
 		verify(mockS3Client, never()).setBucketEncryption(any());
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		
@@ -902,6 +912,206 @@ public class S3BucketBuilderImplTest {
 		
 		verifyNoMoreInteractions(mockS3Client);
 
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithIntArchiveConfiguration() {
+		
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		bucket.setName("${stack}.bucket");
+		bucket.setIntArchiveConfiguration(new S3IntArchiveConfiguration()
+				.withArchiveAccessDays(90)
+				.withDeepArchiveAccessDays(180)
+				.withTagFilter(new S3TagFilter().withName("test").withValue("tag"))
+		);
+		
+		String expectedBucketName = stack + ".bucket";
+		
+		AmazonS3Exception notFound = new AmazonS3Exception("Not Found");
+		notFound.setErrorCode("NoSuchConfiguration");
+		notFound.setStatusCode(404);
+		
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		doThrow(notFound).when(mockS3Client).getBucketIntelligentTieringConfiguration(any(), any());
+				
+		// Call under test
+		builder.buildAllBuckets();
+		
+		verify(mockS3Client).getBucketIntelligentTieringConfiguration(expectedBucketName, S3BucketBuilderImpl.INT_ARCHIVE_ID);
+		verify(mockS3Client).setBucketIntelligentTieringConfiguration(eq(expectedBucketName), intConfigurationCaptor.capture());
+		
+		IntelligentTieringConfiguration config = intConfigurationCaptor.getValue();
+		
+		assertEquals(S3BucketBuilderImpl.INT_ARCHIVE_ID, config.getId());
+		assertEquals(Arrays.asList(
+				new Tiering().withDays(90).withIntelligentTieringAccessTier(IntelligentTieringAccessTier.ARCHIVE_ACCESS),
+				new Tiering().withDays(180).withIntelligentTieringAccessTier(IntelligentTieringAccessTier.DEEP_ARCHIVE_ACCESS)
+		), config.getTierings());
+		
+		Tag tag = ((IntelligentTieringTagPredicate)config.getFilter().getPredicate()).getTag();
+		
+		assertEquals("test",  tag.getKey());
+		assertEquals("tag",  tag.getValue());
+		
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithIntArchiveConfigurationAndOtherAmazonExceptionStatusCode() {
+		
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		bucket.setName("${stack}.bucket");
+		bucket.setIntArchiveConfiguration(new S3IntArchiveConfiguration()
+				.withArchiveAccessDays(90)
+				.withDeepArchiveAccessDays(180)
+				.withTagFilter(new S3TagFilter().withName("test").withValue("tag"))
+		);
+		
+		String expectedBucketName = stack + ".bucket";
+		
+		AmazonS3Exception anotherEx = new AmazonS3Exception("Not Found");
+		anotherEx.setErrorCode("NoSuchConfiguration");
+		anotherEx.setStatusCode(503);
+		
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		doThrow(anotherEx).when(mockS3Client).getBucketIntelligentTieringConfiguration(any(), any());
+				
+		AmazonS3Exception ex = assertThrows(AmazonS3Exception.class, () -> {			
+			// Call under test
+			builder.buildAllBuckets();
+		});
+		
+		assertEquals(anotherEx, ex);
+		
+		verify(mockS3Client).getBucketIntelligentTieringConfiguration(expectedBucketName, S3BucketBuilderImpl.INT_ARCHIVE_ID);
+		verify(mockS3Client, never()).setBucketIntelligentTieringConfiguration(any(), any());
+		
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithIntArchiveConfigurationAndOtherAmazonExceptionErrorCode() {
+		
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		bucket.setName("${stack}.bucket");
+		bucket.setIntArchiveConfiguration(new S3IntArchiveConfiguration()
+				.withArchiveAccessDays(90)
+				.withDeepArchiveAccessDays(180)
+				.withTagFilter(new S3TagFilter().withName("test").withValue("tag"))
+		);
+		
+		String expectedBucketName = stack + ".bucket";
+		
+		AmazonS3Exception anotherEx = new AmazonS3Exception("Not Found");
+		anotherEx.setErrorCode("NoSuchBucket");
+		anotherEx.setStatusCode(404);
+		
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		doThrow(anotherEx).when(mockS3Client).getBucketIntelligentTieringConfiguration(any(), any());
+				
+		AmazonS3Exception ex = assertThrows(AmazonS3Exception.class, () -> {			
+			// Call under test
+			builder.buildAllBuckets();
+		});
+		
+		assertEquals(anotherEx, ex);
+		
+		verify(mockS3Client).getBucketIntelligentTieringConfiguration(expectedBucketName, S3BucketBuilderImpl.INT_ARCHIVE_ID);
+		verify(mockS3Client, never()).setBucketIntelligentTieringConfiguration(any(), any());
+		
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithIntArchiveConfigurationAndNotTagFilter() {
+		
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		bucket.setName("${stack}.bucket");
+		bucket.setIntArchiveConfiguration(new S3IntArchiveConfiguration()
+				.withArchiveAccessDays(90)
+				.withDeepArchiveAccessDays(180)
+		);
+		
+		String expectedBucketName = stack + ".bucket";
+		
+		AmazonS3Exception notFound = new AmazonS3Exception("Not Found");
+		notFound.setErrorCode("NoSuchConfiguration");
+		notFound.setStatusCode(404);
+		
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		doThrow(notFound).when(mockS3Client).getBucketIntelligentTieringConfiguration(any(), any());
+				
+		// Call under test
+		builder.buildAllBuckets();
+		
+		verify(mockS3Client).getBucketIntelligentTieringConfiguration(expectedBucketName, S3BucketBuilderImpl.INT_ARCHIVE_ID);
+		verify(mockS3Client).setBucketIntelligentTieringConfiguration(eq(expectedBucketName), intConfigurationCaptor.capture());
+		
+		IntelligentTieringConfiguration config = intConfigurationCaptor.getValue();
+		
+		assertEquals(S3BucketBuilderImpl.INT_ARCHIVE_ID, config.getId());
+		assertEquals(Arrays.asList(
+				new Tiering().withDays(90).withIntelligentTieringAccessTier(IntelligentTieringAccessTier.ARCHIVE_ACCESS),
+				new Tiering().withDays(180).withIntelligentTieringAccessTier(IntelligentTieringAccessTier.DEEP_ARCHIVE_ACCESS)
+		), config.getTierings());
+		
+		assertNull(config.getFilter().getPredicate());
+		
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithIntArchiveConfigurationAndSingleTier() {
+		
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		bucket.setName("${stack}.bucket");
+		bucket.setIntArchiveConfiguration(new S3IntArchiveConfiguration()
+				.withDeepArchiveAccessDays(180)
+		);
+		
+		String expectedBucketName = stack + ".bucket";
+		
+		AmazonS3Exception notFound = new AmazonS3Exception("Not Found");
+		notFound.setErrorCode("NoSuchConfiguration");
+		notFound.setStatusCode(404);
+		
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		doThrow(notFound).when(mockS3Client).getBucketIntelligentTieringConfiguration(any(), any());
+				
+		// Call under test
+		builder.buildAllBuckets();
+		
+		verify(mockS3Client).getBucketIntelligentTieringConfiguration(expectedBucketName, S3BucketBuilderImpl.INT_ARCHIVE_ID);
+		verify(mockS3Client).setBucketIntelligentTieringConfiguration(eq(expectedBucketName), intConfigurationCaptor.capture());
+		
+		IntelligentTieringConfiguration config = intConfigurationCaptor.getValue();
+		
+		assertEquals(S3BucketBuilderImpl.INT_ARCHIVE_ID, config.getId());
+		assertEquals(Arrays.asList(
+				new Tiering().withDays(180).withIntelligentTieringAccessTier(IntelligentTieringAccessTier.DEEP_ARCHIVE_ACCESS)
+		), config.getTierings());
+		
+		assertNull(config.getFilter().getPredicate());
+		
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithIntArchiveConfigurationAndExisting() {
+		
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		bucket.setName("${stack}.bucket");
+		bucket.setIntArchiveConfiguration(new S3IntArchiveConfiguration()
+				.withArchiveAccessDays(90)
+				.withDeepArchiveAccessDays(180)
+				.withTagFilter(new S3TagFilter().withName("test").withValue("tag"))
+		);
+		
+		String expectedBucketName = stack + ".bucket";
+		
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockS3Client.getBucketIntelligentTieringConfiguration(any(), any())).thenReturn(new GetBucketIntelligentTieringConfigurationResult().withIntelligentTieringConfiguration(new IntelligentTieringConfiguration()));
+				
+		// Call under test
+		builder.buildAllBuckets();
+		
+		verify(mockS3Client).getBucketIntelligentTieringConfiguration(expectedBucketName, S3BucketBuilderImpl.INT_ARCHIVE_ID);
+		verify(mockS3Client, never()).setBucketIntelligentTieringConfiguration(any(), any());
 	}
 	
 	private Rule allBucketRule(String ruleName) {

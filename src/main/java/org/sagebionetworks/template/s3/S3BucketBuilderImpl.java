@@ -24,6 +24,7 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AbortIncompleteMultipartUpload;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Rule;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Transition;
@@ -32,6 +33,13 @@ import com.amazonaws.services.s3.model.ServerSideEncryptionByDefault;
 import com.amazonaws.services.s3.model.ServerSideEncryptionConfiguration;
 import com.amazonaws.services.s3.model.ServerSideEncryptionRule;
 import com.amazonaws.services.s3.model.SetBucketEncryptionRequest;
+import com.amazonaws.services.s3.model.Tag;
+import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringAccessTier;
+import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringConfiguration;
+import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringFilter;
+import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringStatus;
+import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringTagPredicate;
+import com.amazonaws.services.s3.model.intelligenttiering.Tiering;
 import com.amazonaws.services.s3.model.inventory.InventoryConfiguration;
 import com.amazonaws.services.s3.model.inventory.InventoryDestination;
 import com.amazonaws.services.s3.model.inventory.InventoryFrequency;
@@ -58,7 +66,8 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	static final String RULE_ID_CLASS_TRANSITION = "ClassTransitionRule";
 	static final String RULE_ID_ABORT_MULTIPART_UPLOADS = "abortMultipartUploadsRule";
 	static final int ABORT_MULTIPART_UPLOAD_DAYS = 60;
-	
+	static final String INT_ARCHIVE_ID = "intArchiveAccessConfiguration";
+
 	private AmazonS3 s3Client;
 	private AWSSecurityTokenService stsClient;
 	private RepoConfiguration config;
@@ -97,6 +106,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			configureEncryption(bucket.getName());	
 			configureInventory(bucket.getName(), accountId, inventoryBucket, bucket.isInventoryEnabled());
 			configureBucketLifeCycle(bucket);
+			configureIntelligentTieringArchive(bucket);
 			
 			if (bucket.isInventoryEnabled()) {
 				inventoriedBuckets.add(bucket.getName());
@@ -199,20 +209,26 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		List<Rule> rules = config.getRules() == null ? new ArrayList<>() : new ArrayList<>(config.getRules());
 
 		if (bucket.getRetentionDays() != null) {
-			update = addOrUpdateRule(rules, bucket.getName(), RULE_ID_RETENTION, bucket, this::createRetentionRule, this::updateRetentionRule);
+			if (addOrUpdateRule(rules, bucket.getName(), RULE_ID_RETENTION, bucket, this::createRetentionRule, this::updateRetentionRule)) {
+				update = true;
+			}
 		}
 
 		if (bucket.getStorageClassTransitions() != null) {
 			for (S3BucketClassTransition transition : bucket.getStorageClassTransitions()) {
 				String transitionRuleName = transition.getStorageClass().name() + RULE_ID_CLASS_TRANSITION;
 
-				update |= addOrUpdateRule(rules, bucket.getName(), transitionRuleName, transition, this::createClassTransitionRule, this::updateClassTransitionRule);
+				if (addOrUpdateRule(rules, bucket.getName(), transitionRuleName, transition, this::createClassTransitionRule, this::updateClassTransitionRule)) {
+					update = true;
+				}
 			}
 		}
 		
 		// Always checks for a default multipart upload cleanup rule
-		update |= addOrUpdateRule(rules, bucket.getName(), RULE_ID_ABORT_MULTIPART_UPLOADS, bucket, this::createAbortMultipartRule, this::updateAbortMultipartRule);
-		
+		if (addOrUpdateRule(rules, bucket.getName(), RULE_ID_ABORT_MULTIPART_UPLOADS, bucket, this::createAbortMultipartRule, this::updateAbortMultipartRule)) {
+			update = true;
+		}
+
 		if (!rules.isEmpty() && update) {
 			config.setRules(rules);
 			
@@ -225,6 +241,64 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			s3Client.setBucketLifecycleConfiguration(bucket.getName(), config);
 		}
 		
+	}
+	
+	void configureIntelligentTieringArchive(S3BucketDescriptor bucket) {
+		
+		if (bucket.getIntArchiveConfiguration() == null) {
+			return;
+		}
+				
+		IntelligentTieringConfiguration intConfig;
+		
+		try {
+			intConfig = s3Client.getBucketIntelligentTieringConfiguration(bucket.getName(), INT_ARCHIVE_ID).getIntelligentTieringConfiguration();
+		} catch (AmazonS3Exception e) {
+			if (404 == e.getStatusCode() && "NoSuchConfiguration".equals(e.getErrorCode())) {
+				intConfig = null;
+			} else {
+				throw e;
+			}
+		}
+		
+		if (intConfig != null) {
+			LOG.warn("The {} intelligent tiering configuration already exists for bucket {}, will not update.", INT_ARCHIVE_ID, bucket.getName());
+			return;
+		}
+		
+		intConfig = createIntArchiveConfiguration(bucket.getIntArchiveConfiguration());
+		
+		LOG.info("Setting {} intelligent tiering configuration on bucket {}.", INT_ARCHIVE_ID, bucket.getName());
+		
+		s3Client.setBucketIntelligentTieringConfiguration(bucket.getName(), intConfig);
+		
+	}
+	
+	private IntelligentTieringConfiguration createIntArchiveConfiguration(S3IntArchiveConfiguration config) {
+		IntelligentTieringConfiguration intConfig = new IntelligentTieringConfiguration().withId(INT_ARCHIVE_ID);
+		intConfig.withStatus(IntelligentTieringStatus.Enabled);
+
+		List<Tiering> tiers = new ArrayList<>();
+		
+		if (config.getArchiveAccessDays() != null) {
+			tiers.add(new Tiering().withIntelligentTieringAccessTier(IntelligentTieringAccessTier.ARCHIVE_ACCESS).withDays(config.getArchiveAccessDays()));
+		}
+		
+		if (config.getDeepArchiveAccessDays() != null) {
+			tiers.add(new Tiering().withIntelligentTieringAccessTier(IntelligentTieringAccessTier.DEEP_ARCHIVE_ACCESS).withDays(config.getDeepArchiveAccessDays()));
+		}
+		
+		intConfig.withTierings(tiers);
+		
+		IntelligentTieringFilter filter = new IntelligentTieringFilter();
+
+		if (config.getTagFilter() != null) {
+			filter.withPredicate(new IntelligentTieringTagPredicate(new Tag(config.getTagFilter().getName(), config.getTagFilter().getValue())));
+		}
+		
+		intConfig.setFilter(filter);
+		
+		return intConfig;
 	}
 	
 	private Rule createAbortMultipartRule(S3BucketDescriptor bucket) {

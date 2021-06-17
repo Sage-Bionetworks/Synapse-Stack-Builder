@@ -12,7 +12,15 @@
 					"storageClass": "IntelligentTiering",
 					"days": 35
 				}
-			]
+			],
+			"intArchiveConfiguration": {
+				"tagFilter": {
+					"name": "synapse-status",
+					"value": "archive"
+				},
+				"archiveAccessDays": 90,
+				"deepArchiveAccessDays": 180
+			}
 		},
 		{
 			"name": "${stack}.table.row.changes"

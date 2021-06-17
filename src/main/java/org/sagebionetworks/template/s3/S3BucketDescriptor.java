@@ -29,6 +29,11 @@ public class S3BucketDescriptor {
 	 * Optional list of storage class transition rules
 	 */
 	private List<S3BucketClassTransition> storageClassTransitions;
+	
+	/**
+	 * Optional intelligent tiering archive configuration
+	 */
+	private S3IntArchiveConfiguration intArchiveConfiguration;
 
 	public S3BucketDescriptor() {
 	}
@@ -72,10 +77,18 @@ public class S3BucketDescriptor {
 	public void setStorageClassTransitions(List<S3BucketClassTransition> storageClassTransitions) {
 		this.storageClassTransitions = storageClassTransitions;
 	}
+	
+	public S3IntArchiveConfiguration getIntArchiveConfiguration() {
+		return intArchiveConfiguration;
+	}
+	
+	public void setIntArchiveConfiguration(S3IntArchiveConfiguration intArchiveConfiguration) {
+		this.intArchiveConfiguration = intArchiveConfiguration;
+	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(devOnly, inventoryEnabled, name, retentionDays, storageClassTransitions);
+		return Objects.hash(devOnly, intArchiveConfiguration, inventoryEnabled, name, retentionDays, storageClassTransitions);
 	}
 
 	@Override
@@ -90,7 +103,8 @@ public class S3BucketDescriptor {
 			return false;
 		}
 		S3BucketDescriptor other = (S3BucketDescriptor) obj;
-		return devOnly == other.devOnly && inventoryEnabled == other.inventoryEnabled && Objects.equals(name, other.name)
+		return devOnly == other.devOnly && Objects.equals(intArchiveConfiguration, other.intArchiveConfiguration)
+				&& inventoryEnabled == other.inventoryEnabled && Objects.equals(name, other.name)
 				&& Objects.equals(retentionDays, other.retentionDays)
 				&& Objects.equals(storageClassTransitions, other.storageClassTransitions);
 	}
@@ -98,7 +112,8 @@ public class S3BucketDescriptor {
 	@Override
 	public String toString() {
 		return "S3BucketDescriptor [name=" + name + ", inventoryEnabled=" + inventoryEnabled + ", retentionDays=" + retentionDays
-				+ ", devOnly=" + devOnly + ", storageClassTransitions=" + storageClassTransitions + "]";
+				+ ", devOnly=" + devOnly + ", storageClassTransitions=" + storageClassTransitions + ", intArchiveConfiguration="
+				+ intArchiveConfiguration + "]";
 	}
 
 }
