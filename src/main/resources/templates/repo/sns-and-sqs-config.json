@@ -259,6 +259,11 @@
 			"messageVisibilityTimeoutSec":300
 		},
 		{
+			"queueName":"DOWNLOAD_LIST_PACKAGE",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":300
+		},
+		{
 			"queueName": "RECURRENT_ATHENA_QUERIES",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":300
