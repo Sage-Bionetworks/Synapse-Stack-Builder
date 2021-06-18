@@ -168,11 +168,11 @@
 				},
 				"BucketARN":"arn:aws:s3:::${stream.bucket}",
 				#if ($stream.parameterizeDestinationByStack)
-				"Prefix":"${stack}${instance}${stream.name}${stream.bucketPrefix}/records/${stream.partitionScheme}/",
-				"ErrorOutputPrefix":"${stack}${instance}${stream.name}${stream.bucketPrefix}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
+				"Prefix":"${stack}${instance}${stream.bucketPrefix}${stream.name}/records/${stream.partitionScheme}/",
+				"ErrorOutputPrefix":"${stack}${instance}${stream.bucketPrefix}${stream.name}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
 				#else
-				"Prefix":"${stream.name}${stream.bucketPrefix}/records/${stream.partitionScheme}/",
-				"ErrorOutputPrefix":"${stream.name}${stream.bucketPrefix}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
+				"Prefix":"${stream.bucketPrefix}${stream.name}/records/${stream.partitionScheme}/",
+				"ErrorOutputPrefix":"${stream.bucketPrefix}${stream.name}/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
 				#end
 				"BufferingHints":{
 					"IntervalInSeconds":#if(${stack} == 'prod') ${stream.bufferFlushInterval} #else 60 #end,
@@ -225,11 +225,11 @@
 						"BucketARN":"arn:aws:s3:::${stream.bucket}",
 						"CompressionFormat" : "GZIP",
 						#if ($stream.parameterizeDestinationByStack)
-						"Prefix":"${stack}${instance}${stream.name}${stream.bucketPrefix}/backup/records/${stream.partitionScheme}/",
-						"ErrorOutputPrefix":"${stack}${instance}${stream.name}${stream.bucketPrefix}/backup/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
+						"Prefix":"${stack}${instance}${stream.bucketPrefix}${stream.name}/backup/records/${stream.partitionScheme}/",
+						"ErrorOutputPrefix":"${stack}${instance}${stream.bucketPrefix}${stream.name}/backup/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
 						#else
-						"Prefix":"${stream.name}${stream.bucketPrefix}/backup/records/${stream.partitionScheme}/",
-						"ErrorOutputPrefix":"${stream.name}${stream.bucketPrefix}/backup/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
+						"Prefix":"${stream.bucketPrefix}${stream.name}/backup/records/${stream.partitionScheme}/",
+						"ErrorOutputPrefix":"${stream.bucketPrefix}${stream.name}/backup/errors/!{firehose:error-output-type}/!{timestamp:yyyy-MM-dd}/",
 						#end
 						"BufferingHints":{
 							"IntervalInSeconds": ${stream.bufferFlushInterval},
