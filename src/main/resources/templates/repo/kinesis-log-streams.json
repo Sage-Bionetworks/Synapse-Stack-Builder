@@ -174,7 +174,7 @@
 	{
 		"name": "filehandleSnapshots",
 		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
-		"bucket": "${stack}.datawarehouse.object-snapshots.sagebase.org",
+		"bucket": "${stack}.datawarehouse.sagebase.org",
 		"bucketPrefix": "object-snapshots",
 		"format": "JSON",
 		"bufferFlushSize": 64,
