@@ -267,6 +267,16 @@
 			"queueName": "RECURRENT_ATHENA_QUERIES",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":300
+		},
+		{
+			"queueName": "FILE_HANDLE_ARCHIVAL_REQUEST",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":120
+		},
+		{
+			"queueName": "FILE_KEY_ARCHIVE",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":60
 		}
 	]
 }
