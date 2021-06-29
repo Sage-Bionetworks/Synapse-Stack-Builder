@@ -28,25 +28,21 @@
 				"DisplayName": "${stack}-Data-Bucket-Notifications-Topic"
 			}
 		},
-		{
+		"${stack}DataBucketNotificationsTopicPolicy": {
 		   "Type" : "AWS::SNS::TopicPolicy",
 		   "Properties" : {
 		      "PolicyDocument" :  {
 		         "Id" : "${stack}-Data-Bucket-Notifications-Topic-Policy",
 		         "Version" : "2012-10-17",
-		         "Statement" : [ {
+		         "Statement" : [{
 		            "Sid" : "allow-s3-publish",
 		            "Effect" : "Allow",
-		            "Principal": {
-				    	"Service": "s3.amazonaws.com"  
-				    },
-		            "Action" : [
-				    	"SNS:Publish"
-				    ],
+		            "Principal": { "Service": "s3.amazonaws.com" },
+		            "Action" : [ "SNS:Publish" ],
 		            "Resource" : { "Ref":"${stack}DataBucketNotificationsTopic"},
 		            "Condition": {
 				    	"ArnLike": { "aws:SourceArn": "arn:aws:s3:*:*:${stack}data.sagebase.org" },
-				      	"StringEquals": { "aws:SourceAccount": "bucket-owner-account-id" }
+				      	"StringEquals": { "aws:SourceAccount": { "Ref": "AWS::AccountId" } }
 				    }
 		         }]
 		      },
