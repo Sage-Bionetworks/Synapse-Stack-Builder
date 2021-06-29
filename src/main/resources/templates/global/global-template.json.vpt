@@ -64,6 +64,26 @@
 					]
 				}
 			}
+		},
+		"${stack}DataBucketNotificationsTopic": {
+			"Description": "Topic for the ${stack}data.sagebase.org S3 bucket notifications",
+			"Value": { "Ref":"${stack}DataBucketNotificationsTopic"},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"${stack}DataBucketNotificationsTopic"
+						]
+					]
+				}
+			}
 		}
 	}
 }

@@ -21,6 +21,37 @@
 			"Properties": {
 				"DisplayName": "${stack}-SesSynapseOrgComplaint-Topic"
 			}
+		},
+		"${stack}DataBucketNotificationsTopic": {
+			"Type": "AWS::SNS::Topic",
+			"Properties": {
+				"DisplayName": "${stack}-Data-Bucket-Notifications-Topic"
+			}
+		},
+		{
+		   "Type" : "AWS::SNS::TopicPolicy",
+		   "Properties" : {
+		      "PolicyDocument" :  {
+		         "Id" : "${stack}-Data-Bucket-Notifications-Topic-Policy",
+		         "Version" : "2012-10-17",
+		         "Statement" : [ {
+		            "Sid" : "allow-s3-publish",
+		            "Effect" : "Allow",
+		            "Principal": {
+				    	"Service": "s3.amazonaws.com"  
+				    },
+		            "Action" : [
+				    	"SNS:Publish"
+				    ],
+		            "Resource" : { "Ref":"${stack}DataBucketNotificationsTopic"},
+		            "Condition": {
+				    	"ArnLike": { "aws:SourceArn": "arn:aws:s3:*:*:${stack}data.sagebase.org" },
+				      	"StringEquals": { "aws:SourceAccount": "bucket-owner-account-id" }
+				    }
+		         }]
+		      },
+		      "Topics" : [ { "Ref":"${stack}DataBucketNotificationsTopic"} ]
+		   }
 		}
 #if(${stack} == 'prod')
 		,
