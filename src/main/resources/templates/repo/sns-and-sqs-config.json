@@ -294,7 +294,8 @@
 			"subscribedTopicNames":[ 
 				"SYNAPSE_BUCKET_NOTIFICATIONS" 
 			],
-			"messageVisibilityTimeoutSec":60
+			"messageVisibilityTimeoutSec":60,
+			"deadLetterQueueMaxFailureCount":100
 		}
 	]
 }
