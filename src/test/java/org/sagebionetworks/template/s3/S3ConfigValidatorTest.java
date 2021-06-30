@@ -6,6 +6,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -266,5 +268,89 @@ public class S3ConfigValidatorTest {
 		});
 		
 		assertEquals("At least one of archive or deep archive number of days should be specified.", ex.getMessage());
+	}
+	
+	@Test
+	public void testValidateWithNotificationConfiguration() {
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		
+		String topic = "topic";
+		Set<String> events = new HashSet<>(Arrays.asList("s3:ObjectRestore:Completed", "s3:ObjectRestore:Post"));
+		
+		bucket.setName("bucket");
+		bucket.setNotificationsConfiguration(new S3NotificationsConfiguration()
+				.withTopic(topic)
+				.WithEvents(events)
+		);
+
+		when(mockConfig.getBuckets()).thenReturn(Arrays.asList(bucket));
+		
+		validator.validate();
+	}
+	
+	@Test
+	public void testValidateWithNotificationConfigurationAndNoTopic() {
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		
+		String topic = "";
+		Set<String> events = new HashSet<>(Arrays.asList("s3:ObjectRestore:Completed", "s3:ObjectRestore:Post"));
+		
+		bucket.setName("bucket");
+		bucket.setNotificationsConfiguration(new S3NotificationsConfiguration()
+				.withTopic(topic)
+				.WithEvents(events)
+		);
+
+		when(mockConfig.getBuckets()).thenReturn(Arrays.asList(bucket));
+		
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {			
+			validator.validate();
+		});
+		
+		assertEquals("The topic is required and must not be the empty string.", ex.getMessage());
+	}
+	
+	@Test
+	public void testValidateWithNotificationConfigurationAndNoEvent() {
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		
+		String topic = "topic";
+		Set<String> events = Collections.emptySet();
+		
+		bucket.setName("bucket");
+		bucket.setNotificationsConfiguration(new S3NotificationsConfiguration()
+				.withTopic(topic)
+				.WithEvents(events)
+		);
+
+		when(mockConfig.getBuckets()).thenReturn(Arrays.asList(bucket));
+		
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {			
+			validator.validate();
+		});
+		
+		assertEquals("The events is required and must not be empty.", ex.getMessage());
+	}
+	
+	@Test
+	public void testValidateWithNotificationConfigurationAndWrongEvent() {
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		
+		String topic = "topic";
+		Set<String> events = Collections.singleton("someOtherEvent");
+		
+		bucket.setName("bucket");
+		bucket.setNotificationsConfiguration(new S3NotificationsConfiguration()
+				.withTopic(topic)
+				.WithEvents(events)
+		);
+
+		when(mockConfig.getBuckets()).thenReturn(Arrays.asList(bucket));
+		
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {			
+			validator.validate();
+		});
+		
+		assertEquals("Unsupported event type: someOtherEvent", ex.getMessage());
 	}
 }

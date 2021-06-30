@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.sagebionetworks.util.ValidateArgument;
 
+import com.amazonaws.services.s3.model.S3Event;
 import com.amazonaws.services.s3.model.StorageClass;
 
 public class S3ConfigValidator {
@@ -40,6 +41,7 @@ public class S3ConfigValidator {
 		config.getBuckets().stream().forEach(bucket -> {
 			validateStorageClassTransitions(bucket);
 			validateIntArchiveConfiguration(bucket);
+			validateNotificationsConfiguration(bucket);
 		});
 		
 		
@@ -71,6 +73,26 @@ public class S3ConfigValidator {
 		ValidateArgument.requirement(config.getDeepArchiveAccessDays() == null || config.getDeepArchiveAccessDays() >= 180, "The minimum number of days for INT deep archive access is 180 days.");
 		ValidateArgument.requirement(config.getArchiveAccessDays() != null || config.getDeepArchiveAccessDays() != null, "At least one of archive or deep archive number of days should be specified.");
 
+	}
+	
+	private void validateNotificationsConfiguration(S3BucketDescriptor bucket) {
+		if (bucket.getNotificationsConfiguration() == null) {
+			return;
+		}
+		
+		S3NotificationsConfiguration config = bucket.getNotificationsConfiguration();
+		
+		ValidateArgument.requiredNotBlank(config.getTopic(), "The topic");
+		ValidateArgument.requiredNotEmpty(config.getEvents(), "The events");
+		
+		config.getEvents().forEach(event -> {
+			
+			try {
+				S3Event.fromValue(event);
+			} catch (IllegalArgumentException ex) {
+				throw new IllegalArgumentException("Unsupported event type: " + event);
+			}
+		});
 	}
 	
 }
