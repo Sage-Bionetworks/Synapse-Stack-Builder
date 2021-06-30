@@ -22,31 +22,31 @@
 				"DisplayName": "${stack}-SesSynapseOrgComplaint-Topic"
 			}
 		},
-		"${stack}DataBucketNotificationsTopic": {
+		"SynapseBucketNotificationsTopic": {
 			"Type": "AWS::SNS::Topic",
 			"Properties": {
-				"DisplayName": "${stack}-Data-Bucket-Notifications-Topic"
+				"DisplayName": "Synapse-Bucket-Notifications-Topic"
 			}
 		},
-		"${stack}DataBucketNotificationsTopicPolicy": {
+		"SynapseBucketNotificationsTopicPolicy": {
 		   "Type" : "AWS::SNS::TopicPolicy",
 		   "Properties" : {
 		      "PolicyDocument" :  {
-		         "Id" : "${stack}-Data-Bucket-Notifications-Topic-Policy",
+		         "Id" : "Synapse-Bucket-Notifications-Topic-Policy",
 		         "Version" : "2012-10-17",
 		         "Statement" : [{
 		            "Sid" : "allow-s3-publish",
 		            "Effect" : "Allow",
 		            "Principal": { "Service": "s3.amazonaws.com" },
 		            "Action" : [ "SNS:Publish" ],
-		            "Resource" : { "Ref":"${stack}DataBucketNotificationsTopic"},
+		            "Resource" : { "Ref":"SynapseBucketNotificationsTopic"},
 		            "Condition": {
 				    	"ArnLike": { "aws:SourceArn": "arn:aws:s3:*:*:${stack}data.sagebase.org" },
 				      	"StringEquals": { "aws:SourceAccount": { "Ref": "AWS::AccountId" } }
 				    }
 		         }]
 		      },
-		      "Topics" : [ { "Ref":"${stack}DataBucketNotificationsTopic"} ]
+		      "Topics" : [ { "Ref":"SynapseBucketNotificationsTopic"} ]
 		   }
 		}
 #if(${stack} == 'prod')

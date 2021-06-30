@@ -22,7 +22,8 @@
 	],
 	"snsGlobalTopicNames": [
 		"SES_SYNAPSE_ORG_BOUNCE",
-		"SES_SYNAPSE_ORG_COMPLAINT"
+		"SES_SYNAPSE_ORG_COMPLAINT",
+		"DATA_BUCKET_NOTIFICATIONS"
 	],
 	"queueDescriptors":[
 		{

@@ -404,13 +404,11 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		
 		S3NotificationsConfiguration config = bucket.getNotificationsConfiguration();
 		
-		config.withTopic(TemplateUtils.replaceStackVariable(config.getTopic(), stack));
-		
 		String globalStackName = String.format(GLOBAL_RESOURCES_STACK_NAME_FORMAT, stack);
 		
 		String topicArn = cloudFormationClient.getOutput(globalStackName, config.getTopic());
 		
-		String configName = config.getTopic() + "NotificationsConfiguration";
+		String configName = config.getTopic() + "Configuration";
 		
 		BucketNotificationConfiguration bucketConfig = s3Client.getBucketNotificationConfiguration(bucket.getName());
 		

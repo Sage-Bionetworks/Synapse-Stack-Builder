@@ -22,7 +22,7 @@
 				"deepArchiveAccessDays": 180
 			},
 			"notificationsConfiguration": {
-				"topic": "${stack}DataBucketNotificationsTopic",
+				"topic": "SynapseBucketNotificationsTopic",
 				"events": [
 					"s3:ObjectRestore:Completed"
 				]
