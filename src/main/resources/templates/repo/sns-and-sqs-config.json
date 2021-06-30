@@ -23,7 +23,7 @@
 	"snsGlobalTopicNames": [
 		"SES_SYNAPSE_ORG_BOUNCE",
 		"SES_SYNAPSE_ORG_COMPLAINT",
-		"DATA_BUCKET_NOTIFICATIONS"
+		"SYNAPSE_BUCKET_NOTIFICATIONS"
 	],
 	"queueDescriptors":[
 		{
@@ -282,6 +282,18 @@
 		{
 			"queueName": "FILE_KEY_ARCHIVE",
 			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":60
+		},
+		{
+			"queueName": "FILE_HANDLE_RESTORE_REQUEST",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":60
+		},
+		{
+			"queueName": "FILE_KEY_RESTORED",
+			"subscribedTopicNames":[ 
+				"SYNAPSE_BUCKET_NOTIFICATIONS" 
+			],
 			"messageVisibilityTimeoutSec":60
 		}
 	]
