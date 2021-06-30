@@ -20,6 +20,12 @@
 				},
 				"archiveAccessDays": 90,
 				"deepArchiveAccessDays": 180
+			},
+			"notificationsConfiguration": {
+				"topic": "${stack}DataBucketNotificationsTopic",
+				"events": [
+					"s3:ObjectRestore:Completed"
+				]
 			}
 		},
 		{
