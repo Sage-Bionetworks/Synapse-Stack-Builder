@@ -20,12 +20,6 @@
 				},
 				"archiveAccessDays": 90,
 				"deepArchiveAccessDays": 180
-			},
-			"notificationsConfiguration": {
-				"topic": "SynapseBucketNotificationsTopic",
-				"events": [
-					"s3:ObjectRestore:Completed"
-				]
 			}
 		},
 		{
