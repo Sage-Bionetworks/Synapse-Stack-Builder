@@ -282,6 +282,11 @@
 			"queueName": "FILE_KEY_ARCHIVE",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":60
+		},
+		{
+			"queueName": "FILE_HANDLE_RESTORE_REQUEST",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":120
 		}
 	]
 }

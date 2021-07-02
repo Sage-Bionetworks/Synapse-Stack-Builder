@@ -17,6 +17,9 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -31,6 +34,7 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
+import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
 import com.amazonaws.AmazonServiceException;
@@ -40,13 +44,17 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Rule;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Transition;
+import com.amazonaws.services.s3.model.BucketNotificationConfiguration;
 import com.amazonaws.services.s3.model.GetBucketIntelligentTieringConfigurationResult;
 import com.amazonaws.services.s3.model.GetBucketInventoryConfigurationResult;
+import com.amazonaws.services.s3.model.QueueConfiguration;
+import com.amazonaws.services.s3.model.S3Event;
 import com.amazonaws.services.s3.model.SSEAlgorithm;
 import com.amazonaws.services.s3.model.ServerSideEncryptionRule;
 import com.amazonaws.services.s3.model.SetBucketEncryptionRequest;
 import com.amazonaws.services.s3.model.StorageClass;
 import com.amazonaws.services.s3.model.Tag;
+import com.amazonaws.services.s3.model.TopicConfiguration;
 import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringAccessTier;
 import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringConfiguration;
 import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringTagPredicate;
@@ -75,6 +83,9 @@ public class S3BucketBuilderImplTest {
 
 	@Mock
 	private VelocityEngine mockVelocity;
+	
+	@Mock
+	private CloudFormationClient mockCloudFormationClient;
 
 	@InjectMocks
 	private S3BucketBuilderImpl builder;
@@ -1112,6 +1123,308 @@ public class S3BucketBuilderImplTest {
 		
 		verify(mockS3Client).getBucketIntelligentTieringConfiguration(expectedBucketName, S3BucketBuilderImpl.INT_ARCHIVE_ID);
 		verify(mockS3Client, never()).setBucketIntelligentTieringConfiguration(any(), any());
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithNotificationsConfiguration() {
+		
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		String topic = "GlobalTopic";
+		Set<String> events = new HashSet<>(Arrays.asList("s3:ObjectRestore:Completed", "s3:ObjectRestore:Post"));
+		
+		bucket.setName("${stack}.bucket");
+		bucket.setNotificationsConfiguration(new S3NotificationsConfiguration()
+				.withTopic(topic)
+				.WithEvents(events)
+		);
+		
+		String expectedBucketName = stack + ".bucket";
+		String expectedTopicArn = "topicArn";
+		String expectedConfigName = topic + "Configuration";
+		String expectedGlobalStackName = "synapse-" + stack + "-global-resources";
+
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockCloudFormationClient.getOutput(any(), any())).thenReturn(expectedTopicArn);
+
+		// Call under test
+		builder.buildAllBuckets();
+
+		verify(mockCloudFormationClient).getOutput(expectedGlobalStackName, topic);
+		verify(mockS3Client).getBucketNotificationConfiguration(expectedBucketName);
+		
+		ArgumentCaptor<BucketNotificationConfiguration> argCaptor = ArgumentCaptor.forClass(BucketNotificationConfiguration.class);
+		
+		verify(mockS3Client).setBucketNotificationConfiguration(eq(expectedBucketName), argCaptor.capture());
+		
+		BucketNotificationConfiguration bucketConfig = argCaptor.getValue();
+		
+		assertEquals(1, bucketConfig.getConfigurations().size());
+		
+		TopicConfiguration snsConfig = (TopicConfiguration) bucketConfig.getConfigurationByName(expectedConfigName);
+		
+		assertEquals(expectedTopicArn, snsConfig.getTopicARN());
+		assertEquals(events, snsConfig.getEvents());
+		
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithNotificationsConfigurationWithEmpty() {
+		
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		String topic = "GlobalTopic";
+		Set<String> events = new HashSet<>(Arrays.asList("s3:ObjectRestore:Completed", "s3:ObjectRestore:Post"));
+		
+		bucket.setName("${stack}.bucket");
+		bucket.setNotificationsConfiguration(new S3NotificationsConfiguration()
+				.withTopic(topic)
+				.WithEvents(events)
+		);
+		
+		String expectedBucketName = stack + ".bucket";
+		String expectedTopicArn = "topicArn";
+		String expectedConfigName = topic + "Configuration";
+		String expectedGlobalStackName = "synapse-" + stack + "-global-resources";
+
+		BucketNotificationConfiguration existingConfig = new BucketNotificationConfiguration();
+
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockCloudFormationClient.getOutput(any(), any())).thenReturn(expectedTopicArn);
+		when(mockS3Client.getBucketNotificationConfiguration(anyString())).thenReturn(existingConfig);
+
+		// Call under test
+		builder.buildAllBuckets();
+
+		verify(mockCloudFormationClient).getOutput(expectedGlobalStackName, topic);
+		verify(mockS3Client).getBucketNotificationConfiguration(expectedBucketName);
+		
+		ArgumentCaptor<BucketNotificationConfiguration> argCaptor = ArgumentCaptor.forClass(BucketNotificationConfiguration.class);
+		
+		verify(mockS3Client).setBucketNotificationConfiguration(eq(expectedBucketName), argCaptor.capture());
+		
+		BucketNotificationConfiguration bucketConfig = argCaptor.getValue();
+		
+		assertEquals(1, bucketConfig.getConfigurations().size());
+		
+		TopicConfiguration snsConfig = (TopicConfiguration) bucketConfig.getConfigurationByName(expectedConfigName);
+		
+		assertEquals(expectedTopicArn, snsConfig.getTopicARN());
+		assertEquals(events, snsConfig.getEvents());
+		
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithNotificationsConfigurationWithExistingNoMatch() {
+		
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		String topic = "GlobalTopic";
+		Set<String> events = new HashSet<>(Arrays.asList("s3:ObjectRestore:Completed", "s3:ObjectRestore:Post"));
+		
+		bucket.setName("${stack}.bucket");
+		bucket.setNotificationsConfiguration(new S3NotificationsConfiguration()
+				.withTopic(topic)
+				.WithEvents(events)
+		);
+		
+		String expectedBucketName = stack + ".bucket";
+		String expectedTopicArn = "topicArn";
+		String expectedConfigName = topic + "Configuration";
+		String expectedGlobalStackName = "synapse-" + stack + "-global-resources";
+		
+		BucketNotificationConfiguration existingConfig = new BucketNotificationConfiguration();
+		
+		existingConfig.addConfiguration("otherConfig", new TopicConfiguration("otherArn", EnumSet.of(S3Event.ObjectCreated)));
+
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockCloudFormationClient.getOutput(any(), any())).thenReturn(expectedTopicArn);
+		when(mockS3Client.getBucketNotificationConfiguration(anyString())).thenReturn(existingConfig);
+
+		// Call under test
+		builder.buildAllBuckets();
+
+		verify(mockCloudFormationClient).getOutput(expectedGlobalStackName, topic);
+		verify(mockS3Client).getBucketNotificationConfiguration(expectedBucketName);
+		
+		ArgumentCaptor<BucketNotificationConfiguration> argCaptor = ArgumentCaptor.forClass(BucketNotificationConfiguration.class);
+		
+		verify(mockS3Client).setBucketNotificationConfiguration(eq(expectedBucketName), argCaptor.capture());
+		
+		BucketNotificationConfiguration bucketConfig = argCaptor.getValue();
+		
+		assertEquals(2, bucketConfig.getConfigurations().size());
+		
+		TopicConfiguration snsConfig = (TopicConfiguration) bucketConfig.getConfigurationByName(expectedConfigName);
+		
+		assertEquals(expectedTopicArn, snsConfig.getTopicARN());
+		assertEquals(events, snsConfig.getEvents());
+		
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithNotificationsConfigurationWithExistingAndDifferentArn() {
+		
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		String topic = "GlobalTopic";
+		Set<String> events = new HashSet<>(Arrays.asList("s3:ObjectRestore:Completed", "s3:ObjectRestore:Post"));
+		
+		bucket.setName("${stack}.bucket");
+		bucket.setNotificationsConfiguration(new S3NotificationsConfiguration()
+				.withTopic(topic)
+				.WithEvents(events)
+		);
+		
+		String expectedBucketName = stack + ".bucket";
+		String expectedTopicArn = "topicArn";
+		String expectedConfigName = topic + "Configuration";
+		String expectedGlobalStackName = "synapse-" + stack + "-global-resources";
+		
+		BucketNotificationConfiguration existingConfig = new BucketNotificationConfiguration();
+		
+		existingConfig.addConfiguration(expectedConfigName, new TopicConfiguration().withTopicARN("otherArn").withEvents(events));
+
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockCloudFormationClient.getOutput(any(), any())).thenReturn(expectedTopicArn);
+		when(mockS3Client.getBucketNotificationConfiguration(anyString())).thenReturn(existingConfig);
+
+		// Call under test
+		builder.buildAllBuckets();
+
+		verify(mockCloudFormationClient).getOutput(expectedGlobalStackName, topic);
+		verify(mockS3Client).getBucketNotificationConfiguration(expectedBucketName);
+		
+		ArgumentCaptor<BucketNotificationConfiguration> argCaptor = ArgumentCaptor.forClass(BucketNotificationConfiguration.class);
+		
+		verify(mockS3Client).setBucketNotificationConfiguration(eq(expectedBucketName), argCaptor.capture());
+		
+		BucketNotificationConfiguration bucketConfig = argCaptor.getValue();
+		
+		assertEquals(1, bucketConfig.getConfigurations().size());
+		
+		TopicConfiguration snsConfig = (TopicConfiguration) bucketConfig.getConfigurationByName(expectedConfigName);
+		
+		assertEquals(expectedTopicArn, snsConfig.getTopicARN());
+		assertEquals(events, snsConfig.getEvents());
+		
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithNotificationsConfigurationWithExistingAndDifferentEvents() {
+		
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		String topic = "GlobalTopic";
+		Set<String> events = new HashSet<>(Arrays.asList("s3:ObjectRestore:Completed", "s3:ObjectRestore:Post"));
+		
+		bucket.setName("${stack}.bucket");
+		bucket.setNotificationsConfiguration(new S3NotificationsConfiguration()
+				.withTopic(topic)
+				.WithEvents(events)
+		);
+		
+		String expectedBucketName = stack + ".bucket";
+		String expectedTopicArn = "topicArn";
+		String expectedConfigName = topic + "Configuration";
+		String expectedGlobalStackName = "synapse-" + stack + "-global-resources";
+		
+		BucketNotificationConfiguration existingConfig = new BucketNotificationConfiguration();
+		
+		existingConfig.addConfiguration(expectedConfigName, new TopicConfiguration(expectedTopicArn, "s3:ObjectRestore:Post"));
+
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockCloudFormationClient.getOutput(any(), any())).thenReturn(expectedTopicArn);
+		when(mockS3Client.getBucketNotificationConfiguration(anyString())).thenReturn(existingConfig);
+
+		// Call under test
+		builder.buildAllBuckets();
+
+		verify(mockCloudFormationClient).getOutput(expectedGlobalStackName, topic);
+		verify(mockS3Client).getBucketNotificationConfiguration(expectedBucketName);
+		
+		ArgumentCaptor<BucketNotificationConfiguration> argCaptor = ArgumentCaptor.forClass(BucketNotificationConfiguration.class);
+		
+		verify(mockS3Client).setBucketNotificationConfiguration(eq(expectedBucketName), argCaptor.capture());
+		
+		BucketNotificationConfiguration bucketConfig = argCaptor.getValue();
+		
+		assertEquals(1, bucketConfig.getConfigurations().size());
+		
+		TopicConfiguration snsConfig = (TopicConfiguration) bucketConfig.getConfigurationByName(expectedConfigName);
+		
+		assertEquals(expectedTopicArn, snsConfig.getTopicARN());
+		assertEquals(events, snsConfig.getEvents());
+		
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithNotificationsConfigurationWithExistingAndNoUpdate() {
+		
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		String topic = "GlobalTopic";
+		Set<String> events = new HashSet<>(Arrays.asList("s3:ObjectRestore:Completed", "s3:ObjectRestore:Post"));
+		
+		bucket.setName("${stack}.bucket");
+		bucket.setNotificationsConfiguration(new S3NotificationsConfiguration()
+				.withTopic(topic)
+				.WithEvents(events)
+		);
+		
+		String expectedBucketName = stack + ".bucket";
+		String expectedTopicArn = "topicArn";
+		String expectedConfigName = topic + "Configuration";
+		String expectedGlobalStackName = "synapse-" + stack + "-global-resources";
+		
+		BucketNotificationConfiguration existingConfig = new BucketNotificationConfiguration();
+		
+		existingConfig.addConfiguration(expectedConfigName, new TopicConfiguration().withTopicARN(expectedTopicArn).withEvents(events));
+
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockCloudFormationClient.getOutput(any(), any())).thenReturn(expectedTopicArn);
+		when(mockS3Client.getBucketNotificationConfiguration(anyString())).thenReturn(existingConfig);
+
+		// Call under test
+		builder.buildAllBuckets();
+
+		verify(mockCloudFormationClient).getOutput(expectedGlobalStackName, topic);
+		verify(mockS3Client).getBucketNotificationConfiguration(expectedBucketName);
+		verify(mockS3Client, never()).setBucketNotificationConfiguration(any(), any());
+		
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithNotificationsConfigurationWithMatchingButDifferentType() {
+		
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		String topic = "GlobalTopic";
+		Set<String> events = new HashSet<>(Arrays.asList("s3:ObjectRestore:Completed", "s3:ObjectRestore:Post"));
+		
+		bucket.setName("${stack}.bucket");
+		bucket.setNotificationsConfiguration(new S3NotificationsConfiguration()
+				.withTopic(topic)
+				.WithEvents(events)
+		);
+		
+		String expectedBucketName = stack + ".bucket";
+		String expectedTopicArn = "topicArn";
+		String expectedConfigName = topic + "Configuration";
+		String expectedGlobalStackName = "synapse-" + stack + "-global-resources";
+		
+		BucketNotificationConfiguration existingConfig = new BucketNotificationConfiguration();
+		
+		existingConfig.addConfiguration(expectedConfigName, new QueueConfiguration().withQueueARN("queueArn").withEvents(events));
+
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockCloudFormationClient.getOutput(any(), any())).thenReturn(expectedTopicArn);
+		when(mockS3Client.getBucketNotificationConfiguration(anyString())).thenReturn(existingConfig);
+
+		IllegalStateException ex = assertThrows(IllegalStateException.class, () -> {			
+			// Call under test
+			builder.buildAllBuckets();
+		});
+		
+		assertEquals("The notification configuration " + expectedConfigName + " was found but was not a TopicConfiguration", ex.getMessage());
+
+		verify(mockCloudFormationClient).getOutput(expectedGlobalStackName, topic);
+		verify(mockS3Client).getBucketNotificationConfiguration(expectedBucketName);
+		verify(mockS3Client, never()).setBucketNotificationConfiguration(any(), any());
+		
 	}
 	
 	private Rule allBucketRule(String ruleName) {

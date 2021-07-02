@@ -34,6 +34,11 @@ public class S3BucketDescriptor {
 	 * Optional intelligent tiering archive configuration
 	 */
 	private S3IntArchiveConfiguration intArchiveConfiguration;
+	
+	/**
+	 * Optional configuration bit to setup notifications to an sns topic
+	 */
+	private S3NotificationsConfiguration notificationsConfiguration;
 
 	public S3BucketDescriptor() {
 	}
@@ -85,10 +90,19 @@ public class S3BucketDescriptor {
 	public void setIntArchiveConfiguration(S3IntArchiveConfiguration intArchiveConfiguration) {
 		this.intArchiveConfiguration = intArchiveConfiguration;
 	}
+	
+	public S3NotificationsConfiguration getNotificationsConfiguration() {
+		return notificationsConfiguration;
+	}
+	
+	public void setNotificationsConfiguration(S3NotificationsConfiguration notificationsConfiguration) {
+		this.notificationsConfiguration = notificationsConfiguration;
+	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(devOnly, intArchiveConfiguration, inventoryEnabled, name, retentionDays, storageClassTransitions);
+		return Objects.hash(devOnly, intArchiveConfiguration, inventoryEnabled, name, notificationsConfiguration, retentionDays,
+				storageClassTransitions);
 	}
 
 	@Override
@@ -105,6 +119,7 @@ public class S3BucketDescriptor {
 		S3BucketDescriptor other = (S3BucketDescriptor) obj;
 		return devOnly == other.devOnly && Objects.equals(intArchiveConfiguration, other.intArchiveConfiguration)
 				&& inventoryEnabled == other.inventoryEnabled && Objects.equals(name, other.name)
+				&& Objects.equals(notificationsConfiguration, other.notificationsConfiguration)
 				&& Objects.equals(retentionDays, other.retentionDays)
 				&& Objects.equals(storageClassTransitions, other.storageClassTransitions);
 	}
@@ -113,7 +128,7 @@ public class S3BucketDescriptor {
 	public String toString() {
 		return "S3BucketDescriptor [name=" + name + ", inventoryEnabled=" + inventoryEnabled + ", retentionDays=" + retentionDays
 				+ ", devOnly=" + devOnly + ", storageClassTransitions=" + storageClassTransitions + ", intArchiveConfiguration="
-				+ intArchiveConfiguration + "]";
+				+ intArchiveConfiguration + ", notificationsConfiguration=" + notificationsConfiguration + "]";
 	}
 
 }

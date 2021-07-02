@@ -1,5 +1,6 @@
 package org.sagebionetworks.template.s3;
 
+import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_STACK_NAME_FORMAT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.TEMPLATE_INVENTORY_BUCKET_POLICY_TEMPLATE;
 
@@ -17,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.RepoConfiguration;
@@ -28,12 +30,15 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Rule;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Transition;
+import com.amazonaws.services.s3.model.BucketNotificationConfiguration;
+import com.amazonaws.services.s3.model.NotificationConfiguration;
 import com.amazonaws.services.s3.model.SSEAlgorithm;
 import com.amazonaws.services.s3.model.ServerSideEncryptionByDefault;
 import com.amazonaws.services.s3.model.ServerSideEncryptionConfiguration;
 import com.amazonaws.services.s3.model.ServerSideEncryptionRule;
 import com.amazonaws.services.s3.model.SetBucketEncryptionRequest;
 import com.amazonaws.services.s3.model.Tag;
+import com.amazonaws.services.s3.model.TopicConfiguration;
 import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringAccessTier;
 import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringConfiguration;
 import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringFilter;
@@ -74,14 +79,16 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	private RepoConfiguration config;
 	private S3Config s3Config;
 	private VelocityEngine velocity;
+	private CloudFormationClient cloudFormationClient;
 	
 	@Inject
-	public S3BucketBuilderImpl(AmazonS3 s3Client, AWSSecurityTokenService stsClient, RepoConfiguration config, S3Config s3Config, VelocityEngine velocity) {
+	public S3BucketBuilderImpl(AmazonS3 s3Client, AWSSecurityTokenService stsClient, RepoConfiguration config, S3Config s3Config, VelocityEngine velocity, CloudFormationClient cloudFormationClient) {
 		this.s3Client = s3Client;
 		this.stsClient = stsClient;
 		this.config = config;
 		this.s3Config = s3Config;
 		this.velocity = velocity;
+		this.cloudFormationClient = cloudFormationClient;
 	}
 
 	@Override
@@ -108,6 +115,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			configureInventory(bucket.getName(), accountId, inventoryBucket, bucket.isInventoryEnabled());
 			configureBucketLifeCycle(bucket);
 			configureIntelligentTieringArchive(bucket);
+			configureBucketNotifications(bucket, stack);
 			
 			if (bucket.isInventoryEnabled()) {
 				inventoriedBuckets.add(bucket.getName());
@@ -387,6 +395,61 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	
 	private static Optional<Rule> findRule(String ruleName, List<Rule> rules) {
 		return rules.stream().filter(rule -> rule.getId().equals(ruleName)).findFirst();
+	}
+	
+	private void configureBucketNotifications(S3BucketDescriptor bucket, String stack) {
+		if (bucket.getNotificationsConfiguration() == null) {
+			return;
+		}
+		
+		S3NotificationsConfiguration config = bucket.getNotificationsConfiguration();
+		
+		String globalStackName = String.format(GLOBAL_RESOURCES_STACK_NAME_FORMAT, stack);
+		
+		String topicArn = cloudFormationClient.getOutput(globalStackName, config.getTopic());
+		
+		String configName = config.getTopic() + "Configuration";
+		
+		BucketNotificationConfiguration bucketConfig = s3Client.getBucketNotificationConfiguration(bucket.getName());
+		
+		boolean update = false;
+		
+		if (bucketConfig == null || bucketConfig.getConfigurations() == null || bucketConfig.getConfigurations().isEmpty()) {
+			bucketConfig = new BucketNotificationConfiguration();
+			update = true;
+		}
+		
+		NotificationConfiguration notificationConfig = bucketConfig.getConfigurationByName(configName);
+		
+		if (notificationConfig == null) {
+			notificationConfig = new TopicConfiguration(topicArn, config.getEvents().toArray(new String[config.getEvents().size()]));
+			bucketConfig.addConfiguration(configName, notificationConfig);
+			update = true;
+		}
+		
+		if (notificationConfig instanceof TopicConfiguration) {
+			TopicConfiguration topicConfig = (TopicConfiguration) notificationConfig;
+			
+			if (!topicConfig.getTopicARN().equals(topicArn)) {
+				topicConfig.setTopicARN(topicArn);
+				update = true;
+			}
+			
+			if (!topicConfig.getEvents().equals(config.getEvents())) {
+				topicConfig.setEvents(config.getEvents());
+				update = true;
+			}
+		} else {
+			throw new IllegalStateException("The notification configuration " + configName + " was found but was not a TopicConfiguration");
+		}
+		
+		if (update) {
+			LOG.info("Updating {} bucket notification configuration {}.", bucket.getName(), configName);
+			s3Client.setBucketNotificationConfiguration(bucket.getName(), bucketConfig);
+		} else {
+			LOG.info("The {} bucket notification configuration {} was up to date.", bucket.getName(), configName);
+		}
+		
 	}
 	
 	private void configureInventoryBucketPolicy(String stack, String accountId, String inventoryBucket, List<String> sourceBuckets) {
