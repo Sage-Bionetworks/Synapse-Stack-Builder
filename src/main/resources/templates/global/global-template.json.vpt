@@ -64,26 +64,6 @@
 					]
 				}
 			}
-		},
-		"SynapseBucketNotificationsTopic": {
-			"Description": "Topic for the ${stack}data.sagebase.org S3 bucket notifications",
-			"Value": { "Ref":"SynapseBucketNotificationsTopic" },
-			"Export": {
-				"Name": {
-					"Fn::Join": [
-						"-",
-						[
-							{
-								"Ref": "AWS::Region"
-							},
-							{
-								"Ref": "AWS::StackName"
-							},
-							"SynapseBucketNotificationsTopic"
-						]
-					]
-				}
-			}
 		}
 	}
 }

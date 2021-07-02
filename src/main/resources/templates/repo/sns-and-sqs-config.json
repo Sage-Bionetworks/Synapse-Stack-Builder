@@ -22,8 +22,7 @@
 	],
 	"snsGlobalTopicNames": [
 		"SES_SYNAPSE_ORG_BOUNCE",
-		"SES_SYNAPSE_ORG_COMPLAINT",
-		"SYNAPSE_BUCKET_NOTIFICATIONS"
+		"SES_SYNAPSE_ORG_COMPLAINT"
 	],
 	"queueDescriptors":[
 		{
@@ -287,15 +286,7 @@
 		{
 			"queueName": "FILE_HANDLE_RESTORE_REQUEST",
 			"subscribedTopicNames":[],
-			"messageVisibilityTimeoutSec":60
-		},
-		{
-			"queueName": "FILE_KEY_RESTORED",
-			"subscribedTopicNames":[ 
-				"SYNAPSE_BUCKET_NOTIFICATIONS" 
-			],
-			"messageVisibilityTimeoutSec":60,
-			"deadLetterQueueMaxFailureCount":100
+			"messageVisibilityTimeoutSec":120
 		}
 	]
 }
