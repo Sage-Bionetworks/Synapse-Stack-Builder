@@ -59,6 +59,9 @@
 		},
 		{
 			"name": "${stack}.datawarehouse.sagebase.org"
+		},
+		{
+			"name": "${stack}.docker.registry.sagebase.org"
 		}
 	],
 	"inventoryBucket": "${stack}.inventory.sagebase.org"
