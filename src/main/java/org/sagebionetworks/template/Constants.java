@@ -194,6 +194,15 @@ public class Constants {
 
 	public static final String EC2_INSTANCE_TYPE = "Ec2InstanceType";
 	public static final String BEANSTALK_INSTANCES_SUBNETS = "BeanstalkInstancesSubnets";
+	
+
+	// The secrets manager ids for the key/secret pair for the admin auth
+	public static final String SECRETS_ADMIN_KEY_ID = "org.sagebionetworks.admin.auth.key";
+	public static final String SECRETS_ADMIN_SECRET_ID = "org.sagebionetworks.admin.auth.secret";
+
+	public static final String PROPERTY_KEY_CLIENT_ENDPOINT_PREFIX = "org.sagebionetworks.jobs.endpoint";
+	public static final String PROPERTY_KEY_ADMIN_JOBS_TIMEOUT = "org.sagebionetworks.jobs.timeout";
+	public static final String PROPERTY_KEY_ADMIN_JOBS_CHECK_INTERVAL = "org.sagebionetworks.jobs.checkInterval";
 
 	/**
 	 * Create a camel case name from dash-separated-name. Given 'foo-bar' will
