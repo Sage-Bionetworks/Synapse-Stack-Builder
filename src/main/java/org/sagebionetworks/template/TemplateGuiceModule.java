@@ -16,12 +16,17 @@ import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.apache.velocity.runtime.resource.loader.FileResourceLoader;
+import org.sagebionetworks.client.SynapseAdminClient;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.config.ConfigurationImpl;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.config.RepoConfigurationImpl;
+import org.sagebionetworks.template.config.SynapseAdminClientFactory;
+import org.sagebionetworks.template.config.SynapseAdminClientFactoryImpl;
 import org.sagebionetworks.template.global.GlobalResourcesBuilder;
 import org.sagebionetworks.template.global.GlobalResourcesBuilderImpl;
+import org.sagebionetworks.template.jobs.AsynchAdminJobExecutor;
+import org.sagebionetworks.template.jobs.AsynchAdminJobExecutorImpl;
 import org.sagebionetworks.template.repo.IdGeneratorBuilder;
 import org.sagebionetworks.template.repo.IdGeneratorBuilderImpl;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
@@ -122,6 +127,8 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(GlobalResourcesBuilder.class).to(GlobalResourcesBuilderImpl.class);
 		bind(CloudwatchLogsVelocityContextProvider.class).to(CloudwatchLogsVelocityContextProviderImpl.class);
 		bind(Ec2Client.class).to(Ec2ClientImpl.class);
+		bind(SynapseAdminClientFactory.class).to(SynapseAdminClientFactoryImpl.class);
+		bind(AsynchAdminJobExecutor.class).to(AsynchAdminJobExecutorImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 		
@@ -251,5 +258,10 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	public LoadBalancerAlarmsConfig loadBalanacerConfigProvider() throws IOException {
 		return new LoadBalancerAlarmsConfigValidator(loadFromJsonFile(LOAD_BALANCER_ALARM_CONFIG_FILE, LoadBalancerAlarmsConfig.class)).validate();
 	}
-
+	
+	@Provides
+	public SynapseAdminClient synapseAdminClient(SynapseAdminClientFactory factory) {
+		return factory.getInstance();
+	}
+	
 }

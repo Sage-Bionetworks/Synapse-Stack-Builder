@@ -146,7 +146,7 @@
 		<dependency>
 			<groupId>org.sagebionetworks</groupId>
 			<artifactId>lib-utils</artifactId>
-			<version>316.0</version>
+			<version>${synapse.version}</version>
 		</dependency>
 		<!--interface between junit5 and programmatic clients, such as IDEs and 
 				build tools, for running tests -->
@@ -202,6 +202,11 @@
 		  <artifactId>cron-utils</artifactId>
 		  <version>${cron.utils.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.sagebionetworks</groupId>
+			<artifactId>synapseJavaClient</artifactId>
+			<version>${synapse.version}</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<resources>
@@ -251,7 +256,7 @@
 	</build>
 	<properties>
 		<bouncycastle.version>1.60</bouncycastle.version>
-		<amazon.sdk.version>1.11.948</amazon.sdk.version>
+		<amazon.sdk.version>1.12.15</amazon.sdk.version>
 		<log4j.version>2.13.3</log4j.version>
 		<junit.jupiter.version>5.4.1</junit.jupiter.version>
 		<junit.vintage.version>5.4.1</junit.vintage.version>
@@ -260,5 +265,6 @@
 		<mockito.version>2.27.0</mockito.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     	<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    	<synapse.version>366.0</synapse.version>
 	</properties>
 </project>
