@@ -82,7 +82,7 @@
 			"Properties": {
 				"AllocatedStorage": "${descriptor.allocatedStorage}",
 				"AllowMajorVersionUpgrade": false,
-				"AutoMinorVersionUpgrade": true,
+				"AutoMinorVersionUpgrade": false,
 				"BackupRetentionPeriod": "7",
 				"DBInstanceClass": "${descriptor.instanceClass}",
 				"DBInstanceIdentifier": "${descriptor.instanceIdentifier}",
