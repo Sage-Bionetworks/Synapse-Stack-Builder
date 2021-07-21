@@ -394,7 +394,7 @@ def generate_repo_files_scanner_widgets(stack_instances, title, x=0, y=0):
             "yAxis": {
                 "right": {
                     "min": 0,
-                    "max": 1,
+                    "max": 2,
                     "label": "",
                     "showUnits": true
                 }
