@@ -364,18 +364,17 @@ def get_repo_alb_name(stack_instance):
     alb_name = m.groups()[0]
     return alb_name
 
-def generate_repo_files_scanner_widgets(stack_instance, title, x=0, y=0):
+def generate_repo_files_scanner_widgets(stack_instances, title, x=0, y=0):
     widgets = []
+    metrics = []
 
-    metrics_namespace = get_async_workers_namespace(stack_instance)
-
-    generate_metric_widget(metrics_namespace, "JobCompletedCount", "workerClass", ["FileHandleAssociationScanRangeWorker"])
-
-    metrics = [
-        [ metrics_namespace, "JobCompletedCount", "workerClass", "FileHandleAssociationScanRangeWorker", { "label": "Jobs Completed" } ],
-        [ ".", "JobFailedCount", ".", ".", { "label": "Jobs Failed", "color": "#d62728" } ],
-        [ ".", "AllJobsCompletedCount", ".", ".", { "label": "Scans Completed" } ]
-    ]
+    for (stack_instance in stack_instances):
+        metrics_namespace = get_async_workers_namespace(stack_instance)
+        metrics.extend([
+            [ metrics_namespace, "JobCompletedCount", "workerClass", "FileHandleAssociationScanRangeWorker", { "label": f"Jobs Completed - {stack_instance}" } ],
+            [ ".", "JobFailedCount", ".", ".", { "label": f"Jobs Failed - {stack_instance}", "color": "#d62728" } ],
+            [ ".", "AllJobsCompletedCount", ".", ".", { "label": f"Scans Completed - {stack_instance}", "yAxis": "right" } } ]
+        ])
 
     w = {
         "type": "metric",
@@ -391,7 +390,15 @@ def generate_repo_files_scanner_widgets(stack_instance, title, x=0, y=0):
             "region": "us-east-1",
             "view": "timeSeries",
             "stacked": False,
-            "setPeriodToTimeRange": True
+            "setPeriodToTimeRange": True,
+            "yAxis": {
+                "right": {
+                    "min": 0,
+                    "max": 2,
+                    "label": "",
+                    "showUnits": true
+                }
+            }
         }
     }
     widgets.append(w)
@@ -442,7 +449,7 @@ if __name__ == "__main__":
     ses_widgets = generate_ses_stats_widgets("SES Bounce Rate", x=0, y=70)
     sqs_widgets = generate_sqs_stats_widgets(prod_stack_instance, "PROD-QUERY-PERFORMANCE", x=0, y=77)
     prod_repo_alb_rt_widgets = generate_repo_alb_target_responsetime_widgets(prod_stack_backend, 'PROD-ALB-TARGET-RESPONSETIME', x=0, y=84)
-    prod_files_scanner_widgets = generate_repo_files_scanner_widgets(prod_stack_backend, 'FILES-SCANNER-STATS', x=0, y=91)
+    prod_files_scanner_widgets = generate_repo_files_scanner_widgets([prod_stack_worker, staging_stack_worker], 'FILES-SCANNER-STATS', x=0, y=91)
 
     widgets = prod_widgets
     widgets.extend(prod_worker_stats_widgets)
