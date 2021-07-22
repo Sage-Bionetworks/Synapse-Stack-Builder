@@ -368,12 +368,12 @@ def generate_repo_files_scanner_widgets(stack_instances, title, x=0, y=0):
     widgets = []
     metrics = []
 
-    for (stack_instance in stack_instances):
+    for stack_instance in stack_instances:
         metrics_namespace = get_async_workers_namespace(stack_instance)
         metrics.extend([
             [ metrics_namespace, "JobCompletedCount", "workerClass", "FileHandleAssociationScanRangeWorker", { "label": f"Jobs Completed - {stack_instance}" } ],
             [ ".", "JobFailedCount", ".", ".", { "label": f"Jobs Failed - {stack_instance}", "color": "#d62728" } ],
-            [ ".", "AllJobsCompletedCount", ".", ".", { "label": f"Scans Completed - {stack_instance}", "yAxis": "right" } } ]
+            [ ".", "AllJobsCompletedCount", ".", ".", { "label": f"Scans Completed - {stack_instance}", "yAxis": "right" } ]
         ])
 
     w = {
@@ -396,7 +396,7 @@ def generate_repo_files_scanner_widgets(stack_instances, title, x=0, y=0):
                     "min": 0,
                     "max": 2,
                     "label": "",
-                    "showUnits": true
+                    "showUnits": True
                 }
             }
         }
