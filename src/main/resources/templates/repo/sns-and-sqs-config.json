@@ -18,7 +18,9 @@
 		"TABLE",
 		"ENTITY_VIEW",
 		"SUBMISSION",
-		"ACCESS_APPROVAL"
+		"ACCESS_APPROVAL",
+		"JSON_SCHEMA",
+		"JSON_SCHEMA_DEPENDANT"
 	],
 	"snsGlobalTopicNames": [
 		"SES_SYNAPSE_ORG_BOUNCE",
@@ -290,7 +292,16 @@
 		},
 		{
 			"queueName": "VALIDATION_SCHEMA_INDEX",
-			"subscribedTopicNames":[],
+			"subscribedTopicNames":[
+				"JSON_SCHEMA"
+			],
+			"messageVisibilityTimeoutSec":60
+		},
+		{
+			"queueName": "BROADCAST_DEPENDANT_SCHEMAS",
+			"subscribedTopicNames":[
+				"JSON_SCHEMA_DEPENDANT"
+			],
 			"messageVisibilityTimeoutSec":60
 		}
 		
