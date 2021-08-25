@@ -295,6 +295,13 @@
 				"JSON_SCHEMA"
 			],
 			"messageVisibilityTimeoutSec":60
+		},
+		{
+			"queueName": "BROADCAST_DEPENDANT_SCHEMAS",
+			"subscribedTopicNames":[
+				"JSON_SCHEMA_DEPENDANT"
+			],
+			"messageVisibilityTimeoutSec":60
 		}
 		
 	]
