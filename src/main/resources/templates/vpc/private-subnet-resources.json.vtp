@@ -130,7 +130,7 @@
             		}]
          		},
          		"RouteTableIds": [{"Ref": "${privateSubnet.name}RouteTable"}],
-         		"ServiceName": {"Fn::Sub": "com.amazonaws.${AWS::Region}.s3"},
+         		"ServiceName": {"Fn::Join": ["", [ "com.amazonaws.",{ "Ref": "AWS::Region"},".s3"]]},
          		"VpcId": {
                       "Fn::ImportValue": {
                           "Fn::Join": [
