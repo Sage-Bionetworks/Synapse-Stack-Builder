@@ -61,7 +61,6 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
     @Override
     public void buildAndDeployPrivateSubnets() throws InterruptedException {
 
-        Color[] colors = getColorsFromProperty();
         VelocityContext context = createContext();
 
         Subnets subnets = (Subnets)context.get(SUBNETS);
@@ -86,6 +85,33 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
 
             this.cloudFormationClient.waitForStackToComplete(stackName);
         }
+    }
+    
+    /**
+     * After each private subnet is built, this will build a VPC Endpoint that depends on all
+     * subnet rout table IDs.
+     * @throws InterruptedException
+     */
+	@Override
+    public void buildVPCEndpoint() throws InterruptedException{
+        VelocityContext context = createContext();
+        Template privateSubnetsTemplate = this.velocityEngine.getTemplate("templates/vpc/private-endpoint-resources.jason.vtp");
+        StringWriter stringWriter = new StringWriter();
+        privateSubnetsTemplate.merge(context, stringWriter);
+        String resultJSON = stringWriter.toString();
+        JSONObject templateJson = new JSONObject(resultJSON);
+        resultJSON = templateJson.toString(JSON_INDENT);
+        
+        String stackName =  String.format("synapse-%1$s-vpc-2-endpoint", config.getProperty(PROPERTY_KEY_STACK));
+
+        this.cloudFormationClient.createOrUpdateStack(
+                new CreateOrUpdateStackRequest()
+                        .withStackName(stackName)
+                        .withTemplateBody(resultJSON)
+                        .withTags(stackTagsProvider.getStackTags())
+        );
+
+        this.cloudFormationClient.waitForStackToComplete(stackName);
     }
 
     VelocityContext createContext() {

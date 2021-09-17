@@ -156,4 +156,17 @@ public class SubnetTemplateBuilderImplTest {
         JSONObject templateJson = new JSONObject(requests.get(0).getTemplateBody());
         System.out.println(templateJson.toString(JSON_INDENT));
     }
+    
+    @Test
+    public void testBuildVPCEndpoint() throws InterruptedException {
+    	// call under test
+    	builder.buildVPCEndpoint();
+    	
+        verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
+        CreateOrUpdateStackRequest request = requestCaptor.getValue();
+        assertEquals("synapse-dev-vpc-2-endpoint", request.getStackName());
+        
+        JSONObject templateJson = new JSONObject(request.getTemplateBody());
+        System.out.println(templateJson.toString(JSON_INDENT));
+    }
 }
