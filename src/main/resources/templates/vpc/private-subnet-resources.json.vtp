@@ -170,8 +170,7 @@
             }
         },
     #end
-    
-   "VPCEndpoint":{
+    "VPCEndpoint":{
       "Type":"AWS::EC2::VPCEndpoint",
       "Properties":{
          "PolicyDocument":{
@@ -193,7 +192,7 @@
                         #set($i = 0)
                         #foreach( $privateSubnet in $subnetGroup.subnets )
                         #if( $i > 0 ) , #end
-                        {"Ref": "${privateSubnet.name}"}
+                        {"Ref": "${privateSubnet.name}RouteTable"}
                         #set($i = $i+1)
                         #end
                     ],
@@ -224,8 +223,7 @@
             }
          }
       }
-   }
-
+    }
     },
     "Outputs": {
         "PrivateSubnets": {
