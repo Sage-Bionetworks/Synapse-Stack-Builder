@@ -14,12 +14,17 @@
            			"Resource": ["*"]
         			}]
      			},
-     			"RouteTableIds": { "Fn::Join": [
-     								", ",
+     			"RouteTableIds": 
      								[
-     									{"Fn::ImportValue": { "Fn::Join": ["-",[{"Ref": "AWS::Region"},"${vpcStackName}","private-subnets","Red","Private-Subnets-RouteTableIds"]] }}
+     								    #set($subnetGroups=$subnets.privateSubnetGroups)
+     									#set($i = 0)
+     									#foreach( $group in $subnetGroups )
+     									#if( $i > 0 ) , #end
+     									{"Fn::ImportValue": { "Fn::Join": ["-",[{"Ref": "AWS::Region"},"${vpcStackName}","private-subnets","$group.color","Private-Subnets-RouteTableIds"]] }}
+     									#set($i = $i+1)
+     									#end
      								]
-                ]},
+                ,
      			"ServiceName": {"Fn::Join": ["", [ "com.amazonaws.",{ "Ref": "AWS::Region"},".s3"]]},
      			"VpcId": {
                   	"Fn::ImportValue": {
