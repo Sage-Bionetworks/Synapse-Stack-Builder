@@ -40,13 +40,7 @@
                           	]
                       	]
                   	}
-              	},
-              	"Tags": [
-					{
-						"Key": "Name",
-						"Value": "${vpcStackName}"
-					}
-				]
+              	}
 			}
 		}
 	}
