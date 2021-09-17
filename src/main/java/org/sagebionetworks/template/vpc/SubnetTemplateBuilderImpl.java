@@ -61,7 +61,6 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
     @Override
     public void buildAndDeployPrivateSubnets() throws InterruptedException {
 
-        Color[] colors = getColorsFromProperty();
         VelocityContext context = createContext();
 
         Subnets subnets = (Subnets)context.get(SUBNETS);

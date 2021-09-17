@@ -170,6 +170,58 @@
             }
         },
     #end
+    "VPCEndpoint":{
+      "Type":"AWS::EC2::VPCEndpoint",
+      "Properties":{
+         "PolicyDocument":{
+            "Version":"2012-10-17",
+            "Statement":[
+               {
+                  "Effect":"Allow",
+                  "Principal":"*",
+                  "Action":[
+                     "*"
+                  ],
+                  "Resource":[
+                     "*"
+                  ]
+               }
+            ]
+         },
+         "RouteTableIds":[
+                        #foreach( $privateSubnet in $subnetGroup.subnets )
+                        	{"Ref": "${privateSubnet.name}RouteTable"}
+                        	#if( $foreach.hasNext),#end
+                        #end
+                    ],
+         "ServiceName":{
+            "Fn::Join":[
+               "",
+               [
+                  "com.amazonaws.",
+                  {
+                     "Ref":"AWS::Region"
+                  },
+                  ".s3"
+               ]
+            ]
+         },
+         "VpcId":{
+            "Fn::ImportValue":{
+               "Fn::Join":[
+                  "-",
+                  [
+                     {
+                        "Ref":"AWS::Region"
+                     },
+                     "${vpcStackName}",
+                     "VPCId"
+                  ]
+               ]
+            }
+         }
+      }
+    }
     },
     "Outputs": {
         "PrivateSubnets": {

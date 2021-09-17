@@ -1,6 +1,5 @@
 package org.sagebionetworks.template.vpc;
 
-import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.TemplateGuiceModule;
 
 import com.google.inject.Guice;

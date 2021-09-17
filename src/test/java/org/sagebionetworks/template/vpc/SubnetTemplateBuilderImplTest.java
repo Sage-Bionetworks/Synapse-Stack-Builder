@@ -156,4 +156,5 @@ public class SubnetTemplateBuilderImplTest {
         JSONObject templateJson = new JSONObject(requests.get(0).getTemplateBody());
         System.out.println(templateJson.toString(JSON_INDENT));
     }
+
 }
