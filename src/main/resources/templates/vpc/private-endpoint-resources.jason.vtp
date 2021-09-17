@@ -17,13 +17,7 @@
      			"RouteTableIds": { "Fn::Join": [
      								", ",
      								[
-     								    #set($subnetGroups=$subnets.privateSubnetGroups)
-     									#set($i = 0)
-     									#foreach( $group in $subnetGroups )
-     									#if( $i > 0 ) , #end
-     									{"Fn::ImportValue": { "Fn::Join": ["-",[{"Ref": "AWS::Region"},"${vpcStackName}","private-subnets","$group.color","Private-Subnets-RouteTableIds"]] }}
-     									#set($i = $i+1)
-     									#end
+     									{"Fn::ImportValue": { "Fn::Join": ["-",[{"Ref": "AWS::Region"},"${vpcStackName}","private-subnets","Red","Private-Subnets-RouteTableIds"]] }}
      								]
                 ]},
      			"ServiceName": {"Fn::Join": ["", [ "com.amazonaws.",{ "Ref": "AWS::Region"},".s3"]]},

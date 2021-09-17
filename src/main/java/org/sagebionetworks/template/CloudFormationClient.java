@@ -1,7 +1,6 @@
 package org.sagebionetworks.template;
 
 import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException;
-import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Stack;
 
 /**
