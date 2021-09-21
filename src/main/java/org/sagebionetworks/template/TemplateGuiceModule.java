@@ -87,6 +87,8 @@ import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.AWSKMSAsyncClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
@@ -265,6 +267,11 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public SynapseAdminClient synapseAdminClient(SynapseAdminClientFactory factory) {
 		return factory.getInstance();
+	}
+	
+	@Provides
+	public TransferManager provideTransferManager() {
+		return TransferManagerBuilder.standard().build();
 	}
 	
 }

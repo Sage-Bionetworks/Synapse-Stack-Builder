@@ -5,13 +5,9 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.DOCS_STACK_INSTANCE_JSON_FILE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DEV_RELEASE_DOCS_BUCKET;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REST_DOCS_BUCKET;
-import static org.sagebionetworks.template.Constants.PROPERTY_DOC_DEPLOYMENT_FLAG;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DOC_DEPLOYMENT_FLAG;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.HashSet;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -23,7 +19,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.google.inject.Inject;
 
 public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
@@ -33,18 +28,15 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 	RepoConfiguration config;
 	
 	@Inject
-	SynapseDocsBuilderImpl(AmazonS3 s3Client, RepoConfiguration config) {
+	SynapseDocsBuilderImpl(AmazonS3 s3Client, RepoConfiguration config, TransferManager transferManager) {
 		this.s3Client = s3Client;
 		this.config = config;
-		transferManager = TransferManagerBuilder
-				.standard()
-				.withS3Client(s3Client)
-				.build();
+		this.transferManager = transferManager;
 	}
 	
-	boolean verifyDeployment(String docsBucket) {
+	public boolean verifyDeployment(String docsBucket) {
 		// don't deploy if flag is false
-		if (!config.getBooleanProperty(PROPERTY_DOC_DEPLOYMENT_FLAG)) {
+		if (!config.getBooleanProperty(PROPERTY_KEY_DOC_DEPLOYMENT_FLAG)) {
 			return false;
 		}
 		// don't deploy on non-prod
@@ -69,7 +61,7 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 		return true;
 	}
 	
-	boolean sync(String devDocsBucket, String docsBucket) {
+	public boolean sync(String devDocsBucket, String docsBucket) {
 		// deployment is a sync
 		String prefix = "";
 		ObjectListing sourceObjects = s3Client.listObjects(devDocsBucket, prefix);
