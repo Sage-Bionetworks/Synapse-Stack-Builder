@@ -42,7 +42,7 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 				.build();
 	}
 	
-	boolean verifyDeployment() {
+	boolean verifyDeployment(String docsBucket) {
 		// don't deploy if flag is false
 		if (!config.getBooleanProperty(PROPERTY_DOC_DEPLOYMENT_FLAG)) {
 			return false;
@@ -53,8 +53,8 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 			return false;
 		}
 		// don't deploy if the json file exists and states that it is >= to prod instance
-		if (s3Client.doesObjectExist(PROPERTY_KEY_REST_DOCS_BUCKET, DOCS_STACK_INSTANCE_JSON_FILE)) {
-			String json = s3Client.getObjectAsString(PROPERTY_KEY_REST_DOCS_BUCKET, DOCS_STACK_INSTANCE_JSON_FILE);
+		if (s3Client.doesObjectExist(docsBucket, DOCS_STACK_INSTANCE_JSON_FILE)) {
+			String json = s3Client.getObjectAsString(docsBucket, DOCS_STACK_INSTANCE_JSON_FILE);
 			JSONObject obj = new JSONObject(json);
 			int instance = obj.getInt(PROPERTY_KEY_INSTANCE);
 			if (instance >= Integer.parseInt(config.getProperty(PROPERTY_KEY_INSTANCE))) {
@@ -64,15 +64,13 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 			JSONObject obj = new JSONObject();
 			obj.put(PROPERTY_KEY_INSTANCE, Integer.parseInt(config.getProperty(PROPERTY_KEY_INSTANCE)));
 			String json = obj.toString();
-			s3Client.putObject(PROPERTY_KEY_REST_DOCS_BUCKET, DOCS_STACK_INSTANCE_JSON_FILE, json);
+			s3Client.putObject(docsBucket, DOCS_STACK_INSTANCE_JSON_FILE, json);
 		}
 		return true;
 	}
 	
-	boolean sync() {
+	boolean sync(String devDocsBucket, String docsBucket) {
 		// deployment is a sync
-		String devDocsBucket = config.getProperty(PROPERTY_KEY_DEV_RELEASE_DOCS_BUCKET);
-		String docsBucket = config.getProperty(PROPERTY_KEY_REST_DOCS_BUCKET);
 		String prefix = "";
 		ObjectListing sourceObjects = s3Client.listObjects(devDocsBucket, prefix);
 		Stream<S3ObjectSummary> destinationObjectsStream = s3Client.listObjects(docsBucket, prefix)
@@ -98,9 +96,11 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 	
 	@Override
 	public boolean deployDocs() {
-		if (!verifyDeployment()) {
+		String devDocsBucket = config.getProperty(PROPERTY_KEY_DEV_RELEASE_DOCS_BUCKET);
+		String docsBucket = config.getProperty(PROPERTY_KEY_REST_DOCS_BUCKET);
+		if (!verifyDeployment(docsBucket)) {
 			return false;
 		}
-		return sync();
+		return sync(devDocsBucket, docsBucket);
 	}
 }
