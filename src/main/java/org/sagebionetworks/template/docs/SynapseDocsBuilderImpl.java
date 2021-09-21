@@ -36,7 +36,11 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 	
 	public boolean verifyDeployment(String docsBucket) {
 		// don't deploy if flag is false
-		if (!config.getBooleanProperty(PROPERTY_KEY_DOC_DEPLOYMENT_FLAG)) {
+		try {
+			if (!config.getBooleanProperty(PROPERTY_KEY_DOC_DEPLOYMENT_FLAG)) {
+				return false;
+			}
+		} catch (Exception e) {
 			return false;
 		}
 		// don't deploy on non-prod

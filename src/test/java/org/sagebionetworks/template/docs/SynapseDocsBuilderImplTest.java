@@ -1,6 +1,7 @@
 package org.sagebionetworks.template.docs;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
@@ -34,6 +35,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
 import com.amazonaws.services.s3.AmazonS3;
@@ -129,6 +131,14 @@ public class SynapseDocsBuilderImplTest {
 	@Test
 	public void testVerifyDeploymentWithFalseFlag() {
 		when(mockConfig.getBooleanProperty(PROPERTY_KEY_DOC_DEPLOYMENT_FLAG)).thenReturn(false);
+		// call under test
+		assertFalse(builder.verifyDeployment(docsBucket));
+	}
+	
+	@Test
+	public void testVerifyDeploymentWithMissingDeploymentFlag() {
+		when(mockConfig.getBooleanProperty(PROPERTY_KEY_DOC_DEPLOYMENT_FLAG))
+			.thenThrow(ConfigurationPropertyNotFound.class);
 		// call under test
 		assertFalse(builder.verifyDeployment(docsBucket));
 	}
