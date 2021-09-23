@@ -34,6 +34,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.transfer.Copy;
 import com.amazonaws.services.s3.transfer.TransferManager;
 
 @ExtendWith(MockitoExtension.class)
@@ -53,6 +54,9 @@ public class SynapseDocsBuilderImplTest {
 	
 	@Mock
 	ObjectListing mockDestinationListing;
+	
+	@Mock
+	Copy mockCopy;
 	
 	String prodInstance;
 	String oldInstance;
@@ -160,12 +164,14 @@ public class SynapseDocsBuilderImplTest {
 	}
 	
 	@Test
-	public void testSyncWithDestinationEmpty() {
+	public void testSyncWithDestinationEmpty() throws Exception {
+		when(mockTransferManager.copy(any(), any(), any(), any())).thenReturn(mockCopy);
 		when(mockS3Client.listObjects(any(ListObjectsRequest.class))).thenReturn(mockDestinationListing, mockSourceListing);
 		when(mockSourceListing.getObjectSummaries()).thenReturn(objects);
 		when(mockConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(prodInstance);
 		// call under test
 		builder.sync(sourceBucket, destinationBucket);
+		verify(mockCopy).waitForCompletion();
 		verify(mockTransferManager).copy(sourceBucket, object.getKey(), destinationBucket, object.getKey());
 		verify(mockS3Client, never()).deleteObject(any(), any());
 		verify(mockS3Client).putObject(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE, jsonUpToDate);
@@ -185,10 +191,11 @@ public class SynapseDocsBuilderImplTest {
 	}
 	
 	@Test
-	public void testSyncWithDestinationSameKeyWithDifferentETag() {
+	public void testSyncWithDestinationSameKeyWithDifferentETag() throws Exception {
 		S3ObjectSummary newObject = new S3ObjectSummary();
 		newObject.setETag("different-etag");
 		newObject.setKey(object.getKey());
+		when(mockTransferManager.copy(any(), any(), any(), any())).thenReturn(mockCopy);
 		List<S3ObjectSummary> newObjects = Arrays.asList(newObject);
 		when(mockS3Client.listObjects(any(ListObjectsRequest.class))).thenReturn(mockDestinationListing, mockSourceListing);
 		when(mockSourceListing.getObjectSummaries()).thenReturn(objects);
@@ -196,22 +203,25 @@ public class SynapseDocsBuilderImplTest {
 		when(mockDestinationListing.getObjectSummaries()).thenReturn(newObjects);
 		// call under test
 		builder.sync(sourceBucket, destinationBucket);
+		verify(mockCopy).waitForCompletion();
 		verify(mockTransferManager).copy(sourceBucket, object.getKey(), destinationBucket, object.getKey());
 		verify(mockS3Client, never()).deleteObject(any(), any());
 		verify(mockS3Client).putObject(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE, jsonUpToDate);
 	}
 	
 	@Test
-	public void testSyncWithDestinationDeleteExistingFile() {
+	public void testSyncWithDestinationDeleteExistingFile() throws Exception {
 		S3ObjectSummary newObject = new S3ObjectSummary();
 		newObject.setKey("someKeyNotInSource");
 		List<S3ObjectSummary> newObjects = Arrays.asList(newObject);
+		when(mockTransferManager.copy(any(), any(), any(), any())).thenReturn(mockCopy);
 		when(mockS3Client.listObjects(any(ListObjectsRequest.class))).thenReturn(mockDestinationListing, mockSourceListing);
 		when(mockSourceListing.getObjectSummaries()).thenReturn(objects);
 		when(mockConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(prodInstance);
 		when(mockDestinationListing.getObjectSummaries()).thenReturn(newObjects);
 		// call under test
 		builder.sync(sourceBucket, destinationBucket);
+		verify(mockCopy).waitForCompletion();
 		verify(mockTransferManager).copy(sourceBucket, object.getKey(), destinationBucket, object.getKey());
 		verify(mockS3Client).deleteObject(destinationBucket, newObject.getKey());
 		verify(mockS3Client).putObject(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE, jsonUpToDate);
