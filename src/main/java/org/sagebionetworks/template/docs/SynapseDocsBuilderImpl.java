@@ -57,7 +57,7 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 			JSONObject obj = new JSONObject(json);
 			int instance = obj.getInt(PROPERTY_KEY_INSTANCE);
 			if (instance >= Integer.parseInt(config.getProperty(PROPERTY_KEY_INSTANCE))) {
-				LOG.info("Instance for docs is up to date, will not deploy docs.");
+				LOG.info("Docs are up to date, will not deploy docs.");
 				return false;
 			}
 		}

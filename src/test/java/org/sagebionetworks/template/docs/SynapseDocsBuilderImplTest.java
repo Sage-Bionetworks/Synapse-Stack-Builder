@@ -45,31 +45,31 @@ import com.amazonaws.services.s3.transfer.Copy;
 public class SynapseDocsBuilderImplTest {
 	
 	@Mock
-	S3TransferManagerFactory mockS3TransferManagerFactory;
+	private S3TransferManagerFactory mockS3TransferManagerFactory;
 	
 	@Mock
-	S3TransferManager mockS3TransferManager;
+	private S3TransferManager mockS3TransferManager;
 	
 	@Mock
-	AmazonS3 mockS3Client;
+	private AmazonS3 mockS3Client;
 	
 	@Mock
-	RepoConfiguration mockConfig;
+	private RepoConfiguration mockConfig;
 	
 	@Mock
-	ObjectListing mockSourceListing;
+	private ObjectListing mockSourceListing;
 
 	@Mock
-	ObjectListing mockDestinationListing;
+	private ObjectListing mockDestinationListing;
 	
 	@Mock
-	ListObjectsRequest sourceListRequest;
+	private ListObjectsRequest mockSourceListRequest;
 	
 	@Mock
-	ListObjectsRequest destinationListRequest;
+	private ListObjectsRequest mockDestinationListRequest;
 	
 	@Mock
-	Copy mockCopy;
+	private Copy mockCopy;
 	
 	private String prodInstance;
 	private String sourceBucket;
@@ -193,36 +193,38 @@ public class SynapseDocsBuilderImplTest {
 	
 	@Test
 	public void testSyncWithDestinationEmpty() throws Exception {
-		doAnswer(invocation -> destinationListRequest)
+		doAnswer(invocation -> mockDestinationListRequest)
 			.when(builderSpy).createListObjectsRequest(destinationBucket, prefix);
-		doAnswer(invocation -> sourceListRequest)
+		doAnswer(invocation -> mockSourceListRequest)
 			.when(builderSpy).createListObjectsRequest(sourceBucket, prefix);
 		doAnswer(invocation -> new ArrayList<S3ObjectSummary>())
-			.when(builderSpy).getAllS3Objects(destinationListRequest);
+			.when(builderSpy).getAllS3Objects(mockDestinationListRequest);
 		doAnswer(invocation -> objects)
-			.when(builderSpy).getAllS3Objects(sourceListRequest);
+			.when(builderSpy).getAllS3Objects(mockSourceListRequest);
 		when(mockS3TransferManagerFactory.createNewS3TransferManager()).thenReturn(mockS3TransferManager);
 		when(mockS3TransferManager.copy(any(), any(), any(), any())).thenReturn(mockCopy);
 		when(mockConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(prodInstance);
 		// call under test
 		builderSpy.sync(sourceBucket, destinationBucket);
+		verify(mockS3TransferManager).close();
 		verify(mockS3TransferManager).copy(sourceBucket, object.getKey(), destinationBucket, object.getKey());
 		verify(mockS3Client, never()).deleteObject(any(), any());
 		verify(mockS3Client).putObject(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE, jsonUpToDate);
 	}
 	
 	@Test
-	public void testSyncWithDestinationSameKeyWithSameETag() {
-		doAnswer(invocation -> destinationListRequest)
+	public void testSyncWithDestinationSameKeyWithSameETag() throws Exception {
+		doAnswer(invocation -> mockDestinationListRequest)
 			.when(builderSpy).createListObjectsRequest(destinationBucket, prefix);
-		doAnswer(invocation -> sourceListRequest)
+		doAnswer(invocation -> mockSourceListRequest)
 			.when(builderSpy).createListObjectsRequest(sourceBucket, prefix);
-		doAnswer(invocation -> objects).when(builderSpy).getAllS3Objects(destinationListRequest);
-		doAnswer(invocation -> objects).when(builderSpy).getAllS3Objects(sourceListRequest);
+		doAnswer(invocation -> objects).when(builderSpy).getAllS3Objects(mockDestinationListRequest);
+		doAnswer(invocation -> objects).when(builderSpy).getAllS3Objects(mockSourceListRequest);
 		when(mockS3TransferManagerFactory.createNewS3TransferManager()).thenReturn(mockS3TransferManager);
 		when(mockConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(prodInstance);
 		// call under test
 		builderSpy.sync(sourceBucket, destinationBucket);
+		verify(mockS3TransferManager).close();
 		verify(mockS3TransferManager, never()).copy(sourceBucket, object.getKey(), destinationBucket, object.getKey());
 		verify(mockS3Client, never()).deleteObject(any(), any());
 		verify(mockS3Client).putObject(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE, jsonUpToDate);
@@ -234,17 +236,18 @@ public class SynapseDocsBuilderImplTest {
 		newObject.setETag("different-etag");
 		newObject.setKey(object.getKey());
 		List<S3ObjectSummary> newObjects = Arrays.asList(newObject);
-		doAnswer(invocation -> destinationListRequest)
+		doAnswer(invocation -> mockDestinationListRequest)
 			.when(builderSpy).createListObjectsRequest(destinationBucket, prefix);
-		doAnswer(invocation -> sourceListRequest)
+		doAnswer(invocation -> mockSourceListRequest)
 			.when(builderSpy).createListObjectsRequest(sourceBucket, prefix);
-		doAnswer(invocation -> newObjects).when(builderSpy).getAllS3Objects(destinationListRequest);
-		doAnswer(invocation -> objects).when(builderSpy).getAllS3Objects(sourceListRequest);
+		doAnswer(invocation -> newObjects).when(builderSpy).getAllS3Objects(mockDestinationListRequest);
+		doAnswer(invocation -> objects).when(builderSpy).getAllS3Objects(mockSourceListRequest);
 		when(mockS3TransferManagerFactory.createNewS3TransferManager()).thenReturn(mockS3TransferManager);
 		when(mockConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(prodInstance);
 		when(mockS3TransferManager.copy(any(), any(), any(), any())).thenReturn(mockCopy);
 		// call under test
 		builderSpy.sync(sourceBucket, destinationBucket);
+		verify(mockS3TransferManager).close();
 		verify(mockS3TransferManager).copy(sourceBucket, object.getKey(), destinationBucket, object.getKey());
 		verify(mockS3Client, never()).deleteObject(any(), any());
 		verify(mockS3Client).putObject(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE, jsonUpToDate);
@@ -255,17 +258,18 @@ public class SynapseDocsBuilderImplTest {
 		S3ObjectSummary newObject = new S3ObjectSummary();
 		newObject.setKey("someKeyNotInSource");
 		List<S3ObjectSummary> newObjects = Arrays.asList(newObject);
-		doAnswer(invocation -> destinationListRequest)
+		doAnswer(invocation -> mockDestinationListRequest)
 			.when(builderSpy).createListObjectsRequest(destinationBucket, prefix);
-		doAnswer(invocation -> sourceListRequest)
+		doAnswer(invocation -> mockSourceListRequest)
 			.when(builderSpy).createListObjectsRequest(sourceBucket, prefix);
-		doAnswer(invocation -> newObjects).when(builderSpy).getAllS3Objects(destinationListRequest);
-		doAnswer(invocation -> objects).when(builderSpy).getAllS3Objects(sourceListRequest);
+		doAnswer(invocation -> newObjects).when(builderSpy).getAllS3Objects(mockDestinationListRequest);
+		doAnswer(invocation -> objects).when(builderSpy).getAllS3Objects(mockSourceListRequest);
 		when(mockS3TransferManagerFactory.createNewS3TransferManager()).thenReturn(mockS3TransferManager);
 		when(mockConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(prodInstance);
 		when(mockS3TransferManager.copy(any(), any(), any(), any())).thenReturn(mockCopy);
 		// call under test
 		builderSpy.sync(sourceBucket, destinationBucket);
+		verify(mockS3TransferManager).close();
 		verify(mockS3TransferManager).copy(sourceBucket, object.getKey(), destinationBucket, object.getKey());
 		verify(mockS3Client).deleteObject(destinationBucket, newObject.getKey());
 		verify(mockS3Client).putObject(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE, jsonUpToDate);
@@ -277,8 +281,8 @@ public class SynapseDocsBuilderImplTest {
 		when(mockSourceListing.getObjectSummaries()).thenReturn(objects);
 		when(mockSourceListing.isTruncated()).thenReturn(false);
 		// call under test
-		List<S3ObjectSummary> allObjects = builder.getAllS3Objects(sourceListRequest);
-		verify(sourceListRequest).setMarker(mockSourceListing.getNextMarker());
+		List<S3ObjectSummary> allObjects = builder.getAllS3Objects(mockSourceListRequest);
+		verify(mockSourceListRequest).setMarker(mockSourceListing.getNextMarker());
 		assertEquals(allObjects, objects);
 	}
 	
@@ -290,9 +294,9 @@ public class SynapseDocsBuilderImplTest {
 		when(mockSourceListing.getObjectSummaries()).thenReturn(objects,nextPageObjects);
 		when(mockSourceListing.isTruncated()).thenReturn(true, false);
 		// call under test
-		List<S3ObjectSummary> allObjects = builder.getAllS3Objects(sourceListRequest);
+		List<S3ObjectSummary> allObjects = builder.getAllS3Objects(mockSourceListRequest);
 		List<S3ObjectSummary> expected = Arrays.asList(object, nextObject);
-		verify(sourceListRequest, times(2)).setMarker(mockSourceListing.getNextMarker());
+		verify(mockSourceListRequest, times(2)).setMarker(mockSourceListing.getNextMarker());
 		assertEquals(allObjects, expected);
 	}
 	
