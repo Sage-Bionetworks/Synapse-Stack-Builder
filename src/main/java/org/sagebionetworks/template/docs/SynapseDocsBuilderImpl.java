@@ -120,5 +120,6 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 		if (verifyDeployment(destinationBucket)) {
 			sync(sourceBucket, destinationBucket);
 		}
+		transferManager.shutdownNow();
 	}
 }
