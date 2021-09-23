@@ -16,6 +16,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.transfer.Copy;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.google.inject.Inject;
 
@@ -83,8 +84,13 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 				if (destinationETag != null && sourceObject.getETag().equals(destinationETag)) {
 					continue;
 				}
-				transferManager.copy(sourceBucket, sourceObject.getKey(), 
+				Copy cpy = transferManager.copy(sourceBucket, sourceObject.getKey(), 
 						destinationBucket, sourceObject.getKey());
+				try {
+					cpy.waitForCompletion();
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
 			}
 			sourceListRequest.setMarker(sourceListing.getNextMarker());
 		} while (sourceListing.isTruncated());
@@ -102,7 +108,7 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 	}
 	
 	@Override
-	public void deployDocs() {
+	public void deployDocs(){
 		String sourceBucket = config.getProperty(PROPERTY_KEY_DOCS_SOURCE_BUCKET);
 		String destinationBucket = config.getProperty(PROPERTY_KEY_DOCS_DESTINATION_BUCKET);
 		if (verifyDeployment(destinationBucket)) {
