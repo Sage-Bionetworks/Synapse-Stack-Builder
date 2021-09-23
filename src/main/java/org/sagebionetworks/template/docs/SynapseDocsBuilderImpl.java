@@ -1,21 +1,19 @@
 package org.sagebionetworks.template.docs;
 
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.DOCS_STACK_INSTANCE_JSON_FILE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DEV_RELEASE_DOCS_BUCKET;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REST_DOCS_BUCKET;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DOC_DEPLOYMENT_FLAG;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DOCS_SOURCE_BUCKET;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DOCS_DESTINATION_BUCKET;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Stream;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.json.JSONObject;
-import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.transfer.TransferManager;
@@ -34,69 +32,81 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 		this.transferManager = transferManager;
 	}
 	
-	public boolean verifyDeployment(String docsBucket) {
+	boolean verifyDeployment(String destinationBucket) {
 		// don't deploy if flag is false
 		try {
-			if (!config.getBooleanProperty(PROPERTY_KEY_DOC_DEPLOYMENT_FLAG)) {
+			if (!config.getBooleanProperty(PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG)) {
 				return false;
 			}
 		} catch (Exception e) {
 			return false;
 		}
-		// don't deploy on non-prod
-		String stack = config.getProperty(PROPERTY_KEY_STACK);
-		if (!stack.equals(Constants.PROD_STACK_NAME)) {
-			return false;
-		}
 		// don't deploy if the json file exists and states that it is >= to prod instance
-		if (s3Client.doesObjectExist(docsBucket, DOCS_STACK_INSTANCE_JSON_FILE)) {
-			String json = s3Client.getObjectAsString(docsBucket, DOCS_STACK_INSTANCE_JSON_FILE);
+		if (s3Client.doesObjectExist(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE)) {
+			String json = s3Client.getObjectAsString(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE);
 			JSONObject obj = new JSONObject(json);
 			int instance = obj.getInt(PROPERTY_KEY_INSTANCE);
 			if (instance >= Integer.parseInt(config.getProperty(PROPERTY_KEY_INSTANCE))) {
 				return false;
 			}
-		} else { // we write the instance to the a json, and deploy
-			JSONObject obj = new JSONObject();
-			obj.put(PROPERTY_KEY_INSTANCE, Integer.parseInt(config.getProperty(PROPERTY_KEY_INSTANCE)));
-			String json = obj.toString();
-			s3Client.putObject(docsBucket, DOCS_STACK_INSTANCE_JSON_FILE, json);
 		}
 		return true;
 	}
 	
-	public boolean sync(String devDocsBucket, String docsBucket) {
+	void sync(String sourceBucket, String destinationBucket) {
 		// deployment is a sync
 		String prefix = "";
-		ObjectListing sourceObjects = s3Client.listObjects(devDocsBucket, prefix);
-		Stream<S3ObjectSummary> destinationObjectsStream = s3Client.listObjects(docsBucket, prefix)
-				.getObjectSummaries()
-				.stream();
-		Set<String> destinationObjectKeySet = new HashSet<>();
-		destinationObjectsStream.forEach(obj -> destinationObjectKeySet.add(obj.getKey()));
-		for (S3ObjectSummary sourceObject : sourceObjects.getObjectSummaries()) {
-			// make the destination set contain all objects to be removed (not updated) in the sync
-			if (destinationObjectKeySet.contains(sourceObject.getKey())) {
-				destinationObjectKeySet.remove(sourceObject.getKey());
+		ListObjectsRequest destinationListRequest = new ListObjectsRequest()
+				.withBucketName(destinationBucket)
+				.withPrefix(prefix);
+		ObjectListing destinationListing;
+		Map<String, String> destinationKeyToETag = new HashMap<>();
+		// build a map of destination object keys to their etags
+		do {
+			destinationListing = s3Client.listObjects(destinationListRequest);
+			destinationListing.getObjectSummaries()
+				.forEach(obj -> destinationKeyToETag.put(obj.getKey(), obj.getETag()));
+			destinationListRequest.setMarker(destinationListing.getNextMarker());
+		} while (destinationListing.isTruncated());
+		
+		// do the sync
+		ListObjectsRequest sourceListRequest = new ListObjectsRequest()
+				.withBucketName(sourceBucket)
+				.withPrefix(prefix);
+		ObjectListing sourceListing;
+		do {
+			sourceListing = s3Client.listObjects(sourceListRequest);
+			for (S3ObjectSummary sourceObject : sourceListing.getObjectSummaries()) {
+				// make the destination map contain all objects to be removed (not updated) in the sync
+				String destinationETag = destinationKeyToETag.remove(sourceObject.getKey());
+				// if the source object's key is at the destination and it has the same etag, don't copy
+				if (destinationETag != null && sourceObject.getETag().equals(destinationETag)) {
+					continue;
+				}
+				transferManager.copy(sourceBucket, sourceObject.getKey(), 
+						destinationBucket, sourceObject.getKey());
 			}
-			// direct copy, also overwrites if keys are the same
-			transferManager.copy(devDocsBucket, sourceObject.getKey(), 
-					docsBucket, sourceObject.getKey());
-		}
+			sourceListRequest.setMarker(sourceListing.getNextMarker());
+		} while (sourceListing.isTruncated());
+		
 		// remove objects in the sync
-		for (String destinationObjectKey : destinationObjectKeySet) {
-			s3Client.deleteObject(docsBucket, destinationObjectKey);
+		for (String destinationObjectKey : destinationKeyToETag.keySet()) {
+			s3Client.deleteObject(destinationBucket, destinationObjectKey);
 		}
-		return true;
+		
+		// Write the instance to the bucket
+		JSONObject obj = new JSONObject();
+		obj.put(PROPERTY_KEY_INSTANCE, Integer.parseInt(config.getProperty(PROPERTY_KEY_INSTANCE)));
+		String json = obj.toString();
+		s3Client.putObject(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE, json);
 	}
 	
 	@Override
-	public boolean deployDocs() {
-		String devDocsBucket = config.getProperty(PROPERTY_KEY_DEV_RELEASE_DOCS_BUCKET);
-		String docsBucket = config.getProperty(PROPERTY_KEY_REST_DOCS_BUCKET);
-		if (!verifyDeployment(docsBucket)) {
-			return false;
+	public void deployDocs() {
+		String sourceBucket = config.getProperty(PROPERTY_KEY_DOCS_SOURCE_BUCKET);
+		String destinationBucket = config.getProperty(PROPERTY_KEY_DOCS_DESTINATION_BUCKET);
+		if (verifyDeployment(destinationBucket)) {
+			sync(sourceBucket, destinationBucket);
 		}
-		return sync(devDocsBucket, docsBucket);
 	}
 }

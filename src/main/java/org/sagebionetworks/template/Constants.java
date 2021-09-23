@@ -206,9 +206,9 @@ public class Constants {
 	
 	// docs deployment
 	public static final String DOCS_STACK_INSTANCE_JSON_FILE = "instance.json";
-	public static final String PROPERTY_KEY_DOC_DEPLOYMENT_FLAG = "org.sagebionetworks.docs.deploy";
-	public static final String PROPERTY_KEY_DEV_RELEASE_DOCS_BUCKET = "org.sagebionetworks.docs.release";
-	public static final String PROPERTY_KEY_REST_DOCS_BUCKET = "org.sagebionetworks.docs.rest";
+	public static final String PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG = "org.sagebionetworks.docs.deploy";
+	public static final String PROPERTY_KEY_DOCS_SOURCE_BUCKET = "org.sagebionetworks.docs.source";
+	public static final String PROPERTY_KEY_DOCS_DESTINATION_BUCKET = "org.sagebionetworks.docs.destination";
 
 	/**
 	 * Create a camel case name from dash-separated-name. Given 'foo-bar' will
