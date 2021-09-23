@@ -6,52 +6,58 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DOCS_SOURCE_BU
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DOCS_DESTINATION_BUCKET;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG;
 
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.sagebionetworks.template.config.RepoConfiguration;
+import org.sagebionetworks.template.s3.S3TransferManager;
+import org.sagebionetworks.template.s3.S3TransferManagerFactory;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.transfer.Copy;
-import com.amazonaws.services.s3.transfer.TransferManager;
 import com.google.inject.Inject;
 
 public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 
 	private static final Logger LOG = LogManager.getLogger(SynapseDocsBuilderImpl.class);
 	
-	TransferManager transferManager;
-	AmazonS3 s3Client;
-	RepoConfiguration config;
+	private final S3TransferManagerFactory transferManagerFactory;
+	private final AmazonS3 s3Client;
+	private final RepoConfiguration config;
 	
 	@Inject
-	SynapseDocsBuilderImpl(AmazonS3 s3Client, RepoConfiguration config, TransferManager transferManager) {
+	SynapseDocsBuilderImpl(AmazonS3 s3Client, RepoConfiguration config, 
+			S3TransferManagerFactory transferManagerFactory) {
 		this.s3Client = s3Client;
 		this.config = config;
-		this.transferManager = transferManager;
+		this.transferManagerFactory = transferManagerFactory;
 	}
 	
 	boolean verifyDeployment(String destinationBucket) {
-		// don't deploy if flag is false
 		try {
 			if (!config.getBooleanProperty(PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG)) {
+				LOG.info("Docs deployment flag is false, will not deploy docs.");
 				return false;
 			}
 		} catch (Exception e) {
+			LOG.info("Docs deployment flag is missing, will not deploy docs.");
 			return false;
 		}
-		// don't deploy if the json file exists and states that it is >= to prod instance
 		if (s3Client.doesObjectExist(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE)) {
 			String json = s3Client.getObjectAsString(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE);
 			JSONObject obj = new JSONObject(json);
 			int instance = obj.getInt(PROPERTY_KEY_INSTANCE);
 			if (instance >= Integer.parseInt(config.getProperty(PROPERTY_KEY_INSTANCE))) {
+				LOG.info("Instance for docs is up to date, will not deploy docs.");
 				return false;
 			}
 		}
@@ -61,34 +67,20 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 	void sync(String sourceBucket, String destinationBucket) {
 		// deployment is a sync
 		String prefix = "";
-		ListObjectsRequest destinationListRequest = new ListObjectsRequest()
-				.withBucketName(destinationBucket)
-				.withPrefix(prefix);
-		ObjectListing destinationListing;
 		Map<String, String> destinationKeyToETag = new HashMap<>();
 		// build a map of destination object keys to their etags
-		do {
-			destinationListing = s3Client.listObjects(destinationListRequest);
-			destinationListing.getObjectSummaries()
-				.forEach(obj -> destinationKeyToETag.put(obj.getKey(), obj.getETag()));
-			destinationListRequest.setMarker(destinationListing.getNextMarker());
-		} while (destinationListing.isTruncated());
-		
+		getAllS3Objects(createListObjectsRequest(destinationBucket, prefix))
+			.forEach(obj -> destinationKeyToETag.put(obj.getKey(), obj.getETag()));
 		// do the sync
-		ListObjectsRequest sourceListRequest = new ListObjectsRequest()
-				.withBucketName(sourceBucket)
-				.withPrefix(prefix);
-		ObjectListing sourceListing;
-		do {
-			sourceListing = s3Client.listObjects(sourceListRequest);
-			for (S3ObjectSummary sourceObject : sourceListing.getObjectSummaries()) {
+		List<S3ObjectSummary> sourceObjects = getAllS3Objects(createListObjectsRequest(sourceBucket, prefix));
+		try (S3TransferManager s3TransferManager = transferManagerFactory.createNewS3TransferManager()) {
+			for (S3ObjectSummary sourceObject : sourceObjects) {
 				// make the destination map contain all objects to be removed (not updated) in the sync
 				String destinationETag = destinationKeyToETag.remove(sourceObject.getKey());
-				// if the source object's key is at the destination and it has the same etag, don't copy
 				if (destinationETag != null && sourceObject.getETag().equals(destinationETag)) {
 					continue;
 				}
-				Copy cpy = transferManager.copy(sourceBucket, sourceObject.getKey(), 
+				Copy cpy = s3TransferManager.copy(sourceBucket, sourceObject.getKey(), 
 						destinationBucket, sourceObject.getKey());
 				try {
 					LOG.info("Waiting to copy " + sourceObject.getKey() + "...");
@@ -97,9 +89,10 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 					throw new RuntimeException(e);
 				}
 			}
-			sourceListRequest.setMarker(sourceListing.getNextMarker());
-		} while (sourceListing.isTruncated());
-		
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
 		// remove objects in the sync
 		for (String destinationObjectKey : destinationKeyToETag.keySet()) {
 			s3Client.deleteObject(destinationBucket, destinationObjectKey);
@@ -113,13 +106,35 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 		LOG.info("Done with sync");
 	}
 	
+	List<S3ObjectSummary> getAllS3Objects(ListObjectsRequest listRequest) {
+		List<S3ObjectSummary> objects = new LinkedList<>();
+		ObjectListing listing;
+		do {
+			listing = s3Client.listObjects(listRequest);
+			objects.addAll(listing.getObjectSummaries());
+			listRequest.setMarker(listing.getNextMarker());
+		} while (listing.isTruncated());
+		return objects;
+	}
+	
+	ListObjectsRequest createListObjectsRequest(String bucket, String prefix) {
+		return new ListObjectsRequest().withBucketName(bucket).withPrefix(prefix);
+	}
+	
 	@Override
 	public void deployDocs(){
-		String sourceBucket = config.getProperty(PROPERTY_KEY_DOCS_SOURCE_BUCKET);
-		String destinationBucket = config.getProperty(PROPERTY_KEY_DOCS_DESTINATION_BUCKET);
+		String sourceBucket;
+		String destinationBucket;
+		try {
+			sourceBucket = config.getProperty(PROPERTY_KEY_DOCS_SOURCE_BUCKET);
+			destinationBucket = config.getProperty(PROPERTY_KEY_DOCS_DESTINATION_BUCKET);
+		} catch (Exception e) {
+			LOG.info(e.getMessage());
+			return;
+		}
 		if (verifyDeployment(destinationBucket)) {
 			sync(sourceBucket, destinationBucket);
 		}
-		transferManager.shutdownNow();
 	}
+	
 }
