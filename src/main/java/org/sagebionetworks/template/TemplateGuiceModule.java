@@ -270,8 +270,8 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 	
 	@Provides
-	public TransferManager provideTransferManager() {
-		return TransferManagerBuilder.standard().build();
+	public TransferManager provideTransferManager(AmazonS3 s3Client) {
+		return TransferManagerBuilder.standard().withS3Client(s3Client).build();
 	}
 	
 }
