@@ -9,6 +9,8 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DOCS_DEPLOYMEN
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
@@ -22,6 +24,8 @@ import com.google.inject.Inject;
 
 public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 
+	private static final Logger LOG = LogManager.getLogger(SynapseDocsBuilderImpl.class);
+	
 	TransferManager transferManager;
 	AmazonS3 s3Client;
 	RepoConfiguration config;
@@ -87,6 +91,7 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 				Copy cpy = transferManager.copy(sourceBucket, sourceObject.getKey(), 
 						destinationBucket, sourceObject.getKey());
 				try {
+					LOG.info("Waiting to copy " + sourceObject.getKey() + "...");
 					cpy.waitForCompletion();
 				} catch (Exception e) {
 					throw new RuntimeException(e);
@@ -105,6 +110,7 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 		obj.put(PROPERTY_KEY_INSTANCE, Integer.parseInt(config.getProperty(PROPERTY_KEY_INSTANCE)));
 		String json = obj.toString();
 		s3Client.putObject(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE, json);
+		LOG.info("Done with sync");
 	}
 	
 	@Override
