@@ -23,6 +23,8 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.config.RepoConfigurationImpl;
 import org.sagebionetworks.template.config.SynapseAdminClientFactory;
 import org.sagebionetworks.template.config.SynapseAdminClientFactoryImpl;
+import org.sagebionetworks.template.docs.SynapseDocsBuilder;
+import org.sagebionetworks.template.docs.SynapseDocsBuilderImpl;
 import org.sagebionetworks.template.global.GlobalResourcesBuilder;
 import org.sagebionetworks.template.global.GlobalResourcesBuilderImpl;
 import org.sagebionetworks.template.jobs.AsynchAdminJobExecutor;
@@ -64,6 +66,8 @@ import org.sagebionetworks.template.s3.S3BucketBuilder;
 import org.sagebionetworks.template.s3.S3BucketBuilderImpl;
 import org.sagebionetworks.template.s3.S3Config;
 import org.sagebionetworks.template.s3.S3ConfigValidator;
+import org.sagebionetworks.template.s3.S3TransferManagerFactory;
+import org.sagebionetworks.template.s3.S3TransferManagerFactoryImpl;
 import org.sagebionetworks.template.vpc.SubnetTemplateBuilder;
 import org.sagebionetworks.template.vpc.SubnetTemplateBuilderImpl;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilder;
@@ -85,6 +89,8 @@ import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.AWSKMSAsyncClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
@@ -129,6 +135,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(Ec2Client.class).to(Ec2ClientImpl.class);
 		bind(SynapseAdminClientFactory.class).to(SynapseAdminClientFactoryImpl.class);
 		bind(AsynchAdminJobExecutor.class).to(AsynchAdminJobExecutorImpl.class);
+		bind(SynapseDocsBuilder.class).to(SynapseDocsBuilderImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 		
@@ -262,6 +269,11 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public SynapseAdminClient synapseAdminClient(SynapseAdminClientFactory factory) {
 		return factory.getInstance();
+	}
+	
+	@Provides
+	public S3TransferManagerFactory provideS3TransferManagerFactory(AmazonS3 s3Client) {
+		return new S3TransferManagerFactoryImpl(s3Client);
 	}
 	
 }

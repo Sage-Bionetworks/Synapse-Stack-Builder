@@ -203,6 +203,12 @@ public class Constants {
 	public static final String PROPERTY_KEY_CLIENT_ENDPOINT_PREFIX = "org.sagebionetworks.jobs.endpoint";
 	public static final String PROPERTY_KEY_ADMIN_JOBS_TIMEOUT = "org.sagebionetworks.jobs.timeout";
 	public static final String PROPERTY_KEY_ADMIN_JOBS_CHECK_INTERVAL = "org.sagebionetworks.jobs.checkInterval";
+	
+	// docs deployment
+	public static final String DOCS_STACK_INSTANCE_JSON_FILE = "instance.json";
+	public static final String PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG = "org.sagebionetworks.docs.deploy";
+	public static final String PROPERTY_KEY_DOCS_SOURCE_BUCKET = "org.sagebionetworks.docs.source";
+	public static final String PROPERTY_KEY_DOCS_DESTINATION_BUCKET = "org.sagebionetworks.docs.destination";
 
 	/**
 	 * Create a camel case name from dash-separated-name. Given 'foo-bar' will
