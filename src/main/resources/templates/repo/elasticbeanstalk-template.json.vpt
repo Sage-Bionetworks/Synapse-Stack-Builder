@@ -449,6 +449,11 @@
 						"Value": "${stack}${instance}user"
 					},
 					{
+					"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.repository.db.readonlyusername",
+						"Value": "${stack}${instance}ro"
+					},
+					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.repository.database.connection.url",
 						"Value": "jdbc:mysql://${stack}-${instance}-db.${dbEndpointSuffix}/${stack}${instance}?verifyServerCertificate=false&useSSL=true&requireSSL=true"
