@@ -25,7 +25,7 @@ class BeanstalkUtilsTest {
 		// Should be 2 filters
 		assertEquals(2, filters.size());
 		PlatformFilter f1 = filters.get(0);
-		assertEquals("PlatformBranchName", f1.getType());
+		assertEquals("PlatformName", f1.getType());
 		assertEquals("Tomcat 8.5 with Corretto 11 running on 64bit Amazon Linux 2", f1.getValues().get(0));
 		assertEquals("=", f1.getOperator());
 		PlatformFilter f2 = filters.get(1);
@@ -46,7 +46,7 @@ class BeanstalkUtilsTest {
 		// Should be 2 filters
 		assertEquals(1, filters.size());
 		PlatformFilter f1 = filters.get(0);
-		assertEquals("PlatformBranchName", f1.getType());
+		assertEquals("PlatformName", f1.getType());
 		assertEquals("Tomcat 8.5 with Corretto 11 running on 64bit Amazon Linux 2", f1.getValues().get(0));
 		assertEquals("=", f1.getOperator());
 

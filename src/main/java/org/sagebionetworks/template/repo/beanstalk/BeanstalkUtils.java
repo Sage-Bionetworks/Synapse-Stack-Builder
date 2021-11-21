@@ -26,7 +26,7 @@ public class BeanstalkUtils {
 		Collection<PlatformFilter> filters = new LinkedList<>();
 
 		PlatformFilter filter = new PlatformFilter()
-				.withType("PlatformBranchName")
+				.withType("PlatformName")
 				.withOperator("=")
 				.withValues(String.format(PLATFORM_NAME_TEMPLATE, tomcatVersion, javaVersion));
 		filters.add(filter);

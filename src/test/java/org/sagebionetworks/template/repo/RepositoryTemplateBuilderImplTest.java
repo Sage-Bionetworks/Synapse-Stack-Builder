@@ -710,7 +710,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("4.5.6");
-		String expectedPlatformName = "Tomcat 9.0 with Java 11 running on 64bit Amazon Linux";
+		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2";
 		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=").withValues(expectedPlatformName);
 		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
 		// No plaform found with that name
@@ -728,7 +728,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("3.4.6");
-		String expectedPlatformName = "Tomcat 9.0 with Java 11 running on 64bit Amazon Linux";
+		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2";
 		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=").withValues(expectedPlatformName);
 		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
@@ -751,7 +751,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("3.4.6");
-		String expectedPlatformName = "Tomcat 9.0 with Java 11 running on 64bit Amazon Linux";
+		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2";
 		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=").withValues(expectedPlatformName);
 		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
@@ -774,7 +774,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("latest");
-		String expectedPlatformName = "Tomcat 9.0 with Java 11 running on 64bit Amazon Linux";
+		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2";
 		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=").withValues(expectedPlatformName);
 		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
@@ -802,7 +802,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("3.4.7");
-		String expectedPlatformName = "Tomcat 9.0 with Java 11 running on 64bit Amazon Linux";
+		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2";
 		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=").withValues(expectedPlatformName);
 		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
