@@ -12,7 +12,7 @@ import java.util.List;
 
 public class BeanstalkUtils {
 
-	static final String PLATFORM_NAME_TEMPLATE =  "Tomcat %s with Java %s running on 64bit Amazon Linux";
+	static final String PLATFORM_NAME_TEMPLATE =  "Tomcat %s with Corretto %s running on 64bit Amazon Linux 2";
 
 	public static ListPlatformVersionsRequest buildListPlatformVersionsRequest(String javaVersion, String tomcatVersion, String amazonLinuxVersion) {
 		if(javaVersion == null){
@@ -26,7 +26,7 @@ public class BeanstalkUtils {
 		Collection<PlatformFilter> filters = new LinkedList<>();
 
 		PlatformFilter filter = new PlatformFilter()
-				.withType("PlatformName")
+				.withType("PlatformBranchName")
 				.withOperator("=")
 				.withValues(String.format(PLATFORM_NAME_TEMPLATE, tomcatVersion, javaVersion));
 		filters.add(filter);
