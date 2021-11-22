@@ -45,6 +45,8 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 
 	public static final String DOT_EBEXTENSIONS = ".ebextensions";
 
+	public static final String DOT_PLATFORM = ".platform";
+
 	public static final String TEMPLATE_EBEXTENSIONS_INSTANCE_CONFIG = "templates/repo/ebextensions/instance.config";
 
 	public static final String TEMPLATE_EBEXTENSIONS_BEANSTALK_LOGS_CW_CONFIG = "templates/repo/ebextensions/beanstalk_logs_cloudwatch.config";
@@ -107,8 +109,11 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 				// ensure the .ebextensions directory exists
 				File ebextensionsDirectory = fileProvider.createNewFile(directory, DOT_EBEXTENSIONS);
 				ebextensionsDirectory.mkdirs();
-				// ensure the .ebextensions/httpd/conf.d directory exists.
-				File confDDirectory = fileProvider.createNewFile(ebextensionsDirectory, HTTPD_CONF_D);
+				// ensure the .patform directory exists
+				File platformDirectory = fileProvider.createNewFile(directory, DOT_PLATFORM);
+				platformDirectory.mkdirs();
+				// ensure the .platform/httpd/conf.d directory exists.
+				File confDDirectory = fileProvider.createNewFile(platformDirectory, HTTPD_CONF_D);
 				confDDirectory.mkdirs();
 				// https-instance.config
 				Template httpInstanceTempalte = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_INSTANCE_CONFIG);
