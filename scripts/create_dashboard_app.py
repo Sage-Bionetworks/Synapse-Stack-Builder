@@ -263,10 +263,15 @@ def generate_async_job_stats_widgets(title, stack_instance, x=0, y=0):
 
 def generate_ses_stats_widgets(title, x=0, y=0):
     widgets = []
-    # widget1 = generate_banner_widget(title, x, y)
-    # widgets.append(widget1)
+    metrics = [
+        [ "AWS/SES", "Reputation.BounceRate", { "id": "m1", "label": "Bounce Rate", "visible": False, "stat": "Maximum" } ],
+        [ ".", "Reputation.ComplaintRate", { "id": "m2", "label": "Complaint Rate", "color": "#d62728", "visible": False, "stat": "Maximum" } ],
+        [ { "expression": "100 * m1", "label": "Bounce Rate", "id": "e1", "color": "#1f77b4", "period": 3600 } ],
+        [ { "expression": "100 * m2", "label": "Complaint Rate", "id": "e2", "color": "#d62728", "period": 3600 } ],
+        [ "AWS/SES", "Bounce", { "id": "m3", "yAxis": "right", "color": "#ff7f0e", "stat": "Sum", "label": "Bounced Count" } ],
+        [ ".", "Send", { "id": "m4", "yAxis": "right", "color": "#2ca02c", "stat": "Sum", "label": "Sent Count" } ]
+    ]
 
-    metrics = [["AWS/SES", "Reputation.BounceRate"]]
     w = {
         "type": "metric",
         "x": x,
@@ -275,12 +280,24 @@ def generate_ses_stats_widgets(title, x=0, y=0):
         "height": 6,
         "properties": {
             "metrics": metrics,
-            "period": 300,
+            "period": 3600,
             "stat": "Average",
             "title": title,
             "region": "us-east-1",
             "view": "timeSeries",
-            "stacked": False
+            "stacked": False,
+            "yAxis": {
+                "right": {
+                    "min": 0,
+                    "label": "Count",
+                    "showUnits": False
+                },
+                "left": {
+                    "min": 0,
+                    "label": "Rate",
+                    "showUnits": False
+                }
+            }
         }
     }
     widgets.append(w)
@@ -446,7 +463,7 @@ if __name__ == "__main__":
     staging_worker_stats_widgets = generate_worker_stats_widgets("# Staging Worker Statistics", staging_stack_worker, 0, 63)
     #prod_async_job_stats_widgets = generate_async_job_stats_widgets("# Prod Async Job Statistics", prod_stack_worker, 0, 70)
     #staging_async_job_stats_widgets = generate_async_job_stats_widgets("# Staging Async Job Statistics", staging_stack_worker, 8, 70)
-    ses_widgets = generate_ses_stats_widgets("SES Bounce Rate", x=0, y=70)
+    ses_widgets = generate_ses_stats_widgets("SES Statistics", x=0, y=70)
     sqs_widgets = generate_sqs_stats_widgets(prod_stack_instance, "PROD-QUERY-PERFORMANCE", x=0, y=77)
     prod_repo_alb_rt_widgets = generate_repo_alb_target_responsetime_widgets(prod_stack_backend, 'PROD-ALB-TARGET-RESPONSETIME', x=0, y=84)
     prod_files_scanner_widgets = generate_repo_files_scanner_widgets([prod_stack_worker, staging_stack_worker], 'FILES-SCANNER-STATS', x=0, y=91)
