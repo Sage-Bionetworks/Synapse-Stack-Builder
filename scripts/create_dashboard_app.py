@@ -480,7 +480,7 @@ if __name__ == "__main__":
     widgets.extend(prod_repo_alb_rt_widgets)
     widgets.extend(prod_files_scanner_widgets)
 
-    body = {"widgets":widgets}
+    body = {"widgets":widgets, "start": "-PT336H"}
     json_body = json.dumps(body, indent=4, sort_keys=True)
     print(json_body)
 
