@@ -144,7 +144,7 @@ public class SynapseDocsBuilderImplTest {
 		doAnswer(invocation -> false).when(builderSpy).verifyDeployment(destinationBucket);
 		builderSpy.deployDocs();
 		verify(builderSpy).verifyDeployment(destinationBucket);
-		verify(builderSpy, never()).sync(sourceBucket, destinationBucket);
+		verify(builderSpy, never()).sync(any(), any());
 	}	
 	
 	@Test
@@ -225,7 +225,7 @@ public class SynapseDocsBuilderImplTest {
 		// call under test
 		builderSpy.sync(sourceBucket, destinationBucket);
 		verify(mockS3TransferManager).close();
-		verify(mockS3TransferManager, never()).copy(sourceBucket, object.getKey(), destinationBucket, object.getKey());
+		verify(mockS3TransferManager, never()).copy(any(), any(), any(), any());
 		verify(mockS3Client, never()).deleteObject(any(), any());
 		verify(mockS3Client).putObject(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE, jsonUpToDate);
 	}
