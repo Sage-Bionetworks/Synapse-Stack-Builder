@@ -368,8 +368,8 @@
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:container:tomcat:jvmoptions",
-						"OptionName": "log4j2.formatMsgNoLookups",
-						"Value": "true"
+						"OptionName": "JVM options",
+						"Value": "-Dlog4j2.formatMsgNoLookups=true"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
