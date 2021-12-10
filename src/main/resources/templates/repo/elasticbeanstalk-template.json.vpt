@@ -367,6 +367,11 @@
 						"Value": "3328m"
 					},
 					{
+						"Namespace": "aws:elasticbeanstalk:container:tomcat:jvmoptions",
+						"OptionName": "log4j2.formatMsgNoLookups",
+						"Value": "true"
+					},
+					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.stack",
 						"Value": "${stack}"
