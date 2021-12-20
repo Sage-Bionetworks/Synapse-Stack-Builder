@@ -20,7 +20,8 @@
 		"SUBMISSION",
 		"ACCESS_APPROVAL",
 		"JSON_SCHEMA",
-		"JSON_SCHEMA_DEPENDANT"
+		"JSON_SCHEMA_DEPENDANT",
+		"THREAD_VIEW"
 	],
 	"snsGlobalTopicNames": [
 		"SES_SYNAPSE_ORG_BOUNCE",
@@ -46,7 +47,7 @@
 		{
 			"queueName":"THREAD_STATS",
 			"subscribedTopicNames":[
-				"THREAD"
+				"THREAD_VIEW"
 			],
 			"messageVisibilityTimeoutSec":20
 		},
@@ -303,7 +304,14 @@
 				"JSON_SCHEMA_DEPENDANT"
 			],
 			"messageVisibilityTimeoutSec":60
+		},
+		{
+			"queueName":"DISCUSSION_SEARCH_INDEX",
+			"subscribedTopicNames":[
+				"THREAD",
+				"REPLY"
+			],
+			"messageVisibilityTimeoutSec":20
 		}
-		
 	]
 }
