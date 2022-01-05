@@ -320,6 +320,13 @@
 				"MATERIALIZED_VIEW"
 			],
 			"messageVisibilityTimeoutSec":120
+		},
+		{
+			"queueName": "MATERIALIZED_VIEW_SOURCE_UPDATE",
+			"subscribedTopicNames":[
+				"ENTITY"
+			],
+			"messageVisibilityTimeoutSec":30
 		}
 	]
 }
