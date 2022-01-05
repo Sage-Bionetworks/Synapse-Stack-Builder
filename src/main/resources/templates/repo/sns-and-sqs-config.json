@@ -21,7 +21,8 @@
 		"ACCESS_APPROVAL",
 		"JSON_SCHEMA",
 		"JSON_SCHEMA_DEPENDANT",
-		"THREAD_VIEW"
+		"THREAD_VIEW",
+		"MATERIALIZED_VIEW"
 	],
 	"snsGlobalTopicNames": [
 		"SES_SYNAPSE_ORG_BOUNCE",
@@ -312,6 +313,13 @@
 				"REPLY"
 			],
 			"messageVisibilityTimeoutSec":20
+		},
+		{
+			"queueName":"MATERIALIZED_VIEW_UPDATE",
+			"subscribedTopicNames":[
+				"MATERIALIZED_VIEW"
+			],
+			"messageVisibilityTimeoutSec":120
 		}
 	]
 }
