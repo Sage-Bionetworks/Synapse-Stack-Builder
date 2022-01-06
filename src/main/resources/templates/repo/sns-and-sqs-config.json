@@ -23,7 +23,7 @@
 		"JSON_SCHEMA_DEPENDANT",
 		"THREAD_VIEW",
 		"MATERIALIZED_VIEW",
-		"TABLE_STATUS_UPDATE"
+		"TABLE_STATUS_EVENT"
 	],
 	"snsGlobalTopicNames": [
 		"SES_SYNAPSE_ORG_BOUNCE",
@@ -325,7 +325,7 @@
 		{
 			"queueName": "MATERIALIZED_VIEW_SOURCE_UPDATE",
 			"subscribedTopicNames":[
-				"TABLE_STATUS_UPDATE"
+				"TABLE_STATUS_EVENT"
 			],
 			"messageVisibilityTimeoutSec":30
 		}
