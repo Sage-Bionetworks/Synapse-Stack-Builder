@@ -59,7 +59,7 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 
 	public static final String BEANSTALK_ALARMS_CONFIG = "beanstalk_alarms.config";
 
-	public static final String REPO_RESTART_HTTPD_SCRIPT = "01_restart_httpd.sh.vpt";
+	public static final String REPO_RESTART_HTTPD_SCRIPT = "01_restart_httpd.sh";
 	public static final String TEMPLATES_REPO_RESTART_HTTPD = "templates/repo/01_restart_httpd.sh.vpt";
 
 	CertificateBuilder certificateBuilder;
