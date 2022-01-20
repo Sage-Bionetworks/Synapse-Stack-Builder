@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+chkconfig awslogsd on
+systemctl restart awslogsd

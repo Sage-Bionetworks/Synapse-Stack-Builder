@@ -59,6 +59,9 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 
 	public static final String BEANSTALK_ALARMS_CONFIG = "beanstalk_alarms.config";
 
+	public static final String REPO_SETUP_AWSLOGS_SCRIPT = "01_setup_awslogs.sh";
+	public static final String TEMPLATES_REPO_SETUP_AWSLOGS = "templates/repo/01_setup_awslogs.sh.vpt";
+
 	CertificateBuilder certificateBuilder;
 	VelocityEngine velocityEngine;
 	Configuration configuration;
@@ -129,6 +132,14 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 				resultFile = fileProvider.createNewFile(confDDirectory, SECURITY_CONF);
 				Template modSecurityConf = velocityEngine.getTemplate(TEMPLATES_REPO_EBEXTENSIONS_SECURITY_CONF);
 				addTemplateAsFileToDirectory(modSecurityConf, context, resultFile);
+				// Hooks
+				// ensure the .platform/hooks/postdeploy directory exists
+				File hooksPostDeployDirectory = fileProvider.createNewFile(platformDirectory, HOOKS_POSTDEPLOY);
+				hooksPostDeployDirectory.mkdirs();
+				// Setup AWSLogs
+				resultFile = fileProvider.createNewFile(confDDirectory, REPO_SETUP_AWSLOGS_SCRIPT);
+				Template setupAwsLogsScript = velocityEngine.getTemplate(TEMPLATES_REPO_SETUP_AWSLOGS);
+				addTemplateAsFileToDirectory(setupAwsLogsScript, context, resultFile);
 				// Beanstalk logs CloudwatchLogs config
 				resultFile = fileProvider.createNewFile(ebextensionsDirectory, BEANSTALK_LOGS_CW_CONFIG);
 				Template beanstalkClodwatchConf = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_BEANSTALK_LOGS_CW_CONFIG);
