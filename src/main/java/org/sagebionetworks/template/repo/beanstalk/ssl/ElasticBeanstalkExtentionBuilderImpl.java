@@ -47,6 +47,8 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 
 	public static final String DOT_PLATFORM = ".platform";
 
+	public static final String HOOKS_POSTDEPLOY = "hooks/postdeploy";
+
 	public static final String TEMPLATE_EBEXTENSIONS_INSTANCE_CONFIG = "templates/repo/ebextensions/instance.config";
 
 	public static final String TEMPLATE_EBEXTENSIONS_BEANSTALK_LOGS_CW_CONFIG = "templates/repo/ebextensions/beanstalk_logs_cloudwatch.config";
@@ -56,6 +58,9 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 	public static final String TEMPLATE_EBEXTENSIONS_BEANSTALK_ALARMS = "templates/repo/ebextensions/beanstalk_alarms.config";
 
 	public static final String BEANSTALK_ALARMS_CONFIG = "beanstalk_alarms.config";
+
+	public static final String REPO_RESTART_HTTPD_SCRIPT = "01_restart_httpd.sh.vpt";
+	public static final String TEMPLATES_REPO_RESTART_HTTPD = "templates/repo/01_restart_httpd.sh.vpt";
 
 	CertificateBuilder certificateBuilder;
 	VelocityEngine velocityEngine;
@@ -109,7 +114,7 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 				// ensure the .ebextensions directory exists
 				File ebextensionsDirectory = fileProvider.createNewFile(directory, DOT_EBEXTENSIONS);
 				ebextensionsDirectory.mkdirs();
-				// ensure the .patform directory exists
+				// ensure the .platform directory exists
 				File platformDirectory = fileProvider.createNewFile(directory, DOT_PLATFORM);
 				platformDirectory.mkdirs();
 				// ensure the .platform/httpd/conf.d directory exists.
@@ -127,6 +132,14 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 				resultFile = fileProvider.createNewFile(confDDirectory, SECURITY_CONF);
 				Template modSecurityConf = velocityEngine.getTemplate(TEMPLATES_REPO_EBEXTENSIONS_SECURITY_CONF);
 				addTemplateAsFileToDirectory(modSecurityConf, context, resultFile);
+				// Hooks
+				// ensure the .platform/hooks/postdeploy directory exists
+				File hooksPostDeployDirectory = fileProvider.createNewFile(platformDirectory, HOOKS_POSTDEPLOY);
+				hooksPostDeployDirectory.mkdirs();
+				// setup the httpd restart file
+				resultFile = fileProvider.createNewFile(hooksPostDeployDirectory, REPO_RESTART_HTTPD_SCRIPT);
+				Template startHttpdScript = velocityEngine.getTemplate(TEMPLATES_REPO_RESTART_HTTPD);
+				addTemplateAsFileToDirectory(startHttpdScript, context, resultFile);
 				// Beanstalk logs CloudwatchLogs config
 				resultFile = fileProvider.createNewFile(ebextensionsDirectory, BEANSTALK_LOGS_CW_CONFIG);
 				Template beanstalkClodwatchConf = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_BEANSTALK_LOGS_CW_CONFIG);
