@@ -142,7 +142,6 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 				hooksPostDeployDirectory.mkdirs();
 				// Setup AWSLogs
 				resultFile = fileProvider.createNewFile(hooksPostDeployDirectory, REPO_SETUP_AWSLOGS_SCRIPT);
-				resultFile.setExecutable(true);
 				Template setupAwsLogsScript = velocityEngine.getTemplate(TEMPLATES_REPO_SETUP_AWSLOGS);
 				addTemplateAsFileToDirectory(setupAwsLogsScript, context, resultFile);
 //				// setup the httpd restart file
