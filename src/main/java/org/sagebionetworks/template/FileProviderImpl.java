@@ -7,9 +7,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Basic implementation of FileProvider.
@@ -36,18 +33,6 @@ public class FileProviderImpl implements FileProvider {
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	@Override
-	public List<File> listFilesInDirectory(File directory) {
-//		if (!directory.exists()) {
-//			throw new IllegalArgumentException("The argument does not exist.");
-//		}
-//		if (!directory.isDirectory()) {
-//			throw new IllegalArgumentException("The argument is not a directory");
-//		}
-		List<File> files = Arrays.asList(directory.listFiles());
-		return files;
 	}
 
 }

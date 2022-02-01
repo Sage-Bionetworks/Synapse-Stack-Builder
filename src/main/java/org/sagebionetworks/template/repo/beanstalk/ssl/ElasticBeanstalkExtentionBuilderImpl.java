@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collections;
-import java.util.List;
 import java.util.function.Consumer;
 
 import org.apache.velocity.Template;
@@ -62,11 +61,6 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 
 	public static final String REPO_RESTART_SERVICES_SCRIPT = "01_restart_services.sh";
 	public static final String TEMPLATES_REPO_RESTART_SERVICES = "templates/repo/01_restart_services.sh.vpt";
-
-	public static final String TEMPLATE_REPO_EBEXTENSIONS_DIR = "templates/repo/ebextensions";
-	public static final String TEMPLATE_REPO_PLATFORM_DIR = "templates/repo/platform";
-	public static final String TEMPLATE_REPO_PLATPORM_HOOKS_POSTDEPLOY_DIR = TEMPLATE_REPO_PLATFORM_DIR + "/hooks/postdeploy";
-	public static final String TEMPLATE_REPO_PLATFORM_HTTPD_CONFD_DIR = TEMPLATE_REPO_PLATFORM_DIR + "/httpd/conf.d";
 
 	CertificateBuilder certificateBuilder;
 	VelocityEngine velocityEngine;
@@ -126,40 +120,34 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 				// ensure the .platform/httpd/conf.d directory exists.
 				File confDDirectory = fileProvider.createNewFile(platformDirectory, HTTPD_CONF_D);
 				confDDirectory.mkdirs();
-				// Ensure the .platform/hooks/postdeploy directory exists
+				// https-instance.config in .ebextensions
+				Template httpInstanceTempalte = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_INSTANCE_CONFIG);
+				File resultFile = fileProvider.createNewFile(ebextensionsDirectory, INSTANCE_CONFIG);
+				addTemplateAsFileToDirectory(httpInstanceTempalte, context, resultFile);
+				// SSL conf in ,platform/httpd/confd
+				resultFile = fileProvider.createNewFile(confDDirectory, SSL_CONF);
+				Template sslconf = velocityEngine.getTemplate(TEMPLATES_REPO_EBEXTENSIONS_HTTPS_SSL_CONF);
+				addTemplateAsFileToDirectory(sslconf, context, resultFile);
+				// ModSecurity conf in .platform/httpd/conf.d
+				resultFile = fileProvider.createNewFile(confDDirectory, SECURITY_CONF);
+				Template modSecurityConf = velocityEngine.getTemplate(TEMPLATES_REPO_EBEXTENSIONS_SECURITY_CONF);
+				addTemplateAsFileToDirectory(modSecurityConf, context, resultFile);
+				// Hooks
+				// ensure the .platform/hooks/postdeploy directory exists
 				File hooksPostDeployDirectory = fileProvider.createNewFile(platformDirectory, HOOKS_POSTDEPLOY);
 				hooksPostDeployDirectory.mkdirs();
-
-				processFiles(context, fileProvider.createNewFile(directory, TEMPLATE_REPO_EBEXTENSIONS_DIR), ebextensionsDirectory);
-				processFiles(context, fileProvider.createNewFile(directory, TEMPLATE_REPO_PLATFORM_HTTPD_CONFD_DIR), confDDirectory);
-				processFiles(context, fileProvider.createNewFile(directory, TEMPLATE_REPO_PLATPORM_HOOKS_POSTDEPLOY_DIR), hooksPostDeployDirectory);
-
-//				// https-instance.config in .ebextensions
-//				Template httpInstanceTempalte = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_INSTANCE_CONFIG);
-//				File resultFile = fileProvider.createNewFile(ebextensionsDirectory, INSTANCE_CONFIG);
-//				addTemplateAsFileToDirectory(httpInstanceTempalte, context, resultFile);
-//				// Beanstalk logs CloudwatchLogs config in .ebextensions
-//				resultFile = fileProvider.createNewFile(ebextensionsDirectory, BEANSTALK_LOGS_CW_CONFIG);
-//				Template beanstalkClodwatchConf = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_BEANSTALK_LOGS_CW_CONFIG);
-//				addTemplateAsFileToDirectory(beanstalkClodwatchConf, context, resultFile);
-//				// Beanstalk environment alarms in .ebextensions
-//				resultFile = fileProvider.createNewFile(ebextensionsDirectory, BEANSTALK_ALARMS_CONFIG);
-//				Template beanstalkAlarms = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_BEANSTALK_ALARMS);
-//				addTemplateAsFileToDirectory(beanstalkAlarms, context, resultFile);
-//
-//				// SSL conf in ,platform/httpd/conf.d
-//				resultFile = fileProvider.createNewFile(confDDirectory, SSL_CONF);
-//				Template sslconf = velocityEngine.getTemplate(TEMPLATES_REPO_EBEXTENSIONS_HTTPS_SSL_CONF);
-//				addTemplateAsFileToDirectory(sslconf, context, resultFile);
-//				// ModSecurity conf in .platform/httpd/conf.d
-//				resultFile = fileProvider.createNewFile(confDDirectory, SECURITY_CONF);
-//				Template modSecurityConf = velocityEngine.getTemplate(TEMPLATES_REPO_EBEXTENSIONS_SECURITY_CONF);
-//				addTemplateAsFileToDirectory(modSecurityConf, context, resultFile);
-//
-//				// Restart services script in .platform/hooks/postdeploy
-//				resultFile = fileProvider.createNewFile(hooksPostDeployDirectory, REPO_RESTART_SERVICES_SCRIPT);
-//				Template restartServicesScript = velocityEngine.getTemplate(TEMPLATES_REPO_RESTART_SERVICES);
-//				addTemplateAsFileToDirectory(restartServicesScript, context, resultFile);
+				// Restart services script in .platform/hooks/postdeploy
+				resultFile = fileProvider.createNewFile(hooksPostDeployDirectory, REPO_RESTART_SERVICES_SCRIPT);
+				Template restartServicesScript = velocityEngine.getTemplate(TEMPLATES_REPO_RESTART_SERVICES);
+				addTemplateAsFileToDirectory(restartServicesScript, context, resultFile);
+				// Beanstalk logs CloudwatchLogs config in .ebextensions
+				resultFile = fileProvider.createNewFile(ebextensionsDirectory, BEANSTALK_LOGS_CW_CONFIG);
+				Template beanstalkClodwatchConf = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_BEANSTALK_LOGS_CW_CONFIG);
+				addTemplateAsFileToDirectory(beanstalkClodwatchConf, context, resultFile);
+				// Beanstalk environment alarms in .ebextensions
+				resultFile = fileProvider.createNewFile(ebextensionsDirectory, BEANSTALK_ALARMS_CONFIG);
+				Template beanstalkAlarms = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_BEANSTALK_ALARMS);
+				addTemplateAsFileToDirectory(beanstalkAlarms, context, resultFile);
 			}
 		});
 
@@ -169,25 +157,16 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 	 * Merge the passed template and context and save the results as a new file in
 	 * the passed directory with the given name.
 	 * 
-	 * @param template
+	 * @param tempalte
 	 * @param context
 	 * @param resultFile
 	 */
-	public void addTemplateAsFileToDirectory(Template template, VelocityContext context, File resultFile) {
+	public void addTemplateAsFileToDirectory(Template tempalte, VelocityContext context, File resultFile) {
 		try (Writer writer = fileProvider
 				.createFileWriter(resultFile)) {
-			template.merge(context, writer);
+			tempalte.merge(context, writer);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
-		}
-	}
-
-	public void processFiles(VelocityContext context, File sourceDir, File destDir) {
-		List<File> sourceFiles = fileProvider.listFilesInDirectory(sourceDir);
-		for (File f:sourceFiles) {
-			Template httpInstanceTemplate = velocityEngine.getTemplate(f.getPath());
-			File resultFile = fileProvider.createNewFile(destDir, f.getName());
-			addTemplateAsFileToDirectory(httpInstanceTemplate, context, resultFile);
 		}
 	}
 	

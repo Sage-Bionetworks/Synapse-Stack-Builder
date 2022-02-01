@@ -3,7 +3,6 @@ package org.sagebionetworks.template;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.List;
 
 public interface FileProvider {
 	
@@ -31,7 +30,5 @@ public interface FileProvider {
 	 * @return
 	 */
 	Writer createFileWriter(File file);
-
-	List<File> listFilesInDirectory(File directory);
 
 }
