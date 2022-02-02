@@ -76,6 +76,7 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 	StringWriter modSecurityConfWriter;
 	StringWriter logsConfWriter;
 	StringWriter alarmsConfWriter;
+	StringWriter modDeflateConfWriter;
 
 	String bucketName;
 	String x509CertificatePem;
@@ -107,8 +108,9 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		modSecurityConfWriter = new StringWriter();
 		logsConfWriter = new StringWriter();
 		alarmsConfWriter = new StringWriter();
+		modDeflateConfWriter = new StringWriter();
 		
-		when(fileProvider.createFileWriter(any(File.class))).thenReturn(configWriter, sslConfWriter, modSecurityConfWriter, logsConfWriter, alarmsConfWriter);
+		when(fileProvider.createFileWriter(any(File.class))).thenReturn(configWriter, sslConfWriter, modSecurityConfWriter, modDeflateConfWriter, logsConfWriter, alarmsConfWriter);
 		bucketName = "someBucket";
 		when(configuration.getConfigurationBucket()).thenReturn(bucketName);
 		x509CertificatePem = "x509pem";
@@ -137,6 +139,9 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		//mod_security conf
 		String modSecurityConf = modSecurityConfWriter.toString();
 		assertTrue(modSecurityConf.contains("SecServerSignature"));
+		// mod_deflate conf
+		String modDeflateConf = modDeflateConfWriter.toString();
+		assertTrue(modDeflateConf.contains("SetOutputFilter DEFLATE"));
 
 		verify(mockCwlVelocityContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
 		

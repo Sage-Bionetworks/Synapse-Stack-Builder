@@ -35,11 +35,15 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 
 	public static final String SECURITY_CONF = "security.conf";
 
+	public static final String MOD_DEFLATE_CONF = "enable_mod_deflate.conf";
+
 	public static final String HTTPD_CONF_D = "httpd/conf.d";
 
 	public static final String TEMPLATES_REPO_EBEXTENSIONS_HTTPS_SSL_CONF = "templates/repo/ebextensions/https-ssl.conf";
 
 	public static final String TEMPLATES_REPO_EBEXTENSIONS_SECURITY_CONF = "templates/repo/ebextensions/security.conf";
+
+	public static final String TEMPLATES_REPO_EBEXTENSIONS_MOD_DEFLATE_CONF = "templates/repo/ebextensions/enable_mod_deflate.conf";
 
 	public static final String INSTANCE_CONFIG = "instance.config";
 
@@ -132,6 +136,10 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 				resultFile = fileProvider.createNewFile(confDDirectory, SECURITY_CONF);
 				Template modSecurityConf = velocityEngine.getTemplate(TEMPLATES_REPO_EBEXTENSIONS_SECURITY_CONF);
 				addTemplateAsFileToDirectory(modSecurityConf, context, resultFile);
+				// ModDeflate conf to .platform/httpd/conf.d
+				resultFile = fileProvider.createNewFile(confDDirectory, MOD_DEFLATE_CONF);
+				Template modDeflateConf = velocityEngine.getTemplate(TEMPLATES_REPO_EBEXTENSIONS_MOD_DEFLATE_CONF);
+				addTemplateAsFileToDirectory(modDeflateConf, context, resultFile);
 				// Hooks
 				// ensure the .platform/hooks/postdeploy directory exists
 				File hooksPostDeployDirectory = fileProvider.createNewFile(platformDirectory, HOOKS_POSTDEPLOY);
