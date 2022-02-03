@@ -35,15 +35,23 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 
 	public static final String SECURITY_CONF = "security.conf";
 
+	public static final String MOD_DEFLATE_CONF = "enable_mod_deflate.conf";
+
 	public static final String HTTPD_CONF_D = "httpd/conf.d";
 
 	public static final String TEMPLATES_REPO_EBEXTENSIONS_HTTPS_SSL_CONF = "templates/repo/ebextensions/https-ssl.conf";
 
 	public static final String TEMPLATES_REPO_EBEXTENSIONS_SECURITY_CONF = "templates/repo/ebextensions/security.conf";
 
+	public static final String TEMPLATES_REPO_EBEXTENSIONS_MOD_DEFLATE_CONF = "templates/repo/ebextensions/enable_mod_deflate.conf";
+
 	public static final String INSTANCE_CONFIG = "instance.config";
 
 	public static final String DOT_EBEXTENSIONS = ".ebextensions";
+
+	public static final String DOT_PLATFORM = ".platform";
+
+	public static final String HOOKS_POSTDEPLOY = "hooks/postdeploy";
 
 	public static final String TEMPLATE_EBEXTENSIONS_INSTANCE_CONFIG = "templates/repo/ebextensions/instance.config";
 
@@ -54,6 +62,9 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 	public static final String TEMPLATE_EBEXTENSIONS_BEANSTALK_ALARMS = "templates/repo/ebextensions/beanstalk_alarms.config";
 
 	public static final String BEANSTALK_ALARMS_CONFIG = "beanstalk_alarms.config";
+
+	public static final String REPO_RESTART_SERVICES_SCRIPT = "01_restart_services.sh";
+	public static final String TEMPLATES_REPO_RESTART_SERVICES = "templates/repo/01_restart_services.sh.vpt";
 
 	CertificateBuilder certificateBuilder;
 	VelocityEngine velocityEngine;
@@ -107,26 +118,41 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 				// ensure the .ebextensions directory exists
 				File ebextensionsDirectory = fileProvider.createNewFile(directory, DOT_EBEXTENSIONS);
 				ebextensionsDirectory.mkdirs();
-				// ensure the .ebextensions/httpd/conf.d directory exists.
-				File confDDirectory = fileProvider.createNewFile(ebextensionsDirectory, HTTPD_CONF_D);
+				// ensure the .platform directory exists
+				File platformDirectory = fileProvider.createNewFile(directory, DOT_PLATFORM);
+				platformDirectory.mkdirs();
+				// ensure the .platform/httpd/conf.d directory exists.
+				File confDDirectory = fileProvider.createNewFile(platformDirectory, HTTPD_CONF_D);
 				confDDirectory.mkdirs();
-				// https-instance.config
+				// https-instance.config in .ebextensions
 				Template httpInstanceTempalte = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_INSTANCE_CONFIG);
 				File resultFile = fileProvider.createNewFile(ebextensionsDirectory, INSTANCE_CONFIG);
 				addTemplateAsFileToDirectory(httpInstanceTempalte, context, resultFile);
-				// SSL conf
+				// SSL conf in ,platform/httpd/confd
 				resultFile = fileProvider.createNewFile(confDDirectory, SSL_CONF);
 				Template sslconf = velocityEngine.getTemplate(TEMPLATES_REPO_EBEXTENSIONS_HTTPS_SSL_CONF);
 				addTemplateAsFileToDirectory(sslconf, context, resultFile);
-				// ModSecurity conf
+				// ModSecurity conf in .platform/httpd/conf.d
 				resultFile = fileProvider.createNewFile(confDDirectory, SECURITY_CONF);
 				Template modSecurityConf = velocityEngine.getTemplate(TEMPLATES_REPO_EBEXTENSIONS_SECURITY_CONF);
 				addTemplateAsFileToDirectory(modSecurityConf, context, resultFile);
-				// Beanstalk logs CloudwatchLogs config
+				// ModDeflate conf to .platform/httpd/conf.d
+				resultFile = fileProvider.createNewFile(confDDirectory, MOD_DEFLATE_CONF);
+				Template modDeflateConf = velocityEngine.getTemplate(TEMPLATES_REPO_EBEXTENSIONS_MOD_DEFLATE_CONF);
+				addTemplateAsFileToDirectory(modDeflateConf, context, resultFile);
+				// Hooks
+				// ensure the .platform/hooks/postdeploy directory exists
+				File hooksPostDeployDirectory = fileProvider.createNewFile(platformDirectory, HOOKS_POSTDEPLOY);
+				hooksPostDeployDirectory.mkdirs();
+				// Restart services script in .platform/hooks/postdeploy
+				resultFile = fileProvider.createNewFile(hooksPostDeployDirectory, REPO_RESTART_SERVICES_SCRIPT);
+				Template restartServicesScript = velocityEngine.getTemplate(TEMPLATES_REPO_RESTART_SERVICES);
+				addTemplateAsFileToDirectory(restartServicesScript, context, resultFile);
+				// Beanstalk logs CloudwatchLogs config in .ebextensions
 				resultFile = fileProvider.createNewFile(ebextensionsDirectory, BEANSTALK_LOGS_CW_CONFIG);
 				Template beanstalkClodwatchConf = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_BEANSTALK_LOGS_CW_CONFIG);
 				addTemplateAsFileToDirectory(beanstalkClodwatchConf, context, resultFile);
-				// Beanstalk environment alarms
+				// Beanstalk environment alarms in .ebextensions
 				resultFile = fileProvider.createNewFile(ebextensionsDirectory, BEANSTALK_ALARMS_CONFIG);
 				Template beanstalkAlarms = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_BEANSTALK_ALARMS);
 				addTemplateAsFileToDirectory(beanstalkAlarms, context, resultFile);

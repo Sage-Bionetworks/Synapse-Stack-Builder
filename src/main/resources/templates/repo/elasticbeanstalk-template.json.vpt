@@ -175,6 +175,11 @@
 						"OptionName": "LoadBalancerType",
 						"Value": "application"
 					},
+ 					{
+						"Namespace": "aws:elasticbeanstalk:environment:proxy",
+						"OptionName": "ProxyServer",
+						"Value": "apache"
+  					},
 					{
 						"Namespace": "aws:elasticbeanstalk:hostmanager",
 						"OptionName": "LogPublicationControl",
