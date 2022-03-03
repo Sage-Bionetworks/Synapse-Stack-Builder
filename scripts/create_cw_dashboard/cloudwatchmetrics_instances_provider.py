@@ -15,8 +15,21 @@ class CloudwatchMetricsInstancesProvider:
   def _get_history(self):
     return self.cloudwatch_history
 
+  def refresh_all(self, stack, stack_instance):
+    stack_version = _get_stack_version(stack_instance)
+    self._refresh_ec2_instance_ids(stack, stack_instance, "REPO")
+    self._refresh_ec2_instance_ids(stack, stack_instance, "WORKERS")
+    self._refresh_ec2_instance_ids(stack, stack_instance, "PORTAL")
+    self._refresh_rds_instance_ids(stack, stack_version)
+    self._refresh_memory_instance_ids(stack, stack_version, "REPO")
+    self._refresh_memory_instance_ids(stack, stack_version, "WORKERS")
+    self._refresh_worker_stats_instance_ids(stack_version, "Completed Job Count")
+    self._refresh_alb_response_time_instance_ids(stack, stack_instance)
+
+
 ### EC@ instance
   # Save instance ids from Cloudwatch for EC2 instances in (stack_version, enviromment) to history
+  # Stack instance needed to get the current values from Cloudwatch
   def _refresh_ec2_instance_ids(self, stack, stack_instance, environment):
     stack_version = _get_stack_version(stack_instance)
     instance_ids = self._get_ec2_instance_ids(stack, stack_instance, environment)
@@ -102,6 +115,7 @@ class CloudwatchMetricsInstancesProvider:
     return namespace, ids
 
 ### Worker stats
+# TODO: Simplify, the list can be generated staticly, should not need metric names
   def _refresh_worker_stats_instance_ids(self, stack_version, cw_metric_name):
     metric_name = CloudwatchMetricsInstancesProvider._metric_name(cw_metric_name)
     instance_ids = self._cw_get_cloudwatch_worker_stats_instances_ids(stack_version, cw_metric_name)
@@ -124,11 +138,11 @@ class CloudwatchMetricsInstancesProvider:
     return ids
 
 ###  Async Workers stats
-  def _refresh_async_worker_stats_instance_ids(self, stack_instance):
-    stack_version = _get_stack_version(stack_instance)
-    instance_ids = self._cw_get_async_workers_namespace(stack_instance)
-    self.cloudwatch_history.write_cloudwatchmetrics_instances_ids(stack_version, f"AWS-{metric_name}", None,
-                                                                  instance_ids)
+  # def _refresh_async_worker_stats_instance_ids(self, stack_instance):
+  #   stack_version = _get_stack_version(stack_instance)
+  #   instance_ids = self._cw_get_async_workers_namespace(stack_instance)
+  #   self.cloudwatch_history.write_cloudwatchmetrics_instances_ids(stack_version, f"AWS-{metric_name}", None,
+  #                                                                 instance_ids)
 
   def _cw_get_async_workers_namespace(self, stack_version):
     namespace = f"Asynchronous Workers - {stack_version}"

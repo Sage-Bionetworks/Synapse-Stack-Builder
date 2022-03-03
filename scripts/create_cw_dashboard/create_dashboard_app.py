@@ -397,33 +397,16 @@ def generate_repo_files_scanner_widgets(stack_instances, title, x=0, y=0):
     return widgets
 
 def print_usage():
-    print("Usage: python create_dashboard_app.py <profile> <prod-stack_backend> <prod-stack_portal> <staging-stack_backend> <staging-stack_portal>")
+    print("Usage: python create_dashboard_app.py <profile> <stack> <stack_instance>")
     print("\twhere\t<profile> is the awscli profile to use")
-    print("\t\t\t<prod-stack_backend> is the production stack backend (xxx-y)")
-    print("\t\t\t<prod-stack_portal> is the production stack portal (xxx-y)")
-    print("\t\t\t<staging-stack_backend> is the staging stack backend (xxx-y)")
-    print("\t\t\t<staging-stack_portal> is the staging stack portal (xxx-y)")
+    print("\t\t\t<stack> is <dev|prod>")
+    print("\t\t\t<stack_instance> is <stack_version>-<stack-number> (e.g. 398-0)")
 
 if __name__ == "__main__":
 
-    # if (len(sys.argv) != 8):
-    #     print_usage()
-    #     exit(1)
-    #
-    # awscli_profile = sys.argv[1]
-    # prod_stack_backend = sys.argv[2]
-    # prod_stack_worker = sys.argv[3]
-    # prod_stack_portal = sys.argv[4]
-    # staging_stack_backend = sys.argv[5]
-    # staging_stack_worker = sys.argv[6]
-    # staging_stack_portal = sys.argv[7]
-    #
-    # p = re.compile("(\d+)-\d+")
-    # m = p.match(prod_stack_backend)
-    # if m.group():
-    #     prod_stack_instance = m.group(1)
-    # else:
-    #     raise ValueError("Could not extract production stack instance from parameters!")
+    if (len(sys.argv) != 3):
+        print_usage()
+        exit(1)
 
     aws_profile_name = sys.argv[1]
     stack = sys.argv[2]
@@ -436,16 +419,8 @@ if __name__ == "__main__":
     session = boto3.Session(profile_name=aws_profile_name, region_name="us-east-1")
     cloudwatchmetrics_instances_provider = CloudwatchMetricsInstancesProvider(session, f"./history/{stack}")
 
-    # # Update history with current stack
-    # cloudwatchmetrics_instances_provider._refresh_ec2_instance_ids(stack, stack_instance, "REPO")
-    # cloudwatchmetrics_instances_provider._refresh_ec2_instance_ids(stack, stack_instance, "WORKERS")
-    # cloudwatchmetrics_instances_provider._refresh_ec2_instance_ids(stack, stack_instance, "PORTAL")
-    # cloudwatchmetrics_instances_provider._refresh_rds_instance_ids(stack, stack_version)
-    # cloudwatchmetrics_instances_provider._refresh_memory_instance_ids(stack, stack_version, "REPO")
-    # cloudwatchmetrics_instances_provider._refresh_memory_instance_ids(stack, stack_version, "WORKERS")
-    # cloudwatchmetrics_instances_provider._refresh_worker_stats_instance_ids(stack_version, "Completed Job Count")
-    # cloudwatchmetrics_instances_provider._refresh_alb_response_time_instance_ids(stack, stack_instance)
-    # cloudwatchmetrics_instances_provider._refresh_async_worker_stats_instance_ids(stack_instance)
+    ## Update history with current stack
+    cloudwatchmetrics_instances_provider.refresh_all(stack, stack_instance)
 
     widgets = []
     stack_widgets = generate_stack_widgets("# Stacks", stack_version, 0, 0)
@@ -468,40 +443,7 @@ if __name__ == "__main__":
     print(json_body)
 
     cw_client = session.client("cloudwatch")
-    cw_client.put_dashboard(DashboardName="Stack-status-3", DashboardBody=json_body)
-
-#    boto3.setup_default_session(profile_name=awscli_profile, region_name="us-east-1")
+    cw_client.put_dashboard(DashboardName="Stack-status-2", DashboardBody=json_body)
 
     exit(1)
 
-    # prod_widgets = generate_stack_widgets("# Production stack", prod_stack_backend, prod_stack_worker, prod_stack_portal, 0, 0)
-    # prod_worker_stats_widgets = generate_worker_stats_widgets("# Prod Worker Statistics", prod_stack_worker, 0, 21)
-    # # TODO: Discover docker registry instance ids
-    # docker_widgets = generate_docker_widgets(["i-03caba8ba8027dcdb", "i-022acbcb10b0610fa"], 0, 35)
-    # staging_widgets = generate_stack_widgets("# Staging stack", staging_stack_backend, staging_stack_worker, staging_stack_portal, 0, 42)
-    # staging_worker_stats_widgets = generate_worker_stats_widgets("# Staging Worker Statistics", staging_stack_worker, 0, 63)
-    # #prod_async_job_stats_widgets = generate_async_job_stats_widgets("# Prod Async Job Statistics", prod_stack_worker, 0, 70)
-    # #staging_async_job_stats_widgets = generate_async_job_stats_widgets("# Staging Async Job Statistics", staging_stack_worker, 8, 70)
-    # ses_widgets = generate_ses_stats_widgets("SES Statistics", x=0, y=70)
-    # sqs_widgets = generate_sqs_stats_widgets(prod_stack_instance, "PROD-QUERY-PERFORMANCE", x=0, y=77)
-    # prod_repo_alb_rt_widgets = generate_repo_alb_target_responsetime_widgets(prod_stack_backend, 'PROD-ALB-TARGET-RESPONSETIME', x=0, y=84)
-    # prod_files_scanner_widgets = generate_repo_files_scanner_widgets([prod_stack_worker, staging_stack_worker], 'FILES-SCANNER-STATS', x=0, y=91)
-    #
-    # widgets = prod_widgets
-    # widgets.extend(prod_worker_stats_widgets)
-    # widgets.extend(docker_widgets)
-    # widgets.extend(staging_widgets)
-    # widgets.extend(staging_worker_stats_widgets)
-    # #widgets.extend(prod_async_job_stats_widgets)
-    # #widgets.extend(staging_async_job_stats_widgets)
-    # widgets.extend(ses_widgets)
-    # widgets.extend(sqs_widgets)
-    # widgets.extend(prod_repo_alb_rt_widgets)
-    # widgets.extend(prod_files_scanner_widgets)
-    #
-    # body = {"widgets":widgets, "start": "-PT336H"}
-    # json_body = json.dumps(body, indent=4, sort_keys=True)
-    # print(json_body)
-    #
-    # cw_client = boto3.client("cloudwatch")
-    # cw_client.put_dashboard(DashboardName="Stack-status-2", DashboardBody=json_body)
