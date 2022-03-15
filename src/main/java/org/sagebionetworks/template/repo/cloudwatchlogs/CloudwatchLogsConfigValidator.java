@@ -21,7 +21,7 @@ public class CloudwatchLogsConfigValidator {
         validateEnvironments(logDescriptors);
         for (EnvironmentType k: logDescriptors.keySet()) {
             List<LogDescriptor> descriptors = logDescriptors.get(k);
-            if (descriptors.size() != 2) {
+            if (descriptors.size() != 3) {
                 throw new IllegalStateException("Each environment should have 2 logGroups");
             }
             for (LogDescriptor d: descriptors) {

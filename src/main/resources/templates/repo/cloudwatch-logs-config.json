@@ -1,14 +1,17 @@
 {
   "logDescriptors": {
     "REPOSITORY_SERVICES": [
+      {"logType": "CATALINA", "logPath": "/var/log/tomcat/catalina*", "dateFormat":  "%b %d, %Y %I:%M:%S"},
       {"logType": "SERVICE", "logPath": "/var/cache/tomcat/temp/synapse/logs/repo-services.log", "dateFormat":  "%Y-%m-%dT%H:%M:%S"},
       {"logType": "TRACE", "logPath": "/var/cache/tomcat/temp/synapse/logs/repo-trace-profile.log", "dateFormat":  "%Y-%m-%dT%H:%M:%S"}
     ],
     "REPOSITORY_WORKERS": [
+      {"logType": "CATALINA", "logPath": "/var/log/tomcat/catalina*", "dateFormat":  "%b %d, %Y %I:%M:%S"},
       {"logType": "SERVICE", "logPath": "/var/cache/tomcat/temp/repo-workers/logs/repo-workers.log", "dateFormat":  "%Y-%m-%dT%H:%M:%S"},
       {"logType": "TRACE", "logPath": "/var/cache/tomcat/temp/repo-workers/logs/worker-trace-profile.log", "dateFormat":  "%Y-%m-%dT%H:%M:%S"}
     ],
     "PORTAL": [
+      {"logType": "CATALINA", "logPath": "/var/log/tomcat/catalina*", "dateFormat":  "%b %d, %Y %I:%M:%S"},
       {"logType": "SERVICE", "logPath": "/var/cache/tomcat/temp/portal/logs/portal.log", "dateFormat":  "%Y-%m-%dT%H:%M:%S"},
       {"logType": "TRACE", "logPath": "/var/cache/tomcat/temp/portal/logs/portal-profile.log", "dateFormat":  "%Y-%m-%dT%H:%M:%S"}
     ]
