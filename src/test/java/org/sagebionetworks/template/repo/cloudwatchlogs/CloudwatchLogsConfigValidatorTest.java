@@ -79,9 +79,9 @@ public class CloudwatchLogsConfigValidatorTest {
     @Test
     public void testValidEnvironments() {
         Map<EnvironmentType, List<LogDescriptor>> envLogDescriptors = new HashMap<>();
-        envLogDescriptors.put(EnvironmentType.REPOSITORY_SERVICES, generateEnvironmentLogs(3));
-        envLogDescriptors.put(EnvironmentType.PORTAL, generateEnvironmentLogs(3));
-        envLogDescriptors.put(EnvironmentType.REPOSITORY_WORKERS, generateEnvironmentLogs(3));
+        envLogDescriptors.put(EnvironmentType.REPOSITORY_SERVICES, generateEnvironmentLogs(2));
+        envLogDescriptors.put(EnvironmentType.PORTAL, generateEnvironmentLogs(2));
+        envLogDescriptors.put(EnvironmentType.REPOSITORY_WORKERS, generateEnvironmentLogs(2));
         when(mockConfig.getLogDescriptors()).thenReturn(envLogDescriptors);
 
         // call under test
