@@ -67,6 +67,25 @@ public class CloudwatchLogsConfigValidatorTest {
     }
 
     @Test
+    public void testvalidateEnvironmentDuplicateLogType() {
+        Map<EnvironmentType, List<LogDescriptor>> envLogDescriptors = new HashMap<>();
+        List<LogType> logTypes = new ArrayList<LogType>();
+        logTypes.add(LogType.SERVICE);
+        logTypes.add(LogType.SERVICE);
+        envLogDescriptors.put(EnvironmentType.PORTAL, generateEnvironmentLogs(logTypes));
+        envLogDescriptors.put(EnvironmentType.REPOSITORY_SERVICES, generateEnvironmentLogs(logTypes));
+        envLogDescriptors.put(EnvironmentType.REPOSITORY_WORKERS, generateEnvironmentLogs(logTypes));
+        when(mockConfig.getLogDescriptors()).thenReturn(envLogDescriptors);
+
+        // call under test
+        String errorMessage = assertThrows(IllegalStateException.class, () -> {
+            validator.validate();
+        }).getMessage();
+
+        assertEquals("Each LogType can only appear once per environment.", errorMessage);
+    }
+
+    @Test
     public void testLogDescriptorMissingLogPath() {
         Map<EnvironmentType, List<LogDescriptor>> envLogDescriptors = new HashMap<>();
         List<LogType> logTypes = new ArrayList<>();
