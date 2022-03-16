@@ -123,9 +123,9 @@ public class CloudwatchLogsConfigValidatorTest {
     private List<LogDescriptor> generateEnvironmentLogs(List<LogType> logTypes) {
         Map<EnvironmentType, List<LogDescriptor>> envLogDescriptors = new HashMap<>();
         List<LogDescriptor> LogDescriptors = new ArrayList<>();
-        for (int i = 0; i < logTypes.size(); i++) {
+        for (LogType logType: logTypes) {
             LogDescriptor LogDescriptor = new LogDescriptor();
-            LogDescriptor.setLogType(logTypes.get(i));
+            LogDescriptor.setLogType(logType);
             LogDescriptor.setLogPath("someName");
             LogDescriptor.setDateFormat("YYYY-MM-DD");
             LogDescriptors.add(LogDescriptor);
