@@ -3,7 +3,7 @@
         "Type": "AWS::Logs::LogGroup",
         "DeletionPolicy" : "Retain",
         "Properties": {
-            "LogGroupName": "/aws/elasticbeanstalk/${environment.name}${logDesc.logType}",
+            "LogGroupName": "/aws/elasticbeanstalk/${environment.name}/${logDesc.logType}",
             "RetentionInDays": 30
         }
     }
