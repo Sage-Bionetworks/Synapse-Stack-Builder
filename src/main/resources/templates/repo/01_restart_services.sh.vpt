@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-chkconfig awslogsd on
+systemctl enable awslogsd.service
 systemctl restart awslogsd
-chkconfig httpd on
+systemctl enable httpd.service
 systemctl restart httpd
