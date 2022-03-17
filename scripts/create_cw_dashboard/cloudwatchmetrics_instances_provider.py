@@ -7,9 +7,9 @@ from utils import _gen_stack_instance, _get_stack_version, _get_stack_number
 
 class CloudwatchMetricsInstancesProvider:
 
-  def __init__(self, session, hpath):
+  def __init__(self, session, hpath, hbucket_name):
     self.boto3_session = session
-    self.cloudwatch_history = CloudwatchMetricsInstancesHistory(hpath)
+    self.cloudwatch_history = CloudwatchMetricsInstancesHistory(session, hpath, hbucket_name)
     return
 
   def _get_history(self):

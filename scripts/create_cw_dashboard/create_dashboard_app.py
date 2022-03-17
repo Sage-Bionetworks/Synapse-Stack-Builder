@@ -404,6 +404,8 @@ def print_usage():
 
 if __name__ == "__main__":
 
+    HIST_BUCKET_NAME_SUFFIX = 'cloudwatch.metrics.sagebase.org'
+
     if len(sys.argv) != 4:
         print_usage()
         exit(1)
@@ -416,8 +418,10 @@ if __name__ == "__main__":
     stack_versions = included_versions(stack_version, 3)
     stack_instances = [f"{sv}-0" for sv in stack_versions]
 
+    hist_bucket_name = f'{stack}.{HIST_BUCKET_NAME_SUFFIX}'
+
     session = boto3.Session(profile_name=aws_profile_name, region_name="us-east-1")
-    cloudwatchmetrics_instances_provider = CloudwatchMetricsInstancesProvider(session, f"./history/{stack}")
+    cloudwatchmetrics_instances_provider = CloudwatchMetricsInstancesProvider(session, f"./history/{stack}", hist_bucket_name)
 
     ## Update history with current stack
     cloudwatchmetrics_instances_provider.refresh_all(stack, stack_instance)
