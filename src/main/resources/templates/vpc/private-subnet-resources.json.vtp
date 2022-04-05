@@ -256,6 +256,38 @@
                 }
             }
         },
+        "PrivateSubnetRouteTableIds": {
+            "Description": "Comma separated list of all private sub-net route table IDs",
+            "Value" : {
+                "Fn::Join": [
+                    ", ",
+                    [
+                        #set($i = 0)
+                        #foreach( $privateSubnet in $subnetGroup.subnets )
+                        #if( $i > 0 ) , #end
+                        {"Ref": "${privateSubnet.name}RouteTable"}
+                        #set($i = $i+1)
+                        #end
+                    ]
+                ]
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "Private-Subnets-RouteTableIds"
+                        ]
+                    ]
+                }
+            }
+        },
         "SubnetGroupCIDR": {
             "Description": "CIDR for this subnetgroup",
             "Value": "$subnetGroup.cidr",
