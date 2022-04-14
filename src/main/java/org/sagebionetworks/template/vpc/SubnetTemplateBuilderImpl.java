@@ -108,8 +108,6 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
         context.put(STACK, config.getProperty(PROPERTY_KEY_STACK));
         context.put(VPC_STACKNAME, String.format(VPC_STACK_NAME_FORMAT, config.getProperty(PROPERTY_KEY_STACK))); // Change this!
 
-        context.put(TEMP_VPC_CIDR, config.getProperty(PROPERTY_KEY_OLD_VPC_CIDR));
-
         return context;
     }
 

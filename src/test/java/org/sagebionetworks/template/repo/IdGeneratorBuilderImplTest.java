@@ -60,7 +60,6 @@ public class IdGeneratorBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn("Green");
 		when(mockSecretBuilder.getIdGeneratorPassword()).thenReturn("somePassword");
 		when(config.getProperty(PROPERTY_KEY_ID_GENERATOR_HOSTED_ZONE_ID)).thenReturn("hostedZoneId");
-		when(config.getProperty(PROPERTY_KEY_OLD_VPC_CIDR)).thenReturn("1.2.3.4/16");
 
 		builder = new IdGeneratorBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory, mockSecretBuilder);
 	}

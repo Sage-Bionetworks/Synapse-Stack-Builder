@@ -41,8 +41,6 @@ public class Constants {
 	// VPC
 	public static final String PARAMETER_VPN_CIDR = "VpnCidr";
 	public static final String PARAMETER_VPC_SUBNET_PREFIX = "VpcSubnetPrefix";
-	public static final String PARAMETER_OLD_VPC_ID = "OldVpcId";
-	public static final String PARAMETER_OLD_VPC_CIDR = "OldVpcCidr";
 	// repo
 	public static final String PARAMETER_MYSQL_PASSWORD = "MySQLDatabaseMasterPassword";
 	public static final String PARAMETER_ENCRYPTION_KEY = "EncryptionKey";
@@ -55,8 +53,6 @@ public class Constants {
 	public static final String PROPERTY_KEY_VPC_SUBNET_PREFIX = "org.sagebionetworks.vpc.subnet.prefix";
 	public static final String PROPERTY_KEY_COLORS = "org.sagebionetworks.vpc.colors.csv";
 	public static final String PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN = "org.sagebionetworks.vpc.peering.accept.role.arn";
-	public static final String PROPERTY_KEY_OLD_VPC_ID = "org.sagebionetworks.vpc.old.vpc.id";
-	public static final String PROPERTY_KEY_OLD_VPC_CIDR = "org.sagebionetworks.vpc.old.vpc.cidr";
 	// repo
 	public static final String PROPERTY_KEY_STACK = "org.sagebionetworks.stack";
 	public static final String PROPERTY_KEY_INSTANCE = "org.sagebionetworks.instance";
@@ -164,7 +160,6 @@ public class Constants {
 	public static final String VPC_STACKNAME = "vpcStackName";
 	public static final String PRIVATE_SUBNET_IDX = "privateSubnetIdx";
 	public static final String HOSTED_ZONE = "hostedZone";
-	public static final String TEMP_VPC_CIDR = "tempVpcCidr";
 
 	public static final String CAPABILITY_NAMED_IAM = "CAPABILITY_NAMED_IAM";
 	public static final String OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT = "RepositoryDBEndpoint";
