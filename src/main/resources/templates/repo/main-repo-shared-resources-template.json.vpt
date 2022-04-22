@@ -447,10 +447,10 @@
 								}
 							]
 						}
-					}
-				],
-				"ManagedPolicyArns": [
-				    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+					},
+					"ManagedPolicyArns": [
+						"arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+					]
 				]
 			}
 		},
@@ -509,11 +509,11 @@
 									"Resource": "*"
 								}
 							]
-						}
+						},
+						"ManagedPolicyArns": [
+							"arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+						]
 					}
-				],
-			    "ManagedPolicyArns": [
-				    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 				]
 			}
 		},
