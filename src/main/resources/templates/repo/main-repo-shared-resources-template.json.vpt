@@ -342,7 +342,8 @@
 							"Effect": "Allow",
 							"Principal": {
 								"Service": [
-									"ec2.amazonaws.com"
+									"ec2.amazonaws.com",
+									"ssm.amazonaws.com"
 								]
 							},
 							"Action": [
@@ -447,6 +448,9 @@
 							]
 						}
 					}
+				],
+				"ManagedPolicyArns": [
+				    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 				]
 			}
 		},
@@ -472,7 +476,8 @@
 							"Effect": "Allow",
 							"Principal": {
 								"Service": [
-									"ec2.amazonaws.com"
+									"ec2.amazonaws.com",
+									"ssm.amazonaws.com"
 								]
 							},
 							"Action": [
@@ -506,6 +511,9 @@
 							]
 						}
 					}
+				],
+			    "ManagedPolicyArns": [
+				    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 				]
 			}
 		},
