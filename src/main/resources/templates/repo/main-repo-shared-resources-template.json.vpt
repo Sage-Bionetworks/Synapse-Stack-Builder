@@ -448,9 +448,12 @@
 							]
 						}
 					},
-					"ManagedPolicyArns": [
-						"arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-					]
+					{
+					    "PolicyName" : "${stack}${instance}SynapesRepoWorkersServiceSSM",
+					    "ManagedPolicyArns": [
+                            "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+                        ]
+					}
 				]
 			}
 		},
@@ -509,11 +512,14 @@
 									"Resource": "*"
 								}
 							]
-						},
-						"ManagedPolicyArns": [
-							"arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-						]
-					}
+						}
+					},
+                    {
+                        "PolicyName": "${stack}${instance}SynapesPortalServiceSSM",
+                        "ManagedPolicyArns": [
+                            "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+                        ]
+                    }
 				]
 			}
 		},
