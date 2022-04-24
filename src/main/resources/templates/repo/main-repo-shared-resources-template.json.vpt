@@ -438,7 +438,8 @@
 							"Effect": "Allow",
 							"Principal": {
 								"Service": [
-									"ec2.amazonaws.com"
+									"ec2.amazonaws.com",
+									"ssm.amazonaws.com"
 								]
 							},
 							"Action": [
@@ -448,7 +449,7 @@
 					]
 				},
 				"Path": "/",
-				"ManagePolicyArns": [
+				"ManagedPolicyArns": [
                     "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
                     {
                         "Ref": "${stack}${instance}SynapesRepoWorkersServiceManagedPolicy"
