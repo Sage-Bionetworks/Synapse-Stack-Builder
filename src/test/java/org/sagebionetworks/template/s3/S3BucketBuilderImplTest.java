@@ -12,11 +12,14 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
+import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
@@ -35,9 +38,14 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.Constants;
+import org.sagebionetworks.template.CreateOrUpdateStackRequest;
+import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.services.cloudformation.model.Output;
+import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AbortIncompleteMultipartUpload;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -86,6 +94,9 @@ public class S3BucketBuilderImplTest {
 	
 	@Mock
 	private CloudFormationClient mockCloudFormationClient;
+	
+	@Mock
+	private StackTagsProvider mockTagsProvider;
 
 	@InjectMocks
 	private S3BucketBuilderImpl builder;
@@ -1425,6 +1436,107 @@ public class S3BucketBuilderImplTest {
 		verify(mockS3Client).getBucketNotificationConfiguration(expectedBucketName);
 		verify(mockS3Client, never()).setBucketNotificationConfiguration(any(), any());
 		
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithVirusScannerConfiguration() throws InterruptedException {
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		
+		bucket.setName("bucket");
+		bucket.setVirusScanEnabled(true);
+		
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		
+		S3VirusScannerConfig virusScannerConfig = new S3VirusScannerConfig();
+		
+		virusScannerConfig.setLambdaArtifactSourceUrl("some-ulr");
+		virusScannerConfig.setLambdaArtifactBucket("${stack}-lambda-bucket");
+		virusScannerConfig.setLambdaArtifactKey("lambda-key.zip");
+		virusScannerConfig.setNotificationEmail("notification@sagebase.org");
+		
+		when(mockS3Config.getVirusScannerConfig()).thenReturn(virusScannerConfig);
+		
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+		
+		doAnswer(new Answer<Void>() {
+			@Override
+			public Void answer(InvocationOnMock invocation) throws Throwable {
+				StringWriter writer = (StringWriter) invocation.getArgument(1);
+				writer.append("{}");
+				return null;
+			}
+		}).when(mockTemplate).merge(any(), any());
+		
+		Stack virusScannerStack = new Stack().withOutputs(new Output().withOutputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_TRIGGER_TOPIC).withOutputValue("snsTopicArn"));
+		
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(virusScannerStack);
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		
+		// Call under test
+		builder.buildAllBuckets();
+		
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+		
+		VelocityContext context = velocityContextCaptor.getValue();
+		
+		assertEquals(context.get(Constants.STACK), stack);
+		assertEquals(context.get(S3BucketBuilderImpl.CF_PROPERTY_BUCKETS), Arrays.asList(bucket.getName()));
+		assertEquals(context.get(S3BucketBuilderImpl.CF_PROPERTY_NOTIFICATION_EMAIL), "notification@sagebase.org");
+		assertEquals(context.get(S3BucketBuilderImpl.CF_PROPERTY_LAMBDA_BUCKET), stack + "-lambda-bucket");
+		assertEquals(context.get(S3BucketBuilderImpl.CF_PROPERTY_LAMBDA_KEY), "lambda-key.zip");
+		
+		String expectedStackName = stack + "-synapse-virus-scanner";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList())
+				.withCapabilities(CAPABILITY_NAMED_IAM));
+				
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		
+		ArgumentCaptor<BucketNotificationConfiguration> argCaptor = ArgumentCaptor.forClass(BucketNotificationConfiguration.class);
+		
+		verify(mockS3Client).setBucketNotificationConfiguration(eq("bucket"), argCaptor.capture());
+		
+		BucketNotificationConfiguration bucketConfig = argCaptor.getValue();
+		
+		assertEquals(1, bucketConfig.getConfigurations().size());
+		
+		TopicConfiguration snsConfig = (TopicConfiguration) bucketConfig.getConfigurationByName(S3BucketBuilderImpl.VIRUS_SCANNER_NOTIFICATION_CONFIG_NAME);
+		
+		assertEquals("snsTopicArn", snsConfig.getTopicARN());
+		assertEquals(Collections.singleton(S3Event.ObjectCreatedByCompleteMultipartUpload.toString()), snsConfig.getEvents());
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithVirusScannerConfigurationAndNoBuckets() {
+		S3VirusScannerConfig virusScannerConfig = new S3VirusScannerConfig();
+		
+		virusScannerConfig.setLambdaArtifactSourceUrl("some-ulr");
+		virusScannerConfig.setLambdaArtifactBucket("some-bucket");
+		virusScannerConfig.setLambdaArtifactKey("lambda-key.zip");
+		virusScannerConfig.setNotificationEmail("notification@sagebase.org");
+		
+		when(mockS3Config.getVirusScannerConfig()).thenReturn(virusScannerConfig);
+		
+		// Call under test
+		builder.buildAllBuckets();
+		
+		verifyZeroInteractions(mockCloudFormationClient);
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithNoVirusScannerConfiguration() {
+		S3VirusScannerConfig virusScannerConfig = null;
+		
+		when(mockS3Config.getVirusScannerConfig()).thenReturn(virusScannerConfig);
+		
+		// Call under test
+		builder.buildAllBuckets();
+		
+		verifyZeroInteractions(mockCloudFormationClient);
 	}
 	
 	private Rule allBucketRule(String ruleName) {

@@ -16,6 +16,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.RepoConfiguration;
@@ -47,6 +48,9 @@ public class S3BucketBuilderIntegrationTest {
 	@Mock
 	private GetCallerIdentityResult mockGetCallerIdentityResult;
 	
+	@Mock
+	private StackTagsProvider mockTagsProvider;
+	
 	@Captor
 	private ArgumentCaptor<String> stringCaptor;
 
@@ -62,7 +66,7 @@ public class S3BucketBuilderIntegrationTest {
 		// Validate the real S3Config
 		injector.getInstance(S3Config.class);
 		
-		builder = new S3BucketBuilderImpl(mockS3Client, mockStsClient, mockConfig, mockS3Config, velocityEngine, mockCloudFormationClient);
+		builder = new S3BucketBuilderImpl(mockS3Client, mockStsClient, mockConfig, mockS3Config, velocityEngine, mockCloudFormationClient, mockTagsProvider);
 		
 		stack = "dev";
 		accountId = "12345";

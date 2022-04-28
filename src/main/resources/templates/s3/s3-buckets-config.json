@@ -47,7 +47,8 @@
 		{
 			"name": "${stack}.testdata.sagebase.org",
 			"retentionDays": 30,
-			"devOnly": true
+			"devOnly": true,
+			"virusScanEnabled": true
 		},
 		{
 			"name": "${stack}.athena-queries.sagebase.org",
@@ -62,7 +63,16 @@
 		},
 		{
 			"name": "${stack}.docker.registry.sagebase.org"
+		},
+		{
+			"name": "${stack}.lambda.sagebase.org"
 		}
 	],
-	"inventoryBucket": "${stack}.inventory.sagebase.org"
+	"inventoryBucket": "${stack}.inventory.sagebase.org",
+	"virusScannerConfig": {
+		"lambdaArtifactSourceUrl": "some-artifactory-artifact.zip",
+		"lambdaArtifactBucket": "${stack}.lambda.sagebase.org",
+		"lambdaArtifactKey": "artifacts/virus-scanner/lambda.zip",
+		"notificationEmail": "synapse-ops@sagebase.org"
+	}
 }

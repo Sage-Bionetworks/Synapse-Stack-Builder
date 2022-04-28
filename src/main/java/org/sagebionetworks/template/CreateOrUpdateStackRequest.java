@@ -2,6 +2,7 @@ package org.sagebionetworks.template;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Tag;
@@ -140,59 +141,35 @@ public class CreateOrUpdateStackRequest {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + Arrays.hashCode(capabilities);
 		result = prime * result + Arrays.hashCode(parameters);
-		result = prime * result + ((stackName == null) ? 0 : stackName.hashCode());
-		result = prime * result + ((templateBody == null) ? 0 : templateBody.hashCode());
-		result = prime * result + ((capabilities == null) ? 0 : capabilities.hashCode());
-		result = prime * result + ((tags == null) ? 0 : tags.hashCode());
-		result = prime * result + ((enableTerminationProtection == null) ? 0: enableTerminationProtection.hashCode());
+		result = prime * result + Objects.hash(enableTerminationProtection, stackName, tags, templateBody);
 		return result;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		CreateOrUpdateStackRequest other = (CreateOrUpdateStackRequest) obj;
-		if (!Arrays.equals(parameters, other.parameters))
-			return false;
-		if (stackName == null) {
-			if (other.stackName != null)
-				return false;
-		} else if (!stackName.equals(other.stackName))
-			return false;
-		if (templateBody == null) {
-			if (other.templateBody != null)
-				return false;
-		} else if (!templateBody.equals(other.templateBody))
-			return false;
-		if (capabilities == null) {
-			if (other.capabilities != null)
-				return false;
-		} else if (!capabilities.equals(other.capabilities))
-			return false;
-		if (tags == null) {
-			if (other.tags != null)
-				return false;
-		} else if (!tags.equals(other.tags))
-			return false;
-		if (enableTerminationProtection == null) {
-			if (other.enableTerminationProtection != null)
-				return false;
-		} else if (!enableTerminationProtection.equals(other.enableTerminationProtection))
-			return false;
-		return true;
+		return Arrays.equals(capabilities, other.capabilities)
+				&& Objects.equals(enableTerminationProtection, other.enableTerminationProtection)
+				&& Arrays.equals(parameters, other.parameters) && Objects.equals(stackName, other.stackName)
+				&& Objects.equals(tags, other.tags) && Objects.equals(templateBody, other.templateBody);
 	}
 
 	@Override
 	public String toString() {
 		return "CreateOrUpdateStackRequest [stackName=" + stackName + ", templateBody=" + templateBody + ", parameters="
-				+ Arrays.toString(parameters) + "], capabilities=[" + Arrays.toString(capabilities)
-				+ "], tags = [" + tags.toString() + "]";
+				+ Arrays.toString(parameters) + ", capabilities=" + Arrays.toString(capabilities) + ", tags=" + tags
+				+ ", enableTerminationProtection=" + enableTerminationProtection + "]";
 	}
 
 }
