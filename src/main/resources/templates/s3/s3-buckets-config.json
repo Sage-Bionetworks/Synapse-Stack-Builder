@@ -70,9 +70,9 @@
 	],
 	"inventoryBucket": "${stack}.inventory.sagebase.org",
 	"virusScannerConfig": {
-		"lambdaArtifactSourceUrl": "some-artifactory-artifact.zip",
+		"lambdaArtifactSourceUrl": "https://sagebionetworks.jfrog.io/artifactory/lambda-artifacts/org/sagebionetworks/virus-scanner/virus-scanner-20220429.zip",
 		"lambdaArtifactBucket": "${stack}.lambda.sagebase.org",
-		"lambdaArtifactKey": "artifacts/virus-scanner/lambda.zip",
+		"lambdaArtifactKey": "artifacts/virus-scanner/virus-scanner-20220429.zip",
 		"notificationEmail": "synapse-ops@sagebase.org"
 	}
 }
