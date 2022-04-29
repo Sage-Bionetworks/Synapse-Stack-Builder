@@ -41,8 +41,6 @@ import org.sagebionetworks.template.repo.athena.RecurrentAthenaQueryConfigValida
 import org.sagebionetworks.template.repo.athena.RecurrentAthenaQueryContextProvider;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopyImpl;
-import org.sagebionetworks.template.repo.beanstalk.ArtifactDownload;
-import org.sagebionetworks.template.repo.beanstalk.ArtifactDownloadImpl;
 import org.sagebionetworks.template.repo.beanstalk.LoadBalancerAlarmsConfig;
 import org.sagebionetworks.template.repo.beanstalk.LoadBalancerAlarmsConfigValidator;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
@@ -68,6 +66,8 @@ import org.sagebionetworks.template.s3.S3Config;
 import org.sagebionetworks.template.s3.S3ConfigValidator;
 import org.sagebionetworks.template.s3.S3TransferManagerFactory;
 import org.sagebionetworks.template.s3.S3TransferManagerFactoryImpl;
+import org.sagebionetworks.template.utils.ArtifactDownload;
+import org.sagebionetworks.template.utils.ArtifactDownloadImpl;
 import org.sagebionetworks.template.vpc.SubnetTemplateBuilder;
 import org.sagebionetworks.template.vpc.SubnetTemplateBuilderImpl;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilder;

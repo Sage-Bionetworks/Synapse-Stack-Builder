@@ -5,6 +5,7 @@ import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_STACK_NAME
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.TEMPLATE_INVENTORY_BUCKET_POLICY_TEMPLATE;
 
+import java.io.File;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.RepoConfiguration;
+import org.sagebionetworks.template.utils.ArtifactDownload;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.cloudformation.model.Stack;
@@ -99,9 +101,10 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	private VelocityEngine velocity;
 	private CloudFormationClient cloudFormationClient;
 	private StackTagsProvider tagsProvider;
+	private ArtifactDownload downloader;
 	
 	@Inject
-	public S3BucketBuilderImpl(AmazonS3 s3Client, AWSSecurityTokenService stsClient, RepoConfiguration config, S3Config s3Config, VelocityEngine velocity, CloudFormationClient cloudFormationClient, StackTagsProvider tagsProvider) {
+	public S3BucketBuilderImpl(AmazonS3 s3Client, AWSSecurityTokenService stsClient, RepoConfiguration config, S3Config s3Config, VelocityEngine velocity, CloudFormationClient cloudFormationClient, StackTagsProvider tagsProvider, ArtifactDownload downloader) {
 		this.s3Client = s3Client;
 		this.stsClient = stsClient;
 		this.config = config;
@@ -109,6 +112,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		this.velocity = velocity;
 		this.cloudFormationClient = cloudFormationClient;
 		this.tagsProvider = tagsProvider;
+		this.downloader = downloader;
 	}
 
 	@Override
@@ -179,16 +183,25 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		if (buckets.isEmpty()) {
 			return Optional.empty();
 		}
-
-		// TODO download lambda artifact and upload it to S3
+		
+		String lambdaArtifactBucket = TemplateUtils.replaceStackVariable(config.getLambdaArtifactBucket(), stack);
+		String lambdaArtifactKey = TemplateUtils.replaceStackVariable(config.getLambdaArtifactKey(), stack);
+		
+		File artifact = downloader.downloadFile(config.getLambdaArtifactSourceUrl());
+		
+		try {
+			s3Client.putObject(lambdaArtifactBucket, lambdaArtifactKey, artifact);
+		} finally {
+			artifact.delete();
+		}
 		
 		VelocityContext context = new VelocityContext();
 		
 		context.put(Constants.STACK, stack);
 		context.put(CF_PROPERTY_BUCKETS, buckets);
 		context.put(CF_PROPERTY_NOTIFICATION_EMAIL, config.getNotificationEmail());
-		context.put(CF_PROPERTY_LAMBDA_BUCKET, TemplateUtils.replaceStackVariable(config.getLambdaArtifactBucket(), stack));
-		context.put(CF_PROPERTY_LAMBDA_KEY, config.getLambdaArtifactKey());
+		context.put(CF_PROPERTY_LAMBDA_BUCKET, lambdaArtifactBucket);
+		context.put(CF_PROPERTY_LAMBDA_KEY, lambdaArtifactKey);
 		
 		// Merge the context with the template
 		Template template = velocity.getTemplate(Constants.TEMPLATE_S3_VIRUS_SCANNER);
