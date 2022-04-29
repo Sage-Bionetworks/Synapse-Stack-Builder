@@ -48,6 +48,9 @@ import org.sagebionetworks.template.utils.ArtifactDownload;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Stack;
+import com.amazonaws.services.lambda.AWSLambda;
+import com.amazonaws.services.lambda.model.InvocationType;
+import com.amazonaws.services.lambda.model.InvokeRequest;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AbortIncompleteMultipartUpload;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -90,6 +93,9 @@ public class S3BucketBuilderImplTest {
 
 	@Mock
 	private AWSSecurityTokenService mockStsClient;
+	
+	@Mock
+	private AWSLambda mockLambdaClient;
 
 	@Mock
 	private VelocityEngine mockVelocity;
@@ -1475,7 +1481,10 @@ public class S3BucketBuilderImplTest {
 			}
 		}).when(mockTemplate).merge(any(), any());
 		
-		Stack virusScannerStack = new Stack().withOutputs(new Output().withOutputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_TRIGGER_TOPIC).withOutputValue("snsTopicArn"));
+		Stack virusScannerStack = new Stack().withOutputs(
+			new Output().withOutputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_TRIGGER_TOPIC).withOutputValue("snsTopicArn"),
+			new Output().withOutputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_UPDATER_LAMBDA).withOutputValue("updaterLambdaArn")
+		);
 		
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(virusScannerStack);
 		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
@@ -1521,6 +1530,11 @@ public class S3BucketBuilderImplTest {
 		
 		assertEquals("snsTopicArn", snsConfig.getTopicARN());
 		assertEquals(Collections.singleton(S3Event.ObjectCreatedByCompleteMultipartUpload.toString()), snsConfig.getEvents());
+		
+		verify(mockLambdaClient).invoke(new InvokeRequest()
+			.withFunctionName("updaterLambdaArn")
+			.withInvocationType(InvocationType.Event)
+		);
 	}
 	
 	@Test
@@ -1538,6 +1552,7 @@ public class S3BucketBuilderImplTest {
 		builder.buildAllBuckets();
 		
 		verifyZeroInteractions(mockCloudFormationClient);
+		verifyZeroInteractions(mockLambdaClient);
 	}
 	
 	@Test

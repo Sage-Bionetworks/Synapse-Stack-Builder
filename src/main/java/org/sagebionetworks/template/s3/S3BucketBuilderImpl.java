@@ -33,6 +33,10 @@ import org.sagebionetworks.template.utils.ArtifactDownload;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.cloudformation.model.Stack;
+import com.amazonaws.services.lambda.AWSLambda;
+import com.amazonaws.services.lambda.model.InvocationType;
+import com.amazonaws.services.lambda.model.InvokeRequest;
+import com.amazonaws.services.lambda.model.InvokeResult;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AbortIncompleteMultipartUpload;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -85,6 +89,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	static final String INT_ARCHIVE_ID = "intArchiveAccessConfiguration";
 	
 	static final String CF_OUTPUT_VIRUS_TRIGGER_TOPIC = "ScanTriggerSNSTopic";
+	static final String CF_OUTPUT_VIRUS_UPDATER_LAMBDA = "VirusScanDefinitionUpdaterLambda";
 	
 	static final String CF_PROPERTY_BUCKETS = "buckets";
 	static final String CF_PROPERTY_LAMBDA_BUCKET = "lambdaBucket";
@@ -94,8 +99,18 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	static final String VIRUS_SCANNER_STACK_NAME = "${stack}-synapse-virus-scanner";
 	static final String VIRUS_SCANNER_NOTIFICATION_CONFIG_NAME = "virusScannerNotificationConfiguration";
 	
+
+	private static String getStackOutput(Stack stack, String key) {
+		return stack.getOutputs().stream()
+		.filter( output -> output.getOutputKey().equals(key))
+		.findFirst()
+		.orElseThrow(() -> new IllegalStateException("Could not find " + key + " output from stack " + stack.getStackName()))
+		.getOutputValue();
+	}
+	
 	private AmazonS3 s3Client;
 	private AWSSecurityTokenService stsClient;
+	private AWSLambda lambdaClient;
 	private RepoConfiguration config;
 	private S3Config s3Config;
 	private VelocityEngine velocity;
@@ -104,9 +119,10 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	private ArtifactDownload downloader;
 	
 	@Inject
-	public S3BucketBuilderImpl(AmazonS3 s3Client, AWSSecurityTokenService stsClient, RepoConfiguration config, S3Config s3Config, VelocityEngine velocity, CloudFormationClient cloudFormationClient, StackTagsProvider tagsProvider, ArtifactDownload downloader) {
+	public S3BucketBuilderImpl(AmazonS3 s3Client, AWSSecurityTokenService stsClient, AWSLambda lambdaClient, RepoConfiguration config, S3Config s3Config, VelocityEngine velocity, CloudFormationClient cloudFormationClient, StackTagsProvider tagsProvider, ArtifactDownload downloader) {
 		this.s3Client = s3Client;
 		this.stsClient = stsClient;
+		this.lambdaClient = lambdaClient;
 		this.config = config;
 		this.s3Config = s3Config;
 		this.velocity = velocity;
@@ -158,21 +174,30 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		configureInventoryBucketPolicy(stack, accountId, inventoryBucket, inventoriedBuckets);
 		
 		buildVirusScannerStack(stack, s3Config.getVirusScannerConfig(), virusScanEnabledBuckets).ifPresent( virusScannerStack -> {
-			// Once the virus scanner stack is built we need to setup the each bucket notification, this cannot be done in the cloud formation
-			// template due to a known circular dependency
-			String virusScannerTopicArn = virusScannerStack.getOutputs().stream()
-				.filter( output -> output.getOutputKey().equals(CF_OUTPUT_VIRUS_TRIGGER_TOPIC))
-				.findFirst()
-				.orElseThrow(() -> new IllegalStateException("Could not find SNS topic output from virus scanner template"))
-				.getOutputValue();
+			// Once the virus scanner stack is built we need to setup for each bucket a notification configuration to
+			// send upload events to the topic the lambda is triggered by, this cannot be done in the cloud formation
+			// template due to a known circular dependency (See https://github.com/aws-cloudformation/cloudformation-coverage-roadmap/issues/79).
+			// Note that the proposed solution (e.g. read hack) by AWS (https://aws.amazon.com/premiumsupport/knowledge-center/cloudformation-s3-notification-lambda/)
+			// involves using a custom resource setup by yet another lambda when the stack is created taking in input the bucket to setup the notification for, since we want to enable
+			// this on multiple buckets using the API is a much simpler solution.
+			String virusScannerTopicArn = getStackOutput(virusScannerStack, CF_OUTPUT_VIRUS_TRIGGER_TOPIC);
 			
 			virusScanEnabledBuckets.forEach( bucket -> {
 				configureBucketNotification(bucket, VIRUS_SCANNER_NOTIFICATION_CONFIG_NAME, virusScannerTopicArn, Collections.singleton(S3Event.ObjectCreatedByCompleteMultipartUpload.toString()));
 			});
+			
+			// We also need to trigger the lambda that updates the clamav definitions to setup them up so that the scanner can download them
+			String virusScannerUpdatedLambda = getStackOutput(virusScannerStack, CF_OUTPUT_VIRUS_UPDATER_LAMBDA);
+			
+			lambdaClient.invoke(new InvokeRequest()
+				.withFunctionName(virusScannerUpdatedLambda)
+				.withInvocationType(InvocationType.Event)
+			);
 		});
 		
 		
 	}
+	
 	
 	private Optional<Stack>buildVirusScannerStack(String stack, S3VirusScannerConfig config, List<String> buckets) {
 		

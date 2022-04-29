@@ -532,6 +532,26 @@
 					]
 				}
 			}
+		},
+		"VirusScanDefinitionUpdaterLambda": {
+			"Description": "The lambda that updates the virus scanner definitions",
+			"Value": { "Ref":"VirusScanDefinitionUpdaterLambda"},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"VirusScanDefinitionUpdaterLambda"
+						]
+					]
+				}
+			}
 		}
 	}
 }
