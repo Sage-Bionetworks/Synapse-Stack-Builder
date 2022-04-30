@@ -90,7 +90,7 @@
 								[
 									"tcp,22,22",
 									{
-										"Fn::ImportValue": "${vpcExportPrefix}-VpnCidr"
+										"Fn::ImportValue": "${vpcExportPrefix}-VpnCidrNew"
 									}
 								]
 							]

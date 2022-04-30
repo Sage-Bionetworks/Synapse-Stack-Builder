@@ -27,7 +27,7 @@
 					{
 						"Description": "Allow all VPN traffic",
 						"CidrIp": {
-							"Fn::ImportValue": "${vpcExportPrefix}-VpnCidr"
+							"Fn::ImportValue": "${vpcExportPrefix}-VpnCidrNew"
 						},
 						"FromPort": "3306",
 						"ToPort": "3306",
