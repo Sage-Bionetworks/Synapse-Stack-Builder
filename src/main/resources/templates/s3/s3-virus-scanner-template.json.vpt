@@ -163,7 +163,7 @@
                         "ArnLike":{
                            "aws:SourceArn": [
                            #foreach( $bucket in $buckets)
-                           "arn:aws:s3:::${bucket}/*"#if( $foreach.hasNext), #end
+                           "arn:aws:s3:::${bucket}"#if( $foreach.hasNext), #end
                            #end	
                            ]
                         }
@@ -439,7 +439,7 @@
                            "Effect":"Allow",
                            "Resource": [
                            #foreach( $bucket in $buckets)
-                           "arn:aws:s3:::${bucket}/*"#if( $foreach.hasNext), #end
+                           "arn:aws:s3:::${bucket}"#if( $foreach.hasNext), #end
                            #end	
                            ]
                         },

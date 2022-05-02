@@ -577,10 +577,10 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		}
 		
 		if (update) {
-			LOG.info("Updating {} bucket notification configuration {}.", bucketName, configName);
+			LOG.info("Updating {} bucket notification configuration {} (Topic ARN: {}).", bucketName, configName, topicArn);
 			s3Client.setBucketNotificationConfiguration(bucketName, bucketConfig);
 		} else {
-			LOG.info("The {} bucket notification configuration {} was up to date.", bucketName, configName);
+			LOG.info("The {} bucket notification configuration {} was up to date (Topic ARN: {}).", bucketName, configName, topicArn);
 		}
 	}
 	
