@@ -236,7 +236,11 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		
 		template.merge(context, stringWriter);
 		
-		String resultJSON = new JSONObject(stringWriter.toString()).toString(5);
+		String resultJSON = stringWriter.toString();
+		
+		LOG.info(resultJSON);
+		
+		resultJSON = new JSONObject(resultJSON).toString(5);
 		
 		String stackName = TemplateUtils.replaceStackVariable(VIRUS_SCANNER_STACK_NAME, stack);
 		
