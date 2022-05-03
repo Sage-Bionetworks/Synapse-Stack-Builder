@@ -535,7 +535,9 @@
 		},
 		"VirusScanDefinitionUpdaterLambda": {
 			"Description": "The lambda that updates the virus scanner definitions",
-			"Value": { "Ref":"VirusScanDefinitionUpdaterLambda"},
+			"Value": {
+				"Fn::GetAtt": ["VirusScanDefinitionUpdaterLambda","Arn"]
+			},
 			"Export": {
 				"Name": {
 					"Fn::Join": [
