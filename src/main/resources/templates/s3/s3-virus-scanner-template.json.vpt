@@ -3,7 +3,7 @@
    "Description":"Template used to set up virus scanning of S3 buckets",
    "Resources":{
    	#foreach( $bucket in $buckets)
-      "DenyInfectedObjectDownloadPolicy":{
+      "$bucket.replaceAll("[^a-zA-Z0-9]", "")BucketPolicy":{
          "Type":"AWS::S3::BucketPolicy",
          "Properties":{
             "Bucket": "${bucket}",
