@@ -48,8 +48,7 @@
 		{
 			"name": "${stack}.testdata.sagebase.org",
 			"retentionDays": 30,
-			"devOnly": true,
-			"virusScanEnabled": true
+			"devOnly": true
 		},
 		{
 			"name": "${stack}.athena-queries.sagebase.org",
