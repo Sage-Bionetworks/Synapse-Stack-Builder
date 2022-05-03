@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -1472,13 +1473,9 @@ public class S3BucketBuilderImplTest {
 		when(mockDownloader.downloadFile(any())).thenReturn(tmpFile);
 		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
 		
-		doAnswer(new Answer<Void>() {
-			@Override
-			public Void answer(InvocationOnMock invocation) throws Throwable {
-				StringWriter writer = (StringWriter) invocation.getArgument(1);
-				writer.append("{}");
-				return null;
-			}
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
 		}).when(mockTemplate).merge(any(), any());
 		
 		Stack virusScannerStack = new Stack().withOutputs(
@@ -1536,23 +1533,59 @@ public class S3BucketBuilderImplTest {
 			.withInvocationType(InvocationType.Event)
 		);
 	}
-	
+		
 	@Test
-	public void testBuildAllBucketsWithVirusScannerConfigurationAndNoBuckets() {
+	public void testBuildAllBucketsWithVirusScannerConfigurationAndBucketNotificationRemoval() {
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		
+		bucket.setName("bucket");
+		bucket.setVirusScanEnabled(false);
+		
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		
 		S3VirusScannerConfig virusScannerConfig = new S3VirusScannerConfig();
 		
-		virusScannerConfig.setLambdaArtifactSourceUrl("some-ulr");
-		virusScannerConfig.setLambdaArtifactBucket("some-bucket");
+		virusScannerConfig.setLambdaArtifactSourceUrl("some-url");
+		virusScannerConfig.setLambdaArtifactBucket("${stack}-lambda-bucket");
 		virusScannerConfig.setLambdaArtifactKey("lambda-key.zip");
 		virusScannerConfig.setNotificationEmail("notification@sagebase.org");
 		
 		when(mockS3Config.getVirusScannerConfig()).thenReturn(virusScannerConfig);
+		when(mockDownloader.downloadFile(any())).thenReturn(new File("tmpFile"));
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+		
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+		
+		Stack virusScannerStack = new Stack().withOutputs(
+			new Output().withOutputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_TRIGGER_TOPIC).withOutputValue("snsTopicArn"),
+			new Output().withOutputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_UPDATER_LAMBDA).withOutputValue("updaterLambdaArn")
+		);
+		
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(virusScannerStack);
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+				
+		// Fake an existing config for the scanner
+		BucketNotificationConfiguration bucketConfiguration = new BucketNotificationConfiguration();
+		bucketConfiguration.addConfiguration(S3BucketBuilderImpl.VIRUS_SCANNER_NOTIFICATION_CONFIG_NAME, new TopicConfiguration());
+		
+		when(mockS3Config.getVirusScannerConfig()).thenReturn(virusScannerConfig);
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockS3Client.getBucketNotificationConfiguration(any(String.class))).thenReturn(bucketConfiguration);
 		
 		// Call under test
 		builder.buildAllBuckets();
 		
-		verifyZeroInteractions(mockCloudFormationClient);
-		verifyZeroInteractions(mockLambdaClient);
+		ArgumentCaptor<BucketNotificationConfiguration> argCaptor = ArgumentCaptor.forClass(BucketNotificationConfiguration.class);
+		
+		verify(mockS3Client).setBucketNotificationConfiguration(eq("bucket"), argCaptor.capture());
+		
+		BucketNotificationConfiguration configuration = argCaptor.getValue();
+		
+		// Make sure the config was removed
+		assertTrue(configuration.getConfigurations().isEmpty());
 	}
 	
 	@Test

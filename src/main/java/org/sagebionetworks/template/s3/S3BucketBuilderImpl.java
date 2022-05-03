@@ -36,7 +36,6 @@ import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.model.InvocationType;
 import com.amazonaws.services.lambda.model.InvokeRequest;
-import com.amazonaws.services.lambda.model.InvokeResult;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AbortIncompleteMultipartUpload;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -142,6 +141,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		List<String> inventoriedBuckets = new ArrayList<>();
 				
 		List<String> virusScanEnabledBuckets = new ArrayList<>();
+		List<String> virusScanDisabledBuckets = new ArrayList<>();
 		
 		// Configure all buckets first
 		for (S3BucketDescriptor bucket : s3Config.getBuckets()) {
@@ -166,6 +166,8 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			
 			if (bucket.isVirusScanEnabled()) {
 				virusScanEnabledBuckets.add(bucket.getName());
+			} else {
+				virusScanDisabledBuckets.add(bucket.getName());
 			}
 			
 		}
@@ -185,6 +187,11 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			virusScanEnabledBuckets.forEach( bucket -> {
 				configureBucketNotification(bucket, VIRUS_SCANNER_NOTIFICATION_CONFIG_NAME, virusScannerTopicArn, Collections.singleton(S3Event.ObjectCreatedByCompleteMultipartUpload.toString()));
 			});
+
+			// Makes sure to remove the existing bucket configurations
+			virusScanDisabledBuckets.forEach( bucket -> {
+				removeBucketNotification(bucket, VIRUS_SCANNER_NOTIFICATION_CONFIG_NAME);
+			});
 			
 			// We also need to trigger the lambda that updates the clamav definitions to setup them up so that the scanner can download them
 			String virusScannerUpdatedLambda = getStackOutput(virusScannerStack, CF_OUTPUT_VIRUS_UPDATER_LAMBDA);
@@ -195,17 +202,11 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			);
 		});
 		
-		
 	}
-	
 	
 	private Optional<Stack>buildVirusScannerStack(String stack, S3VirusScannerConfig config, List<String> buckets) {
 		
 		if (config == null) {
-			return Optional.empty();
-		}
-		
-		if (buckets.isEmpty()) {
 			return Optional.empty();
 		}
 		
@@ -583,6 +584,26 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			LOG.info("The {} bucket notification configuration {} was up to date (Topic ARN: {}).", bucketName, configName, topicArn);
 		}
 	}
+
+	private void removeBucketNotification(String bucketName, String configName) {
+		BucketNotificationConfiguration bucketConfig = s3Client.getBucketNotificationConfiguration(bucketName);
+		
+		if (bucketConfig == null || bucketConfig.getConfigurations() == null || bucketConfig.getConfigurations().isEmpty()) {
+			return;
+		}
+		
+		NotificationConfiguration notificationConfig = bucketConfig.getConfigurationByName(configName);
+		
+		if (notificationConfig == null) {
+			return;
+		}
+		
+		bucketConfig.removeConfiguration(configName);
+		
+		LOG.info("Removing {} bucket notification configuration {}.", bucketName, configName);
+		
+		s3Client.setBucketNotificationConfiguration(bucketName, bucketConfig);		
+	}	
 	
 	private void configureInventoryBucketPolicy(String stack, String accountId, String inventoryBucket, List<String> sourceBuckets) {
 		if (inventoryBucket == null) {
