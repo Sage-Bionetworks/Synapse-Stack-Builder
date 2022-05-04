@@ -119,6 +119,9 @@ public class S3BucketBuilderImplTest {
 	@Mock
 	private Template mockTemplate;
 
+	@Mock
+	private File mockFile;
+
 	@Captor
 	private ArgumentCaptor<SetBucketEncryptionRequest> encryptionRequestCaptor;
 	
@@ -1466,10 +1469,7 @@ public class S3BucketBuilderImplTest {
 		virusScannerConfig.setNotificationEmail("notification@sagebase.org");
 		
 		when(mockS3Config.getVirusScannerConfig()).thenReturn(virusScannerConfig);
-		
-		File tmpFile = new File("tmpFile");
-		
-		when(mockDownloader.downloadFile(any())).thenReturn(tmpFile);
+		when(mockDownloader.downloadFile(any())).thenReturn(mockFile);
 		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
 		
 		doAnswer(invocation -> {
@@ -1492,7 +1492,8 @@ public class S3BucketBuilderImplTest {
 		builder.buildAllBuckets();
 		
 		verify(mockDownloader).downloadFile("https://some-url/lambda-name.zip");
-		verify(mockS3Client).putObject(expectedBucket, expectedKey, tmpFile);
+		verify(mockS3Client).putObject(expectedBucket, expectedKey, mockFile);
+		verify(mockFile).delete();
 		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
 		
 		VelocityContext context = velocityContextCaptor.getValue();
