@@ -4,23 +4,11 @@ import java.util.Objects;
 
 public class S3VirusScannerConfig {
 
-	private String lambdaArtifactSourceUrl;
-
 	private String lambdaArtifactBucket;
-	
-	private String lambdaArtifactKey;
 
 	private String notificationEmail;
 
 	public S3VirusScannerConfig() {
-	}
-
-	public String getLambdaArtifactSourceUrl() {
-		return lambdaArtifactSourceUrl;
-	}
-
-	public void setLambdaArtifactSourceUrl(String lambdaArtifactSourceUrl) {
-		this.lambdaArtifactSourceUrl = lambdaArtifactSourceUrl;
 	}
 
 	public String getLambdaArtifactBucket() {
@@ -29,14 +17,6 @@ public class S3VirusScannerConfig {
 
 	public void setLambdaArtifactBucket(String lambdaArtifactBucket) {
 		this.lambdaArtifactBucket = lambdaArtifactBucket;
-	}
-	
-	public String getLambdaArtifactKey() {
-		return lambdaArtifactKey;
-	}
-	
-	public void setLambdaArtifactKey(String lambdaArtifactKey) {
-		this.lambdaArtifactKey = lambdaArtifactKey;
 	}
 
 	public String getNotificationEmail() {
@@ -49,7 +29,7 @@ public class S3VirusScannerConfig {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(lambdaArtifactBucket, lambdaArtifactKey, lambdaArtifactSourceUrl, notificationEmail);
+		return Objects.hash(lambdaArtifactBucket, notificationEmail);
 	}
 
 	@Override
@@ -65,15 +45,13 @@ public class S3VirusScannerConfig {
 		}
 		S3VirusScannerConfig other = (S3VirusScannerConfig) obj;
 		return Objects.equals(lambdaArtifactBucket, other.lambdaArtifactBucket)
-				&& Objects.equals(lambdaArtifactKey, other.lambdaArtifactKey)
-				&& Objects.equals(lambdaArtifactSourceUrl, other.lambdaArtifactSourceUrl)
 				&& Objects.equals(notificationEmail, other.notificationEmail);
 	}
 
 	@Override
 	public String toString() {
-		return "S3VirusScannerConfig [lambdaArtifactSourceUrl=" + lambdaArtifactSourceUrl + ", lambdaArtifactBucket=" + lambdaArtifactBucket
-				+ ", lambdaArtifactKey=" + lambdaArtifactKey + ", notificationEmail=" + notificationEmail + "]";
+		return "S3VirusScannerConfig [lambdaArtifactBucket=" + lambdaArtifactBucket
+				+ ", notificationEmail=" + notificationEmail + "]";
 	}
 
 }

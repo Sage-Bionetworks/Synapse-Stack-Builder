@@ -3,6 +3,7 @@ package org.sagebionetworks.template.s3;
 import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
 import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_STACK_NAME_FORMAT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_VIRUS_SCANNER_ARTIFACT_URL;
 import static org.sagebionetworks.template.Constants.TEMPLATE_INVENTORY_BUCKET_POLICY_TEMPLATE;
 
 import java.io.File;
@@ -17,6 +18,7 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
@@ -97,6 +99,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	
 	static final String VIRUS_SCANNER_STACK_NAME = "${stack}-synapse-virus-scanner";
 	static final String VIRUS_SCANNER_NOTIFICATION_CONFIG_NAME = "virusScannerNotificationConfiguration";
+	static final String VIRUS_SCANNER_KEY_TEMPLATE = "artifacts/virus-scanner/%s";
 	
 
 	private static String getStackOutput(Stack stack, String key) {
@@ -210,10 +213,11 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			return Optional.empty();
 		}
 		
+		String lambdaSourceArtifactUrl = this.config.getProperty(PROPERTY_KEY_LAMBDA_VIRUS_SCANNER_ARTIFACT_URL);
 		String lambdaArtifactBucket = TemplateUtils.replaceStackVariable(config.getLambdaArtifactBucket(), stack);
-		String lambdaArtifactKey = TemplateUtils.replaceStackVariable(config.getLambdaArtifactKey(), stack);
+		String lambdaArtifactKey = String.format(VIRUS_SCANNER_KEY_TEMPLATE, FilenameUtils.getName(lambdaSourceArtifactUrl));
 		
-		File artifact = downloader.downloadFile(config.getLambdaArtifactSourceUrl());
+		File artifact = downloader.downloadFile(lambdaSourceArtifactUrl);
 		
 		try {
 			s3Client.putObject(lambdaArtifactBucket, lambdaArtifactKey, artifact);

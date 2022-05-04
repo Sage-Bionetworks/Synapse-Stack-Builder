@@ -358,9 +358,7 @@ public class S3ConfigValidatorTest {
 	public void testValidateWithVirusScannerConfiguration() {
 		S3VirusScannerConfig virusScannerConfig = new S3VirusScannerConfig();
 		
-		virusScannerConfig.setLambdaArtifactSourceUrl("some-url");
 		virusScannerConfig.setLambdaArtifactBucket("some-bucket");
-		virusScannerConfig.setLambdaArtifactKey("some-key");
 		virusScannerConfig.setNotificationEmail("notificationEmail");
 		
 		when(mockConfig.getVirusScannerConfig()).thenReturn(virusScannerConfig);
@@ -370,29 +368,10 @@ public class S3ConfigValidatorTest {
 	}
 	
 	@Test
-	public void testValidateWithVirusScannerConfigurationWithNullUrl() {
-		S3VirusScannerConfig virusScannerConfig = new S3VirusScannerConfig();
-		
-		virusScannerConfig.setLambdaArtifactSourceUrl(null);
-		virusScannerConfig.setLambdaArtifactBucket("some-bucket");
-		virusScannerConfig.setLambdaArtifactKey("some-key");
-		virusScannerConfig.setNotificationEmail("notificationEmail");
-		
-		when(mockConfig.getVirusScannerConfig()).thenReturn(virusScannerConfig);
-		
-		assertThrows(IllegalArgumentException.class, () -> {
-			validator.validate();
-		});
-		
-	}
-	
-	@Test
 	public void testValidateWithVirusScannerConfigurationWithNullBucket() {
 		S3VirusScannerConfig virusScannerConfig = new S3VirusScannerConfig();
-		
-		virusScannerConfig.setLambdaArtifactSourceUrl("some-url");
+	
 		virusScannerConfig.setLambdaArtifactBucket(null);
-		virusScannerConfig.setLambdaArtifactKey("some-key");
 		virusScannerConfig.setNotificationEmail("notificationEmail");
 		
 		when(mockConfig.getVirusScannerConfig()).thenReturn(virusScannerConfig);
@@ -402,31 +381,12 @@ public class S3ConfigValidatorTest {
 		});
 		
 	}
-	
-	@Test
-	public void testValidateWithVirusScannerConfigurationWithNullKey() {
-		S3VirusScannerConfig virusScannerConfig = new S3VirusScannerConfig();
 		
-		virusScannerConfig.setLambdaArtifactSourceUrl("some-url");
-		virusScannerConfig.setLambdaArtifactBucket("some-bucket");
-		virusScannerConfig.setLambdaArtifactKey(null);
-		virusScannerConfig.setNotificationEmail("notificationEmail");
-		
-		when(mockConfig.getVirusScannerConfig()).thenReturn(virusScannerConfig);
-		
-		assertThrows(IllegalArgumentException.class, () -> {
-			validator.validate();
-		});
-		
-	}
-	
 	@Test
 	public void testValidateWithVirusScannerConfigurationWithNullEmail() {
 		S3VirusScannerConfig virusScannerConfig = new S3VirusScannerConfig();
 		
-		virusScannerConfig.setLambdaArtifactSourceUrl("some-url");
 		virusScannerConfig.setLambdaArtifactBucket("some-bucket");
-		virusScannerConfig.setLambdaArtifactKey("some-key");
 		virusScannerConfig.setNotificationEmail(null);
 		
 		when(mockConfig.getVirusScannerConfig()).thenReturn(virusScannerConfig);

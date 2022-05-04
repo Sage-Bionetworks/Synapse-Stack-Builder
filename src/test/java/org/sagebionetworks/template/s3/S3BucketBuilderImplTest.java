@@ -1457,13 +1457,12 @@ public class S3BucketBuilderImplTest {
 		bucket.setName("bucket");
 		bucket.setVirusScanEnabled(true);
 		
+		when(mockConfig.getProperty(Constants.PROPERTY_KEY_LAMBDA_VIRUS_SCANNER_ARTIFACT_URL)).thenReturn("https://some-url/lambda-name.zip");
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
 		
 		S3VirusScannerConfig virusScannerConfig = new S3VirusScannerConfig();
 		
-		virusScannerConfig.setLambdaArtifactSourceUrl("some-url");
 		virusScannerConfig.setLambdaArtifactBucket("${stack}-lambda-bucket");
-		virusScannerConfig.setLambdaArtifactKey("lambda-key.zip");
 		virusScannerConfig.setNotificationEmail("notification@sagebase.org");
 		
 		when(mockS3Config.getVirusScannerConfig()).thenReturn(virusScannerConfig);
@@ -1487,12 +1486,12 @@ public class S3BucketBuilderImplTest {
 		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 		
 		String expectedBucket = stack + "-lambda-bucket";
-		String expectedKey = "lambda-key.zip";
+		String expectedKey = "artifacts/virus-scanner/lambda-name.zip";
 		
 		// Call under test
 		builder.buildAllBuckets();
 		
-		verify(mockDownloader).downloadFile("some-url");
+		verify(mockDownloader).downloadFile("https://some-url/lambda-name.zip");
 		verify(mockS3Client).putObject(expectedBucket, expectedKey, tmpFile);
 		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
 		
@@ -1545,9 +1544,7 @@ public class S3BucketBuilderImplTest {
 		
 		S3VirusScannerConfig virusScannerConfig = new S3VirusScannerConfig();
 		
-		virusScannerConfig.setLambdaArtifactSourceUrl("some-url");
 		virusScannerConfig.setLambdaArtifactBucket("${stack}-lambda-bucket");
-		virusScannerConfig.setLambdaArtifactKey("lambda-key.zip");
 		virusScannerConfig.setNotificationEmail("notification@sagebase.org");
 		
 		when(mockS3Config.getVirusScannerConfig()).thenReturn(virusScannerConfig);

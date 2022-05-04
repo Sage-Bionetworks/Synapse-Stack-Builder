@@ -99,9 +99,7 @@ public class S3ConfigValidator {
 	}
 	
 	private void validateVirusScannerConfig(S3VirusScannerConfig config) {
-		ValidateArgument.requiredNotBlank(config.getLambdaArtifactSourceUrl(), "The artifact url");
 		ValidateArgument.requiredNotBlank(config.getLambdaArtifactBucket(), "The artifact bucket");
-		ValidateArgument.requiredNotBlank(config.getLambdaArtifactKey(), "The artifact key");
 		ValidateArgument.requiredNotBlank(config.getNotificationEmail(), "The notification email");
 	}
 	
