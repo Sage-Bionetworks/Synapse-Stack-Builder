@@ -328,6 +328,13 @@
 				"TABLE_STATUS_EVENT"
 			],
 			"messageVisibilityTimeoutSec":30
+		},
+		{
+			"queueName": "ACCESS_REQUIREMENT_TO_PROJECT",
+			"subscribedTopicNames":[
+				"ENTITY"
+			],
+			"messageVisibilityTimeoutSec":30
 		}
 	]
 }
