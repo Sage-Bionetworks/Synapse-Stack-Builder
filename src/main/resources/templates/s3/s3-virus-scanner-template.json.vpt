@@ -245,7 +245,7 @@
                   "EVENT_SOURCE":"SNS"
                }
             },
-            "MemorySize":1024,
+            "MemorySize":2048,
             "DeadLetterConfig":{
                "TargetArn":{
                   "Fn::GetAtt":[
