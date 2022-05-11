@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilder;
+import org.sagebionetworks.template.utils.ArtifactDownload;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.google.inject.Inject;

@@ -16,10 +16,13 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.RepoConfiguration;
+import org.sagebionetworks.template.utils.ArtifactDownload;
 
+import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
@@ -37,6 +40,9 @@ public class S3BucketBuilderIntegrationTest {
 
 	@Mock
 	private AmazonS3 mockS3Client;
+	
+	@Mock
+	private AWSLambda mockLambdaClient;
 
 	@Mock
 	private AWSSecurityTokenService mockStsClient;
@@ -46,6 +52,12 @@ public class S3BucketBuilderIntegrationTest {
 	
 	@Mock
 	private GetCallerIdentityResult mockGetCallerIdentityResult;
+	
+	@Mock
+	private StackTagsProvider mockTagsProvider;
+	
+	@Mock
+	private ArtifactDownload mockDownloader;
 	
 	@Captor
 	private ArgumentCaptor<String> stringCaptor;
@@ -62,7 +74,7 @@ public class S3BucketBuilderIntegrationTest {
 		// Validate the real S3Config
 		injector.getInstance(S3Config.class);
 		
-		builder = new S3BucketBuilderImpl(mockS3Client, mockStsClient, mockConfig, mockS3Config, velocityEngine, mockCloudFormationClient);
+		builder = new S3BucketBuilderImpl(mockS3Client, mockStsClient, mockLambdaClient, mockConfig, mockS3Config, velocityEngine, mockCloudFormationClient, mockTagsProvider, mockDownloader);
 		
 		stack = "dev";
 		accountId = "12345";

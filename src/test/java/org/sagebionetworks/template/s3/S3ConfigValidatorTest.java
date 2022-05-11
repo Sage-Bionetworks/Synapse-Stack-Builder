@@ -353,4 +353,47 @@ public class S3ConfigValidatorTest {
 		
 		assertEquals("Unsupported event type: someOtherEvent", ex.getMessage());
 	}
+	
+	@Test
+	public void testValidateWithVirusScannerConfiguration() {
+		S3VirusScannerConfig virusScannerConfig = new S3VirusScannerConfig();
+		
+		virusScannerConfig.setLambdaArtifactBucket("some-bucket");
+		virusScannerConfig.setNotificationEmail("notificationEmail");
+		
+		when(mockConfig.getVirusScannerConfig()).thenReturn(virusScannerConfig);
+		
+		validator.validate();
+		
+	}
+	
+	@Test
+	public void testValidateWithVirusScannerConfigurationWithNullBucket() {
+		S3VirusScannerConfig virusScannerConfig = new S3VirusScannerConfig();
+	
+		virusScannerConfig.setLambdaArtifactBucket(null);
+		virusScannerConfig.setNotificationEmail("notificationEmail");
+		
+		when(mockConfig.getVirusScannerConfig()).thenReturn(virusScannerConfig);
+		
+		assertThrows(IllegalArgumentException.class, () -> {
+			validator.validate();
+		});
+		
+	}
+		
+	@Test
+	public void testValidateWithVirusScannerConfigurationWithNullEmail() {
+		S3VirusScannerConfig virusScannerConfig = new S3VirusScannerConfig();
+		
+		virusScannerConfig.setLambdaArtifactBucket("some-bucket");
+		virusScannerConfig.setNotificationEmail(null);
+		
+		when(mockConfig.getVirusScannerConfig()).thenReturn(virusScannerConfig);
+		
+		assertThrows(IllegalArgumentException.class, () -> {
+			validator.validate();
+		});
+		
+	}
 }
