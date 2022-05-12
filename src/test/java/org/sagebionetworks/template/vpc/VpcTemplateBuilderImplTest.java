@@ -73,6 +73,7 @@ public class VpcTemplateBuilderImplTest {
 	String peeringRoleARN;
 	String oldVpcId;
 	String oldVpcCidr;
+	String vpnCiderNew;
 
 	List<Tag> expectedTags;
 
@@ -93,10 +94,12 @@ public class VpcTemplateBuilderImplTest {
 		vpnCider = "10.1.0.0/16";
 		stack = "dev";
 		peeringRoleARN = PEERING_ROLE_ARN_PREFIX+"/someKey";
+		vpnCiderNew = "10.50.0.0/16";
 
 		when(mockConfig.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX)).thenReturn(subnetPrefix);
 		when(mockConfig.getProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn("us-east-1a,us-east-1b");
 		when(mockConfig.getProperty(PROPERTY_KEY_VPC_VPN_CIDR)).thenReturn(vpnCider);
+		when(mockConfig.getProperty(PROPERTY_KEY_VPC_VPN_CIDR_NEW)).thenReturn(vpnCiderNew);
 		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(mockConfig.getProperty(PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN)).thenReturn(peeringRoleARN);
 
@@ -153,11 +156,13 @@ public class VpcTemplateBuilderImplTest {
 		// call under test
 		Parameter[] parameters = builder.createParameters(stackName);
 		assertNotNull(parameters);
-		assertEquals(1, parameters.length);
+		assertEquals(2, parameters.length);
 		// keys
 		assertEquals(PARAMETER_VPN_CIDR,parameters[0].getParameterKey());
+		assertEquals(PARAMETER_VPN_CIDR_NEW, parameters[1].getParameterKey());
 		// values
 		assertEquals(vpnCider, parameters[0].getParameterValue());
+		assertEquals(vpnCiderNew, parameters[1].getParameterValue());
 	}
 	
 	@Test

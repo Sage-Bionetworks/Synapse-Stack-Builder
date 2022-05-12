@@ -6,6 +6,11 @@
 			"Description": "CIDR of the (sophos-utm) VPN",
 			"Type": "String",
 			"Default": "10.1.0.0/16"
+		},
+		"VpnCidrNew": {
+			"Description": "CIDR of the AWS VPN",
+			"Type": "String",
+			"Default": "10.50.0.0/16"
 		}
 	},
 	"Resources": {
@@ -82,15 +87,17 @@
                 "VpcId": {
                     "Ref": "VPC"
                 },
-                "SecurityGroupIngress": [{
-                    "CidrIp": {
-                        "Ref": "VpnCidr"
-                    },
-                    "FromPort": "-1",
-                    "ToPort": "-1",
-                    "IpProtocol": "-1",
-                    "Description": "Allow all VPN traffic"
-                }],
+                "SecurityGroupIngress": [
+                    {
+                        "CidrIp": {
+                            "Ref": "VpnCidrNew"
+                        },
+                        "FromPort": "-1",
+                        "ToPort": "-1",
+                        "IpProtocol": "-1",
+                        "Description": "Allow all VPN traffic from TGW"
+                    }
+                ],
                 "SecurityGroupEgress": [{
                     "CidrIp": "0.0.0.0/0",
                     "FromPort": "-1",
@@ -219,6 +226,28 @@
 								"Ref": "AWS::StackName"
 							},
 							"VpnCidr"
+						]
+					]
+				}
+			}
+		},
+		"VpnCidrNew": {
+			"Description": "AWS VPN CIDR used to create this VPC",
+			"Value": {
+				"Ref": "VpnCidrNew"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"VpnCidrNew"
 						]
 					]
 				}

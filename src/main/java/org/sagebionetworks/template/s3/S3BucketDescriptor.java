@@ -39,6 +39,11 @@ public class S3BucketDescriptor {
 	 * Optional configuration bit to setup notifications to an sns topic
 	 */
 	private S3NotificationsConfiguration notificationsConfiguration;
+	
+	/**
+	 * True if the uploads to the bucket should be 
+	 */
+	private boolean virusScanEnabled = false;
 
 	public S3BucketDescriptor() {
 	}
@@ -75,6 +80,14 @@ public class S3BucketDescriptor {
 		this.devOnly = devOnly;
 	}
 	
+	public boolean isVirusScanEnabled() {
+		return virusScanEnabled;
+	}
+	
+	public void setVirusScanEnabled(boolean virusScanEnabled) {
+		this.virusScanEnabled = virusScanEnabled;
+	}
+	
 	public List<S3BucketClassTransition> getStorageClassTransitions() {
 		return storageClassTransitions;
 	}
@@ -102,7 +115,7 @@ public class S3BucketDescriptor {
 	@Override
 	public int hashCode() {
 		return Objects.hash(devOnly, intArchiveConfiguration, inventoryEnabled, name, notificationsConfiguration, retentionDays,
-				storageClassTransitions);
+				storageClassTransitions, virusScanEnabled);
 	}
 
 	@Override
@@ -121,14 +134,15 @@ public class S3BucketDescriptor {
 				&& inventoryEnabled == other.inventoryEnabled && Objects.equals(name, other.name)
 				&& Objects.equals(notificationsConfiguration, other.notificationsConfiguration)
 				&& Objects.equals(retentionDays, other.retentionDays)
-				&& Objects.equals(storageClassTransitions, other.storageClassTransitions);
+				&& Objects.equals(storageClassTransitions, other.storageClassTransitions) && virusScanEnabled == other.virusScanEnabled;
 	}
 
 	@Override
 	public String toString() {
 		return "S3BucketDescriptor [name=" + name + ", inventoryEnabled=" + inventoryEnabled + ", retentionDays=" + retentionDays
 				+ ", devOnly=" + devOnly + ", storageClassTransitions=" + storageClassTransitions + ", intArchiveConfiguration="
-				+ intArchiveConfiguration + ", notificationsConfiguration=" + notificationsConfiguration + "]";
+				+ intArchiveConfiguration + ", notificationsConfiguration=" + notificationsConfiguration + ", virusScanEnabled="
+				+ virusScanEnabled + "]";
 	}
 
 }

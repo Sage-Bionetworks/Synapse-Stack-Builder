@@ -15,6 +15,8 @@ public class S3Config {
 	 */
 	private String inventoryBucket;
 
+	private S3VirusScannerConfig virusScannerConfig;
+
 	public S3Config() { }
 
 	public List<S3BucketDescriptor> getBuckets() {
@@ -32,10 +34,18 @@ public class S3Config {
 	public void setInventoryBucket(String inventoryBucket) {
 		this.inventoryBucket = inventoryBucket;
 	}
+	
+	public S3VirusScannerConfig getVirusScannerConfig() {
+		return virusScannerConfig;
+	}
+	
+	public void setVirusScannerConfig(S3VirusScannerConfig virusScannerConfig) {
+		this.virusScannerConfig = virusScannerConfig;
+	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(buckets, inventoryBucket);
+		return Objects.hash(buckets, inventoryBucket, virusScannerConfig);
 	}
 
 	@Override
@@ -50,7 +60,8 @@ public class S3Config {
 			return false;
 		}
 		S3Config other = (S3Config) obj;
-		return Objects.equals(buckets, other.buckets) && Objects.equals(inventoryBucket, other.inventoryBucket);
+		return Objects.equals(buckets, other.buckets) && Objects.equals(inventoryBucket, other.inventoryBucket)
+				&& Objects.equals(virusScannerConfig, other.virusScannerConfig);
 	}
 
 	@Override

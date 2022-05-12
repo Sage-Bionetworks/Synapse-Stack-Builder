@@ -1,29 +1,43 @@
 package org.sagebionetworks.template.s3;
 
+import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
 import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_STACK_NAME_FORMAT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_VIRUS_SCANNER_ARTIFACT_URL;
 import static org.sagebionetworks.template.Constants.TEMPLATE_INVENTORY_BUCKET_POLICY_TEMPLATE;
 
+import java.io.File;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.json.JSONObject;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.Constants;
+import org.sagebionetworks.template.CreateOrUpdateStackRequest;
+import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.RepoConfiguration;
+import org.sagebionetworks.template.utils.ArtifactDownload;
 
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.services.cloudformation.model.Stack;
+import com.amazonaws.services.lambda.AWSLambda;
+import com.amazonaws.services.lambda.model.InvocationType;
+import com.amazonaws.services.lambda.model.InvokeRequest;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AbortIncompleteMultipartUpload;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -32,6 +46,7 @@ import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Rule;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Transition;
 import com.amazonaws.services.s3.model.BucketNotificationConfiguration;
 import com.amazonaws.services.s3.model.NotificationConfiguration;
+import com.amazonaws.services.s3.model.S3Event;
 import com.amazonaws.services.s3.model.SSEAlgorithm;
 import com.amazonaws.services.s3.model.ServerSideEncryptionByDefault;
 import com.amazonaws.services.s3.model.ServerSideEncryptionConfiguration;
@@ -74,21 +89,48 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	
 	static final String INT_ARCHIVE_ID = "intArchiveAccessConfiguration";
 	
+	static final String CF_OUTPUT_VIRUS_TRIGGER_TOPIC = "ScanTriggerSNSTopic";
+	static final String CF_OUTPUT_VIRUS_UPDATER_LAMBDA = "VirusScanDefinitionUpdaterLambda";
+	
+	static final String CF_PROPERTY_BUCKETS = "buckets";
+	static final String CF_PROPERTY_LAMBDA_BUCKET = "lambdaBucket";
+	static final String CF_PROPERTY_LAMBDA_KEY = "lambdaKey";
+	static final String CF_PROPERTY_NOTIFICATION_EMAIL = "notificationEmail";
+	
+	static final String VIRUS_SCANNER_STACK_NAME = "${stack}-synapse-virus-scanner";
+	static final String VIRUS_SCANNER_NOTIFICATION_CONFIG_NAME = "virusScannerNotificationConfiguration";
+	static final String VIRUS_SCANNER_KEY_TEMPLATE = "artifacts/virus-scanner/%s";
+	
+
+	private static String getStackOutput(Stack stack, String key) {
+		return stack.getOutputs().stream()
+		.filter( output -> output.getOutputKey().equals(key))
+		.findFirst()
+		.orElseThrow(() -> new IllegalStateException("Could not find " + key + " output from stack " + stack.getStackName()))
+		.getOutputValue();
+	}
+	
 	private AmazonS3 s3Client;
 	private AWSSecurityTokenService stsClient;
+	private AWSLambda lambdaClient;
 	private RepoConfiguration config;
 	private S3Config s3Config;
 	private VelocityEngine velocity;
 	private CloudFormationClient cloudFormationClient;
+	private StackTagsProvider tagsProvider;
+	private ArtifactDownload downloader;
 	
 	@Inject
-	public S3BucketBuilderImpl(AmazonS3 s3Client, AWSSecurityTokenService stsClient, RepoConfiguration config, S3Config s3Config, VelocityEngine velocity, CloudFormationClient cloudFormationClient) {
+	public S3BucketBuilderImpl(AmazonS3 s3Client, AWSSecurityTokenService stsClient, AWSLambda lambdaClient, RepoConfiguration config, S3Config s3Config, VelocityEngine velocity, CloudFormationClient cloudFormationClient, StackTagsProvider tagsProvider, ArtifactDownload downloader) {
 		this.s3Client = s3Client;
 		this.stsClient = stsClient;
+		this.lambdaClient = lambdaClient;
 		this.config = config;
 		this.s3Config = s3Config;
 		this.velocity = velocity;
 		this.cloudFormationClient = cloudFormationClient;
+		this.tagsProvider = tagsProvider;
+		this.downloader = downloader;
 	}
 
 	@Override
@@ -98,7 +140,11 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		String accountId = stsClient.getCallerIdentity(new GetCallerIdentityRequest()).getAccount();
 		
 		String inventoryBucket = TemplateUtils.replaceStackVariable(s3Config.getInventoryBucket(), stack);
+		
 		List<String> inventoriedBuckets = new ArrayList<>();
+				
+		List<String> virusScanEnabledBuckets = new ArrayList<>();
+		List<String> virusScanDisabledBuckets = new ArrayList<>();
 		
 		// Configure all buckets first
 		for (S3BucketDescriptor bucket : s3Config.getBuckets()) {
@@ -121,12 +167,102 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 				inventoriedBuckets.add(bucket.getName());
 			}
 			
+			if (bucket.isVirusScanEnabled()) {
+				virusScanEnabledBuckets.add(bucket.getName());
+			} else {
+				virusScanDisabledBuckets.add(bucket.getName());
+			}
+			
 		}
 		
 		// Makes sure the bucket policy on the inventory is correct
 		configureInventoryBucketPolicy(stack, accountId, inventoryBucket, inventoriedBuckets);
+		
+		buildVirusScannerStack(stack, s3Config.getVirusScannerConfig(), virusScanEnabledBuckets).ifPresent( virusScannerStack -> {
+			// Once the virus scanner stack is built we need to setup for each bucket a notification configuration to
+			// send upload events to the topic the lambda is triggered by, this cannot be done in the cloud formation
+			// template due to a known circular dependency (See https://github.com/aws-cloudformation/cloudformation-coverage-roadmap/issues/79).
+			// Note that the proposed solution (e.g. read hack) by AWS (https://aws.amazon.com/premiumsupport/knowledge-center/cloudformation-s3-notification-lambda/)
+			// involves using a custom resource setup by yet another lambda when the stack is created taking in input the bucket to setup the notification for, since we want to enable
+			// this on multiple buckets using the API is a much simpler solution.
+			String virusScannerTopicArn = getStackOutput(virusScannerStack, CF_OUTPUT_VIRUS_TRIGGER_TOPIC);
+			
+			virusScanEnabledBuckets.forEach( bucket -> {
+				configureBucketNotification(bucket, VIRUS_SCANNER_NOTIFICATION_CONFIG_NAME, virusScannerTopicArn, Collections.singleton(S3Event.ObjectCreatedByCompleteMultipartUpload.toString()));
+			});
+
+			// Makes sure to remove the existing bucket configurations
+			virusScanDisabledBuckets.forEach( bucket -> {
+				removeBucketNotification(bucket, VIRUS_SCANNER_NOTIFICATION_CONFIG_NAME);
+			});
+			
+			// We also need to trigger the lambda that updates the clamav definitions to setup them up so that the scanner can download them
+			String virusScannerUpdatedLambda = getStackOutput(virusScannerStack, CF_OUTPUT_VIRUS_UPDATER_LAMBDA);
+			
+			lambdaClient.invoke(new InvokeRequest()
+				.withFunctionName(virusScannerUpdatedLambda)
+				.withInvocationType(InvocationType.Event)
+			);
+		});
+		
 	}
 	
+	private Optional<Stack>buildVirusScannerStack(String stack, S3VirusScannerConfig config, List<String> buckets) {
+		
+		if (config == null) {
+			return Optional.empty();
+		}
+		
+		String lambdaSourceArtifactUrl = this.config.getProperty(PROPERTY_KEY_LAMBDA_VIRUS_SCANNER_ARTIFACT_URL);
+		String lambdaArtifactBucket = TemplateUtils.replaceStackVariable(config.getLambdaArtifactBucket(), stack);
+		String lambdaArtifactKey = String.format(VIRUS_SCANNER_KEY_TEMPLATE, FilenameUtils.getName(lambdaSourceArtifactUrl));
+		
+		File artifact = downloader.downloadFile(lambdaSourceArtifactUrl);
+		
+		try {
+			s3Client.putObject(lambdaArtifactBucket, lambdaArtifactKey, artifact);
+		} finally {
+			artifact.delete();
+		}
+		
+		VelocityContext context = new VelocityContext();
+		
+		context.put(Constants.STACK, stack);
+		context.put(CF_PROPERTY_BUCKETS, buckets);
+		context.put(CF_PROPERTY_NOTIFICATION_EMAIL, config.getNotificationEmail());
+		context.put(CF_PROPERTY_LAMBDA_BUCKET, lambdaArtifactBucket);
+		context.put(CF_PROPERTY_LAMBDA_KEY, lambdaArtifactKey);
+		
+		// Merge the context with the template
+		Template template = velocity.getTemplate(Constants.TEMPLATE_S3_VIRUS_SCANNER);
+		
+		StringWriter stringWriter = new StringWriter();
+		
+		template.merge(context, stringWriter);
+		
+		String resultJSON = stringWriter.toString();
+		
+		LOG.info(resultJSON);
+		
+		resultJSON = new JSONObject(resultJSON).toString(5);
+		
+		String stackName = TemplateUtils.replaceStackVariable(VIRUS_SCANNER_STACK_NAME, stack);
+		
+		cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(stackName)
+				.withTemplateBody(resultJSON)
+				.withTags(tagsProvider.getStackTags())
+				.withCapabilities(CAPABILITY_NAMED_IAM));
+		
+		try {
+			cloudFormationClient.waitForStackToComplete(stackName);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		
+		return Optional.of(cloudFormationClient.describeStack(stackName));
+	}
+		
 	private void createBucket(String bucketName) {
 		LOG.info("Creating bucket: {}.", bucketName);
 		
@@ -410,7 +546,13 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		
 		String configName = config.getTopic() + "Configuration";
 		
-		BucketNotificationConfiguration bucketConfig = s3Client.getBucketNotificationConfiguration(bucket.getName());
+		configureBucketNotification(bucket.getName(), configName, topicArn, config.getEvents());
+		
+	}
+	
+	private void configureBucketNotification(String bucketName, String configName, String topicArn, Set<String> events) {
+		
+		BucketNotificationConfiguration bucketConfig = s3Client.getBucketNotificationConfiguration(bucketName);
 		
 		boolean update = false;
 		
@@ -422,7 +564,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		NotificationConfiguration notificationConfig = bucketConfig.getConfigurationByName(configName);
 		
 		if (notificationConfig == null) {
-			notificationConfig = new TopicConfiguration(topicArn, config.getEvents().toArray(new String[config.getEvents().size()]));
+			notificationConfig = new TopicConfiguration(topicArn, events.toArray(new String[events.size()]));
 			bucketConfig.addConfiguration(configName, notificationConfig);
 			update = true;
 		}
@@ -435,8 +577,8 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 				update = true;
 			}
 			
-			if (!topicConfig.getEvents().equals(config.getEvents())) {
-				topicConfig.setEvents(config.getEvents());
+			if (!topicConfig.getEvents().equals(events)) {
+				topicConfig.setEvents(events);
 				update = true;
 			}
 		} else {
@@ -444,13 +586,32 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		}
 		
 		if (update) {
-			LOG.info("Updating {} bucket notification configuration {}.", bucket.getName(), configName);
-			s3Client.setBucketNotificationConfiguration(bucket.getName(), bucketConfig);
+			LOG.info("Updating {} bucket notification configuration {} (Topic ARN: {}).", bucketName, configName, topicArn);
+			s3Client.setBucketNotificationConfiguration(bucketName, bucketConfig);
 		} else {
-			LOG.info("The {} bucket notification configuration {} was up to date.", bucket.getName(), configName);
+			LOG.info("The {} bucket notification configuration {} was up to date (Topic ARN: {}).", bucketName, configName, topicArn);
+		}
+	}
+
+	private void removeBucketNotification(String bucketName, String configName) {
+		BucketNotificationConfiguration bucketConfig = s3Client.getBucketNotificationConfiguration(bucketName);
+		
+		if (bucketConfig == null || bucketConfig.getConfigurations() == null || bucketConfig.getConfigurations().isEmpty()) {
+			return;
 		}
 		
-	}
+		NotificationConfiguration notificationConfig = bucketConfig.getConfigurationByName(configName);
+		
+		if (notificationConfig == null) {
+			return;
+		}
+		
+		bucketConfig.removeConfiguration(configName);
+		
+		LOG.info("Removing {} bucket notification configuration {}.", bucketName, configName);
+		
+		s3Client.setBucketNotificationConfiguration(bucketName, bucketConfig);		
+	}	
 	
 	private void configureInventoryBucketPolicy(String stack, String accountId, String inventoryBucket, List<String> sourceBuckets) {
 		if (inventoryBucket == null) {
