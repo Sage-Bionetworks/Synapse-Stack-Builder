@@ -48,7 +48,14 @@
 						"FromPort": "3306",
 						"ToPort": "3306",
 						"IpProtocol": "tcp"
-					}
+					},
+                    {
+                        "Description": "Allow access to all instances within the old Synapse VPC",
+                        "CidrIp": "${tempVpcCidr}",
+                        "FromPort": "3306",
+                        "ToPort": "3306",
+                        "IpProtocol": "tcp"
+                    }
 				],
 				"Tags": [
 					{
