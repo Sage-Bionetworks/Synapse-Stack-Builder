@@ -103,8 +103,6 @@ public class VpcTemplateBuilderImplTest {
 		when(mockConfig.getProperty(PROPERTY_KEY_VPC_VPN_CIDR_NEW)).thenReturn(vpnCiderNew);
 		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(mockConfig.getProperty(PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN)).thenReturn(peeringRoleARN);
-		when(mockConfig.getProperty(PROPERTY_KEY_OLD_VPC_ID)).thenReturn(oldVpcId);
-		when(mockConfig.getProperty(PROPERTY_KEY_OLD_VPC_CIDR)).thenReturn(oldVpcCidr);
 
 	}
 	
@@ -159,17 +157,13 @@ public class VpcTemplateBuilderImplTest {
 		// call under test
 		Parameter[] parameters = builder.createParameters(stackName);
 		assertNotNull(parameters);
-		assertEquals(4, parameters.length);
+		assertEquals(2, parameters.length);
 		// keys
 		assertEquals(PARAMETER_VPN_CIDR,parameters[0].getParameterKey());
 		assertEquals(PARAMETER_VPN_CIDR_NEW, parameters[1].getParameterKey());
-		assertEquals(PARAMETER_OLD_VPC_ID, parameters[2].getParameterKey());
-		assertEquals(PARAMETER_OLD_VPC_CIDR, parameters[3].getParameterKey());
 		// values
 		assertEquals(vpnCider, parameters[0].getParameterValue());
 		assertEquals(vpnCiderNew, parameters[1].getParameterValue());
-		assertEquals(oldVpcId, parameters[2].getParameterValue());
-		assertEquals(oldVpcCidr, parameters[3].getParameterValue());
 	}
 	
 	@Test
