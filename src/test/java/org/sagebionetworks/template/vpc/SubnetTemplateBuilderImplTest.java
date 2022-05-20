@@ -88,7 +88,6 @@ public class SubnetTemplateBuilderImplTest {
         when(mockConfig.getProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn("us-east-1a,us-east-1b");
         when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn(avialabilityZones);
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
-        when(mockConfig.getProperty(PROPERTY_KEY_OLD_VPC_CIDR)).thenReturn(oldVpcCidr);
         when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_COLORS)).thenReturn(colors);
 
     }
@@ -117,8 +116,6 @@ public class SubnetTemplateBuilderImplTest {
         assertEquals("dev", context.get(STACK));
         assertEquals("synapse-dev-vpc-2", context.get(VPC_STACKNAME));
         assertNotNull(context.get(SUBNETS));
-
-        assertEquals("10.21.0.0/16", context.get(TEMP_VPC_CIDR));
 
     }
 
