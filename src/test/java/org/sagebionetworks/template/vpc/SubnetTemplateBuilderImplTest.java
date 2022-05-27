@@ -28,6 +28,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.*;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OLD_VPC_CIDR;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SubnetTemplateBuilderImplTest {
@@ -80,6 +81,8 @@ public class SubnetTemplateBuilderImplTest {
         vpnCider = "10.1.0.0/16";
         stack = "dev";
         peeringRoleARN = PEERING_ROLE_ARN_PREFIX+"/someKey";
+        oldVpcCidr = "10.21.0.0/16";
+        oldVpcId = "vpc-123def";
 
         when(mockConfig.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX)).thenReturn(subnetPrefix);
         when(mockConfig.getProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn("us-east-1a,us-east-1b");
