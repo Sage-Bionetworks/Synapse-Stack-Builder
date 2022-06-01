@@ -65,7 +65,7 @@ public class CloudFormationClientImplTest {
 	Logger mockLogger;
 	@Mock
 	ThreadProvider mockThreadProvider;
-	
+
 	@Captor
 	ArgumentCaptor<DescribeStacksRequest> describeStackRequestCapture;
 	@Captor
@@ -177,7 +177,7 @@ public class CloudFormationClientImplTest {
 	@Test
 	public void testIsStartedInUpdateRollbackCompleteTrue() {
 		initStack.setStackStatus(StackStatus.UPDATE_ROLLBACK_COMPLETE);
-		stack.setStackStatus(StackStatus.UPDATE_ROLLBACK_COMPLETE);
+		stack.setStackStatus(StackStatus.UPDATE_COMPLETE);
 		// call under test
 		boolean isStartedInUpdateRollbackComplete = client.isStartedInUpdateRollbackComplete(stackName);
 		assertTrue(isStartedInUpdateRollbackComplete);
