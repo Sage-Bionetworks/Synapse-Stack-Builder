@@ -161,9 +161,8 @@ public class CloudFormationClientImplTest {
 
 	@Test
 	public void testIsStartedInUpdateRollbackCompleteFalse() {
-		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(initDescribeResult, describeResult);
-		initStack.setStackStatus(StackStatus.UPDATE_COMPLETE);
 		stack.setStackStatus(StackStatus.CREATE_COMPLETE);
+		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(describeResult);
 		// call under test
 		boolean isStartedInUpdateRollbackComplete = client.isStartedInUpdateRollbackComplete(stackName);
 		Assertions.assertFalse(isStartedInUpdateRollbackComplete);
@@ -171,9 +170,8 @@ public class CloudFormationClientImplTest {
 
 	@Test
 	public void testIsStartedInUpdateRollbackCompleteTrue() {
-		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(initDescribeResult, describeResult);
-		initStack.setStackStatus(StackStatus.UPDATE_ROLLBACK_COMPLETE);
-		stack.setStackStatus(StackStatus.UPDATE_COMPLETE);
+		stack.setStackStatus(StackStatus.UPDATE_ROLLBACK_COMPLETE);
+		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(describeResult);
 		// call under test
 		boolean isStartedInUpdateRollbackComplete = client.isStartedInUpdateRollbackComplete(stackName);
 		Assertions.assertTrue(isStartedInUpdateRollbackComplete);
@@ -229,7 +227,7 @@ public class CloudFormationClientImplTest {
 	
 	@Test
 	public void testCreateOrUpdateAsUpdate() {
-		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(initDescribeResult, describeResult);
+		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(describeResult);
 		when(mockCloudFormationClient.updateStack(any(UpdateStackRequest.class))).thenReturn(updateResult);
 		// call under test
 		client.createOrUpdateStack(inputReqequest);
@@ -317,9 +315,9 @@ public class CloudFormationClientImplTest {
 	
 	@Test
 	public void testWaitForStackToCompleteCreateComplete() throws InterruptedException {
-		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(initDescribeResult, describeResult);
 		initStack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
 		stack.setStackStatus(StackStatus.CREATE_COMPLETE);
+		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(initDescribeResult, describeResult);
 		// call under test
 		Stack result = client.waitForStackToComplete(stackName);
 		Assertions.assertNotNull(result);
@@ -328,9 +326,9 @@ public class CloudFormationClientImplTest {
 	
 	@Test
 	public void testWaitForStackToCompleteUpdateComplete() throws InterruptedException {
-		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(initDescribeResult, describeResult);
-		initStack.setStackStatus(StackStatus.CREATE_COMPLETE);
+		initStack.setStackStatus(StackStatus.UPDATE_IN_PROGRESS);
 		stack.setStackStatus(StackStatus.UPDATE_COMPLETE);
+		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(initDescribeResult, describeResult);
 		// call under test
 		Stack result = client.waitForStackToComplete(stackName);
 		Assertions.assertNotNull(result);
@@ -359,7 +357,7 @@ public class CloudFormationClientImplTest {
 	
 	@Test
 	public void testWaitForStackToCompleteTimeoutUpdate() throws InterruptedException {
-		initStack.setStackStatus(StackStatus.CREATE_COMPLETE);
+		initStack.setStackStatus(StackStatus.UPDATE_IN_PROGRESS);
 		stack.setStackStatus(StackStatus.UPDATE_IN_PROGRESS);
 		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(initDescribeResult, describeResult);
 		when(mockThreadProvider.currentTimeMillis()).thenReturn(1L, 2L,3L,4L,Long.MAX_VALUE);		// call under test
@@ -377,7 +375,7 @@ public class CloudFormationClientImplTest {
 	
 	@Test
 	public void testWaitForStackToCompleteTimeoutUpdateCleanup() throws InterruptedException {
-		initStack.setStackStatus(StackStatus.CREATE_COMPLETE);
+		initStack.setStackStatus(StackStatus.UPDATE_IN_PROGRESS);
 		stack.setStackStatus(StackStatus.UPDATE_COMPLETE_CLEANUP_IN_PROGRESS);
 		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(initDescribeResult, describeResult);
 		when(mockThreadProvider.currentTimeMillis()).thenReturn(1L, 2L,3L,4L,Long.MAX_VALUE);
@@ -440,13 +438,29 @@ public class CloudFormationClientImplTest {
 	}
 
 	@Test
-	public void testWaitForStackToCompleteUpdateRollBackComplete() throws InterruptedException {
-		initStack.setStackStatus(StackStatus.UPDATE_ROLLBACK_COMPLETE);
+	public void testWaitForStackToCompleteUpdateCompleteToUpdateRollBackComplete() throws InterruptedException {
+		initStack.setStackStatus(StackStatus.UPDATE_COMPLETE);
 		stack.setStackStatus(StackStatus.UPDATE_ROLLBACK_COMPLETE);
+		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(initDescribeResult, describeResult);
 		RuntimeException expectedEx = Assertions.assertThrows(RuntimeException.class, () -> {
 			// call under test
 			client.waitForStackToComplete(stackName);
 		});
+	}
+
+	@Test
+	public void testWaitForStackToCompleteUpdateRollbackCompleteToUpdateRollBackComplete() throws InterruptedException {
+		initStack.setStackStatus(StackStatus.UPDATE_ROLLBACK_COMPLETE);
+		stack.setStackStatus(StackStatus.UPDATE_ROLLBACK_COMPLETE);
+		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(initDescribeResult, describeResult);
+		// call under test
+		Stack resultStack = client.waitForStackToComplete(stackName);
+		verify(mockCloudFormationClient, times(2)).describeStacks(any(DescribeStacksRequest.class));
+		verify(mockThreadProvider, times(2)).currentTimeMillis();
+		verify(mockThreadProvider, never()).sleep(anyLong());
+		Assertions.assertNotNull(resultStack);
+		Assertions.assertNotNull(resultStack.getStackStatus());
+		Assertions.assertEquals(StackStatus.UPDATE_ROLLBACK_COMPLETE, StackStatus.fromValue(resultStack.getStackStatus()));
 	}
 
 	@Test
