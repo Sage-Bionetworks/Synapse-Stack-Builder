@@ -81,12 +81,12 @@ public class CloudFormationClientImplTest {
 	Parameter[] parameters;
 
 	String stackId;
-	DescribeStacksResult describeResult;
+	DescribeStacksResult initDescribeResult, describeResult;
 	UpdateStackResult updateResult;
 	CreateStackResult createResult;
 	CreateOrUpdateStackRequest inputReqequest;
 
-	Stack stack;
+	Stack initStack, stack;
 	
 	String bucket;
 	
@@ -104,7 +104,11 @@ public class CloudFormationClientImplTest {
 		Output output2 = new Output().withOutputKey(SES_SYNAPSE_ORG_BOUNCE_TOPIC_KEY).withOutputValue(SES_SYNAPSE_ORG_BOUNCE_TOPIC_VALUE);
 		outputs.add(output1);
 		outputs.add(output2);
+
+		initStack = new Stack().withStackId(stackId).withOutputs(outputs);
 		stack = new Stack().withStackId(stackId).withOutputs(outputs);
+
+		initDescribeResult = new DescribeStacksResult().withStacks(initStack);
 		describeResult = new DescribeStacksResult().withStacks(stack);
 
 		updateResult = new UpdateStackResult().withStackId(stackId);
@@ -123,7 +127,7 @@ public class CloudFormationClientImplTest {
 				.withParameters(parameters)
 				.withCapabilities(capabilities);
 		
-		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(describeResult);
+		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(initDescribeResult, describeResult);
 		when(mockCloudFormationClient.createStack(any(CreateStackRequest.class))).thenReturn(createResult);
 		when(mockCloudFormationClient.updateStack(any(UpdateStackRequest.class))).thenReturn(updateResult);
 
@@ -163,6 +167,7 @@ public class CloudFormationClientImplTest {
 
 	@Test
 	public void testIsStartedInUpdateRollbackCompleteFalse() {
+		initStack.setStackStatus(StackStatus.UPDATE_COMPLETE);
 		stack.setStackStatus(StackStatus.CREATE_COMPLETE);
 		// call under test
 		boolean isStartedInUpdateRollbackComplete = client.isStartedInUpdateRollbackComplete(stackName);
@@ -171,6 +176,7 @@ public class CloudFormationClientImplTest {
 
 	@Test
 	public void testIsStartedInUpdateRollbackCompleteTrue() {
+		initStack.setStackStatus(StackStatus.UPDATE_ROLLBACK_COMPLETE);
 		stack.setStackStatus(StackStatus.UPDATE_ROLLBACK_COMPLETE);
 		// call under test
 		boolean isStartedInUpdateRollbackComplete = client.isStartedInUpdateRollbackComplete(stackName);
@@ -304,6 +310,7 @@ public class CloudFormationClientImplTest {
 	
 	@Test
 	public void testWaitForStackToCompleteCreateComplete() throws InterruptedException {
+		initStack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
 		stack.setStackStatus(StackStatus.CREATE_COMPLETE);
 		// call under test
 		Stack result = client.waitForStackToComplete(stackName);
@@ -313,6 +320,7 @@ public class CloudFormationClientImplTest {
 	
 	@Test
 	public void testWaitForStackToCompleteUpdateComplete() throws InterruptedException {
+		initStack.setStackStatus(StackStatus.CREATE_COMPLETE);
 		stack.setStackStatus(StackStatus.UPDATE_COMPLETE);
 		// call under test
 		Stack result = client.waitForStackToComplete(stackName);
@@ -323,6 +331,7 @@ public class CloudFormationClientImplTest {
 	
 	@Test
 	public void testWaitForStackToCompleteTimeout() throws InterruptedException {
+		initStack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
 		stack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
 		// call under test
 		try {
@@ -339,6 +348,7 @@ public class CloudFormationClientImplTest {
 	
 	@Test
 	public void testWaitForStackToCompleteTimeoutUpdate() throws InterruptedException {
+		initStack.setStackStatus(StackStatus.CREATE_COMPLETE);
 		stack.setStackStatus(StackStatus.UPDATE_IN_PROGRESS);
 		// call under test
 		try {
@@ -355,6 +365,7 @@ public class CloudFormationClientImplTest {
 	
 	@Test
 	public void testWaitForStackToCompleteTimeoutUpdateCleanup() throws InterruptedException {
+		initStack.setStackStatus(StackStatus.CREATE_COMPLETE);
 		stack.setStackStatus(StackStatus.UPDATE_COMPLETE_CLEANUP_IN_PROGRESS);
 		// call under test
 		try {
@@ -406,6 +417,7 @@ public class CloudFormationClientImplTest {
 
 	@Test
 	public void testWaitForStackToCompleteUpdateRollBackComplete() throws InterruptedException {
+		initStack.setStackStatus(StackStatus.UPDATE_ROLLBACK_COMPLETE);
 		stack.setStackStatus(StackStatus.UPDATE_ROLLBACK_COMPLETE);
 		// call under test
 		client.waitForStackToComplete(stackName);
