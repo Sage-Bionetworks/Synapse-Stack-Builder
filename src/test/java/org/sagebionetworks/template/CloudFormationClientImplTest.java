@@ -162,6 +162,32 @@ public class CloudFormationClientImplTest {
 	}
 
 	@Test
+	public void testIsStartedInUpdateRollbackCompleteFalse() {
+		stack.setStackStatus(StackStatus.CREATE_COMPLETE);
+		// call under test
+		boolean isStartedInUpdateRollbackComplete = client.isStartedInUpdateRollbackComplete(stackName);
+		assertFalse(isStartedInUpdateRollbackComplete);
+	}
+
+	@Test
+	public void testIsStartedInUpdateRollbackCompleteTrue() {
+		stack.setStackStatus(StackStatus.UPDATE_ROLLBACK_COMPLETE);
+		// call under test
+		boolean isStartedInUpdateRollbackComplete = client.isStartedInUpdateRollbackComplete(stackName);
+		assertTrue(isStartedInUpdateRollbackComplete);
+	}
+
+	@Test
+	public void testIsStartedInUpdateRollbackCompleteNoStack() {
+		AmazonCloudFormationException exception = new AmazonCloudFormationException("Does not exist");
+		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenThrow(exception);
+		// call under test
+		boolean isStartedInUpdateRollbackComplete = client.isStartedInUpdateRollbackComplete(stackName);
+		assertFalse(isStartedInUpdateRollbackComplete);
+	}
+
+
+	@Test
 	public void testCreateStack() {
 		// call under test
 		client.createStack(inputReqequest);
@@ -267,7 +293,7 @@ public class CloudFormationClientImplTest {
 		verify(mockS3Client).deleteObject(anyString(), anyString());
 		verify(mockLogger).info(any(String.class));
 	}
-	
+
 	@Test (expected=RuntimeException.class)
 	public void testExecuteWithS3TemplateWithError() {
 		AmazonCloudFormationException exception = new AmazonCloudFormationException("some other error");
@@ -282,7 +308,7 @@ public class CloudFormationClientImplTest {
 		// call under test
 		Stack result = client.waitForStackToComplete(stackName);
 		assertNotNull(result);
-		verify(mockCloudFormationClient).describeStacks(any(DescribeStacksRequest.class));
+		verify(mockCloudFormationClient, times(2)).describeStacks(any(DescribeStacksRequest.class));
 	}
 	
 	@Test
@@ -291,7 +317,7 @@ public class CloudFormationClientImplTest {
 		// call under test
 		Stack result = client.waitForStackToComplete(stackName);
 		assertNotNull(result);
-		verify(mockCloudFormationClient).describeStacks(any(DescribeStacksRequest.class));
+		verify(mockCloudFormationClient, times(2)).describeStacks(any(DescribeStacksRequest.class));
 	}
 	
 	
@@ -306,7 +332,7 @@ public class CloudFormationClientImplTest {
 			assertTrue(e.getMessage().contains("Timed out"));
 			
 		}
-		verify(mockCloudFormationClient, times(3)).describeStacks(any(DescribeStacksRequest.class));
+		verify(mockCloudFormationClient, times(4)).describeStacks(any(DescribeStacksRequest.class));
 		verify(mockLogger, times(3)).info(any(String.class));
 		verify(mockThreadProvider, times(3)).sleep(any(Long.class));
 	}
@@ -322,7 +348,7 @@ public class CloudFormationClientImplTest {
 			assertTrue(e.getMessage().contains("Timed out"));
 			
 		}
-		verify(mockCloudFormationClient, times(3)).describeStacks(any(DescribeStacksRequest.class));
+		verify(mockCloudFormationClient, times(4)).describeStacks(any(DescribeStacksRequest.class));
 		verify(mockLogger, times(3)).info(any(String.class));
 		verify(mockThreadProvider, times(3)).sleep(any(Long.class));
 	}
@@ -338,7 +364,7 @@ public class CloudFormationClientImplTest {
 			assertTrue(e.getMessage().contains("Timed out"));
 			
 		}
-		verify(mockCloudFormationClient, times(3)).describeStacks(any(DescribeStacksRequest.class));
+		verify(mockCloudFormationClient, times(4)).describeStacks(any(DescribeStacksRequest.class));
 		verify(mockLogger, times(3)).info(any(String.class));
 		verify(mockThreadProvider, times(3)).sleep(any(Long.class));
 	}
@@ -374,6 +400,13 @@ public class CloudFormationClientImplTest {
 	@Test (expected=RuntimeException.class)
 	public void testWaitForStackToCompleteUpdateFailed() throws InterruptedException {
 		stack.setStackStatus(StackStatus.UPDATE_ROLLBACK_FAILED);
+		// call under test
+		client.waitForStackToComplete(stackName);
+	}
+
+	@Test
+	public void testWaitForStackToCompleteUpdateRollBackComplete() throws InterruptedException {
+		stack.setStackStatus(StackStatus.UPDATE_ROLLBACK_COMPLETE);
 		// call under test
 		client.waitForStackToComplete(stackName);
 	}

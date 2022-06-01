@@ -206,8 +206,20 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 		s3Client.deleteObject(bundle.getBucket(), bundle.getKey());
 	}
 
+	public boolean isStartedInUpdateRollbackComplete(String stackName) {
+		StackStatus status;
+		try {
+			Stack stack = describeStack(stackName);
+			status = StackStatus.fromValue(stack.getStackStatus());
+			return (status.equals(StackStatus.UPDATE_ROLLBACK_COMPLETE));
+		} catch (AmazonCloudFormationException e) {
+			return false;
+		}
+	}
+
 	@Override
 	public Stack waitForStackToComplete(String stackName) throws InterruptedException {
+		boolean startedInUpdateRollbackComplete = isStartedInUpdateRollbackComplete(stackName); // Initial state
 		long start = threadProvider.currentTimeMillis();
 		while(true) {
 			long elapse = threadProvider.currentTimeMillis()-start;
@@ -227,8 +239,12 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 				logger.info("Waiting for stack: '"+stackName+"' to complete.  Current status: "+status.name()+"...");
 				threadProvider.sleep(SLEEP_TIME);
 				break;
+			case UPDATE_ROLLBACK_COMPLETE:
+				if (startedInUpdateRollbackComplete) { // There was nothing to do, state unchanged
+					return stack;
+				}
 			default:
-				throw new RuntimeException("Stack '"+stackName+"' did not complete.  Status: "+status.name()+" with reason: "+stack.getStackStatusReason());
+			throw new RuntimeException("Stack '"+stackName+"' did not complete.  Status: "+status.name()+" with reason: "+stack.getStackStatusReason());
 			}
 		}
 	}
