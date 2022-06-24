@@ -255,7 +255,7 @@
 	</build>
 	<properties>
 		<bouncycastle.version>1.67</bouncycastle.version>
-		<amazon.sdk.version>1.12.15</amazon.sdk.version>
+		<amazon.sdk.version>1.12.232</amazon.sdk.version>
 		<log4j.version>2.17.1</log4j.version>
 		<junit.jupiter.version>5.4.1</junit.jupiter.version>
 		<junit.vintage.version>5.4.1</junit.vintage.version>
