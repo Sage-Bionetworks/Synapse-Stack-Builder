@@ -71,29 +71,6 @@
                 ]
             }
         },
-        "${privateSubnet.name}RouteVPN": {
-            "Type": "AWS::EC2::Route",
-            "Properties": {
-                "RouteTableId": {
-                    "Ref": "${privateSubnet.name}RouteTable"
-                },
-                "DestinationCidrBlock": "10.1.0.0/16",
-                "VpcPeeringConnectionId": {
-                    "Fn::ImportValue": {
-                        "Fn::Join": [
-                          "-",
-                          [
-                              {
-                                  "Ref": "AWS::Region"
-                              },
-                              "${vpcStackName}",
-                              "VpcPeeringConnectionId"
-                          ]
-                        ]
-                    }
-                }
-            }
-        },
         "${privateSubnet.name}PrivateRoute": {
             "Type": "AWS::EC2::Route",
             "Properties": {
