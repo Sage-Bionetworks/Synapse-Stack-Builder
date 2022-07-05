@@ -24,7 +24,7 @@
 		"THREAD_VIEW",
 		"MATERIALIZED_VIEW",
 		"TABLE_STATUS_EVENT",
-		"DATA_ACCESS_REQUEST"
+		"DATA_ACCESS_SUBMISSION_EVENT"
 	],
 	"snsGlobalTopicNames": [
 		"SES_SYNAPSE_ORG_BOUNCE",
@@ -338,9 +338,9 @@
 			"messageVisibilityTimeoutSec":30
 		},
 		{
-			"queueName": "DATA_ACCESS_REQUEST_NOTIFICATION",
+			"queueName": "DATA_ACCESS_SUBMISSION_NOTIFICATION",
 			"subscribedTopicNames":[
-				"DATA_ACCESS_REQUEST"
+				"DATA_ACCESS_SUBMISSION_EVENT"
 			],
 			"messageVisibilityTimeoutSec":30
 		}
