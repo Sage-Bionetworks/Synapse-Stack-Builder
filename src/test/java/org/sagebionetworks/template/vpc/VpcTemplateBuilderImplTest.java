@@ -99,7 +99,6 @@ public class VpcTemplateBuilderImplTest {
 		oldVpcId = "vpc-123def";
 		when(mockConfig.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX)).thenReturn(subnetPrefix);
 		when(mockConfig.getProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn("us-east-1a,us-east-1b");
-		when(mockConfig.getProperty(PROPERTY_KEY_VPC_VPN_CIDR)).thenReturn(vpnCider);
 		when(mockConfig.getProperty(PROPERTY_KEY_VPC_VPN_CIDR_NEW)).thenReturn(vpnCiderNew);
 		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(mockConfig.getProperty(PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN)).thenReturn(peeringRoleARN);
@@ -130,7 +129,6 @@ public class VpcTemplateBuilderImplTest {
 		JSONObject resouces = templateJson.getJSONObject("Resources");
 		assertNotNull(resouces);
 		assertTrue(resouces.has("VPC"));
-		assertTrue(resouces.has("VpcPeeringConnection"));
 		assertTrue(resouces.has("InternetGateway"));
 		assertTrue(resouces.has("InternetGatewayAttachment"));
 		assertTrue(resouces.has("VpnSecurityGroup"));
@@ -149,6 +147,19 @@ public class VpcTemplateBuilderImplTest {
 		assertFalse(resouces.has("GreenPrivateUsEast1b"));
 		assertFalse(resouces.has("GreenPrivateUsEast1aRouteTableAssociation"));
 		assertFalse(resouces.has("GreenPrivateUsEast1bRouteTableAssociation"));
+
+		JSONObject outputs = templateJson.getJSONObject("Outputs");
+		assertNotNull(outputs);
+		assertTrue(outputs.has("VPCId"));
+		assertTrue(outputs.has("VpcCidr"));
+		assertTrue(outputs.has("VpnCidr"));
+		assertTrue(outputs.has("VpnCidrNew"));
+		assertTrue(outputs.has("VpcGatewayAttachment"));
+		assertTrue(outputs.has("VpcDefaultSecurityGroup"));
+		assertTrue(outputs.has("VpnSecurityGroup"));
+		assertTrue(outputs.has("AvailabilityZones"));
+		assertTrue(outputs.has("NetworkAcl"));
+		assertTrue(outputs.has("InternetGateway"));
 	}
 	
 	@Test
