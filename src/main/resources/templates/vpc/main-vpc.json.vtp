@@ -2,6 +2,11 @@
 	"AWSTemplateFormatVersion": "2010-09-09",
 	"Description": "Creates a VPC with public and private subnets for the Synapse stacks.",
 	"Parameters": {
+		"VpnCidr": {
+			"Description": "CIDR of the (sophos-utm) VPN",
+			"Type": "String",
+			"Default": "10.1.0.0/16"
+		},
 		"VpnCidrNew": {
 			"Description": "CIDR of the AWS VPN",
 			"Type": "String",
@@ -199,6 +204,28 @@
 								"Ref": "AWS::StackName"
 							},
 							"VpcCidr"
+						]
+					]
+				}
+			}
+		},
+		"VpnCidr": {
+			"Description": "VPN CIDR used to create this VPC",
+			"Value": {
+				"Ref": "VpnCidr"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"VpnCidr"
 						]
 					]
 				}
