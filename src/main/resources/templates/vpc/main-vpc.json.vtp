@@ -28,29 +28,6 @@
 				]
 			}
 		},
-		"VpcPeeringConnection" :{
-			"Type" : "AWS::EC2::VPCPeeringConnection",
-			"Properties" : {
-				"PeerVpcId" : "vpc-2135cc5a",
-				"PeerOwnerId" : "745159704268",
-				"PeerRoleArn" : "${peerRoleArn}",
-				"VpcId" : {
-					"Ref": "VPC"
-				},
-				"Tags": [
-					{
-						"Key": "Application",
-						"Value": {
-							"Ref": "AWS::StackName"
-						}
-					},
-					{
-						"Key": "Name",
-						"Value": "synapse-${stack}-VPC-peering"
-					}
-				]
-			}
-		},
 		"InternetGateway": {
 			"Type": "AWS::EC2::InternetGateway",
 			"Properties": {
@@ -341,26 +318,6 @@
 					]
 				}
 			}
-		},
-		"VpcPeeringConnection": {
-		    "Description": "VpcPeeringConnection for the ${stack} stack",
-		    "Value": { "Ref": "VpcPeeringConnection" },
-		    "Export": {
-				"Name": {
-					"Fn::Join": [
-						"-",
-						[
-							{
-								"Ref": "AWS::Region"
-							},
-							{
-								"Ref": "AWS::StackName"
-							},
-							"VpcPeeringConnectionId"
-						]
-					]
-				}
-		    }
 		},
 		"NetworkAcl": {
 		    "Description": "Network ACL for the ${stack} stack",
