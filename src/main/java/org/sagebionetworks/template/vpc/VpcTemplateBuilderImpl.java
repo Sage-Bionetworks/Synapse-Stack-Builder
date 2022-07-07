@@ -121,10 +121,8 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 	 * @return
 	 */
 	public Parameter[] createParameters(String stackName) {
-		Parameter VpnCidr = new Parameter().withParameterKey(PARAMETER_VPN_CIDR)
-				.withParameterValue(config.getProperty(PROPERTY_KEY_VPC_VPN_CIDR));
 		Parameter VpnCidrNew = new Parameter().withParameterKey(PARAMETER_VPN_CIDR_NEW)
 				.withParameterValue(config.getProperty(PROPERTY_KEY_VPC_VPN_CIDR_NEW));
-		return new Parameter[] { VpnCidr, VpnCidrNew };
+		return new Parameter[] { VpnCidrNew };
 	}
 }
