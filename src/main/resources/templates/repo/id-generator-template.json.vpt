@@ -32,9 +32,9 @@
 				},
 				"SecurityGroupIngress": [
 					{
-						"Description": "Allow all VPN traffic",
+						"Description": "Allow all VPN traffic from TGW",
 						"CidrIp": {
-							"Fn::ImportValue": "${vpcExportPrefix}-VpnCidr"
+							"Fn::ImportValue": "${vpcExportPrefix}-VpnCidrNew"
 						},
 						"FromPort": "3306",
 						"ToPort": "3306",

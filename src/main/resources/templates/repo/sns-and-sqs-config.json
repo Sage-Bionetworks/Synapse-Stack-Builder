@@ -23,7 +23,8 @@
 		"JSON_SCHEMA_DEPENDANT",
 		"THREAD_VIEW",
 		"MATERIALIZED_VIEW",
-		"TABLE_STATUS_EVENT"
+		"TABLE_STATUS_EVENT",
+		"DATA_ACCESS_SUBMISSION_EVENT"
 	],
 	"snsGlobalTopicNames": [
 		"SES_SYNAPSE_ORG_BOUNCE",
@@ -326,6 +327,20 @@
 			"queueName": "MATERIALIZED_VIEW_SOURCE_UPDATE",
 			"subscribedTopicNames":[
 				"TABLE_STATUS_EVENT"
+			],
+			"messageVisibilityTimeoutSec":30
+		},
+		{
+			"queueName": "ACCESS_REQUIREMENT_TO_PROJECT",
+			"subscribedTopicNames":[
+				"ENTITY"
+			],
+			"messageVisibilityTimeoutSec":30
+		},
+		{
+			"queueName": "DATA_ACCESS_SUBMISSION_NOTIFICATION",
+			"subscribedTopicNames":[
+				"DATA_ACCESS_SUBMISSION_EVENT"
 			],
 			"messageVisibilityTimeoutSec":30
 		}

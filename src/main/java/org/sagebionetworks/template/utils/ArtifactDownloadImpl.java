@@ -1,4 +1,4 @@
-package org.sagebionetworks.template.repo.beanstalk;
+package org.sagebionetworks.template.utils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -35,7 +35,7 @@ public class ArtifactDownloadImpl implements ArtifactDownload {
 						+ statusLine.getStatusCode() + " reason: " + statusLine.getReasonPhrase());
 			}
 			// download to a temp file.
-			File temp = File.createTempFile("ArtifactDownload", ".war");
+			File temp = File.createTempFile("artifact", ".tmp");
 			try (BufferedInputStream bis = new BufferedInputStream(response.getEntity().getContent());
 					BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(temp))) {
 				int inByte;

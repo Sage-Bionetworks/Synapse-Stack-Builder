@@ -71,52 +71,6 @@
                 ]
             }
         },
-        "${privateSubnet.name}RouteVPN": {
-            "Type": "AWS::EC2::Route",
-            "Properties": {
-                "RouteTableId": {
-                    "Ref": "${privateSubnet.name}RouteTable"
-                },
-                "DestinationCidrBlock": "10.1.0.0/16",
-                "VpcPeeringConnectionId": {
-                    "Fn::ImportValue": {
-                        "Fn::Join": [
-                          "-",
-                          [
-                              {
-                                  "Ref": "AWS::Region"
-                              },
-                              "${vpcStackName}",
-                              "VpcPeeringConnectionId"
-                          ]
-                        ]
-                    }
-                }
-            }
-        },
-        "${privateSubnet.name}TempRoute": {
-         "Type": "AWS::EC2::Route",
-         "Properties": {
-             "RouteTableId": {
-                 "Ref": "${privateSubnet.name}RouteTable"
-             },
-             "DestinationCidrBlock": "${tempVpcCidr}",
-             "VpcPeeringConnectionId": {
-                 "Fn::ImportValue": {
-                     "Fn::Join": [
-                       "-",
-                       [
-                           {
-                               "Ref": "AWS::Region"
-                           },
-                           "${vpcStackName}",
-                           "TempVpcPeeringConnectionId"
-                       ]
-                     ]
-                 }
-             }
-         }
-        },
         "${privateSubnet.name}PrivateRoute": {
             "Type": "AWS::EC2::Route",
             "Properties": {

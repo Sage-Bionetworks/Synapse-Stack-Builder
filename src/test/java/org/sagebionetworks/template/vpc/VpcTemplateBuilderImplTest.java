@@ -73,6 +73,7 @@ public class VpcTemplateBuilderImplTest {
 	String peeringRoleARN;
 	String oldVpcId;
 	String oldVpcCidr;
+	String vpnCiderNew;
 
 	List<Tag> expectedTags;
 
@@ -93,16 +94,14 @@ public class VpcTemplateBuilderImplTest {
 		vpnCider = "10.1.0.0/16";
 		stack = "dev";
 		peeringRoleARN = PEERING_ROLE_ARN_PREFIX+"/someKey";
+		vpnCiderNew = "10.50.0.0/16";
 		oldVpcCidr = "10.2.0.0/16";
 		oldVpcId = "vpc-123def";
-		
 		when(mockConfig.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX)).thenReturn(subnetPrefix);
 		when(mockConfig.getProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn("us-east-1a,us-east-1b");
-		when(mockConfig.getProperty(PROPERTY_KEY_VPC_VPN_CIDR)).thenReturn(vpnCider);
+		when(mockConfig.getProperty(PROPERTY_KEY_VPC_VPN_CIDR_NEW)).thenReturn(vpnCiderNew);
 		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(mockConfig.getProperty(PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN)).thenReturn(peeringRoleARN);
-		when(mockConfig.getProperty(PROPERTY_KEY_OLD_VPC_ID)).thenReturn(oldVpcId);
-		when(mockConfig.getProperty(PROPERTY_KEY_OLD_VPC_CIDR)).thenReturn(oldVpcCidr);
 
 	}
 	
@@ -130,7 +129,6 @@ public class VpcTemplateBuilderImplTest {
 		JSONObject resouces = templateJson.getJSONObject("Resources");
 		assertNotNull(resouces);
 		assertTrue(resouces.has("VPC"));
-		assertTrue(resouces.has("VpcPeeringConnection"));
 		assertTrue(resouces.has("InternetGateway"));
 		assertTrue(resouces.has("InternetGatewayAttachment"));
 		assertTrue(resouces.has("VpnSecurityGroup"));
@@ -149,6 +147,19 @@ public class VpcTemplateBuilderImplTest {
 		assertFalse(resouces.has("GreenPrivateUsEast1b"));
 		assertFalse(resouces.has("GreenPrivateUsEast1aRouteTableAssociation"));
 		assertFalse(resouces.has("GreenPrivateUsEast1bRouteTableAssociation"));
+
+		JSONObject outputs = templateJson.getJSONObject("Outputs");
+		assertNotNull(outputs);
+		assertTrue(outputs.has("VPCId"));
+		assertTrue(outputs.has("VpcCidr"));
+		assertTrue(outputs.has("VpnCidr"));
+		assertTrue(outputs.has("VpnCidrNew"));
+		assertTrue(outputs.has("VpcGatewayAttachment"));
+		assertTrue(outputs.has("VpcDefaultSecurityGroup"));
+		assertTrue(outputs.has("VpnSecurityGroup"));
+		assertTrue(outputs.has("AvailabilityZones"));
+		assertTrue(outputs.has("NetworkAcl"));
+		assertTrue(outputs.has("InternetGateway"));
 	}
 	
 	@Test
@@ -157,15 +168,11 @@ public class VpcTemplateBuilderImplTest {
 		// call under test
 		Parameter[] parameters = builder.createParameters(stackName);
 		assertNotNull(parameters);
-		assertEquals(3, parameters.length);
+		assertEquals(1, parameters.length);
 		// keys
-		assertEquals(PARAMETER_VPN_CIDR,parameters[0].getParameterKey());
-		assertEquals(PARAMETER_OLD_VPC_ID, parameters[1].getParameterKey());
-		assertEquals(PARAMETER_OLD_VPC_CIDR, parameters[2].getParameterKey());
+		assertEquals(PARAMETER_VPN_CIDR_NEW, parameters[0].getParameterKey());
 		// values
-		assertEquals(vpnCider, parameters[0].getParameterValue());
-		assertEquals(oldVpcId, parameters[1].getParameterValue());
-		assertEquals(oldVpcCidr, parameters[2].getParameterValue());
+		assertEquals(vpnCiderNew, parameters[0].getParameterValue());
 	}
 	
 	@Test

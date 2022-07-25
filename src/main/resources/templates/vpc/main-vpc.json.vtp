@@ -7,15 +7,10 @@
 			"Type": "String",
 			"Default": "10.1.0.0/16"
 		},
-		"OldVpcId": {
-		    "Description": "VpcId of old Synapse VPC for this stack",
-		    "Type": "String",
-		    "Default": "vpc-c2d49cb9"
-		},
-		"OldVpcCidr": {
-		    "Description": "CIDR of the old Synapse VPC for this stack",
-		    "Type": "String",
-		    "Default": "10.21.0.0/16"
+		"VpnCidrNew": {
+			"Description": "CIDR of the AWS VPN",
+			"Type": "String",
+			"Default": "10.50.0.0/16"
 		}
 	},
 	"Resources": {
@@ -33,50 +28,6 @@
 				]
 			}
 		},
-		"VpcPeeringConnection" :{
-			"Type" : "AWS::EC2::VPCPeeringConnection",
-			"Properties" : {
-				"PeerVpcId" : "vpc-2135cc5a",
-				"PeerOwnerId" : "745159704268",
-				"PeerRoleArn" : "${peerRoleArn}",
-				"VpcId" : {
-					"Ref": "VPC"
-				},
-				"Tags": [
-					{
-						"Key": "Application",
-						"Value": {
-							"Ref": "AWS::StackName"
-						}
-					},
-					{
-						"Key": "Name",
-						"Value": "synapse-${stack}-VPC-peering"
-					}
-				]
-			}
-		},
-        "TempVpcPeeringConnection" :{
-            "Type" : "AWS::EC2::VPCPeeringConnection",
-            "Properties" : {
-                "PeerVpcId" : { "Ref": "OldVpcId" },
-                "VpcId" : {
-                    "Ref": "VPC"
-                },
-                "Tags": [
-                    {
-                        "Key": "Application",
-                        "Value": {
-                            "Ref": "AWS::StackName"
-                        }
-                    },
-                    {
-                        "Key": "Name",
-                        "Value": "synapse-${stack}-tempVPC-peering"
-                    }
-                ]
-            }
-        },
 		"InternetGateway": {
 			"Type": "AWS::EC2::InternetGateway",
 			"Properties": {
@@ -113,15 +64,17 @@
                 "VpcId": {
                     "Ref": "VPC"
                 },
-                "SecurityGroupIngress": [{
-                    "CidrIp": {
-                        "Ref": "VpnCidr"
-                    },
-                    "FromPort": "-1",
-                    "ToPort": "-1",
-                    "IpProtocol": "-1",
-                    "Description": "Allow all VPN traffic"
-                }],
+                "SecurityGroupIngress": [
+                    {
+                        "CidrIp": {
+                            "Ref": "VpnCidrNew"
+                        },
+                        "FromPort": "-1",
+                        "ToPort": "-1",
+                        "IpProtocol": "-1",
+                        "Description": "Allow all VPN traffic from TGW"
+                    }
+                ],
                 "SecurityGroupEgress": [{
                     "CidrIp": "0.0.0.0/0",
                     "FromPort": "-1",
@@ -130,31 +83,6 @@
                 }]
             }
         },
-        "TempVpcSecurityGroup": {
-             "DependsOn": "VPC",
-             "Type": "AWS::EC2::SecurityGroup",
-             "Properties": {
-                 "GroupDescription": "Security Group for VPN",
-                 "VpcId": {
-                     "Ref": "VPC"
-                 },
-                 "SecurityGroupIngress": [{
-                     "CidrIp": {
-                         "Ref": "OldVpcCidr"
-                     },
-                     "FromPort": "-1",
-                     "ToPort": "-1",
-                     "IpProtocol": "-1",
-                     "Description": "Allow all traffic from the old VPC"
-                 }],
-                 "SecurityGroupEgress": [{
-                     "CidrIp": "0.0.0.0/0",
-                     "FromPort": "-1",
-                     "ToPort": "-1",
-                     "IpProtocol": "-1"
-                 }]
-             }
-         },
 		"NetworkAcl": {
 			"Type": "AWS::EC2::NetworkAcl",
 			"Properties": {
@@ -280,6 +208,28 @@
 				}
 			}
 		},
+		"VpnCidrNew": {
+			"Description": "AWS VPN CIDR used to create this VPC",
+			"Value": {
+				"Ref": "VpnCidrNew"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"VpnCidrNew"
+						]
+					]
+				}
+			}
+		},
 		"VpcGatewayAttachment": {
 		    "Description": "Intenet Gateway used for this VPC",
 		    "Value": {
@@ -369,46 +319,6 @@
 				}
 			}
 		},
-		"VpcPeeringConnection": {
-		    "Description": "VpcPeeringConnection for the ${stack} stack",
-		    "Value": { "Ref": "VpcPeeringConnection" },
-		    "Export": {
-				"Name": {
-					"Fn::Join": [
-						"-",
-						[
-							{
-								"Ref": "AWS::Region"
-							},
-							{
-								"Ref": "AWS::StackName"
-							},
-							"VpcPeeringConnectionId"
-						]
-					]
-				}
-		    }
-		},
-        "TempVpcPeeringConnection": {
-            "Description": "Temporary VpcPeeringConnection for the ${stack} stack",
-            "Value": { "Ref": "TempVpcPeeringConnection" },
-            "Export": {
-                "Name": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::Region"
-                            },
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "TempVpcPeeringConnectionId"
-                        ]
-                    ]
-                }
-            }
-        },
 		"NetworkAcl": {
 		    "Description": "Network ACL for the ${stack} stack",
 		    "Value": { "Ref": "NetworkAcl" },

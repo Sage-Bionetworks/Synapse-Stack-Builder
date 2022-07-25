@@ -40,6 +40,7 @@ public class Constants {
 	// CloudFormation Parameter names.
 	// VPC
 	public static final String PARAMETER_VPN_CIDR = "VpnCidr";
+	public static final String PARAMETER_VPN_CIDR_NEW = "VpnCidrNew";
 	public static final String PARAMETER_VPC_SUBNET_PREFIX = "VpcSubnetPrefix";
 	public static final String PARAMETER_OLD_VPC_ID = "OldVpcId";
 	public static final String PARAMETER_OLD_VPC_CIDR = "OldVpcCidr";
@@ -51,6 +52,7 @@ public class Constants {
 	// input property keys
 	// vpc
 	public static final String PROPERTY_KEY_VPC_VPN_CIDR = "org.sagebionetworks.vpc.vpn.cidr";
+	public static final String PROPERTY_KEY_VPC_VPN_CIDR_NEW = "org.sagebionetworks.vpc.vpn.cidr.new";
 	public static final String PROPERTY_KEY_VPC_AVAILABILITY_ZONES = "org.sagebionetworks.vpc.availability.zones";
 	public static final String PROPERTY_KEY_VPC_SUBNET_PREFIX = "org.sagebionetworks.vpc.subnet.prefix";
 	public static final String PROPERTY_KEY_COLORS = "org.sagebionetworks.vpc.colors.csv";
@@ -98,6 +100,7 @@ public class Constants {
 
 	public static final String PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER = "org.sagebionetworks.repo.snapshot.identifier";
 	public static final String PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS = "org.sagebionetworks.tables.snapshot.identifiers";
+	public static final String PROPERTY_KEY_LAMBDA_VIRUS_SCANNER_ARTIFACT_URL = "org.sagebionetworks.lambda.virusscanner.artifactUrl";
 	public static final String NOSNAPSHOT = "NOSNAPSHOT"; // value to indicate a snapshot is not used to init a stack
 
 	// tag values
@@ -118,6 +121,7 @@ public class Constants {
 	public static final String TEMPLATE_ID_GENERATOR = "templates/repo/id-generator-template.json.vpt";
 	public static final String TEMPLATE_INVENTORY_BUCKET_POLICY_TEMPLATE = "templates/s3/s3-inventory-bucket-policy.json.vpt";
 	public static final String TEMPLATE_GLOBAL_RESOURCES = "templates/global/global-template.json.vpt";
+	public static final String TEMPLATE_S3_VIRUS_SCANNER = "templates/s3/s3-virus-scanner-template.json.vpt";
 	
 
 	public static final int JSON_INDENT = 5;

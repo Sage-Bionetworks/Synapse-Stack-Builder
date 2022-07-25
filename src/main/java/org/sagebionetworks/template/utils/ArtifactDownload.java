@@ -1,4 +1,4 @@
-package org.sagebionetworks.template.repo.beanstalk;
+package org.sagebionetworks.template.utils;
 
 import java.io.File;
 

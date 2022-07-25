@@ -44,6 +44,9 @@ public class S3ConfigValidator {
 			validateNotificationsConfiguration(bucket);
 		});
 		
+		if (config.getVirusScannerConfig() != null) {
+			validateVirusScannerConfig(config.getVirusScannerConfig());
+		}
 		
 		return config;
 	}
@@ -93,6 +96,11 @@ public class S3ConfigValidator {
 				throw new IllegalArgumentException("Unsupported event type: " + event);
 			}
 		});
+	}
+	
+	private void validateVirusScannerConfig(S3VirusScannerConfig config) {
+		ValidateArgument.requiredNotBlank(config.getLambdaArtifactBucket(), "The artifact bucket");
+		ValidateArgument.requiredNotBlank(config.getNotificationEmail(), "The notification email");
 	}
 	
 }
