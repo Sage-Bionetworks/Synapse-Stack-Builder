@@ -332,6 +332,102 @@
 				]
             }
         },
+        "${stack}${instance}SynapesRepoWorkersServiceManagedPolicy": {
+		    "Type": "AWS::IAM::ManagedPolicy",
+		    "Properties": {
+		        "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": "s3:*",
+                            "Effect": "Allow",
+                            "Resource": "*"
+                        },
+                        {
+                            "Action": "sns:*",
+                            "Effect": "Allow",
+                            "Resource": "*"
+                        },
+                        {
+                            "Action": "sqs:*",
+                            "Effect": "Allow",
+                            "Resource": "*"
+                        },
+                        {
+                            "Action": "cloudwatch:*",
+                            "Effect": "Allow",
+                            "Resource": "*"
+                        },
+                        {
+                            "Action": "cloudsearch:*",
+                            "Effect": "Allow",
+                            "Resource": "*"
+                        },
+                        {
+                            "Action": "ses:*",
+                            "Effect": "Allow",
+                            "Resource": "*"
+                        },
+                        {
+                            "Action": [
+                                "kms:Decrypt",
+                                "kms:Encrypt",
+                                "kms:ListAliases"
+                            ],
+                            "Effect": "Allow",
+                            "Resource": "*"
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "firehose:*"
+                            ],
+                            "Resource": "*"
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "kinesis:*"
+                            ],
+                            "Resource": "*"
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "glue:*"
+                            ],
+                            "Resource": "*"
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "athena:*"
+                            ],
+                            "Resource": "*"
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "sts:AssumeRole"
+                            ],
+                            "Resource": "*"
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "logs:*"
+                            ],
+                            "Resource": "*"
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": "elasticbeanstalk:*",
+                            "Resource": "*"
+                        }
+                    ]
+		        }
+		    }
+        },
         "${stack}${instance}SynapesRepoWorkersServiceRole": {
 			"Type": "AWS::IAM::Role",
 			"Properties": {
@@ -342,7 +438,8 @@
 							"Effect": "Allow",
 							"Principal": {
 								"Service": [
-									"ec2.amazonaws.com"
+									"ec2.amazonaws.com",
+									"ssm.amazonaws.com"
 								]
 							},
 							"Action": [
@@ -352,101 +449,11 @@
 					]
 				},
 				"Path": "/",
-				"Policies": [
-					{
-						"PolicyName" : "${stack}${instance}SynapesRepoWorkersService",
-						"PolicyDocument": {
-							"Version": "2012-10-17",
-							"Statement": [
-								{
-									"Action": "s3:*",
-									"Effect": "Allow",
-									"Resource": "*"
-								},
-								{
-									"Action": "sns:*",
-									"Effect": "Allow",
-									"Resource": "*"
-								},
-								{
-									"Action": "sqs:*",
-									"Effect": "Allow",
-									"Resource": "*"
-								},
-								{
-									"Action": "cloudwatch:*",
-									"Effect": "Allow",
-									"Resource": "*"
-								},
-								{
-									"Action": "cloudsearch:*",
-									"Effect": "Allow",
-									"Resource": "*"
-								},
-								{
-									"Action": "ses:*",
-									"Effect": "Allow",
-									"Resource": "*"
-								},
-								{
-									"Action": [
-										"kms:Decrypt",
-										"kms:Encrypt",
-										"kms:ListAliases"
-									],
-									"Effect": "Allow",
-									"Resource": "*"
-								},
-								{
-									"Effect": "Allow",
-									"Action": [
-										"firehose:*"
-									],
-									"Resource": "*"
-								},
-								{
-									"Effect": "Allow",
-									"Action": [
-										"kinesis:*"
-									],
-									"Resource": "*"
-								},
-								{
-									"Effect": "Allow",
-									"Action": [
-										"glue:*"
-									],
-									"Resource": "*"
-								},
-								{
-									"Effect": "Allow",
-									"Action": [
-										"athena:*"
-									],
-									"Resource": "*"
-								},
-								{
-									"Effect": "Allow",
-									"Action": [
-										"sts:AssumeRole"
-									],
-									"Resource": "*"
-								},
-								{
-									"Effect": "Allow",
-									"Action": [
-										"logs:*"
-									],
-									"Resource": "*"
-								},
-								{
-									"Effect": "Allow",
-									"Action": "elasticbeanstalk:*",
-									"Resource": "*"
-								}
-							]
-						}
-					}
+				"ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+                    {
+                        "Ref": "${stack}${instance}SynapesRepoWorkersServiceManagedPolicy"
+                    }
 				]
 			}
 		},
@@ -462,6 +469,31 @@
 				]
 			}
 		},
+		"${stack}${instance}SynapesPortalServiceManagedPolicy": {
+		    "Type": "AWS::IAM::ManagedPolicy",
+		    "Properties": {
+		        "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": "s3:*",
+                            "Effect": "Allow",
+                            "Resource": "arn:aws:s3:::elasticbeanstalk-us-east-1*/*"
+                        },
+                        {
+                            "Action": "logs:*",
+                            "Effect": "Allow",
+                            "Resource": "*"
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": "elasticbeanstalk:*",
+                            "Resource": "*"
+                        }
+                    ]
+		        }
+		    }
+		},
 		"${stack}${instance}SynapesPortalServiceRole": {
 			"Type": "AWS::IAM::Role",
 			"Properties": {
@@ -472,7 +504,8 @@
 							"Effect": "Allow",
 							"Principal": {
 								"Service": [
-									"ec2.amazonaws.com"
+									"ec2.amazonaws.com",
+									"ssm.amazonaws.com"
 								]
 							},
 							"Action": [
@@ -482,30 +515,11 @@
 					]
 				},
 				"Path": "/",
-				"Policies": [
-					{
-						"PolicyName" : "${stack}${instance}SynapesPortalService",
-						"PolicyDocument": {
-							"Version": "2012-10-17",
-							"Statement": [
-								{
-									"Action": "s3:*",
-									"Effect": "Allow",
-									"Resource": "arn:aws:s3:::elasticbeanstalk-us-east-1*/*"
-								},
-								{
-									"Action": "logs:*",
-									"Effect": "Allow",
-									"Resource": "*"
-								},
-								{
-									"Effect": "Allow",
-									"Action": "elasticbeanstalk:*",
-									"Resource": "*"
-								}
-							]
-						}
-					}
+				"ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+                    {
+                        "Ref": "${stack}${instance}SynapesPortalServiceManagedPolicy"
+                    }
 				]
 			}
 		},
