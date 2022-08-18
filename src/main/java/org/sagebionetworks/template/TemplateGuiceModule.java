@@ -17,6 +17,8 @@ import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.apache.velocity.runtime.resource.loader.FileResourceLoader;
 import org.sagebionetworks.client.SynapseAdminClient;
+import org.sagebionetworks.template.cdn.CdnBuilder;
+import org.sagebionetworks.template.cdn.CdnBuilderImpl;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.config.ConfigurationImpl;
 import org.sagebionetworks.template.config.RepoConfiguration;
@@ -138,6 +140,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(SynapseAdminClientFactory.class).to(SynapseAdminClientFactoryImpl.class);
 		bind(AsynchAdminJobExecutor.class).to(AsynchAdminJobExecutorImpl.class);
 		bind(SynapseDocsBuilder.class).to(SynapseDocsBuilderImpl.class);
+		bind(CdnBuilder.class).to(CdnBuilderImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 		
