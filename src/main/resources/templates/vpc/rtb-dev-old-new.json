@@ -1,0 +1,70 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Creates temporary routes from the existing VPC to new one",
+	"Resources": {
+        "OldBluePrivateUsEast1aTempRoute": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": "rtb-ec5d5390",
+                "DestinationCidrBlock": "10.24.0.0/16",
+                "VpcPeeringConnectionId": "pcx-0eca64270ac677420"
+            }
+        },
+        "OldBluePrivateUsEast1bTempRoute": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": "rtb-ec5f5190",
+                "DestinationCidrBlock": "10.24.0.0/16",
+                "VpcPeeringConnectionId": "pcx-0eca64270ac677420"
+            }
+        },
+        "OldGreenPrivateUsEast1aTempRoute": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": "rtb-7e595702",
+                "DestinationCidrBlock": "10.24.0.0/16",
+                "VpcPeeringConnectionId": "pcx-0eca64270ac677420"
+            }
+        },
+        "OldGreenPrivateUsEast1bTempRoute": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": "rtb-85424cf9",
+                "DestinationCidrBlock": "10.24.0.0/16",
+                "VpcPeeringConnectionId": "pcx-0eca64270ac677420"
+            }
+        },
+        "OldRedPrivateUsEast1aTempRoute": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": "rtb-ac5957d0",
+                "DestinationCidrBlock": "10.24.0.0/16",
+                "VpcPeeringConnectionId": "pcx-0eca64270ac677420"
+            }
+        },
+        "OldRedPrivateUsEast1bTempRoute": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": "rtb-18595764",
+                "DestinationCidrBlock": "10.24.0.0/16",
+                "VpcPeeringConnectionId": "pcx-0eca64270ac677420"
+            }
+        },
+        "OldPublicUsEast1aTempRoute": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": "rtb-1d454b61",
+                "DestinationCidrBlock": "10.24.0.0/16",
+                "VpcPeeringConnectionId": "pcx-0eca64270ac677420"
+            }
+        },
+        "OldPublicUsEast1bTempRoute": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": "rtb-ed5f5191",
+                "DestinationCidrBlock": "10.24.0.0/16",
+                "VpcPeeringConnectionId": "pcx-0eca64270ac677420"
+            }
+        }
+    }
+}

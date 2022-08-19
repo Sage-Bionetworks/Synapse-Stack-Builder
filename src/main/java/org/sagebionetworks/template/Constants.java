@@ -62,6 +62,11 @@ public class Constants {
 	// repo
 	public static final String PROPERTY_KEY_STACK = "org.sagebionetworks.stack";
 	public static final String PROPERTY_KEY_INSTANCE = "org.sagebionetworks.instance";
+
+	// CDNs
+	//	aliases for a stack are: prod, staging, tst (i.e. used to identify corresponding instances of a stack)
+	public static final String PROPERTY_KEY_STACK_INSTANCE_ALIAS = "org.sagebionetworks.stack.instance.alias";
+
 	public static final String PROPERTY_KEY_VPC_SUBNET_COLOR = "org.sagebionetworks.vpc.subnet.color";
 	public static final String PROPERTY_KEY_REPO_RDS_MULTI_AZ = "org.sagebionetworks.repo.rds.multi.az";
 	public static final String PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS = "org.sagebionetworks.repo.rds.instance.class";
@@ -198,7 +203,11 @@ public class Constants {
 
 	public static final String EC2_INSTANCE_TYPE = "Ec2InstanceType";
 	public static final String BEANSTALK_INSTANCES_SUBNETS = "BeanstalkInstancesSubnets";
-	
+
+	// CDNs context keys
+	public static final String CTXT_KEY_ACM_CERT_ARN = "AcmCertificateArn";
+	public static final String CTXT_KEY_SUBDOMAIN_NAME = "SubDomainName";
+
 
 	// The secrets manager ids for the key/secret pair for the admin auth
 	public static final String SECRETS_ADMIN_KEY_ID = "org.sagebionetworks.admin.auth.key";
