@@ -99,7 +99,7 @@ Resources:
         return response;
         }
       FunctionConfig:
-        Comment: Redirects all requests to https://<staging>.adknowledgeportal.synapse.org/Explore/Programs/DetailsPage?Program=ELITE .
+        Comment: Redirects all requests to https://help.synapse.org/docs .
         Runtime: cloudfront-js-1.0
       Name: '${SubDomainName}-docs-redirector-fct'
 Outputs:
@@ -107,7 +107,7 @@ Outputs:
     Value: !Ref Cloudfront
     Description: ID of the Cloudfront distribution
     Export:
-      Name: !Sub '${AWS::Region}-${AWS::StackName}-CloudfrontId'
+      Name: !Join ['-', [!Ref AWS::Region, !Ref AWS::StackName, 'CloudfrontId']]
   CloudfrontEndpoint:
     Value: !Join ['', ['https://', !GetAtt Cloudfront.DomainName ]]
     Description: URL for cloudfront

@@ -16,6 +16,7 @@ import java.io.StringWriter;
 import java.util.Optional;
 
 import static org.sagebionetworks.template.Constants.CTXT_KEY_ACM_CERT_ARN;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_DOMAIN_NAME;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_SUBDOMAIN_NAME;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK_INSTANCE_ALIAS;
@@ -51,6 +52,8 @@ public class UserDocsRedirectorBuilderImpl implements  UserDocsRedirectorBuilder
 		ctxt.put(CTXT_KEY_ACM_CERT_ARN, acmCertificateArn);
 		String stackInstanceAlias = config.getProperty(PROPERTY_KEY_STACK_INSTANCE_ALIAS);
 		ctxt.put(CTXT_KEY_SUBDOMAIN_NAME, stackInstanceAlias);
+		ctxt.put(CTXT_KEY_DOMAIN_NAME, "docs.synapse.org");
+
 		return ctxt;
 	}
 
@@ -61,7 +64,7 @@ public class UserDocsRedirectorBuilderImpl implements  UserDocsRedirectorBuilder
 		template.merge(context, writer);
 		String cfTemplateYaml = writer.toString();
 		logger.info(cfTemplateYaml);
-		String cfStackName = String.format("%s-synapse", context.get(CTXT_KEY_SUBDOMAIN_NAME));
+		String cfStackName = String.format("%s-docs-synapse", context.get(CTXT_KEY_SUBDOMAIN_NAME));
 		CreateOrUpdateStackRequest cfStackRequest = new CreateOrUpdateStackRequest()
 				.withStackName(cfStackName)
 				.withTemplateBody(cfTemplateYaml)
