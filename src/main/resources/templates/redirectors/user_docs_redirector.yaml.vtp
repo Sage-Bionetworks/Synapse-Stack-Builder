@@ -1,7 +1,7 @@
 # From https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/quickref-s3.html#scenario-s3-bucket-website-customdomain
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
-  Provision a S3 static website (HTTPS) with cloudfront for a SageBionetworks Portal
+  Provision a S3 static website (HTTPS) with Cloudfront for a Synapse docs redirector to https://help.synapse.org
 Conditions:
   IsProd: !Equals [${SubDomainName}, 'prod']
   IsStaging: !Equals [${SubDomainName}, 'staging']
