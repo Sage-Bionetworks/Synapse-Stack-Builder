@@ -458,7 +458,7 @@ if __name__ == "__main__":
     prod_widgets = generate_stack_widgets("# Production stack", prod_stack_backend, prod_stack_worker, prod_stack_portal, 0, 0)
     prod_worker_stats_widgets = generate_worker_stats_widgets("# Prod Worker Statistics", prod_stack_worker, 0, 21)
     # TODO: Discover docker registry instance ids
-    docker_widgets = generate_docker_widgets(["i-03caba8ba8027dcdb", "i-022acbcb10b0610fa"], 0, 35)
+    docker_widgets = generate_docker_widgets(["i-03caba8ba8027dcdb", "i-0e72eb7485bf626fd"], 0, 35)
     staging_widgets = generate_stack_widgets("# Staging stack", staging_stack_backend, staging_stack_worker, staging_stack_portal, 0, 42)
     staging_worker_stats_widgets = generate_worker_stats_widgets("# Staging Worker Statistics", staging_stack_worker, 0, 63)
     #prod_async_job_stats_widgets = generate_async_job_stats_widgets("# Prod Async Job Statistics", prod_stack_worker, 0, 70)

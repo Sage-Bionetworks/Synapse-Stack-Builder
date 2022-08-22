@@ -1,0 +1,86 @@
+# From https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/quickref-s3.html#scenario-s3-bucket-website-customdomain
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Provision Cloudfront distribution for a synapse.org endpoint (www, staging, tst)
+Resources:
+  Cloudfront:
+    Type: AWS::CloudFront::Distribution
+    DeletionPolicy: Retain
+    DependsOn: CacheHeaderOverrideOnErrorFct
+    Properties:
+      DistributionConfig:
+        Comment: 'Cloudfront distribution for ${SubDomainName}.synapse.org'
+        Origins:
+          - DomainName: '${SubDomainName}.synapse.org'
+            Id: CustomOriginId
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+        Enabled: true
+        HttpVersion: 'http2'
+        DefaultRootObject: index.html
+        Aliases:
+          - 'cdn-${SubDomainName}.synapse.org'
+        DefaultCacheBehavior:
+          DefaultTTL: 3600
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          Compress: true
+          TargetOriginId: CustomOriginId
+          ForwardedValues:
+            QueryString: true
+            Cookies:
+              Forward: none
+          FunctionAssociations:
+          -
+            EventType: viewer-response
+            FunctionARN: !GetAtt CacheHeaderOverrideOnErrorFct.FunctionARN
+          ViewerProtocolPolicy: redirect-to-https
+        PriceClass: PriceClass_100
+        ViewerCertificate:
+          AcmCertificateArn: ${AcmCertificateArn}
+          MinimumProtocolVersion: TLSv1.2_2021
+          SslSupportMethod: sni-only
+  CacheHeaderOverrideOnErrorFct:
+    Type: AWS::CloudFront::Function
+    Properties:
+      AutoPublish: true
+      FunctionCode: |
+        function handler(event) {
+            var cacheControlHeader = 'Cache-Control';
+            var expiresHeader = 'Expires';
+            var pragmaHeader = 'Pragma';
+            var noCachePragmaValue = 'no-cache';
+            var noCacheValue = 'no-cache, max-age=0, must-revalidate, pre-check=0, post-check=0';
+            var response = event.response;
+            var headers = response.headers;
+            if (response.statusCode >= 400 && response.statusCode <= 599 && headers[cacheControlHeader.toLowerCase()]) {
+                headers[cacheControlHeader.toLowerCase()] = { 'value': noCacheValue };
+                if (headers[expiresHeader.toLowerCase()]) {
+                    headers[expiresHeader.toLowerCase()] = { 'value': '0' };
+                }
+                if (headers[pragmaHeader.toLowerCase()]) {
+                    headers[pragmaHeader.toLowerCase()] = { 'value': noCachePragmaValue };
+                }
+                console.log(headers);
+                response.headers = headers;
+            }
+            return response;
+        }
+      FunctionConfig:
+        Comment: Overrides the cache headers if status code returned is 4xx or 5xx
+        Runtime: cloudfront-js-1.0
+      Name: '${SubDomainName}-hoverride-fct'
+
+Outputs:
+  CloudfrontId:
+    Value: !Ref Cloudfront
+    Description: ID of the Cloudfront distribution
+    Export:
+      Name: !Join ['-', [!Ref AWS::Region, !Ref AWS::StackName, 'CloudfrontId']]
+  CloudfrontEndpoint:
+    Value: !Join ['', ['https://', !GetAtt Cloudfront.DomainName ]]
+    Description: URL for cloudfront
+    Export:
+      Name: !Join ['-', [!Ref AWS::Region, !Ref AWS::StackName, 'CloudfrontEndpoint']]

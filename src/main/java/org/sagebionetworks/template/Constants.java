@@ -49,6 +49,7 @@ public class Constants {
 	public static final String PARAMETER_ENCRYPTION_KEY = "EncryptionKey";
 	public static final String PARAMETER_AWS_SECRET = "AwsSecret";
 	public static final String PARAMETER_AWS_KEY = "AwsKey";
+
 	// input property keys
 	// vpc
 	public static final String PROPERTY_KEY_VPC_VPN_CIDR = "org.sagebionetworks.vpc.vpn.cidr";
