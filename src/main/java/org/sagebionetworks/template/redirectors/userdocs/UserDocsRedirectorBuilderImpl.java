@@ -26,6 +26,7 @@ public class UserDocsRedirectorBuilderImpl implements  UserDocsRedirectorBuilder
 	private static final Logger logger = LogManager.getLogger(UserDocsRedirectorBuilderImpl.class);
 
 	private static final String TEMPLATE_STACK_DOCSREDIRECT = "templates/redirectors/user_docs_redirector.yaml.vtp";
+	public static final String DOCS_SYNAPSE_ORG = "docs.synapse.org";
 
 	private RepoConfiguration config;
 	private VelocityEngine velocity;
@@ -52,7 +53,7 @@ public class UserDocsRedirectorBuilderImpl implements  UserDocsRedirectorBuilder
 		ctxt.put(CTXT_KEY_ACM_CERT_ARN, acmCertificateArn);
 		String stackInstanceAlias = config.getProperty(PROPERTY_KEY_STACK_INSTANCE_ALIAS);
 		ctxt.put(CTXT_KEY_SUBDOMAIN_NAME, stackInstanceAlias);
-		ctxt.put(CTXT_KEY_DOMAIN_NAME, "docs.synapse.org");
+		ctxt.put(CTXT_KEY_DOMAIN_NAME, DOCS_SYNAPSE_ORG);
 
 		return ctxt;
 	}

@@ -77,6 +77,7 @@ class UserDocsRedirectorBuilderImplTest {
 		verify(mockConfig).getProperty("org.sagebionetworks.stack.instance.alias");
 		assertEquals("acmarn", ctxt.get("AcmCertificateArn"));
 		assertEquals("tst", ctxt.get("SubDomainName"));
+		assertEquals("docs.synapse.org", ctxt.get("DomainName"));
 	}
 
 	@Test
@@ -103,6 +104,8 @@ class UserDocsRedirectorBuilderImplTest {
 		Optional<Stack> optStack = builder.buildStack();
 
 		verify(mockVelocityEngine).getTemplate("templates/redirectors/user_docs_redirector.yaml.vtp");
+		verify(mockCloudFormationClient).waitForStackToComplete("tst-docs-synapse");
+		verify(mockCloudFormationClient).describeStack("tst-docs-synapse");
 		verify(mockCloudFormationClient).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
 		CreateOrUpdateStackRequest req = createOrUpdateStackRequestArgumentCaptor.getValue();
 		assertEquals("tst-docs-synapse", req.getStackName());
