@@ -31,6 +31,8 @@ import org.sagebionetworks.template.global.GlobalResourcesBuilder;
 import org.sagebionetworks.template.global.GlobalResourcesBuilderImpl;
 import org.sagebionetworks.template.jobs.AsynchAdminJobExecutor;
 import org.sagebionetworks.template.jobs.AsynchAdminJobExecutorImpl;
+import org.sagebionetworks.template.redirectors.userdocs.UserDocsRedirectorBuilder;
+import org.sagebionetworks.template.redirectors.userdocs.UserDocsRedirectorBuilderImpl;
 import org.sagebionetworks.template.repo.IdGeneratorBuilder;
 import org.sagebionetworks.template.repo.IdGeneratorBuilderImpl;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
@@ -140,6 +142,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(SynapseAdminClientFactory.class).to(SynapseAdminClientFactoryImpl.class);
 		bind(AsynchAdminJobExecutor.class).to(AsynchAdminJobExecutorImpl.class);
 		bind(SynapseDocsBuilder.class).to(SynapseDocsBuilderImpl.class);
+		bind(UserDocsRedirectorBuilder.class).to(UserDocsRedirectorBuilderImpl.class);
 		bind(CdnBuilder.class).to(CdnBuilderImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);

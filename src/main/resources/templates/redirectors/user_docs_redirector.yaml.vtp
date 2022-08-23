@@ -1,0 +1,120 @@
+# From https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/quickref-s3.html#scenario-s3-bucket-website-customdomain
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Provision a S3 static website (HTTPS) with Cloudfront for a Synapse docs redirector to https://help.synapse.org
+Conditions:
+  IsProd: !Equals [${SubDomainName}, 'prod']
+  IsStaging: !Equals [${SubDomainName}, 'staging']
+Resources:
+  CloudFrontOAI:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: 'CloudFront OAI for ${SubDomainName}.${DomainName}'
+  WebsiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: '${SubDomainName}.${DomainName}'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+  WebsiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Id: BucketPolicy
+        Version: 2012-10-17
+        Statement:
+          - Sid: CFOAIReadForGetBucketObjects
+            Effect: Allow
+            Principal:
+              CanonicalUser: !GetAtt CloudFrontOAI.S3CanonicalUserId
+            Action: 's3:GetObject'
+            Resource: !Join ['', ['arn:aws:s3:::', !Ref WebsiteBucket, '/*']]
+      Bucket: !Ref WebsiteBucket
+  Cloudfront:
+    Type: AWS::CloudFront::Distribution
+    DependsOn: WebsiteBucket
+    Properties:
+      DistributionConfig:
+        Comment: Cloudfront Distribution pointing to S3 bucket
+        Origins:
+          - DomainName: '${SubDomainName}.${DomainName}.s3.amazonaws.com'
+            Id: S3Origin
+            S3OriginConfig:
+              OriginAccessIdentity:
+                !Join [ "", [ "origin-access-identity/cloudfront/", !Ref CloudFrontOAI ] ]
+        Enabled: true
+        HttpVersion: 'http2'
+        DefaultRootObject: index.html
+        Aliases:
+          - '${SubDomainName}.${DomainName}'
+          - !If [IsProd, ${DomainName}, !Ref AWS::NoValue]
+        DefaultCacheBehavior:
+          DefaultTTL: 3600
+          AllowedMethods:
+            - GET
+            - HEAD
+          Compress: true
+          TargetOriginId: S3Origin
+          ForwardedValues:
+            QueryString: true
+            Cookies:
+              Forward: none
+          FunctionAssociations:
+          -
+            EventType: viewer-request
+            FunctionARN: !GetAtt RedirectFct.FunctionARN
+          ViewerProtocolPolicy: redirect-to-https
+        PriceClass: PriceClass_100
+        ViewerCertificate:
+          AcmCertificateArn: !Ref AcmCertificateArn
+          MinimumProtocolVersion: TLSv1.2_2021
+          SslSupportMethod: sni-only
+  RedirectFct:
+    Type: AWS::CloudFront::Function
+    # Redirect is done with Cloudfront function associated with distribution
+    # See https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-functions.html
+    Properties:
+      AutoPublish: true
+      FunctionCode: |
+        function handler(event) {
+        var response = {
+          statusCode: 307,
+          statusDescription: 'Moved',
+          headers: {
+            'cloudfront-functions': { 'value': 'generated-by-CloudFront-Functions' },
+            'location': { 'value': 'https://help.synapse.org/docs' }
+          }
+        };
+        return response;
+        }
+      FunctionConfig:
+        Comment: Redirects all requests to https://help.synapse.org/docs .
+        Runtime: cloudfront-js-1.0
+      Name: '${SubDomainName}-docs-redirector-fct'
+Outputs:
+  CloudfrontId:
+    Value: !Ref Cloudfront
+    Description: ID of the Cloudfront distribution
+    Export:
+      Name: !Join ['-', [!Ref AWS::Region, !Ref AWS::StackName, 'CloudfrontId']]
+  CloudfrontEndpoint:
+    Value: !Join ['', ['https://', !GetAtt Cloudfront.DomainName ]]
+    Description: URL for cloudfront
+    Export:
+      Name: Join ['-', [!Ref AWS::Region, !Ref AWS::StackName, 'CloudfrontEndpoint']]
+  WebsiteBucket:
+    Value: !Ref WebsiteBucket
+    Description: The bucket containing the website content
+    Export:
+      Name: !Join ['-', [!Ref AWS::Region, !Ref AWS::StackName, 'WebsiteBucket']]
