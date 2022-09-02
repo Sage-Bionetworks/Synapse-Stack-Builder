@@ -112,7 +112,7 @@ Outputs:
     Value: !Join ['', ['https://', !GetAtt Cloudfront.DomainName ]]
     Description: URL for cloudfront
     Export:
-      Name: Join ['-', [!Ref AWS::Region, !Ref AWS::StackName, 'CloudfrontEndpoint']]
+      Name: !Join ['-', [!Ref AWS::Region, !Ref AWS::StackName, 'CloudfrontEndpoint']]
   WebsiteBucket:
     Value: !Ref WebsiteBucket
     Description: The bucket containing the website content
