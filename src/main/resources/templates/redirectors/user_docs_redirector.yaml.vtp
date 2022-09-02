@@ -77,7 +77,7 @@ Resources:
           ViewerProtocolPolicy: redirect-to-https
         PriceClass: PriceClass_100
         ViewerCertificate:
-          AcmCertificateArn: !Ref AcmCertificateArn
+          AcmCertificateArn: ${AcmCertificateArn}
           MinimumProtocolVersion: TLSv1.2_2021
           SslSupportMethod: sni-only
   RedirectFct:
