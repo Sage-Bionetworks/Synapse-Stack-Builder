@@ -98,7 +98,7 @@
 					"Ref": "${stack}${instance}DBSubnetGroup"
 				},
 				"Engine": "MySQL",
-				"EngineVersion": "8.0.16",
+				"EngineVersion": "8.0.28",
 				"LicenseModel": "general-public-license",
 				"MasterUsername": "${stack}${instance}user",
 				"MasterUserPassword": {
