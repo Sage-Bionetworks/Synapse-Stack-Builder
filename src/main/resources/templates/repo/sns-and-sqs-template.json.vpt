@@ -12,6 +12,9 @@
                 },
                 #end
                 "VisibilityTimeout":"${queueDescriptor.messageVisibilityTimeoutSec}"
+                #if ($queueDescriptor.messageRetentionPeriodSec)
+                ,"MessageRetentionPeriod":"${queueDescriptor.messageRetentionPeriodSec}"
+                #end
             }
         }
         #if ($queueDescriptor.deadLetterQueueMaxFailureCount)

@@ -155,7 +155,8 @@
 			"subscribedTopicNames":[
 				"TABLE"
 			],
-			"messageVisibilityTimeoutSec":1200
+			"messageVisibilityTimeoutSec":1200,
+			"messageRetentionPeriodSec":1209600
 		},
 		{
 			"queueName":"UPLOAD_CSV_TO_TABLE_PREVIEW",
@@ -174,7 +175,8 @@
 				"SUBMISSION"
 			],
 			"messageVisibilityTimeoutSec":120,
-			"deadLetterQueueMaxFailureCount":100
+			"deadLetterQueueMaxFailureCount":100,
+			"messageRetentionPeriodSec":1209600
 		},
 		{
 			"queueName":"QUERY",
@@ -198,7 +200,8 @@
 			"subscribedTopicNames":[
 				"ENTITY_VIEW"
 			],
-			"messageVisibilityTimeoutSec":120
+			"messageVisibilityTimeoutSec":120,
+			"messageRetentionPeriodSec":1209600
 		},
 		{
 			"queueName":"STATISTICS_MONTHLY",

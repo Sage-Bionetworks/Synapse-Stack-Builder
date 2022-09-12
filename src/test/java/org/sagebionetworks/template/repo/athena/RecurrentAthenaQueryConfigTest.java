@@ -97,7 +97,7 @@ public class RecurrentAthenaQueryConfigTest {
 	}
 
 	static SqsQueueDescriptor queue(String name) {
-		return new SqsQueueDescriptor(name, Collections.emptyList(), 12, 12, 12);
+		return new SqsQueueDescriptor(name, Collections.emptyList(), 12, 12, 12,13);
 	}
 
 }
