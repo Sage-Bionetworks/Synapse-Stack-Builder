@@ -123,7 +123,8 @@
 				"CERTIFIED_USER_PASSING_RECORD",
 				"FILE"
 			],
-			"messageVisibilityTimeoutSec":120
+			"messageVisibilityTimeoutSec":120,
+			"messageRetentionPeriodSec":1209600
 		},
 		{
 			"queueName":"PRINCIPAL_PREFIX",
@@ -148,14 +149,16 @@
 				"WIKI"
 			],
 			"messageVisibilityTimeoutSec":600,
-			"deadLetterQueueMaxFailureCount":250
+			"deadLetterQueueMaxFailureCount":250,
+			"messageRetentionPeriodSec":1209600
 		},
 		{
 			"queueName":"TABLE_UPDATE",
 			"subscribedTopicNames":[
 				"TABLE"
 			],
-			"messageVisibilityTimeoutSec":1200
+			"messageVisibilityTimeoutSec":1200,
+			"messageRetentionPeriodSec":1209600
 		},
 		{
 			"queueName":"UPLOAD_CSV_TO_TABLE_PREVIEW",
@@ -173,8 +176,7 @@
 				"ENTITY",
 				"SUBMISSION"
 			],
-			"messageVisibilityTimeoutSec":120,
-			"deadLetterQueueMaxFailureCount":100
+			"messageVisibilityTimeoutSec":120
 		},
 		{
 			"queueName":"QUERY",
@@ -198,7 +200,8 @@
 			"subscribedTopicNames":[
 				"ENTITY_VIEW"
 			],
-			"messageVisibilityTimeoutSec":120
+			"messageVisibilityTimeoutSec":120,
+			"messageRetentionPeriodSec":1209600
 		},
 		{
 			"queueName":"STATISTICS_MONTHLY",
@@ -321,14 +324,16 @@
 			"subscribedTopicNames":[
 				"MATERIALIZED_VIEW"
 			],
-			"messageVisibilityTimeoutSec":120
+			"messageVisibilityTimeoutSec":120,
+			"messageRetentionPeriodSec":1209600
 		},
 		{
 			"queueName": "MATERIALIZED_VIEW_SOURCE_UPDATE",
 			"subscribedTopicNames":[
 				"TABLE_STATUS_EVENT"
 			],
-			"messageVisibilityTimeoutSec":30
+			"messageVisibilityTimeoutSec":30,			
+			"messageRetentionPeriodSec":1209600
 		},
 		{
 			"queueName": "ACCESS_REQUIREMENT_TO_PROJECT",

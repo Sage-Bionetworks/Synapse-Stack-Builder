@@ -23,13 +23,15 @@ public class SqsQueueDescriptor {
 	final Integer oldestMessageInQueueAlarmThresholdSec;
 	
 	final Set<SnsTopicDescriptor> subscribedTopicDescriptors;
+	final Integer messageRetentionPeriodSec;
 
 	@JsonCreator
 	public SqsQueueDescriptor(@JsonProperty(value = "queueName", required=true) String queueName,
 							  @JsonProperty(value = "subscribedTopicNames", required=true) List<String> subscribedTopicNames,
 							  @JsonProperty(value = "messageVisibilityTimeoutSec", required=true) Integer messageVisibilityTimeoutSec,
 							  @JsonProperty("deadLetterQueueMaxFailureCount") Integer deadLetterQueueMaxFailureCount,
-							  @JsonProperty("oldestMessageInQueueAlarmThresholdSec") Integer oldestMessageInQueueAlarmThresholdSec) {
+							  @JsonProperty("oldestMessageInQueueAlarmThresholdSec") Integer oldestMessageInQueueAlarmThresholdSec,
+							  @JsonProperty("messageRetentionPeriodSec") Integer messageRetentionPeriodSec) {
 		SnsAndSqsNameValidator.validateName(queueName);
 		SnsAndSqsNameValidator.validateNames(subscribedTopicNames);
 
@@ -39,6 +41,7 @@ public class SqsQueueDescriptor {
 		this.deadLetterQueueMaxFailureCount = deadLetterQueueMaxFailureCount;
 		this.oldestMessageInQueueAlarmThresholdSec = oldestMessageInQueueAlarmThresholdSec;
 		this.subscribedTopicDescriptors = new HashSet<>(subscribedTopicNames.size());
+		this.messageRetentionPeriodSec = messageRetentionPeriodSec;
 	}
 	
 	void addTopicDescriptor(SnsTopicDescriptor topicDescriptor) {
@@ -71,33 +74,42 @@ public class SqsQueueDescriptor {
 	public Integer getOldestMessageInQueueAlarmThresholdSec() {
 		return oldestMessageInQueueAlarmThresholdSec;
 	}
-
-	@Override
-	public String toString() {
-		return "SqsQueueDescriptor{" +
-				"queueName='" + queueName + '\'' +
-				", subscribedTopicNames=" + subscribedTopicNames +
-				", messageVisibilityTimeoutSec=" + messageVisibilityTimeoutSec +
-				", deadLetterQueueMaxFailureCount=" + deadLetterQueueMaxFailureCount +
-				", oldestMessageInQueueAlarmThresholdSec=" + oldestMessageInQueueAlarmThresholdSec +
-				'}';
+	
+	public Integer getMessageRetentionPeriodSec() {
+		return messageRetentionPeriodSec;
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		SqsQueueDescriptor that = (SqsQueueDescriptor) o;
-		return Objects.equals(queueName, that.queueName) &&
-				Objects.equals(subscribedTopicNames, that.subscribedTopicNames) &&
-				Objects.equals(messageVisibilityTimeoutSec, that.messageVisibilityTimeoutSec) &&
-				Objects.equals(deadLetterQueueMaxFailureCount, that.deadLetterQueueMaxFailureCount) &&
-				Objects.equals(oldestMessageInQueueAlarmThresholdSec, that.oldestMessageInQueueAlarmThresholdSec);
+	public String toString() {
+		return "SqsQueueDescriptor [queueName=" + queueName + ", subscribedTopicNames=" + subscribedTopicNames
+				+ ", messageVisibilityTimeoutSec=" + messageVisibilityTimeoutSec + ", deadLetterQueueMaxFailureCount="
+				+ deadLetterQueueMaxFailureCount + ", oldestMessageInQueueAlarmThresholdSec="
+				+ oldestMessageInQueueAlarmThresholdSec + ", subscribedTopicDescriptors=" + subscribedTopicDescriptors
+				+ ", messageRetentionPeriodSec=" + messageRetentionPeriodSec + "]";
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof SqsQueueDescriptor)) {
+			return false;
+		}
+		SqsQueueDescriptor other = (SqsQueueDescriptor) obj;
+		return Objects.equals(deadLetterQueueMaxFailureCount, other.deadLetterQueueMaxFailureCount)
+				&& Objects.equals(messageRetentionPeriodSec, other.messageRetentionPeriodSec)
+				&& Objects.equals(messageVisibilityTimeoutSec, other.messageVisibilityTimeoutSec)
+				&& Objects.equals(oldestMessageInQueueAlarmThresholdSec, other.oldestMessageInQueueAlarmThresholdSec)
+				&& Objects.equals(queueName, other.queueName)
+				&& Objects.equals(subscribedTopicDescriptors, other.subscribedTopicDescriptors)
+				&& Objects.equals(subscribedTopicNames, other.subscribedTopicNames);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(queueName, subscribedTopicNames, messageVisibilityTimeoutSec, deadLetterQueueMaxFailureCount, oldestMessageInQueueAlarmThresholdSec);
+		return Objects.hash(deadLetterQueueMaxFailureCount, messageRetentionPeriodSec, messageVisibilityTimeoutSec,
+				oldestMessageInQueueAlarmThresholdSec, queueName, subscribedTopicDescriptors, subscribedTopicNames);
 	}
 
 
