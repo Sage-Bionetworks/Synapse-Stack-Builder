@@ -78,8 +78,7 @@
 			"subscribedTopicNames":[
 				"ENTITY_VIEW"
 			],
-			"messageVisibilityTimeoutSec":60,
-			"messageRetentionPeriodSec":1209600
+			"messageVisibilityTimeoutSec":60
 		},
 		{
 			"queueName":"EVALUATION_SUBMISSION_UPDATE",
@@ -177,9 +176,7 @@
 				"ENTITY",
 				"SUBMISSION"
 			],
-			"messageVisibilityTimeoutSec":120,
-			"deadLetterQueueMaxFailureCount":100,
-			"messageRetentionPeriodSec":1209600
+			"messageVisibilityTimeoutSec":120
 		},
 		{
 			"queueName":"QUERY",
@@ -335,7 +332,8 @@
 			"subscribedTopicNames":[
 				"TABLE_STATUS_EVENT"
 			],
-			"messageVisibilityTimeoutSec":30
+			"messageVisibilityTimeoutSec":30,			
+			"messageRetentionPeriodSec":1209600
 		},
 		{
 			"queueName": "ACCESS_REQUIREMENT_TO_PROJECT",
