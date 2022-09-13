@@ -78,7 +78,8 @@
 			"subscribedTopicNames":[
 				"ENTITY_VIEW"
 			],
-			"messageVisibilityTimeoutSec":60
+			"messageVisibilityTimeoutSec":60,
+			"messageRetentionPeriodSec":1209600
 		},
 		{
 			"queueName":"EVALUATION_SUBMISSION_UPDATE",
@@ -123,7 +124,8 @@
 				"CERTIFIED_USER_PASSING_RECORD",
 				"FILE"
 			],
-			"messageVisibilityTimeoutSec":120
+			"messageVisibilityTimeoutSec":120,
+			"messageRetentionPeriodSec":1209600
 		},
 		{
 			"queueName":"PRINCIPAL_PREFIX",
@@ -148,7 +150,8 @@
 				"WIKI"
 			],
 			"messageVisibilityTimeoutSec":600,
-			"deadLetterQueueMaxFailureCount":250
+			"deadLetterQueueMaxFailureCount":250,
+			"messageRetentionPeriodSec":1209600
 		},
 		{
 			"queueName":"TABLE_UPDATE",
@@ -324,7 +327,8 @@
 			"subscribedTopicNames":[
 				"MATERIALIZED_VIEW"
 			],
-			"messageVisibilityTimeoutSec":120
+			"messageVisibilityTimeoutSec":120,
+			"messageRetentionPeriodSec":1209600
 		},
 		{
 			"queueName": "MATERIALIZED_VIEW_SOURCE_UPDATE",
