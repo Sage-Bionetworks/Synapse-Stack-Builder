@@ -19,6 +19,7 @@ public class Constants {
 	public static final String S3_CONFIG_FILE = "templates/s3/s3-buckets-config.json";
 	public static final String LOAD_BALANCER_ALARM_CONFIG_FILE = "templates/repo/elasticbeanstalk-alarms-config.json";
 	public static final String ATHENA_QUERIES_CONFIG_FILE = "templates/repo/athena-queries-config.json";
+	public static final String ROUTE53_DNS_CONFIG_FILE = "templates/dns/dns.json";
 
 	/**
 	 * A VPC peering role ARN must start with this prefix.

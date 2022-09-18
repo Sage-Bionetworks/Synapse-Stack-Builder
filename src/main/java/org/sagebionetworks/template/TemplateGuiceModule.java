@@ -4,12 +4,15 @@ import static org.sagebionetworks.template.Constants.ATHENA_QUERIES_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.KINESIS_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARM_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.ROUTE53_DNS_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.S3_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.SNS_AND_SQS_CONFIG_FILE;
 import static org.sagebionetworks.template.TemplateUtils.loadFromJsonFile;
 
 import java.io.IOException;
 
+import com.amazonaws.services.route53.AmazonRoute53;
+import com.amazonaws.services.route53.AmazonRoute53ClientBuilder;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.velocity.app.VelocityEngine;
@@ -25,6 +28,10 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.config.RepoConfigurationImpl;
 import org.sagebionetworks.template.config.SynapseAdminClientFactory;
 import org.sagebionetworks.template.config.SynapseAdminClientFactoryImpl;
+import org.sagebionetworks.template.dns.DnsBuilder;
+import org.sagebionetworks.template.dns.DnsBuilderImpl;
+import org.sagebionetworks.template.dns.DnsConfig;
+import org.sagebionetworks.template.dns.DnsConfigValidator;
 import org.sagebionetworks.template.docs.SynapseDocsBuilder;
 import org.sagebionetworks.template.docs.SynapseDocsBuilderImpl;
 import org.sagebionetworks.template.global.GlobalResourcesBuilder;
@@ -144,6 +151,8 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(SynapseDocsBuilder.class).to(SynapseDocsBuilderImpl.class);
 		bind(UserDocsRedirectorBuilder.class).to(UserDocsRedirectorBuilderImpl.class);
 		bind(CdnBuilder.class).to(CdnBuilderImpl.class);
+		bind(Route53Client.class).to(Route53ClientImpl.class);
+		bind(DnsBuilder.class).to(DnsBuilderImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 		
@@ -241,6 +250,14 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		builder.withRegion(Regions.US_EAST_1);
 		return builder.build();
 	}
+
+	@Provides
+	public AmazonRoute53 provideAmazonRoute53() {
+		AmazonRoute53ClientBuilder builder = AmazonRoute53ClientBuilder.standard();
+		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
+		builder.withRegion(Regions.US_EAST_1);
+		return builder.build();
+	}
 	
 	@Provides
 	public VelocityEngine velocityEngineProvider() {
@@ -290,6 +307,11 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public S3TransferManagerFactory provideS3TransferManagerFactory(AmazonS3 s3Client) {
 		return new S3TransferManagerFactoryImpl(s3Client);
+	}
+
+	@Provides
+	public DnsConfig dnsConfigProvider() throws IOException {
+		return new DnsConfigValidator(loadFromJsonFile(ROUTE53_DNS_CONFIG_FILE, DnsConfig.class)).validate();
 	}
 	
 }
