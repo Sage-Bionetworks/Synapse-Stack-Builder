@@ -160,7 +160,6 @@ class Route53ClientImplTest {
 	void testToResourceRecordSetCAAlias() {
 		when(mockRecordSetDescriptor.getName()).thenReturn("someName");
 		when(mockRecordSetDescriptor.getType()).thenReturn("A");
-		when(mockRecordSetDescriptor.getTtl()).thenReturn("900");
 		when(mockAliasTargetDescriptor.getDnsName()).thenReturn("someDnsTarget");
 		when(mockAliasTargetDescriptor.getEvaluateTargetHealth()).thenReturn(false);
 		when(mockAliasTargetDescriptor.getHostedZoneId()).thenReturn("targetZoneId");
@@ -170,7 +169,7 @@ class Route53ClientImplTest {
 		assertNotNull(rrs);
 		assertEquals("someName", rrs.getName());
 		assertEquals("A", rrs.getType());
-		assertEquals(900, rrs.getTTL());
+		assertNull(rrs.getTTL());
 		assertEquals(0, rrs.getResourceRecords().size());
 		assertNotNull(rrs.getAliasTarget());
 		assertEquals("someDnsTarget", rrs.getAliasTarget().getDNSName());

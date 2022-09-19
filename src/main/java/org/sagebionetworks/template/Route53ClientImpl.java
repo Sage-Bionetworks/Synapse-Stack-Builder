@@ -78,7 +78,9 @@ public class Route53ClientImpl implements Route53Client {
 		ResourceRecordSet resourceRecordSet = new ResourceRecordSet();
 		resourceRecordSet.setName(descriptor.getName());
 		resourceRecordSet.setType(descriptor.getType());
-		resourceRecordSet.setTTL(Long.parseLong(descriptor.getTtl()));
+		if (descriptor.getTtl() != null) {
+			resourceRecordSet.setTTL(Long.parseLong(descriptor.getTtl()));
+		}
 		if (descriptor.getResourceRecords() != null && descriptor.getResourceRecords().size() > 0) {
 			List<ResourceRecord> records = new ArrayList<>();
 			for (String s: descriptor.getResourceRecords()) {
