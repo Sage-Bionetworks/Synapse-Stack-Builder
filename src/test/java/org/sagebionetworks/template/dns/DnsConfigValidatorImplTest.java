@@ -1,7 +1,5 @@
 package org.sagebionetworks.template.dns;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,13 +13,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class DnsConfigValidatorTest {
+class DnsConfigValidatorImplTest {
 
 	@Mock
-	private DnsConfig mockDnsConfig;
-
+	DnsConfig mockDnsConfig;
 	@InjectMocks
-	private DnsConfigValidator dnsConfigValidator;
+	private DnsConfigValidatorImpl dnsConfigValidator;
 
 	@Mock
 	private RecordSetDescriptor mockRecordSetDescriptor;
@@ -33,7 +30,7 @@ class DnsConfigValidatorTest {
 		when(mockDnsConfig.getHostedZoneId()).thenReturn(null);
 		// call under test
 		IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
-			dnsConfigValidator.validate();
+			dnsConfigValidator.validate(mockDnsConfig);
 		});
 		assertEquals("HostedZoneId cannot be null", thrown.getMessage());
 	}
@@ -44,7 +41,7 @@ class DnsConfigValidatorTest {
 		when(mockDnsConfig.getRecordSetDescriptorList()).thenReturn(null);
 		// call under test
 		IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
-			dnsConfigValidator.validate();
+			dnsConfigValidator.validate(mockDnsConfig);
 		});
 		assertEquals("RecordSetDescriptorList cannot be null", thrown.getMessage());
 	}
@@ -55,7 +52,7 @@ class DnsConfigValidatorTest {
 		when(mockDnsConfig.getRecordSetDescriptorList()).thenReturn(new ArrayList<RecordSetDescriptor>());
 		// call under test
 		IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
-			dnsConfigValidator.validate();
+			dnsConfigValidator.validate(mockDnsConfig);
 		});
 		assertEquals("RecordSetDescriptorList cannot be empty", thrown.getMessage());
 	}

@@ -34,7 +34,7 @@ class DnsBuilderImplTest {
 		when(mockConfig.getHostedZoneId()).thenReturn("hostedZoneId");
 		when(mockConfig.getRecordSetDescriptorList()).thenReturn(mockRecordSetDescriptors);
 		// call under test
-		dnsBuilder.buildDns();
+		dnsBuilder.buildDns(mockConfig);
 		verify(mockRoute53Client).changeResourceRecordSets(eq("hostedZoneId"), eq(mockRecordSetDescriptors), eq(10));
 	}
 

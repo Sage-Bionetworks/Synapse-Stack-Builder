@@ -14,6 +14,6 @@ public class DnsBuilderIntegrationTest {
 	void testLoadConfig() {
 		Injector injector = Guice.createInjector(new TemplateGuiceModule());
 
-		DnsConfig config = injector.getInstance(DnsConfig.class);
+		DnsConfigValidator validator = injector.getInstance(DnsConfigValidator.class);
 	}
 }

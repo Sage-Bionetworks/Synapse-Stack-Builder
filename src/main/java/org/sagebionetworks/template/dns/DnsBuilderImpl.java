@@ -19,17 +19,20 @@ import static org.sagebionetworks.template.Constants.ROUTE53_DNS_CONFIG_FILE;
 public class DnsBuilderImpl implements DnsBuilder {
 
 	public static final int BATCH_SIZE = 10;
-	@Inject
-	private DnsConfig dnsConfig;
 
 	@Inject
 	Route53Client route53Client;
 
 	@Override
-	public void buildDns() {
+	public void buildDns(DnsConfig dnsConfig) {
 		String hostedZoneId = dnsConfig.getHostedZoneId();
 		route53Client.changeResourceRecordSets(hostedZoneId, dnsConfig.getRecordSetDescriptorList(), BATCH_SIZE);
 	}
 
+	@Override
+	public void listDns(DnsConfig dnsConfig) {
+		String hostedZoneId = dnsConfig.getHostedZoneId();
+		List<ResourceRecordSet> resourceRecordSets = route53Client.listResourceRecordSets(hostedZoneId);
+	}
 
 }

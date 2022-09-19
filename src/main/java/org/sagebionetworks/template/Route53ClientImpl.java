@@ -20,6 +20,7 @@ import org.sagebionetworks.template.dns.RecordSetDescriptor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.stream.Collectors;
 
 public class Route53ClientImpl implements Route53Client {
 
@@ -36,7 +37,7 @@ public class Route53ClientImpl implements Route53Client {
 
 	@Override
 	public List<ResourceRecordSet> listResourceRecordSets(String hostedZoneId) {
-		ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withHostedZoneId(hostedZoneId).withMaxItems("10");
+		ListResourceRecordSetsRequest req = new ListResourceRecordSetsRequest().withHostedZoneId(hostedZoneId).withMaxItems("200");
 		ListResourceRecordSetsResult res = r53Client.listResourceRecordSets(req);
 		return res.getResourceRecordSets();
 	}
@@ -92,6 +93,20 @@ public class Route53ClientImpl implements Route53Client {
 			resourceRecordSet.setAliasTarget(aliasTarget);
 		}
 		return resourceRecordSet;
+	}
+
+	public static RecordSetDescriptor recordSetDescriptor(ResourceRecordSet resourceRecordSet) {
+		RecordSetDescriptor descriptor = new RecordSetDescriptor();
+		descriptor.setName(resourceRecordSet.getName());
+		descriptor.setType(resourceRecordSet.getType());
+		descriptor.setTtl(resourceRecordSet.getTTL().toString());
+		if (resourceRecordSet.getResourceRecords().size() > 0) {
+			descriptor.setResourceRecords(resourceRecordSet.getResourceRecords().stream().map(r -> r.getValue()).collect(Collectors.toList()));
+		}
+		if (resourceRecordSet.getAliasTarget() != null) {
+			descriptor.setAliasTargetDescriptor(new AliasTargetDescriptor(resourceRecordSet.getAliasTarget()));
+		}
+		return descriptor;
 	}
 
 }

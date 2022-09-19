@@ -1,5 +1,7 @@
 package org.sagebionetworks.template.dns;
 
+import com.amazonaws.services.route53.model.AliasTarget;
+
 import java.util.Objects;
 
 public class AliasTargetDescriptor {
@@ -19,6 +21,12 @@ public class AliasTargetDescriptor {
 		DnsName = dnsName;
 		this.evaluateTargetHealth = evaluateTargetHealth;
 		this.hostedZoneId = hostedZoneId;
+	}
+
+	public AliasTargetDescriptor(AliasTarget target) {
+		this.hostedZoneId = target.getHostedZoneId();
+		this.evaluateTargetHealth = target.getEvaluateTargetHealth();
+		this.DnsName = target.getDNSName();
 	}
 
 	public String getDnsName() {
@@ -65,5 +73,13 @@ public class AliasTargetDescriptor {
 				", evaluateTargetHealth=" + evaluateTargetHealth +
 				", hostedZoneId='" + hostedZoneId + '\'' +
 				'}';
+	}
+
+	public AliasTarget toAliasTarget() {
+		AliasTarget target = new AliasTarget();
+		target.setDNSName(this.getDnsName());
+		target.setHostedZoneId(this.getHostedZoneId());
+		target.setEvaluateTargetHealth(this.getEvaluateTargetHealth());
+		return target;
 	}
 }

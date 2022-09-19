@@ -2,6 +2,7 @@ package org.sagebionetworks.template.dns;
 
 public interface DnsBuilder {
 
-	void buildDns();
+	void buildDns(DnsConfig dnsConfig);
+	void listDns(DnsConfig dnsConfig);
 
 }

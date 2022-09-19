@@ -13,6 +13,7 @@ import java.io.IOException;
 
 import com.amazonaws.services.route53.AmazonRoute53;
 import com.amazonaws.services.route53.AmazonRoute53ClientBuilder;
+import com.sun.tracing.dtrace.ProviderAttributes;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.velocity.app.VelocityEngine;
@@ -32,6 +33,7 @@ import org.sagebionetworks.template.dns.DnsBuilder;
 import org.sagebionetworks.template.dns.DnsBuilderImpl;
 import org.sagebionetworks.template.dns.DnsConfig;
 import org.sagebionetworks.template.dns.DnsConfigValidator;
+import org.sagebionetworks.template.dns.DnsConfigValidatorImpl;
 import org.sagebionetworks.template.docs.SynapseDocsBuilder;
 import org.sagebionetworks.template.docs.SynapseDocsBuilderImpl;
 import org.sagebionetworks.template.global.GlobalResourcesBuilder;
@@ -102,8 +104,6 @@ import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
@@ -310,8 +310,8 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 
 	@Provides
-	public DnsConfig dnsConfigProvider() throws IOException {
-		return new DnsConfigValidator(loadFromJsonFile(ROUTE53_DNS_CONFIG_FILE, DnsConfig.class)).validate();
+	public DnsConfigValidator dnsConfigValidator() throws IOException {
+		return new DnsConfigValidatorImpl();
 	}
-	
+
 }
