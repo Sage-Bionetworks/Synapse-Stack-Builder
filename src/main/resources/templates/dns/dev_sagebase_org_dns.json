@@ -1,0 +1,26 @@
+{
+"hostedZoneId" : "Z28CDXGXBHW4TT",
+"recordSetDescriptorList" : [{
+"name" : "dev-id-generator-db-orange.dev.sagebase.org.",
+"type" : "CNAME",
+"ttl" : "300",
+"resourceRecords" : [ "dev-id-generator-db-orange.cdusmwdhqvso.us-east-1.rds.amazonaws.com" ],
+"aliasTargetDescriptor" : null
+}, {
+"name" : "docker-staging.dev.sagebase.org.",
+"type" : "CNAME",
+"ttl" : "300",
+"resourceRecords" : [ "staging-docker-registry-alb-1250841618.us-east-1.elb.amazonaws.com" ],
+"aliasTargetDescriptor" : null
+}, {
+"name" : "signin.dev.sagebase.org.",
+"type" : "A",
+"ttl" : null,
+"resourceRecords" : null,
+"aliasTargetDescriptor" : {
+"evaluateTargetHealth" : false,
+"hostedZoneId" : "Z2FDTNDATAQYW2",
+"dnsName" : "d6p20mjqzppdo.cloudfront.net."
+}
+} ]
+}

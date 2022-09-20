@@ -45,10 +45,6 @@ public class DnsConfigValidatorImpl implements DnsConfigValidator {
 			if (aliasTargetDescriptor.getEvaluateTargetHealth() != false) {
 				throw new IllegalArgumentException("AliasTarget.EvaluateTargetHealth must be false");
 			}
-			if (! "Z2FDTNDATAQYW2".equals(aliasTargetDescriptor.getHostedZoneId())) {
-				throw new IllegalArgumentException("AliasTarget.HostedZoneId must be 'Z2FDTNDATAQYW2'");
-			}
-			// TTL will be ignored for alias targets
 		} else {
 			if (descriptor.getResourceRecords() == null) {
 				throw new IllegalArgumentException("If alias target not specified then resourceRecords must be specified");

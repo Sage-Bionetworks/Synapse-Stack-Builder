@@ -6,9 +6,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONObject;
 
 public class TemplateUtils {
 	
@@ -41,6 +43,11 @@ public class TemplateUtils {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public static String prettyPrint(Object obj) throws IOException {
+		OBJECT_MAPPER.enable(SerializationFeature.INDENT_OUTPUT);
+		return OBJECT_MAPPER.writeValueAsString(obj);
 	}
 	
 }

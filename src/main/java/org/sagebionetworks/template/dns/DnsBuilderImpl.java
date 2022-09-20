@@ -1,20 +1,14 @@
 package org.sagebionetworks.template.dns;
 
-import com.amazonaws.services.route53.model.ResourceRecord;
 import com.amazonaws.services.route53.model.ResourceRecordSet;
 import com.google.inject.Inject;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.sagebionetworks.template.Route53Client;
+import org.sagebionetworks.template.TemplateUtils;
 
-import java.io.InputStream;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.Arrays;
 import java.util.List;
-
-import static org.sagebionetworks.template.Constants.ROUTE53_DNS_CONFIG_FILE;
 
 public class DnsBuilderImpl implements DnsBuilder {
 
@@ -30,9 +24,18 @@ public class DnsBuilderImpl implements DnsBuilder {
 	}
 
 	@Override
-	public void listDns(String hostedZoneId) {
+	public void listDns(String hostedZoneId) throws IOException {
+		List<RecordSetDescriptor> recordSetDescriptors = new ArrayList<>();
 		List<ResourceRecordSet> resourceRecordSets = route53Client.listResourceRecordSets(hostedZoneId);
-		System.out.println(resourceRecordSets);
+		for (ResourceRecordSet rrs: resourceRecordSets) {
+			if (! Arrays.asList("A", "CNAME").contains(rrs.getType())) {
+				continue;
+			}
+			RecordSetDescriptor descriptor = new RecordSetDescriptor(rrs);
+			recordSetDescriptors.add(descriptor);
+		}
+		DnsConfig dnsConfig = new DnsConfig(hostedZoneId, recordSetDescriptors);
+		System.out.println(TemplateUtils.prettyPrint(dnsConfig));
 	}
 
 }

@@ -24,8 +24,10 @@ public class RecordSetDescriptor {
 	public RecordSetDescriptor(ResourceRecordSet resourceRecordSet) {
 		this.setName(resourceRecordSet.getName());
 		this.setType(resourceRecordSet.getType());
-		this.setTtl(resourceRecordSet.getTTL().toString());
-		if (resourceRecordSet.getResourceRecords().size() > 0) {
+		if (resourceRecordSet.getTTL() != null) {
+			this.setTtl(resourceRecordSet.getTTL().toString());
+		}
+		if (resourceRecordSet.getResourceRecords() != null && resourceRecordSet.getResourceRecords().size() > 0) {
 			this.setResourceRecords(resourceRecordSet.getResourceRecords().stream().map(r -> r.getValue()).collect(Collectors.toList()));
 		}
 		if (resourceRecordSet.getAliasTarget() != null) {

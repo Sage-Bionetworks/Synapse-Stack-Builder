@@ -6,16 +6,10 @@ import java.util.Objects;
 
 public class AliasTargetDescriptor {
 	private String DnsName;
-	private Boolean evaluateTargetHealth; // Should always be false for aliases
-	private String hostedZoneId; // Z2FDTNDATAQYW2 for aliases
+	private Boolean evaluateTargetHealth; // Should always be false for aliases to Cloudfront distributions
+	private String hostedZoneId; // Z2FDTNDATAQYW2 for aliases to Cloudfront distribution
 
 	public AliasTargetDescriptor() {}
-
-	public AliasTargetDescriptor(String dnsName) {
-		DnsName = dnsName;
-		this.evaluateTargetHealth = false;
-		this.hostedZoneId = "Z2FDTNDATAQYW2";
-	}
 
 	public AliasTargetDescriptor(String dnsName, Boolean evaluateTargetHealth, String hostedZoneId) {
 		DnsName = dnsName;
