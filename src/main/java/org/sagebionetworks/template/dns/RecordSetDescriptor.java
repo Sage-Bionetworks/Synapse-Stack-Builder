@@ -1,14 +1,19 @@
 package org.sagebionetworks.template.dns;
 
+import com.amazonaws.services.route53.model.AliasTarget;
+import com.amazonaws.services.route53.model.ResourceRecord;
+import com.amazonaws.services.route53.model.ResourceRecordSet;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class RecordSetDescriptor {
 
-	private String comment;
-	private String hostedZoneId;
 	private String name;
 	private String type;
+	// null if alias
 	private String ttl;
 	// Should be one or the other for following
 	private List<String> resourceRecords;
@@ -16,26 +21,16 @@ public class RecordSetDescriptor {
 
 	public RecordSetDescriptor() {}
 
-	public RecordSetDescriptor(String hostedZoneId, String name, String type) {
-		this.hostedZoneId = hostedZoneId;
-		this.name = name;
-		this.type = type;
-	}
-
-	public String getComment() {
-		return comment;
-	}
-
-	public void setComment(String comment) {
-		this.comment = comment;
-	}
-
-	public String getHostedZoneId() {
-		return hostedZoneId;
-	}
-
-	public void setHostedZoneId(String hostZoneId) {
-		this.hostedZoneId = hostZoneId;
+	public RecordSetDescriptor(ResourceRecordSet resourceRecordSet) {
+		this.setName(resourceRecordSet.getName());
+		this.setType(resourceRecordSet.getType());
+		this.setTtl(resourceRecordSet.getTTL().toString());
+		if (resourceRecordSet.getResourceRecords().size() > 0) {
+			this.setResourceRecords(resourceRecordSet.getResourceRecords().stream().map(r -> r.getValue()).collect(Collectors.toList()));
+		}
+		if (resourceRecordSet.getAliasTarget() != null) {
+			this.setAliasTargetDescriptor(new AliasTargetDescriptor(resourceRecordSet.getAliasTarget()));
+		}
 	}
 
 	public String getName() {
@@ -83,25 +78,46 @@ public class RecordSetDescriptor {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		RecordSetDescriptor that = (RecordSetDescriptor) o;
-		return Objects.equals(comment, that.comment) && Objects.equals(hostedZoneId, that.hostedZoneId) && name.equals(that.name) && type.equals(that.type) && Objects.equals(ttl, that.ttl) && Objects.equals(resourceRecords, that.resourceRecords) && Objects.equals(aliasTargetDescriptor, that.aliasTargetDescriptor);
+		return name.equals(that.name) && type.equals(that.type) && Objects.equals(ttl, that.ttl) && Objects.equals(resourceRecords, that.resourceRecords) && Objects.equals(aliasTargetDescriptor, that.aliasTargetDescriptor);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(comment, hostedZoneId, name, type, ttl, resourceRecords, aliasTargetDescriptor);
+		return Objects.hash(name, type, ttl, resourceRecords, aliasTargetDescriptor);
 	}
 
 	@Override
 	public String toString() {
 		return "RecordSetDescriptor{" +
-				"comment='" + comment + '\'' +
-				", hostZoneId='" + hostedZoneId + '\'' +
 				", name='" + name + '\'' +
 				", type='" + type + '\'' +
 				", ttl='" + ttl + '\'' +
 				", resourceRecords=" + resourceRecords +
 				", aliasTargetDescriptor=" + aliasTargetDescriptor +
 				'}';
+	}
+
+	public ResourceRecordSet toResourceRecordSet() {
+		ResourceRecordSet resourceRecordSet = new ResourceRecordSet();
+		resourceRecordSet.setName(this.getName());
+		resourceRecordSet.setType(this.getType());
+		if (this.getTtl() != null) {
+			resourceRecordSet.setTTL(Long.parseLong(this.getTtl()));
+		}
+		if (this.getResourceRecords() != null && this.getResourceRecords().size() > 0) {
+			List<ResourceRecord> records = new ArrayList<>();
+			for (String s: this.getResourceRecords()) {
+				ResourceRecord rec = new ResourceRecord().withValue(s);
+				records.add(rec);
+			}
+			resourceRecordSet.setResourceRecords(records);
+		}
+		if (this.getAliasTargetDescriptor() != null) {
+			AliasTargetDescriptor desc = this.getAliasTargetDescriptor();
+			AliasTarget aliasTarget = new AliasTarget().withDNSName(desc.getDnsName()).withHostedZoneId(desc.getHostedZoneId()).withEvaluateTargetHealth(desc.getEvaluateTargetHealth());
+			resourceRecordSet.setAliasTarget(aliasTarget);
+		}
+		return resourceRecordSet;
 	}
 }
 

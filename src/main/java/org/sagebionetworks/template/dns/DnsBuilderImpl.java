@@ -30,9 +30,9 @@ public class DnsBuilderImpl implements DnsBuilder {
 	}
 
 	@Override
-	public void listDns(DnsConfig dnsConfig) {
-		String hostedZoneId = dnsConfig.getHostedZoneId();
+	public void listDns(String hostedZoneId) {
 		List<ResourceRecordSet> resourceRecordSets = route53Client.listResourceRecordSets(hostedZoneId);
+		System.out.println(resourceRecordSets);
 	}
 
 }

@@ -48,7 +48,7 @@ public class Route53ClientImpl implements Route53Client {
 		List<Change> changes = new ArrayList<>();
 		int count = batchSize;
 		while (it.hasNext()) {
-			ResourceRecordSet resourceRecordSet = toResourceRecordSet(it.next());
+			ResourceRecordSet resourceRecordSet = it.next().toResourceRecordSet();
 			Change change = new Change(ChangeAction.UPSERT, resourceRecordSet);
 			changes.add(change);
 			count -= 1;
@@ -72,43 +72,6 @@ public class Route53ClientImpl implements Route53Client {
 		request.setChangeBatch(batch);
 		request.setHostedZoneId(hostedZoneId);
 		ChangeResourceRecordSetsResult result = r53Client.changeResourceRecordSets(request);
-	}
-
-	public static ResourceRecordSet toResourceRecordSet(RecordSetDescriptor descriptor) {
-		ResourceRecordSet resourceRecordSet = new ResourceRecordSet();
-		resourceRecordSet.setName(descriptor.getName());
-		resourceRecordSet.setType(descriptor.getType());
-		if (descriptor.getTtl() != null) {
-			resourceRecordSet.setTTL(Long.parseLong(descriptor.getTtl()));
-		}
-		if (descriptor.getResourceRecords() != null && descriptor.getResourceRecords().size() > 0) {
-			List<ResourceRecord> records = new ArrayList<>();
-			for (String s: descriptor.getResourceRecords()) {
-				ResourceRecord rec = new ResourceRecord().withValue(s);
-				records.add(rec);
-			}
-			resourceRecordSet.setResourceRecords(records);
-		}
-		if (descriptor.getAliasTargetDescriptor() != null) {
-			AliasTargetDescriptor desc = descriptor.getAliasTargetDescriptor();
-			AliasTarget aliasTarget = new AliasTarget().withDNSName(desc.getDnsName()).withHostedZoneId(desc.getHostedZoneId()).withEvaluateTargetHealth(desc.getEvaluateTargetHealth());
-			resourceRecordSet.setAliasTarget(aliasTarget);
-		}
-		return resourceRecordSet;
-	}
-
-	public static RecordSetDescriptor recordSetDescriptor(ResourceRecordSet resourceRecordSet) {
-		RecordSetDescriptor descriptor = new RecordSetDescriptor();
-		descriptor.setName(resourceRecordSet.getName());
-		descriptor.setType(resourceRecordSet.getType());
-		descriptor.setTtl(resourceRecordSet.getTTL().toString());
-		if (resourceRecordSet.getResourceRecords().size() > 0) {
-			descriptor.setResourceRecords(resourceRecordSet.getResourceRecords().stream().map(r -> r.getValue()).collect(Collectors.toList()));
-		}
-		if (resourceRecordSet.getAliasTarget() != null) {
-			descriptor.setAliasTargetDescriptor(new AliasTargetDescriptor(resourceRecordSet.getAliasTarget()));
-		}
-		return descriptor;
 	}
 
 }

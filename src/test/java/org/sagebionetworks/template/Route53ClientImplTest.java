@@ -5,7 +5,6 @@ import com.amazonaws.services.route53.model.Change;
 import com.amazonaws.services.route53.model.ChangeAction;
 import com.amazonaws.services.route53.model.ChangeResourceRecordSetsRequest;
 import com.amazonaws.services.route53.model.ResourceRecordSet;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,7 +19,6 @@ import org.sagebionetworks.template.dns.RecordSetDescriptor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -36,31 +34,35 @@ class Route53ClientImplTest {
 	private AmazonRoute53 mockR53Client;
 
 	@Mock
-	private Configuration mockConfig;
+	private  LoggerFactory mockLoggerFactory;
 
 	@Mock
-	private  LoggerFactory mockLoggerFactory;
+	private Configuration mockConfig;
 
 	@InjectMocks
 	private Route53ClientImpl route53Client;
 
-	@Mock
-	private RecordSetDescriptor mockRecordSetDescriptor;
-	@Mock
-	private AliasTargetDescriptor mockAliasTargetDescriptor;
+	private RecordSetDescriptor recordSetDescriptor;
+	private AliasTargetDescriptor aliasTargetDescriptor;
 
 	@Captor
 	private ArgumentCaptor<ChangeResourceRecordSetsRequest> changeResourceRecordSetsRequestArgumentCaptor;
 
+	@BeforeEach
+	void setup() {
+		recordSetDescriptor = new RecordSetDescriptor();
+		aliasTargetDescriptor = new AliasTargetDescriptor();
+	}
+
 	@Test
 	void testBatchingMoreThanBatchSizeChangeResourceRecordSets() {
-		when(mockAliasTargetDescriptor.getDnsName()).thenReturn("target1");
-		when(mockRecordSetDescriptor.getTtl()).thenReturn("900");
+		aliasTargetDescriptor.setDnsName("target1");
+		recordSetDescriptor.setTtl("900");
 		// 2 records, batches of 1
-		when(mockRecordSetDescriptor.getAliasTargetDescriptor()).thenReturn(mockAliasTargetDescriptor, mockAliasTargetDescriptor);
+		recordSetDescriptor.setAliasTargetDescriptor(aliasTargetDescriptor);
 		List<RecordSetDescriptor> descriptors = new ArrayList<>();
-		descriptors.add(mockRecordSetDescriptor);
-		descriptors.add(mockRecordSetDescriptor);
+		descriptors.add(recordSetDescriptor);
+		descriptors.add(recordSetDescriptor);
 		// call under test
 		route53Client.changeResourceRecordSets("hostedZoneId", descriptors, 1);
 		// 2 calls, 2 batches of 1 record
@@ -86,13 +88,13 @@ class Route53ClientImplTest {
 
 	@Test
 	void testBatchingEqualsBatchSizeChangeResourceRecordSets() {
-		when(mockAliasTargetDescriptor.getDnsName()).thenReturn("target1");
-		when(mockRecordSetDescriptor.getTtl()).thenReturn("900");
+		aliasTargetDescriptor.setDnsName("target1");
+		recordSetDescriptor.setTtl("900");
 		// 2 records, batches of 2
-		when(mockRecordSetDescriptor.getAliasTargetDescriptor()).thenReturn(mockAliasTargetDescriptor, mockAliasTargetDescriptor);
+		recordSetDescriptor.setAliasTargetDescriptor(aliasTargetDescriptor);
 		List<RecordSetDescriptor> descriptors = new ArrayList<>();
-		descriptors.add(mockRecordSetDescriptor);
-		descriptors.add(mockRecordSetDescriptor);
+		descriptors.add(recordSetDescriptor);
+		descriptors.add(recordSetDescriptor);
 		// call under test
 		route53Client.changeResourceRecordSets("hostedZoneId", descriptors, 2);
 		// 1 call, 1 batch of 2 records
@@ -104,12 +106,12 @@ class Route53ClientImplTest {
 
 	@Test
 	void testBatchingLessThanBatchSizeChangeResourceRecordSets() {
-		when(mockAliasTargetDescriptor.getDnsName()).thenReturn("target1");
-		when(mockRecordSetDescriptor.getTtl()).thenReturn("900");
+		aliasTargetDescriptor.setDnsName("target1");
+		recordSetDescriptor.setTtl("900");
 		// 1 record, batches of 2
-		when(mockRecordSetDescriptor.getAliasTargetDescriptor()).thenReturn(mockAliasTargetDescriptor);
+		recordSetDescriptor.setAliasTargetDescriptor(aliasTargetDescriptor);
 		List<RecordSetDescriptor> descriptors = new ArrayList<>();
-		descriptors.add(mockRecordSetDescriptor);
+		descriptors.add(recordSetDescriptor);
 		// call under test
 		route53Client.changeResourceRecordSets("hostedZoneId", descriptors, 2);
 		// 1 call, 1 batch of 1 record
@@ -117,64 +119,6 @@ class Route53ClientImplTest {
 		assertEquals(1, changeResourceRecordSetsRequestArgumentCaptor.getAllValues().size());
 		ChangeResourceRecordSetsRequest req = changeResourceRecordSetsRequestArgumentCaptor.getValue();
 		assertEquals(1, req.getChangeBatch().getChanges().size());
-	}
-
-	@Test
-	void testToResourceRecordSetCNAME() {
-		when(mockRecordSetDescriptor.getName()).thenReturn("someName");
-		when(mockRecordSetDescriptor.getType()).thenReturn("CNAME");
-		when(mockRecordSetDescriptor.getTtl()).thenReturn("900");
-		when(mockRecordSetDescriptor.getResourceRecords()).thenReturn(Collections.singletonList("someValue"));
-		// call under test
-		ResourceRecordSet rrs = Route53ClientImpl.toResourceRecordSet(mockRecordSetDescriptor);
-		assertNotNull(rrs);
-		assertEquals("someName", rrs.getName());
-		assertEquals("CNAME", rrs.getType());
-		assertEquals(900, rrs.getTTL());
-		assertNull(rrs.getAliasTarget());
-		assertNotNull(rrs.getResourceRecords());
-		assertEquals(1, rrs.getResourceRecords().size());
-		assertEquals("someValue", rrs.getResourceRecords().get(0).getValue());
-	}
-
-	@Test
-	void testToResourceRecordSetCANotAlias() {
-		when(mockRecordSetDescriptor.getName()).thenReturn("someName");
-		when(mockRecordSetDescriptor.getType()).thenReturn("A");
-		when(mockRecordSetDescriptor.getTtl()).thenReturn("900");
-		when(mockRecordSetDescriptor.getResourceRecords()).thenReturn(Arrays.asList("1.2.3.4", "1.5.6.7"));
-		// call under test
-		ResourceRecordSet rrs = Route53ClientImpl.toResourceRecordSet(mockRecordSetDescriptor);
-		assertNotNull(rrs);
-		assertEquals("someName", rrs.getName());
-		assertEquals("A", rrs.getType());
-		assertEquals(900, rrs.getTTL());
-		assertNull(rrs.getAliasTarget());
-		assertNotNull(rrs.getResourceRecords());
-		assertEquals(2, rrs.getResourceRecords().size());
-		assertEquals("1.2.3.4", rrs.getResourceRecords().get(0).getValue());
-		assertEquals("1.5.6.7", rrs.getResourceRecords().get(1).getValue());
-	}
-
-	@Test
-	void testToResourceRecordSetCAAlias() {
-		when(mockRecordSetDescriptor.getName()).thenReturn("someName");
-		when(mockRecordSetDescriptor.getType()).thenReturn("A");
-		when(mockAliasTargetDescriptor.getDnsName()).thenReturn("someDnsTarget");
-		when(mockAliasTargetDescriptor.getEvaluateTargetHealth()).thenReturn(false);
-		when(mockAliasTargetDescriptor.getHostedZoneId()).thenReturn("targetZoneId");
-		when(mockRecordSetDescriptor.getAliasTargetDescriptor()).thenReturn(mockAliasTargetDescriptor);
-		// call under test
-		ResourceRecordSet rrs = Route53ClientImpl.toResourceRecordSet(mockRecordSetDescriptor);
-		assertNotNull(rrs);
-		assertEquals("someName", rrs.getName());
-		assertEquals("A", rrs.getType());
-		assertNull(rrs.getTTL());
-		assertEquals(0, rrs.getResourceRecords().size());
-		assertNotNull(rrs.getAliasTarget());
-		assertEquals("someDnsTarget", rrs.getAliasTarget().getDNSName());
-		assertFalse(rrs.getAliasTarget().getEvaluateTargetHealth());
-		assertEquals("targetZoneId", rrs.getAliasTarget().getHostedZoneId());
 	}
 
 }
