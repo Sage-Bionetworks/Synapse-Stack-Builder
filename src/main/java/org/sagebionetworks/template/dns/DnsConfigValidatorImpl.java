@@ -42,9 +42,6 @@ public class DnsConfigValidatorImpl implements DnsConfigValidator {
 			if (aliasTargetDescriptor.getDnsName() == null) {
 				throw new IllegalArgumentException("AliasTarget.DnsName cannot be null");
 			}
-			if (aliasTargetDescriptor.getEvaluateTargetHealth() != false) {
-				throw new IllegalArgumentException("AliasTarget.EvaluateTargetHealth must be false");
-			}
 		} else {
 			if (descriptor.getResourceRecords() == null) {
 				throw new IllegalArgumentException("If alias target not specified then resourceRecords must be specified");

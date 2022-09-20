@@ -118,37 +118,6 @@ class DnsConfigValidatorImplTest {
 	}
 
 	@Test
-	void testValidateRecordSetDescriptorAliasEvalHealthTrue() {
-		when(mockRecordSetDescriptor.getName()).thenReturn("dnsName");
-		when(mockRecordSetDescriptor.getType()).thenReturn("A");
-		when(mockAliasTargetDescriptor.getDnsName()).thenReturn("targetDnsName");
-		when(mockAliasTargetDescriptor.getEvaluateTargetHealth()).thenReturn(true);
-		when(mockRecordSetDescriptor.getAliasTargetDescriptor()).thenReturn(mockAliasTargetDescriptor);
-		when(mockRecordSetDescriptor.getResourceRecords()).thenReturn(null);
-		// call under test
-		IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
-			dnsConfigValidator.validateRecordSetDescriptor(mockRecordSetDescriptor);
-		});
-		assertEquals("AliasTarget.EvaluateTargetHealth must be false", thrown.getMessage());
-	}
-
-	@Test
-	void testValidateRecordSetDescriptorAliasBadHostedZoneId() {
-		when(mockRecordSetDescriptor.getName()).thenReturn("dnsName");
-		when(mockRecordSetDescriptor.getType()).thenReturn("A");
-		when(mockAliasTargetDescriptor.getDnsName()).thenReturn("targetDnsName");
-		when(mockAliasTargetDescriptor.getEvaluateTargetHealth()).thenReturn(false);
-		when(mockAliasTargetDescriptor.getHostedZoneId()).thenReturn("someRandomeZone");
-		when(mockRecordSetDescriptor.getAliasTargetDescriptor()).thenReturn(mockAliasTargetDescriptor);
-		when(mockRecordSetDescriptor.getResourceRecords()).thenReturn(null);
-		// call under test
-		IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
-			dnsConfigValidator.validateRecordSetDescriptor(mockRecordSetDescriptor);
-		});
-		assertEquals("AliasTarget.HostedZoneId must be 'Z2FDTNDATAQYW2'", thrown.getMessage());
-	}
-
-	@Test
 	void testValidateRecordSetDescriptorNotAliasNoRecords() {
 		when(mockRecordSetDescriptor.getName()).thenReturn("dnsName");
 		when(mockRecordSetDescriptor.getType()).thenReturn("A");
