@@ -6,7 +6,6 @@ import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_DESCRIPTORS
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
-import static org.sagebionetworks.template.Constants.ENCRYPTED_AMI_IMAGE_ID;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
 import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PREFIX;
@@ -84,8 +83,7 @@ import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
-import org.sagebionetworks.template.repo.beanstalk.image.encrypt.ElasticBeanstalkDefaultAMIEncrypter;
-import org.sagebionetworks.template.repo.beanstalk.image.encrypt.ElasticBeanstalkEncryptedPlatformInfo;
+import org.sagebionetworks.template.repo.beanstalk.ElasticBeanstalkSolutionStackNameProvider;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
 
 import com.amazonaws.services.cloudformation.model.Output;
@@ -107,7 +105,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	SecretBuilder secretBuilder;
 	WebACLBuilder aclBuilder;
 	Set<VelocityContextProvider> contextProviders;
-	ElasticBeanstalkDefaultAMIEncrypter elasticBeanstalkDefaultAMIEncrypter;
+	ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkSolutionStackNameProvider;
 	StackTagsProvider stackTagsProvider;
 	CloudwatchLogsVelocityContextProvider cwlContextProvider;
 	AWSElasticBeanstalk beanstalkClient;
@@ -116,7 +114,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
 										 RepoConfiguration configuration, LoggerFactory loggerFactory, ArtifactCopy artifactCopy,
 										 SecretBuilder secretBuilder, WebACLBuilder aclBuilder, Set<VelocityContextProvider> contextProviders,
-										 ElasticBeanstalkDefaultAMIEncrypter elasticBeanstalkDefaultAMIEncrypter,
+										 ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkDefaultAMIEncrypter,
 										 StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
 										 Ec2Client ec2Client, AWSElasticBeanstalk beanstalkClient) {
 		super();
@@ -129,7 +127,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.secretBuilder = secretBuilder;
 		this.aclBuilder = aclBuilder;
 		this.contextProviders = contextProviders;
-		this.elasticBeanstalkDefaultAMIEncrypter = elasticBeanstalkDefaultAMIEncrypter;
+		this.elasticBeanstalkSolutionStackNameProvider = elasticBeanstalkDefaultAMIEncrypter;
 		this.stackTagsProvider = stackTagsProvider;
 		this.cwlContextProvider = cloudwatchLogsVelocityContextProvider;
 		this.beanstalkClient = beanstalkClient;
@@ -222,9 +220,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		String javaVersion = config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA);
 		String tomcatVersion = config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT);
 		String linuxVersion = getActualBeanstalkAmazonLinuxPlatform();
-		ElasticBeanstalkEncryptedPlatformInfo elasticBeanstalkEncryptedPlatformInfo = elasticBeanstalkDefaultAMIEncrypter.getEncryptedElasticBeanstalkAMI(tomcatVersion, javaVersion, linuxVersion);
-		context.put(SOLUTION_STACK_NAME, elasticBeanstalkEncryptedPlatformInfo.getSolutionStackName());
-		context.put(ENCRYPTED_AMI_IMAGE_ID, elasticBeanstalkEncryptedPlatformInfo.getEncryptedAmiId());
+		String solutionStackName = elasticBeanstalkSolutionStackNameProvider.getSolutionStackName(tomcatVersion, javaVersion, linuxVersion);
+		context.put(SOLUTION_STACK_NAME, solutionStackName);
 
 		// oauth
 		context.put(OAUTH_ENDPOINT, config.getProperty(PROPERTY_KEY_OAUTH_ENDPOINT));

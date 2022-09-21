@@ -41,11 +41,6 @@
 					},
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
-						"OptionName": "ImageId",
-						"Value": "${encryptedImageId}"
-					},
-					{
-						"Namespace": "aws:autoscaling:launchconfiguration",
 						"OptionName": "RootVolumeType",
 						"Value": "gp2"
 					},
