@@ -11,6 +11,7 @@ import com.amazonaws.services.route53.model.ListResourceRecordSetsRequest;
 import com.amazonaws.services.route53.model.ListResourceRecordSetsResult;
 import com.amazonaws.services.route53.model.ResourceRecord;
 import com.amazonaws.services.route53.model.ResourceRecordSet;
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.template.config.Configuration;
@@ -44,26 +45,15 @@ public class Route53ClientImpl implements Route53Client {
 
 	@Override
 	public void changeResourceRecordSets(String hostedZoneId, List<RecordSetDescriptor> recordSetDescriptors, int batchSize) {
-		ListIterator<RecordSetDescriptor> it = recordSetDescriptors.listIterator();
-		List<Change> changes = new ArrayList<>();
-		int count = batchSize;
-		while (it.hasNext()) {
-			ResourceRecordSet resourceRecordSet = it.next().toResourceRecordSet();
-			Change change = new Change(ChangeAction.UPSERT, resourceRecordSet);
-			changes.add(change);
-			count -= 1;
-			if (count == 0) { // We have a batch
-				submitBatch(hostedZoneId, changes);
-				if (it.hasNext()) {
-					count = batchSize;
-					changes = new ArrayList<>();
-				}
-			}
-		}
-		// Last batch
-		if (count > 0) {
-			submitBatch(hostedZoneId, changes);
-		}
+		List<List<RecordSetDescriptor>> batchedDescriptors = Lists.partition(recordSetDescriptors, batchSize);
+		batchedDescriptors.stream().map(l -> buildChangesList(l)).forEach(cl -> submitBatch(hostedZoneId, cl));
+	}
+
+	List<Change> buildChangesList(List<RecordSetDescriptor> l) {
+		List<Change> changes = l.stream().map(rd -> rd.toResourceRecordSet())
+				.map(rrs -> new Change(ChangeAction.UPSERT, rrs))
+				.collect(Collectors.toList());
+		return changes;
 	}
 
 	void submitBatch(String hostedZoneId, List<Change> changes) {
