@@ -25,7 +25,7 @@ public class RecordSetDescriptor {
 		this.setName(resourceRecordSet.getName());
 		this.setType(resourceRecordSet.getType());
 		if (resourceRecordSet.getTTL() != null) {
-			this.setTtl(resourceRecordSet.getTTL().toString());
+			this.setTTL(resourceRecordSet.getTTL().toString());
 		}
 		if (resourceRecordSet.getResourceRecords() != null && resourceRecordSet.getResourceRecords().size() > 0) {
 			this.setResourceRecords(resourceRecordSet.getResourceRecords().stream().map(r -> r.getValue()).collect(Collectors.toList()));
@@ -40,6 +40,9 @@ public class RecordSetDescriptor {
 	}
 
 	public void setName(String name) {
+		if (name == null) {
+			throw new IllegalArgumentException("Name cannot be null");
+		}
 		this.name = name;
 	}
 
@@ -48,14 +51,18 @@ public class RecordSetDescriptor {
 	}
 
 	public void setType(String type) {
+		if (type == null) {
+			throw new IllegalArgumentException("Type cannot be null");
+		}
 		this.type = type;
 	}
 
-	public String getTtl() {
+	public String getTTL() {
 		return ttl;
 	}
 
-	public void setTtl(String ttl) {
+	// can be null
+	public void setTTL(String ttl) {
 		this.ttl = ttl;
 	}
 
@@ -63,6 +70,7 @@ public class RecordSetDescriptor {
 		return resourceRecords;
 	}
 
+	// can be null
 	public void setResourceRecords(List<String> resourceRecords) {
 		this.resourceRecords = resourceRecords;
 	}
@@ -71,6 +79,7 @@ public class RecordSetDescriptor {
 		return aliasTargetDescriptor;
 	}
 
+	// can be null
 	public void setAliasTargetDescriptor(AliasTargetDescriptor aliasTargetDescriptor) {
 		this.aliasTargetDescriptor = aliasTargetDescriptor;
 	}
@@ -103,8 +112,8 @@ public class RecordSetDescriptor {
 		ResourceRecordSet resourceRecordSet = new ResourceRecordSet();
 		resourceRecordSet.setName(this.getName());
 		resourceRecordSet.setType(this.getType());
-		if (this.getTtl() != null) {
-			resourceRecordSet.setTTL(Long.parseLong(this.getTtl()));
+		if (this.getTTL() != null) {
+			resourceRecordSet.setTTL(Long.parseLong(this.getTTL()));
 		}
 		if (this.getResourceRecords() != null && this.getResourceRecords().size() > 0) {
 			List<ResourceRecord> records = new ArrayList<>();

@@ -5,30 +5,27 @@ import com.amazonaws.services.route53.model.AliasTarget;
 import java.util.Objects;
 
 public class AliasTargetDescriptor {
-	private String DnsName;
+	private String dnsName;
 	private Boolean evaluateTargetHealth; // Should always be false for aliases to Cloudfront distributions
 	private String hostedZoneId; // Z2FDTNDATAQYW2 for aliases to Cloudfront distribution
 
 	public AliasTargetDescriptor() {}
 
-	public AliasTargetDescriptor(String dnsName, Boolean evaluateTargetHealth, String hostedZoneId) {
-		DnsName = dnsName;
-		this.evaluateTargetHealth = evaluateTargetHealth;
-		this.hostedZoneId = hostedZoneId;
-	}
-
 	public AliasTargetDescriptor(AliasTarget target) {
-		this.hostedZoneId = target.getHostedZoneId();
-		this.evaluateTargetHealth = target.getEvaluateTargetHealth();
-		this.DnsName = target.getDNSName();
+		this.setHostedZoneId(target.getHostedZoneId());
+		this.setEvaluateTargetHealth(target.getEvaluateTargetHealth());
+		this.setDnsName(target.getDNSName());
 	}
 
 	public String getDnsName() {
-		return DnsName;
+		return dnsName;
 	}
 
 	public void setDnsName(String dnsName) {
-		DnsName = dnsName;
+		if (dnsName == null) {
+			throw new IllegalArgumentException("DNSName cannot be null");
+		}
+		this.dnsName = dnsName;
 	}
 
 	public Boolean getEvaluateTargetHealth() {
@@ -36,6 +33,9 @@ public class AliasTargetDescriptor {
 	}
 
 	public void setEvaluateTargetHealth(Boolean evaluateTargetHealth) {
+		if (evaluateTargetHealth == null) {
+			throw new IllegalArgumentException("EvaluateTargetHealth cannot be null");
+		}
 		this.evaluateTargetHealth = evaluateTargetHealth;
 	}
 
@@ -44,6 +44,9 @@ public class AliasTargetDescriptor {
 	}
 
 	public void setHostedZoneId(String hostedZoneId) {
+		if (hostedZoneId == null) {
+			throw new IllegalArgumentException("HostedZoneId cannot be null");
+		}
 		this.hostedZoneId = hostedZoneId;
 	}
 
@@ -52,18 +55,18 @@ public class AliasTargetDescriptor {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		AliasTargetDescriptor that = (AliasTargetDescriptor) o;
-		return DnsName.equals(that.DnsName) && evaluateTargetHealth.equals(that.evaluateTargetHealth) && hostedZoneId.equals(that.hostedZoneId);
+		return dnsName.equals(that.dnsName) && evaluateTargetHealth.equals(that.evaluateTargetHealth) && hostedZoneId.equals(that.hostedZoneId);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(DnsName, evaluateTargetHealth, hostedZoneId);
+		return Objects.hash(dnsName, evaluateTargetHealth, hostedZoneId);
 	}
 
 	@Override
 	public String toString() {
 		return "AliasTargetDescriptor{" +
-				"DnsName='" + DnsName + '\'' +
+				"DnsName='" + dnsName + '\'' +
 				", evaluateTargetHealth=" + evaluateTargetHealth +
 				", hostedZoneId='" + hostedZoneId + '\'' +
 				'}';

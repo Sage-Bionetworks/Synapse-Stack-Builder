@@ -24,7 +24,7 @@ class RecordSetDescriptorTest {
 	void testToResourceRecordSetCNAME() {
 		recordSetDescriptor.setName("someName");
 		recordSetDescriptor.setType("CNAME");
-		recordSetDescriptor.setTtl("900");
+		recordSetDescriptor.setTTL("900");
 		recordSetDescriptor.setResourceRecords(Collections.singletonList("someValue"));
 		// call under test
 		ResourceRecordSet rrs = recordSetDescriptor.toResourceRecordSet();
@@ -42,7 +42,7 @@ class RecordSetDescriptorTest {
 	void testToResourceRecordSetANotAlias() {
 		recordSetDescriptor.setName("someName");
 		recordSetDescriptor.setType("A");
-		recordSetDescriptor.setTtl("900");
+		recordSetDescriptor.setTTL("900");
 		recordSetDescriptor.setResourceRecords(Arrays.asList("1.2.3.4", "1.5.6.7"));
 		// call under test
 		ResourceRecordSet rrs = recordSetDescriptor.toResourceRecordSet();

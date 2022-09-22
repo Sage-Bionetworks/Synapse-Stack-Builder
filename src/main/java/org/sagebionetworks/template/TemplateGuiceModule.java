@@ -30,9 +30,6 @@ import org.sagebionetworks.template.config.SynapseAdminClientFactory;
 import org.sagebionetworks.template.config.SynapseAdminClientFactoryImpl;
 import org.sagebionetworks.template.dns.DnsBuilder;
 import org.sagebionetworks.template.dns.DnsBuilderImpl;
-import org.sagebionetworks.template.dns.DnsConfig;
-import org.sagebionetworks.template.dns.DnsConfigValidator;
-import org.sagebionetworks.template.dns.DnsConfigValidatorImpl;
 import org.sagebionetworks.template.docs.SynapseDocsBuilder;
 import org.sagebionetworks.template.docs.SynapseDocsBuilderImpl;
 import org.sagebionetworks.template.global.GlobalResourcesBuilder;
@@ -306,11 +303,6 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public S3TransferManagerFactory provideS3TransferManagerFactory(AmazonS3 s3Client) {
 		return new S3TransferManagerFactoryImpl(s3Client);
-	}
-
-	@Provides
-	public DnsConfigValidator dnsConfigValidator() throws IOException {
-		return new DnsConfigValidatorImpl();
 	}
 
 }

@@ -18,14 +18,12 @@ import org.sagebionetworks.template.dns.AliasTargetDescriptor;
 import org.sagebionetworks.template.dns.RecordSetDescriptor;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class Route53ClientImplTest {
@@ -57,7 +55,7 @@ class Route53ClientImplTest {
 	@Test
 	void testBatchingMoreThanBatchSizeChangeResourceRecordSets() {
 		aliasTargetDescriptor.setDnsName("target1");
-		recordSetDescriptor.setTtl("900");
+		recordSetDescriptor.setTTL("900");
 		// 2 records, batches of 1
 		recordSetDescriptor.setAliasTargetDescriptor(aliasTargetDescriptor);
 		List<RecordSetDescriptor> descriptors = new ArrayList<>();
@@ -89,7 +87,7 @@ class Route53ClientImplTest {
 	@Test
 	void testBatchingEqualsBatchSizeChangeResourceRecordSets() {
 		aliasTargetDescriptor.setDnsName("target1");
-		recordSetDescriptor.setTtl("900");
+		recordSetDescriptor.setTTL("900");
 		// 2 records, batches of 2
 		recordSetDescriptor.setAliasTargetDescriptor(aliasTargetDescriptor);
 		List<RecordSetDescriptor> descriptors = new ArrayList<>();
@@ -107,7 +105,7 @@ class Route53ClientImplTest {
 	@Test
 	void testBatchingLessThanBatchSizeChangeResourceRecordSets() {
 		aliasTargetDescriptor.setDnsName("target1");
-		recordSetDescriptor.setTtl("900");
+		recordSetDescriptor.setTTL("900");
 		// 1 record, batches of 2
 		recordSetDescriptor.setAliasTargetDescriptor(aliasTargetDescriptor);
 		List<RecordSetDescriptor> descriptors = new ArrayList<>();
