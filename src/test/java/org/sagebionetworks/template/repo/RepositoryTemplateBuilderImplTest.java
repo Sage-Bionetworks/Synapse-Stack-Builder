@@ -90,8 +90,7 @@ import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
-import org.sagebionetworks.template.repo.beanstalk.image.encrypt.ElasticBeanstalkDefaultAMIEncrypter;
-import org.sagebionetworks.template.repo.beanstalk.image.encrypt.ElasticBeanstalkEncryptedPlatformInfo;
+import org.sagebionetworks.template.repo.beanstalk.ElasticBeanstalkSolutionStackNameProvider;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogDescriptor;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
@@ -130,7 +129,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Mock
 	VelocityContextProvider mockContextProvider2;
 	@Mock
-	ElasticBeanstalkDefaultAMIEncrypter mockElasticBeanstalkDefaultAMIEncrypter;
+	ElasticBeanstalkSolutionStackNameProvider mockElasticBeanstalkSolutionStackNameProvider;
 	@Mock
 	StackTagsProvider mockStackTagsProvider;
 	@Mock
@@ -170,7 +169,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder, mockACLBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
-				mockElasticBeanstalkDefaultAMIEncrypter, mockStackTagsProvider, mockCwlContextProvider, mockEc2Client, mockBeanstalkClient);
+				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider, mockEc2Client, mockBeanstalkClient);
 
 		stack = "dev";
 		instance = "101";
@@ -235,8 +234,8 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
 		when(mockSecretBuilder.getCMKAlias()).thenReturn(keyAlias);
 
-		when(mockElasticBeanstalkDefaultAMIEncrypter.getEncryptedElasticBeanstalkAMI(anyString(), anyString(), anyString()))
-				.thenReturn(new ElasticBeanstalkEncryptedPlatformInfo("ami-123", "fake stack"));
+		when(mockElasticBeanstalkSolutionStackNameProvider.getSolutionStackName(anyString(), anyString(), anyString()))
+				.thenReturn("fake stack");
 
 		// CloudwatchLogs
 		List<LogDescriptor> logDescriptors = this.generateLogDescriptors();
