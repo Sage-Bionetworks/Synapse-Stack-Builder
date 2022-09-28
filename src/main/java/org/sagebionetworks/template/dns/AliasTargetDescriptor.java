@@ -10,45 +10,33 @@ public class AliasTargetDescriptor {
 	private String hostedZoneId; // Z2FDTNDATAQYW2 for aliases to Cloudfront distribution
 
 	public AliasTargetDescriptor() {}
+	public AliasTargetDescriptor(String dnsName, Boolean evaluateTargetHealth, String hostedZoneId) {
+		this.dnsName = dnsName;
+		this.evaluateTargetHealth = evaluateTargetHealth;
+		this.hostedZoneId = hostedZoneId;
+	}
 
 	public AliasTargetDescriptor(AliasTarget target) {
-		this.setHostedZoneId(target.getHostedZoneId());
-		this.setEvaluateTargetHealth(target.getEvaluateTargetHealth());
-		this.setDnsName(target.getDNSName());
+		this.hostedZoneId = target.getHostedZoneId();
+		this.evaluateTargetHealth = target.getEvaluateTargetHealth();
+		this.dnsName = target.getDNSName();
 	}
 
 	public String getDnsName() {
 		return dnsName;
 	}
 
-	public void setDnsName(String dnsName) {
-		if (dnsName == null) {
-			throw new IllegalArgumentException("DNSName cannot be null");
-		}
-		this.dnsName = dnsName;
-	}
+	public void setDnsName(String dnsName) { this.dnsName = dnsName; }
 
 	public Boolean getEvaluateTargetHealth() {
 		return evaluateTargetHealth;
 	}
-
-	public void setEvaluateTargetHealth(Boolean evaluateTargetHealth) {
-		if (evaluateTargetHealth == null) {
-			throw new IllegalArgumentException("EvaluateTargetHealth cannot be null");
-		}
-		this.evaluateTargetHealth = evaluateTargetHealth;
-	}
+	public void setEvaluateTargetHealth(Boolean evaluateTargetHealth) { this.evaluateTargetHealth = evaluateTargetHealth; }
 
 	public String getHostedZoneId() {
 		return hostedZoneId;
 	}
-
-	public void setHostedZoneId(String hostedZoneId) {
-		if (hostedZoneId == null) {
-			throw new IllegalArgumentException("HostedZoneId cannot be null");
-		}
-		this.hostedZoneId = hostedZoneId;
-	}
+	public void setHostedZoneId(String hostedZoneId) { this.hostedZoneId = hostedZoneId; }
 
 	@Override
 	public boolean equals(Object o) {

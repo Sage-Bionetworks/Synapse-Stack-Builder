@@ -13,77 +13,65 @@ public class RecordSetDescriptor {
 
 	private String name;
 	private String type;
-	// null if alias
-	private String ttl;
+	private String ttl; 	// null if alias
+
 	// Should be one or the other for following
 	private List<String> resourceRecords;
 	private AliasTargetDescriptor aliasTargetDescriptor;
 
 	public RecordSetDescriptor() {}
 
+	public RecordSetDescriptor(String name, String type, String ttl, List<String> resourceRecords, AliasTargetDescriptor aliasTargetDescriptor) {
+		this.name = name;
+		this.type = type;
+		this.ttl = ttl;
+		this.resourceRecords = resourceRecords;
+		this.aliasTargetDescriptor = aliasTargetDescriptor;
+	}
+
 	public RecordSetDescriptor(ResourceRecordSet resourceRecordSet) {
-		this.setName(resourceRecordSet.getName());
-		this.setType(resourceRecordSet.getType());
-		if (resourceRecordSet.getTTL() != null) {
-			this.setTTL(resourceRecordSet.getTTL().toString());
-		}
+		this.name = resourceRecordSet.getName();
+		this.type = resourceRecordSet.getType();
+		this.ttl = resourceRecordSet.getTTL() != null ? resourceRecordSet.getTTL().toString() : null;
 		if (resourceRecordSet.getResourceRecords() != null && resourceRecordSet.getResourceRecords().size() > 0) {
-			this.setResourceRecords(resourceRecordSet.getResourceRecords().stream().map(r -> r.getValue()).collect(Collectors.toList()));
+			this.resourceRecords = resourceRecordSet.getResourceRecords().stream().map(r -> r.getValue()).collect(Collectors.toList());
+		} else {
+			this.resourceRecords = null;
 		}
-		if (resourceRecordSet.getAliasTarget() != null) {
-			this.setAliasTargetDescriptor(new AliasTargetDescriptor(resourceRecordSet.getAliasTarget()));
-		}
+		this.aliasTargetDescriptor = resourceRecordSet.getAliasTarget() != null ? new AliasTargetDescriptor(resourceRecordSet.getAliasTarget()) : null;
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public void setName(String name) {
-		if (name == null) {
-			throw new IllegalArgumentException("Name cannot be null");
-		}
-		this.name = name;
-	}
+	public void setName(String name) { this.name = name; }
 
-	public String getType() {
-		return type;
-	}
+	public String getType() { return type; }
 
-	public void setType(String type) {
-		if (type == null) {
-			throw new IllegalArgumentException("Type cannot be null");
-		}
-		this.type = type;
-	}
+	public void setType(String type) { this.type = type; }
 
 	public String getTTL() {
 		return ttl;
 	}
 
-	// can be null
-	public void setTTL(String ttl) {
-		this.ttl = ttl;
-	}
+	public void setTTL(String ttl) { this.ttl = ttl; }
 
+	// can be null
 	public List<String> getResourceRecords() {
 		return resourceRecords;
 	}
 
-	// can be null
-	public void setResourceRecords(List<String> resourceRecords) {
-		this.resourceRecords = resourceRecords;
-	}
+	public void setResourceRecords(List<String>resourceRecords) { this.resourceRecords = resourceRecords; }
 
+	// can be null
 	public AliasTargetDescriptor getAliasTargetDescriptor() {
 		return aliasTargetDescriptor;
 	}
 
-	// can be null
-	public void setAliasTargetDescriptor(AliasTargetDescriptor aliasTargetDescriptor) {
-		this.aliasTargetDescriptor = aliasTargetDescriptor;
-	}
+	public void setAliasTargetDescriptor(AliasTargetDescriptor aliasTargetDescriptor) { this.aliasTargetDescriptor = aliasTargetDescriptor; }
 
+	// can be null
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;

@@ -17,16 +17,15 @@ import static org.sagebionetworks.template.Constants.ROUTE53_PROD_SAGEBASE_ORG_D
 import static org.sagebionetworks.template.Constants.ROUTE53_PROD_SYNAPSE_ORG_DNS_CONFIG_FILE;
 
 @ExtendWith(MockitoExtension.class)
-public class DnsBuilderIntegrationTest {
+public class DnsConfigBuilderIntegrationTest {
 
 	@Test
 	void testLoadConfigs() throws Exception{
-		Injector injector = Guice.createInjector(new TemplateGuiceModule());
-		DnsConfig dnsConfig = TemplateUtils.loadFromJsonFile(ROUTE53_DEV_SAGEBASE_ORG_DNS_CONFIG_FILE, DnsConfig.class);
-		dnsConfig = TemplateUtils.loadFromJsonFile(ROUTE53_PROD_SAGEBASE_ORG_DNS_CONFIG_FILE, DnsConfig.class);
-		dnsConfig = TemplateUtils.loadFromJsonFile(ROUTE53_PROD_SYNAPSE_ORG_DNS_CONFIG_FILE, DnsConfig.class);
-		dnsConfig = TemplateUtils.loadFromJsonFile(ROUTE53_PROD_PORTALS_DNS_CONFIG_FILE, DnsConfig.class);
-		dnsConfig = TemplateUtils.loadFromJsonFile(ROUTE53_PROD_DOCS_CLIENT_DNS_CONFIG_FILE, DnsConfig.class);
+		DnsConfigBuilder dnsConfigBuilder = TemplateUtils.loadFromJsonFile(ROUTE53_DEV_SAGEBASE_ORG_DNS_CONFIG_FILE, DnsConfigBuilder.class);
+		dnsConfigBuilder = TemplateUtils.loadFromJsonFile(ROUTE53_PROD_SAGEBASE_ORG_DNS_CONFIG_FILE, DnsConfigBuilder.class);
+		dnsConfigBuilder = TemplateUtils.loadFromJsonFile(ROUTE53_PROD_SYNAPSE_ORG_DNS_CONFIG_FILE, DnsConfigBuilder.class);
+		dnsConfigBuilder = TemplateUtils.loadFromJsonFile(ROUTE53_PROD_PORTALS_DNS_CONFIG_FILE, DnsConfigBuilder.class);
+		dnsConfigBuilder = TemplateUtils.loadFromJsonFile(ROUTE53_PROD_DOCS_CLIENT_DNS_CONFIG_FILE, DnsConfigBuilder.class);
 	}
 
 	@Test
