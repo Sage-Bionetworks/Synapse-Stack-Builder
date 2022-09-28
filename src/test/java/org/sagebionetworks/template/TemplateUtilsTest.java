@@ -51,10 +51,7 @@ public class TemplateUtilsTest {
 
 	@Test
 	public void testPrettyPrint() throws Exception{
-		RecordSetDescriptor rsd = new RecordSetDescriptor();
-		rsd.setName("name");
-		rsd.setType("CNAME");
-		rsd.setResourceRecords(Collections.singletonList("somename.org"));
+		RecordSetDescriptor rsd = new RecordSetDescriptor("name", "CNAME", "900", Collections.singletonList("somename.org"), null);
 		DnsConfig dnsConfig = new DnsConfig("hostedZoneId", Collections.singletonList(rsd));
 		String s = TemplateUtils.prettyPrint(dnsConfig);
 		System.out.println(s);
