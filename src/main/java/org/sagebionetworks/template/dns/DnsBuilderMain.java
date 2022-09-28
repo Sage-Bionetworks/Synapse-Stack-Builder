@@ -20,7 +20,9 @@ public class DnsBuilderMain {
 		String dnsConfigFileResourcePath = String.format(TEMPLATE_RESOURCE_PATH, prefix);
 		DnsBuilderMain.validateResourcePath(dnsConfigFileResourcePath);
 		Injector injector = Guice.createInjector(new TemplateGuiceModule());
-		DnsConfig dnsConfig = loadFromJsonFile(dnsConfigFileResourcePath, DnsConfig.class);
+		// loads row config
+		DnsConfigBuilder dnsConfigBuilder = loadFromJsonFile(dnsConfigFileResourcePath, DnsConfigBuilder.class);
+		DnsConfig dnsConfig = dnsConfigBuilder.build(); // validates and creates actual config
 		DnsBuilder builder = injector.getInstance(DnsBuilder.class);
 		builder.buildDns(dnsConfig);
 	}
