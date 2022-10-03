@@ -20,6 +20,14 @@ public class Constants {
 	public static final String LOAD_BALANCER_ALARM_CONFIG_FILE = "templates/repo/elasticbeanstalk-alarms-config.json";
 	public static final String ATHENA_QUERIES_CONFIG_FILE = "templates/repo/athena-queries-config.json";
 
+	public static final String ROUTE53_DEV_SAGEBASE_ORG_DNS_CONFIG_FILE = "templates/dns/dev_sagebase_org_dns.json";
+	public static final String ROUTE53_PROD_SAGEBASE_ORG_DNS_CONFIG_FILE = "templates/dns/prod_sagebase_org_dns.json";
+	public static final String ROUTE53_PROD_SYNAPSE_ORG_DNS_CONFIG_FILE = "templates/dns/prod_synapse_org_dns.json";
+
+	public static final String ROUTE53_PROD_PORTALS_DNS_CONFIG_FILE = "templates/dns/prod_portals_dns.json";
+	public static final String ROUTE53_PROD_DOCS_CLIENT_DNS_CONFIG_FILE = "templates/dns/prod_docs_clients_dns.json";
+	public static final String TEMPLATE_RESOURCE_PATH = "templates/dns/%s_dns.json";
+
 	/**
 	 * A VPC peering role ARN must start with this prefix.
 	 */

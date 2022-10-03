@@ -1,0 +1,128 @@
+{
+"hostedZoneId" : "ZHAU99KV4A1WU",
+"recordSetDescriptorList" : [ {
+"name" : "synapse.org.",
+"type" : "A",
+"ttl" : null,
+"resourceRecords" : null,
+"aliasTargetDescriptor" : {
+"evaluateTargetHealth" : false,
+"hostedZoneId" : "Z2FDTNDATAQYW2",
+"dnsName" : "d1z7yi1j4ng1zt.cloudfront.net."
+}
+}, {
+"name" : "5d3dmgrxj4tu4epen7ukxbw3vdqeknav._domainkey.synapse.org.",
+"type" : "CNAME",
+"ttl" : "1800",
+"resourceRecords" : [ "5d3dmgrxj4tu4epen7ukxbw3vdqeknav.dkim.amazonses.com" ],
+"aliasTargetDescriptor" : null
+}, {
+"name" : "foobr5fwecr6qgydsewtnz7vq4s4trsi._domainkey.synapse.org.",
+"type" : "CNAME",
+"ttl" : "1800",
+"resourceRecords" : [ "foobr5fwecr6qgydsewtnz7vq4s4trsi.dkim.amazonses.com" ],
+"aliasTargetDescriptor" : null
+}, {
+"name" : "ukngnqn5ve2dpqzmo7mjuqsgwyz4tloc._domainkey.synapse.org.",
+"type" : "CNAME",
+"ttl" : "1800",
+"resourceRecords" : [ "ukngnqn5ve2dpqzmo7mjuqsgwyz4tloc.dkim.amazonses.com" ],
+"aliasTargetDescriptor" : null
+}, {
+"name" : "cdn-staging.synapse.org.",
+"type" : "CNAME",
+"ttl" : "300",
+"resourceRecords" : [ "d3vr0zpn4l6ijy.cloudfront.net" ],
+"aliasTargetDescriptor" : null
+}, {
+"name" : "cdn-tst.synapse.org.",
+"type" : "CNAME",
+"ttl" : "300",
+"resourceRecords" : [ "d8m24tc2pmxgt.cloudfront.net" ],
+"aliasTargetDescriptor" : null
+}, {
+"name" : "cdn-www.synapse.org.",
+"type" : "CNAME",
+"ttl" : "300",
+"resourceRecords" : [ "d32cnbj3gvbaak.cloudfront.net" ],
+"aliasTargetDescriptor" : null
+}, {
+"name" : "docker.synapse.org.",
+"type" : "A",
+"ttl" : null,
+"resourceRecords" : null,
+"aliasTargetDescriptor" : {
+"evaluateTargetHealth" : false,
+"hostedZoneId" : "Z35SXDOTRQ7X7K",
+"dnsName" : "dualstack.docker-registry-alb-2044426909.us-east-1.elb.amazonaws.com."
+}
+}, {
+"name" : "nbconvert.synapse.org.",
+"type" : "CNAME",
+"ttl" : "300",
+"resourceRecords" : [ "swukhjbhuj.execute-api.us-east-1.amazonaws.com" ],
+"aliasTargetDescriptor" : null
+}, {
+"name" : "prod.synapse.org.",
+"type" : "A",
+"ttl" : null,
+"resourceRecords" : null,
+"aliasTargetDescriptor" : {
+"evaluateTargetHealth" : false,
+"hostedZoneId" : "Z2FDTNDATAQYW2",
+"dnsName" : "d1z7yi1j4ng1zt.cloudfront.net."
+}
+}, {
+"name" : "signin.synapse.org.",
+"type" : "CNAME",
+"ttl" : "300",
+"resourceRecords" : [ "prod.signin.synapse.org" ],
+"aliasTargetDescriptor" : null
+}, {
+"name" : "_ad263b9687ec33c54f8b1b3862459361.signin.synapse.org.",
+"type" : "CNAME",
+"ttl" : "300",
+"resourceRecords" : [ "_e26348fc9e6585c7a82fe591e8965873.olprtlswtu.acm-validations.aws." ],
+"aliasTargetDescriptor" : null
+}, {
+"name" : "prod.signin.synapse.org.",
+"type" : "A",
+"ttl" : null,
+"resourceRecords" : null,
+"aliasTargetDescriptor" : {
+"evaluateTargetHealth" : false,
+"hostedZoneId" : "Z2FDTNDATAQYW2",
+"dnsName" : "dtr2225dcsd6.cloudfront.net."
+}
+}, {
+"name" : "staging-signin.synapse.org.",
+"type" : "CNAME",
+"ttl" : "300",
+"resourceRecords" : [ "d2qlprrwlobypa.cloudfront.net" ],
+"aliasTargetDescriptor" : null
+}, {
+"name" : "_f0c99a6ab19e5f92269bc94506b829aa.staging-signin.synapse.org.",
+"type" : "CNAME",
+"ttl" : "300",
+"resourceRecords" : [ "_1dd55a37dd0c0e582c88dd874a6d9d93.vrztfgqhxj.acm-validations.aws." ],
+"aliasTargetDescriptor" : null
+}, {
+"name" : "staging.synapse.org.",
+"type" : "CNAME",
+"ttl" : "60",
+"resourceRecords" : [ "synapse-staging.synapse.org" ],
+"aliasTargetDescriptor" : null
+}, {
+"name" : "status.synapse.org.",
+"type" : "CNAME",
+"ttl" : "300",
+"resourceRecords" : [ "kh896k90gyvg.stspg-customer.com" ],
+"aliasTargetDescriptor" : null
+}, {
+"name" : "www.synapse.org.",
+"type" : "CNAME",
+"ttl" : "60",
+"resourceRecords" : [ "synapse-prod.synapse.org" ],
+"aliasTargetDescriptor" : null
+} ]
+}

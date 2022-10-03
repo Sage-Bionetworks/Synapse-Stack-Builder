@@ -1,0 +1,567 @@
+{
+  "hostedZoneId" : "ZHAU99KV4A1WU",
+  "recordSetDescriptorList" : [
+{
+  "name" : "_52ffb77e3d0743fb58c3d3cd9609ee4d.synapse.org.",
+  "type" : "CNAME",
+  "ttl" : "300",
+  "resourceRecords" : [ "_f89896c54548b104f6b80c195ed97a76.tljzshvwok.acm-validations.aws." ],
+  "aliasTargetDescriptor" : null
+}, {
+"name" : "_5396e9297acd619e8b911963543630b4.synapse.org.",
+"type" : "CNAME",
+"ttl" : "300",
+"resourceRecords" : [ "_7c3e08b2ef9f5b22ea1fb12282e17259.acm-validations.aws" ],
+"aliasTargetDescriptor" : null
+}, {
+"name" : "_a033d597b6353f8af965ef3798722560.synapse.org.",
+"type" : "CNAME",
+"ttl" : "300",
+"resourceRecords" : [ "_adefc78c32fa5ca6ae2d7c37d81e9908.hkvuiqjoua.acm-validations.aws." ],
+"aliasTargetDescriptor" : null
+}, {
+"name" : "_a70609a68867bd2a24c079bdffd3cbe6.synapse.org.",
+"type" : "CNAME",
+"ttl" : "300",
+"resourceRecords" : [ "_002de5152ac585a9b8aaca4195245beb.hkvuiqjoua.acm-validations.aws." ],
+"aliasTargetDescriptor" : null
+}, {
+"name" : "_b0be67bfc1a4953b932a289845cc757f.synapse.org.",
+"type" : "CNAME",
+"ttl" : "300",
+"resourceRecords" : [ "_57c67907692a8d0a62830a3a2e79445a.dhzvlrndnj.acm-validations.aws." ],
+"aliasTargetDescriptor" : null
+},
+    {
+      "name" : "adknowledgeportal.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d2ludihrr6kxy3.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "_b41b784cef6740b2441513d600d06925.adknowledgeportal.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "_e74ceb71b0f9bc36a826ffcb07d8547b.duyqrilejt.acm-validations.aws" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "prod.adknowledgeportal.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d2qnu7ezojz3wa.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "staging.adknowledgeportal.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d2nvzgv1bujfoo.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "tst.adknowledgeportal.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d3i33buerk7s0o.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "alzdrugtool.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d2xa88gmir04mg.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "_4a7da4d1aa12e434a5a5c2222135e577.alzdrugtool.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "_eabb062354560ecf4596011cf2567293.olprtlswtu.acm-validations.aws." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "staging.alzdrugtool.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d3j55d6bkgtqzx.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "api-docs.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d3bqje47p62h5o.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "api.synapse.org.",
+      "type" : "A",
+      "ttl" : null,
+      "resourceRecords" : null,
+      "aliasTargetDescriptor" : {
+        "evaluateTargetHealth" : false,
+        "hostedZoneId" : "Z2FDTNDATAQYW2",
+        "dnsName" : "datfs16vd1u27.cloudfront.net."
+      }
+    }, {
+      "name" : "_0e787175e7733654f52a31d01fe99389.arkportal.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "_2c98066be31b9d4fe8df9375e32b4f91.tdzrjlznxp.acm-validations.aws." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "prod.arkportal.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d2q4qf43o8wmox.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "staging.arkportal.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d8exj1vfhra7x.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "bridge-prod.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "60",
+      "resourceRecords" : [ "bridge-prod-38-0.prod.sagebase.org" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "bridge.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "60",
+      "resourceRecords" : [ "bridge-prod.synapse.org" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "bsmn.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "prod.bsmn.synapse.org" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "_ef554c2a53784e2fe9f9dd25b275e553.bsmn.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "_e246b9af382cf8665c2232ce31d17c69.vhzmpjdqfx.acm-validations.aws." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "prod.bsmn.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d1mqkz0z9mir5z.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "staging.bsmn.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "deval4krxvc0z.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "cancercomplexity.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "prod.cancercomplexity.synapse.org" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "_5f5d129dff83eaaf13641588b6a42d3a.cancercomplexity.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "_c15e52893b45ce64780c8e231ce7c1d2.tfmgdnztqk.acm-validations.aws." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "help.cancercomplexity.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "5921b431-c4de-4185-b9db-4b3dd620e33c.sites.scroll-viewport.addons.k15t.com." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "_644b8136bdc9cfaa92126fff00756f66.help.cancercomplexity.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "_cfbc81f23be6fb97d88a5224906dcf6a.ffbjkxtvyn.acm-validations.aws." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "prod.cancercomplexity.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "diwrd0oe2z7n9.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "staging.cancercomplexity.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d2orgipqrvgx4a.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "www.cancercomplexity.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "prod.cancercomplexity.synapse.org" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "covidrecoverycorpsresearcher.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "prod.covidrecoverycorpsresearcher.synapse.org" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "_05b6c27b4e4cf21379a76da9762e8063.covidrecoverycorpsresearcher.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "_37dd4963f0374793823b84671daf5491.auiqqraehs.acm-validations.aws." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "prod.covidrecoverycorpsresearcher.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "dtl7tum0ln7cy.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "staging.covidrecoverycorpsresearcher.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "dwij4ysiylp15.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "csbc-pson.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "prod.csbc-pson.synapse.org" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "_b16005c49fd97fbc2a1280054f402cfe.csbc-pson.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "_42dccf903c5e1c03517454dd1a7b7ae7.hkvuiqjoua.acm-validations.aws." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "dev.csbc-pson.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "staging.csbc-pson.synapse.org.s3-website-us-east-1.amazonaws.com" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "prod.csbc-pson.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d1aglspnlrwkng.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "staging.csbc-pson.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d1cbokyt9olg8d.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "cvatportal.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "cvat-elb-1540353055.us-east-1.elb.amazonaws.com" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "dashboard.synapse.org.",
+      "type" : "A",
+      "ttl" : null,
+      "resourceRecords" : null,
+      "aliasTargetDescriptor" : {
+        "evaluateTargetHealth" : false,
+        "hostedZoneId" : "Z35SXDOTRQ7X7K",
+        "dnsName" : "dualstack.dahsboard-elb-20151002-1403972305.us-east-1.elb.amazonaws.com."
+      }
+    }, {
+      "name" : "davycmcvis.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "davy-cmc-2018.us-east-1.elasticbeanstalk.com" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "dev-docs.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d273qf5g0l28p2.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "dev-python-docs.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "dev-python-docs.synapse.org.s3-website-us-east-1.amazonaws.com" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "dev-rest.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "60",
+      "resourceRecords" : [ "dev-rest.synapse.org.s3-website-us-east-1.amazonaws.com" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "dev.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d3dq1fd3l353d1.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "dhealth.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "prod.dhealth.synapse.org" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "_925e548382ea1ab7976188bd0228b339.dhealth.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "_55e42346d5005d3a6ad77cb923c96558.tfmgdnztqk.acm-validations.aws." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "help.dhealth.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "8b1eff33-0482-44c7-b133-5b724add34a6.sites.scroll-viewport.addons.k15t.com." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "_41f23fb7772717b5a13aae9e8a2d9e7e.help.dhealth.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "_f716df45f8b0210ac4e99674b8cfd5d6.btkxpdzscj.acm-validations.aws." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "prod.dhealth.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d9t3oxh59s1dm.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "staging.dhealth.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d23ety9sx9tc3v.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "_f3dfaa8e3fc0a0b453de395656c5ae2b.help.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "_3e7f25fb464670630455c2de839804d1.bbfvkzsszw.acm-validations.aws." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "htan.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "prod.htan.synapse.org" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "_11a615aeb18a3b3c54af48f584ee89d4.htan.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "_523de07859915185e7896a64856f7023.jfrzftwwjs.acm-validations.aws." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "prod.htan.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d1i0j6tve3opa8.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "staging.htan.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d2m1tuzb82b11a.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "minidream.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "minid-LoadB-1SC8XK15KP3O1-1825060515.us-east-1.elb.amazonaws.com" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "nf.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d10hi27nob8qp8.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "_18c66fe9408fa129705e69bcf0f74371.nf.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "_ac5c40b53bc30d5abde4fdd881bdc80f.tljzshvwok.acm-validations.aws." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "help.nf.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "da0aa58d-f98b-4410-9ab7-bcb0baa25fbc.sites.scroll-viewport.addons.k15t.com." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "_5b0509d469b546dfbece78646e5a0445.help.nf.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "_801163e17660a2cf337591f47b4669ab.bbfvkzsszw.acm-validations.aws." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "staging-tools.nf.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "staging.nf.synapse.org" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "staging.nf.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d1w3igdylv83jx.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "static.nf.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "dtd2lsgeuleu7.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "tools.nf.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "nf.synapse.org" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "origin.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "60",
+      "resourceRecords" : [ "synapse-prod.synapse.org" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "phccp-shiny.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "shiny-raddc2-alb-887165432.us-east-1.elb.amazonaws.com" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "psychencode.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d2a1nqg96cxt7t.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "_69731dfb3baf831f79e92ff750ec4c7e.psychencode.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "_453f167f63923e2c64fab21d4876ebdb.vhzmpjdqfx.acm-validations.aws." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "help.psychencode.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "ac191adc-1e62-4459-a487-84e0e2f7ebed.sites.scroll-viewport.addons.k15t.com." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "_06451615cfbc64e7c69dd325088d45e9.help.psychencode.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "_9587b147f5e1faa624b813b46f9b5a3c.xrchbtpdjs.acm-validations.aws." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "staging.psychencode.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d3blbthf4c5pxp.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "redash-2022.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "internal-redas-LoadB-QJIPHSWHOFWS-611667628.us-east-1.elb.amazonaws.com" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "redash-old.synapse.org.",
+      "type" : "A",
+      "ttl" : "300",
+      "resourceRecords" : [ "10.12.93.82" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "redash.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "redash-2022.synapse.org" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "redirectors.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "synapse-redictors-2018.us-east-1.elasticbeanstalk.com" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "rsconnect.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "rsconnect-alb-2136417442.us-east-1.elb.amazonaws.com" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "sftp-staging.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "sftpproxy-staging-env.elasticbeanstalk.com" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "sftp2.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "synapse-sftpproxy-2019.us-east-1.elasticbeanstalk.com" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "shiny-internal.synapse.org.",
+      "type" : "A",
+      "ttl" : "300",
+      "resourceRecords" : [ "10.5.20.187" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "shiny.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "shiny-LoadB-1OHAZSAS378QF-1248997740.us-east-1.elb.amazonaws.com" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "shinypro.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "shiny.synapse.org" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "shinyproxy.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "shinyproxy-alb-1036050845.us-east-1.elb.amazonaws.com" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "stopadportal.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d2urqeqifglv0s.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "_2633a89807523ae51ac27ea3113b6ae3.stopadportal.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "_8b9ec1161391e8c06a90849db6b53b1d.olprtlswtu.acm-validations.aws." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "staging.stopadportal.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d3lffwgzcv4e0y.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "_7a0ee99be53973432c1979a72191b97f.test-portal.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "_a2e54796ff5a86d19ccc297e4278ce3c.tfmgdnztqk.acm-validations.aws." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "wtgmhdc.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "d2onpn59zsy9br.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "_339a74f5ba3d803542f9d7eb6921ab25.wtgmhdc.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "_2a3abd704ed719f08f08530e61726dd3.nfyddsqlcy.acm-validations.aws." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "staging.wtgmhdc.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "ds2ulq3qw44ev.cloudfront.net" ],
+      "aliasTargetDescriptor" : null
+    }
+  ]
+}

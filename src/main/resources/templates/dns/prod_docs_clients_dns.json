@@ -1,0 +1,116 @@
+{
+  "hostedZoneId": "ZHAU99KV4A1WU",
+  "recordSetDescriptorList": [
+    {
+  "name" : "docs.synapse.org.",
+  "type" : "CNAME",
+  "ttl" : "3600",
+  "resourceRecords" : [ "prod.docs.synapse.org" ],
+  "aliasTargetDescriptor" : null
+}, {
+"name" : "_a9618b3ef6e47fa88dcf09e8d97270e1.docs.synapse.org.",
+"type" : "CNAME",
+"ttl" : "300",
+"resourceRecords" : [ "_3e87282aad9949a82b67f02df39146f3.vrztfgqhxj.acm-validations.aws." ],
+"aliasTargetDescriptor" : null
+}, {
+"name" : "prod.docs.synapse.org.",
+"type" : "A",
+"ttl" : null,
+"resourceRecords" : null,
+"aliasTargetDescriptor" : {
+"evaluateTargetHealth" : false,
+"hostedZoneId" : "Z2FDTNDATAQYW2",
+"dnsName" : "dmm948fki91x5.cloudfront.net."
+}
+}, {
+"name" : "staging.docs.synapse.org.",
+"type" : "A",
+"ttl" : null,
+"resourceRecords" : null,
+"aliasTargetDescriptor" : {
+"evaluateTargetHealth" : false,
+"hostedZoneId" : "Z2FDTNDATAQYW2",
+"dnsName" : "dsezpvrh4wlb7.cloudfront.net."
+}
+}, {
+"name" : "help.synapse.org.",
+"type" : "CNAME",
+"ttl" : "300",
+"resourceRecords" : [ "e739b9af-fbd7-4551-be47-ab0bfc8607d7.sites.scroll-viewport.addons.k15t.com." ],
+"aliasTargetDescriptor" : null
+}, {
+      "name" : "python-docs.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "sage-bionetworks.github.io" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "r-docs.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "sage-bionetworks.github.io" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "ran.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "ran.synapse.org.s3-website-us-east-1.amazonaws.com" ],
+      "aliasTargetDescriptor" : null
+    } , {
+      "name" : "reconnect-internal.synapse.org.",
+      "type" : "A",
+      "ttl" : "300",
+      "resourceRecords" : [ "10.23.30.207" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "rest-docs.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "prod.rest-docs.synapse.org" ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "_2b6908700212b3d2880e1104497e136a.rest-docs.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "_c15767d753276d7ad001682be4ad99fd.vrztfgqhxj.acm-validations.aws." ],
+      "aliasTargetDescriptor" : null
+    }, {
+      "name" : "prod.rest-docs.synapse.org.",
+      "type" : "A",
+      "ttl" : null,
+      "resourceRecords" : null,
+      "aliasTargetDescriptor" : {
+        "evaluateTargetHealth" : false,
+        "hostedZoneId" : "Z2FDTNDATAQYW2",
+        "dnsName" : "d1gclpxios9oc1.cloudfront.net."
+      }
+    }, {
+      "name" : "staging.rest-docs.synapse.org.",
+      "type" : "A",
+      "ttl" : null,
+      "resourceRecords" : null,
+      "aliasTargetDescriptor" : {
+        "evaluateTargetHealth" : false,
+        "hostedZoneId" : "Z2FDTNDATAQYW2",
+        "dnsName" : "d2wj5no5tjff3t.cloudfront.net."
+      }
+    }, {
+      "name" : "staging-ran.synapse.org.",
+      "type" : "A",
+      "ttl" : null,
+      "resourceRecords" : null,
+      "aliasTargetDescriptor" : {
+        "evaluateTargetHealth" : false,
+        "hostedZoneId" : "Z3AQBSTGFYJSTF",
+        "dnsName" : "s3-website-us-east-1.amazonaws.com."
+      }
+    }, {
+      "name" : "user-guides.synapse.org.",
+      "type" : "CNAME",
+      "ttl" : "300",
+      "resourceRecords" : [ "sage-bionetworks.github.io" ],
+      "aliasTargetDescriptor" : null
+    }
+  ]
+}
