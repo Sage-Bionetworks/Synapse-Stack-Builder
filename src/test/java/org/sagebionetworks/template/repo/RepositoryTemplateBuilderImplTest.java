@@ -568,18 +568,14 @@ public class RepositoryTemplateBuilderImplTest {
 	}
 
 	public void validateEnhancedMonitoring(JSONObject props, String stack, String enableEnhancedMonitoring) {
-		if ("dev".equals(stack)) {
+		if ("prod".equals(stack) && "true".equals(enableEnhancedMonitoring)) {
+			assertTrue(props.has("EnablePerformanceInsights"));
+			assertTrue(props.has("MonitoringInterval"));
+			assertTrue(props.has("MonitoringRoleArn"));
+		} else {
+			assertFalse(props.has("EnablePerformanceInsights"));
 			assertFalse(props.has("MonitoringInterval"));
 			assertFalse(props.has("MonitoringRoleArn"));
-		};
-		if ("prod".equals(stack)) {
-			if ("true".equals(enableEnhancedMonitoring)) {
-				assertTrue(props.has("MonitoringInterval"));
-				assertTrue(props.has("MonitoringRoleArn"));
-			} else {
-				assertFalse(props.has("MonitoringInterval"));
-				assertFalse(props.has("MonitoringRoleArn"));
-			}
 		}
 	}
 
