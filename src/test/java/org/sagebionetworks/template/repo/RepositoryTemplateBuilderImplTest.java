@@ -534,7 +534,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("8", properties.get("MaxAllocatedStorage"));
 		assertEquals("db.t2.small", properties.get("DBInstanceClass"));
 		assertEquals(Boolean.TRUE, properties.get("MultiAZ"));
-		validateEnhancedMonitoring(properties, stack, enableEnhancedMonitoring);
+		validateEnhancedMonitoring(properties, enableEnhancedMonitoring);
 	}
 
 	/**
@@ -553,7 +553,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(Boolean.FALSE, properties.get("MultiAZ"));
 		assertEquals(stack+"-101-table-0", properties.get("DBInstanceIdentifier"));
 		assertEquals(stack+"101", properties.get("DBName"));
-		validateEnhancedMonitoring(properties, stack, enableEnhancedMonitoring);
+		validateEnhancedMonitoring(properties, enableEnhancedMonitoring);
 		// one
 		instance = resources.getJSONObject(stack+"101Table1RepositoryDB");
 		assertNotNull(instance);
@@ -564,11 +564,11 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(Boolean.FALSE, properties.get("MultiAZ"));
 		assertEquals(stack+"-101-table-1", properties.get("DBInstanceIdentifier"));
 		assertEquals(stack+"101", properties.get("DBName"));
-		validateEnhancedMonitoring(properties, stack, enableEnhancedMonitoring);
+		validateEnhancedMonitoring(properties, enableEnhancedMonitoring);
 	}
 
-	public void validateEnhancedMonitoring(JSONObject props, String stack, String enableEnhancedMonitoring) {
-		if ("prod".equals(stack) && "true".equals(enableEnhancedMonitoring)) {
+	public void validateEnhancedMonitoring(JSONObject props, String enableEnhancedMonitoring) {
+		if ("true".equals(enableEnhancedMonitoring)) {
 			assertTrue(props.has("EnablePerformanceInsights"));
 			assertTrue(props.has("MonitoringInterval"));
 			assertTrue(props.has("MonitoringRoleArn"));

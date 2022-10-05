@@ -140,7 +140,7 @@
 					}
 				],
 				"StorageEncrypted": true
-                #if((${stack} == 'prod') && (${EnableRdsEnhancedMonitoring} == "true"))
+                #if(${EnableRdsEnhancedMonitoring} == "true")
                 ,
                 "EnablePerformanceInsights": true,
                 "MonitoringInterval": "60",
