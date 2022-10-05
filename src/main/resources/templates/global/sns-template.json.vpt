@@ -42,5 +42,25 @@
 				"Threshold" : 0.05,
 				"TreatMissingData" : "ignore"
 			}
+		},
+		"RdsEnhancedMonitoringRole": {
+		    "Type": "AWS::IAM::Role",
+            "Properties": {
+                "ManagedPolicyArns": [
+                   "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
+                ],
+                "AssumeRolePolicyDocument": {
+                    "Version": "2008-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": ["monitoring.rds.amazonaws.com"]
+                            },
+                            "Action": ["sts:AssumeRole"]
+                        }
+                    ]
+                }
+            }
 		}
 #end

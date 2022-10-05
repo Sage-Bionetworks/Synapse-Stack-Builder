@@ -149,6 +149,12 @@ public class GlobalResourcesBuilderImplTest {
         assertTrue(resources.has("SesSynapseOrgComplaintTopic"));
         assertTrue(resources.has("prodNotificationTopic"));
         assertTrue(resources.has("SesHighBounceRateAlarm"));
+        assertTrue(resources.has("RdsEnhancedMonitoringRole"));
+        JSONObject outputs = templateJSON.getJSONObject("Outputs");
+        assertTrue(outputs.has("RdsEnhancedMonitoringRole"));
+        assertTrue(outputs.has("SesSynapseOrgBounceTopic"));
+        assertTrue(outputs.has("SesSynapseOrgComplaintTopic"));
+        assertTrue(outputs.has("NotificationTopic"));
 
         verify(mockSesClient).setComplaintNotificationTopic(SES_SYNAPSE_DOMAIN, "complaintTopicArn");
         verify(mockSesClient).setBounceNotificationTopic(SES_SYNAPSE_DOMAIN, "bounceTopicArn");

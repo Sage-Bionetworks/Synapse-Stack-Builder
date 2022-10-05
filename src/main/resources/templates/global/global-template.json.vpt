@@ -65,5 +65,28 @@
 				}
 			}
 		}
+#if(${stack} == 'prod')
+        ,
+		"RdsEnhancedMonitoringRole": {
+			"Description": "Role for RDS enhanced monitoring for ${stack} stack",
+			"Value": { "Ref":"RdsEnhancedMonitoringRole"},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"RdsEnhancedMonitoringRole"
+						]
+					]
+				}
+			}
+		}
+#end
 	}
 }
