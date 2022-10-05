@@ -145,7 +145,7 @@
                 "EnablePerformanceInsights": true,
                 "MonitoringInterval": "60",
                 "MonitoringRoleArn": {
-                    "Ref": "${stack}${instance}RdsEnhancedMonitoringRole"
+                    "Fn::GetAtt" : ["${stack}${instance}RdsEnhancedMonitoringRole", "Arn"]
                 }
                 #end
 			}
