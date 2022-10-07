@@ -139,10 +139,10 @@
 						"Ref": "${stack}${instance}VpcDBSecurityGroup"
 					}
 				],
-				"StorageEncrypted": true
+				"StorageEncrypted": true,
+                "EnablePerformanceInsights": ${EnableRdsEnhancedMonitoring}
                 #if(${EnableRdsEnhancedMonitoring} == "true")
                 ,
-                "EnablePerformanceInsights": true,
                 "MonitoringInterval": "15",
                 "MonitoringRoleArn": {
                     "Fn::GetAtt" : ["${stack}${instance}RdsEnhancedMonitoringRole", "Arn"]

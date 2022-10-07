@@ -437,6 +437,7 @@ public class RepositoryTemplateBuilderImplTest {
 		JSONObject dbProps = (JSONObject)repoDB.get("Properties");
 		assertFalse(dbProps.has("DBSnapshotIdentifier"));
 		assertTrue(dbProps.has("DBName"));
+		validateResouceDatabaseInstance(resources, stack, "true");
 
 		assertTrue(resources.has("dev101Table0RepositoryDB"));
 		JSONObject tableDB = (JSONObject)resources.get("dev101Table0RepositoryDB");
@@ -568,12 +569,12 @@ public class RepositoryTemplateBuilderImplTest {
 	}
 
 	public void validateEnhancedMonitoring(JSONObject props, String enableEnhancedMonitoring) {
+		assertTrue(props.has("EnablePerformanceInsights"));
+		assertEquals(Boolean.parseBoolean(enableEnhancedMonitoring), props.get("EnablePerformanceInsights"));
 		if ("true".equals(enableEnhancedMonitoring)) {
-			assertTrue(props.has("EnablePerformanceInsights"));
 			assertTrue(props.has("MonitoringInterval"));
 			assertTrue(props.has("MonitoringRoleArn"));
 		} else {
-			assertFalse(props.has("EnablePerformanceInsights"));
 			assertFalse(props.has("MonitoringInterval"));
 			assertFalse(props.has("MonitoringRoleArn"));
 		}
