@@ -69,7 +69,27 @@
 					"log_bin_trust_function_creators": "1"
 				}
 			}
-		}
+		},
+        "${stack}${instance}RdsEnhancedMonitoringRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "ManagedPolicyArns": [
+                   "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
+                ],
+                "AssumeRolePolicyDocument": {
+                    "Version": "2008-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": ["monitoring.rds.amazonaws.com"]
+                            },
+                            "Action": ["sts:AssumeRole"]
+                        }
+                    ]
+                }
+            }
+        }
 		#foreach( $descriptor in ${databaseDescriptors} )
 		,
 			"${descriptor.resourceName}": {
@@ -77,7 +97,8 @@
 			"DependsOn": [
 				"${stack}${instance}DBSubnetGroup",
 				"${stack}${instance}VpcDBSecurityGroup",
-				"${stack}${instance}DBParameterGroup"
+				"${stack}${instance}DBParameterGroup",
+				"${stack}${instance}RdsEnhancedMonitoringRole"
 			],
 			"Properties": {
 				"AllocatedStorage": "${descriptor.allocatedStorage}",
@@ -118,7 +139,15 @@
 						"Ref": "${stack}${instance}VpcDBSecurityGroup"
 					}
 				],
-				"StorageEncrypted": true
+				"StorageEncrypted": true,
+                "EnablePerformanceInsights": ${EnableRdsEnhancedMonitoring}
+                #if(${EnableRdsEnhancedMonitoring} == "true")
+                ,
+                "MonitoringInterval": "15",
+                "MonitoringRoleArn": {
+                    "Fn::GetAtt" : ["${stack}${instance}RdsEnhancedMonitoringRole", "Arn"]
+                }
+                #end
 			}
 		}
 		#if(${stack} == 'prod')
