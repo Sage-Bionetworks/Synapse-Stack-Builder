@@ -28,6 +28,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_T
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OAUTH_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
@@ -255,9 +256,9 @@ public class RepositoryTemplateBuilderImplTest {
 		
 		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(sharedResouces);
 	}
-
 	@Test
 	public void testBuildAndDeployProd() throws InterruptedException {
+		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("true");
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		String[] noSnapshots = new String[] {NOSNAPSHOT};
 		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
@@ -287,9 +288,76 @@ public class RepositoryTemplateBuilderImplTest {
 		// database group
 		validateResouceDatabaseSubnetGroup(resources, stack);
 		// database instance
-		validateResouceDatabaseInstance(resources, stack);
+		validateResouceDatabaseInstance(resources, stack, "true");
 		// tables database
-		validateResouceTablesDatabase(resources, stack);
+		validateResouceTablesDatabase(resources, stack, "true");
+
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_WORKERS);
+		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.PORTAL);
+
+		List<String> evironmentNames = Lists.newArrayList("repo-prod-101-0", "workers-prod-101-0", "portal-prod-101-0");
+		verify(mockACLBuilder).buildWebACL(evironmentNames);
+		// prod should have alarms.
+		assertTrue(resources.has("prod101Table1RepositoryDBAlarmSwapUsage"));
+		assertTrue(resources.has("prod101Table1RepositoryDBAlarmSwapUsage"));
+		assertTrue(resources.has("prod101Table1RepositoryDBHighWriteLatency"));
+		assertTrue(resources.has("prod101Table1RepositoryDBHighCPUUtilization"));
+		assertTrue(resources.has("prod101Table1RepositoryDBLowFreeStorageSpace"));
+
+		assertTrue(resources.has("prod101RepositoryDB"));
+		JSONObject repoDB = (JSONObject)resources.get("prod101RepositoryDB");
+		JSONObject dbProps = (JSONObject)repoDB.get("Properties");
+		assertFalse(dbProps.has("DBSnapshotIdentifier"));
+		assertTrue(dbProps.has("DBName"));
+
+		assertTrue(resources.has("prod101Table0RepositoryDB"));
+		JSONObject tableDB = (JSONObject)resources.get("prod101Table0RepositoryDB");
+		JSONObject tDbProps = (JSONObject)tableDB.get("Properties");
+		assertFalse(tDbProps.has("DBSnapshotIdentifier"));
+		assertTrue(tDbProps.has("DBName"));
+
+		assertTrue(resources.has("prod101Table1RepositoryDB"));
+		tableDB = (JSONObject)resources.get("prod101Table1RepositoryDB");
+		tDbProps = (JSONObject)tableDB.get("Properties");
+		assertFalse(tDbProps.has("DBSnapshotIdentifier"));
+		assertTrue(tDbProps.has("DBName"));
+	}
+	@Test
+	public void testBuildAndDeployProdNoMonitoring() throws InterruptedException {
+		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("false");
+		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
+		String[] noSnapshots = new String[] {NOSNAPSHOT};
+		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
+		setupValidBeanstalkConfig();
+		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
+		when(mockCloudFormationClient.getOutput(anyString(), anyString())).thenReturn(String.join(",", EXPECTED_SUBNETS));
+		when(mockEc2Client.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
+		stack = "prod";
+		configureStack(stack);
+
+		// call under test
+		builder.buildAndDeploy();
+
+		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
+		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
+		CreateOrUpdateStackRequest request = list.get(0);
+		assertEquals("prod-101-shared-resources", request.getStackName());
+		assertEquals(expectedTags, request.getTags());
+		assertEquals(true, request.getEnableTerminationProtection());
+		assertNotNull(request.getParameters());
+		String bodyJSONString = request.getTemplateBody();
+		assertNotNull(bodyJSONString);
+		System.out.println(bodyJSONString);
+		JSONObject templateJson = new JSONObject(bodyJSONString);
+		JSONObject resources = templateJson.getJSONObject("Resources");
+		assertNotNull(resources);
+		// database group
+		validateResouceDatabaseSubnetGroup(resources, stack);
+		// database instance
+		validateResouceDatabaseInstance(resources, stack, "false");
+		// tables database
+		validateResouceTablesDatabase(resources, stack, "false");
 
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_WORKERS);
@@ -325,6 +393,7 @@ public class RepositoryTemplateBuilderImplTest {
 	
 	@Test
 	public void testBuildAndDeployDev() throws InterruptedException {
+		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("true"); // does not matter if dev
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		String[] noSnapshots = new String[] {NOSNAPSHOT};
 		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
@@ -368,6 +437,7 @@ public class RepositoryTemplateBuilderImplTest {
 		JSONObject dbProps = (JSONObject)repoDB.get("Properties");
 		assertFalse(dbProps.has("DBSnapshotIdentifier"));
 		assertTrue(dbProps.has("DBName"));
+		validateResouceDatabaseInstance(resources, stack, "true");
 
 		assertTrue(resources.has("dev101Table0RepositoryDB"));
 		JSONObject tableDB = (JSONObject)resources.get("dev101Table0RepositoryDB");
@@ -392,6 +462,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn("repoSnapshotIdentifier");
 		String[] tableSnaphotIdentifiers = {"table0SnapshotIdentifier", "table1SnapshotIdentifier"};
 		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(tableSnaphotIdentifiers);
+		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("false");
 		stack = "dev";
 		configureStack(stack);
 
@@ -456,7 +527,7 @@ public class RepositoryTemplateBuilderImplTest {
 	 * 
 	 * @param resources
 	 */
-	public void validateResouceDatabaseInstance(JSONObject resources, String stack) {
+	public void validateResouceDatabaseInstance(JSONObject resources, String stack, String enableEnhancedMonitoring) {
 		JSONObject instance = resources.getJSONObject(stack+"101RepositoryDB");
 		assertNotNull(instance);
 		JSONObject properties = instance.getJSONObject("Properties");
@@ -464,6 +535,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("8", properties.get("MaxAllocatedStorage"));
 		assertEquals("db.t2.small", properties.get("DBInstanceClass"));
 		assertEquals(Boolean.TRUE, properties.get("MultiAZ"));
+		validateEnhancedMonitoring(properties, enableEnhancedMonitoring);
 	}
 
 	/**
@@ -471,7 +543,7 @@ public class RepositoryTemplateBuilderImplTest {
 	 * 
 	 * @param resources
 	 */
-	public void validateResouceTablesDatabase(JSONObject resources, String stack) {
+	public void validateResouceTablesDatabase(JSONObject resources, String stack, String enableEnhancedMonitoring) {
 		// zero
 		JSONObject instance = resources.getJSONObject(stack+"101Table0RepositoryDB");
 		assertNotNull(instance);
@@ -482,6 +554,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(Boolean.FALSE, properties.get("MultiAZ"));
 		assertEquals(stack+"-101-table-0", properties.get("DBInstanceIdentifier"));
 		assertEquals(stack+"101", properties.get("DBName"));
+		validateEnhancedMonitoring(properties, enableEnhancedMonitoring);
 		// one
 		instance = resources.getJSONObject(stack+"101Table1RepositoryDB");
 		assertNotNull(instance);
@@ -492,6 +565,19 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(Boolean.FALSE, properties.get("MultiAZ"));
 		assertEquals(stack+"-101-table-1", properties.get("DBInstanceIdentifier"));
 		assertEquals(stack+"101", properties.get("DBName"));
+		validateEnhancedMonitoring(properties, enableEnhancedMonitoring);
+	}
+
+	public void validateEnhancedMonitoring(JSONObject props, String enableEnhancedMonitoring) {
+		assertTrue(props.has("EnablePerformanceInsights"));
+		assertEquals(Boolean.parseBoolean(enableEnhancedMonitoring), props.get("EnablePerformanceInsights"));
+		if ("true".equals(enableEnhancedMonitoring)) {
+			assertTrue(props.has("MonitoringInterval"));
+			assertTrue(props.has("MonitoringRoleArn"));
+		} else {
+			assertFalse(props.has("MonitoringInterval"));
+			assertFalse(props.has("MonitoringRoleArn"));
+		}
 	}
 
 	@Test

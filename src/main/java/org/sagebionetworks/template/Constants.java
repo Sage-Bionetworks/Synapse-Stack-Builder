@@ -117,6 +117,8 @@ public class Constants {
 	public static final String PROPERTY_KEY_LAMBDA_VIRUS_SCANNER_ARTIFACT_URL = "org.sagebionetworks.lambda.virusscanner.artifactUrl";
 	public static final String NOSNAPSHOT = "NOSNAPSHOT"; // value to indicate a snapshot is not used to init a stack
 
+	public static final String PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING = "org.sagebionetworks.enable.rds.enhanced.monitoring";
+
 	// tag values
 	public static final String TAG_VALUE_DEPARTMENT = "Platform";
 	public static final String TAG_VALUE_PROJECT = "Synapse";
@@ -217,6 +219,8 @@ public class Constants {
 	public static final String CTXT_KEY_ACM_CERT_ARN = "AcmCertificateArn";
 	public static final String CTXT_KEY_SUBDOMAIN_NAME = "SubDomainName";
 	public static final String CTXT_KEY_DOMAIN_NAME = "DomainName";
+
+	public static final String CTXT_ENABLE_ENHANCED_RDS_MONITORING = "EnableRdsEnhancedMonitoring";
 
 	// The secrets manager ids for the key/secret pair for the admin auth
 	public static final String SECRETS_ADMIN_KEY_ID = "org.sagebionetworks.admin.auth.key";
