@@ -43,24 +43,6 @@
 "resourceRecords" : [ "d-kr29m7gzf6.execute-api.us-east-1.amazonaws.com" ],
 "aliasTargetDescriptor" : null
 }, {
-"name" : "md.prod.sagebase.org.",
-"type" : "CNAME",
-"ttl" : "300",
-"resourceRecords" : [ "b7aad6l5wg.execute-api.us-east-1.amazonaws.com" ],
-"aliasTargetDescriptor" : null
-}, {
-"name" : "ohsu-file-proxy.prod.sagebase.org.",
-"type" : "CNAME",
-"ttl" : "300",
-"resourceRecords" : [ "ohsu-file-proxy.us-west-2.elasticbeanstalk.com" ],
-"aliasTargetDescriptor" : null
-}, {
-"name" : "oshu-test.prod.sagebase.org.",
-"type" : "CNAME",
-"ttl" : "300",
-"resourceRecords" : [ "ohsu-file-proxy.us-west-2.elasticbeanstalk.com" ],
-"aliasTargetDescriptor" : null
-}, {
 "name" : "prod-id-generator-db-orange.prod.sagebase.org.",
 "type" : "CNAME",
 "ttl" : "300",
@@ -73,58 +55,10 @@
 "resourceRecords" : [ "prod-id-generator-db-orange.c5sxx7pot9i8.us-east-1.rds.amazonaws.com" ],
 "aliasTargetDescriptor" : null
 }, {
-"name" : "redirectors.prod.sagebase.org.",
-"type" : "CNAME",
-"ttl" : "300",
-"resourceRecords" : [ "synapse-redictors-2018.us-east-1.elasticbeanstalk.com" ],
-"aliasTargetDescriptor" : null
-}, {
-"name" : "repo-prod-422-0.prod.sagebase.org.",
-"type" : "CNAME",
-"ttl" : "300",
-"resourceRecords" : [ "repo-prod-422-0-prod-sagebase-org.us-east-1.elasticbeanstalk.com" ],
-"aliasTargetDescriptor" : null
-}, {
-"name" : "repo-prod-424-0.prod.sagebase.org.",
-"type" : "CNAME",
-"ttl" : "300",
-"resourceRecords" : [ "repo-prod-424-0-prod-sagebase-org.us-east-1.elasticbeanstalk.com" ],
-"aliasTargetDescriptor" : null
-}, {
-"name" : "repo-prod.prod.sagebase.org.",
-"type" : "CNAME",
-"ttl" : "60",
-"resourceRecords" : [ "repo-prod-422-0.prod.sagebase.org" ],
-"aliasTargetDescriptor" : null
-}, {
-"name" : "repo-staging.prod.sagebase.org.",
-"type" : "CNAME",
-"ttl" : "60",
-"resourceRecords" : [ "repo-prod-424-0.prod.sagebase.org" ],
-"aliasTargetDescriptor" : null
-}, {
 "name" : "static.prod.sagebase.org.",
 "type" : "CNAME",
 "ttl" : "300",
 "resourceRecords" : [ "static.prod.sagebase.org.s3-website-us-east-1.amazonaws.com" ],
-"aliasTargetDescriptor" : null
-}, {
-"name" : "synapse.prod.sagebase.org.",
-"type" : "CNAME",
-"ttl" : "60",
-"resourceRecords" : [ "synapse-redictors-2018.us-east-1.elasticbeanstalk.com" ],
-"aliasTargetDescriptor" : null
-}, {
-"name" : "workers-prod-422-0.prod.sagebase.org.",
-"type" : "CNAME",
-"ttl" : "300",
-"resourceRecords" : [ "workers-prod-422-0-prod-sagebase-org.us-east-1.elasticbeanstalk.com" ],
-"aliasTargetDescriptor" : null
-}, {
-"name" : "workers-prod-424-0.prod.sagebase.org.",
-"type" : "CNAME",
-"ttl" : "300",
-"resourceRecords" : [ "workers-prod-424-0-prod-sagebase-org.us-east-1.elasticbeanstalk.com" ],
 "aliasTargetDescriptor" : null
 } ]
 }
