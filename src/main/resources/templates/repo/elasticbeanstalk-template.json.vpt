@@ -92,6 +92,11 @@
 						}
 					},
 					{
+					    "Namespace": "aws:autoscaling:launchconfiguration",
+					    "OptionName": "DisableIMDSv1",
+                         "Value": "true"
+					},
+					{
 						"Namespace": "aws:autoscaling:trigger",
 						"OptionName": "BreachDuration",
 						"Value": "10"
