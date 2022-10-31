@@ -57,12 +57,6 @@
       "ttl" : "300",
       "resourceRecords" : [ "ran.synapse.org.s3-website-us-east-1.amazonaws.com" ],
       "aliasTargetDescriptor" : null
-    } , {
-      "name" : "reconnect-internal.synapse.org.",
-      "type" : "A",
-      "ttl" : "300",
-      "resourceRecords" : [ "10.23.30.207" ],
-      "aliasTargetDescriptor" : null
     }, {
       "name" : "rest-docs.synapse.org.",
       "type" : "CNAME",

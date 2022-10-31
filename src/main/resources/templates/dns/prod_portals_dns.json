@@ -81,12 +81,6 @@
       "resourceRecords" : [ "d3j55d6bkgtqzx.cloudfront.net" ],
       "aliasTargetDescriptor" : null
     }, {
-      "name" : "api-docs.synapse.org.",
-      "type" : "CNAME",
-      "ttl" : "300",
-      "resourceRecords" : [ "d3bqje47p62h5o.cloudfront.net" ],
-      "aliasTargetDescriptor" : null
-    }, {
       "name" : "api.synapse.org.",
       "type" : "A",
       "ttl" : null,
@@ -113,18 +107,6 @@
       "type" : "CNAME",
       "ttl" : "300",
       "resourceRecords" : [ "d8exj1vfhra7x.cloudfront.net" ],
-      "aliasTargetDescriptor" : null
-    }, {
-      "name" : "bridge-prod.synapse.org.",
-      "type" : "CNAME",
-      "ttl" : "60",
-      "resourceRecords" : [ "bridge-prod-38-0.prod.sagebase.org" ],
-      "aliasTargetDescriptor" : null
-    }, {
-      "name" : "bridge.synapse.org.",
-      "type" : "CNAME",
-      "ttl" : "60",
-      "resourceRecords" : [ "bridge-prod.synapse.org" ],
       "aliasTargetDescriptor" : null
     }, {
       "name" : "bsmn.synapse.org.",
@@ -473,36 +455,6 @@
       "resourceRecords" : [ "redash-2022.synapse.org" ],
       "aliasTargetDescriptor" : null
     }, {
-      "name" : "redirectors.synapse.org.",
-      "type" : "CNAME",
-      "ttl" : "300",
-      "resourceRecords" : [ "synapse-redictors-2018.us-east-1.elasticbeanstalk.com" ],
-      "aliasTargetDescriptor" : null
-    }, {
-      "name" : "rsconnect.synapse.org.",
-      "type" : "CNAME",
-      "ttl" : "300",
-      "resourceRecords" : [ "rsconnect-alb-2136417442.us-east-1.elb.amazonaws.com" ],
-      "aliasTargetDescriptor" : null
-    }, {
-      "name" : "sftp-staging.synapse.org.",
-      "type" : "CNAME",
-      "ttl" : "300",
-      "resourceRecords" : [ "sftpproxy-staging-env.elasticbeanstalk.com" ],
-      "aliasTargetDescriptor" : null
-    }, {
-      "name" : "sftp2.synapse.org.",
-      "type" : "CNAME",
-      "ttl" : "300",
-      "resourceRecords" : [ "synapse-sftpproxy-2019.us-east-1.elasticbeanstalk.com" ],
-      "aliasTargetDescriptor" : null
-    }, {
-      "name" : "shiny-internal.synapse.org.",
-      "type" : "A",
-      "ttl" : "300",
-      "resourceRecords" : [ "10.5.20.187" ],
-      "aliasTargetDescriptor" : null
-    }, {
       "name" : "shiny.synapse.org.",
       "type" : "CNAME",
       "ttl" : "300",
@@ -513,12 +465,6 @@
       "type" : "CNAME",
       "ttl" : "300",
       "resourceRecords" : [ "shiny.synapse.org" ],
-      "aliasTargetDescriptor" : null
-    }, {
-      "name" : "shinyproxy.synapse.org.",
-      "type" : "CNAME",
-      "ttl" : "300",
-      "resourceRecords" : [ "shinyproxy-alb-1036050845.us-east-1.elb.amazonaws.com" ],
       "aliasTargetDescriptor" : null
     }, {
       "name" : "stopadportal.synapse.org.",
