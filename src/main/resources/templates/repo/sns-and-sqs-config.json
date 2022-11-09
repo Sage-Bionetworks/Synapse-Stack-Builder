@@ -348,6 +348,13 @@
 				"DATA_ACCESS_SUBMISSION_EVENT"
 			],
 			"messageVisibilityTimeoutSec":30
+		},
+		{
+			"queueName": "TABLE_SNAPSHOTS",
+			"subscribedTopicNames":[
+				"TABLE_STATUS_EVENT"
+			],
+			"messageVisibilityTimeoutSec":120
 		}
 	]
 }

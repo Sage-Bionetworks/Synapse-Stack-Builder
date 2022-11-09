@@ -42,6 +42,9 @@
 			"name": "${stack}.view.snapshots"
 		},
 		{
+			"name": "${stack}.table.snapshots"
+		},
+		{
 			"name": "${stack}.filehandles.sagebase.org",
 			"retentionDays": 30
 		},
