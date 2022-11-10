@@ -260,7 +260,34 @@
 				"Threshold" : ${descriptor.getTenPercentOfAllocatedStroageBytes()}
 			}
 		}
-		#end		
+		#end
+		,
+		"${descriptor.resourceName}EventsNotification": {
+			
+			"Type" : "AWS::RDS::EventSubscription",
+		  	"Properties" : {
+		    	"Enabled" : true,
+		      	"EventCategories": [
+					"availability",
+		          	"configuration change",
+		          	"failover",
+		          	"failure",
+		          	"low storage",
+		          	"maintenance",
+		          	"notification",
+		          	"recovery",
+		          	"restoration",
+		          	"security",
+		          	"security patching"
+		      	],
+		      	"SnsTopicArn" : {
+		      		"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"
+		      	},
+		      	"SourceIds" : [ ${descriptor.instanceIdentifier} ],
+		      	"SourceType" : "db-instance",
+		      	"SubscriptionName" : ${descriptor.resourceName}EventsNotification
+			}
+		}	
 		#end
 		,
 		"${stack}${instance}Application": {
