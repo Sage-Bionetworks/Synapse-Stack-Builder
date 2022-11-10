@@ -277,7 +277,6 @@
 		          	"notification",
 		          	"recovery",
 		          	"restoration",
-		          	"security",
 		          	"security patching"
 		      	],
 		      	"SnsTopicArn" : {
