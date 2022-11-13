@@ -263,8 +263,10 @@
 		#end
 		,
 		"${descriptor.resourceName}EventsNotification": {
-			
 			"Type" : "AWS::RDS::EventSubscription",
+			"DependsOn": [
+				"${descriptor.resourceName}"
+			],
 		  	"Properties" : {
 		    	"Enabled" : true,
 		      	"EventCategories": [
