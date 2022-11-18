@@ -259,9 +259,7 @@
 				"Statistic" : "Average",
 				"Threshold" : ${descriptor.getTenPercentOfAllocatedStroageBytes()}
 			}
-		}
-		#end
-		,
+		},
 		"${descriptor.resourceName}EventsNotification": {
 			"Type" : "AWS::RDS::EventSubscription",
 			"DependsOn": [
@@ -289,6 +287,7 @@
 		      	"SubscriptionName" : ${descriptor.resourceName}EventsNotification
 			}
 		}	
+		#end
 		#end
 		,
 		"${stack}${instance}Application": {
