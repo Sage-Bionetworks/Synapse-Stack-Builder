@@ -152,5 +152,12 @@
 				"projection.dt.interval.unit": "MONTHS"
 			}
 		}
-	}]
+	},
+		{
+			"name": "auditData",
+			"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
+			"format": "JSON",
+			"bufferFlushSize": 64,
+			"bufferFlushInterval": 900
+		}]
 }
