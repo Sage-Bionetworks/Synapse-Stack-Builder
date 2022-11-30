@@ -154,7 +154,7 @@
 		}
 	},
 		{
-			"name": "auditData",
+			"name": "accessRecord",
 			"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
 			"format": "JSON",
 			"bufferFlushSize": 64,
