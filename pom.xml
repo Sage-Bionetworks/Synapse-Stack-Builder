@@ -275,6 +275,6 @@
 		<mockito.version>2.27.0</mockito.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     	<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    	<synapse.version>387.0</synapse.version>
+    	<synapse.version>436.0</synapse.version>
 	</properties>
 </project>
