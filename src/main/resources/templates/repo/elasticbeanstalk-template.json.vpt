@@ -289,7 +289,7 @@
 					{
 						"Namespace": "aws:elbv2:listener:443",
 						"OptionName": "SSLPolicy",
-						"Value": "ELBSecurityPolicy-TLS-1-2-Ext-2018-06"
+						"Value": "ELBSecurityPolicy-FS-1-2-Res-2020-10"
 					},
 					{
 						"Namespace": "aws:elbv2:listenerrule:default",
