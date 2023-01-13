@@ -20,6 +20,26 @@
 			}
 		}
 	#end
+	},
+	"Outputs": {
+		#foreach( $name in $names )
+			#if($foreach.count > 1)
+			,
+			#end
+			"${name}AllocationId" : {
+				"Description": "NAT Gateway for PublicUsEast1e",
+				"Value": { "Fn::GetAtt" : [ "${name}", "AllocationId" ] },
+				"Export": {"Name": {"Fn::Join": [
+                    "-",
+                    [
+                         {"Ref": "AWS::Region"},
+                         {"Ref": "AWS::StackName"},
+                         "${name}AllocationId"
+                    ]
+               ]}}
+			}
+		
+		#end
 	}
 }
 
