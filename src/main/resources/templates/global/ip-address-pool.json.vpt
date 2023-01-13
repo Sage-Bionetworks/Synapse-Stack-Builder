@@ -27,7 +27,7 @@
 			,
 			#end
 			"${name}AllocationId" : {
-				"Description": "NAT Gateway for PublicUsEast1e",
+				"Description": "The AllocationId issued to ${name}",
 				"Value": { "Fn::GetAtt" : [ "${name}", "AllocationId" ] },
 				"Export": {"Name": {"Fn::Join": [
                     "-",
@@ -37,8 +37,19 @@
                          "${name}AllocationId"
                     ]
                ]}}
+			},
+			"${name}IpAddress" : {
+				"Description": "The IP address issued to ${name}",
+				"Value":  {"Ref": "${name}"},
+				"Export": {"Name": {"Fn::Join": [
+                    "-",
+                    [
+                         {"Ref": "AWS::Region"},
+                         {"Ref": "AWS::StackName"},
+                         "${name}IpAddress"
+                    ]
+               ]}}
 			}
-		
 		#end
 	}
 }
