@@ -118,6 +118,9 @@ public class Constants {
 	public static final String NOSNAPSHOT = "NOSNAPSHOT"; // value to indicate a snapshot is not used to init a stack
 
 	public static final String PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING = "org.sagebionetworks.enable.rds.enhanced.monitoring";
+	
+	
+	public static final String PROPERTY_KEY_IP_ADDRESS_POOL_SIZE = "org.sagebionetworks.ip.address.pool.size";
 
 	// tag values
 	public static final String TAG_VALUE_DEPARTMENT = "Platform";

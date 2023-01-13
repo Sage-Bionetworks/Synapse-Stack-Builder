@@ -33,6 +33,8 @@ import org.sagebionetworks.template.docs.SynapseDocsBuilder;
 import org.sagebionetworks.template.docs.SynapseDocsBuilderImpl;
 import org.sagebionetworks.template.global.GlobalResourcesBuilder;
 import org.sagebionetworks.template.global.GlobalResourcesBuilderImpl;
+import org.sagebionetworks.template.ip.address.IpAddressPoolBuilder;
+import org.sagebionetworks.template.ip.address.IpAddressPoolBuilderImpl;
 import org.sagebionetworks.template.jobs.AsynchAdminJobExecutor;
 import org.sagebionetworks.template.jobs.AsynchAdminJobExecutorImpl;
 import org.sagebionetworks.template.redirectors.userdocs.UserDocsRedirectorBuilder;
@@ -148,6 +150,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(CdnBuilder.class).to(CdnBuilderImpl.class);
 		bind(Route53Client.class).to(Route53ClientImpl.class);
 		bind(DnsBuilder.class).to(DnsBuilderImpl.class);
+		bind(IpAddressPoolBuilder.class).to(IpAddressPoolBuilderImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 		

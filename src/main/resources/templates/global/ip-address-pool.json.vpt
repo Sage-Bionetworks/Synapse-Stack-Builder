@@ -1,0 +1,25 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Defines the pool of static IP addresses used by the static network load balancers. Pool size: ${poolSize} ",
+	"Resources": {
+	
+	#foreach( $name in $names )
+		#if($foreach.count > 1)
+		,
+		#end
+		"${name}": {
+			"Type": "AWS::EC2::EIP",
+			"Properties": {
+				"Domain": "vpc",
+				"Tags": [
+					{
+						"Key": "Name",
+						"Value": "${name}"
+					}
+				]
+			}
+		}
+	#end
+	}
+}
+

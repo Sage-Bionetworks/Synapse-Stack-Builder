@@ -1,6 +1,6 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
-	"Description": "Creates all of the Elastic Beanstalk resouces to deploy ${environment.name}",
+	"Description": "Creates all of the Elastic Beanstalk resources to deploy ${environment.name}",
 	"Resources": {
 		"${environment.refName}Version": {
 			"Type": "AWS::ElasticBeanstalk::ApplicationVersion",
