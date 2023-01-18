@@ -1,6 +1,6 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
-	"Description": "Defines the pool of static IP addresses used by the static network load balancers (NLB). Pool size: ${poolSize} addresses to support: ${numberNlbs} NLB, each with: ${numberAzPerNlb} availability zones",
+	"Description": "Defines the pool of static IP addresses used by the static network load balancers (NLB). Pool size: ${poolSize}",
 	"Resources": {
 	
 	#foreach( $name in $names )

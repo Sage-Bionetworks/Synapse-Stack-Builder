@@ -1,16 +1,20 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
-	"Description": "A static network load balancer for ${domain}",
+	"Description": "Builds all of the network load balancers for ${stack}",
 	"Resources": {
-		"${nlbName}": {
+	#foreach( $nlb in $nlbs )
+		#if($foreach.count > 1)
+		,
+		#end
+		"${nlb.name}": {
 			"Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
 			"Properties": {
 				"IpAddressType": "ipv4",
-				"Name": "${nlbName}",
+				"Name": "${nlb.name}",
 				"Scheme": "internet-facing",
 				"SubnetMappings": [
 					
-					#foreach( $addressName in $addressNames )
+					#foreach( $addressName in $nlb.addressNames )
 						#if($foreach.count > 1)
 						,
 						#end
@@ -25,12 +29,13 @@
 				"Tags": [
 					{
 						"Key": "Name",
-						"Value": "${nlbName}"
+						"Value": "${nlb.name}"
 					}
 				],
 				"Type": "network"
 			}
 		}
+	#end
 	},
 	"Outputs": {
 		

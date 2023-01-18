@@ -2,7 +2,7 @@ package org.sagebionetworks.template.ip.address;
 
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_AZ_PER_NLB;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_NLB;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_NLB_DOMAINS_CSV;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import java.io.StringWriter;
@@ -45,20 +45,19 @@ public class IpAddressPoolBuilderImpl implements IpAddressPoolBuilder {
 	@Override
 	public void buildAndDeploy() {
 		VelocityContext context = new VelocityContext();
-		int numberNlbs = config.getIntegerProperty(PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_NLB);
+		String[] domains = config.getComaSeparatedProperty(PROPERTY_KEY_NLB_DOMAINS_CSV);
 		int numberAzPerNlb = config.getIntegerProperty(PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_AZ_PER_NLB);
-		int poolSize = numberNlbs * numberAzPerNlb;
+		int poolSize = domains.length * numberAzPerNlb;
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
 		
 		List<String> names = new ArrayList<>(poolSize);
-		for(int nlb=0; nlb<numberNlbs; nlb++) {
+		for(String domain: domains) {
 			for(int az=0; az<numberAzPerNlb; az++) {
-				names.add(ipAddressName(stack, nlb, az));
+				names.add(ipAddressName(domain, az));
 			}
 		}
-		
+				
 		context.put("poolSize", poolSize);
-		context.put("numberNlbs", numberNlbs);
 		context.put("numberAzPerNlb", numberAzPerNlb);
 		context.put("stack", stack);
 		context.put("names", names);
@@ -83,8 +82,8 @@ public class IpAddressPoolBuilderImpl implements IpAddressPoolBuilder {
 				.withTemplateBody(resultJSON).withParameters(parameter).withTags(tagsProvider.getStackTags()));
 	}
 	
-	public static String ipAddressName(String stack, int nlbNumber, int azNumber) {
-		return String.format("%snlb%daz%d", stack, nlbNumber, azNumber);
+	public static String ipAddressName(String domain, int azNumber) {
+		return String.format("%sAZ%d", domain.toLowerCase(), azNumber);
 	}
 
 }

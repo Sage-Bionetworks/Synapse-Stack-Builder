@@ -119,13 +119,10 @@ public class Constants {
 
 	public static final String PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING = "org.sagebionetworks.enable.rds.enhanced.monitoring";
 	
-	// the number of network load balancers
-	public static final String PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_NLB = "org.sagebionetworks.ip.address.pool.number.nlb";
+	// A comma separated list of domain names the defines both NLB and their associated elastic IP addresses.
+	public static final String PROPERTY_KEY_NLB_DOMAINS_CSV = "org.sagebionetworks.nlb.domains.csv";
 	// number of availability zones per network load balancer
 	public static final String PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_AZ_PER_NLB = "org.sagebionetworks.ip.address.pool.number.az.per.nlb";
-	
-	public static final String PROPERTY_KEY_NLB_DOMAIN_NAME = "org.sagebionetworks.nlb.name";
-	public static final String PROPERTY_KEY_NLB_NUMBER = "org.sagebionetworks.nlb.number";
 
 	// tag values
 	public static final String TAG_VALUE_DEPARTMENT = "Platform";

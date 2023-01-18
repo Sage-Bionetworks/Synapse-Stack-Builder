@@ -2,8 +2,7 @@ package org.sagebionetworks.template.nlb;
 
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_AZ_PER_NLB;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_NLB_DOMAIN_NAME;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_NLB_NUMBER;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_NLB_DOMAINS_CSV;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import java.io.StringWriter;
@@ -48,21 +47,22 @@ public class NetworkLoadBalancerBuilderImpl implements NetworkLoadBalancerBuilde
 	@Override
 	public void buildAndDeploy() {
 		VelocityContext context = new VelocityContext();
-		String domain = config.getProperty(PROPERTY_KEY_NLB_DOMAIN_NAME);
+		String[] domains = config.getComaSeparatedProperty(PROPERTY_KEY_NLB_DOMAINS_CSV);
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
-		int nlbNumber = config.getIntegerProperty(PROPERTY_KEY_NLB_NUMBER);
 		int numberAzPerNlb = config.getIntegerProperty(PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_AZ_PER_NLB);
 		
-		List<String> addressNames = new ArrayList<>(numberAzPerNlb);
-		for(int az=0; az<numberAzPerNlb; az++) {
-			addressNames.add(IpAddressPoolBuilderImpl.ipAddressName(stack, nlbNumber, az));
+		List<NetworkLoadBalancer> nlbs = new ArrayList<>(domains.length);
+		for(String domain: domains) {
+			List<String> addressNames = new ArrayList<>(numberAzPerNlb);
+			for(int az=0; az<numberAzPerNlb; az++) {
+				addressNames.add(IpAddressPoolBuilderImpl.ipAddressName(domain, az));
+			}
+			nlbs.add(new NetworkLoadBalancer(domain, addressNames));
 		}
 
-		String nlbName = new StringJoiner("-").add(stack).add(domain).toString();
-		context.put("domain", domain);
+		context.put("nlbs", nlbs);
 		context.put("stack", stack);
-		context.put("addressNames", addressNames);
-		context.put("nlbName", nlbName);
+
 
 		Parameter parameter = new Parameter();
 
@@ -76,7 +76,7 @@ public class NetworkLoadBalancerBuilderImpl implements NetworkLoadBalancerBuilde
 		JSONObject templateJson = new JSONObject(resultJSON);
 		// Format the JSON
 		resultJSON = templateJson.toString(JSON_INDENT);
-		String stackName = new StringJoiner("-").add(stack).add(domain).add("nlb").toString();
+		String stackName = new StringJoiner("-").add(stack).add("nlbs").toString();
 		this.logger.info("Template for stack: " + stackName);
 		this.logger.info(resultJSON);
 		// create or update the template
