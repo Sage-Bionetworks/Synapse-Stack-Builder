@@ -84,7 +84,7 @@ public class IpAddressPoolBuilderImpl implements IpAddressPoolBuilder {
 	}
 	
 	public static String ipAddressName(String stack, int nlbNumber, int azNumber) {
-		return String.format("%s-nlb%d-az%d", stack, nlbNumber, azNumber);
+		return String.format("%snlb%daz%d", stack, nlbNumber, azNumber);
 	}
 
 }
