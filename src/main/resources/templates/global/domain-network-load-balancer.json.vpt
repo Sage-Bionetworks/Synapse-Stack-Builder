@@ -22,7 +22,7 @@
 					
 					{
 						"AllocationId": {"Fn::ImportValue": "us-east-1-${stack}-ip-address-pool-${addressName}-AllocationId"},
-						"SubnetId": { "Fn::Select" : [ $index,  { "Fn::Split" : [ ",", {"Fn::ImportValue": "us-east-1-synapse-${stack}-vpc-2-public-subnets-Public-Subnets"} ] } ] }
+						"SubnetId": { "Fn::Select" : [ $index,  { "Fn::Split" : [ ", ", {"Fn::ImportValue": "us-east-1-synapse-${stack}-vpc-2-public-subnets-Public-Subnets"} ] } ] }
 					}
 					#end
 				],
