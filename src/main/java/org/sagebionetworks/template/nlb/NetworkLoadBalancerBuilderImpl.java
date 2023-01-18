@@ -1,13 +1,15 @@
-package org.sagebionetworks.template.ip.address;
+package org.sagebionetworks.template.nlb;
 
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_AZ_PER_NLB;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_NLB;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_NLB_DOMAIN_NAME;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_NLB_NUMBER;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
@@ -19,11 +21,12 @@ import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.Configuration;
+import org.sagebionetworks.template.ip.address.IpAddressPoolBuilderImpl;
 
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.google.inject.Inject;
 
-public class IpAddressPoolBuilderImpl implements IpAddressPoolBuilder {
+public class NetworkLoadBalancerBuilderImpl implements NetworkLoadBalancerBuilder {
 
 	private CloudFormationClient cloudFormationClient;
 	private VelocityEngine velocityEngine;
@@ -32,7 +35,7 @@ public class IpAddressPoolBuilderImpl implements IpAddressPoolBuilder {
 	private StackTagsProvider tagsProvider;
 
 	@Inject
-	public IpAddressPoolBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
+	public NetworkLoadBalancerBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
 			Configuration config, LoggerFactory loggerFactory, StackTagsProvider tagsProvider) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
@@ -45,28 +48,26 @@ public class IpAddressPoolBuilderImpl implements IpAddressPoolBuilder {
 	@Override
 	public void buildAndDeploy() {
 		VelocityContext context = new VelocityContext();
-		int numberNlbs = config.getIntegerProperty(PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_NLB);
-		int numberAzPerNlb = config.getIntegerProperty(PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_AZ_PER_NLB);
-		int poolSize = numberNlbs * numberAzPerNlb;
+		String domain = config.getProperty(PROPERTY_KEY_NLB_DOMAIN_NAME);
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
+		int nlbNumber = config.getIntegerProperty(PROPERTY_KEY_NLB_NUMBER);
+		int numberAzPerNlb = config.getIntegerProperty(PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_AZ_PER_NLB);
 		
-		List<String> names = new ArrayList<>(poolSize);
-		for(int nlb=0; nlb<numberNlbs; nlb++) {
-			for(int az=0; az<numberAzPerNlb; az++) {
-				names.add(ipAddressName(stack, nlb, az));
-			}
+		List<String> addressNames = new ArrayList<>(numberAzPerNlb);
+		for(int az=0; az<numberAzPerNlb; az++) {
+			addressNames.add(IpAddressPoolBuilderImpl.ipAddressName(stack, nlbNumber, az));
 		}
-		
-		context.put("poolSize", poolSize);
-		context.put("numberNlbs", numberNlbs);
-		context.put("numberAzPerNlb", numberAzPerNlb);
+
+		String nlbName = new StringJoiner("-").add(stack).add(domain).toString();
+		context.put("domain", domain);
 		context.put("stack", stack);
-		context.put("names", names);
+		context.put("addressNames", addressNames);
+		context.put("nlbName", nlbName);
 
 		Parameter parameter = new Parameter();
 
 		// Merge the context with the template
-		Template template = this.velocityEngine.getTemplate("templates/global/ip-address-pool.json.vpt");
+		Template template = this.velocityEngine.getTemplate("templates/global/domain-network-load-balancer.json.vpt");
 		StringWriter stringWriter = new StringWriter();
 		template.merge(context, stringWriter);
 		// Parse the resulting template
@@ -75,16 +76,13 @@ public class IpAddressPoolBuilderImpl implements IpAddressPoolBuilder {
 		JSONObject templateJson = new JSONObject(resultJSON);
 		// Format the JSON
 		resultJSON = templateJson.toString(JSON_INDENT);
-		String stackName = stack + "-ip-address-pool";
+		String stackName = new StringJoiner("-").add(stack).add(domain).add("nlb").toString();
 		this.logger.info("Template for stack: " + stackName);
 		this.logger.info(resultJSON);
 		// create or update the template
 		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
 				.withTemplateBody(resultJSON).withParameters(parameter).withTags(tagsProvider.getStackTags()));
-	}
-	
-	public static String ipAddressName(String stack, int nlbNumber, int azNumber) {
-		return String.format("%s-nlb%d-az%d", stack, nlbNumber, azNumber);
+
 	}
 
 }

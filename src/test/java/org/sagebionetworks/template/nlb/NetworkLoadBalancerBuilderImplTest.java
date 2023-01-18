@@ -1,7 +1,10 @@
-package org.sagebionetworks.template.global;
+package org.sagebionetworks.template.nlb;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_AZ_PER_NLB;
+import static org.sagebionetworks.template.Constants.*;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.app.VelocityEngine;
@@ -16,12 +19,9 @@ import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.config.Configuration;
-import org.sagebionetworks.template.ip.address.IpAddressPoolBuilderImpl;
-
-import static org.sagebionetworks.template.Constants.*;
 
 @ExtendWith(MockitoExtension.class)
-public class IpAddressPoolBuilderImplTest {
+public class NetworkLoadBalancerBuilderImplTest {
 
 	@Mock
 	private Configuration mockConfig;
@@ -37,20 +37,23 @@ public class IpAddressPoolBuilderImplTest {
 	private StackTagsProvider mockStackTagsProvider;
 
 	@InjectMocks
-	private IpAddressPoolBuilderImpl builder;
-	
+	private NetworkLoadBalancerBuilderImpl builder;
+
 	@BeforeEach
 	public void before() {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
-		builder = new IpAddressPoolBuilderImpl(mockCloudFormationClient, velocityEngine, mockConfig, mockLoggerFactory, mockStackTagsProvider);
+		builder = new NetworkLoadBalancerBuilderImpl(mockCloudFormationClient, velocityEngine, mockConfig,
+				mockLoggerFactory, mockStackTagsProvider);
 	}
 
 	@Test
 	public void testBuildAndDeploy() {
-		when(mockConfig.getProperty(PROPERTY_KEY_IP_ADDRESS_POOL_SIZE)).thenReturn("2");
+		when(mockConfig.getProperty(PROPERTY_KEY_NLB_DOMAIN_NAME)).thenReturn("foo");
 		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("dev");
+		when(mockConfig.getIntegerProperty(PROPERTY_KEY_NLB_NUMBER)).thenReturn(1);
+		when(mockConfig.getIntegerProperty(PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_AZ_PER_NLB)).thenReturn(6);
+
 		// call under test
 		builder.buildAndDeploy();
 	}
-
 }

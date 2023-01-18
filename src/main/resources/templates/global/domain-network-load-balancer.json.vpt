@@ -1,0 +1,38 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "A static network load balancer for ${domain}",
+	"Resources": {
+		"${nlbName}": {
+			"Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+			"Properties": {
+				"IpAddressType": "ipv4",
+				"Name": "${nlbName}",
+				"Scheme": "internet-facing",
+				"SubnetMappings": [
+					
+					#foreach( $addressName in $addressNames )
+						#if($foreach.count > 1)
+						,
+						#end
+						#set( $index = $foreach.count - 1 )
+					
+					{
+						"AllocationId": {"Fn::ImportValue": "us-east-1-${stack}-ip-address-pool-${addressName}-AllocationId"},
+						"SubnetId": { "Fn::Select" : [ $index,  { "Fn::Split" : [ ",", {"Fn::ImportValue": "us-east-1-synapse-${stack}-vpc-2-public-subnets-Public-Subnets"} ] } ] }
+					}
+					#end
+				],
+				"Tags": [
+					{
+						"Key": "Name",
+						"Value": "${nlbName}"
+					}
+				],
+				"Type": "network"
+			}
+		}
+	},
+	"Outputs": {
+		
+	}
+}

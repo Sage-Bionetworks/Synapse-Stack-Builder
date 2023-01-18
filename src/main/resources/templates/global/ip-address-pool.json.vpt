@@ -1,6 +1,6 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
-	"Description": "Defines the pool of static IP addresses used by the static network load balancers. Pool size: ${poolSize} ",
+	"Description": "Defines the pool of static IP addresses used by the static network load balancers (NLB). Pool size: ${poolSize} addresses to support: ${numberNlbs} NLB, each with: ${numberAzPerNlb} availability zones",
 	"Resources": {
 	
 	#foreach( $name in $names )
@@ -34,7 +34,7 @@
                     [
                          {"Ref": "AWS::Region"},
                          {"Ref": "AWS::StackName"},
-                         "${name}AllocationId"
+                         "${name}-AllocationId"
                     ]
                ]}}
 			},
@@ -46,7 +46,7 @@
                     [
                          {"Ref": "AWS::Region"},
                          {"Ref": "AWS::StackName"},
-                         "${name}IpAddress"
+                         "${name}-IpAddress"
                     ]
                ]}}
 			}
