@@ -156,9 +156,12 @@
 					{
 						"Namespace": "aws:ec2:vpc",
 						"OptionName": "ELBSubnets",
-						"Value": {
-							"Fn::ImportValue": "${vpcExportPrefix}-public-subnets-Public-Subnets"
-						}
+						"Value": "${BeanstalkInstancesSubnets}"
+					},
+					{
+						"Namespace": "aws:ec2:vpc",
+						"OptionName": "ELBScheme",
+						"Value": "internal"
 					},
 					{
 						"Namespace": "aws:ec2:vpc",
