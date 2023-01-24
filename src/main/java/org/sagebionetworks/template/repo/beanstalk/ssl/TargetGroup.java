@@ -3,16 +3,18 @@ package org.sagebionetworks.template.repo.beanstalk.ssl;
 import java.util.Objects;
 import java.util.StringJoiner;
 
+import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
+
 public class TargetGroup {
 
 	private final int port;
 	private final String shortName;
 	private final String fullName;
 
-	public TargetGroup(String stack, String instance, int number, int port) {
+	public TargetGroup(EnvironmentType type, String stack, String instance, int number, int port) {
 		super();
 		this.port = port;
-		this.fullName = new StringJoiner("-").add(stack).add(instance).add("" + number).add("" + port).toString();
+		this.fullName = new StringJoiner("-").add(type.getShortName()).add(stack).add(instance).add("" + number).add("" + port).toString();
 		this.shortName = fullName.replaceAll("-", "");
 	}
 

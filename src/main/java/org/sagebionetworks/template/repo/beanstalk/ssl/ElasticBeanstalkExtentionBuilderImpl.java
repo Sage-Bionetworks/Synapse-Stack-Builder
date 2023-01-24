@@ -109,8 +109,8 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 		context.put("instance", instance);
 		int number = configuration.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + envType.getShortName());
 		
-		List<TargetGroup> targetGroups = List.of(new TargetGroup(stack, instance, number, 80),
-				new TargetGroup(stack, instance, number, 443));
+		List<TargetGroup> targetGroups = List.of(new TargetGroup(envType, stack, instance, number, 80),
+				new TargetGroup(envType, stack, instance, number, 443));
 		context.put("targetGroups", targetGroups);
 		
 		// Exported resources prefix
