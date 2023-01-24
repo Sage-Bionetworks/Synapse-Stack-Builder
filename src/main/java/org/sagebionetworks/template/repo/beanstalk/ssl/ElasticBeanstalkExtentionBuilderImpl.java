@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collections;
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.apache.velocity.Template;
@@ -157,6 +158,7 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 				Template beanstalkAlarms = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_BEANSTALK_ALARMS);
 				addTemplateAsFileToDirectory(beanstalkAlarms, context, resultFile);
 				// Beanstalk environment alarms in .ebextensions
+				context.put("albTargetPorts", List.of("80","443"));
 				resultFile = fileProvider.createNewFile(ebextensionsDirectory, "alb_target_group.config");
 				Template albTagetGroup = velocityEngine.getTemplate("templates/repo/ebextensions/alb-target-group.config");
 				addTemplateAsFileToDirectory(albTagetGroup, context, resultFile);

@@ -77,6 +77,7 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 	StringWriter logsConfWriter;
 	StringWriter alarmsConfWriter;
 	StringWriter modDeflateConfWriter;
+	StringWriter targetGroupWriter;
 
 	String bucketName;
 	String x509CertificatePem;
@@ -109,8 +110,9 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		logsConfWriter = new StringWriter();
 		alarmsConfWriter = new StringWriter();
 		modDeflateConfWriter = new StringWriter();
+		targetGroupWriter = new StringWriter();
 		
-		when(fileProvider.createFileWriter(any(File.class))).thenReturn(configWriter, sslConfWriter, modSecurityConfWriter, modDeflateConfWriter, logsConfWriter, alarmsConfWriter);
+		when(fileProvider.createFileWriter(any(File.class))).thenReturn(configWriter, sslConfWriter, modSecurityConfWriter, modDeflateConfWriter, logsConfWriter, alarmsConfWriter,alarmsConfWriter, targetGroupWriter);
 		bucketName = "someBucket";
 		when(configuration.getConfigurationBucket()).thenReturn(bucketName);
 		x509CertificatePem = "x509pem";
@@ -150,6 +152,11 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		assertTrue(alarmsConf.contains("AWSELBSomeAlarm"));
 		assertTrue(alarmsConf.contains("-AWS-ELB-Some-Alarm"));
 		
+		String targetGroupConf = targetGroupWriter.toString();
+	
+		assertTrue(targetGroupConf.contains("Id\": {\"Ref\" : \"AWSEBV2LoadBalancer\" }"));
+		assertTrue(targetGroupConf.contains("\"Port\": 80"));
+		assertTrue(targetGroupConf.contains("\"Port\": 443"));
 	}
 
 	private List<LogDescriptor> generateLogDescriptors() {
