@@ -37,7 +37,7 @@ public class ArtifactCopyImpl implements ArtifactCopy {
 		String s3Key = environment.createS3Key(version);
 		SourceBundle bundle = new SourceBundle(bucket, s3Key);
 		// does the file already exist in S3
-//		if (!s3Client.doesObjectExist(bucket, s3Key)) {
+		if (!s3Client.doesObjectExist(bucket, s3Key)) {
 			/*
 			 * The file does not exist in S3 so it will needed to be downloaded from
 			 * Artifactory and then uploaded to S3
@@ -59,7 +59,7 @@ public class ArtifactCopyImpl implements ArtifactCopy {
 					warWithExtentions.delete();
 				}
 			}
-//		}
+		}
 		return bundle;
 	}
 
