@@ -153,7 +153,7 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		assertTrue(alarmsConf.contains("-AWS-ELB-Some-Alarm"));
 		
 		String targetGroupConf = targetGroupWriter.toString();
-	
+		System.out.println(targetGroupConf);
 		assertTrue(targetGroupConf.contains("Id\": {\"Ref\" : \"AWSEBV2LoadBalancer\" }"));
 		assertTrue(targetGroupConf.contains("\"Port\": 80"));
 		assertTrue(targetGroupConf.contains("\"Port\": 443"));
