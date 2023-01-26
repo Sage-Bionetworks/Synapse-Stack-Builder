@@ -15,9 +15,7 @@
 						"TargetGroupArn": {"Fn::ImportValue": "us-east-1-${listener.mapping.target}-${listener.port}-alb-target-group"}
 					}
 				],
-				"LoadBalancerArn": {
-					"Ref": {"Fn::ImportValue": "us-east-1-${stack}-nlbs-${listener.mapping.record.longName}-nlb-arn"}
-				},
+				"LoadBalancerArn": {"Fn::ImportValue": "us-east-1-${stack}-nlbs-${listener.mapping.record.longName}-nlb-arn"},
 				"Port": ${listener.port},
 				"Protocol": "TCP "
 			}
