@@ -152,11 +152,12 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		assertTrue(alarmsConf.contains("AWSELBSomeAlarm"));
 		assertTrue(alarmsConf.contains("-AWS-ELB-Some-Alarm"));
 		
+		// alb target group
 		String targetGroupConf = targetGroupWriter.toString();
-		System.out.println(targetGroupConf);
-		assertTrue(targetGroupConf.contains("Id\": {\"Ref\" : \"AWSEBV2LoadBalancer\" }"));
-		assertTrue(targetGroupConf.contains("\"Port\": 80"));
-		assertTrue(targetGroupConf.contains("\"Port\": 443"));
+		assertTrue(targetGroupConf.contains("\"Name\": \"repo-dev-123-0-80\","));
+		assertTrue(targetGroupConf.contains("\"Name\": \"repo-dev-123-0-443\","));
+		assertTrue(targetGroupConf.contains("repo-dev-123-0-80-alb-target-group"));
+		assertTrue(targetGroupConf.contains("repo-dev-123-0-443-alb-target-group"));
 	}
 
 	private List<LogDescriptor> generateLogDescriptors() {

@@ -1,0 +1,38 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Links the static network load balancers associed with each DNS record name to the appropriate dynamic application load balancers associted with each Synapse stack.",
+	"Resources": {
+		"name80": {
+			"Type": "AWS::ElasticLoadBalancingV2::Listener",
+			"Properties": {
+				"DefaultActions": [
+					{
+						"Type": "forward ",
+						"TargetGroupArn": {"Fn::ImportValue": "us-east-1-${mapping.target}-80-alb-target-group"}
+					}
+				],
+				"LoadBalancerArn": {
+					"Ref": "myLoadBalancer"
+				},
+				"Port": 80,
+				"Protocol": "TCP "
+			}
+		},
+		"name443": {
+			"Type": "AWS::ElasticLoadBalancingV2::Listener",
+			"Properties": {
+				"DefaultActions": [
+					{
+						"Type": "forward ",
+						"TargetGroupArn": {"Fn::ImportValue": "us-east-1-${mapping.target}-alb-target-group"}
+					}
+				],
+				"LoadBalancerArn": {
+					"Ref": "myLoadBalancer"
+				},
+				"Port": 443,
+				"Protocol": "TCP "
+			}
+		}
+	}
+}

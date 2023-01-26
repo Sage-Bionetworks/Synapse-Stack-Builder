@@ -48,7 +48,7 @@ public class NetworkLoadBalancerBuilderImplTest {
 
 	@Test
 	public void testBuildAndDeploy() {
-		when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_NLB_DOMAINS_CSV)).thenReturn(new String[] {"a","b"});
+		when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_NLB_RECORDS_CSV)).thenReturn(new String[] {"a","b"});
 		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("dev");
 		when(mockConfig.getIntegerProperty(PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_AZ_PER_NLB)).thenReturn(6);
 

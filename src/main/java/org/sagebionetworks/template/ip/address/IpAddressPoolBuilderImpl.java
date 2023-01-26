@@ -2,7 +2,7 @@ package org.sagebionetworks.template.ip.address;
 
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_AZ_PER_NLB;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_NLB_DOMAINS_CSV;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_NLB_RECORDS_CSV;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import java.io.StringWriter;
@@ -45,7 +45,7 @@ public class IpAddressPoolBuilderImpl implements IpAddressPoolBuilder {
 	@Override
 	public void buildAndDeploy() {
 		VelocityContext context = new VelocityContext();
-		String[] domains = config.getComaSeparatedProperty(PROPERTY_KEY_NLB_DOMAINS_CSV);
+		String[] domains = config.getComaSeparatedProperty(PROPERTY_KEY_NLB_RECORDS_CSV);
 		int numberAzPerNlb = config.getIntegerProperty(PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_AZ_PER_NLB);
 		int poolSize = domains.length * numberAzPerNlb;
 		String stack = config.getProperty(PROPERTY_KEY_STACK);

@@ -3,7 +3,7 @@ package org.sagebionetworks.template.ip.address;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_AZ_PER_NLB;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_NLB_DOMAINS_CSV;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_NLB_RECORDS_CSV;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import org.apache.logging.log4j.Logger;
@@ -48,7 +48,7 @@ public class IpAddressPoolBuilderImplTest {
 
 	@Test
 	public void testBuildAndDeploy() {
-		when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_NLB_DOMAINS_CSV))
+		when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_NLB_RECORDS_CSV))
 				.thenReturn(new String[] { "one", "two" });
 		when(mockConfig.getIntegerProperty(PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_AZ_PER_NLB)).thenReturn(6);
 		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("dev");
