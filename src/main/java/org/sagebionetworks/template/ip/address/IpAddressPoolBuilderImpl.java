@@ -7,7 +7,9 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
@@ -19,6 +21,7 @@ import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.Configuration;
+import org.sagebionetworks.template.nlb.RecordName;
 
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.google.inject.Inject;
@@ -45,15 +48,15 @@ public class IpAddressPoolBuilderImpl implements IpAddressPoolBuilder {
 	@Override
 	public void buildAndDeploy() {
 		VelocityContext context = new VelocityContext();
-		String[] domains = config.getComaSeparatedProperty(PROPERTY_KEY_NLB_RECORDS_CSV);
+		List<RecordName> records = Arrays.stream(config.getComaSeparatedProperty(PROPERTY_KEY_NLB_RECORDS_CSV)).map(RecordName::new).collect(Collectors.toList());
 		int numberAzPerNlb = config.getIntegerProperty(PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_AZ_PER_NLB);
-		int poolSize = domains.length * numberAzPerNlb;
+		int poolSize = records.size() * numberAzPerNlb;
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
 		
 		List<String> names = new ArrayList<>(poolSize);
-		for(String domain: domains) {
+		for(RecordName record: records) {
 			for(int az=0; az<numberAzPerNlb; az++) {
-				names.add(ipAddressName(domain, az));
+				names.add(ipAddressName(record.getShortName(), az));
 			}
 		}
 				
