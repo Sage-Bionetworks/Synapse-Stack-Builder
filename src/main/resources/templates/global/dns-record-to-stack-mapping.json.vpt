@@ -11,13 +11,13 @@
 			"Properties": {
 				"DefaultActions": [
 					{
-						"Type": "forward ",
+						"Type": "forward",
 						"TargetGroupArn": {"Fn::ImportValue": "us-east-1-${listener.mapping.target}-${listener.port}-alb-target-group"}
 					}
 				],
 				"LoadBalancerArn": {"Fn::ImportValue": "us-east-1-${stack}-nlbs-${listener.mapping.record.longName}-nlb-arn"},
 				"Port": ${listener.port},
-				"Protocol": "TCP "
+				"Protocol": "TCP"
 			}
 		}
 		#end
