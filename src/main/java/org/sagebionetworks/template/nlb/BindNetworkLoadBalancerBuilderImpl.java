@@ -2,11 +2,12 @@ package org.sagebionetworks.template.nlb;
 
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BIND_RECORD_TO_STACK;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.Logger;
@@ -49,8 +50,16 @@ public class BindNetworkLoadBalancerBuilderImpl implements BindNetworkLoadBalanc
 		List<RecordToStackMapping> mapping = Arrays
 				.stream(config.getComaSeparatedProperty(PROPERTY_KEY_BIND_RECORD_TO_STACK))
 				.map(RecordToStackMapping::new).collect(Collectors.toList());
+		String stack = config.getProperty(PROPERTY_KEY_STACK);
 		
-		context.put("mapping", mapping);
+		List<Listener> listeners = new ArrayList<>(mapping.size()*2);
+		for(RecordToStackMapping map: mapping) {
+			listeners.add(new Listener(80, map));
+			listeners.add(new Listener(443, map));
+		}
+		
+		context.put("listeners", listeners);
+		context.put("stack", stack);
 		Parameter parameter = new Parameter();
 
 		// Merge the context with the template
@@ -69,7 +78,6 @@ public class BindNetworkLoadBalancerBuilderImpl implements BindNetworkLoadBalanc
 		// create or update the template
 		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
 				.withTemplateBody(resultJSON).withParameters(parameter).withTags(tagsProvider.getStackTags()));
-
 
 	}
 

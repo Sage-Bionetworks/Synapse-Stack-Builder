@@ -1,0 +1,27 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Links the static network load balancers associated with each DNS record name to the appropriate dynamic application load balancers associated with each Synapse stack.",
+	"Resources": {
+		#foreach( $listener in $listeners )
+			#if($foreach.count > 1)
+				,
+			#end
+		"${listener.mapping.record.shortName}${listener.port}": {
+			"Type": "AWS::ElasticLoadBalancingV2::Listener",
+			"Properties": {
+				"DefaultActions": [
+					{
+						"Type": "forward ",
+						"TargetGroupArn": {"Fn::ImportValue": "us-east-1-${listener.mapping.target}-${listener.port}-alb-target-group"}
+					}
+				],
+				"LoadBalancerArn": {
+					"Ref": {"Fn::ImportValue": "us-east-1-${stack}-nlbs-${listener.mapping.record.longName}-nlb-arn"}
+				},
+				"Port": ${listener.port},
+				"Protocol": "TCP "
+			}
+		}
+		#end
+	}
+}
