@@ -11,7 +11,7 @@ import com.google.inject.Injector;
  * stack.
  *
  */
-public class BindNetworkLoadBalancers {
+public class BindNetworkLoadBalancersMain {
 
 	public static void main(String[] args) {
 		Injector injector = Guice.createInjector(new TemplateGuiceModule());
