@@ -1,8 +1,9 @@
+
+package org.sagebionetworks.template.nlb;
+
 /**
  * Main to build all of the static, domain specific, network load balancers for a stack.
  */
-package org.sagebionetworks.template.nlb;
-
 import org.sagebionetworks.template.TemplateGuiceModule;
 
 import com.google.inject.Guice;

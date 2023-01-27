@@ -2,6 +2,10 @@ package org.sagebionetworks.template.nlb;
 
 import java.util.Objects;
 
+/**
+ * A load balancer listener that links a network load balancer to an application load balancer target group.
+ *
+ */
 public class Listener {
 	
 	private final int port;
