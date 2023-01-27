@@ -10,6 +10,10 @@
 			"Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
 			"Properties": {
 				"IpAddressType": "ipv4",
+				"LoadBalancerAttributes": [{
+					"Key" : "load_balancing.cross_zone.enabled",
+					"Value" : "true"
+				}],
 				"Name": "${nlb.record.longName}",
 				"Scheme": "internet-facing",
 				"SubnetMappings": [
