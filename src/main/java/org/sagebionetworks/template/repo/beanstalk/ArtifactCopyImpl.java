@@ -32,9 +32,9 @@ public class ArtifactCopyImpl implements ArtifactCopy {
 	}
 
 	@Override
-	public SourceBundle copyArtifactIfNeeded(EnvironmentType environment, String version) {
+	public SourceBundle copyArtifactIfNeeded(EnvironmentType environment, String version, int number) {
 		String bucket = configuration.getConfigurationBucket();
-		String s3Key = environment.createS3Key(version);
+		String s3Key = environment.createS3Key(version, number);
 		SourceBundle bundle = new SourceBundle(bucket, s3Key);
 		// does the file already exist in S3
  		if (!s3Client.doesObjectExist(bucket, s3Key)) {

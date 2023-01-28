@@ -387,7 +387,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				SourceBundle environmentSecrets = type.shouldIncludeSecrets() ? secrets : null;
 
 				// Copy the version from artifactory to S3.
-				SourceBundle bundle = artifactCopy.copyArtifactIfNeeded(type, version);
+				SourceBundle bundle = artifactCopy.copyArtifactIfNeeded(type, version, number);
 				environmentDescriptors.add(new EnvironmentDescriptor().withName(name).withRefName(refName).withNumber(number)
 						.withHealthCheckUrl(healthCheckUrl).withSourceBundle(bundle).withType(type)
 						.withMinInstances(minInstances).withMaxInstances(maxInstances)

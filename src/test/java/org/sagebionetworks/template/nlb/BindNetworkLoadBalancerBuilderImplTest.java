@@ -3,7 +3,6 @@ package org.sagebionetworks.template.nlb;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BIND_RECORD_TO_STACK;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_AZ_PER_NLB;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import org.apache.logging.log4j.Logger;

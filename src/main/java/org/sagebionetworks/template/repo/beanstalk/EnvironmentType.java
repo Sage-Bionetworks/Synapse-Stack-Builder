@@ -45,7 +45,7 @@ public enum EnvironmentType {
 	 * @param version
 	 * @return
 	 */
-	public String createS3Key(String version) {
+	public String createS3Key(String version, int number) {
 		StringBuilder builder = new StringBuilder("versions");
 		builder.append("/");
 		builder.append(pathName);
@@ -53,6 +53,8 @@ public enum EnvironmentType {
 		builder.append(pathName);
 		builder.append("-");
 		builder.append(version);
+		builder.append("-");
+		builder.append(number);
 		builder.append(".war");
 		return builder.toString();
 	}

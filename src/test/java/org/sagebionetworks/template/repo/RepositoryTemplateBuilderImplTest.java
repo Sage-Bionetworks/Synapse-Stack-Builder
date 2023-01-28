@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -31,6 +32,8 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTA
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OAUTH_ENDPOINT;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_IOPS;
@@ -53,8 +56,6 @@ import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -62,11 +63,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
-import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
-import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
-import com.amazonaws.services.elasticbeanstalk.model.PlatformFilter;
-import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -87,11 +83,11 @@ import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
+import org.sagebionetworks.template.repo.beanstalk.ElasticBeanstalkSolutionStackNameProvider;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
-import org.sagebionetworks.template.repo.beanstalk.ElasticBeanstalkSolutionStackNameProvider;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogDescriptor;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
@@ -101,6 +97,11 @@ import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.Tag;
+import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
+import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
+import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
+import com.amazonaws.services.elasticbeanstalk.model.PlatformFilter;
+import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -205,10 +206,9 @@ public class RepositoryTemplateBuilderImplTest {
 			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MAX_INSTANCES + type.getShortName())).thenReturn(2);
 			when(config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN+ type.getShortName())).thenReturn("the:ssl:arn");
 			when(config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE+ type.getShortName())).thenReturn("synapes.org");
-			
-			SourceBundle bundle = new SourceBundle("bucket", "key-" + type.getShortName());
-			when(mockArtifactCopy.copyArtifactIfNeeded(type, version)).thenReturn(bundle);
 		}
+		
+		when(mockArtifactCopy.copyArtifactIfNeeded(any(), any(), anyInt())).thenReturn(new SourceBundle("bucket", "key-one"));		
 
 		when(config.getProperty((PROPERTY_KEY_OAUTH_ENDPOINT))).thenReturn("https://oauthendpoint");
 
@@ -682,7 +682,7 @@ public class RepositoryTemplateBuilderImplTest {
 		SourceBundle bundle = desc.getSourceBundle();
 		assertNotNull(bundle);
 		assertEquals("bucket", bundle.getBucket());
-		assertEquals("key-repo", bundle.getKey());
+		assertEquals("key-one", bundle.getKey());
 		assertEquals("synapes.org", desc.getHostedZone());
 		assertEquals("repo-dev-101-0-synapes-org", desc.getCnamePrefix());
 		assertEquals("the:ssl:arn", desc.getSslCertificateARN());
@@ -701,7 +701,7 @@ public class RepositoryTemplateBuilderImplTest {
 		bundle = desc.getSourceBundle();
 		assertNotNull(bundle);
 		assertEquals("bucket", bundle.getBucket());
-		assertEquals("key-workers", bundle.getKey());
+		assertEquals("key-one", bundle.getKey());
 		assertEquals("SynapesRepoWorkersInstanceProfile", desc.getInstanceProfileSuffix());
 		// secrets should be passed to workers
 		assertEquals(secretsSouce, desc.getSecretsSource());
@@ -717,7 +717,7 @@ public class RepositoryTemplateBuilderImplTest {
 		bundle = desc.getSourceBundle();
 		assertNotNull(bundle);
 		assertEquals("bucket", bundle.getBucket());
-		assertEquals("key-portal", bundle.getKey());
+		assertEquals("key-one", bundle.getKey());
 		assertEquals("SynapesPortalInstanceProfile", desc.getInstanceProfileSuffix());
 		// empty secrets should be passed to portal
 		assertEquals(null, desc.getSecretsSource());

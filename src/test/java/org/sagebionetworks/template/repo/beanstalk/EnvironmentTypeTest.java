@@ -1,9 +1,9 @@
 package org.sagebionetworks.template.repo.beanstalk;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.junit.Test;
-import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
+import org.junit.jupiter.api.Test;
 
 public class EnvironmentTypeTest {
 
@@ -40,20 +40,20 @@ public class EnvironmentTypeTest {
 	
 	@Test
 	public void testCreateS3KeyRepo() {
-		String result = EnvironmentType.REPOSITORY_SERVICES.createS3Key("222.0");
-		assertEquals("versions/services-repository/services-repository-222.0.war", result);
+		String result = EnvironmentType.REPOSITORY_SERVICES.createS3Key("222.0", 3);
+		assertEquals("versions/services-repository/services-repository-222.0-3.war", result);
 	}
 	
 	@Test
 	public void testCreateS3KeyWorkers() {
-		String result = EnvironmentType.REPOSITORY_WORKERS.createS3Key("222.0");
-		assertEquals("versions/services-workers/services-workers-222.0.war", result);
+		String result = EnvironmentType.REPOSITORY_WORKERS.createS3Key("222.0",4);
+		assertEquals("versions/services-workers/services-workers-222.0-4.war", result);
 	}
 	
 	@Test
 	public void testCreateS3KeyPortal() {
-		String result = EnvironmentType.PORTAL.createS3Key("222.0");
-		assertEquals("versions/portal/portal-222.0.war", result);
+		String result = EnvironmentType.PORTAL.createS3Key("222.0", 5);
+		assertEquals("versions/portal/portal-222.0-5.war", result);
 	}
 	
 	@Test
@@ -63,9 +63,11 @@ public class EnvironmentTypeTest {
 		assertEquals(EnvironmentType.REPOSITORY_WORKERS, EnvironmentType.valueOfPrefix(EnvironmentType.REPOSITORY_WORKERS.cnamePrefix));
 	}
 	
-	@Test (expected=IllegalArgumentException.class)
+	@Test
 	public void testValueOfPrefixUnknown() {
-		// call under test
-		EnvironmentType.valueOfPrefix("unknown");
+		assertThrows(IllegalArgumentException.class, ()->{
+			// call under test
+			EnvironmentType.valueOfPrefix("unknown");
+		});
 	}
 }

@@ -12,5 +12,5 @@ public interface ArtifactCopy {
 	 * @param version
 	 * @return
 	 */
-	public SourceBundle copyArtifactIfNeeded(EnvironmentType environment, String version);
+	public SourceBundle copyArtifactIfNeeded(EnvironmentType environment, String version, int number);
 }
