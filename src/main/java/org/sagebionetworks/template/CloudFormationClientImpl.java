@@ -3,6 +3,7 @@ package org.sagebionetworks.template;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -57,14 +58,7 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 
 	@Override
 	public boolean doesStackNameExist(String stackName) {
-		try {
-			// describe will throw an AmazonCloudFormationException if the stack does not exist.
-			describeStack(stackName);
-			return true;
-		} catch (AmazonCloudFormationException e) {
-			// the stack does not exist
-			return false;
-		}
+		return describeStack(stackName).isPresent();
 	}
 
 	@Override
@@ -160,14 +154,18 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 	 * Describe the stack with the given name
 	 */
 	@Override
-	public Stack describeStack(String stackName) throws AmazonCloudFormationException {
+	public Optional<Stack> describeStack(String stackName) throws AmazonCloudFormationException {
 		DescribeStacksRequest request = new DescribeStacksRequest().withStackName(stackName);
-		// throws an exception if it does not exist
-		DescribeStacksResult results = cloudFormationClient.describeStacks(request);
-		if(results.getStacks().size() > 1) {
-			throw new IllegalStateException("More than one stack found for name: "+stackName);
+		try {
+			// throws an exception if it does not exist
+			DescribeStacksResult results = cloudFormationClient.describeStacks(request);
+			if(results.getStacks().size() > 1) {
+				throw new IllegalStateException("More than one stack found for name: "+stackName);
+			}
+			return Optional.of(results.getStacks().get(0));
+		}catch(AmazonCloudFormationException e) {
+			return Optional.empty();
 		}
-		return results.getStacks().get(0);
 	}
 	
 	/**
@@ -208,18 +206,13 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 	}
 
 	public boolean isStartedInUpdateRollbackComplete(String stackName) {
-		StackStatus status;
-		try {
-			Stack stack = describeStack(stackName);
-			status = StackStatus.fromValue(stack.getStackStatus());
-			return (status.equals(StackStatus.UPDATE_ROLLBACK_COMPLETE));
-		} catch (AmazonCloudFormationException e) {
-			return false;
-		}
+		return describeStack(stackName)
+				.map(s -> StackStatus.UPDATE_ROLLBACK_COMPLETE.equals(StackStatus.fromValue(s.getStackStatus())))
+				.orElse(false);
 	}
 
 	@Override
-	public Stack waitForStackToComplete(String stackName) throws InterruptedException {
+	public Optional<Stack> waitForStackToComplete(String stackName) throws InterruptedException {
 		boolean startedInUpdateRollbackComplete = isStartedInUpdateRollbackComplete(stackName); // Initial state
 		long start = threadProvider.currentTimeMillis();
 		while(true) {
@@ -227,14 +220,18 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 			if(elapse > TIMEOUT_MS) {
 				throw new RuntimeException("Timed out waiting for stack: '"+stackName+"' status to complete");
 			}
-			Stack stack = describeStack(stackName);
+			Optional<Stack> optional = describeStack(stackName);
+			if(optional.isEmpty()) {
+				return Optional.empty();
+			}
+			Stack stack = optional.get();
 			StackStatus status = StackStatus.fromValue(stack.getStackStatus());
 			switch(status) {
 			case CREATE_COMPLETE:
 			case UPDATE_COMPLETE:
 			case DELETE_COMPLETE:
 				// done
-				return stack;
+				return optional;
 			case CREATE_IN_PROGRESS:
 			case UPDATE_IN_PROGRESS:
 			case DELETE_IN_PROGRESS:
@@ -244,7 +241,7 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 				break;
 			case UPDATE_ROLLBACK_COMPLETE:
 				if (startedInUpdateRollbackComplete) { // There was nothing to do, state unchanged
-					return stack;
+					return optional;
 				}
 			default:
 			throw new RuntimeException("Stack '"+stackName+"' did not complete.  Status: "+status.name()+" with reason: "+stack.getStackStatusReason());
@@ -255,7 +252,7 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 	@Override
 	public String getOutput(String stackName, String outputKey) {
 		String res = null;
-		Stack stack = describeStack(stackName);
+		Stack stack = describeStack(stackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+stackName));
 		List<Output> outputs = stack.getOutputs();
 		for (Output output: outputs) {
 			if (output.getOutputKey().equals(outputKey)) {

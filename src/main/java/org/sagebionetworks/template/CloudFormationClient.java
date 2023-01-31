@@ -1,5 +1,7 @@
 package org.sagebionetworks.template;
 
+import java.util.Optional;
+
 import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException;
 import com.amazonaws.services.cloudformation.model.Stack;
 
@@ -26,7 +28,7 @@ public interface CloudFormationClient {
 	 * @return
 	 * @throws AmazonCloudFormationException When the stack does not exist.
 	 */
-	public Stack describeStack(String stackName) throws AmazonCloudFormationException;
+	public Optional<Stack> describeStack(String stackName);
 
 	/**
 	 * Update a stack with the given name using the provided template body.
@@ -62,7 +64,7 @@ public interface CloudFormationClient {
 	 * @return
 	 * @throws InterruptedException 
 	 */
-	public Stack waitForStackToComplete(String stackName) throws InterruptedException;
+	public Optional<Stack> waitForStackToComplete(String stackName) throws InterruptedException;
 
 	/**
 	 *

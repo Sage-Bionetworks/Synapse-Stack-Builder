@@ -166,7 +166,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 
 		buildAndDeployStack(context, sharedResourceStackName, TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP, sharedParameters);
 		// Wait for the shared resources to complete
-		Stack sharedStackResults = cloudFormationClient.waitForStackToComplete(sharedResourceStackName);
+		Stack sharedStackResults = cloudFormationClient.waitForStackToComplete(sharedResourceStackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+sharedResourceStackName));
 		
 		// Build each bean stalk environment.
 		List<String> environmentNames = buildEnvironments(sharedStackResults);

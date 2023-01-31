@@ -12,6 +12,7 @@ import static org.sagebionetworks.template.Constants.*;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 import com.amazonaws.services.cloudformation.model.Tag;
 import org.apache.logging.log4j.core.Logger;
@@ -114,7 +115,7 @@ public class WebACLBuilderImplTest {
 
 			when(mockElbClient.describeLoadBalancers(new DescribeLoadBalancersRequest().withNames(loadBalancerName))).thenReturn(describeResults);
 			
-			when(mockCloudFormationClient.waitForStackToComplete(stackName)).thenReturn(stack);
+			when(mockCloudFormationClient.waitForStackToComplete(stackName)).thenReturn(Optional.of(stack));
 		}
 		
 	}

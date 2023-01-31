@@ -107,7 +107,7 @@ public class WebACLBuilderImpl implements WebACLBuilder {
 		// Wait for each environment 
 		for(String environmentName: environmentNames) {
 			try {
-				Stack stack = cloudFormationClient.waitForStackToComplete(environmentName);
+				Stack stack = cloudFormationClient.waitForStackToComplete(environmentName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+environmentName));
 				// lookup and add the ALB ARN
 				addApplicationLoadBalanverArnToContext(context, stack);
 			} catch (InterruptedException e) {

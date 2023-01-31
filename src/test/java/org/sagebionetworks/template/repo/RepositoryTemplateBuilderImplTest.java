@@ -60,6 +60,7 @@ import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -254,7 +255,7 @@ public class RepositoryTemplateBuilderImplTest {
 		dbOut.withOutputValue(stack+"-"+instance+"-db."+databaseEndpointSuffix);
 		sharedResouces.withOutputs(dbOut);
 		
-		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(sharedResouces);
+		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(sharedResouces));
 	}
 	@Test
 	public void testBuildAndDeployProd() throws InterruptedException {
