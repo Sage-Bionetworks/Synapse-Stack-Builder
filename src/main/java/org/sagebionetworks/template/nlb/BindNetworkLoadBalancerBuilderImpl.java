@@ -68,13 +68,13 @@ public class BindNetworkLoadBalancerBuilderImpl implements BindNetworkLoadBalanc
 		template.merge(context, stringWriter);
 		// Parse the resulting template
 		String resultJSON = stringWriter.toString();
-		System.out.println(resultJSON);
 		JSONObject templateJson = new JSONObject(resultJSON);
 		// Format the JSON
 		resultJSON = templateJson.toString(JSON_INDENT);
 		String stackName = "dns-record-to-stack-mapping";
 		this.logger.info("Template for stack: " + stackName);
 		this.logger.info(resultJSON);
+		this.cloudFormationClient.deleteStackIfExists(stackName);
 		// create or update the template
 		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
 				.withTemplateBody(resultJSON).withParameters(parameter).withTags(tagsProvider.getStackTags()));

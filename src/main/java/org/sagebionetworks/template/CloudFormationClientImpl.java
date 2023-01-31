@@ -15,6 +15,7 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException;
 import com.amazonaws.services.cloudformation.model.CreateStackRequest;
 import com.amazonaws.services.cloudformation.model.CreateStackResult;
+import com.amazonaws.services.cloudformation.model.DeleteStackRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Stack;
@@ -231,6 +232,7 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 			switch(status) {
 			case CREATE_COMPLETE:
 			case UPDATE_COMPLETE:
+			case DELETE_COMPLETE:
 				// done
 				return stack;
 			case CREATE_IN_PROGRESS:
@@ -264,6 +266,18 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 			throw new IllegalArgumentException("The output key " + outputKey + " was not found.");
 		}
 		return res;
+	}
+
+	@Override
+	public void deleteStackIfExists(String stackName) {
+		if (doesStackNameExist(stackName)) {
+			cloudFormationClient.deleteStack(new DeleteStackRequest().withStackName(stackName));
+			try {
+				waitForStackToComplete(stackName);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 }
