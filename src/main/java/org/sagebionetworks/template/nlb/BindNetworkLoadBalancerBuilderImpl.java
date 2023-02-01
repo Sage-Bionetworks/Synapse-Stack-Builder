@@ -47,17 +47,20 @@ public class BindNetworkLoadBalancerBuilderImpl implements BindNetworkLoadBalanc
 	@Override
 	public void buildAndDeploy() {
 		VelocityContext context = new VelocityContext();
-		List<RecordToStackMapping> mapping = Arrays
+		List<RecordToStackMapping> mappings = Arrays
 				.stream(config.getComaSeparatedProperty(PROPERTY_KEY_BIND_RECORD_TO_STACK))
 				.map(RecordToStackMapping::new).collect(Collectors.toList());
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
 		
-		List<Listener> listeners = new ArrayList<>(mapping.size()*2);
-		for(RecordToStackMapping map: mapping) {
+		String stackName = stack+"-dns-record-to-stack-mapping";
+		
+		List<Listener> listeners = new ArrayList<>(mappings.size()*2);
+		for(RecordToStackMapping map: mappings) {
 			listeners.add(new Listener(80, map));
 			listeners.add(new Listener(443, map));
 		}
 		
+		context.put("mappings", mappings);
 		context.put("listeners", listeners);
 		context.put("stack", stack);
 		Parameter parameter = new Parameter();
@@ -71,10 +74,10 @@ public class BindNetworkLoadBalancerBuilderImpl implements BindNetworkLoadBalanc
 		JSONObject templateJson = new JSONObject(resultJSON);
 		// Format the JSON
 		resultJSON = templateJson.toString(JSON_INDENT);
-		String stackName = "dns-record-to-stack-mapping";
+
 		this.logger.info("Template for stack: " + stackName);
 		this.logger.info(resultJSON);
-		this.cloudFormationClient.deleteStackIfExists(stackName);
+
 		// create or update the template
 		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
 				.withTemplateBody(resultJSON).withParameters(parameter).withTags(tagsProvider.getStackTags()));

@@ -42,19 +42,19 @@
 	#end
 	},
 	"Outputs": {
-		#foreach( $nlb in $nlbs )
+		#foreach( $mapping in $mappings )
 			#if($foreach.count > 1)
 			,
 			#end
-		"${nlb.record.shortName}arn": {
-			"Description" : "",
-			"Value" : {"Ref": "${nlb.record.shortName}"},
+		"${mapping.record.shortName}": {
+			"Description" : "The current target for this record.",
+			"Value" : "${mapping.target}",
 			"Export": {"Name": {"Fn::Join": [
                    "-",
                    [
                         {"Ref": "AWS::Region"},
                         {"Ref": "AWS::StackName"},
-                        "${nlb.record.longName}-nlb-arn"
+                        "${mapping.record.longName}-target"
                    ]
               ]}}
 		}
