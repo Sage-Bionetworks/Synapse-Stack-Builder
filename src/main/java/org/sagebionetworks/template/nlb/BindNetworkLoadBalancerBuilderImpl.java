@@ -55,6 +55,9 @@ public class BindNetworkLoadBalancerBuilderImpl implements BindNetworkLoadBalanc
 		List<RecordToStackMapping> configMapping = Arrays
 				.stream(config.getComaSeparatedProperty(PROPERTY_KEY_BIND_RECORD_TO_STACK))
 				.map(s -> RecordToStackMapping.builder().withMapping(s).build()).collect(Collectors.toList());
+		// remove anything with a 'none' target
+		configMapping = configMapping.stream().filter(m-> m.getTarget() != null).collect(Collectors.toList());
+		
 		StringJoiner joiner = new StringJoiner(",");
 		configMapping.forEach(r -> joiner.add(r.getMapping()));
 		String mappingsCSV = joiner.toString();

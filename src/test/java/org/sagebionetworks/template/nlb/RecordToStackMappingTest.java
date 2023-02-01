@@ -21,6 +21,18 @@ public class RecordToStackMappingTest {
 	}
 	
 	@Test
+	public void testBuildWithNone() {
+		// call under test
+		RecordToStackMapping mapping = RecordToStackMapping.builder()
+				.withMapping(" www.Synapse.com->none").build();
+		assertNotNull(mapping.getRecord());
+		assertEquals("www-synapse-com", mapping.getRecord().getLongName());
+		assertEquals("wwwsynapsecom", mapping.getRecord().getShortName());
+		assertEquals(null, mapping.getTarget());
+		assertEquals(null, mapping.getDependsOn());
+	}
+	
+	@Test
 	public void testBuildWithDependsOn() {
 		// call under test
 		RecordToStackMapping mapping = RecordToStackMapping.builder()

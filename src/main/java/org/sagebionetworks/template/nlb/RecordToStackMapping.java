@@ -13,6 +13,7 @@ import org.sagebionetworks.util.ValidateArgument;
  */
 public class RecordToStackMapping {
 
+	public static final String NONE = "none";
 	private static final String UNEXPECTED_MAPPING = "Unexpected mapping: '%s'.  Example mapping: 'www.synapse.org->repo-prod-422-0'";
 	private static final String UNEXPECTED_TARGET = "Unexpected target: '%s'.  Example target: 'repo-prod-422-0'";
 
@@ -31,10 +32,18 @@ public class RecordToStackMapping {
 			throw new IllegalArgumentException(String.format(UNEXPECTED_MAPPING, mapping));
 		}
 		record = new RecordName(split[0]);
+		
+		target = validateTarget(split[1]);
 
-		String[] targetSplit = split[1].split("-");
+	}
+	
+	static String validateTarget(String target) {
+		if(NONE.equals(target)) {
+			return null;
+		}
+		String[] targetSplit = target.split("-");
 		if (targetSplit.length != 4) {
-			throw new IllegalArgumentException(String.format(UNEXPECTED_TARGET, split[1]));
+			throw new IllegalArgumentException(String.format(UNEXPECTED_TARGET, target));
 		}
 		if (!EnvironmentType.PORTAL.getShortName().equals(targetSplit[0])
 				&& !EnvironmentType.REPOSITORY_SERVICES.getShortName().equals(targetSplit[0])) {
@@ -51,7 +60,7 @@ public class RecordToStackMapping {
 			throw new IllegalArgumentException(String.format("Found '%s' but expected a number", targetSplit[3]));
 		}
 		EnvironmentType.valueOfPrefix(targetSplit[0]);
-		target = split[1];
+		return target;
 	}
 	
 	public static Builder builder() {

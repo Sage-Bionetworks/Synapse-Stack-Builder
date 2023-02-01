@@ -219,4 +219,31 @@ public class BindNetworkLoadBalancerBuilderImplTest {
 		verify(mockCloudFormationClient).describeStack("dev-dns-record-to-stack-mapping");
 		
 	}
+	
+	@Test
+	public void testBuildAndDeployWithNone() {
+		
+		// stack does not yet exist
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.empty());
+				
+		when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_BIND_RECORD_TO_STACK))
+				.thenReturn(new String[] { "www.synapse.org->portal-dev-102-0", "staging.synapse.org->none", "tst.synapse.org->portal-dev-103-0" });
+		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("dev");
+		
+		// call under test
+		builder.buildAndDeploy();
+
+		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
+		CreateOrUpdateStackRequest request = requestCaptor.getValue();
+		assertNotNull(request);
+		assertEquals("dev-dns-record-to-stack-mapping", request.getStackName());
+		JSONObject json = new JSONObject(request.getTemplateBody());
+		System.out.println(json.toString(5));
+		JSONObject resources = json.getJSONObject("Resources");
+		assertNotNull(resources);
+		assertEquals(Set.of("wwwsynapseorg80","wwwsynapseorg443","tstsynapseorg80","tstsynapseorg443"),
+				resources.keySet());
+		
+		verify(mockCloudFormationClient).describeStack("dev-dns-record-to-stack-mapping");
+	}
 }
