@@ -10,6 +10,7 @@ public class RecordNameTest {
 	@Test
 	public void testConstructor() {
 		RecordName domain = new RecordName("www.Synapse.Com");
+		assertEquals("www.synapse.com", domain.getName());
 		assertEquals("wwwsynapsecom", domain.getShortName());
 		assertEquals("www-synapse-com", domain.getLongName());
 	}

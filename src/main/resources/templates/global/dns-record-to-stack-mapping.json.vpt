@@ -8,6 +8,9 @@
 			#end
 		"${listener.mapping.record.shortName}${listener.port}": {
 			"Type": "AWS::ElasticLoadBalancingV2::Listener",
+			#if($listener.mapping.dependsOn)
+			"DependsOn": ["${listener.mapping.dependsOn.shortName}${listener.port}"],
+			#end
 			"Properties": {
 				"DefaultActions": [
 					{
@@ -23,22 +26,17 @@
 		#end
 	},
 	"Outputs": {
-		#foreach( $mapping in $mappings )
-			#if($foreach.count > 1)
-			,
-			#end
-		"${mapping.record.shortName}": {
-			"Description" : "The current target for this record.",
-			"Value" : "${mapping.target}",
+		"mappingsCSV": {
+			"Description" : "The input mapping used to setup this stack.",
+			"Value" : "${mappingsCSV}",
 			"Export": {"Name": {"Fn::Join": [
                    "-",
                    [
                         {"Ref": "AWS::Region"},
                         {"Ref": "AWS::StackName"},
-                        "${mapping.record.longName}-target"
+                        "mappings-csv"
                    ]
               ]}}
 		}
-		#end
 	}
 }

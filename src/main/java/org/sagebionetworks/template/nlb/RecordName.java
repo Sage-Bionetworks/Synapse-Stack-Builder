@@ -13,14 +13,22 @@ import org.sagebionetworks.util.ValidateArgument;
  */
 public class RecordName {
 
+	private final String name;
 	private final String shortName;
 	private final String longName;
 
 	public RecordName(String name) {
 		ValidateArgument.required(name, "name");
-		name = name.toLowerCase();
-		shortName = name.replaceAll("\\.", "");
-		longName = name.replaceAll("\\.", "-");
+		this.name = name.toLowerCase();
+		shortName = this.name.replaceAll("\\.", "");
+		longName = this.name.replaceAll("\\.", "-");
+	}
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
 	}
 
 	/**
@@ -39,7 +47,7 @@ public class RecordName {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(longName, shortName);
+		return Objects.hash(longName, name, shortName);
 	}
 
 	@Override
@@ -51,12 +59,13 @@ public class RecordName {
 			return false;
 		}
 		RecordName other = (RecordName) obj;
-		return Objects.equals(longName, other.longName) && Objects.equals(shortName, other.shortName);
+		return Objects.equals(longName, other.longName) && Objects.equals(name, other.name)
+				&& Objects.equals(shortName, other.shortName);
 	}
 
 	@Override
 	public String toString() {
-		return "DomainName [shortName=" + shortName + ", longName=" + longName + "]";
+		return "RecordName [name=" + name + ", shortName=" + shortName + ", longName=" + longName + "]";
 	}
 
 }
