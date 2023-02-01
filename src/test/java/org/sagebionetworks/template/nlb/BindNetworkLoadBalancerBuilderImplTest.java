@@ -71,7 +71,7 @@ public class BindNetworkLoadBalancerBuilderImplTest {
 		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
 		CreateOrUpdateStackRequest request = requestCaptor.getValue();
 		assertNotNull(request);
-		assertEquals("dns-record-to-stack-mapping", request.getStackName());
+		assertEquals("dev-dns-record-to-stack-mapping", request.getStackName());
 		JSONObject json = new JSONObject(request.getTemplateBody());
 		JSONObject resources = json.getJSONObject("Resources");
 		assertNotNull(resources);
@@ -81,5 +81,10 @@ public class BindNetworkLoadBalancerBuilderImplTest {
 		assertEquals("[{\"Type\":\"forward\","
 				+ "\"TargetGroupArn\":{\"Fn::ImportValue\":\"us-east-1-portal-dev-123-4-443-alb-target-group\"}}]", props.getJSONArray("DefaultActions").toString());
 		assertEquals("{\"Fn::ImportValue\":\"us-east-1-dev-nlbs-www-sagebase-org-nlb-arn\"}", props.getJSONObject("LoadBalancerArn").toString());
+		JSONObject outputs = json.getJSONObject("Outputs");
+		assertNotNull(outputs);
+		assertEquals(Set.of("wwwsagebaseorg","devsagebaseorg"), outputs.keySet());
+		assertEquals("portal-dev-123-4", outputs.getJSONObject("wwwsagebaseorg").get("Value"));
+		assertEquals("repo-dev-123-5", outputs.getJSONObject("devsagebaseorg").get("Value"));
 	}
 }
