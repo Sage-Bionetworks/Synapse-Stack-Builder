@@ -87,6 +87,27 @@ public class BindNetworkLoadBalancerBuilderImplTest {
 	}
 	
 	@Test
+	public void testBuildMappingWithDependenciesWithDelete() {
+		List<RecordToStackMapping> old = List.of(
+				RecordToStackMapping.builder().withMapping("www.synapse.org->portal-dev-101-0").build(),
+				RecordToStackMapping.builder().withMapping("staging.synapse.org->portal-dev-102-0").build(),
+				RecordToStackMapping.builder().withMapping("tst.synapse.org->portal-dev-103-0").build()
+		);
+		// staging is removed
+		List<RecordToStackMapping> neu = List.of(
+				RecordToStackMapping.builder().withMapping("www.synapse.org->portal-dev-102-0").build(),
+				RecordToStackMapping.builder().withMapping("tst.synapse.org->portal-dev-104-0").build()
+		);
+
+		List<RecordToStackMapping> result = BindNetworkLoadBalancerBuilderImpl.buildMappingWithDependencies(old, neu);
+		List<RecordToStackMapping> expected = List.of(
+				RecordToStackMapping.builder().withMapping("www.synapse.org->portal-dev-102-0").build(),
+				RecordToStackMapping.builder().withMapping("tst.synapse.org->portal-dev-104-0").build()
+		);
+		assertEquals(expected, result);
+	}
+	
+	@Test
 	public void testBuildMappingWithDependenciesWithNoChange() {
 		List<RecordToStackMapping> old = List.of(
 				RecordToStackMapping.builder().withMapping("www.synapse.org->portal-dev-101-0").build(),

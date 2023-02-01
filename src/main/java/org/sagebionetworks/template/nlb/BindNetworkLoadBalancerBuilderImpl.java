@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
@@ -147,11 +148,14 @@ public class BindNetworkLoadBalancerBuilderImpl implements BindNetworkLoadBalanc
 		if (oldMapping.isEmpty()) {
 			return newMapping;
 		}
+		Set<String> inNew = newMapping.stream().map(n->n.getRecord().getShortName()).collect(Collectors.toSet());
 		return newMapping.stream().map(n -> {
 			// is this target in the current mapping?
 			return oldMapping.stream()
 					.filter(o -> o.getTarget().equals(n.getTarget())
-							&& !o.getRecord().getShortName().equals(n.getRecord().getShortName()))
+							&& !o.getRecord().getShortName().equals(n.getRecord().getShortName())
+							&& inNew.contains(o.getRecord().getShortName())
+							)
 					.findFirst().map(o -> RecordToStackMapping.builder().withMapping(n.getMapping())
 							.withDependsOn(o.getRecord().getName()).build())
 					.orElse(n);
