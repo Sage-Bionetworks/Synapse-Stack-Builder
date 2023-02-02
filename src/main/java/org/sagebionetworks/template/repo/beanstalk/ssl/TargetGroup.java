@@ -7,23 +7,15 @@ import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 
 public class TargetGroup {
 
-	private final int port;
 	private final String shortName;
 	private final String fullName;
 
-	public TargetGroup(EnvironmentType type, String stack, String instance, int number, int port) {
+	public TargetGroup(EnvironmentType type, String stack, String instance, int number) {
 		super();
-		this.port = port;
-		this.fullName = new StringJoiner("-").add(type.getShortName()).add(stack).add(instance).add("" + number).add("" + port).toString();
+		this.fullName = new StringJoiner("-").add(type.getShortName()).add(stack).add(instance).add("" + number).toString();
 		this.shortName = fullName.replaceAll("-", "");
 	}
 
-	/**
-	 * @return the port
-	 */
-	public int getPort() {
-		return port;
-	}
 
 	/**
 	 * @return the shortName
@@ -39,10 +31,12 @@ public class TargetGroup {
 		return fullName;
 	}
 
+
 	@Override
 	public int hashCode() {
-		return Objects.hash(fullName, port, shortName);
+		return Objects.hash(fullName, shortName);
 	}
+
 
 	@Override
 	public boolean equals(Object obj) {
@@ -53,13 +47,14 @@ public class TargetGroup {
 			return false;
 		}
 		TargetGroup other = (TargetGroup) obj;
-		return Objects.equals(fullName, other.fullName) && port == other.port
-				&& Objects.equals(shortName, other.shortName);
+		return Objects.equals(fullName, other.fullName) && Objects.equals(shortName, other.shortName);
 	}
+
 
 	@Override
 	public String toString() {
-		return "TargetGroup [port=" + port + ", shortName=" + shortName + ", fullName=" + fullName + "]";
+		return "TargetGroup [shortName=" + shortName + ", fullName=" + fullName + "]";
 	}
+
 
 }

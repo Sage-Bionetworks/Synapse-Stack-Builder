@@ -56,8 +56,8 @@ public class BindNetworkLoadBalancerBuilderImpl implements BindNetworkLoadBalanc
 		List<RecordToStackMapping> configMapping = Arrays
 				.stream(config.getComaSeparatedProperty(PROPERTY_KEY_BIND_RECORD_TO_STACK))
 				.map(s -> RecordToStackMapping.builder().withMapping(s).build()).collect(Collectors.toList());
-		// remove anything with a 'none' target
-		configMapping = configMapping.stream().filter(m-> m.getTarget() != null).collect(Collectors.toList());
+//		// remove anything with a 'none' target
+//		configMapping = configMapping.stream().filter(m-> m.getTarget() != null).collect(Collectors.toList());
 		
 		StringJoiner joiner = new StringJoiner(",");
 		configMapping.forEach(r -> joiner.add(r.getMapping()));
@@ -74,10 +74,11 @@ public class BindNetworkLoadBalancerBuilderImpl implements BindNetworkLoadBalanc
 		 * will control the order in which changes are made to the nlbs.
 		 * 
 		 */
-		List<RecordToStackMapping> currentMapping = this.cloudFormationClient.describeStack(stackName)
-				.map(BindNetworkLoadBalancerBuilderImpl::buildStackMapping).orElse(Collections.emptyList());
-
-		List<RecordToStackMapping> mappings = buildMappingWithDependencies(currentMapping, configMapping);
+//		List<RecordToStackMapping> currentMapping = this.cloudFormationClient.describeStack(stackName)
+//				.map(BindNetworkLoadBalancerBuilderImpl::buildStackMapping).orElse(Collections.emptyList());
+//
+//		List<RecordToStackMapping> mappings = buildMappingWithDependencies(currentMapping, configMapping);
+		List<RecordToStackMapping> mappings = configMapping;
 
 		List<Listener> listeners = new ArrayList<>(mappings.size() * 2);
 		for (RecordToStackMapping map : mappings) {

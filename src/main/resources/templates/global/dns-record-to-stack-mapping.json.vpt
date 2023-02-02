@@ -6,7 +6,27 @@
 			#if($foreach.count > 1)
 				,
 			#end
-		"${listener.mapping.record.shortName}${listener.port}": {
+		"${listener.mapping.record.shortName}${listener.port}t": {
+			"Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+			"Properties": {
+				"IpAddressType": "ipv4",
+				"Name": "${listener.mapping.record.longName}${listener.port}",
+				"Port": ${listener.port},
+				"Protocol": "TCP",
+				"Targets": [
+					{
+						#if($listener.mapping.target)
+						"Id": {"Fn::ImportValue": "us-east-1-${listener.mapping.target}alb-arn"},
+						#end
+						"Port": ${listener.port}
+					}
+				],
+				"TargetType": "alb",
+				"UnhealthyThresholdCount": 2,
+				"VpcId": {"Fn::ImportValue": "us-east-1-synapse-${stack}-vpc-2-VPCId"}
+			}
+		},
+		"${listener.mapping.record.shortName}${listener.port}l": {
 			"Type": "AWS::ElasticLoadBalancingV2::Listener",
 			#if($listener.mapping.dependsOn)
 			"DependsOn": ["${listener.mapping.dependsOn.shortName}${listener.port}"],
@@ -15,7 +35,7 @@
 				"DefaultActions": [
 					{
 						"Type": "forward",
-						"TargetGroupArn": {"Fn::ImportValue": "us-east-1-${listener.mapping.target}-${listener.port}-alb-target-group"}
+						"TargetGroupArn": {"Ref" : "${listener.mapping.record.shortName}${listener.port}t" },
 					}
 				],
 				"LoadBalancerArn": {"Fn::ImportValue": "us-east-1-${stack}-nlbs-${listener.mapping.record.longName}-nlb-arn"},
