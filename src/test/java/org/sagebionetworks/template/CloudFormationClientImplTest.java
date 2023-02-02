@@ -1,31 +1,31 @@
 package org.sagebionetworks.template;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
-import com.amazonaws.services.cloudformation.model.Output;
 import org.apache.logging.log4j.Logger;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.config.Configuration;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.*;
-
-
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
@@ -34,6 +34,7 @@ import com.amazonaws.services.cloudformation.model.CreateStackRequest;
 import com.amazonaws.services.cloudformation.model.CreateStackResult;
 import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
+import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackStatus;
@@ -134,11 +135,20 @@ public class CloudFormationClientImplTest {
 	public void testDescribeStack() {
 		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(initDescribeResult, describeResult);
 		// call under test
-		Stack result = client.describeStack(stackName);
+		Stack result = client.describeStack(stackName).get();
 		Assertions.assertNotNull(result);
 		Assertions.assertEquals(stackId, result.getStackId());
 		verify(mockCloudFormationClient).describeStacks(describeStackRequestCapture.capture());
 		Assertions.assertEquals(stackName, describeStackRequestCapture.getValue().getStackName());
+	}
+	
+	@Test
+	public void testDescribeStackWithDoesNotExist() {
+		when(mockCloudFormationClient.describeStacks(any())).thenThrow(new AmazonCloudFormationException("does not exist"));
+	
+		// call under test
+		assertEquals(Optional.empty(), client.describeStack(stackName));
+		verify(mockCloudFormationClient).describeStacks(new DescribeStacksRequest().withStackName(stackName));
 	}
 
 	@Test
@@ -319,7 +329,7 @@ public class CloudFormationClientImplTest {
 		stack.setStackStatus(StackStatus.CREATE_COMPLETE);
 		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(initDescribeResult, describeResult);
 		// call under test
-		Stack result = client.waitForStackToComplete(stackName);
+		Stack result = client.waitForStackToComplete(stackName).get();
 		Assertions.assertNotNull(result);
 		verify(mockCloudFormationClient, times(2)).describeStacks(any(DescribeStacksRequest.class));
 	}
@@ -330,7 +340,7 @@ public class CloudFormationClientImplTest {
 		stack.setStackStatus(StackStatus.UPDATE_COMPLETE);
 		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(initDescribeResult, describeResult);
 		// call under test
-		Stack result = client.waitForStackToComplete(stackName);
+		Stack result = client.waitForStackToComplete(stackName).get();
 		Assertions.assertNotNull(result);
 		verify(mockCloudFormationClient, times(2)).describeStacks(any(DescribeStacksRequest.class));
 	}
@@ -454,7 +464,7 @@ public class CloudFormationClientImplTest {
 		stack.setStackStatus(StackStatus.UPDATE_ROLLBACK_COMPLETE);
 		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(initDescribeResult, describeResult);
 		// call under test
-		Stack resultStack = client.waitForStackToComplete(stackName);
+		Stack resultStack = client.waitForStackToComplete(stackName).get();
 		verify(mockCloudFormationClient, times(2)).describeStacks(any(DescribeStacksRequest.class));
 		verify(mockThreadProvider, times(2)).currentTimeMillis();
 		verify(mockThreadProvider, never()).sleep(anyLong());
@@ -477,7 +487,7 @@ public class CloudFormationClientImplTest {
 		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(initDescribeResult, describeResult);
 		IllegalArgumentException expectedEx = Assertions.assertThrows(IllegalArgumentException.class, () -> {
 			// call under test
-			String output = client.getOutput(stackName, "invalidKey");
+			client.getOutput(stackName, "invalidKey");
 		});
 	}
 

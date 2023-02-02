@@ -5,11 +5,14 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARMS;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_NUMBER;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collections;
+import java.util.List;
+import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 import org.apache.velocity.Template;
@@ -104,6 +107,9 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 		
 		context.put("stack", stack);
 		context.put("instance", instance);
+		int number = configuration.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + envType.getShortName());
+		
+		context.put("targetGroup", new TargetGroup(envType, stack, instance, number));
 		
 		// Exported resources prefix
 		context.put(GLOBAL_RESOURCES_EXPORT_PREFIX, Constants.createGlobalResourcesExportPrefix(stack));
@@ -156,6 +162,10 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 				resultFile = fileProvider.createNewFile(ebextensionsDirectory, BEANSTALK_ALARMS_CONFIG);
 				Template beanstalkAlarms = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_BEANSTALK_ALARMS);
 				addTemplateAsFileToDirectory(beanstalkAlarms, context, resultFile);
+				// "alb_target_group.config alarms in .ebextensions
+				resultFile = fileProvider.createNewFile(ebextensionsDirectory, "alb_target_group.config");
+				Template albTagetGroup = velocityEngine.getTemplate("templates/repo/ebextensions/alb-target-group.config");
+				addTemplateAsFileToDirectory(albTagetGroup, context, resultFile);
 			}
 		});
 

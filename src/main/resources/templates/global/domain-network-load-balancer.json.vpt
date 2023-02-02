@@ -1,0 +1,63 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Builds all of static the network load balancers (NLB) for ${stack}. Each NLB is identified by the domain name that will point to it.",
+	"Resources": {
+	#foreach( $nlb in $nlbs )
+		#if($foreach.count > 1)
+		,
+		#end
+		"${nlb.record.shortName}": {
+			"Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+			"Properties": {
+				"IpAddressType": "ipv4",
+				"LoadBalancerAttributes": [{
+					"Key" : "load_balancing.cross_zone.enabled",
+					"Value" : "true"
+				}],
+				"Name": "${nlb.record.longName}",
+				"Scheme": "internet-facing",
+				"SubnetMappings": [
+					
+					#foreach( $addressName in $nlb.addressNames )
+						#if($foreach.count > 1)
+						,
+						#end
+						#set( $index = $foreach.count - 1 )
+					
+					{
+						"AllocationId": {"Fn::ImportValue": "us-east-1-${stack}-ip-address-pool-${addressName}-AllocationId"},
+						"SubnetId": { "Fn::Select" : [ $index,  { "Fn::Split" : [ ", ", {"Fn::ImportValue": "us-east-1-synapse-${stack}-vpc-2-public-subnets-Public-Subnets"} ] } ] }
+					}
+					#end
+				],
+				"Tags": [
+					{
+						"Key": "record",
+						"Value": "${nlb.record.longName}"
+					}
+				],
+				"Type": "network"
+			}
+		}
+	#end
+	},
+	"Outputs": {
+		#foreach( $nlb in $nlbs )
+			#if($foreach.count > 1)
+			,
+			#end
+		"${nlb.record.shortName}arn": {
+			"Description" : "",
+			"Value" : {"Ref": "${nlb.record.shortName}"},
+			"Export": {"Name": {"Fn::Join": [
+                   "-",
+                   [
+                        {"Ref": "AWS::Region"},
+                        {"Ref": "AWS::StackName"},
+                        "${nlb.record.longName}-nlb-arn"
+                   ]
+              ]}}
+		}
+		#end
+	}
+}

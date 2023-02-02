@@ -64,8 +64,8 @@ public class UserDocsRedirectorBuilderImplTemplateTest {
 		Stack expectedStack = new Stack().withStackName("tst-docs-synapse").withTags(expectedTags);
 		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
 
-		when(mockCloudFormationClient.waitForStackToComplete("tst-docs-synapse")).thenReturn(expectedStack);
-		when(mockCloudFormationClient.describeStack("tst-docs-synapse")).thenReturn(expectedStack);
+		when(mockCloudFormationClient.waitForStackToComplete("tst-docs-synapse")).thenReturn(Optional.of(expectedStack));
+		when(mockCloudFormationClient.describeStack("tst-docs-synapse")).thenReturn(Optional.of(expectedStack));
 
 		// call under test
 		Optional<Stack> optStack = builder.buildStack();

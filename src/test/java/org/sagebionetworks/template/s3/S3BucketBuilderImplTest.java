@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.velocity.Template;
@@ -1482,7 +1483,7 @@ public class S3BucketBuilderImplTest {
 			new Output().withOutputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_UPDATER_LAMBDA).withOutputValue("updaterLambdaArn")
 		);
 		
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(virusScannerStack);
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(virusScannerStack));
 		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 		
 		String expectedBucket = stack + "-lambda-bucket";
@@ -1562,7 +1563,7 @@ public class S3BucketBuilderImplTest {
 			new Output().withOutputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_UPDATER_LAMBDA).withOutputValue("updaterLambdaArn")
 		);
 		
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(virusScannerStack);
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(virusScannerStack));
 		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 				
 		// Fake an existing config for the scanner

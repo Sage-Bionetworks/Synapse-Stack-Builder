@@ -1,30 +1,33 @@
 package org.sagebionetworks.template.repo.beanstalk;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 
 import org.apache.logging.log4j.Logger;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.sagebionetworks.template.config.Configuration;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.LoggerFactory;
+import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilder;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ArtifactCopyImplTest {
 	
 	@Mock
@@ -52,32 +55,33 @@ public class ArtifactCopyImplTest {
 	String bucket;
 	String s3Key;
 	String artifactoryUrl;
+	int beanstalkNumber;
 
-	@Before
+	@BeforeEach
 	public void before() {
 		
-		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
-		when(mockDownloader.downloadFile(any(String.class))).thenReturn(mockFile);
-		when(mockEbBuilder.copyWarWithExtensions(eq(mockFile), any(EnvironmentType.class))).thenReturn(mockCopy);
-		
+		beanstalkNumber = 9;
 		environment = EnvironmentType.REPOSITORY_WORKERS;
 		version = "212.4";
 		
 		bucket = "dev-configuration.sage.bionetworks";
-		when(mockPropertyProvider.getConfigurationBucket()).thenReturn(bucket);
-		s3Key = environment.createS3Key(version);
+
+		s3Key = environment.createS3Key(version, beanstalkNumber);
 		artifactoryUrl = environment.createArtifactoryUrl(version);
-		
+		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 		copier = new ArtifactCopyImpl(mockS3Client, mockPropertyProvider, mockDownloader, mockLoggerFactory, mockEbBuilder);
 	}
 	
 	@Test
 	public void testCopyArtifactIfNeededDoesNotExist() {
+		when(mockDownloader.downloadFile(any(String.class))).thenReturn(mockFile);
+		when(mockEbBuilder.copyWarWithExtensions(eq(mockFile), any(EnvironmentType.class))).thenReturn(mockCopy);
+		when(mockPropertyProvider.getConfigurationBucket()).thenReturn(bucket);
 		// setup object does not exist
-		when(mockS3Client.doesObjectExist(bucket, s3Key)).thenReturn(false);
+		when(mockS3Client.doesObjectExist(any(), any())).thenReturn(false);
 		
 		// call under test
-		SourceBundle result = copier.copyArtifactIfNeeded(environment, version);
+		SourceBundle result = copier.copyArtifactIfNeeded(environment, version, beanstalkNumber);
 		assertNotNull(result);
 		assertEquals(bucket, result.getBucket());
 		assertEquals(s3Key, result.getKey());
@@ -94,30 +98,32 @@ public class ArtifactCopyImplTest {
 	
 	@Test
 	public void testCopyArtifactIfNeededUplodFails() {
+		when(mockDownloader.downloadFile(any(String.class))).thenReturn(mockFile);
+		when(mockEbBuilder.copyWarWithExtensions(eq(mockFile), any(EnvironmentType.class))).thenReturn(mockCopy);
+		when(mockPropertyProvider.getConfigurationBucket()).thenReturn(bucket);
+		
 		AmazonServiceException exception = new AmazonServiceException("something");
-		when(mockS3Client.putObject(bucket, s3Key, mockCopy)).thenThrow(exception);
+		when(mockS3Client.putObject(any(), any(), any(File.class))).thenThrow(exception);
 		
 		// setup object does not exist
-		when(mockS3Client.doesObjectExist(bucket, s3Key)).thenReturn(false);
+		when(mockS3Client.doesObjectExist(any(), any())).thenReturn(false);
 		
 		// call under test
-		try {
-			copier.copyArtifactIfNeeded(environment, version);
-			fail();
-		} catch (AmazonServiceException e) {
-			// expected
-		}
+		assertThrows(AmazonServiceException.class, ()->{
+			copier.copyArtifactIfNeeded(environment, version, beanstalkNumber);
+		});
 		// file should be deleted even for a failure.
 		verify(mockFile).delete();
 	}
 	
 	@Test
 	public void testCopyArtifactIfNeededExist() {
+		when(mockPropertyProvider.getConfigurationBucket()).thenReturn(bucket);
 		// setup object exists
-		when(mockS3Client.doesObjectExist(bucket, s3Key)).thenReturn(true);
+		when(mockS3Client.doesObjectExist(any(), any())).thenReturn(true);
 		
 		// call under test
-		SourceBundle result = copier.copyArtifactIfNeeded(environment, version);
+		SourceBundle result = copier.copyArtifactIfNeeded(environment, version, beanstalkNumber);
 		assertNotNull(result);
 		assertEquals(bucket, result.getBucket());
 		assertEquals(s3Key, result.getKey());

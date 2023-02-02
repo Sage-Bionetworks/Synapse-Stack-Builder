@@ -16,10 +16,10 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.sagebionetworks.template.CloudFormationClient;
-import org.sagebionetworks.template.StackTagsProvider;
-import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
+import org.sagebionetworks.template.StackTagsProvider;
+import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 
 import com.amazonaws.services.cloudformation.model.Output;
@@ -107,7 +107,7 @@ public class WebACLBuilderImpl implements WebACLBuilder {
 		// Wait for each environment 
 		for(String environmentName: environmentNames) {
 			try {
-				Stack stack = cloudFormationClient.waitForStackToComplete(environmentName);
+				Stack stack = cloudFormationClient.waitForStackToComplete(environmentName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+environmentName));
 				// lookup and add the ALB ARN
 				addApplicationLoadBalanverArnToContext(context, stack);
 			} catch (InterruptedException e) {
@@ -143,11 +143,11 @@ public class WebACLBuilderImpl implements WebACLBuilder {
 	 */
 	String getLoadBalancerNameFromUrl(String url) {
 		String[] split = url.split("-");
-		if(split.length != 6) {
+		if(split.length != 7) {
 			throw new IllegalArgumentException("Cannot parse load balancer URL: "+url);
 		}
 		StringJoiner joiner = new StringJoiner("-");
-		for(int i=0; i<3; i++) {
+		for(int i=1; i<4; i++) {
 			joiner.add(split[i]);
 		}
 		return joiner.toString();

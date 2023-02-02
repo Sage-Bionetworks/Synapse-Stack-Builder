@@ -73,6 +73,6 @@ public class CdnBuilderImpl implements CdnBuilder {
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
-		return Optional.of(cloudFormationClient.describeStack(cfStackName));
+		return cloudFormationClient.describeStack(cfStackName);
 	}
 }

@@ -260,7 +260,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			throw new RuntimeException(e);
 		}
 		
-		return Optional.of(cloudFormationClient.describeStack(stackName));
+		return Optional.of(cloudFormationClient.describeStack(stackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+stackName)));
 	}
 		
 	private void createBucket(String bucketName) {

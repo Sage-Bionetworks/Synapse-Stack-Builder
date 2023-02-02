@@ -71,8 +71,8 @@ public class CdnBuilderImplTemplateTest {
 		Stack expectedStack = new Stack().withStackName("cdn-tst-synapse").withTags(expectedTags);
 		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
 
-		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(expectedStack);
-		when(mockCloudFormationClient.describeStack(any(String.class))).thenReturn(expectedStack);
+		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
+		when(mockCloudFormationClient.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
 
 		// call under test
 		Optional<Stack> optStack = builder.buildCdnStack();

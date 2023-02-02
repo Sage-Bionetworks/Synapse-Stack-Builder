@@ -1,0 +1,63 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Links the static network load balancers associated with each DNS record name to the appropriate dynamic application load balancers associated with each Synapse stack.",
+	"Resources": {
+		#foreach( $listener in $listeners )
+			#if($foreach.count > 1)
+				,
+			#end
+		"${listener.mapping.record.shortName}${listener.port}t": {
+			"Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+			"Properties": {
+				"IpAddressType": "ipv4",
+				"Name": "${listener.mapping.record.longName}-${listener.port}",
+				"Port": ${listener.port},
+				"Protocol": "TCP",
+				#if($listener.mapping.target)
+				"Targets": [
+					{
+						
+						"Id": {"Fn::ImportValue": "us-east-1-${listener.mapping.target}-alb-arn"},
+						"Port": ${listener.port}
+					}
+				],
+				#end
+				"TargetType": "alb",
+				"UnhealthyThresholdCount": 2,
+				"VpcId": {"Fn::ImportValue": "us-east-1-synapse-${stack}-vpc-2-VPCId"}
+			}
+		},
+		"${listener.mapping.record.shortName}${listener.port}l": {
+			"Type": "AWS::ElasticLoadBalancingV2::Listener",
+			#if($listener.mapping.dependsOn)
+			"DependsOn": ["${listener.mapping.dependsOn.shortName}${listener.port}"],
+			#end
+			"Properties": {
+				"DefaultActions": [
+					{
+						"Type": "forward",
+						"TargetGroupArn": {"Ref" : "${listener.mapping.record.shortName}${listener.port}t" },
+					}
+				],
+				"LoadBalancerArn": {"Fn::ImportValue": "us-east-1-${stack}-nlbs-${listener.mapping.record.longName}-nlb-arn"},
+				"Port": ${listener.port},
+				"Protocol": "TCP"
+			}
+		}
+		#end
+	},
+	"Outputs": {
+		"mappingsCSV": {
+			"Description" : "The input mapping used to setup this stack.",
+			"Value" : "${mappingsCSV}",
+			"Export": {"Name": {"Fn::Join": [
+                   "-",
+                   [
+                        {"Ref": "AWS::Region"},
+                        {"Ref": "AWS::StackName"},
+                        "mappings-csv"
+                   ]
+              ]}}
+		}
+	}
+}
