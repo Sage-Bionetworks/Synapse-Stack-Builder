@@ -7,7 +7,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
-import com.amazonaws.services.cloudformation.model.Output;
 import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
@@ -16,9 +15,9 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException;
 import com.amazonaws.services.cloudformation.model.CreateStackRequest;
 import com.amazonaws.services.cloudformation.model.CreateStackResult;
-import com.amazonaws.services.cloudformation.model.DeleteStackRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
+import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.amazonaws.services.cloudformation.model.UpdateStackRequest;
@@ -264,18 +263,6 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 			throw new IllegalArgumentException("The output key " + outputKey + " was not found.");
 		}
 		return res;
-	}
-
-	@Override
-	public void deleteStackIfExists(String stackName) {
-		if (doesStackNameExist(stackName)) {
-			cloudFormationClient.deleteStack(new DeleteStackRequest().withStackName(stackName));
-			try {
-				waitForStackToComplete(stackName);
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-		}
 	}
 
 }

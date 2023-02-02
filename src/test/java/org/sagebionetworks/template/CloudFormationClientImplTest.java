@@ -1,9 +1,7 @@
 package org.sagebionetworks.template;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
@@ -34,7 +32,6 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException;
 import com.amazonaws.services.cloudformation.model.CreateStackRequest;
 import com.amazonaws.services.cloudformation.model.CreateStackResult;
-import com.amazonaws.services.cloudformation.model.DeleteStackRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Output;
@@ -490,53 +487,8 @@ public class CloudFormationClientImplTest {
 		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(initDescribeResult, describeResult);
 		IllegalArgumentException expectedEx = Assertions.assertThrows(IllegalArgumentException.class, () -> {
 			// call under test
-			String output = client.getOutput(stackName, "invalidKey");
+			client.getOutput(stackName, "invalidKey");
 		});
-	}
-	
-	@Test
-	public void testDeleteStackIfExistsWithDoesNotExist() {
-		when(mockCloudFormationClient.describeStacks(any())).thenThrow(new AmazonCloudFormationException("does not exist"));
-		// call under test
-		client.deleteStackIfExists(stackName);
-		verify(mockCloudFormationClient).describeStacks(new DescribeStacksRequest().withStackName(stackName));
-		verify(mockCloudFormationClient, never()).deleteStack(any());
-	}
-	
-	@Test
-	public void testDeleteStackIfExists() {
-		Stack createComplete = new Stack().withStackStatus(StackStatus.CREATE_COMPLETE);
-		Stack deleteInProgress = new Stack().withStackStatus(StackStatus.DELETE_IN_PROGRESS);
-		Stack deleteComplete = new Stack().withStackStatus(StackStatus.DELETE_COMPLETE);
-		
-		when(mockCloudFormationClient.describeStacks(any())).thenReturn(
-				new DescribeStacksResult().withStacks(List.of(createComplete)),
-				new DescribeStacksResult().withStacks(List.of(deleteInProgress)),
-				new DescribeStacksResult().withStacks(List.of(deleteInProgress)),
-				new DescribeStacksResult().withStacks(List.of(deleteComplete)));
-		// call under test
-		client.deleteStackIfExists(stackName);
-		
-		verify(mockCloudFormationClient, times(4)).describeStacks(new DescribeStacksRequest().withStackName(stackName));
-		verify(mockCloudFormationClient).deleteStack(new DeleteStackRequest().withStackName(stackName));
-	}
-	
-	@Test
-	public void testDeleteStackIfExistsWithSkipComplete() {
-		Stack createComplete = new Stack().withStackStatus(StackStatus.CREATE_COMPLETE);
-		Stack deleteInProgress = new Stack().withStackStatus(StackStatus.DELETE_IN_PROGRESS);
-
-		
-		when(mockCloudFormationClient.describeStacks(any())).thenReturn(
-				new DescribeStacksResult().withStacks(List.of(createComplete)),
-				new DescribeStacksResult().withStacks(List.of(deleteInProgress)),
-				new DescribeStacksResult().withStacks(List.of(deleteInProgress)))
-		.thenThrow(new AmazonCloudFormationException("does not exist"));
-		// call under test
-		client.deleteStackIfExists(stackName);
-		
-		verify(mockCloudFormationClient, times(4)).describeStacks(new DescribeStacksRequest().withStackName(stackName));
-		verify(mockCloudFormationClient).deleteStack(new DeleteStackRequest().withStackName(stackName));
 	}
 
 }

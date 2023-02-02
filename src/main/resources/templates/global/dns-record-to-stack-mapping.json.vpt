@@ -10,7 +10,7 @@
 			"Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
 			"Properties": {
 				"IpAddressType": "ipv4",
-				"Name": "${listener.mapping.record.longName}${listener.port}",
+				"Name": "${listener.mapping.record.longName}-${listener.port}",
 				"Port": ${listener.port},
 				"Protocol": "TCP",
 				#if($listener.mapping.target)

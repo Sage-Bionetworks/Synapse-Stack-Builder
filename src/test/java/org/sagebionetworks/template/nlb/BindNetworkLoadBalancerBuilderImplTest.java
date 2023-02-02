@@ -9,9 +9,6 @@ import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BIND_RECORD_TO_STACK;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import org.apache.logging.log4j.Logger;
@@ -31,9 +28,6 @@ import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.config.Configuration;
-
-import com.amazonaws.services.cloudformation.model.Output;
-import com.amazonaws.services.cloudformation.model.Stack;
 
 @ExtendWith(MockitoExtension.class)
 public class BindNetworkLoadBalancerBuilderImplTest {
@@ -65,206 +59,63 @@ public class BindNetworkLoadBalancerBuilderImplTest {
 	}
 
 	@Test
-	public void testBuildMappingWithDependencies() {
-		List<RecordToStackMapping> old = List.of(
-				RecordToStackMapping.builder().withMapping("www.synapse.org->portal-dev-101-0").build(),
-				RecordToStackMapping.builder().withMapping("staging.synapse.org->portal-dev-102-0").build(),
-				RecordToStackMapping.builder().withMapping("tst.synapse.org->portal-dev-103-0").build()
-		);
-		List<RecordToStackMapping> neu = List.of(
-				RecordToStackMapping.builder().withMapping("www.synapse.org->portal-dev-102-0").build(),
-				RecordToStackMapping.builder().withMapping("staging.synapse.org->portal-dev-103-0").build(),
-				RecordToStackMapping.builder().withMapping("tst.synapse.org->portal-dev-104-0").build()
-		);
+	public void testBuildAndDeploy() throws InterruptedException {
 
-		List<RecordToStackMapping> result = BindNetworkLoadBalancerBuilderImpl.buildMappingWithDependencies(old, neu);
-		List<RecordToStackMapping> expected = List.of(
-				RecordToStackMapping.builder().withMapping("www.synapse.org->portal-dev-102-0").withDependsOn("staging.synapse.org").build(),
-				RecordToStackMapping.builder().withMapping("staging.synapse.org->portal-dev-103-0").withDependsOn("tst.synapse.org").build(),
-				RecordToStackMapping.builder().withMapping("tst.synapse.org->portal-dev-104-0").build()
-		);
-		assertEquals(expected, result);
-	}
-	
-	@Test
-	public void testBuildMappingWithDependenciesWithDelete() {
-		List<RecordToStackMapping> old = List.of(
-				RecordToStackMapping.builder().withMapping("www.synapse.org->portal-dev-101-0").build(),
-				RecordToStackMapping.builder().withMapping("staging.synapse.org->portal-dev-102-0").build(),
-				RecordToStackMapping.builder().withMapping("tst.synapse.org->portal-dev-103-0").build()
-		);
-		// staging is removed
-		List<RecordToStackMapping> neu = List.of(
-				RecordToStackMapping.builder().withMapping("www.synapse.org->portal-dev-102-0").build(),
-				RecordToStackMapping.builder().withMapping("tst.synapse.org->portal-dev-104-0").build()
-		);
-
-		List<RecordToStackMapping> result = BindNetworkLoadBalancerBuilderImpl.buildMappingWithDependencies(old, neu);
-		List<RecordToStackMapping> expected = List.of(
-				RecordToStackMapping.builder().withMapping("www.synapse.org->portal-dev-102-0").build(),
-				RecordToStackMapping.builder().withMapping("tst.synapse.org->portal-dev-104-0").build()
-		);
-		assertEquals(expected, result);
-	}
-	
-	@Test
-	public void testBuildMappingWithDependenciesWithNoChange() {
-		List<RecordToStackMapping> old = List.of(
-				RecordToStackMapping.builder().withMapping("www.synapse.org->portal-dev-101-0").build(),
-				RecordToStackMapping.builder().withMapping("staging.synapse.org->portal-dev-102-0").build(),
-				RecordToStackMapping.builder().withMapping("tst.synapse.org->portal-dev-103-0").build()
-		);
-		List<RecordToStackMapping> neu = List.of(
-				RecordToStackMapping.builder().withMapping("www.synapse.org->portal-dev-101-0").build(),
-				RecordToStackMapping.builder().withMapping("staging.synapse.org->portal-dev-103-0").build(),
-				RecordToStackMapping.builder().withMapping("tst.synapse.org->portal-dev-104-0").build()
-		);
-
-		List<RecordToStackMapping> result = BindNetworkLoadBalancerBuilderImpl.buildMappingWithDependencies(old, neu);
-		List<RecordToStackMapping> expected = List.of(
-				RecordToStackMapping.builder().withMapping("www.synapse.org->portal-dev-101-0").build(),
-				RecordToStackMapping.builder().withMapping("staging.synapse.org->portal-dev-103-0").withDependsOn("tst.synapse.org").build(),
-				RecordToStackMapping.builder().withMapping("tst.synapse.org->portal-dev-104-0").build()
-		);
-		assertEquals(expected, result);
-	}
-	
-	@Test
-	public void testBuildStackMapping() {
-		Stack stack = new Stack()
-				.withOutputs(new Output().withOutputKey(BindNetworkLoadBalancerBuilderImpl.MAPPINGS_CSV)
-						.withOutputValue("www.synapse.org->portal-dev-101-0,staging.synapse.org->portal-dev-103-0"));
-		// call under test
-		List<RecordToStackMapping> result = BindNetworkLoadBalancerBuilderImpl.buildStackMapping(stack);
-		List<RecordToStackMapping> expected = List.of(
-				RecordToStackMapping.builder().withMapping("www.synapse.org->portal-dev-101-0").build(),
-				RecordToStackMapping.builder().withMapping("staging.synapse.org->portal-dev-103-0").build()
-		);
-		assertEquals(expected, result);
-	}
-	
-	@Test
-	public void testBuildStackMappingWithSingleValue() {
-		Stack stack = new Stack()
-				.withOutputs(new Output().withOutputKey(BindNetworkLoadBalancerBuilderImpl.MAPPINGS_CSV)
-						.withOutputValue("staging.synapse.org->portal-dev-103-0"));
-		// call under test
-		List<RecordToStackMapping> result = BindNetworkLoadBalancerBuilderImpl.buildStackMapping(stack);
-		List<RecordToStackMapping> expected = List.of(
-				RecordToStackMapping.builder().withMapping("staging.synapse.org->portal-dev-103-0").build()
-		);
-		assertEquals(expected, result);
-	}
-	
-	@Test
-	public void testBuildStackMappingWithOtherKey() {
-		Stack stack = new Stack()
-				.withOutputs(new Output().withOutputKey("otherKey")
-						.withOutputValue("not the value you are looking for"));
-		// call under test
-		List<RecordToStackMapping> result = BindNetworkLoadBalancerBuilderImpl.buildStackMapping(stack);
-		List<RecordToStackMapping> expected = Collections.emptyList();
-		assertEquals(expected, result);
-	}
-
-	@Test
-	public void testBuildAndDeploy() {
-		
-//		// stack does not yet exist
-//		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.empty());
-		
 		when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_BIND_RECORD_TO_STACK))
-				.thenReturn(new String[] { "www.sagebase.org->portal-dev-123-4", "dev.sagebase.org->repo-dev-123-5" });
+				.thenReturn(new String[] { "www.sagebase.org->portal-dev-123-4", "dev.sagebase.org->repo-dev-123-5",
+						"staging.synapse.org->none" });
 		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("dev");
 
 		// call under test
 		builder.buildAndDeploy();
 
 		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClient).waitForStackToComplete("dev-dns-record-to-stack-mapping");
+		
 		CreateOrUpdateStackRequest request = requestCaptor.getValue();
 		assertNotNull(request);
 		assertEquals("dev-dns-record-to-stack-mapping", request.getStackName());
 		JSONObject json = new JSONObject(request.getTemplateBody());
+
 		JSONObject resources = json.getJSONObject("Resources");
 		assertNotNull(resources);
-//		assertEquals(Set.of("wwwsagebaseorg80", "wwwsagebaseorg443", "devsagebaseorg80", "devsagebaseorg443"),
-//				resources.keySet());
-//		JSONObject props = resources.getJSONObject("wwwsagebaseorg443").getJSONObject("Properties");
-//		assertEquals("[{\"Type\":\"forward\","
-//				+ "\"TargetGroupArn\":{\"Fn::ImportValue\":\"us-east-1-portal-dev-123-4-443-alb-target-group\"}}]",
-//				props.getJSONArray("DefaultActions").toString());
-//		assertEquals("{\"Fn::ImportValue\":\"us-east-1-dev-nlbs-www-sagebase-org-nlb-arn\"}",
-//				props.getJSONObject("LoadBalancerArn").toString());
-//		JSONObject outputs = json.getJSONObject("Outputs");
-//		assertNotNull(outputs);
-//		assertEquals(Set.of("mappingsCSV"), outputs.keySet());
-//		assertEquals("www.sagebase.org->portal-dev-123-4,dev.sagebase.org->repo-dev-123-5", outputs.getJSONObject("mappingsCSV").get("Value"));
-//		
-//		verify(mockCloudFormationClient).describeStack("dev-dns-record-to-stack-mapping");
-	}
-	
-	@Test
-	public void testBuildAndDeployWithExistingStack() {
-		
-//		// setup an existing stack
-//		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(new Stack()
-//				.withOutputs(new Output().withOutputKey(BindNetworkLoadBalancerBuilderImpl.MAPPINGS_CSV)
-//						.withOutputValue("www.synapse.org->portal-dev-101-0,staging.synapse.org->portal-dev-102-0"))));
-		
-		when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_BIND_RECORD_TO_STACK))
-				.thenReturn(new String[] { "www.synapse.org->portal-dev-102-0", "staging.synapse.org->portal-dev-103-0" });
-		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("dev");
-		
-		// call under test
-		builder.buildAndDeploy();
+		assertEquals(Set.of("wwwsagebaseorg80t", "wwwsagebaseorg80l", "wwwsagebaseorg443t", "wwwsagebaseorg443l",
+				"devsagebaseorg80t", "devsagebaseorg80l", "devsagebaseorg443t", "devsagebaseorg443l",
+				"stagingsynapseorg80t", "stagingsynapseorg80l", "stagingsynapseorg443t", "stagingsynapseorg443l"),
+				resources.keySet());
 
-		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
-		CreateOrUpdateStackRequest request = requestCaptor.getValue();
-		assertNotNull(request);
-		assertEquals("dev-dns-record-to-stack-mapping", request.getStackName());
-		JSONObject json = new JSONObject(request.getTemplateBody());
-//		System.out.println(json.toString(5));
-//		JSONObject resources = json.getJSONObject("Resources");
-//		assertNotNull(resources);
-//		assertEquals(Set.of("wwwsynapseorg80","wwwsynapseorg443","stagingsynapseorg80", "stagingsynapseorg443"),
-//				resources.keySet());
-//		
-//		// www depends on staging
-//		assertEquals("[\"stagingsynapseorg80\"]", resources.getJSONObject("wwwsynapseorg80").get("DependsOn").toString());
-//		assertEquals("[\"stagingsynapseorg443\"]", resources.getJSONObject("wwwsynapseorg443").get("DependsOn").toString());
-//		
-//		// staging has no dependencies
-//		assertFalse(resources.getJSONObject("stagingsynapseorg80").has("DependsOn"));
-//		assertFalse(resources.getJSONObject("stagingsynapseorg443").has("DependsOn"));
-//		
-//		verify(mockCloudFormationClient).describeStack("dev-dns-record-to-stack-mapping");
-		
-	}
-	
-	@Test
-	public void testBuildAndDeployWithNone() {
-		
-//		// stack does not yet exist
-//		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.empty());
-				
-		when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_BIND_RECORD_TO_STACK))
-				.thenReturn(new String[] { "www.synapse.org->portal-dev-102-0", "staging.synapse.org->none", "tst.synapse.org->portal-dev-103-0" });
-		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("dev");
-		
-		// call under test
-		builder.buildAndDeploy();
+		// properties of the first target
+		JSONObject props = resources.getJSONObject("wwwsagebaseorg80t").getJSONObject("Properties");
+		assertEquals("www-sagebase-org-80", props.get("Name"));
+		assertEquals(80, props.get("Port"));
+		assertEquals("ipv4", props.get("IpAddressType"));
+		assertEquals("TCP", props.get("Protocol"));
+		assertEquals("[{\"Id\":{\"Fn::ImportValue\":\"us-east-1-portal-dev-123-4-alb-arn\"},\"Port\":80}]",
+				props.getJSONArray("Targets").toString());
+		assertEquals("alb", props.get("TargetType"));
+		assertEquals("{\"Fn::ImportValue\":\"us-east-1-synapse-dev-vpc-2-VPCId\"}", props.getJSONObject("VpcId").toString());
 
-		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
-		CreateOrUpdateStackRequest request = requestCaptor.getValue();
-		assertNotNull(request);
-		assertEquals("dev-dns-record-to-stack-mapping", request.getStackName());
-		JSONObject json = new JSONObject(request.getTemplateBody());
-		System.out.println(json.toString(5));
-		JSONObject resources = json.getJSONObject("Resources");
-		assertNotNull(resources);
-//		assertEquals(Set.of("wwwsynapseorg80","wwwsynapseorg443","tstsynapseorg80","tstsynapseorg443"),
-//				resources.keySet());
-//		
-//		verify(mockCloudFormationClient).describeStack("dev-dns-record-to-stack-mapping");
+		// properties of the first listener
+		props = resources.getJSONObject("wwwsagebaseorg443l").getJSONObject("Properties");
+		assertEquals("[{\"Type\":\"forward\",\"TargetGroupArn\":{\"Ref\":\"wwwsagebaseorg443t\"}}]",
+				props.getJSONArray("DefaultActions").toString());
+		assertEquals("{\"Fn::ImportValue\":\"us-east-1-dev-nlbs-www-sagebase-org-nlb-arn\"}",
+				props.getJSONObject("LoadBalancerArn").toString());
+		JSONObject outputs = json.getJSONObject("Outputs");
+		assertNotNull(outputs);
+		assertEquals(Set.of("mappingsCSV"), outputs.keySet());
+		assertEquals("www.sagebase.org->portal-dev-123-4,dev.sagebase.org->repo-dev-123-5,staging.synapse.org->none",
+				outputs.getJSONObject("mappingsCSV").get("Value"));
+		
+		// when the target is set to 'none' the target group should exist but it should not have a 'Targets' property.
+		props = resources.getJSONObject("stagingsynapseorg443t").getJSONObject("Properties");
+		assertEquals("staging-synapse-org-443", props.get("Name"));
+		assertEquals(443, props.get("Port"));
+		assertEquals("ipv4", props.get("IpAddressType"));
+		assertEquals("TCP", props.get("Protocol"));
+		assertFalse(props.has("Targets"));
+		assertEquals("alb", props.get("TargetType"));
+		assertEquals("{\"Fn::ImportValue\":\"us-east-1-synapse-dev-vpc-2-VPCId\"}", props.getJSONObject("VpcId").toString());
+
 	}
 }

@@ -72,14 +72,5 @@ public interface CloudFormationClient {
 	 * @return
 	 */
 	public String getOutput(String stackName, String outputKey);
-	
-	/**
-	 * If the given stack exists, then it will be deleted. If the stack is deleted,
-	 * this will also wait for the delete to be completed.
-	 * 
-	 * @param stackName
-	 * @throws InterruptedException 
-	 */
-	public void deleteStackIfExists(String stackName);
 
 }

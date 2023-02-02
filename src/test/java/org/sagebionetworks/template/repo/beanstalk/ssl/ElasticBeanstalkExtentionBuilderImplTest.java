@@ -154,10 +154,9 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		
 		// alb target group
 		String targetGroupConf = targetGroupWriter.toString();
-//		assertTrue(targetGroupConf.contains("\"Name\": \"repo-dev-123-0-80\","));
-//		assertTrue(targetGroupConf.contains("\"Name\": \"repo-dev-123-0-443\","));
-//		assertTrue(targetGroupConf.contains("repo-dev-123-0-80-alb-target-group"));
-//		assertTrue(targetGroupConf.contains("repo-dev-123-0-443-alb-target-group"));
+		assertTrue(targetGroupConf.contains("\"Outputs\": "));
+		assertTrue(targetGroupConf.contains("\"Value\": {\"Ref\" : \"AWSEBV2LoadBalancer\" },"));
+		assertTrue(targetGroupConf.contains("\"repo-dev-123-0-alb-arn\""));
 	}
 
 	private List<LogDescriptor> generateLogDescriptors() {
