@@ -98,7 +98,7 @@ public class WebACLBuilderImplTest {
 			String stackName = type.getShortName()+"-"+stack+"-"+instance+"-0";
 			environmentNames.add(stackName);
 			String loadBalancerName = "awseb-AWSEB-"+type.getShortName();
-			String endpointUrl = loadBalancerName+"-717445046.us-east-1.elb.amazonaws.com";
+			String endpointUrl = "internal-"+loadBalancerName+"-717445046.us-east-1.elb.amazonaws.com";
 			endpointUrls.add(endpointUrl);
 			
 			Stack stack = new Stack();
@@ -137,7 +137,7 @@ public class WebACLBuilderImplTest {
 	public void testGetEndpointUrlFromStack() {
 		// call under test
 		String endpoint = builder.getEndpointUrlFromStack(stacks.get(1));
-		assertEquals("awseb-AWSEB-workers-717445046.us-east-1.elb.amazonaws.com", endpoint);
+		assertEquals("internal-awseb-AWSEB-workers-717445046.us-east-1.elb.amazonaws.com", endpoint);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -152,6 +152,13 @@ public class WebACLBuilderImplTest {
 	public void testGetLoadBalancerNameFromUrl() {
 		// call under test
 		String albName = builder.getLoadBalancerNameFromUrl(endpointUrls.get(0));
+		assertEquals("awseb-AWSEB-repo", albName);
+	}
+	
+	@Test
+	public void testGetLoadBalancerNameFromUrlWithInternal() {
+		// call under test
+		String albName = builder.getLoadBalancerNameFromUrl("internal-awseb-AWSEB-repo-810117551.us-east-1.elb.amazonaws.com");
 		assertEquals("awseb-AWSEB-repo", albName);
 	}
 

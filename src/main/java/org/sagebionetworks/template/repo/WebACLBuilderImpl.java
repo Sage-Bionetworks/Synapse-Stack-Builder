@@ -143,11 +143,11 @@ public class WebACLBuilderImpl implements WebACLBuilder {
 	 */
 	String getLoadBalancerNameFromUrl(String url) {
 		String[] split = url.split("-");
-		if(split.length != 6) {
+		if(split.length != 7) {
 			throw new IllegalArgumentException("Cannot parse load balancer URL: "+url);
 		}
 		StringJoiner joiner = new StringJoiner("-");
-		for(int i=0; i<3; i++) {
+		for(int i=1; i<4; i++) {
 			joiner.add(split[i]);
 		}
 		return joiner.toString();
