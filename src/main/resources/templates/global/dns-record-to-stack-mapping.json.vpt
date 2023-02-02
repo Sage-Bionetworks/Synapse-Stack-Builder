@@ -13,14 +13,15 @@
 				"Name": "${listener.mapping.record.longName}${listener.port}",
 				"Port": ${listener.port},
 				"Protocol": "TCP",
+				#if($listener.mapping.target)
 				"Targets": [
 					{
-						#if($listener.mapping.target)
+						
 						"Id": {"Fn::ImportValue": "us-east-1-${listener.mapping.target}-alb-arn"},
-						#end
 						"Port": ${listener.port}
 					}
 				],
+				#end
 				"TargetType": "alb",
 				"UnhealthyThresholdCount": 2,
 				"VpcId": {"Fn::ImportValue": "us-east-1-synapse-${stack}-vpc-2-VPCId"}
