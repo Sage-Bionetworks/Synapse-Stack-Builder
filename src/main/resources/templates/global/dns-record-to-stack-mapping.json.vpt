@@ -16,7 +16,7 @@
 				"Targets": [
 					{
 						#if($listener.mapping.target)
-						"Id": {"Fn::ImportValue": "us-east-1-${listener.mapping.target}alb-arn"},
+						"Id": {"Fn::ImportValue": "us-east-1-${listener.mapping.target}-alb-arn"},
 						#end
 						"Port": ${listener.port}
 					}
