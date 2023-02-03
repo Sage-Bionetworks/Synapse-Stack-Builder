@@ -23,7 +23,6 @@
 				],
 				#end
 				"TargetType": "alb",
-				"UnhealthyThresholdCount": 2,
 				"VpcId": {"Fn::ImportValue": "us-east-1-synapse-${stack}-vpc-2-VPCId"}
 			}
 		},
