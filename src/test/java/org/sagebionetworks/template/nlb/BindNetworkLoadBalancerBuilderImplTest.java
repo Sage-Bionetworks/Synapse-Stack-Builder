@@ -86,7 +86,7 @@ public class BindNetworkLoadBalancerBuilderImplTest {
 
 		// properties of the first target
 		JSONObject props = resources.getJSONObject("wwwsagebaseorg80t").getJSONObject("Properties");
-		assertEquals("www-sagebase-org-80", props.get("Name"));
+		assertEquals("[{\"Key\":\"record\",\"Value\":\"www-sagebase-org-80\"}]", props.getJSONArray("Tags").toString());
 		assertEquals(80, props.get("Port"));
 		assertEquals("ipv4", props.get("IpAddressType"));
 		assertEquals("TCP", props.get("Protocol"));
@@ -109,7 +109,7 @@ public class BindNetworkLoadBalancerBuilderImplTest {
 		
 		// when the target is set to 'none' the target group should exist but it should not have a 'Targets' property.
 		props = resources.getJSONObject("stagingsynapseorg443t").getJSONObject("Properties");
-		assertEquals("staging-synapse-org-443", props.get("Name"));
+		assertEquals("[{\"Key\":\"record\",\"Value\":\"staging-synapse-org-443\"}]", props.getJSONArray("Tags").toString());
 		assertEquals(443, props.get("Port"));
 		assertEquals("ipv4", props.get("IpAddressType"));
 		assertEquals("TCP", props.get("Protocol"));
