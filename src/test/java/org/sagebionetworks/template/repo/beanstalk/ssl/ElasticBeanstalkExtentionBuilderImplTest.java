@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilderImpl.TEMPLATES_REPO_EBEXTENSIONS_UPDATE_TOMCAT_SERVER_XML_SH;
 
 import java.io.File;
 import java.io.StringWriter;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import org.apache.velocity.app.VelocityEngine;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +29,7 @@ import org.mockito.stubbing.Answer;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.FileProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
+import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import org.sagebionetworks.template.repo.beanstalk.LoadBalancerAlarm;
@@ -86,7 +89,7 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 	@BeforeEach
 	public void before() {
 		MockitoAnnotations.initMocks(this);
-		
+
 		when(configuration.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
 		when(configuration.getProperty(Constants.PROPERTY_KEY_INSTANCE)).thenReturn("123");
 		// Use the actual velocity entity
@@ -111,14 +114,18 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		alarmsConfWriter = new StringWriter();
 		modDeflateConfWriter = new StringWriter();
 		targetGroupWriter = new StringWriter();
-		
-		when(fileProvider.createFileWriter(any(File.class))).thenReturn(configWriter, sslConfWriter, modSecurityConfWriter, modDeflateConfWriter, logsConfWriter, alarmsConfWriter,alarmsConfWriter, targetGroupWriter);
+
+		when(fileProvider.createFileWriter(any(File.class))).thenReturn(configWriter, sslConfWriter,
+				modSecurityConfWriter, modDeflateConfWriter, logsConfWriter, alarmsConfWriter, alarmsConfWriter,
+				targetGroupWriter);
 		bucketName = "someBucket";
 		when(configuration.getConfigurationBucket()).thenReturn(bucketName);
 		x509CertificatePem = "x509pem";
 		privateKeyPem = "privatePem";
-		when(certifiateBuilder.buildNewX509CertificatePair()).thenReturn(new CertificatePair(x509CertificatePem, privateKeyPem));
-		when(mockCwlVelocityContextProvider.getLogDescriptors(any(EnvironmentType.class))).thenReturn(generateLogDescriptors());
+		when(certifiateBuilder.buildNewX509CertificatePair())
+				.thenReturn(new CertificatePair(x509CertificatePem, privateKeyPem));
+		when(mockCwlVelocityContextProvider.getLogDescriptors(any(EnvironmentType.class)))
+				.thenReturn(generateLogDescriptors());
 		when(mockLoadBalanacerAlarmsConfig.getOrDefault(any(), any())).thenReturn(generateLoadBalancerAlarms());
 	}
 
@@ -131,14 +138,22 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		assertEquals(mockWarCopy, warCopy);
 		// httpconfig
 		String httpConfigJson = configWriter.toString();
-		//System.out.println(httpConfigJson);
+		JSONObject configJson = new JSONObject(httpConfigJson);
+
+		// the contents should match the original file
+		assertEquals(TemplateUtils.loadContentFromFile(TEMPLATES_REPO_EBEXTENSIONS_UPDATE_TOMCAT_SERVER_XML_SH),
+				configJson.getJSONObject("files").getJSONObject("/tmp/update_tomcat_server_xml.sh")
+						.getString("content"));
+		assertEquals("{\"command\":\"sh /tmp/update_tomcat_server_xml.sh\"}",
+				configJson.getJSONObject("container_commands").getJSONObject("00").toString());
+
 		assertTrue(httpConfigJson.contains(x509CertificatePem));
 		assertTrue(httpConfigJson.contains(privateKeyPem));
 		// SSL conf
 		String sslConf = sslConfWriter.toString();
 		assertTrue(sslConf.contains("/etc/pki/tls/certs/server.crt"));
 		assertTrue(sslConf.contains("/etc/pki/tls/certs/server.key"));
-		//mod_security conf
+		// mod_security conf
 		String modSecurityConf = modSecurityConfWriter.toString();
 		assertTrue(modSecurityConf.contains("SecServerSignature"));
 		// mod_deflate conf
@@ -146,12 +161,12 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		assertTrue(modDeflateConf.contains("SetOutputFilter DEFLATE"));
 
 		verify(mockCwlVelocityContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
-		
+
 		String alarmsConf = alarmsConfWriter.toString();
-		
+
 		assertTrue(alarmsConf.contains("AWSELBSomeAlarm"));
 		assertTrue(alarmsConf.contains("-AWS-ELB-Some-Alarm"));
-		
+
 		// alb target group
 		String targetGroupConf = targetGroupWriter.toString();
 		assertTrue(targetGroupConf.contains("\"Outputs\": "));
@@ -161,7 +176,7 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 
 	private List<LogDescriptor> generateLogDescriptors() {
 		List<LogDescriptor> descriptors = new LinkedList<>();
-		for (LogType t: LogType.values()) {
+		for (LogType t : LogType.values()) {
 			LogDescriptor d = new LogDescriptor();
 			d.setLogType(t);
 			d.setLogPath("/var/log/mypath.log");
@@ -183,6 +198,5 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		alarm.setThreshold(20D);
 		return Arrays.asList(alarm);
 	}
-
 
 }

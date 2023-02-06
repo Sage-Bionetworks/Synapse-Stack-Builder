@@ -1,27 +1,27 @@
 package org.sagebionetworks.template.repo.beanstalk.ssl;
 
-import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_DESCRIPTORS;
+import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARMS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_NUMBER;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collections;
-import java.util.List;
-import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.json.JSONObject;
 import org.sagebionetworks.template.Constants;
-import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.FileProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
+import org.sagebionetworks.template.TemplateUtils;
+import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import org.sagebionetworks.template.repo.beanstalk.LoadBalancerAlarmsConfig;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
@@ -33,6 +33,8 @@ import com.google.inject.Injector;
 
 public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExtentionBuilder {
 
+
+	public static final String TEMPLATES_REPO_EBEXTENSIONS_UPDATE_TOMCAT_SERVER_XML_SH = "templates/repo/ebextensions/update_tomcat_server_xml.sh";
 
 	public static final String SSL_CONF = "ssl.conf";
 
@@ -110,6 +112,8 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 		int number = configuration.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + envType.getShortName());
 		
 		context.put("targetGroup", new TargetGroup(envType, stack, instance, number));
+		context.put("updateTomcatServerXmlSh", JSONObject
+				.quote(TemplateUtils.loadContentFromFile(TEMPLATES_REPO_EBEXTENSIONS_UPDATE_TOMCAT_SERVER_XML_SH)));
 		
 		// Exported resources prefix
 		context.put(GLOBAL_RESOURCES_EXPORT_PREFIX, Constants.createGlobalResourcesExportPrefix(stack));
