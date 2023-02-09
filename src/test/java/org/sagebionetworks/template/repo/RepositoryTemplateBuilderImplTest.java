@@ -701,8 +701,6 @@ public class RepositoryTemplateBuilderImplTest {
 	}
 
 	public static void validateWebAcl(JSONObject resources) {
-		System.out.println(resources.toString(5));
-
 		assertTrue(resources.keySet()
 				.containsAll(Set.of("prod101WebACL", "prod101AdminAccessRule", "prod101AdminRemoteAddrIpSet",
 						"prod101AdminUrlStringSet", "prod101PathTraversalRemoteRule", "prod101PathTraversalLocalRule",

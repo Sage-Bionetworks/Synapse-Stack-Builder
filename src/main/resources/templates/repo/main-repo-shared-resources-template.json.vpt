@@ -744,7 +744,7 @@
 							{
 								"Ref": "AWS::StackName"
 							},
-							"-Web-ACL-ARN"
+							"Web-ACL-ARN"
 						]
 					]
 				}
