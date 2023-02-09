@@ -166,10 +166,10 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 				resultFile = fileProvider.createNewFile(ebextensionsDirectory, BEANSTALK_ALARMS_CONFIG);
 				Template beanstalkAlarms = velocityEngine.getTemplate(TEMPLATE_EBEXTENSIONS_BEANSTALK_ALARMS);
 				addTemplateAsFileToDirectory(beanstalkAlarms, context, resultFile);
-				// "alb_target_group.config alarms in .ebextensions
-				resultFile = fileProvider.createNewFile(ebextensionsDirectory, "alb_target_group.config");
-				Template albTagetGroup = velocityEngine.getTemplate("templates/repo/ebextensions/alb-target-group.config");
-				addTemplateAsFileToDirectory(albTagetGroup, context, resultFile);
+
+				resultFile = fileProvider.createNewFile(ebextensionsDirectory, "alb_dependencies.config");
+				Template alb = velocityEngine.getTemplate("templates/repo/ebextensions/alb-dependencies.json");
+				addTemplateAsFileToDirectory(alb, context, resultFile);
 			}
 		});
 

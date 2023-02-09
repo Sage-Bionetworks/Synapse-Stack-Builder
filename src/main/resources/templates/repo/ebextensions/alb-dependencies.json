@@ -1,0 +1,48 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Application Load balancer dependencies",
+	"Resources": {
+		"webACLAssociation": {
+			"Type": "AWS::WAFRegional::WebACLAssociation",
+			"DependsOn": [
+				"AWSEBV2LoadBalancer",
+				"AWSEBV2LoadBalancerListener",
+				"AWSEBV2LoadBalancerListener443",
+				"AWSEBV2LoadBalancerListener443default",
+				"AWSEBV2LoadBalancerListenerdefault",
+				"AWSEBV2LoadBalancerTargetGroup"
+			],
+			"Properties": {
+				"ResourceArn": {
+					"Ref": "AWSEBV2LoadBalancer"
+				},
+				"WebACLId": {
+					"Ref": {
+						"Fn::ImportValue": "us-east-1-${stack}-${instance}-shared-resources-Web-ACL-ARN"
+					}
+				}
+			}
+		}
+	},
+	"Outputs": {
+		"${targetGroup.shortName}": {
+			"Description": "ARN of of this stack's ALB",
+			"Value": {
+				"Ref": "AWSEBV2LoadBalancer"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							"${targetGroup.fullName}-alb-arn"
+						]
+					]
+				}
+			}
+		}
+	}
+}

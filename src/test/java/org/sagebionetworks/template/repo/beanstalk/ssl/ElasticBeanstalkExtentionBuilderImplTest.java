@@ -80,7 +80,8 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 	StringWriter logsConfWriter;
 	StringWriter alarmsConfWriter;
 	StringWriter modDeflateConfWriter;
-	StringWriter targetGroupWriter;
+	StringWriter albDependencies;
+	
 
 	String bucketName;
 	String x509CertificatePem;
@@ -113,11 +114,11 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		logsConfWriter = new StringWriter();
 		alarmsConfWriter = new StringWriter();
 		modDeflateConfWriter = new StringWriter();
-		targetGroupWriter = new StringWriter();
+		albDependencies = new StringWriter();
 
 		when(fileProvider.createFileWriter(any(File.class))).thenReturn(configWriter, sslConfWriter,
 				modSecurityConfWriter, modDeflateConfWriter, logsConfWriter, alarmsConfWriter, alarmsConfWriter,
-				targetGroupWriter);
+				albDependencies);
 		bucketName = "someBucket";
 		when(configuration.getConfigurationBucket()).thenReturn(bucketName);
 		x509CertificatePem = "x509pem";
@@ -167,11 +168,21 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		assertTrue(alarmsConf.contains("AWSELBSomeAlarm"));
 		assertTrue(alarmsConf.contains("-AWS-ELB-Some-Alarm"));
 
-		// alb target group
-		String targetGroupConf = targetGroupWriter.toString();
-		assertTrue(targetGroupConf.contains("\"Outputs\": "));
-		assertTrue(targetGroupConf.contains("\"Value\": {\"Ref\" : \"AWSEBV2LoadBalancer\" },"));
-		assertTrue(targetGroupConf.contains("\"repo-dev-123-0-alb-arn\""));
+		JSONObject albJson = new JSONObject(albDependencies.toString());
+		
+		System.out.println(albJson.toString(5));
+		
+		JSONObject webAclAssociation = albJson.getJSONObject("Resources").getJSONObject("webACLAssociation");
+		assertEquals("[\"AWSEBV2LoadBalancer\",\"AWSEBV2LoadBalancerListener\",\"AWSEBV2LoadBalancerListener443\","
+				+ "\"AWSEBV2LoadBalancerListener443default\",\"AWSEBV2LoadBalancerListenerdefault\","
+				+ "\"AWSEBV2LoadBalancerTargetGroup\"]", webAclAssociation.getJSONArray("DependsOn").toString());
+		JSONObject props = webAclAssociation.getJSONObject("Properties");
+		assertEquals("{\"Ref\":\"AWSEBV2LoadBalancer\"}", props.getJSONObject("ResourceArn").toString());
+		assertEquals("{\"Ref\":{\"Fn::ImportValue\":\"us-east-1-dev-123-shared-resources-Web-ACL-ARN\"}}", props.getJSONObject("WebACLId").toString());
+		
+		JSONObject output = albJson.getJSONObject("Outputs").getJSONObject("repodev1230");
+		assertEquals("{\"Ref\":\"AWSEBV2LoadBalancer\"}", output.get("Value").toString());
+		assertEquals("{\"Name\":{\"Fn::Join\":[\"-\",[{\"Ref\":\"AWS::Region\"},\"repo-dev-123-0-alb-arn\"]]}}", output.get("Export").toString());
 	}
 
 	private List<LogDescriptor> generateLogDescriptors() {

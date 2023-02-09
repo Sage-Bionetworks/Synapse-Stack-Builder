@@ -725,8 +725,31 @@
 		#parse("templates/repo/kinesis-log-streams.json.vpt")
 		#parse("templates/repo/step-functions-template.json.vpt")
 		#parse("templates/repo/cloudwatch-alarms-template.json.vpt")
+		#parse("templates/repo/web-acl-template.json.vpt")
 	},
 	"Outputs": {
+		"webAclArn": {
+			"Description": "The ARN of the web ACL.",
+			"Value": {
+				"Ref": "${stack}${instance}WebACL"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"-Web-ACL-ARN"
+						]
+					]
+				}
+			}
+		},	
 		"BeanstalkApplicationId": {
 			"Description": "The elastic bean stalk application ID",
 			"Value": {

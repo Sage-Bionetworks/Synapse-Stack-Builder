@@ -48,8 +48,6 @@ import org.sagebionetworks.template.repo.IdGeneratorBuilderImpl;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilderImpl;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
-import org.sagebionetworks.template.repo.WebACLBuilder;
-import org.sagebionetworks.template.repo.WebACLBuilderImpl;
 import org.sagebionetworks.template.repo.athena.RecurrentAthenaQueryConfig;
 import org.sagebionetworks.template.repo.athena.RecurrentAthenaQueryConfigValidator;
 import org.sagebionetworks.template.repo.athena.RecurrentAthenaQueryContextProvider;
@@ -136,7 +134,6 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(ThreadProvider.class).to(ThreadProviderImp.class);
 		bind(IdGeneratorBuilder.class).to(IdGeneratorBuilderImpl.class);
 		bind(SecretBuilder.class).to(SecretBuilderImpl.class);
-		bind(WebACLBuilder.class).to(WebACLBuilderImpl.class);
 		bind(CertificateBuilder.class).to(CertificateBuilderImpl.class);
 		bind(ElasticBeanstalkExtentionBuilder.class).to(ElasticBeanstalkExtentionBuilderImpl.class);
 		bind(WarAppender.class).to(WarAppenderImpl.class);
