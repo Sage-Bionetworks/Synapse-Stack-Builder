@@ -17,9 +17,7 @@
 					"Ref": "AWSEBV2LoadBalancer"
 				},
 				"WebACLId": {
-					"Ref": {
-						"Fn::ImportValue": "us-east-1-${stack}-${instance}-shared-resources-Web-ACL-ARN"
-					}
+					"Fn::ImportValue": "us-east-1-${stack}-${instance}-shared-resources-Web-ACL-ARN"
 				}
 			}
 		}
