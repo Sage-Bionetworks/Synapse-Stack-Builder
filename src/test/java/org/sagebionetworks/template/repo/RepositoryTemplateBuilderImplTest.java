@@ -1,9 +1,10 @@
 package org.sagebionetworks.template.repo;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -11,7 +12,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.sagebionetworks.template.Constants.BEANSTALK_INSTANCES_SUBNETS;
+import static org.sagebionetworks.template.Constants.*;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
@@ -68,13 +69,13 @@ import org.apache.logging.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
@@ -106,59 +107,56 @@ import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class RepositoryTemplateBuilderImplTest {
 
 	@Mock
-	CloudFormationClient mockCloudFormationClient;
+	private CloudFormationClient mockCloudFormationClient;
 	@Mock
-	Ec2Client mockEc2Client;
+	private Ec2Client mockEc2Client;
 	@Mock
-	AWSElasticBeanstalk mockBeanstalkClient;
+	private AWSElasticBeanstalk mockBeanstalkClient;
 	@Mock
-	RepoConfiguration config;
+	private RepoConfiguration config;
 	@Mock
-	LoggerFactory mockLoggerFactory;
+	private LoggerFactory mockLoggerFactory;
 	@Mock
-	Logger mockLogger;
+	private Logger mockLogger;
 	@Mock
-	ArtifactCopy mockArtifactCopy;
+	private ArtifactCopy mockArtifactCopy;
 	@Mock
-	SecretBuilder mockSecretBuilder;
+	private SecretBuilder mockSecretBuilder;
 	@Mock
-	WebACLBuilder mockACLBuilder;
+	private VelocityContextProvider mockContextProvider1;
 	@Mock
-	VelocityContextProvider mockContextProvider1;
+	private VelocityContextProvider mockContextProvider2;
 	@Mock
-	VelocityContextProvider mockContextProvider2;
+	private ElasticBeanstalkSolutionStackNameProvider mockElasticBeanstalkSolutionStackNameProvider;
 	@Mock
-	ElasticBeanstalkSolutionStackNameProvider mockElasticBeanstalkSolutionStackNameProvider;
+	private StackTagsProvider mockStackTagsProvider;
 	@Mock
-	StackTagsProvider mockStackTagsProvider;
-	@Mock
-	CloudwatchLogsVelocityContextProvider mockCwlContextProvider;
+	private CloudwatchLogsVelocityContextProvider mockCwlContextProvider;
 	@Captor
-	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
+	private ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
 
-	VelocityEngine velocityEngine;
-	RepositoryTemplateBuilderImpl builder;
+	private VelocityEngine velocityEngine;
+	private RepositoryTemplateBuilderImpl builder;
 
-	String stack;
-	String instance;
-	String vpcSubnetColor;
-	String beanstalkNumber;
-
-	String bucket;
-
-	Stack sharedResouces;
-	String databaseEndpointSuffix;
+	private String stack;
+	private String instance;
+	private String vpcSubnetColor;
 	
-	SourceBundle secretsSouce;
-	String keyAlias;
+	private List<LogDescriptor> logDescriptors;
 
-	List<Tag> expectedTags;
+	private Stack sharedResouces;
+	private String databaseEndpointSuffix;
 
-	@Before
+	private SourceBundle secretsSouce;
+	private String keyAlias;
+
+	private List<Tag> expectedTags;
+
+	@BeforeEach
 	public void before() throws InterruptedException {
 		// use a real velocity engine
 		velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
@@ -166,19 +164,57 @@ public class RepositoryTemplateBuilderImplTest {
 		expectedTags = new LinkedList<>();
 		Tag t = new Tag().withKey("aKey").withValue("aValue");
 		expectedTags.add(t);
-		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
 
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
-
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
-				mockArtifactCopy, mockSecretBuilder, mockACLBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
-				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider, mockEc2Client, mockBeanstalkClient);
+				mockArtifactCopy, mockSecretBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
+				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
+				mockEc2Client, mockBeanstalkClient);
 
 		stack = "dev";
 		instance = "101";
 		vpcSubnetColor = Color.Green.name();
-		beanstalkNumber = "2";
 
+		sharedResouces = new Stack();
+		Output dbOut = new Output();
+		dbOut.withOutputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
+		databaseEndpointSuffix = "something.amazon.com";
+		dbOut.withOutputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix);
+		// TableDB output
+		Output tableDBOutput1 = new Output();
+		tableDBOutput1.withOutputKey(stack + instance + "Table0" + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
+		tableDBOutput1.withOutputValue(stack + "-" + instance + "-table-0." + databaseEndpointSuffix);
+		Output tableDBOutput2 = new Output();
+		tableDBOutput2.withOutputKey(stack + instance + "Table1" + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
+		tableDBOutput2.withOutputValue(stack + "-" + instance + "-table-1." + databaseEndpointSuffix);
+
+		sharedResouces.withOutputs(dbOut, tableDBOutput1, tableDBOutput2);
+
+		secretsSouce = new SourceBundle("secretBucket", "secretKey");
+		keyAlias = "alias/some/alias";
+
+		// CloudwatchLogs
+		logDescriptors = this.generateLogDescriptors();
+	}
+
+	private void configureStack(String inputStack) throws InterruptedException {
+		stack = inputStack;
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		sharedResouces = new Stack();
+		Output dbOut = new Output();
+		dbOut.withOutputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
+		databaseEndpointSuffix = "something.amazon.com";
+		dbOut.withOutputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix);
+		sharedResouces.withOutputs(dbOut);
+
+		when(mockCloudFormationClient.waitForStackToComplete(any(String.class)))
+				.thenReturn(Optional.of(sharedResouces));
+	}
+
+	@Test
+	public void testBuildAndDeployProd() throws InterruptedException {
+		
+		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
 		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
@@ -203,69 +239,33 @@ public class RepositoryTemplateBuilderImplTest {
 			when(config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName())).thenReturn(version);
 			when(config.getProperty(PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL + type.getShortName()))
 					.thenReturn("url-" + type.getShortName());
-			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MIN_INSTANCES + type.getShortName())).thenReturn(1);
-			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MAX_INSTANCES + type.getShortName())).thenReturn(2);
-			when(config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN+ type.getShortName())).thenReturn("the:ssl:arn");
-			when(config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE+ type.getShortName())).thenReturn("synapes.org");
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN + type.getShortName())).thenReturn("the:ssl:arn");
+			when(config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE + type.getShortName())).thenReturn("synapes.org");
 		}
-		
-		when(mockArtifactCopy.copyArtifactIfNeeded(any(), any(), anyInt())).thenReturn(new SourceBundle("bucket", "key-one"));		
+
+		when(mockArtifactCopy.copyArtifactIfNeeded(any(), any(), anyInt()))
+				.thenReturn(new SourceBundle("bucket", "key-one"));
 
 		when(config.getProperty((PROPERTY_KEY_OAUTH_ENDPOINT))).thenReturn("https://oauthendpoint");
 
 		when(config.getProperty(PROPERTY_KEY_EC2_INSTANCE_TYPE)).thenReturn("t2.medium");
 
-		sharedResouces = new Stack();
-		Output dbOut = new Output();
-		dbOut.withOutputKey(stack+instance+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
-		databaseEndpointSuffix = "something.amazon.com";
-		dbOut.withOutputValue(stack+"-"+instance+"-db."+databaseEndpointSuffix);
-		// TableDB output
-		Output tableDBOutput1 = new Output();
-		tableDBOutput1.withOutputKey(stack+instance+"Table0"+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
-		tableDBOutput1.withOutputValue(stack+"-"+instance+"-table-0."+databaseEndpointSuffix);
-		Output tableDBOutput2 = new Output();
-		tableDBOutput2.withOutputKey(stack+instance+"Table1"+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
-		tableDBOutput2.withOutputValue(stack+"-"+instance+"-table-1."+databaseEndpointSuffix);
-
-		sharedResouces.withOutputs(dbOut, tableDBOutput1, tableDBOutput2);
-		
-		secretsSouce = new SourceBundle("secretBucket", "secretKey");
-		keyAlias = "alias/some/alias";
-		
 		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
 		when(mockSecretBuilder.getCMKAlias()).thenReturn(keyAlias);
 
 		when(mockElasticBeanstalkSolutionStackNameProvider.getSolutionStackName(anyString(), anyString(), anyString()))
 				.thenReturn("fake stack");
-
-		// CloudwatchLogs
-		List<LogDescriptor> logDescriptors = this.generateLogDescriptors();
 		when(mockCwlContextProvider.getLogDescriptors(any(EnvironmentType.class))).thenReturn(logDescriptors);
 		
-	}
-	
-	private void configureStack(String inputStack) throws InterruptedException {
-		stack = inputStack;
-		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
-		sharedResouces = new Stack();
-		Output dbOut = new Output();
-		dbOut.withOutputKey(stack+instance+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
-		databaseEndpointSuffix = "something.amazon.com";
-		dbOut.withOutputValue(stack+"-"+instance+"-db."+databaseEndpointSuffix);
-		sharedResouces.withOutputs(dbOut);
-		
-		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(sharedResouces));
-	}
-	@Test
-	public void testBuildAndDeployProd() throws InterruptedException {
+		/////
 		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("true");
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
-		String[] noSnapshots = new String[] {NOSNAPSHOT};
+		String[] noSnapshots = new String[] { NOSNAPSHOT };
 		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 		setupValidBeanstalkConfig();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
-		when(mockCloudFormationClient.getOutput(anyString(), anyString())).thenReturn(String.join(",", EXPECTED_SUBNETS));
+		when(mockCloudFormationClient.getOutput(anyString(), anyString()))
+				.thenReturn(String.join(",", EXPECTED_SUBNETS));
 		when(mockEc2Client.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		stack = "prod";
 		configureStack(stack);
@@ -282,7 +282,6 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(request.getParameters());
 		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);
-		System.out.println(bodyJSONString);
 		JSONObject templateJson = new JSONObject(bodyJSONString);
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		assertNotNull(resources);
@@ -292,13 +291,12 @@ public class RepositoryTemplateBuilderImplTest {
 		validateResouceDatabaseInstance(resources, stack, "true");
 		// tables database
 		validateResouceTablesDatabase(resources, stack, "true");
+		validateWebAcl(resources);
 
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_WORKERS);
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.PORTAL);
 
-		List<String> evironmentNames = Lists.newArrayList("repo-prod-101-0", "workers-prod-101-0", "portal-prod-101-0");
-		verify(mockACLBuilder).buildWebACL(evironmentNames);
 		// prod should have alarms.
 		assertTrue(resources.has("prod101Table1RepositoryDBAlarmSwapUsage"));
 		assertTrue(resources.has("prod101Table1RepositoryDBAlarmSwapUsage"));
@@ -307,32 +305,78 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.has("prod101Table1RepositoryDBLowFreeStorageSpace"));
 
 		assertTrue(resources.has("prod101RepositoryDB"));
-		JSONObject repoDB = (JSONObject)resources.get("prod101RepositoryDB");
-		JSONObject dbProps = (JSONObject)repoDB.get("Properties");
+		JSONObject repoDB = (JSONObject) resources.get("prod101RepositoryDB");
+		JSONObject dbProps = (JSONObject) repoDB.get("Properties");
 		assertFalse(dbProps.has("DBSnapshotIdentifier"));
 		assertTrue(dbProps.has("DBName"));
 
 		assertTrue(resources.has("prod101Table0RepositoryDB"));
-		JSONObject tableDB = (JSONObject)resources.get("prod101Table0RepositoryDB");
-		JSONObject tDbProps = (JSONObject)tableDB.get("Properties");
+		JSONObject tableDB = (JSONObject) resources.get("prod101Table0RepositoryDB");
+		JSONObject tDbProps = (JSONObject) tableDB.get("Properties");
 		assertFalse(tDbProps.has("DBSnapshotIdentifier"));
 		assertTrue(tDbProps.has("DBName"));
 
 		assertTrue(resources.has("prod101Table1RepositoryDB"));
-		tableDB = (JSONObject)resources.get("prod101Table1RepositoryDB");
-		tDbProps = (JSONObject)tableDB.get("Properties");
+		tableDB = (JSONObject) resources.get("prod101Table1RepositoryDB");
+		tDbProps = (JSONObject) tableDB.get("Properties");
 		assertFalse(tDbProps.has("DBSnapshotIdentifier"));
 		assertTrue(tDbProps.has("DBName"));
 	}
+
 	@Test
 	public void testBuildAndDeployProdNoMonitoring() throws InterruptedException {
+		
+		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
+		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
+		when(mockSecretBuilder.getRepositoryDatabasePassword()).thenReturn("somePassword");
+
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE)).thenReturn(4);
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(8);
+		when(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS)).thenReturn("db.t2.small");
+		when(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
+		when(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.standard.name());
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS)).thenReturn(-1);
+
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(6);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_INSTANCE_COUNT)).thenReturn(2);
+		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).thenReturn("db.t2.micro");
+		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
+
+		for (EnvironmentType type : EnvironmentType.values()) {
+			String version = "version-" + type.getShortName();
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName())).thenReturn(version);
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL + type.getShortName()))
+					.thenReturn("url-" + type.getShortName());
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN + type.getShortName())).thenReturn("the:ssl:arn");
+			when(config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE + type.getShortName())).thenReturn("synapes.org");
+		}
+
+		when(mockArtifactCopy.copyArtifactIfNeeded(any(), any(), anyInt()))
+				.thenReturn(new SourceBundle("bucket", "key-one"));
+
+		when(config.getProperty((PROPERTY_KEY_OAUTH_ENDPOINT))).thenReturn("https://oauthendpoint");
+
+		when(config.getProperty(PROPERTY_KEY_EC2_INSTANCE_TYPE)).thenReturn("t2.medium");
+
+		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
+		when(mockSecretBuilder.getCMKAlias()).thenReturn(keyAlias);
+
+		when(mockElasticBeanstalkSolutionStackNameProvider.getSolutionStackName(anyString(), anyString(), anyString()))
+				.thenReturn("fake stack");
+		when(mockCwlContextProvider.getLogDescriptors(any(EnvironmentType.class))).thenReturn(logDescriptors);
+		
 		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("false");
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
-		String[] noSnapshots = new String[] {NOSNAPSHOT};
+		String[] noSnapshots = new String[] { NOSNAPSHOT };
 		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 		setupValidBeanstalkConfig();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
-		when(mockCloudFormationClient.getOutput(anyString(), anyString())).thenReturn(String.join(",", EXPECTED_SUBNETS));
+		when(mockCloudFormationClient.getOutput(anyString(), anyString()))
+				.thenReturn(String.join(",", EXPECTED_SUBNETS));
 		when(mockEc2Client.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		stack = "prod";
 		configureStack(stack);
@@ -349,7 +393,6 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(request.getParameters());
 		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);
-		System.out.println(bodyJSONString);
 		JSONObject templateJson = new JSONObject(bodyJSONString);
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		assertNotNull(resources);
@@ -365,7 +408,6 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.PORTAL);
 
 		List<String> evironmentNames = Lists.newArrayList("repo-prod-101-0", "workers-prod-101-0", "portal-prod-101-0");
-		verify(mockACLBuilder).buildWebACL(evironmentNames);
 		// prod should have alarms.
 		assertTrue(resources.has("prod101Table1RepositoryDBAlarmSwapUsage"));
 		assertTrue(resources.has("prod101Table1RepositoryDBAlarmSwapUsage"));
@@ -374,33 +416,78 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.has("prod101Table1RepositoryDBLowFreeStorageSpace"));
 
 		assertTrue(resources.has("prod101RepositoryDB"));
-		JSONObject repoDB = (JSONObject)resources.get("prod101RepositoryDB");
-		JSONObject dbProps = (JSONObject)repoDB.get("Properties");
+		JSONObject repoDB = (JSONObject) resources.get("prod101RepositoryDB");
+		JSONObject dbProps = (JSONObject) repoDB.get("Properties");
 		assertFalse(dbProps.has("DBSnapshotIdentifier"));
 		assertTrue(dbProps.has("DBName"));
 
 		assertTrue(resources.has("prod101Table0RepositoryDB"));
-		JSONObject tableDB = (JSONObject)resources.get("prod101Table0RepositoryDB");
-		JSONObject tDbProps = (JSONObject)tableDB.get("Properties");
+		JSONObject tableDB = (JSONObject) resources.get("prod101Table0RepositoryDB");
+		JSONObject tDbProps = (JSONObject) tableDB.get("Properties");
 		assertFalse(tDbProps.has("DBSnapshotIdentifier"));
 		assertTrue(tDbProps.has("DBName"));
 
 		assertTrue(resources.has("prod101Table1RepositoryDB"));
-		tableDB = (JSONObject)resources.get("prod101Table1RepositoryDB");
-		tDbProps = (JSONObject)tableDB.get("Properties");
+		tableDB = (JSONObject) resources.get("prod101Table1RepositoryDB");
+		tDbProps = (JSONObject) tableDB.get("Properties");
 		assertFalse(tDbProps.has("DBSnapshotIdentifier"));
 		assertTrue(tDbProps.has("DBName"));
 	}
-	
+
 	@Test
 	public void testBuildAndDeployDev() throws InterruptedException {
-		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("true"); // does not matter if dev
+		
+		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
+		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
+		when(mockSecretBuilder.getRepositoryDatabasePassword()).thenReturn("somePassword");
+
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE)).thenReturn(4);
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(8);
+		when(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS)).thenReturn("db.t2.small");
+		when(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
+		when(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.standard.name());
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS)).thenReturn(-1);
+
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(6);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_INSTANCE_COUNT)).thenReturn(2);
+		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).thenReturn("db.t2.micro");
+		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
+
+		for (EnvironmentType type : EnvironmentType.values()) {
+			String version = "version-" + type.getShortName();
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName())).thenReturn(version);
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL + type.getShortName()))
+					.thenReturn("url-" + type.getShortName());
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN + type.getShortName())).thenReturn("the:ssl:arn");
+			when(config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE + type.getShortName())).thenReturn("synapes.org");
+		}
+
+		when(mockArtifactCopy.copyArtifactIfNeeded(any(), any(), anyInt()))
+				.thenReturn(new SourceBundle("bucket", "key-one"));
+
+		when(config.getProperty((PROPERTY_KEY_OAUTH_ENDPOINT))).thenReturn("https://oauthendpoint");
+
+		when(config.getProperty(PROPERTY_KEY_EC2_INSTANCE_TYPE)).thenReturn("t2.medium");
+
+		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
+		when(mockSecretBuilder.getCMKAlias()).thenReturn(keyAlias);
+
+		when(mockElasticBeanstalkSolutionStackNameProvider.getSolutionStackName(anyString(), anyString(), anyString()))
+				.thenReturn("fake stack");
+		when(mockCwlContextProvider.getLogDescriptors(any(EnvironmentType.class))).thenReturn(logDescriptors);	
+		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("true"); // does not matter if
+																									// dev
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
-		String[] noSnapshots = new String[] {NOSNAPSHOT};
+		String[] noSnapshots = new String[] { NOSNAPSHOT };
 		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 		setupValidBeanstalkConfig();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
-		when(mockCloudFormationClient.getOutput(anyString(), anyString())).thenReturn(String.join(",", EXPECTED_SUBNETS));
+		when(mockCloudFormationClient.getOutput(anyString(), anyString()))
+				.thenReturn(String.join(",", EXPECTED_SUBNETS));
 		when(mockEc2Client.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		stack = "dev";
 		configureStack(stack);
@@ -417,7 +504,6 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(request.getParameters());
 		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);
-		System.out.println(bodyJSONString);
 		JSONObject templateJson = new JSONObject(bodyJSONString);
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		assertNotNull(resources);
@@ -425,7 +511,7 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_WORKERS);
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.PORTAL);
-		
+
 		// dev should not have alarms
 		assertFalse(resources.has("dev101Table1RepositoryDBAlarmSwapUsage"));
 		assertFalse(resources.has("dev101Table1RepositoryDBAlarmSwapUsage"));
@@ -434,21 +520,21 @@ public class RepositoryTemplateBuilderImplTest {
 		assertFalse(resources.has("dev101Table1RepositoryDBLowFreeStorageSpace"));
 
 		assertTrue(resources.has("dev101RepositoryDB"));
-		JSONObject repoDB = (JSONObject)resources.get("dev101RepositoryDB");
-		JSONObject dbProps = (JSONObject)repoDB.get("Properties");
+		JSONObject repoDB = (JSONObject) resources.get("dev101RepositoryDB");
+		JSONObject dbProps = (JSONObject) repoDB.get("Properties");
 		assertFalse(dbProps.has("DBSnapshotIdentifier"));
 		assertTrue(dbProps.has("DBName"));
 		validateResouceDatabaseInstance(resources, stack, "true");
 
 		assertTrue(resources.has("dev101Table0RepositoryDB"));
-		JSONObject tableDB = (JSONObject)resources.get("dev101Table0RepositoryDB");
-		JSONObject tDbProps = (JSONObject)tableDB.get("Properties");
+		JSONObject tableDB = (JSONObject) resources.get("dev101Table0RepositoryDB");
+		JSONObject tDbProps = (JSONObject) tableDB.get("Properties");
 		assertFalse(tDbProps.has("DBSnapshotIdentifier"));
 		assertTrue(tDbProps.has("DBName"));
 
 		assertTrue(resources.has("dev101Table1RepositoryDB"));
-		tableDB = (JSONObject)resources.get("dev101Table1RepositoryDB");
-		tDbProps = (JSONObject)tableDB.get("Properties");
+		tableDB = (JSONObject) resources.get("dev101Table1RepositoryDB");
+		tDbProps = (JSONObject) tableDB.get("Properties");
 		assertFalse(tDbProps.has("DBSnapshotIdentifier"));
 		assertTrue(tDbProps.has("DBName"));
 
@@ -456,13 +542,59 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testBuildAndDeployDevFromSnapshot() throws InterruptedException {
+	
+		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
+		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
+		when(mockSecretBuilder.getRepositoryDatabasePassword()).thenReturn("somePassword");
+
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE)).thenReturn(4);
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(8);
+		when(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS)).thenReturn("db.t2.small");
+		when(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
+		when(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.standard.name());
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS)).thenReturn(-1);
+
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(6);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_INSTANCE_COUNT)).thenReturn(2);
+		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).thenReturn("db.t2.micro");
+		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
+
+		for (EnvironmentType type : EnvironmentType.values()) {
+			String version = "version-" + type.getShortName();
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName())).thenReturn(version);
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL + type.getShortName()))
+					.thenReturn("url-" + type.getShortName());
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN + type.getShortName())).thenReturn("the:ssl:arn");
+			when(config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE + type.getShortName())).thenReturn("synapes.org");
+		}
+
+		when(mockArtifactCopy.copyArtifactIfNeeded(any(), any(), anyInt()))
+				.thenReturn(new SourceBundle("bucket", "key-one"));
+
+		when(config.getProperty((PROPERTY_KEY_OAUTH_ENDPOINT))).thenReturn("https://oauthendpoint");
+
+		when(config.getProperty(PROPERTY_KEY_EC2_INSTANCE_TYPE)).thenReturn("t2.medium");
+
+		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
+		when(mockSecretBuilder.getCMKAlias()).thenReturn(keyAlias);
+
+		when(mockElasticBeanstalkSolutionStackNameProvider.getSolutionStackName(anyString(), anyString(), anyString()))
+				.thenReturn("fake stack");
+		when(mockCwlContextProvider.getLogDescriptors(any(EnvironmentType.class))).thenReturn(logDescriptors);
+
 		setupValidBeanstalkConfig();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
-		when(mockCloudFormationClient.getOutput(anyString(), anyString())).thenReturn(String.join(",", EXPECTED_SUBNETS));
+		when(mockCloudFormationClient.getOutput(anyString(), anyString()))
+				.thenReturn(String.join(",", EXPECTED_SUBNETS));
 		when(mockEc2Client.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn("repoSnapshotIdentifier");
-		String[] tableSnaphotIdentifiers = {"table0SnapshotIdentifier", "table1SnapshotIdentifier"};
-		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(tableSnaphotIdentifiers);
+		String[] tableSnaphotIdentifiers = { "table0SnapshotIdentifier", "table1SnapshotIdentifier" };
+		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS))
+				.thenReturn(tableSnaphotIdentifiers);
 		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("false");
 		stack = "dev";
 		configureStack(stack);
@@ -479,7 +611,6 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(request.getParameters());
 		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);
-		System.out.println(bodyJSONString);
 		JSONObject templateJson = new JSONObject(bodyJSONString);
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		assertNotNull(resources);
@@ -496,28 +627,28 @@ public class RepositoryTemplateBuilderImplTest {
 		assertFalse(resources.has("dev101Table1RepositoryDBLowFreeStorageSpace"));
 
 		assertTrue(resources.has("dev101RepositoryDB"));
-		JSONObject repoDB = (JSONObject)resources.get("dev101RepositoryDB");
-		JSONObject dbProps = (JSONObject)repoDB.get("Properties");
+		JSONObject repoDB = (JSONObject) resources.get("dev101RepositoryDB");
+		JSONObject dbProps = (JSONObject) repoDB.get("Properties");
 		assertTrue(dbProps.has("DBSnapshotIdentifier"));
 		assertFalse(dbProps.has("DBName"));
 
 		assertTrue(resources.has("dev101Table0RepositoryDB"));
-		JSONObject tableDB = (JSONObject)resources.get("dev101Table0RepositoryDB");
-		JSONObject tDbProps = (JSONObject)tableDB.get("Properties");
+		JSONObject tableDB = (JSONObject) resources.get("dev101Table0RepositoryDB");
+		JSONObject tDbProps = (JSONObject) tableDB.get("Properties");
 		assertTrue(tDbProps.has("DBSnapshotIdentifier"));
 		assertEquals("table0SnapshotIdentifier", tDbProps.get("DBSnapshotIdentifier"));
 		assertFalse(tDbProps.has("DBName"));
 
 		assertTrue(resources.has("dev101Table1RepositoryDB"));
-		tableDB = (JSONObject)resources.get("dev101Table1RepositoryDB");
-		tDbProps = (JSONObject)tableDB.get("Properties");
+		tableDB = (JSONObject) resources.get("dev101Table1RepositoryDB");
+		tDbProps = (JSONObject) tableDB.get("Properties");
 		assertTrue(tDbProps.has("DBSnapshotIdentifier"));
 		assertEquals("table1SnapshotIdentifier", tDbProps.get("DBSnapshotIdentifier"));
 		assertFalse(tDbProps.has("DBName"));
 	}
 
 	public void validateResouceDatabaseSubnetGroup(JSONObject resources, String stack) {
-		JSONObject subnetGroup = resources.getJSONObject(stack+"101DBSubnetGroup");
+		JSONObject subnetGroup = resources.getJSONObject(stack + "101DBSubnetGroup");
 		assertNotNull(subnetGroup);
 		JSONObject properties = subnetGroup.getJSONObject("Properties");
 		assertTrue(properties.has("SubnetIds"));
@@ -529,7 +660,7 @@ public class RepositoryTemplateBuilderImplTest {
 	 * @param resources
 	 */
 	public void validateResouceDatabaseInstance(JSONObject resources, String stack, String enableEnhancedMonitoring) {
-		JSONObject instance = resources.getJSONObject(stack+"101RepositoryDB");
+		JSONObject instance = resources.getJSONObject(stack + "101RepositoryDB");
 		assertNotNull(instance);
 		JSONObject properties = instance.getJSONObject("Properties");
 		assertEquals("4", properties.get("AllocatedStorage"));
@@ -546,27 +677,38 @@ public class RepositoryTemplateBuilderImplTest {
 	 */
 	public void validateResouceTablesDatabase(JSONObject resources, String stack, String enableEnhancedMonitoring) {
 		// zero
-		JSONObject instance = resources.getJSONObject(stack+"101Table0RepositoryDB");
+		JSONObject instance = resources.getJSONObject(stack + "101Table0RepositoryDB");
 		assertNotNull(instance);
 		JSONObject properties = instance.getJSONObject("Properties");
 		assertEquals("3", properties.get("AllocatedStorage"));
 		assertEquals("6", properties.get("MaxAllocatedStorage"));
 		assertEquals("db.t2.micro", properties.get("DBInstanceClass"));
 		assertEquals(Boolean.FALSE, properties.get("MultiAZ"));
-		assertEquals(stack+"-101-table-0", properties.get("DBInstanceIdentifier"));
-		assertEquals(stack+"101", properties.get("DBName"));
+		assertEquals(stack + "-101-table-0", properties.get("DBInstanceIdentifier"));
+		assertEquals(stack + "101", properties.get("DBName"));
 		validateEnhancedMonitoring(properties, enableEnhancedMonitoring);
 		// one
-		instance = resources.getJSONObject(stack+"101Table1RepositoryDB");
+		instance = resources.getJSONObject(stack + "101Table1RepositoryDB");
 		assertNotNull(instance);
 		properties = instance.getJSONObject("Properties");
 		assertEquals("3", properties.get("AllocatedStorage"));
 		assertEquals("6", properties.get("MaxAllocatedStorage"));
 		assertEquals("db.t2.micro", properties.get("DBInstanceClass"));
 		assertEquals(Boolean.FALSE, properties.get("MultiAZ"));
-		assertEquals(stack+"-101-table-1", properties.get("DBInstanceIdentifier"));
-		assertEquals(stack+"101", properties.get("DBName"));
+		assertEquals(stack + "-101-table-1", properties.get("DBInstanceIdentifier"));
+		assertEquals(stack + "101", properties.get("DBName"));
 		validateEnhancedMonitoring(properties, enableEnhancedMonitoring);
+	}
+
+	public static void validateWebAcl(JSONObject resources) {
+		assertTrue(resources.keySet()
+				.containsAll(Set.of("prod101WebACL", "prod101AdminAccessRule", "prod101AdminRemoteAddrIpSet",
+						"prod101AdminUrlStringSet", "prod101PathTraversalRemoteRule", "prod101PathTraversalLocalRule",
+						"prod101PathTraversalRemoteStringSet", "prod101PathTraversalLocalStringSet",
+						"prod101HeaderXssRule", "prod101BodyXssRule", "prod101URIQueryXssRule", "prod101HeaderXssSet",
+						"prod101BodyXssSet", "prod101URIQueryXssSet", "prod101HeaderSQLInjectionRule",
+						"prod101URIQuerySQLInjectionRule", "prod101HeaderSQLInjectionSet", "prod101BodySQLInjectionSet",
+						"prod101URIQuerySQLInjectionSet", "prod101SizeRestrictionRule", "prod101SizeRestrictionSet")));
 	}
 
 	public void validateEnhancedMonitoring(JSONObject props, String enableEnhancedMonitoring) {
@@ -583,6 +725,9 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testGetParamters() {
+		
+		when(mockSecretBuilder.getRepositoryDatabasePassword()).thenReturn("somePassword");
+
 		// call under test
 		Parameter[] params = builder.createSharedParameters();
 		assertNotNull(params);
@@ -594,26 +739,55 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testcreateSharedResourcesStackName() {
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
+	
 		// call under test
 		String name = builder.createSharedResourcesStackName();
 		assertEquals("dev-101-shared-resources", name);
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void testCreateContextInvalidSnapshotState() {
-		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn("aSnapshotId");
-		String[] noSnapshots = new String[]{NOSNAPSHOT};
-		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
+		
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
+		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
 
-		// call under test
-		VelocityContext context = builder.createSharedContext();
-
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE)).thenReturn(4);
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(8);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_INSTANCE_COUNT)).thenReturn(2);
+		assertThrows(IllegalArgumentException.class, ()->{
+			// call under test
+			builder.createSharedContext();
+		});
 	}
 
 	@Test
 	public void testCreateContext() {
+		
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
+		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
+
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE)).thenReturn(4);
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(8);
+		when(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS)).thenReturn("db.t2.small");
+		when(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
+		when(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.standard.name());
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS)).thenReturn(-1);
+
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(6);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_INSTANCE_COUNT)).thenReturn(2);
+		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).thenReturn("db.t2.micro");
+		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
+		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("true");
+
+//		
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
-		String[] noSnapshots = new String[] {NOSNAPSHOT};
+		String[] noSnapshots = new String[] { NOSNAPSHOT };
 		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 
 		// call under test
@@ -667,6 +841,25 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testCreateEnvironments() {
+		
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
+
+		for (EnvironmentType type : EnvironmentType.values()) {
+			String version = "version-" + type.getShortName();
+			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + type.getShortName())).thenReturn(0);
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName())).thenReturn(version);
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL + type.getShortName()))
+					.thenReturn("url-" + type.getShortName());
+			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MIN_INSTANCES + type.getShortName())).thenReturn(1);
+			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MAX_INSTANCES + type.getShortName())).thenReturn(2);
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN + type.getShortName())).thenReturn("the:ssl:arn");
+			when(config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE + type.getShortName())).thenReturn("synapes.org");
+		}
+
+		when(mockArtifactCopy.copyArtifactIfNeeded(any(), any(), anyInt()))
+				.thenReturn(new SourceBundle("bucket", "key-one"));
+
 		// call under test
 		List<EnvironmentDescriptor> descriptors = builder.createEnvironments(secretsSouce);
 		assertNotNull(descriptors);
@@ -725,23 +918,63 @@ public class RepositoryTemplateBuilderImplTest {
 	}
 
 	@Test
-	public void testCreateEnvironments__missingPropertiesForEnvironment(){
-		//do not include the "workers" environment by making the config throw an exception
-		when(config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + EnvironmentType.REPOSITORY_WORKERS.getShortName()))
-				.thenThrow(new ConfigurationPropertyNotFound("test.key"));
+	public void testCreateEnvironments__missingPropertiesForEnvironment() {
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
+
+		for (EnvironmentType type : EnvironmentType.values()) {
+			String version = "version-" + type.getShortName();
+			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + type.getShortName())).thenReturn(0);
+			if (EnvironmentType.REPOSITORY_WORKERS.equals(type)) {
+				// do not include the "workers" environment by making the config throw an
+				// exception
+				when(config.getProperty(
+						PROPERTY_KEY_BEANSTALK_VERSION + EnvironmentType.REPOSITORY_WORKERS.getShortName()))
+								.thenThrow(new ConfigurationPropertyNotFound("test.key"));
+			} else {
+				when(config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName())).thenReturn(version);
+				when(config.getProperty(PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL + type.getShortName()))
+						.thenReturn("url-" + type.getShortName());
+				when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MIN_INSTANCES + type.getShortName())).thenReturn(1);
+				when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MAX_INSTANCES + type.getShortName())).thenReturn(2);
+				when(config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN + type.getShortName())).thenReturn("the:ssl:arn");
+				when(config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE + type.getShortName())).thenReturn("synapes.org");
+			}
+		}
+
+		when(mockArtifactCopy.copyArtifactIfNeeded(any(), any(), anyInt()))
+				.thenReturn(new SourceBundle("bucket", "key-one"));	
 
 		List<EnvironmentDescriptor> descriptors = builder.createEnvironments(secretsSouce);
 
 		verify(mockLogger).warn(anyString());
 		assertEquals(2, descriptors.size());
-		Set<String> createEnvironmentTypes = descriptors.stream().map(EnvironmentDescriptor::getType).collect(Collectors.toSet());
+		Set<String> createEnvironmentTypes = descriptors.stream().map(EnvironmentDescriptor::getType)
+				.collect(Collectors.toSet());
 		assertEquals(Sets.newHashSet("repo", "portal"), createEnvironmentTypes);
 	}
 
 	@Test
 	public void testCreateEnvironmentContext() {
+		
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
+		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
+
+		when(config.getProperty((PROPERTY_KEY_OAUTH_ENDPOINT))).thenReturn("https://oauthendpoint");
+
+		when(config.getProperty(PROPERTY_KEY_EC2_INSTANCE_TYPE)).thenReturn("t2.medium");
+
+		when(mockSecretBuilder.getCMKAlias()).thenReturn(keyAlias);
+
+		when(mockElasticBeanstalkSolutionStackNameProvider.getSolutionStackName(anyString(), anyString(), anyString()))
+				.thenReturn("fake stack");
+		when(mockCwlContextProvider.getLogDescriptors(any(EnvironmentType.class))).thenReturn(logDescriptors);
+
+//		
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
-		when(mockCloudFormationClient.getOutput(anyString(), anyString())).thenReturn(String.join(",", EXPECTED_SUBNETS));
+		when(mockCloudFormationClient.getOutput(anyString(), anyString()))
+				.thenReturn(String.join(",", EXPECTED_SUBNETS));
 		when(mockEc2Client.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");
@@ -749,7 +982,8 @@ public class RepositoryTemplateBuilderImplTest {
 		// This will make the call to getActualBeanstalkLinuxPlatform() return 3.4.7
 		PlatformSummary expectedSummary = new PlatformSummary().withPlatformVersion("3.4.7");
 		List<PlatformSummary> expectedSummaries = Arrays.asList(expectedSummary);
-		ListPlatformVersionsResult expectedLpvr = new ListPlatformVersionsResult().withPlatformSummaryList(expectedSummaries);
+		ListPlatformVersionsResult expectedLpvr = new ListPlatformVersionsResult()
+				.withPlatformSummaryList(expectedSummaries);
 		when(mockBeanstalkClient.listPlatformVersions(any())).thenReturn(expectedLpvr);
 
 		EnvironmentDescriptor environment = new EnvironmentDescriptor().withType(EnvironmentType.REPOSITORY_SERVICES);
@@ -770,9 +1004,12 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("t2.medium", context.get(EC2_INSTANCE_TYPE));
 		assertEquals(String.join(",", EXPECTED_SUBNETS), context.get(BEANSTALK_INSTANCES_SUBNETS));
 	}
-	
+
 	@Test
 	public void testExtractDatabaseSuffix() {
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
+	
 		// call under test
 		String suffix = builder.extractDatabaseSuffix(sharedResouces);
 		assertEquals(databaseEndpointSuffix, suffix);
@@ -780,7 +1017,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 	private List<LogDescriptor> generateLogDescriptors() {
 		List<LogDescriptor> descriptors = new LinkedList<>();
-		for (LogType t: LogType.values()) {
+		for (LogType t : LogType.values()) {
 			LogDescriptor d = new LogDescriptor();
 			d.setLogType(t);
 			d.setLogPath("/var/log/mypath.log");
@@ -790,39 +1027,47 @@ public class RepositoryTemplateBuilderImplTest {
 		return descriptors;
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testValidateConfigPlatformNotFound() {
 
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("4.5.6");
 		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2";
-		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=").withValues(expectedPlatformName);
+		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=")
+				.withValues(expectedPlatformName);
 		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
 		// No plaform found with that name
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
-		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult().withPlatformSummaryList(expectedSummaries);
+		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult()
+				.withPlatformSummaryList(expectedSummaries);
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 
-		// call under test
-		builder.getActualBeanstalkAmazonLinuxPlatform();
+		assertThrows(IllegalArgumentException.class, ()->{
+			// call under test
+			builder.getActualBeanstalkAmazonLinuxPlatform();
+		});
+
 	}
 
 	@Test
 	public void testGetActualBeanstalkBeanstalkPlatformOverrideNotLatest() {
-		// we explicitely request 3.4.6, which is not the latest version, expected is 3.4.6 and log msg
+		// we explicitely request 3.4.6, which is not the latest version, expected is
+		// 3.4.6 and log msg
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("3.4.6");
 		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2";
-		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=").withValues(expectedPlatformName);
+		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=")
+				.withValues(expectedPlatformName);
 		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
 		PlatformSummary summary = new PlatformSummary().withPlatformVersion("3.4.6");
 		expectedSummaries.add(summary);
 		summary = new PlatformSummary().withPlatformVersion("3.4.7");
 		expectedSummaries.add(summary);
-		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult().withPlatformSummaryList(expectedSummaries);
+		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult()
+				.withPlatformSummaryList(expectedSummaries);
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 
 		// call under test
@@ -833,19 +1078,22 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testGetActualBeanstalkBeanstalkPlatformOverrideLatest() {
-		// we explicitely request 3.4.6, which is the latest version, expected is 3.4.6 and do not log msg
+		// we explicitely request 3.4.6, which is the latest version, expected is 3.4.6
+		// and do not log msg
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("3.4.6");
 		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2";
-		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=").withValues(expectedPlatformName);
+		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=")
+				.withValues(expectedPlatformName);
 		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
 		PlatformSummary summary = new PlatformSummary().withPlatformVersion("3.4.5");
 		expectedSummaries.add(summary);
 		summary = new PlatformSummary().withPlatformVersion("3.4.6");
 		expectedSummaries.add(summary);
-		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult().withPlatformSummaryList(expectedSummaries);
+		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult()
+				.withPlatformSummaryList(expectedSummaries);
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 
 		// call under test
@@ -861,14 +1109,16 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("latest");
 		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2";
-		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=").withValues(expectedPlatformName);
+		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=")
+				.withValues(expectedPlatformName);
 		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
 		PlatformSummary summary = new PlatformSummary().withPlatformVersion("3.4.5");
 		expectedSummaries.add(summary);
 		summary = new PlatformSummary().withPlatformVersion("3.4.6");
 		expectedSummaries.add(summary);
-		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult().withPlatformSummaryList(expectedSummaries);
+		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult()
+				.withPlatformSummaryList(expectedSummaries);
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 
 		// call under test
@@ -889,12 +1139,14 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("3.4.7");
 		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2";
-		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=").withValues(expectedPlatformName);
+		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=")
+				.withValues(expectedPlatformName);
 		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
 		PlatformSummary summary = new PlatformSummary().withPlatformVersion("3.4.7");
 		expectedSummaries.add(summary);
-		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult().withPlatformSummaryList(expectedSummaries);
+		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult()
+				.withPlatformSummaryList(expectedSummaries);
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 	}
 

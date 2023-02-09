@@ -1,7 +1,4 @@
-{
-	"AWSTemplateFormatVersion": "2010-09-09",
-	"Description": "Creates the Web Application Firewall (WAF) and associates it with all Synapse application load balancers.",
-	"Resources": {
+		,
 		"${stack}${instance}SizeRestrictionSet": {
 			"Type": "AWS::WAFRegional::SizeConstraintSet",
 			"Properties": {
@@ -576,33 +573,5 @@
 					}
 				]
 			}
-		},
-		"portalACLAssociation": {
-			"Type": "AWS::WAFRegional::WebACLAssociation",
-			"Properties": {
-				"ResourceArn": "${portalLoadBalancerARN}",
-				"WebACLId": {
-					"Ref": "${stack}${instance}WebACL"
-				}
-			}
-		},
-		"repoACLAssociation": {
-			"Type": "AWS::WAFRegional::WebACLAssociation",
-			"Properties": {
-				"ResourceArn": "${repoLoadBalancerARN}",
-				"WebACLId": {
-					"Ref": "${stack}${instance}WebACL"
-				}
-			}
-		},
-		"workersACLAssociation": {
-			"Type": "AWS::WAFRegional::WebACLAssociation",
-			"Properties": {
-				"ResourceArn": "${workersLoadBalancerARN}",
-				"WebACLId": {
-					"Ref": "${stack}${instance}WebACL"
-				}
-			}
 		}
-	}
-}
+

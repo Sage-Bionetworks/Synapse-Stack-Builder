@@ -103,7 +103,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	Logger logger;
 	ArtifactCopy artifactCopy;
 	SecretBuilder secretBuilder;
-	WebACLBuilder aclBuilder;
 	Set<VelocityContextProvider> contextProviders;
 	ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkSolutionStackNameProvider;
 	StackTagsProvider stackTagsProvider;
@@ -113,7 +112,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
 										 RepoConfiguration configuration, LoggerFactory loggerFactory, ArtifactCopy artifactCopy,
-										 SecretBuilder secretBuilder, WebACLBuilder aclBuilder, Set<VelocityContextProvider> contextProviders,
+										 SecretBuilder secretBuilder, Set<VelocityContextProvider> contextProviders,
 										 ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkDefaultAMIEncrypter,
 										 StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
 										 Ec2Client ec2Client, AWSElasticBeanstalk beanstalkClient) {
@@ -125,7 +124,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.logger = loggerFactory.getLogger(RepositoryTemplateBuilderImpl.class);
 		this.artifactCopy = artifactCopy;
 		this.secretBuilder = secretBuilder;
-		this.aclBuilder = aclBuilder;
 		this.contextProviders = contextProviders;
 		this.elasticBeanstalkSolutionStackNameProvider = elasticBeanstalkDefaultAMIEncrypter;
 		this.stackTagsProvider = stackTagsProvider;
@@ -170,8 +168,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		
 		// Build each bean stalk environment.
 		List<String> environmentNames = buildEnvironments(sharedStackResults);
-		// setup a web-ACL for each environment
-		aclBuilder.buildWebACL(environmentNames);
 	}
 
 	/**
