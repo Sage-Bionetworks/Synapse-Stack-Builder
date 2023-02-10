@@ -9,6 +9,9 @@
 		"${listener.mapping.record.shortName}${listener.port}t": {
 			"Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
 			"Properties": {
+				"HealthCheckPath": "${listener.healthCheckPath}",
+				"HealthCheckPort": ${listener.healthCheckPort},
+				"HealthCheckProtocol": "${listener.healthCheckProtocol}",
 				"IpAddressType": "ipv4",
 				"Tags": [
 					{

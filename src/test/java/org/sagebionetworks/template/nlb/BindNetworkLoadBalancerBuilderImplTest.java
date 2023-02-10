@@ -76,6 +76,7 @@ public class BindNetworkLoadBalancerBuilderImplTest {
 		assertNotNull(request);
 		assertEquals("dev-dns-record-to-stack-mapping", request.getStackName());
 		JSONObject json = new JSONObject(request.getTemplateBody());
+		System.out.println(json.toString(5));
 
 		JSONObject resources = json.getJSONObject("Resources");
 		assertNotNull(resources);
@@ -86,6 +87,10 @@ public class BindNetworkLoadBalancerBuilderImplTest {
 
 		// properties of the first target
 		JSONObject props = resources.getJSONObject("wwwsagebaseorg80t").getJSONObject("Properties");
+		assertEquals("/", props.get("HealthCheckPath"));
+		assertEquals(80, props.get("HealthCheckPort"));
+		assertEquals("HTTP", props.get("HealthCheckProtocol"));
+		
 		assertEquals("[{\"Key\":\"record\",\"Value\":\"www-sagebase-org-80\"}]", props.getJSONArray("Tags").toString());
 		assertEquals(80, props.get("Port"));
 		assertEquals("ipv4", props.get("IpAddressType"));
@@ -97,6 +102,7 @@ public class BindNetworkLoadBalancerBuilderImplTest {
 
 		// properties of the first listener
 		props = resources.getJSONObject("wwwsagebaseorg443l").getJSONObject("Properties");
+		
 		assertEquals("[{\"Type\":\"forward\",\"TargetGroupArn\":{\"Ref\":\"wwwsagebaseorg443t\"}}]",
 				props.getJSONArray("DefaultActions").toString());
 		assertEquals("{\"Fn::ImportValue\":\"us-east-1-dev-nlbs-www-sagebase-org-nlb-arn\"}",
@@ -109,6 +115,10 @@ public class BindNetworkLoadBalancerBuilderImplTest {
 		
 		// when the target is set to 'none' the target group should exist but it should not have a 'Targets' property.
 		props = resources.getJSONObject("stagingsynapseorg443t").getJSONObject("Properties");
+		assertEquals("/", props.get("HealthCheckPath"));
+		assertEquals(443, props.get("HealthCheckPort"));
+		assertEquals("HTTPS", props.get("HealthCheckProtocol"));
+		
 		assertEquals("[{\"Key\":\"record\",\"Value\":\"staging-synapse-org-443\"}]", props.getJSONArray("Tags").toString());
 		assertEquals(443, props.get("Port"));
 		assertEquals("ipv4", props.get("IpAddressType"));
