@@ -68,6 +68,7 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -709,6 +710,16 @@ public class RepositoryTemplateBuilderImplTest {
 						"prod101BodyXssSet", "prod101URIQueryXssSet", "prod101HeaderSQLInjectionRule",
 						"prod101URIQuerySQLInjectionRule", "prod101HeaderSQLInjectionSet", "prod101BodySQLInjectionSet",
 						"prod101URIQuerySQLInjectionSet", "prod101SizeRestrictionRule", "prod101SizeRestrictionSet")));
+
+		JSONArray byteMatch = resources.getJSONObject("prod101AdminUrlStringSet").getJSONObject("Properties")
+				.getJSONArray("ByteMatchTuples");
+		assertEquals("/repo/v1/admin", byteMatch.getJSONObject(0).get("TargetString"));
+		assertEquals("/repo/v1/migration", byteMatch.getJSONObject(1).get("TargetString"));
+		
+		assertEquals(
+				"[{\"Type\":\"IPV4\",\"Value\":\"10.50.0.0/16\"},{\"Type\":\"IPV4\",\"Value\":\"34.195.10.214/32\"}]",
+				resources.getJSONObject("prod101AdminRemoteAddrIpSet").getJSONObject("Properties")
+						.getJSONArray("IPSetDescriptors").toString());
 	}
 
 	public void validateEnhancedMonitoring(JSONObject props, String enableEnhancedMonitoring) {
