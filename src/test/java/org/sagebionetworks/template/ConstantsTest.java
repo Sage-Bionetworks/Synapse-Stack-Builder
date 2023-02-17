@@ -1,6 +1,8 @@
 package org.sagebionetworks.template;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
@@ -47,6 +49,16 @@ public class ConstantsTest {
 	public void testCreateVpcPrivateSubnetsStackName() {
 		String stackName = Constants.createVpcPrivateSubnetsStackName("dev", "Blue");
 		assertEquals("synapse-dev-vpc-2-private-subnets-Blue", stackName);
+	}
+	
+	@Test
+	public void testIsProd() {
+		assertFalse(Constants.isProd(null));
+		assertTrue(Constants.isProd("Prod"));
+		assertTrue(Constants.isProd("prod"));
+		assertFalse(Constants.isProd("Dev"));
+		assertFalse(Constants.isProd("dev"));
+		assertFalse(Constants.isProd("other"));
 	}
 
 }

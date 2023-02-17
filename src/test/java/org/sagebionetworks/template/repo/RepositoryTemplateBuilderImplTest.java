@@ -12,7 +12,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.sagebionetworks.template.Constants.*;
+import static org.sagebionetworks.template.Constants.BEANSTALK_INSTANCES_SUBNETS;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
@@ -24,6 +24,7 @@ import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MAX_INSTANCES;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MIN_INSTANCES;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_NUMBER;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERSION;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_TYPE;
@@ -668,6 +669,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("8", properties.get("MaxAllocatedStorage"));
 		assertEquals("db.t2.small", properties.get("DBInstanceClass"));
 		assertEquals(Boolean.TRUE, properties.get("MultiAZ"));
+		assertNotNull(properties.get("BackupRetentionPeriod"));
 		validateEnhancedMonitoring(properties, enableEnhancedMonitoring);
 	}
 
@@ -687,6 +689,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(Boolean.FALSE, properties.get("MultiAZ"));
 		assertEquals(stack + "-101-table-0", properties.get("DBInstanceIdentifier"));
 		assertEquals(stack + "101", properties.get("DBName"));
+		assertEquals(1, properties.get("BackupRetentionPeriod"));
 		validateEnhancedMonitoring(properties, enableEnhancedMonitoring);
 		// one
 		instance = resources.getJSONObject(stack + "101Table1RepositoryDB");
@@ -1143,6 +1146,94 @@ public class RepositoryTemplateBuilderImplTest {
 		setupValidBeanstalkConfig();
 		// call under test
 		builder.getActualBeanstalkAmazonLinuxPlatform();
+	}
+
+	@Test
+	public void testCreateDatabaseDescriptorsWithProd() {
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn("prod");
+		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
+
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE)).thenReturn(4);
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(8);
+		when(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS)).thenReturn("db.t2.small");
+		when(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
+		when(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.standard.name());
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS)).thenReturn(-1);
+
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(6);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_INSTANCE_COUNT)).thenReturn(1);
+		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).thenReturn("db.t2.micro");
+		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
+
+		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
+		String[] noSnapshots = new String[] { NOSNAPSHOT };
+		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
+
+		// call under test
+		DatabaseDescriptor[] results = builder.createDatabaseDescriptors();
+		DatabaseDescriptor[] expected = new DatabaseDescriptor[] {
+				// repo
+				new DatabaseDescriptor().withAllocatedStorage(4)
+				.withBackupRetentionPeriodDays(7).withDbIops(-1).withDbName("prod101")
+				.withDbStorageType(DatabaseStorageType.standard.name()).withInstanceClass("db.t2.small")
+				.withInstanceIdentifier("prod-101-db").withMaxAllocatedStorage(8).withMultiAZ(true)
+				.withResourceName("prod101RepositoryDB").withSnapshotIdentifier(null),
+				// tables
+				new DatabaseDescriptor().withAllocatedStorage(3)
+				.withBackupRetentionPeriodDays(1).withDbIops(1000).withDbName("prod101")
+				.withDbStorageType(DatabaseStorageType.io1.name()).withInstanceClass("db.t2.micro")
+				.withInstanceIdentifier("prod-101-table-0").withMaxAllocatedStorage(6).withMultiAZ(false)
+				.withResourceName("prod101Table0RepositoryDB").withSnapshotIdentifier(null)
+		};
+		assertEquals(2, results.length);
+		assertEquals(expected[0], results[0]);
+		assertEquals(expected[1], results[1]);
+	}
+	
+	@Test
+	public void testCreateDatabaseDescriptorsWithDev() {
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn("dev");
+		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
+
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE)).thenReturn(4);
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(8);
+		when(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS)).thenReturn("db.t2.small");
+		when(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
+		when(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.standard.name());
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS)).thenReturn(-1);
+
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(6);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_INSTANCE_COUNT)).thenReturn(1);
+		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).thenReturn("db.t2.micro");
+		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
+
+		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
+		String[] noSnapshots = new String[] { NOSNAPSHOT };
+		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
+
+		// call under test
+		DatabaseDescriptor[] results = builder.createDatabaseDescriptors();
+		DatabaseDescriptor[] expected = new DatabaseDescriptor[] {
+				// repo
+				new DatabaseDescriptor().withAllocatedStorage(4)
+				.withBackupRetentionPeriodDays(0).withDbIops(-1).withDbName("dev101")
+				.withDbStorageType(DatabaseStorageType.standard.name()).withInstanceClass("db.t2.small")
+				.withInstanceIdentifier("dev-101-db").withMaxAllocatedStorage(8).withMultiAZ(true)
+				.withResourceName("dev101RepositoryDB").withSnapshotIdentifier(null),
+				// tables
+				new DatabaseDescriptor().withAllocatedStorage(3)
+				.withBackupRetentionPeriodDays(0).withDbIops(1000).withDbName("dev101")
+				.withDbStorageType(DatabaseStorageType.io1.name()).withInstanceClass("db.t2.micro")
+				.withInstanceIdentifier("dev-101-table-0").withMaxAllocatedStorage(6).withMultiAZ(false)
+				.withResourceName("dev101Table0RepositoryDB").withSnapshotIdentifier(null)
+		};
+		assertEquals(2, results.length);
+		assertEquals(expected[0], results[0]);
+		assertEquals(expected[1], results[1]);
 	}
 
 	private void setupValidBeanstalkConfig() {

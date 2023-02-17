@@ -104,7 +104,7 @@
 				"AllocatedStorage": "${descriptor.allocatedStorage}",
 				"AllowMajorVersionUpgrade": false,
 				"AutoMinorVersionUpgrade": false,
-				"BackupRetentionPeriod": "7",
+				"BackupRetentionPeriod": ${descriptor.backupRetentionPeriodDays},
 				"DBInstanceClass": "${descriptor.instanceClass}",
 				"DBInstanceIdentifier": "${descriptor.instanceIdentifier}",
 				#if ($descriptor.snapshotIdentifier)

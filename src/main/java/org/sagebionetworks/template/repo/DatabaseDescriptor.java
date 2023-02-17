@@ -1,22 +1,40 @@
 package org.sagebionetworks.template.repo;
 
+import java.util.Objects;
+
 /**
  * Descriptor for creating an AWS RDS instance.
  *
  */
 public class DatabaseDescriptor {
 
-	String resourceName;
-	int allocatedStorage;
-	int maxAllocatedStorage;
-	String instanceClass;
-	String instanceIdentifier;
-	String snapshotIdentifier;
-	String dbName;
-	boolean multiAZ;
+	private String resourceName;
+	private int allocatedStorage;
+	private int maxAllocatedStorage;
+	private String instanceClass;
+	private String instanceIdentifier;
+	private String snapshotIdentifier;
+	private String dbName;
+	private boolean multiAZ;
 	// default to standard (magnetic)
-	DatabaseStorageType dbStorageType = DatabaseStorageType.standard;
-	int dbIops = -1;
+	private DatabaseStorageType dbStorageType = DatabaseStorageType.standard;
+	private int dbIops = -1;
+	private int backupRetentionPeriodDays = 0;
+
+	/**
+	 * @return the backupRetentionPeriodDays
+	 */
+	public int getBackupRetentionPeriodDays() {
+		return backupRetentionPeriodDays;
+	}
+
+	/**
+	 * @param backupRetentionPeriodDays the backupRetentionPeriodDays to set
+	 */
+	public DatabaseDescriptor withBackupRetentionPeriodDays(int backupRetentionPeriodDays) {
+		this.backupRetentionPeriodDays = backupRetentionPeriodDays;
+		return this;
+	}
 
 	/**
 	 * The name of the database instances template resource.
@@ -209,74 +227,36 @@ public class DatabaseDescriptor {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + allocatedStorage;
-		result = prime * result + maxAllocatedStorage;
-		result = prime * result + dbIops;
-		result = prime * result + ((dbName == null) ? 0 : dbName.hashCode());
-		result = prime * result + ((dbStorageType == null) ? 0 : dbStorageType.hashCode());
-		result = prime * result + ((instanceClass == null) ? 0 : instanceClass.hashCode());
-		result = prime * result + ((instanceIdentifier == null) ? 0 : instanceIdentifier.hashCode());
-		result = prime * result + ((snapshotIdentifier == null) ? 0 : snapshotIdentifier.hashCode());
-		result = prime * result + (multiAZ ? 1231 : 1237);
-		result = prime * result + ((resourceName == null) ? 0 : resourceName.hashCode());
-		return result;
+		return Objects.hash(allocatedStorage, backupRetentionPeriodDays, dbIops, dbName, dbStorageType, instanceClass,
+				instanceIdentifier, maxAllocatedStorage, multiAZ, resourceName, snapshotIdentifier);
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (!(obj instanceof DatabaseDescriptor)) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		}
 		DatabaseDescriptor other = (DatabaseDescriptor) obj;
-		if (allocatedStorage != other.allocatedStorage)
-			return false;
-		if (maxAllocatedStorage != other.maxAllocatedStorage)
-			return false;
-		if (dbIops != other.dbIops)
-			return false;
-		if (dbName == null) {
-			if (other.dbName != null)
-				return false;
-		} else if (!dbName.equals(other.dbName))
-			return false;
-		if (dbStorageType != other.dbStorageType)
-			return false;
-		if (instanceClass == null) {
-			if (other.instanceClass != null)
-				return false;
-		} else if (!instanceClass.equals(other.instanceClass))
-			return false;
-		if (instanceIdentifier == null) {
-			if (other.instanceIdentifier != null)
-				return false;
-		} else if (!instanceIdentifier.equals(other.instanceIdentifier))
-			return false;
-		if (snapshotIdentifier == null) {
-			if (other.snapshotIdentifier != null)
-				return false;
-		} else if (!snapshotIdentifier.equals(other.snapshotIdentifier))
-			return false;
-		if (multiAZ != other.multiAZ)
-			return false;
-		if (resourceName == null) {
-			if (other.resourceName != null)
-				return false;
-		} else if (!resourceName.equals(other.resourceName))
-			return false;
-		return true;
+		return allocatedStorage == other.allocatedStorage
+				&& backupRetentionPeriodDays == other.backupRetentionPeriodDays && dbIops == other.dbIops
+				&& Objects.equals(dbName, other.dbName) && dbStorageType == other.dbStorageType
+				&& Objects.equals(instanceClass, other.instanceClass)
+				&& Objects.equals(instanceIdentifier, other.instanceIdentifier)
+				&& maxAllocatedStorage == other.maxAllocatedStorage && multiAZ == other.multiAZ
+				&& Objects.equals(resourceName, other.resourceName)
+				&& Objects.equals(snapshotIdentifier, other.snapshotIdentifier);
 	}
 
 	@Override
 	public String toString() {
-		return "DatabaseDescriptor [resourceName=" + resourceName + ", allocatedStorage=" + allocatedStorage + ", maxAllocatedStorage="
-				+ maxAllocatedStorage + ", instanceClass=" + instanceClass + ", instanceIdentifier=" + instanceIdentifier + ", dbName="
-				+ dbName + ", snapshotIdentifier=" + snapshotIdentifier + ", multiAZ=" + multiAZ + ", dbStorageType=" + dbStorageType + ", dbIops=" + dbIops + "]";
+		return "DatabaseDescriptor [resourceName=" + resourceName + ", allocatedStorage=" + allocatedStorage
+				+ ", maxAllocatedStorage=" + maxAllocatedStorage + ", instanceClass=" + instanceClass
+				+ ", instanceIdentifier=" + instanceIdentifier + ", snapshotIdentifier=" + snapshotIdentifier
+				+ ", dbName=" + dbName + ", multiAZ=" + multiAZ + ", dbStorageType=" + dbStorageType + ", dbIops="
+				+ dbIops + ", backupRetentionPeriodDays=" + backupRetentionPeriodDays + "]";
 	}
-
 
 }
