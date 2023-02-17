@@ -320,7 +320,11 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				.withInstanceClass(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS))
 				.withDbStorageType(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE))
 				.withDbIops(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS))
-				.withMultiAZ(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ));
+				.withMultiAZ(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ))
+				// 0 indicates no automated backups will be created.
+				.withBackupRetentionPeriodDays(Constants.isProd(stack) ? 7 : 0)
+				.withDeletionPolicy(Constants.isProd(stack)? DeletionPolicy.Snapshot: DeletionPolicy.Delete);
+		
 
 		String repoSnapshotIdentifier = config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER);
 		boolean useSnapshotForRepoDB = ! NOSNAPSHOT.equals(repoSnapshotIdentifier);
@@ -344,7 +348,10 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				.withInstanceIdentifier(stack + "-" + instance + "-table-" + i).withDbName(stack + instance)
 				.withDbStorageType(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE))
 				.withDbIops(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS))
-				.withInstanceClass(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).withMultiAZ(false);
+				.withInstanceClass(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).withMultiAZ(false)
+				// 0 indicates no automated backups will be created.
+				.withBackupRetentionPeriodDays(Constants.isProd(stack)? 1 : 0)
+				.withDeletionPolicy(Constants.isProd(stack)? DeletionPolicy.Snapshot: DeletionPolicy.Delete);
 			if (useSnapshotForRepoDB) {
 				String snapshotIdentifier = repoTableSnapshotIdentifiers[i];
 				tableDbDescriptor = tableDbDescriptor.withSnapshotIdentifier(snapshotIdentifier);

@@ -100,11 +100,12 @@
 				"${stack}${instance}DBParameterGroup",
 				"${stack}${instance}RdsEnhancedMonitoringRole"
 			],
+			"DeletionPolicy" : "${descriptor.deletionPolicy}",
 			"Properties": {
 				"AllocatedStorage": "${descriptor.allocatedStorage}",
 				"AllowMajorVersionUpgrade": false,
 				"AutoMinorVersionUpgrade": false,
-				"BackupRetentionPeriod": "7",
+				"BackupRetentionPeriod": ${descriptor.backupRetentionPeriodDays},
 				"DBInstanceClass": "${descriptor.instanceClass}",
 				"DBInstanceIdentifier": "${descriptor.instanceIdentifier}",
 				#if ($descriptor.snapshotIdentifier)

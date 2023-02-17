@@ -7,7 +7,6 @@ import java.util.Properties;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.PropertyUtils;
-import org.sagebionetworks.template.config.Configuration;
 
 public class ConfigurationImpl implements Configuration {
 

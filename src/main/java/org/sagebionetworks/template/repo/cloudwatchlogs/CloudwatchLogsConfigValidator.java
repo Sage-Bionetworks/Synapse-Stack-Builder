@@ -1,24 +1,29 @@
 package org.sagebionetworks.template.repo.cloudwatchlogs;
 
-import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
-import org.sagebionetworks.util.ValidateArgument;
-
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.sagebionetworks.template.Constants;
+import org.sagebionetworks.template.config.Configuration;
+import org.sagebionetworks.template.repo.DeletionPolicy;
+import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
+import org.sagebionetworks.util.ValidateArgument;
+
 public class CloudwatchLogsConfigValidator {
 
-    private CloudwatchLogsConfig config;
+    private final CloudwatchLogsConfig config;
+    private final Configuration props;
 
-    public CloudwatchLogsConfigValidator(CloudwatchLogsConfig config) {
+    public CloudwatchLogsConfigValidator(CloudwatchLogsConfig config, Configuration props) {
         this.config =  config;
+        this.props = props;
     }
 
     public CloudwatchLogsConfig validate() {
+    	boolean isProd = Constants.isProd(props.getProperty(Constants.PROPERTY_KEY_STACK));
         Map<EnvironmentType, List<LogDescriptor>> logDescriptors = config.getLogDescriptors();
         validateEnvironments(logDescriptors);
         for (EnvironmentType k: logDescriptors.keySet()) {
@@ -28,6 +33,7 @@ public class CloudwatchLogsConfigValidator {
             }
             List<LogType> types = new ArrayList<>();
             for (LogDescriptor d: descriptors) {
+            	d.setDeletionPolicy(isProd ? DeletionPolicy.Retain : DeletionPolicy.Delete);
                 this.validateLogDescriptor(d);
                 if (types.contains(d.getLogType())) {
                     throw new IllegalStateException("Each LogType can only appear once per environment.");

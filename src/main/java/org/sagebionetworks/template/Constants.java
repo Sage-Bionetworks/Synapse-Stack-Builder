@@ -298,5 +298,14 @@ public class Constants {
 	}
 
 	public static final String PROD_STACK_NAME = "prod";
+	
+	/**
+	 * Is the given stack prod?
+	 * @param stack
+	 * @return
+	 */
+	public static boolean isProd(String stack) {
+		return PROD_STACK_NAME.equalsIgnoreCase(stack);
+	}
 
 }
