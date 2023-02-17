@@ -100,7 +100,7 @@
 				"${stack}${instance}DBParameterGroup",
 				"${stack}${instance}RdsEnhancedMonitoringRole"
 			],
-			"DeletionPolicy" : "$descriptor.deletionPolicy",
+			"DeletionPolicy" : "${descriptor.deletionPolicy}",
 			"Properties": {
 				"AllocatedStorage": "${descriptor.allocatedStorage}",
 				"AllowMajorVersionUpgrade": false,
