@@ -20,6 +20,22 @@ public class DatabaseDescriptor {
 	private DatabaseStorageType dbStorageType = DatabaseStorageType.standard;
 	private int dbIops = -1;
 	private int backupRetentionPeriodDays = 0;
+	private DeletionPolicy deletionPolicy = DeletionPolicy.Snapshot;
+
+	/**
+	 * @return the deletionPolicy
+	 */
+	public String getDeletionPolicy() {
+		return deletionPolicy.name();
+	}
+
+	/**
+	 * @param deletionPolicy the deletionPolicy to set
+	 */
+	public DatabaseDescriptor withDeletionPolicy(DeletionPolicy deletionPolicy) {
+		this.deletionPolicy = deletionPolicy;
+		return this;
+	}
 
 	/**
 	 * @return the backupRetentionPeriodDays
@@ -227,8 +243,8 @@ public class DatabaseDescriptor {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(allocatedStorage, backupRetentionPeriodDays, dbIops, dbName, dbStorageType, instanceClass,
-				instanceIdentifier, maxAllocatedStorage, multiAZ, resourceName, snapshotIdentifier);
+		return Objects.hash(allocatedStorage, backupRetentionPeriodDays, dbIops, dbName, dbStorageType, deletionPolicy,
+				instanceClass, instanceIdentifier, maxAllocatedStorage, multiAZ, resourceName, snapshotIdentifier);
 	}
 
 	@Override
@@ -243,7 +259,7 @@ public class DatabaseDescriptor {
 		return allocatedStorage == other.allocatedStorage
 				&& backupRetentionPeriodDays == other.backupRetentionPeriodDays && dbIops == other.dbIops
 				&& Objects.equals(dbName, other.dbName) && dbStorageType == other.dbStorageType
-				&& Objects.equals(instanceClass, other.instanceClass)
+				&& deletionPolicy == other.deletionPolicy && Objects.equals(instanceClass, other.instanceClass)
 				&& Objects.equals(instanceIdentifier, other.instanceIdentifier)
 				&& maxAllocatedStorage == other.maxAllocatedStorage && multiAZ == other.multiAZ
 				&& Objects.equals(resourceName, other.resourceName)
@@ -256,7 +272,8 @@ public class DatabaseDescriptor {
 				+ ", maxAllocatedStorage=" + maxAllocatedStorage + ", instanceClass=" + instanceClass
 				+ ", instanceIdentifier=" + instanceIdentifier + ", snapshotIdentifier=" + snapshotIdentifier
 				+ ", dbName=" + dbName + ", multiAZ=" + multiAZ + ", dbStorageType=" + dbStorageType + ", dbIops="
-				+ dbIops + ", backupRetentionPeriodDays=" + backupRetentionPeriodDays + "]";
+				+ dbIops + ", backupRetentionPeriodDays=" + backupRetentionPeriodDays + ", deletionPolicy="
+				+ deletionPolicy + "]";
 	}
 
 }

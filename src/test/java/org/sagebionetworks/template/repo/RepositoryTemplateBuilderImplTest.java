@@ -80,6 +80,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
+import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.Ec2Client;
 import org.sagebionetworks.template.LoggerFactory;
@@ -664,6 +665,8 @@ public class RepositoryTemplateBuilderImplTest {
 	public void validateResouceDatabaseInstance(JSONObject resources, String stack, String enableEnhancedMonitoring) {
 		JSONObject instance = resources.getJSONObject(stack + "101RepositoryDB");
 		assertNotNull(instance);
+		DeletionPolicy expectedPolicy = Constants.isProd(stack)? DeletionPolicy.Snapshot: DeletionPolicy.Delete;
+		assertEquals(expectedPolicy.name(), instance.get("DeletionPolicy"));
 		JSONObject properties = instance.getJSONObject("Properties");
 		assertEquals("4", properties.get("AllocatedStorage"));
 		assertEquals("8", properties.get("MaxAllocatedStorage"));
@@ -681,6 +684,8 @@ public class RepositoryTemplateBuilderImplTest {
 	public void validateResouceTablesDatabase(JSONObject resources, String stack, String enableEnhancedMonitoring) {
 		// zero
 		JSONObject instance = resources.getJSONObject(stack + "101Table0RepositoryDB");
+		DeletionPolicy expectedPolicy = Constants.isProd(stack)? DeletionPolicy.Snapshot: DeletionPolicy.Delete;
+		assertEquals(expectedPolicy.name(), instance.get("DeletionPolicy"));
 		assertNotNull(instance);
 		JSONObject properties = instance.getJSONObject("Properties");
 		assertEquals("3", properties.get("AllocatedStorage"));
@@ -1175,17 +1180,17 @@ public class RepositoryTemplateBuilderImplTest {
 		DatabaseDescriptor[] results = builder.createDatabaseDescriptors();
 		DatabaseDescriptor[] expected = new DatabaseDescriptor[] {
 				// repo
-				new DatabaseDescriptor().withAllocatedStorage(4)
-				.withBackupRetentionPeriodDays(7).withDbIops(-1).withDbName("prod101")
-				.withDbStorageType(DatabaseStorageType.standard.name()).withInstanceClass("db.t2.small")
-				.withInstanceIdentifier("prod-101-db").withMaxAllocatedStorage(8).withMultiAZ(true)
-				.withResourceName("prod101RepositoryDB").withSnapshotIdentifier(null),
+				new DatabaseDescriptor().withAllocatedStorage(4).withBackupRetentionPeriodDays(7).withDbIops(-1)
+						.withDbName("prod101").withDbStorageType(DatabaseStorageType.standard.name())
+						.withInstanceClass("db.t2.small").withInstanceIdentifier("prod-101-db")
+						.withMaxAllocatedStorage(8).withMultiAZ(true).withResourceName("prod101RepositoryDB")
+						.withSnapshotIdentifier(null).withDeletionPolicy(DeletionPolicy.Snapshot),
 				// tables
-				new DatabaseDescriptor().withAllocatedStorage(3)
-				.withBackupRetentionPeriodDays(1).withDbIops(1000).withDbName("prod101")
-				.withDbStorageType(DatabaseStorageType.io1.name()).withInstanceClass("db.t2.micro")
-				.withInstanceIdentifier("prod-101-table-0").withMaxAllocatedStorage(6).withMultiAZ(false)
-				.withResourceName("prod101Table0RepositoryDB").withSnapshotIdentifier(null)
+				new DatabaseDescriptor().withAllocatedStorage(3).withBackupRetentionPeriodDays(1).withDbIops(1000)
+						.withDbName("prod101").withDbStorageType(DatabaseStorageType.io1.name())
+						.withInstanceClass("db.t2.micro").withInstanceIdentifier("prod-101-table-0")
+						.withMaxAllocatedStorage(6).withMultiAZ(false).withResourceName("prod101Table0RepositoryDB")
+						.withSnapshotIdentifier(null).withDeletionPolicy(DeletionPolicy.Snapshot)
 		};
 		assertEquals(2, results.length);
 		assertEquals(expected[0], results[0]);
@@ -1219,18 +1224,17 @@ public class RepositoryTemplateBuilderImplTest {
 		DatabaseDescriptor[] results = builder.createDatabaseDescriptors();
 		DatabaseDescriptor[] expected = new DatabaseDescriptor[] {
 				// repo
-				new DatabaseDescriptor().withAllocatedStorage(4)
-				.withBackupRetentionPeriodDays(0).withDbIops(-1).withDbName("dev101")
-				.withDbStorageType(DatabaseStorageType.standard.name()).withInstanceClass("db.t2.small")
-				.withInstanceIdentifier("dev-101-db").withMaxAllocatedStorage(8).withMultiAZ(true)
-				.withResourceName("dev101RepositoryDB").withSnapshotIdentifier(null),
+				new DatabaseDescriptor().withAllocatedStorage(4).withBackupRetentionPeriodDays(0).withDbIops(-1)
+						.withDbName("dev101").withDbStorageType(DatabaseStorageType.standard.name())
+						.withInstanceClass("db.t2.small").withInstanceIdentifier("dev-101-db")
+						.withMaxAllocatedStorage(8).withMultiAZ(true).withResourceName("dev101RepositoryDB")
+						.withSnapshotIdentifier(null).withDeletionPolicy(DeletionPolicy.Delete),
 				// tables
-				new DatabaseDescriptor().withAllocatedStorage(3)
-				.withBackupRetentionPeriodDays(0).withDbIops(1000).withDbName("dev101")
-				.withDbStorageType(DatabaseStorageType.io1.name()).withInstanceClass("db.t2.micro")
-				.withInstanceIdentifier("dev-101-table-0").withMaxAllocatedStorage(6).withMultiAZ(false)
-				.withResourceName("dev101Table0RepositoryDB").withSnapshotIdentifier(null)
-		};
+				new DatabaseDescriptor().withAllocatedStorage(3).withBackupRetentionPeriodDays(0).withDbIops(1000)
+						.withDbName("dev101").withDbStorageType(DatabaseStorageType.io1.name())
+						.withInstanceClass("db.t2.micro").withInstanceIdentifier("dev-101-table-0")
+						.withMaxAllocatedStorage(6).withMultiAZ(false).withResourceName("dev101Table0RepositoryDB")
+						.withSnapshotIdentifier(null).withDeletionPolicy(DeletionPolicy.Delete) };
 		assertEquals(2, results.length);
 		assertEquals(expected[0], results[0]);
 		assertEquals(expected[1], results[1]);
