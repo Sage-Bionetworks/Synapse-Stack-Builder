@@ -12,21 +12,23 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.sagebionetworks.template.Constants;
+import org.sagebionetworks.template.config.Configuration;
+import org.sagebionetworks.template.repo.DeletionPolicy;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 
 @ExtendWith(MockitoExtension.class)
 public class CloudwatchLogsConfigValidatorTest {
     @Mock
-    CloudwatchLogsConfig mockConfig;
+    private CloudwatchLogsConfig mockConfig;
+    @Mock
+    private Configuration mockProps;
 
     @InjectMocks
-    CloudwatchLogsConfigValidator validator;
+    private CloudwatchLogsConfigValidator validator;
 
     @Test
     public void testMissingEnvironment() {
@@ -57,6 +59,8 @@ public class CloudwatchLogsConfigValidatorTest {
         envLogDescriptors.put(EnvironmentType.REPOSITORY_SERVICES, generateEnvironmentLogs(logTypes));
         envLogDescriptors.put(EnvironmentType.REPOSITORY_WORKERS, generateEnvironmentLogs(logTypes));
         when(mockConfig.getLogDescriptors()).thenReturn(envLogDescriptors);
+        
+        when(mockProps.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
 
         // call under test
         String errorMessage = assertThrows(IllegalStateException.class, () -> {
@@ -108,20 +112,51 @@ public class CloudwatchLogsConfigValidatorTest {
     }
 
     @Test
-    public void testValidEnvironments() {
+    public void testValidEnvironmentsWithDev() {
         Map<EnvironmentType, List<LogDescriptor>> envLogDescriptors = new HashMap<>();
         List<LogType> logTypes = Arrays.asList(LogType.SERVICE, LogType.TRACE);
         envLogDescriptors.put(EnvironmentType.REPOSITORY_SERVICES, generateEnvironmentLogs(logTypes));
         envLogDescriptors.put(EnvironmentType.PORTAL, generateEnvironmentLogs(logTypes));
         envLogDescriptors.put(EnvironmentType.REPOSITORY_WORKERS, generateEnvironmentLogs(logTypes));
         when(mockConfig.getLogDescriptors()).thenReturn(envLogDescriptors);
+        
+        when(mockProps.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
 
         // call under test
-        validator.validate();
+        CloudwatchLogsConfig result = validator.validate();
+        validateDeletionPolicy(result, DeletionPolicy.Delete);
+    }
+    
+    @Test
+    public void testValidEnvironmentsWithProd() {
+        Map<EnvironmentType, List<LogDescriptor>> envLogDescriptors = new HashMap<>();
+        List<LogType> logTypes = Arrays.asList(LogType.SERVICE, LogType.TRACE);
+        envLogDescriptors.put(EnvironmentType.REPOSITORY_SERVICES, generateEnvironmentLogs(logTypes));
+        envLogDescriptors.put(EnvironmentType.PORTAL, generateEnvironmentLogs(logTypes));
+        envLogDescriptors.put(EnvironmentType.REPOSITORY_WORKERS, generateEnvironmentLogs(logTypes));
+        when(mockConfig.getLogDescriptors()).thenReturn(envLogDescriptors);
+        
+        when(mockProps.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("prod");
+
+        // call under test
+        CloudwatchLogsConfig result = validator.validate();
+        validateDeletionPolicy(result, DeletionPolicy.Retain);
+    }
+    
+    /**
+     * Helper to validate the DeletionPolicy for each log. 
+     * @param config
+     * @param expected
+     */
+    private void validateDeletionPolicy(CloudwatchLogsConfig config, DeletionPolicy expected) {
+    	config.getLogDescriptors().values().forEach(l->{
+    		l.forEach(d->{
+    			assertEquals(expected.name(), d.getDeletionPolicy());
+    		});
+    	});
     }
 
     private List<LogDescriptor> generateEnvironmentLogs(List<LogType> logTypes) {
-        Map<EnvironmentType, List<LogDescriptor>> envLogDescriptors = new HashMap<>();
         List<LogDescriptor> LogDescriptors = new ArrayList<>();
         for (LogType logType: logTypes) {
             LogDescriptor LogDescriptor = new LogDescriptor();
@@ -129,6 +164,7 @@ public class CloudwatchLogsConfigValidatorTest {
             LogDescriptor.setLogPath("someName");
             LogDescriptor.setDateFormat("YYYY-MM-DD");
             LogDescriptors.add(LogDescriptor);
+  
         }
         return LogDescriptors;
     }

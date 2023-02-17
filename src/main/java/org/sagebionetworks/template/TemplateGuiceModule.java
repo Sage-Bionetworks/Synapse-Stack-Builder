@@ -286,8 +286,8 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 
 	@Provides
-	public CloudwatchLogsConfig cloudwatchLogsConfigProvider() throws IOException {
-		return new CloudwatchLogsConfigValidator(loadFromJsonFile(CLOUDWATCH_LOGS_CONFIG_FILE, CloudwatchLogsConfig.class)).validate();
+	public CloudwatchLogsConfig cloudwatchLogsConfigProvider(Configuration props) throws IOException {
+		return new CloudwatchLogsConfigValidator(loadFromJsonFile(CLOUDWATCH_LOGS_CONFIG_FILE, CloudwatchLogsConfig.class), props).validate();
 	}
 	
 	@Provides

@@ -1041,6 +1041,7 @@ public class RepositoryTemplateBuilderImplTest {
 			d.setLogType(t);
 			d.setLogPath("/var/log/mypath.log");
 			d.setDateFormat("YYYY-MM-DD");
+			d.setDeletionPolicy(DeletionPolicy.Retain);
 			descriptors.add(d);
 		}
 		return descriptors;
