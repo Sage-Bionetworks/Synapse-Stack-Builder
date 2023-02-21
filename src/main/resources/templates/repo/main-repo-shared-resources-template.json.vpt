@@ -730,6 +730,7 @@
 		#parse("templates/repo/web-acl-template.json.vpt")
 	},
 	"Outputs": {
+		#parse("templates/repo/time-to-live-out.vpt"),
 		"webAclArn": {
 			"Description": "The ARN of the web ACL.",
 			"Value": {
