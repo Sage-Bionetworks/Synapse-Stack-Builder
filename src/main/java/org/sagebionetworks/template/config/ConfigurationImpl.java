@@ -1,12 +1,22 @@
 package org.sagebionetworks.template.config;
 
 import static org.sagebionetworks.template.Constants.CONFIGURATION_BUCKET_TEMPLATE;
+import static org.sagebionetworks.template.Constants.PARAM_KEY_TIME_TO_LIVE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TIME_TO_LIVE_HOURS;
 
+import java.time.Duration;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import java.util.Properties;
 
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.PropertyUtils;
+
+import com.amazonaws.services.cloudformation.model.Parameter;
 
 public class ConfigurationImpl implements Configuration {
 
@@ -74,8 +84,10 @@ public class ConfigurationImpl implements Configuration {
 
 	@Override
 	public String getConfigurationBucket() {
-		String stack = getProperty(Constants.PROPERTY_KEY_STACK);
+		String stack = getProperty(PROPERTY_KEY_STACK);
 		return String.format(CONFIGURATION_BUCKET_TEMPLATE, stack);
 	}
+
+
 
 }
