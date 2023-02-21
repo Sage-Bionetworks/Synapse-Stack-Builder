@@ -53,6 +53,7 @@ import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -77,6 +78,7 @@ import org.sagebionetworks.template.Ec2Client;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.RepoConfiguration;
+import org.sagebionetworks.template.config.TimeToLive;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.BeanstalkUtils;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
@@ -96,18 +98,19 @@ import static org.sagebionetworks.template.Constants.*;
 
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
 
-	CloudFormationClient cloudFormationClient;
-	Ec2Client ec2Client;
-	VelocityEngine velocityEngine;
-	RepoConfiguration config;
-	Logger logger;
-	ArtifactCopy artifactCopy;
-	SecretBuilder secretBuilder;
-	Set<VelocityContextProvider> contextProviders;
-	ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkSolutionStackNameProvider;
-	StackTagsProvider stackTagsProvider;
-	CloudwatchLogsVelocityContextProvider cwlContextProvider;
-	AWSElasticBeanstalk beanstalkClient;
+	private final CloudFormationClient cloudFormationClient;
+	private final Ec2Client ec2Client;
+	private final VelocityEngine velocityEngine;
+	private final RepoConfiguration config;
+	private final Logger logger;
+	private final ArtifactCopy artifactCopy;
+	private final SecretBuilder secretBuilder;
+	private final Set<VelocityContextProvider> contextProviders;
+	private final ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkSolutionStackNameProvider;
+	private final StackTagsProvider stackTagsProvider;
+	private final CloudwatchLogsVelocityContextProvider cwlContextProvider;
+	private final AWSElasticBeanstalk beanstalkClient;
+	private final TimeToLive timeToLive;
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
@@ -115,7 +118,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 										 SecretBuilder secretBuilder, Set<VelocityContextProvider> contextProviders,
 										 ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkDefaultAMIEncrypter,
 										 StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
-										 Ec2Client ec2Client, AWSElasticBeanstalk beanstalkClient) {
+										 Ec2Client ec2Client, AWSElasticBeanstalk beanstalkClient, TimeToLive ttl) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.ec2Client = ec2Client;
@@ -129,6 +132,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.stackTagsProvider = stackTagsProvider;
 		this.cwlContextProvider = cloudwatchLogsVelocityContextProvider;
 		this.beanstalkClient = beanstalkClient;
+		this.timeToLive = ttl;
 	}
 
 	public String getActualBeanstalkAmazonLinuxPlatform() {
@@ -413,10 +417,15 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 * @return
 	 */
 	Parameter[] createSharedParameters() {
+		List<Parameter> params = new ArrayList<>(2);
 		String passwordValue = secretBuilder.getRepositoryDatabasePassword();
 		Parameter databasePassword = new Parameter().withParameterKey(PARAMETER_MYSQL_PASSWORD)
 				.withParameterValue(passwordValue);
-		return new Parameter[] { databasePassword };
+		params.add(databasePassword);
+		timeToLive.createTimeToLiveParameter().ifPresent(ttl -> {
+			params.add(ttl);
+		});
+		return params.toArray(new Parameter[params.size()]);
 	}
 
 	/**
