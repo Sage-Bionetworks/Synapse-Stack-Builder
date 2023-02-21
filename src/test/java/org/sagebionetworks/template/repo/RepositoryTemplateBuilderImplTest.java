@@ -8,9 +8,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.BEANSTALK_INSTANCES_SUBNETS;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
@@ -57,6 +61,7 @@ import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.SHARED_RESOUCES_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
+import static org.sagebionetworks.template.Constants.TEMPALTE_BEAN_STALK_ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
@@ -78,6 +83,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
@@ -148,6 +154,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 	private VelocityEngine velocityEngine;
 	private RepositoryTemplateBuilderImpl builder;
+	private RepositoryTemplateBuilderImpl builderSpy;
 
 	private String stack;
 	private String instance;
@@ -177,6 +184,7 @@ public class RepositoryTemplateBuilderImplTest {
 				mockArtifactCopy, mockSecretBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
 				mockEc2Client, mockBeanstalkClient, mockTimeToLive);
+		builderSpy = Mockito.spy(builder);
 
 		stack = "dev";
 		instance = "101";
@@ -1278,6 +1286,60 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(expected[0], results[0]);
 		assertEquals(expected[1], results[1]);
 	}
+	
+	@Test
+	public void testBuildEnvironmentsWithoutTTL() {
+
+		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
+		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(Optional.empty());
+
+		EnvironmentDescriptor e1 = new EnvironmentDescriptor().withName("repo");
+		EnvironmentDescriptor e2 = new EnvironmentDescriptor().withName("portal");
+		doReturn(List.of(e1, e2)).when(builderSpy).createEnvironments(any());
+
+		VelocityContext mockContext = Mockito.mock(VelocityContext.class);
+		doReturn(mockContext).when(builderSpy).createEnvironmentContext(any(), any());
+
+		doNothing().when(builderSpy).buildAndDeployStack(any(), any(), any(), any());
+
+		// call under test
+		builderSpy.buildEnvironments(sharedResouces);
+
+		verify(mockSecretBuilder).createSecrets();
+		verify(mockTimeToLive).createTimeToLiveParameter();
+		verify(builderSpy).createEnvironments(secretsSouce);
+		verify(builderSpy, times(2)).buildAndDeployStack(any(), any(), any(), any());
+		verify(builderSpy).buildAndDeployStack(mockContext, e1.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, null);
+		verify(builderSpy).buildAndDeployStack(mockContext, e2.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, null);
+	}
+	
+	@Test
+	public void testBuildEnvironmentsWithTTL() {
+
+		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
+		Parameter ttl = new Parameter().withParameterKey("ttl").withParameterValue("value");
+		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(Optional.of(ttl));
+
+		EnvironmentDescriptor e1 = new EnvironmentDescriptor().withName("repo");
+		EnvironmentDescriptor e2 = new EnvironmentDescriptor().withName("portal");
+		doReturn(List.of(e1, e2)).when(builderSpy).createEnvironments(any());
+
+		VelocityContext mockContext = Mockito.mock(VelocityContext.class);
+		doReturn(mockContext).when(builderSpy).createEnvironmentContext(any(), any());
+
+		doNothing().when(builderSpy).buildAndDeployStack(any(), any(), any(), any());
+
+		// call under test
+		builderSpy.buildEnvironments(sharedResouces);
+
+		verify(mockSecretBuilder).createSecrets();
+		verify(mockTimeToLive).createTimeToLiveParameter();
+		verify(builderSpy).createEnvironments(secretsSouce);
+		verify(builderSpy, times(2)).buildAndDeployStack(any(), any(), any(), any());
+		verify(builderSpy).buildAndDeployStack(mockContext, e1.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, ttl);
+		verify(builderSpy).buildAndDeployStack(mockContext, e2.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, ttl);
+	}
+	
 
 	private void setupValidBeanstalkConfig() {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");

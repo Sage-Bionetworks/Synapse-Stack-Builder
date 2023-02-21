@@ -7,11 +7,7 @@
 			"Type": "String",
 			"NoEcho": true
 		},
-		"TimeToLive": {
-			"Description": "When set with a valid date-time, it indicates when this stack should be automatically deleted.  With a default value of 'NONE' the stack will not be automatically deleted.",
-			"Type": "String",
-			"Default": "NONE"
-		}
+		#parse("templates/repo/time-to-live-parameter.vpt")
 	},
 	"Resources": {
 		"${stack}${instance}DBSubnetGroup": {

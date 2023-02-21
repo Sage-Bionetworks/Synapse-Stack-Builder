@@ -6,6 +6,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TIME_TO_LIVE_H
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -36,34 +37,32 @@ public class TimeToLiveImpl implements TimeToLive {
 			int ttlHours = config.getIntegerProperty(PROPERTY_KEY_TIME_TO_LIVE_HOURS);
 			if (ttlHours > 0) {
 				ZonedDateTime now = ZonedDateTime.ofInstant(Instant.ofEpochMilli(clock.currentTimeMillis()),
-						ZoneOffset.UTC);
+						ZoneId.of("America/Los_Angeles"));
 				String expiration = now.plus(Duration.ofHours(ttlHours)).format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
-				return Optional.of(new Parameter().withParameterKey(PARAM_KEY_TIME_TO_LIVE)
-						.withParameterValue(expiration));
+				return Optional
+						.of(new Parameter().withParameterKey(PARAM_KEY_TIME_TO_LIVE).withParameterValue(expiration));
 			}
 		}
 		return Optional.empty();
 	}
-
 
 	@Override
 	public boolean isTimeToLiveExpired(List<Parameter> parameters) {
 		if (parameters == null) {
 			return false;
 		}
-		return parameters.stream().filter(p -> PARAM_KEY_TIME_TO_LIVE.equals(p.getParameterKey()))
-				.map((p) -> {
-					try {
-						ZonedDateTime deleteOn = ZonedDateTime.parse(p.getParameterValue(),
-								DateTimeFormatter.ISO_ZONED_DATE_TIME);
-						ZonedDateTime now = ZonedDateTime.ofInstant(Instant.ofEpochMilli(clock.currentTimeMillis()),
-								ZoneOffset.UTC);
-						return deleteOn.isBefore(now);
-					} catch (DateTimeParseException e) {
-						return false;
-					}
+		return parameters.stream().filter(p -> PARAM_KEY_TIME_TO_LIVE.equals(p.getParameterKey())).map((p) -> {
+			try {
+				ZonedDateTime deleteOn = ZonedDateTime.parse(p.getParameterValue(),
+						DateTimeFormatter.ISO_ZONED_DATE_TIME);
+				ZonedDateTime now = ZonedDateTime.ofInstant(Instant.ofEpochMilli(clock.currentTimeMillis()),
+						ZoneOffset.UTC);
+				return deleteOn.isBefore(now);
+			} catch (DateTimeParseException e) {
+				return false;
+			}
 
-				}).findFirst().orElse(false);
+		}).findFirst().orElse(false);
 
 	}
 

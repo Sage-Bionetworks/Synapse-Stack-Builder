@@ -68,7 +68,7 @@ public class TimeToLiveImplTest {
 
 		Optional<Parameter> expected = Optional
 				.of(new Parameter().withParameterKey(PARAM_KEY_TIME_TO_LIVE)
-						.withParameterValue("2023-02-21T03:08:24.344Z"));
+						.withParameterValue("2023-02-20T19:08:24.344-08:00[America/Los_Angeles]"));
 		assertEquals(expected, op);
 	}
 

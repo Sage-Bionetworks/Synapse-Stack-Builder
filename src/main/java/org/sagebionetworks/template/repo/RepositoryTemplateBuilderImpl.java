@@ -181,6 +181,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	public List<String> buildEnvironments(Stack sharedStackResults) {
 		// Create the repo/worker secrets
 		SourceBundle secretsSouce = secretBuilder.createSecrets();
+		
+		Parameter ttl = timeToLive.createTimeToLiveParameter().orElse(null);
 
 		List<String> environmentNames = new LinkedList<String>();
 		// each environment is treated as its own stack.
@@ -188,7 +190,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 			VelocityContext context = createEnvironmentContext(sharedStackResults, environment);
 			environmentNames.add(environment.getName());
 			// build this type.
-			buildAndDeployStack(context, environment.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT);
+			buildAndDeployStack(context, environment.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, ttl);
 		}
 		return environmentNames;
 	}
