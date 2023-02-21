@@ -21,11 +21,11 @@ import com.google.inject.Inject;
 
 public class TimeToLiveImpl implements TimeToLive {
 
-	private final Configuration config;
+	private final RepoConfiguration config;
 	private final Clock clock;
 
 	@Inject
-	public TimeToLiveImpl(Configuration config, Clock clock) {
+	public TimeToLiveImpl(RepoConfiguration config, Clock clock) {
 		this.config = config;
 		this.clock = clock;
 	}

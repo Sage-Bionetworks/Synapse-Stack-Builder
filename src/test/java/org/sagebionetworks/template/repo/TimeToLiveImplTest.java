@@ -19,7 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.sagebionetworks.template.config.Configuration;
+import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.config.TimeToLiveImpl;
 import org.sagebionetworks.util.Clock;
 
@@ -29,7 +29,7 @@ import com.amazonaws.services.cloudformation.model.Parameter;
 public class TimeToLiveImplTest {
 
 	@Mock
-	private Configuration mockConfig;
+	private RepoConfiguration mockConfig;
 
 	@Mock
 	private Clock mockClock;
