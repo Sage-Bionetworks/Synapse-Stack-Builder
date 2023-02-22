@@ -15,4 +15,12 @@ public interface ArtifactDownload {
 	 */
 	public File downloadFile(String url);
 
+	/**
+	 * Download the mentioned file at the given URL from zip to the local temporary file.
+	 * @param url
+	 * @param filename
+	 * @return
+	 */
+	File downloadFileFromZip(String url, String filename);
+
 }

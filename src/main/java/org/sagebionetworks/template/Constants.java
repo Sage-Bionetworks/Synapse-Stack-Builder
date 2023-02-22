@@ -28,6 +28,8 @@ public class Constants {
 	public static final String ROUTE53_PROD_DOCS_CLIENT_DNS_CONFIG_FILE = "templates/dns/prod_docs_clients_dns.json";
 	public static final String TEMPLATE_RESOURCE_PATH = "templates/dns/%s_dns.json";
 
+	public static final String ETL_CONFIG_FILE = "templates/etl/etl-aws-glue-job-config.json";
+	public static final String GITHUB_CONFIG_FILE = "templates/repo/github-path-config.json";
 	/**
 	 * A VPC peering role ARN must start with this prefix.
 	 */
@@ -146,7 +148,7 @@ public class Constants {
 	public static final String TEMPLATE_INVENTORY_BUCKET_POLICY_TEMPLATE = "templates/s3/s3-inventory-bucket-policy.json.vpt";
 	public static final String TEMPLATE_GLOBAL_RESOURCES = "templates/global/global-template.json.vpt";
 	public static final String TEMPLATE_S3_VIRUS_SCANNER = "templates/s3/s3-virus-scanner-template.json.vpt";
-	
+	public static final String TEMPLATE_ETL_GLUE_JOB_RESOURCES = "templates/etl/etl-aws-glue-job-template.json.vpt";
 
 	public static final int JSON_INDENT = 5;
 
@@ -211,7 +213,7 @@ public class Constants {
 	
 	public static final String ATHENA_QUERY_DESCRIPTORS = "athenaQueryDescriptors";
 	public static final String ATHENA_QUERY_DATA_BUCKETS = "athenaQueryDataBuckets";
-	
+	public static final String ETL_DESCRIPTORS = "etlDescriptors";
 	public static final String LOAD_BALANCER_ALARMS = "loadBalancerAlarms";
 
 	public static final String OAUTH_ENDPOINT = "oauthEndpoint";
@@ -298,7 +300,7 @@ public class Constants {
 	}
 
 	public static final String PROD_STACK_NAME = "prod";
-	
+
 	/**
 	 * Is the given stack prod?
 	 * @param stack

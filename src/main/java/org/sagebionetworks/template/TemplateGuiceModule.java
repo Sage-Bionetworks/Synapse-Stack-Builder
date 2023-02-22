@@ -2,6 +2,8 @@ package org.sagebionetworks.template;
 
 import static org.sagebionetworks.template.Constants.ATHENA_QUERIES_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.ETL_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.GITHUB_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.KINESIS_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARM_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.S3_CONFIG_FILE;
@@ -31,6 +33,7 @@ import org.sagebionetworks.template.dns.DnsBuilder;
 import org.sagebionetworks.template.dns.DnsBuilderImpl;
 import org.sagebionetworks.template.docs.SynapseDocsBuilder;
 import org.sagebionetworks.template.docs.SynapseDocsBuilderImpl;
+import org.sagebionetworks.template.etl.GithubConfigValidator;
 import org.sagebionetworks.template.global.GlobalResourcesBuilder;
 import org.sagebionetworks.template.global.GlobalResourcesBuilderImpl;
 import org.sagebionetworks.template.ip.address.IpAddressPoolBuilder;
@@ -43,6 +46,10 @@ import org.sagebionetworks.template.nlb.NetworkLoadBalancerBuilder;
 import org.sagebionetworks.template.nlb.NetworkLoadBalancerBuilderImpl;
 import org.sagebionetworks.template.redirectors.userdocs.UserDocsRedirectorBuilder;
 import org.sagebionetworks.template.redirectors.userdocs.UserDocsRedirectorBuilderImpl;
+import org.sagebionetworks.template.etl.EtlBuilder;
+import org.sagebionetworks.template.etl.EtlBuilderImpl;
+import org.sagebionetworks.template.etl.EtlConfig;
+import org.sagebionetworks.template.etl.EtlConfigValidator;
 import org.sagebionetworks.template.repo.IdGeneratorBuilder;
 import org.sagebionetworks.template.repo.IdGeneratorBuilderImpl;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
@@ -67,6 +74,9 @@ import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsConfig;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsConfigValidator;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProviderImpl;
+import org.sagebionetworks.template.etl.GithubCopy;
+import org.sagebionetworks.template.etl.GithubCopyImpl;
+import org.sagebionetworks.template.etl.GithubConfig;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfig;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfigValidator;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseVelocityContextProvider;
@@ -154,6 +164,8 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(IpAddressPoolBuilder.class).to(IpAddressPoolBuilderImpl.class);
 		bind(NetworkLoadBalancerBuilder.class).to(NetworkLoadBalancerBuilderImpl.class);
 		bind(BindNetworkLoadBalancerBuilder.class).to(BindNetworkLoadBalancerBuilderImpl.class);
+		bind(EtlBuilder.class).to(EtlBuilderImpl.class);
+		bind(GithubCopy.class).to(GithubCopyImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 		
@@ -310,4 +322,13 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		return new S3TransferManagerFactoryImpl(s3Client);
 	}
 
+	@Provides
+	public EtlConfig etlConfigProvider() throws IOException {
+		return new EtlConfigValidator(loadFromJsonFile(ETL_CONFIG_FILE, EtlConfig.class)).validate();
+	}
+
+	@Provides
+	public GithubConfig githubPathConfigProvider() throws IOException {
+		return new GithubConfigValidator(loadFromJsonFile(GITHUB_CONFIG_FILE, GithubConfig.class)).validate();
+	}
 }
