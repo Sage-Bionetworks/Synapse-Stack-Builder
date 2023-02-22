@@ -15,10 +15,10 @@ public class GithubConfigValidator {
             throw new IllegalStateException("The github path cannot be empty");
         }
         if (StringUtils.isBlank(githubConfig.getFilename())) {
-            throw new IllegalStateException("The file name cannot be empty");
+            throw new IllegalStateException("The github file name cannot be empty");
         }
         if (StringUtils.isBlank(githubConfig.getVersion())) {
-            throw new IllegalStateException("The version cannot be empty");
+            throw new IllegalStateException("The github file version cannot be empty");
         }
         return githubConfig;
     }

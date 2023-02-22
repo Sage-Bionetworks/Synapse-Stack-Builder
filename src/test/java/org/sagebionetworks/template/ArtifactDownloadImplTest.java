@@ -31,4 +31,19 @@ public class ArtifactDownloadImplTest {
 		 }
 	}
 
+	@Test
+	public void testDownloadFileFromZip() {
+		String url = "https://codeload.github.com/Sage-Bionetworks/Synapse-ETL-Jobs/zip/refs/tags/v0.1.0";
+		HttpClient client = new TemplateGuiceModule().provideHttpClient();
+		ArtifactDownload downloader = new ArtifactDownloadImpl(client);
+		File temp = downloader.downloadFileFromZip(url, "process_access_record.py");
+		try {
+			assertNotNull(temp);
+			assertEquals(8466L, temp.length());
+		} finally {
+			if (temp != null) {
+				temp.delete();
+			}
+		}
+	}
 }

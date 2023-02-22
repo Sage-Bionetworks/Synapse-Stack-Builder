@@ -64,8 +64,7 @@ public class EtlBuilderImpl implements EtlBuilder {
         context.put(STACK, stack);
         context.put(ETL_DESCRIPTORS, etlDescriptors);
         String stackName = new StringJoiner("-")
-                .add(config.getProperty(PROPERTY_KEY_STACK))
-                .add(config.getProperty(PROPERTY_KEY_INSTANCE)).add("etl").toString();
+                .add(stack).add(config.getProperty(PROPERTY_KEY_INSTANCE)).add("etl").toString();
 
         Parameter parameter = new Parameter();
 
