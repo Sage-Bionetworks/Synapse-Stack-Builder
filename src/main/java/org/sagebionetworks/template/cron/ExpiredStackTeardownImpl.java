@@ -22,7 +22,8 @@ public class ExpiredStackTeardownImpl implements ExpiredStackTeardown {
 	private final Logger logger;
 
 	@Inject
-	public ExpiredStackTeardownImpl(CloudFormationClient cloudFormationClient, TimeToLive timeToLive, LoggerFactory loggerFactory) {
+	public ExpiredStackTeardownImpl(CloudFormationClient cloudFormationClient, TimeToLive timeToLive,
+			LoggerFactory loggerFactory) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.timeToLive = timeToLive;
@@ -40,7 +41,9 @@ public class ExpiredStackTeardownImpl implements ExpiredStackTeardown {
 			List<Stack> toDelete = cloudFormationClient.streamOverAllStacks()
 					.filter(s -> deletableStatus.contains(StackStatus.valueOf(s.getStackStatus())))
 					.filter(s -> timeToLive.isTimeToLiveExpired(s.getParameters()))
-					.filter(Predicate.not(Stack::getEnableTerminationProtection)).collect(Collectors.toList());
+					.filter(s -> s.getEnableTerminationProtection() == null
+							|| Boolean.FALSE.equals(s.getEnableTerminationProtection()))
+					.collect(Collectors.toList());
 
 			toDelete.forEach(s -> {
 				logger.info(String.format("Deleting stack: '%s'...", s.getStackName()));
