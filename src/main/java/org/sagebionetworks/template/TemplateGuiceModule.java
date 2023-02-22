@@ -29,6 +29,8 @@ import org.sagebionetworks.template.config.SynapseAdminClientFactory;
 import org.sagebionetworks.template.config.SynapseAdminClientFactoryImpl;
 import org.sagebionetworks.template.config.TimeToLive;
 import org.sagebionetworks.template.config.TimeToLiveImpl;
+import org.sagebionetworks.template.cron.ExpiredStackTeardown;
+import org.sagebionetworks.template.cron.ExpiredStackTeardownImpl;
 import org.sagebionetworks.template.dns.DnsBuilder;
 import org.sagebionetworks.template.dns.DnsBuilderImpl;
 import org.sagebionetworks.template.docs.SynapseDocsBuilder;
@@ -160,6 +162,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(BindNetworkLoadBalancerBuilder.class).to(BindNetworkLoadBalancerBuilderImpl.class);
 		bind(TimeToLive.class).to(TimeToLiveImpl.class);
 		bind(Clock.class).to(DefaultClock.class);
+		bind(ExpiredStackTeardown.class).to(ExpiredStackTeardownImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 		

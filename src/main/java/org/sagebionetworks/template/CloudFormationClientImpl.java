@@ -2,10 +2,15 @@ package org.sagebionetworks.template;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.template.config.Configuration;
@@ -15,6 +20,8 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException;
 import com.amazonaws.services.cloudformation.model.CreateStackRequest;
 import com.amazonaws.services.cloudformation.model.CreateStackResult;
+import com.amazonaws.services.cloudformation.model.DeleteStackRequest;
+import com.amazonaws.services.cloudformation.model.DeleteStackResult;
 import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Output;
@@ -28,25 +35,26 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.google.inject.Inject;
 
 /**
- * Basic implementation CloudFormationClient 
+ * Basic implementation CloudFormationClient
  *
  */
 public class CloudFormationClientImpl implements CloudFormationClient {
 
 	public static final String S3_URL_TEMPLATE = "https://s3.amazonaws.com/%s/%s";
 
-	public static final long TIMEOUT_MS = 60*60*1000; // one hour.
-	
-	public static final int SLEEP_TIME = 10*1000;
+	public static final long TIMEOUT_MS = 60 * 60 * 1000; // one hour.
+
+	public static final int SLEEP_TIME = 10 * 1000;
 	public static final String NO_UPDATES_ARE_TO_BE_PERFORMED = "No updates are to be performed";
 	AmazonCloudFormation cloudFormationClient;
 	AmazonS3 s3Client;
 	Configuration configuration;
 	Logger logger;
 	ThreadProvider threadProvider;
-	
+
 	@Inject
-	public CloudFormationClientImpl(AmazonCloudFormation cloudFormationClient, AmazonS3 s3Client, Configuration configuration, LoggerFactory loggerFactory, ThreadProvider threadProvider) {
+	public CloudFormationClientImpl(AmazonCloudFormation cloudFormationClient, AmazonS3 s3Client,
+			Configuration configuration, LoggerFactory loggerFactory, ThreadProvider threadProvider) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.s3Client = s3Client;
@@ -64,19 +72,19 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 	public void updateStack(final CreateOrUpdateStackRequest requestInput) {
 		// Temporarily upload the template to S3.
 		executeWithS3Template(requestInput, new Function<String, String>() {
-			
+
 			@Override
 			public String apply(String templateUrl) {
 				UpdateStackRequest request = new UpdateStackRequest();
 				request.setStackName(requestInput.getStackName());
 				request.setTemplateURL(templateUrl);
-				if(requestInput.getParameters() != null) {
+				if (requestInput.getParameters() != null) {
 					request.withParameters(requestInput.getParameters());
 				}
-				if(requestInput.getCapabilities() != null) {
+				if (requestInput.getCapabilities() != null) {
 					request.withCapabilities(requestInput.getCapabilities());
 				}
-				if(requestInput.getTags() != null) {
+				if (requestInput.getTags() != null) {
 					request.withTags(requestInput.getTags());
 				}
 				UpdateStackResult results = cloudFormationClient.updateStack(request);
@@ -89,19 +97,19 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 	public void createStack(final CreateOrUpdateStackRequest requestInput) {
 		// Temporarily upload the template to S3.
 		executeWithS3Template(requestInput, new Function<String, String>() {
-			
+
 			@Override
 			public String apply(String templateUrl) {
 				CreateStackRequest request = new CreateStackRequest();
 				request.setStackName(requestInput.getStackName());
 				request.setTemplateURL(templateUrl);
-				if(requestInput.getParameters() != null) {
+				if (requestInput.getParameters() != null) {
 					request.withParameters(requestInput.getParameters());
 				}
-				if(requestInput.getCapabilities() != null) {
+				if (requestInput.getCapabilities() != null) {
 					request.withCapabilities(requestInput.getCapabilities());
 				}
-				if(requestInput.getTags() != null) {
+				if (requestInput.getTags() != null) {
 					request.withTags(requestInput.getTags());
 				}
 				if (requestInput.getEnableTerminationProtection() != null) {
@@ -112,9 +120,11 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 			}
 		});
 	}
-	
+
 	/**
-	 * Execute a create or update using a template that is temporarily uploaded to S3.
+	 * Execute a create or update using a template that is temporarily uploaded to
+	 * S3.
+	 * 
 	 * @param function
 	 * @return
 	 */
@@ -128,13 +138,13 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 			try {
 				function.apply(templateUrl);
 			} catch (AmazonCloudFormationException e) {
-				if(e.getMessage().contains(NO_UPDATES_ARE_TO_BE_PERFORMED)) {
-					logger.info("There were no updates for stack: "+requestInput.getStackName());
-				}else {
+				if (e.getMessage().contains(NO_UPDATES_ARE_TO_BE_PERFORMED)) {
+					logger.info("There were no updates for stack: " + requestInput.getStackName());
+				} else {
 					throw new RuntimeException(e);
 				}
 			}
-		}finally {
+		} finally {
 			// Delete the template from S3
 			deleteTemplate(bundle);
 		}
@@ -142,9 +152,9 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 
 	@Override
 	public void createOrUpdateStack(CreateOrUpdateStackRequest request) {
-		if(doesStackNameExist(request.getStackName())) {
+		if (doesStackNameExist(request.getStackName())) {
 			updateStack(request);
-		}else {
+		} else {
 			createStack(request);
 		}
 	}
@@ -158,17 +168,18 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 		try {
 			// throws an exception if it does not exist
 			DescribeStacksResult results = cloudFormationClient.describeStacks(request);
-			if(results.getStacks().size() > 1) {
-				throw new IllegalStateException("More than one stack found for name: "+stackName);
+			if (results.getStacks().size() > 1) {
+				throw new IllegalStateException("More than one stack found for name: " + stackName);
 			}
 			return Optional.of(results.getStacks().get(0));
-		}catch(AmazonCloudFormationException e) {
+		} catch (AmazonCloudFormationException e) {
 			return Optional.empty();
 		}
 	}
-	
+
 	/**
 	 * Save the given template to to S3.
+	 * 
 	 * @param tempalte
 	 * @return
 	 */
@@ -186,18 +197,20 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	/**
 	 * Create a pre-signed URL for the given file.
+	 * 
 	 * @param bundle
 	 * @return
 	 */
 	String createS3Url(SourceBundle bundle) {
 		return String.format(S3_URL_TEMPLATE, bundle.getBucket(), bundle.getKey());
 	}
-	
+
 	/**
 	 * Delete the template file for the given bundle.
+	 * 
 	 * @param bundle
 	 */
 	void deleteTemplate(SourceBundle bundle) {
@@ -214,18 +227,18 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 	public Optional<Stack> waitForStackToComplete(String stackName) throws InterruptedException {
 		boolean startedInUpdateRollbackComplete = isStartedInUpdateRollbackComplete(stackName); // Initial state
 		long start = threadProvider.currentTimeMillis();
-		while(true) {
-			long elapse = threadProvider.currentTimeMillis()-start;
-			if(elapse > TIMEOUT_MS) {
-				throw new RuntimeException("Timed out waiting for stack: '"+stackName+"' status to complete");
+		while (true) {
+			long elapse = threadProvider.currentTimeMillis() - start;
+			if (elapse > TIMEOUT_MS) {
+				throw new RuntimeException("Timed out waiting for stack: '" + stackName + "' status to complete");
 			}
 			Optional<Stack> optional = describeStack(stackName);
-			if(optional.isEmpty()) {
+			if (optional.isEmpty()) {
 				return Optional.empty();
 			}
 			Stack stack = optional.get();
 			StackStatus status = StackStatus.fromValue(stack.getStackStatus());
-			switch(status) {
+			switch (status) {
 			case CREATE_COMPLETE:
 			case UPDATE_COMPLETE:
 			case DELETE_COMPLETE:
@@ -235,7 +248,8 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 			case UPDATE_IN_PROGRESS:
 			case DELETE_IN_PROGRESS:
 			case UPDATE_COMPLETE_CLEANUP_IN_PROGRESS:
-				logger.info("Waiting for stack: '"+stackName+"' to complete.  Current status: "+status.name()+"...");
+				logger.info("Waiting for stack: '" + stackName + "' to complete.  Current status: " + status.name()
+						+ "...");
 				threadProvider.sleep(SLEEP_TIME);
 				break;
 			case UPDATE_ROLLBACK_COMPLETE:
@@ -243,7 +257,8 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 					return optional;
 				}
 			default:
-			throw new RuntimeException("Stack '"+stackName+"' did not complete.  Status: "+status.name()+" with reason: "+stack.getStackStatusReason());
+				throw new RuntimeException("Stack '" + stackName + "' did not complete.  Status: " + status.name()
+						+ " with reason: " + stack.getStackStatusReason());
 			}
 		}
 	}
@@ -251,9 +266,10 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 	@Override
 	public String getOutput(String stackName, String outputKey) {
 		String res = null;
-		Stack stack = describeStack(stackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+stackName));
+		Stack stack = describeStack(stackName)
+				.orElseThrow(() -> new IllegalStateException("Stack does not exist: " + stackName));
 		List<Output> outputs = stack.getOutputs();
-		for (Output output: outputs) {
+		for (Output output : outputs) {
 			if (output.getOutputKey().equals(outputKey)) {
 				res = output.getOutputValue();
 				break;
@@ -263,6 +279,40 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 			throw new IllegalArgumentException("The output key " + outputKey + " was not found.");
 		}
 		return res;
+	}
+
+	@Override
+	public Stream<Stack> streamOverAllStacks() {
+		return StreamSupport.stream(
+				Spliterators.spliteratorUnknownSize(new PageIterator<>(new StackPageProvider()), Spliterator.ORDERED),
+				false);
+	}
+
+	/**
+	 * Stateful stack PageProvider for getting all Stacks using pagination.
+	 *
+	 */
+	private class StackPageProvider implements PageIterator.PageProvider<Stack> {
+
+		private boolean isDone = false;
+		private String nextPageToken;
+		
+		public List<Stack> nextPage() {
+			if(isDone) {
+				return Collections.emptyList();
+			}
+			DescribeStacksResult r = cloudFormationClient.describeStacks(new DescribeStacksRequest().withNextToken(nextPageToken));
+			nextPageToken = r.getNextToken();
+			if(nextPageToken == null) {
+				isDone = true;
+			}
+			return r.getStacks();
+		}
+	}
+
+	@Override
+	public void deleteStack(String stackName) {
+		cloudFormationClient.deleteStack(new DeleteStackRequest().withStackName(stackName));
 	}
 
 }

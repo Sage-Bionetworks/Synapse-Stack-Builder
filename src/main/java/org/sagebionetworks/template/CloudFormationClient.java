@@ -1,6 +1,7 @@
 package org.sagebionetworks.template;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException;
 import com.amazonaws.services.cloudformation.model.Stack;
@@ -72,5 +73,17 @@ public interface CloudFormationClient {
 	 * @return
 	 */
 	public String getOutput(String stackName, String outputKey);
+
+	/**
+	 * Stream over all stacks.
+	 * @return
+	 */
+	public Stream<Stack> streamOverAllStacks();
+
+	/**
+	 * Delete a stack by name
+	 * @param stackName
+	 */
+	public void deleteStack(String stackName);
 
 }

@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.net.MalformedURLException;
@@ -15,6 +16,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Assertions;
@@ -32,6 +34,7 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException;
 import com.amazonaws.services.cloudformation.model.CreateStackRequest;
 import com.amazonaws.services.cloudformation.model.CreateStackResult;
+import com.amazonaws.services.cloudformation.model.DeleteStackRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Output;
@@ -489,6 +492,32 @@ public class CloudFormationClientImplTest {
 			// call under test
 			client.getOutput(stackName, "invalidKey");
 		});
+	}
+	
+	@Test
+	public void testStreamOverAllStacks() {
+
+		DescribeStacksResult one = new DescribeStacksResult()
+				.withStacks(new Stack().withStackName("a"), new Stack().withStackName("b")).withNextToken("next a");
+		DescribeStacksResult two = new DescribeStacksResult()
+				.withStacks(new Stack().withStackName("c"), new Stack().withStackName("d")).withNextToken(null);
+
+		when(mockCloudFormationClient.describeStacks(any())).thenReturn(one, two);
+
+		// call under test
+		List<String> stackNames = client.streamOverAllStacks().map(Stack::getStackName).collect(Collectors.toList());
+		assertEquals(List.of("a", "b", "c", "d"), stackNames);
+		
+		verify(mockCloudFormationClient).describeStacks(new DescribeStacksRequest().withNextToken(null));
+		verify(mockCloudFormationClient).describeStacks(new DescribeStacksRequest().withNextToken("next a"));
+		verifyNoMoreInteractions(mockCloudFormationClient);
+	}
+	
+	@Test
+	public void testDeleteStack() {
+		// call under test
+		client.deleteStack("delete-me");
+		verify(mockCloudFormationClient).deleteStack(new DeleteStackRequest().withStackName("delete-me"));
 	}
 
 }
