@@ -104,6 +104,7 @@ public class Constants {
 	public static final String PROPERTY_KEY_ID_GENERATOR_DATABASE_PASSWORD = "org.sagebionetworks.id.generator.database.password";
 	public static final String PROPERTY_KEY_ID_GENERATOR_HOSTED_ZONE_ID = "org.sagebionetworks.id.generator.hosted.zone.id";
 	public static final String PROPERTY_KEY_EC2_INSTANCE_TYPE = "org.sagebionetworks.beanstalk.instance.type";
+	public static final String PROPERTY_KEY_TIME_TO_LIVE_HOURS = "org.sagebionetworks.repo.time.to.live.hours";
 
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX = "org.sagebionetworks.beanstalk.image.version.";
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA = PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX + "java";
@@ -126,6 +127,8 @@ public class Constants {
 	
 	// A comma separated list of DNS records to each stack.
 	public static final String PROPERTY_KEY_BIND_RECORD_TO_STACK = "org.sagebionetworks.bind.record.to.stack.csv";
+	
+	public static final String PARAM_KEY_TIME_TO_LIVE = "TimeToLive";
 
 	// tag values
 	public static final String TAG_VALUE_DEPARTMENT = "Platform";

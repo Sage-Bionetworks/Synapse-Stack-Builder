@@ -8,9 +8,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.BEANSTALK_INSTANCES_SUBNETS;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
@@ -21,6 +25,7 @@ import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.NOSNAPSHOT;
 import static org.sagebionetworks.template.Constants.OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
+import static org.sagebionetworks.template.Constants.PARAM_KEY_TIME_TO_LIVE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MAX_INSTANCES;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MIN_INSTANCES;
@@ -56,6 +61,7 @@ import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.SHARED_RESOUCES_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
+import static org.sagebionetworks.template.Constants.TEMPALTE_BEAN_STALK_ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
@@ -77,6 +83,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
@@ -87,6 +94,7 @@ import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.config.RepoConfiguration;
+import org.sagebionetworks.template.config.TimeToLive;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.ElasticBeanstalkSolutionStackNameProvider;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
@@ -139,11 +147,14 @@ public class RepositoryTemplateBuilderImplTest {
 	private StackTagsProvider mockStackTagsProvider;
 	@Mock
 	private CloudwatchLogsVelocityContextProvider mockCwlContextProvider;
+	@Mock
+	private TimeToLive mockTimeToLive;
 	@Captor
 	private ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
 
 	private VelocityEngine velocityEngine;
 	private RepositoryTemplateBuilderImpl builder;
+	private RepositoryTemplateBuilderImpl builderSpy;
 
 	private String stack;
 	private String instance;
@@ -172,7 +183,8 @@ public class RepositoryTemplateBuilderImplTest {
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
-				mockEc2Client, mockBeanstalkClient);
+				mockEc2Client, mockBeanstalkClient, mockTimeToLive);
+		builderSpy = Mockito.spy(builder);
 
 		stack = "dev";
 		instance = "101";
@@ -286,6 +298,7 @@ public class RepositoryTemplateBuilderImplTest {
 		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);
 		JSONObject templateJson = new JSONObject(bodyJSONString);
+		
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		assertNotNull(resources);
 		// database group
@@ -440,6 +453,9 @@ public class RepositoryTemplateBuilderImplTest {
 	@Test
 	public void testBuildAndDeployDev() throws InterruptedException {
 		
+		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(
+				Optional.of(new Parameter().withParameterKey(PARAM_KEY_TIME_TO_LIVE).withParameterValue("NONE")));
+		
 		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
@@ -505,9 +521,14 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(expectedTags, request.getTags());
 		assertEquals(false, request.getEnableTerminationProtection());
 		assertNotNull(request.getParameters());
+		assertEquals(2, request.getParameters().length);
+		assertEquals("NONE", request.getParameters()[1].getParameterValue());
 		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);
 		JSONObject templateJson = new JSONObject(bodyJSONString);
+		
+		assertEquals("NONE", templateJson.getJSONObject("Parameters").getJSONObject("TimeToLive").get("Default"));
+				
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		assertNotNull(resources);
 
@@ -744,8 +765,9 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testGetParamters() {
-		
+
 		when(mockSecretBuilder.getRepositoryDatabasePassword()).thenReturn("somePassword");
+		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(Optional.empty());
 
 		// call under test
 		Parameter[] params = builder.createSharedParameters();
@@ -754,6 +776,30 @@ public class RepositoryTemplateBuilderImplTest {
 		Parameter param = params[0];
 		assertEquals(PARAMETER_MYSQL_PASSWORD, param.getParameterKey());
 		assertEquals("somePassword", param.getParameterValue());
+
+		verify(mockTimeToLive).createTimeToLiveParameter();
+	}
+	
+	@Test
+	public void testGetParamtersWithTimeToLive() {
+
+		when(mockSecretBuilder.getRepositoryDatabasePassword()).thenReturn("somePassword");
+		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(
+				Optional.of(new Parameter().withParameterKey(PARAM_KEY_TIME_TO_LIVE).withParameterValue("NONE")));
+
+		// call under test
+		Parameter[] params = builder.createSharedParameters();
+		assertNotNull(params);
+		assertEquals(2, params.length);
+		Parameter param = params[0];
+		assertEquals(PARAMETER_MYSQL_PASSWORD, param.getParameterKey());
+		assertEquals("somePassword", param.getParameterValue());
+
+		param = params[1];
+		assertEquals(PARAM_KEY_TIME_TO_LIVE, param.getParameterKey());
+		assertEquals("NONE", param.getParameterValue());
+
+		verify(mockTimeToLive).createTimeToLiveParameter();
 	}
 
 	@Test
@@ -1240,6 +1286,60 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(expected[0], results[0]);
 		assertEquals(expected[1], results[1]);
 	}
+	
+	@Test
+	public void testBuildEnvironmentsWithoutTTL() {
+
+		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
+		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(Optional.empty());
+
+		EnvironmentDescriptor e1 = new EnvironmentDescriptor().withName("repo");
+		EnvironmentDescriptor e2 = new EnvironmentDescriptor().withName("portal");
+		doReturn(List.of(e1, e2)).when(builderSpy).createEnvironments(any());
+
+		VelocityContext mockContext = Mockito.mock(VelocityContext.class);
+		doReturn(mockContext).when(builderSpy).createEnvironmentContext(any(), any());
+
+		doNothing().when(builderSpy).buildAndDeployStack(any(), any(), any(), any());
+
+		// call under test
+		builderSpy.buildEnvironments(sharedResouces);
+
+		verify(mockSecretBuilder).createSecrets();
+		verify(mockTimeToLive).createTimeToLiveParameter();
+		verify(builderSpy).createEnvironments(secretsSouce);
+		verify(builderSpy, times(2)).buildAndDeployStack(any(), any(), any(), any());
+		verify(builderSpy).buildAndDeployStack(mockContext, e1.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, null);
+		verify(builderSpy).buildAndDeployStack(mockContext, e2.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, null);
+	}
+	
+	@Test
+	public void testBuildEnvironmentsWithTTL() {
+
+		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
+		Parameter ttl = new Parameter().withParameterKey("ttl").withParameterValue("value");
+		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(Optional.of(ttl));
+
+		EnvironmentDescriptor e1 = new EnvironmentDescriptor().withName("repo");
+		EnvironmentDescriptor e2 = new EnvironmentDescriptor().withName("portal");
+		doReturn(List.of(e1, e2)).when(builderSpy).createEnvironments(any());
+
+		VelocityContext mockContext = Mockito.mock(VelocityContext.class);
+		doReturn(mockContext).when(builderSpy).createEnvironmentContext(any(), any());
+
+		doNothing().when(builderSpy).buildAndDeployStack(any(), any(), any(), any());
+
+		// call under test
+		builderSpy.buildEnvironments(sharedResouces);
+
+		verify(mockSecretBuilder).createSecrets();
+		verify(mockTimeToLive).createTimeToLiveParameter();
+		verify(builderSpy).createEnvironments(secretsSouce);
+		verify(builderSpy, times(2)).buildAndDeployStack(any(), any(), any(), any());
+		verify(builderSpy).buildAndDeployStack(mockContext, e1.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, ttl);
+		verify(builderSpy).buildAndDeployStack(mockContext, e2.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, ttl);
+	}
+	
 
 	private void setupValidBeanstalkConfig() {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");
