@@ -66,24 +66,23 @@ public class ArtifactDownloadImpl implements ArtifactDownload {
 			}
 
 			// download to a temp file.
-			File temp = File.createTempFile(filename, ".tmp");
-			ZipInputStream zipIn = new ZipInputStream(response.getEntity().getContent());
-			ZipEntry entry = zipIn.getNextEntry();
-			while (entry != null){
-				String fileNameInEntry = Paths.get(entry.getName()).getFileName().toString();
-				if(!entry.isDirectory() && filename.equals(fileNameInEntry)){
-					BufferedInputStream bis = new BufferedInputStream(zipIn);
-					BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(temp));
-					int inByte;
-					while ((inByte = bis.read()) != -1) {
-						bos.write(inByte);
+			File temp = File.createTempFile("github",".tmp");
+			try(ZipInputStream zipIn = new ZipInputStream(response.getEntity().getContent());
+				BufferedInputStream bis = new BufferedInputStream(zipIn);
+				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(temp))){
+				ZipEntry entry = zipIn.getNextEntry();
+				while (entry != null){
+					if(!entry.isDirectory() && entry.getName().equals(filename)){
+						int inByte;
+						while ((inByte = bis.read()) != -1) {
+							bos.write(inByte);
+						}
+						bos.flush();
 					}
-					bos.flush();
+					zipIn.closeEntry();
+					entry = zipIn.getNextEntry();
 				}
-				zipIn.closeEntry();
-				entry = zipIn.getNextEntry();
 			}
-			zipIn.close();
 			return temp;
 		} catch (IOException e) {
 			throw new RuntimeException(e);

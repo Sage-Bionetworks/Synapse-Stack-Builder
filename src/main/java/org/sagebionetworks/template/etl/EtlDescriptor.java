@@ -6,6 +6,7 @@ import java.util.Set;
 
 public class EtlDescriptor {
     private String name;
+    private String description;
     private String scriptLocation;
     private String sourcePath;
     private String destinationPath;
@@ -18,6 +19,14 @@ public class EtlDescriptor {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getScriptLocation() {
@@ -65,14 +74,15 @@ public class EtlDescriptor {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         EtlDescriptor that = (EtlDescriptor) o;
-        return Objects.equals(name, that.name) && Objects.equals(scriptLocation, that.scriptLocation)
-                && Objects.equals(sourcePath, that.sourcePath) && Objects.equals(destinationPath, that.destinationPath)
-                && Objects.equals(destinationFileFormat, that.destinationFileFormat)
-                && Objects.equals(buckets, that.buckets);
+        return name.equals(that.name) && description.equals(that.description)
+                && scriptLocation.equals(that.scriptLocation) && sourcePath.equals(that.sourcePath)
+                && destinationPath.equals(that.destinationPath) && destinationFileFormat.equals(that.destinationFileFormat)
+                && buckets.equals(that.buckets);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, scriptLocation, sourcePath, destinationPath, destinationFileFormat, buckets);
+        return Objects.hash(name, description, scriptLocation, sourcePath, destinationPath,
+                destinationFileFormat, buckets);
     }
 }

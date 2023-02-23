@@ -35,20 +35,27 @@ public class GithubCopyImpl implements GithubCopy {
 
     @Override
     public void copyFileFromGithub() throws ConfigurationPropertyNotFound {
-        String stack = configuration.getProperty(PROPERTY_KEY_STACK);
-        String bucket = String.join(".", stack, S3_GLUE_BUCKET);
-        String filename = githubConfig.getFilename().substring(0, githubConfig.getFilename().indexOf("."));
-        String s3Key = "scripts/" + filename + "_" + githubConfig.getVersion() + EXTENSION;
-        String githubUrl = new StringJoiner("/").add(githubConfig.getGithubPath())
-                .add(githubConfig.getVersion()).toString();
-        logger.info("Github download url: " + githubUrl);
-        File download = downloader.downloadFileFromZip(githubUrl, githubConfig.getFilename());
-        try {
-            logger.info("Uploading file to S3: " + s3Key);
-            s3Client.putObject(bucket, s3Key, download);
-            logger.info("Uploaded file to S3: " + s3Key);
-        } finally {
-            download.delete();
+        for (GithubPath githubPath : githubConfig.getGithubPathList()) {
+            String stack = configuration.getProperty(PROPERTY_KEY_STACK);
+            String bucket = String.join(".", stack, S3_GLUE_BUCKET);
+            String filePrefix = githubPath.getFilename().substring(0, githubPath.getFilename().indexOf("."));
+            String s3Key = "scripts/" + filePrefix + "_" + githubPath.getVersion() + EXTENSION;
+            String githubUrl = new StringJoiner("/").add(githubPath.getBasePath())
+                    .add(githubPath.getVersion()).toString();
+            logger.info("Github download url: " + githubUrl);
+            File download = downloader.downloadFileFromZip(githubUrl, githubPath.getFilePath());
+            try {
+                logger.info("Uploading file to S3: " + s3Key);
+                s3Client.putObject(bucket, s3Key, download);
+                logger.info("Uploaded file to S3: " + s3Key);
+            } finally {
+                try {
+                    download.delete();
+                } catch (SecurityException securityException) {
+                    logger.warn("Unable to delete the file ", securityException.getMessage());
+                }
+            }
         }
+
     }
 }

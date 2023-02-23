@@ -53,20 +53,10 @@ public class EtlBuilderImpl implements EtlBuilder {
         VelocityContext context = new VelocityContext();
         String stack = config.getProperty(PROPERTY_KEY_STACK);
         List<EtlDescriptor> etlDescriptors = etlConfig.getEtlDescriptors();
-        etlDescriptors.forEach(etlDescriptor -> {
-            etlDescriptor.setSourcePath(TemplateUtils.replaceStackVariable(etlDescriptor.getSourcePath(), stack));
-            etlDescriptor.setDestinationPath(TemplateUtils.replaceStackVariable(etlDescriptor.getDestinationPath(), stack));
-            etlDescriptor.setScriptLocation(TemplateUtils.replaceStackVariable(etlDescriptor.getScriptLocation(), stack));
-            Set<String> buckets = etlDescriptor.getBuckets().stream()
-                    .map(b -> TemplateUtils.replaceStackVariable(b, stack)).collect(Collectors.toSet());
-            etlDescriptor.setBuckets(buckets);
-        });
         context.put(STACK, stack);
         context.put(ETL_DESCRIPTORS, etlDescriptors);
         String stackName = new StringJoiner("-")
                 .add(stack).add(config.getProperty(PROPERTY_KEY_INSTANCE)).add("etl").toString();
-
-        Parameter parameter = new Parameter();
 
         // Merge the context with the template
         Template template = this.velocityEngine.getTemplate(TEMPLATE_ETL_GLUE_JOB_RESOURCES);
@@ -81,7 +71,7 @@ public class EtlBuilderImpl implements EtlBuilder {
         this.logger.info(resultJSON);
         // create or update the template
         this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
-                .withTemplateBody(resultJSON).withParameters(parameter).withTags(tagsProvider.getStackTags())
+                .withTemplateBody(resultJSON).withTags(tagsProvider.getStackTags())
                 .withCapabilities(CAPABILITY_NAMED_IAM));
     }
 }

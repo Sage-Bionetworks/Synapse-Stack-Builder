@@ -1,13 +1,14 @@
 {
 	"etlDescriptors":[{
 		"name": "ProcessAccessRecord",
-		"scriptLocation": "${stack}.aws-glue.sagebase.org/scripts/process_access_record_v0.1.0.py",
-		"sourcePath" : "s3://${stack}.log.sagebase.org/accessRecord/",
-		"destinationPath" : "s3://${stack}.log.sagebase.org/processedAccessRecord/",
+		"description": "This job processes the access records",
+		"scriptLocation": "aws-glue.sagebase.org/scripts/process_access_record_v0.1.0.py",
+		"sourcePath" : "log.sagebase.org/accessRecord/",
+		"destinationPath" : "log.sagebase.org/processedAccessRecord/",
 		"destinationFileFormat" : "json",
 		"buckets": [
-			"${stack}.aws-glue.sagebase.org",
-			"${stack}.log.sagebase.org"
+			"aws-glue.sagebase.org",
+			"log.sagebase.org"
 		]
 	}]
 }

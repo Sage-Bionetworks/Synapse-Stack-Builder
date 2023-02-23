@@ -1,35 +1,19 @@
 package org.sagebionetworks.template.etl;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
+
 public class GithubConfig {
+    private List<GithubPath> githubPathList = new ArrayList<>();
 
-    private String githubPath;
-    private String filename;
-    private String version;
-
-    public String getGithubPath() {
-        return githubPath;
+    public List<GithubPath> getGithubPathList() {
+        return githubPathList;
     }
 
-    public void setGithubPath(String githubPath) {
-        this.githubPath = githubPath;
-    }
-
-    public String getFilename() {
-        return filename;
-    }
-
-    public void setFilename(String filename) {
-        this.filename = filename;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
+    public void setGithubPathList(List<GithubPath> githubPathList) {
+        this.githubPathList = githubPathList;
     }
 
     @Override
@@ -37,11 +21,11 @@ public class GithubConfig {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         GithubConfig that = (GithubConfig) o;
-        return githubPath.equals(that.githubPath) && filename.equals(that.filename) && version.equals(that.version);
+        return githubPathList.equals(that.githubPathList);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(githubPath, filename, version);
+        return Objects.hash(githubPathList);
     }
 }

@@ -10,16 +10,23 @@ public class GithubConfigValidator {
         this.githubConfig = githubConfig;
     }
 
-    public GithubConfig validate() {
-        if (StringUtils.isBlank(githubConfig.getGithubPath())) {
-            throw new IllegalStateException("The github path cannot be empty");
+    public GithubConfig validate(){
+        githubConfig.getGithubPathList().forEach(this::validate);
+        return githubConfig;
+    }
+
+    private void validate(GithubPath githubPath) {
+        if (StringUtils.isBlank(githubPath.getBasePath())) {
+            throw new IllegalStateException("The github base path cannot be empty");
         }
-        if (StringUtils.isBlank(githubConfig.getFilename())) {
+        if (StringUtils.isBlank(githubPath.getFilePath())) {
+            throw new IllegalStateException("The github file path cannot be empty");
+        }
+        if (StringUtils.isBlank(githubPath.getFilename())) {
             throw new IllegalStateException("The github file name cannot be empty");
         }
-        if (StringUtils.isBlank(githubConfig.getVersion())) {
+        if (StringUtils.isBlank(githubPath.getVersion())) {
             throw new IllegalStateException("The github file version cannot be empty");
         }
-        return githubConfig;
     }
 }

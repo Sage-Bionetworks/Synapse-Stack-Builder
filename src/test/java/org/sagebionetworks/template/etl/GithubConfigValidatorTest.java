@@ -1,10 +1,13 @@
 package org.sagebionetworks.template.etl;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -19,23 +22,31 @@ public class GithubConfigValidatorTest {
     @Mock
     private GithubConfig githubConfig;
 
+    private GithubPath githubPath;
+
+    @BeforeEach
+    public void before() {
+        githubPath = new GithubPath();
+        githubPath.setBasePath("https://basePath");
+        githubPath.setFilePath("filePath");
+        githubPath.setFilename("fileName");
+        githubPath.setVersion("v1");
+    }
+
     @Test
     public void testAllValidation() {
-        when(githubConfig.getGithubPath()).thenReturn("https://somepath");
-        when(githubConfig.getVersion()).thenReturn("v1");
-        when(githubConfig.getFilename()).thenReturn("test.py");
+        when(githubConfig.getGithubPathList()).thenReturn(Collections.singletonList(githubPath));
 
         //call under test
         githubConfigValidator.validate();
-        verify(githubConfig, times(1)).getFilename();
-        verify(githubConfig, times(1)).getGithubPath();
-        verify(githubConfig, times(1)).getVersion();
+        verify(githubConfig, times(1)).getGithubPathList();
+
     }
 
     @Test
     public void testGithubConfigWithOutFilename() {
-        when(githubConfig.getGithubPath()).thenReturn("https://somepath");
-        when(githubConfig.getFilename()).thenReturn(null);
+        githubPath.setFilename(null);
+        when(githubConfig.getGithubPathList()).thenReturn(Collections.singletonList(githubPath));
 
         //call under test
         String errorMessage = assertThrows(IllegalStateException.class, () -> {
@@ -46,9 +57,8 @@ public class GithubConfigValidatorTest {
 
     @Test
     public void testGithubConfigWithOutVersion() {
-        when(githubConfig.getGithubPath()).thenReturn("https://somepath");
-        when(githubConfig.getVersion()).thenReturn("");
-        when(githubConfig.getFilename()).thenReturn("test.py");
+        githubPath.setVersion("");
+        when(githubConfig.getGithubPathList()).thenReturn(Collections.singletonList(githubPath));
 
         //call under test
         String errorMessage = assertThrows(IllegalStateException.class, () -> {
@@ -58,13 +68,25 @@ public class GithubConfigValidatorTest {
     }
 
     @Test
-    public void testGithubConfigWithOutPath() {
-        when(githubConfig.getGithubPath()).thenReturn("");
+    public void testGithubConfigWithOutBasePath() {
+        githubPath.setBasePath("");
+        when(githubConfig.getGithubPathList()).thenReturn(Collections.singletonList(githubPath));
 
         //call under test
         String errorMessage = assertThrows(IllegalStateException.class, () -> {
             githubConfigValidator.validate();
         }).getMessage();
-        assertEquals("The github path cannot be empty", errorMessage);
+        assertEquals("The github base path cannot be empty", errorMessage);
+    }
+    @Test
+    public void testGithubConfigWithOutFilePath() {
+        githubPath.setFilePath("");
+        when(githubConfig.getGithubPathList()).thenReturn(Collections.singletonList(githubPath));
+
+        //call under test
+        String errorMessage = assertThrows(IllegalStateException.class, () -> {
+            githubConfigValidator.validate();
+        }).getMessage();
+        assertEquals("The github file path cannot be empty", errorMessage);
     }
 }

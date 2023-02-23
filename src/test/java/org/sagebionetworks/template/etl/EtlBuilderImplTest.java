@@ -105,7 +105,6 @@ public class EtlBuilderImplTest {
         CreateOrUpdateStackRequest req = requestCaptor.getValue();
         assertEquals(expectedStackName, req.getStackName());
         assertEquals(tags, req.getTags());
-        assertNotNull(req.getParameters());
         assertNotNull(req.getTemplateBody());
     }
 }
