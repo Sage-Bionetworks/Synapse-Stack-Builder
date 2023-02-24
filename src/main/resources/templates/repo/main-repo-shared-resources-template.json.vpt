@@ -6,7 +6,8 @@
 			"Description": "The master password for the MySQL databases.",
 			"Type": "String",
 			"NoEcho": true
-		}
+		},
+		#parse("templates/repo/time-to-live-parameter.vpt")
 	},
 	"Resources": {
 		"${stack}${instance}DBSubnetGroup": {
@@ -729,6 +730,7 @@
 		#parse("templates/repo/web-acl-template.json.vpt")
 	},
 	"Outputs": {
+		#parse("templates/repo/time-to-live-out.vpt"),
 		"webAclArn": {
 			"Description": "The ARN of the web ACL.",
 			"Value": {

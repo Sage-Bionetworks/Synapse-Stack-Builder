@@ -1,0 +1,20 @@
+		"timeToLiveOut": {
+			"Description": "When set, indicates when this stack can be automatically deleted.",
+			"Value": { "Ref" : "TimeToLive" },
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"timeToLive"
+						]
+					]
+				}
+			}
+		}

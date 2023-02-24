@@ -1,6 +1,9 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
 	"Description": "Creates all of the Elastic Beanstalk resources to deploy ${environment.name}",
+	"Parameters": {
+		#parse("templates/repo/time-to-live-parameter.vpt")
+	},
 	"Resources": {
 		"${environment.refName}Version": {
 			"Type": "AWS::ElasticBeanstalk::ApplicationVersion",
@@ -598,6 +601,7 @@
 					]
 				}
 			}
-		}
+		},
+		#parse("templates/repo/time-to-live-out.vpt")
 	}
 }

@@ -1,27 +1,26 @@
 package org.sagebionetworks.template.repo;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.sagebionetworks.template.Constants.DEFAULT_REPO_PROPERTIES;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MULTI_AZ;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.sagebionetworks.template.config.Configuration;
-import org.sagebionetworks.template.config.ConfigurationImpl;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
+import org.sagebionetworks.template.config.ConfigurationImpl;
 
+@ExtendWith(MockitoExtension.class)
 public class ConfigurationImplTest {
 
-	Configuration config;
-
-	@Before
-	public void before() {
-		config = new ConfigurationImpl();
-	}
+	@InjectMocks
+	ConfigurationImpl config;
 
 	@Test
 	public void testGetDeafult() {
@@ -30,17 +29,21 @@ public class ConfigurationImplTest {
 		assertEquals("5", value);
 	}
 
-	@Test(expected = ConfigurationPropertyNotFound.class)
+	@Test
 	public void testGetDoesNotExist() {
-		// call under test
-		config.getProperty("does not exist");
+		assertThrows(ConfigurationPropertyNotFound.class, () -> {
+			// call under test
+			config.getProperty("does not exist");
+		});
 	}
-	
-	@Test (expected = IllegalArgumentException.class)
+
+	@Test
 	public void testGetPropertyNullKey() {
 		String key = null;
-		// call under test
-		config.getProperty(key);
+		assertThrows(IllegalArgumentException.class, () -> {
+			// call under test
+			config.getProperty(key);
+		});
 	}
 
 	@Test
@@ -57,14 +60,14 @@ public class ConfigurationImplTest {
 		config.initializeWithDefaults(DEFAULT_REPO_PROPERTIES);
 		assertEquals(overrrideValue, config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS));
 	}
-	
+
 	@Test
 	public void testGetInteger() {
 		config.initializeWithDefaults(DEFAULT_REPO_PROPERTIES);
 		int value = config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE);
 		assertEquals(5, value);
 	}
-	
+
 	@Test
 	public void testGetBoolean() {
 		config.initializeWithDefaults(DEFAULT_REPO_PROPERTIES);
@@ -72,7 +75,6 @@ public class ConfigurationImplTest {
 		assertFalse(value);
 	}
 
-	
 	@Test
 	public void testGetProperty() {
 		String key = "org.sagebionetworks.somekey";
@@ -83,7 +85,7 @@ public class ConfigurationImplTest {
 		String result = config.getProperty(key);
 		assertEquals(value, result);
 	}
-	
+
 	@Test
 	public void testGetComaSeparatedProperty() {
 		String key = "org.sagebionetworks.somekey";
