@@ -2,7 +2,6 @@ package org.sagebionetworks.template.cron;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.Logger;
@@ -12,7 +11,6 @@ import org.sagebionetworks.template.config.TimeToLive;
 
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackStatus;
-
 import com.google.inject.Inject;
 
 public class ExpiredStackTeardownImpl implements ExpiredStackTeardown {
@@ -35,7 +33,7 @@ public class ExpiredStackTeardownImpl implements ExpiredStackTeardown {
 
 		try {
 			Set<StackStatus> deletableStatus = Set.of(StackStatus.CREATE_COMPLETE, StackStatus.UPDATE_COMPLETE,
-					StackStatus.UPDATE_ROLLBACK_COMPLETE);
+					StackStatus.UPDATE_ROLLBACK_COMPLETE, StackStatus.DELETE_FAILED);
 
 			// find any stack that is expired and can be deleted.
 			List<Stack> toDelete = cloudFormationClient.streamOverAllStacks()
