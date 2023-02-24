@@ -18,9 +18,9 @@ public interface ArtifactDownload {
 	/**
 	 * Download the mentioned file at the given URL from zip to the local temporary file.
 	 * @param url
-	 * @param filename
+	 * @param filePath
 	 * @return
 	 */
-	File downloadFileFromZip(String url, String filename);
+	File downloadFileFromZip(String url, String filePath);
 
 }

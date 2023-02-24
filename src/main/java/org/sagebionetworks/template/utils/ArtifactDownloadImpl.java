@@ -54,7 +54,7 @@ public class ArtifactDownloadImpl implements ArtifactDownload {
 	}
 
 	@Override
-	public File downloadFileFromZip(String url, String filename) {
+	public File downloadFileFromZip(String url, String filePath) {
 		HttpGet httpget = new HttpGet(url);
 		HttpResponse response;
 		try {
@@ -72,7 +72,7 @@ public class ArtifactDownloadImpl implements ArtifactDownload {
 				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(temp))){
 				ZipEntry entry = zipIn.getNextEntry();
 				while (entry != null){
-					if(!entry.isDirectory() && entry.getName().equals(filename)){
+					if(!entry.isDirectory() && entry.getName().equals(filePath)){
 						int inByte;
 						while ((inByte = bis.read()) != -1) {
 							bos.write(inByte);
