@@ -35,7 +35,7 @@ public class GithubCopyImpl implements GithubCopy {
 
     @Override
     public void copyFileFromGithub() throws ConfigurationPropertyNotFound {
-        for (GithubPath githubPath : githubConfig.getGithubPathList()) {
+        for (GithubPath githubPath : githubConfig.getGithubPath()) {
             String stack = configuration.getProperty(PROPERTY_KEY_STACK);
             String bucket = String.join(".", stack, S3_GLUE_BUCKET);
             String filePrefix = githubPath.getFilename().substring(0, githubPath.getFilename().indexOf("."));

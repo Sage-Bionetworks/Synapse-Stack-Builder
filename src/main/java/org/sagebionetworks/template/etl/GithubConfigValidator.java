@@ -11,7 +11,7 @@ public class GithubConfigValidator {
     }
 
     public GithubConfig validate(){
-        githubConfig.getGithubPathList().forEach(this::validate);
+        githubConfig.getGithubPath().forEach(this::validate);
         return githubConfig;
     }
 

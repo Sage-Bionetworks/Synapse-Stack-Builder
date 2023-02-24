@@ -6,14 +6,14 @@ import java.util.Objects;
 
 
 public class GithubConfig {
-    private List<GithubPath> githubPathList = new ArrayList<>();
+    private List<GithubPath> githubPath = new ArrayList<>();
 
-    public List<GithubPath> getGithubPathList() {
-        return githubPathList;
+    public List<GithubPath> getGithubPath() {
+        return githubPath;
     }
 
-    public void setGithubPathList(List<GithubPath> githubPathList) {
-        this.githubPathList = githubPathList;
+    public void setGithubPath(List<GithubPath> githubPath) {
+        this.githubPath = githubPath;
     }
 
     @Override
@@ -21,11 +21,11 @@ public class GithubConfig {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         GithubConfig that = (GithubConfig) o;
-        return githubPathList.equals(that.githubPathList);
+        return githubPath.equals(that.githubPath);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(githubPathList);
+        return Objects.hash(githubPath);
     }
 }

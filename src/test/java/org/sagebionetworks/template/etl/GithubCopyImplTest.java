@@ -63,7 +63,7 @@ public class GithubCopyImplTest {
     @Test
     public void testCopyFileFromGithub() {
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
-        when(mockGithubConfig.getGithubPathList()).thenReturn(Collections.singletonList(githubPath));
+        when(mockGithubConfig.getGithubPath()).thenReturn(Collections.singletonList(githubPath));
         when(mockDownloader.downloadFileFromZip(any(), any())).thenReturn(mockFile);
 
         // call under test
@@ -77,7 +77,7 @@ public class GithubCopyImplTest {
     @Test
     public void testCopyFileFromGithubFail() {
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
-        when(mockGithubConfig.getGithubPathList()).thenReturn(Collections.singletonList(githubPath));
+        when(mockGithubConfig.getGithubPath()).thenReturn(Collections.singletonList(githubPath));
         when(mockDownloader.downloadFileFromZip(any(), any())).thenReturn(mockFile);
         AmazonServiceException exception = new AmazonServiceException("something");
         when(mockS3Client.putObject(any(), any(), any(File.class))).thenThrow(exception);

@@ -35,18 +35,18 @@ public class GithubConfigValidatorTest {
 
     @Test
     public void testAllValidation() {
-        when(githubConfig.getGithubPathList()).thenReturn(Collections.singletonList(githubPath));
+        when(githubConfig.getGithubPath()).thenReturn(Collections.singletonList(githubPath));
 
         //call under test
         githubConfigValidator.validate();
-        verify(githubConfig, times(1)).getGithubPathList();
+        verify(githubConfig, times(1)).getGithubPath();
 
     }
 
     @Test
     public void testGithubConfigWithOutFilename() {
         githubPath.setFilename(null);
-        when(githubConfig.getGithubPathList()).thenReturn(Collections.singletonList(githubPath));
+        when(githubConfig.getGithubPath()).thenReturn(Collections.singletonList(githubPath));
 
         //call under test
         String errorMessage = assertThrows(IllegalStateException.class, () -> {
@@ -58,7 +58,7 @@ public class GithubConfigValidatorTest {
     @Test
     public void testGithubConfigWithOutVersion() {
         githubPath.setVersion("");
-        when(githubConfig.getGithubPathList()).thenReturn(Collections.singletonList(githubPath));
+        when(githubConfig.getGithubPath()).thenReturn(Collections.singletonList(githubPath));
 
         //call under test
         String errorMessage = assertThrows(IllegalStateException.class, () -> {
@@ -70,7 +70,7 @@ public class GithubConfigValidatorTest {
     @Test
     public void testGithubConfigWithOutBasePath() {
         githubPath.setBasePath("");
-        when(githubConfig.getGithubPathList()).thenReturn(Collections.singletonList(githubPath));
+        when(githubConfig.getGithubPath()).thenReturn(Collections.singletonList(githubPath));
 
         //call under test
         String errorMessage = assertThrows(IllegalStateException.class, () -> {
@@ -81,7 +81,7 @@ public class GithubConfigValidatorTest {
     @Test
     public void testGithubConfigWithOutFilePath() {
         githubPath.setFilePath("");
-        when(githubConfig.getGithubPathList()).thenReturn(Collections.singletonList(githubPath));
+        when(githubConfig.getGithubPath()).thenReturn(Collections.singletonList(githubPath));
 
         //call under test
         String errorMessage = assertThrows(IllegalStateException.class, () -> {
