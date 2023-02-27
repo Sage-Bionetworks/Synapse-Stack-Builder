@@ -1,5 +1,6 @@
 package org.sagebionetworks.template.etl;
 
+import io.jsonwebtoken.lang.Collections;
 import org.apache.commons.lang3.StringUtils;
 
 public class GithubConfigValidator {
@@ -10,23 +11,16 @@ public class GithubConfigValidator {
         this.githubConfig = githubConfig;
     }
 
-    public GithubConfig validate(){
-        githubConfig.getGithubPath().forEach(this::validate);
-        return githubConfig;
-    }
-
-    private void validate(GithubPath githubPath) {
-        if (StringUtils.isBlank(githubPath.getBasePath())) {
+    public GithubConfig validate() {
+        if (StringUtils.isBlank(githubConfig.getBasePath())) {
             throw new IllegalStateException("The github base path cannot be empty");
         }
-        if (StringUtils.isBlank(githubPath.getFilePath())) {
-            throw new IllegalStateException("The github file path cannot be empty");
+        if (Collections.isEmpty(githubConfig.getFilePaths())) {
+            throw new IllegalStateException("The github file path list cannot be empty");
         }
-        if (StringUtils.isBlank(githubPath.getFilename())) {
-            throw new IllegalStateException("The github file name cannot be empty");
-        }
-        if (StringUtils.isBlank(githubPath.getVersion())) {
+        if (StringUtils.isBlank(githubConfig.getVersion())) {
             throw new IllegalStateException("The github file version cannot be empty");
         }
+        return githubConfig;
     }
 }

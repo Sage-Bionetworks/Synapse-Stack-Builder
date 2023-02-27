@@ -5,10 +5,6 @@
 		"scriptLocation": "aws-glue.sagebase.org/scripts/process_access_record_v0.1.0.py",
 		"sourcePath" : "log.sagebase.org/accessRecord/",
 		"destinationPath" : "log.sagebase.org/processedAccessRecord/",
-		"destinationFileFormat" : "json",
-		"buckets": [
-			"aws-glue.sagebase.org",
-			"log.sagebase.org"
-		]
+		"destinationFileFormat" : "json"
 	}]
 }

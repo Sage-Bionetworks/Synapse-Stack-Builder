@@ -17,6 +17,7 @@ import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -43,7 +44,12 @@ public class GithubCopyImplTest {
     @Mock
     private LoggerFactory mockLoggerFactory;
     private GithubCopyImpl githubCopyImpl;
-    private GithubPath githubPath;
+
+    private String basePath;
+    private String filePath;
+    private String fileName;
+    private String githubRepo;
+    private String version;
 
     @BeforeEach
     public void before() {
@@ -51,11 +57,11 @@ public class GithubCopyImplTest {
         bucket = "dev.aws-glue.sagebase.org";
         s3Key = "scripts/test_v1.py";
         githubUrlWithVersion = "https://codeload.github.com/Sage-Bionetworks/Synapse-ETL-Jobs/zip/refs/tags/v1";
-        githubPath = new GithubPath();
-        githubPath.setBasePath("https://codeload.github.com/Sage-Bionetworks/Synapse-ETL-Jobs/zip/refs/tags");
-        githubPath.setFilePath("filePath");
-        githubPath.setFilename("test.py");
-        githubPath.setVersion("v1");
+        basePath = ("https://codeload.github.com/Sage-Bionetworks/Synapse-ETL-Jobs/zip/refs/tags");
+        filePath = "/src/test_v1.py";
+        fileName = "test_v1.py";
+        githubRepo = "Synapse-ETL-Jobs-1";
+        version = "v1";
         when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
         githubCopyImpl = new GithubCopyImpl(mockS3Client, mockGithubConfig, mockDownloader, mockConfig, mockLoggerFactory);
     }
@@ -63,12 +69,13 @@ public class GithubCopyImplTest {
     @Test
     public void testCopyFileFromGithub() {
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
-        when(mockGithubConfig.getGithubPath()).thenReturn(Collections.singletonList(githubPath));
-        when(mockDownloader.downloadFileFromZip(any(), any())).thenReturn(mockFile);
-
+        when(mockGithubConfig.getBasePath()).thenReturn(basePath);
+        when(mockGithubConfig.getVersion()).thenReturn(version);
+        when(mockGithubConfig.getFilePaths()).thenReturn(Collections.singletonList(filePath)); // should be file path
+        when(mockDownloader.downloadFileFromZip(any(), any(), anySet())).thenReturn(Collections.singletonMap(fileName, mockFile));
         // call under test
         githubCopyImpl.copyFileFromGithub();
-        verify(mockDownloader).downloadFileFromZip(githubUrlWithVersion, githubPath.getFilePath());
+        verify(mockDownloader).downloadFileFromZip(githubUrlWithVersion, version, Collections.singleton(githubRepo + filePath));
         verify(mockS3Client).putObject(bucket, s3Key, mockFile);
         verify(mockLogger, times(3)).info(any(String.class));
         verify(mockFile).delete();
@@ -77,8 +84,10 @@ public class GithubCopyImplTest {
     @Test
     public void testCopyFileFromGithubFail() {
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
-        when(mockGithubConfig.getGithubPath()).thenReturn(Collections.singletonList(githubPath));
-        when(mockDownloader.downloadFileFromZip(any(), any())).thenReturn(mockFile);
+        when(mockGithubConfig.getBasePath()).thenReturn(basePath);
+        when(mockGithubConfig.getVersion()).thenReturn(version);
+        when(mockGithubConfig.getFilePaths()).thenReturn(Collections.singletonList(filePath));
+        when(mockDownloader.downloadFileFromZip(any(), any(), anySet())).thenReturn(Collections.singletonMap(filePath, mockFile));
         AmazonServiceException exception = new AmazonServiceException("something");
         when(mockS3Client.putObject(any(), any(), any(File.class))).thenThrow(exception);
 

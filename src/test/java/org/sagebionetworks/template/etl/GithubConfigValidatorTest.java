@@ -22,43 +22,47 @@ public class GithubConfigValidatorTest {
     @Mock
     private GithubConfig githubConfig;
 
-    private GithubPath githubPath;
+    private String basePath;
+    private String filename;
+    private String version;
 
     @BeforeEach
     public void before() {
-        githubPath = new GithubPath();
-        githubPath.setBasePath("https://basePath");
-        githubPath.setFilePath("filePath");
-        githubPath.setFilename("fileName");
-        githubPath.setVersion("v1");
+        basePath = ("https://codeload.github.com/Sage-Bionetworks/Synapse-ETL-Jobs/zip/refs/tags");
+        filename = "filename";
+        version = "v1";
     }
 
     @Test
     public void testAllValidation() {
-        when(githubConfig.getGithubPath()).thenReturn(Collections.singletonList(githubPath));
-
+        when(githubConfig.getFilePaths()).thenReturn(Collections.singletonList(filename));
+        when(githubConfig.getBasePath()).thenReturn(basePath);
+        when(githubConfig.getVersion()).thenReturn(version);
         //call under test
         githubConfigValidator.validate();
-        verify(githubConfig, times(1)).getGithubPath();
+        verify(githubConfig, times(1)).getFilePaths();
+        verify(githubConfig, times(1)).getVersion();
+        verify(githubConfig, times(1)).getBasePath();
 
     }
 
     @Test
     public void testGithubConfigWithOutFilename() {
-        githubPath.setFilename(null);
-        when(githubConfig.getGithubPath()).thenReturn(Collections.singletonList(githubPath));
+        when(githubConfig.getBasePath()).thenReturn(basePath);
+        when(githubConfig.getFilePaths()).thenReturn(Collections.EMPTY_LIST);
 
         //call under test
         String errorMessage = assertThrows(IllegalStateException.class, () -> {
             githubConfigValidator.validate();
         }).getMessage();
-        assertEquals("The github file name cannot be empty", errorMessage);
+        assertEquals("The github file path list cannot be empty", errorMessage);
     }
 
     @Test
     public void testGithubConfigWithOutVersion() {
-        githubPath.setVersion("");
-        when(githubConfig.getGithubPath()).thenReturn(Collections.singletonList(githubPath));
+        when(githubConfig.getFilePaths()).thenReturn(Collections.singletonList(filename));
+        when(githubConfig.getBasePath()).thenReturn(basePath);
+        when(githubConfig.getVersion()).thenReturn(null);
 
         //call under test
         String errorMessage = assertThrows(IllegalStateException.class, () -> {
@@ -69,24 +73,12 @@ public class GithubConfigValidatorTest {
 
     @Test
     public void testGithubConfigWithOutBasePath() {
-        githubPath.setBasePath("");
-        when(githubConfig.getGithubPath()).thenReturn(Collections.singletonList(githubPath));
+        when(githubConfig.getBasePath()).thenReturn("");
 
         //call under test
         String errorMessage = assertThrows(IllegalStateException.class, () -> {
             githubConfigValidator.validate();
         }).getMessage();
         assertEquals("The github base path cannot be empty", errorMessage);
-    }
-    @Test
-    public void testGithubConfigWithOutFilePath() {
-        githubPath.setFilePath("");
-        when(githubConfig.getGithubPath()).thenReturn(Collections.singletonList(githubPath));
-
-        //call under test
-        String errorMessage = assertThrows(IllegalStateException.class, () -> {
-            githubConfigValidator.validate();
-        }).getMessage();
-        assertEquals("The github file path cannot be empty", errorMessage);
     }
 }
