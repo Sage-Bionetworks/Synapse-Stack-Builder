@@ -19,6 +19,9 @@ public class EtlConfigValidator {
         if (StringUtils.isBlank(etlDescriptor.getName())) {
             throw new IllegalStateException("The etl job name cannot be empty");
         }
+        if (StringUtils.isBlank(etlDescriptor.getDescription())) {
+            throw new IllegalStateException("The etl job description cannot be empty");
+        }
         if (StringUtils.isBlank(etlDescriptor.getScriptLocation())) {
             throw new IllegalStateException("The etl job script location cannot be empty");
         }
@@ -30,9 +33,6 @@ public class EtlConfigValidator {
         }
         if (StringUtils.isBlank(etlDescriptor.getDestinationFileFormat())) {
             throw new IllegalStateException("The etl s3 destination file format cannot be empty");
-        }
-        if (etlDescriptor.getBuckets() == null || etlDescriptor.getBuckets().isEmpty()) {
-            throw new IllegalStateException("The etl job bucket list cannot be empty");
         }
     }
 }

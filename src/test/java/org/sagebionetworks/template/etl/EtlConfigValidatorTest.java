@@ -7,9 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -28,14 +26,11 @@ public class EtlConfigValidatorTest {
         List<EtlDescriptor> etlDescriptors = new ArrayList<>();
         EtlDescriptor etlDescriptor = new EtlDescriptor();
         etlDescriptors.add(etlDescriptor);
+        etlDescriptor.setDescription("test");
         etlDescriptor.setName("test");
         etlDescriptor.setScriptLocation("S3://fakeBucket/");
         etlDescriptor.setDestinationPath("S3://destination/");
         etlDescriptor.setSourcePath("S3://source/");
-        Set<String> buckets = new HashSet<>();
-        buckets.add("S3://bucket1");
-        buckets.add("S3://bucket2");
-        etlDescriptor.setBuckets(buckets);
         etlConfig.setEtlDescriptors(etlDescriptors);
 
         //call under test
@@ -63,6 +58,7 @@ public class EtlConfigValidatorTest {
         List<EtlDescriptor> etlDescriptors = new ArrayList<>();
         EtlDescriptor etlDescriptor = new EtlDescriptor();
         etlDescriptor.setName("abc");
+        etlDescriptor.setDescription("test");
         etlDescriptor.setScriptLocation("");
         etlDescriptors.add(etlDescriptor);
 
@@ -80,6 +76,7 @@ public class EtlConfigValidatorTest {
         List<EtlDescriptor> etlDescriptors = new ArrayList<>();
         EtlDescriptor etlDescriptor = new EtlDescriptor();
         etlDescriptor.setName("abc");
+        etlDescriptor.setDescription("test");
         etlDescriptor.setScriptLocation("fakeScriptPath");
         etlDescriptor.setSourcePath("");
         etlDescriptors.add(etlDescriptor);
@@ -98,6 +95,7 @@ public class EtlConfigValidatorTest {
         List<EtlDescriptor> etlDescriptors = new ArrayList<>();
         EtlDescriptor etlDescriptor = new EtlDescriptor();
         etlDescriptor.setName("abc");
+        etlDescriptor.setDescription("test");
         etlDescriptor.setScriptLocation("fakeScriptPath");
         etlDescriptor.setSourcePath("sourcePath");
         etlDescriptor.setDestinationPath("");
@@ -117,6 +115,7 @@ public class EtlConfigValidatorTest {
         List<EtlDescriptor> etlDescriptors = new ArrayList<>();
         EtlDescriptor etlDescriptor = new EtlDescriptor();
         etlDescriptor.setName("abc");
+        etlDescriptor.setDescription("test");
         etlDescriptor.setScriptLocation("fakeScriptPath");
         etlDescriptor.setSourcePath("sourcePath");
         etlDescriptor.setDestinationPath("destinationPath");
@@ -133,7 +132,7 @@ public class EtlConfigValidatorTest {
     }
 
     @Test
-    public void testEtlConfigWithOutBucket() {
+    public void testEtlConfigWithOutDescription() {
         List<EtlDescriptor> etlDescriptors = new ArrayList<>();
         EtlDescriptor etlDescriptor = new EtlDescriptor();
         etlDescriptor.setName("abc");
@@ -141,7 +140,7 @@ public class EtlConfigValidatorTest {
         etlDescriptor.setSourcePath("sourcePath");
         etlDescriptor.setDestinationPath("destinationPath");
         etlDescriptor.setDestinationFileFormat("json");
-        etlDescriptor.setBuckets(new HashSet<>());
+        etlDescriptor.setDescription(null);
         etlDescriptors.add(etlDescriptor);
 
         when(etlConfig.getEtlDescriptors()).thenReturn(etlDescriptors);
@@ -150,6 +149,6 @@ public class EtlConfigValidatorTest {
         String errorMessage = assertThrows(IllegalStateException.class, () -> {
             etlConfigValidator.validate();
         }).getMessage();
-        assertEquals("The etl job bucket list cannot be empty", errorMessage);
+        assertEquals("The etl job description cannot be empty", errorMessage);
     }
 }

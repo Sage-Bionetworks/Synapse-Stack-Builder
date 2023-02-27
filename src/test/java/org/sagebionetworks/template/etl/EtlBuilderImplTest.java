@@ -21,10 +21,8 @@ import org.sagebionetworks.template.config.Configuration;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.StringJoiner;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -73,10 +71,6 @@ public class EtlBuilderImplTest {
         etlDescriptor.setScriptLocation("S3://${stack}.fakeBucket/");
         etlDescriptor.setDestinationPath("S3://${stack}.destination/");
         etlDescriptor.setSourcePath("S3://${stack}.source/");
-        Set<String> buckets = new HashSet<>();
-        buckets.add("S3://${stack}.bucket1");
-        buckets.add("S3://${stack}.bucket2");
-        etlDescriptor.setBuckets(buckets);
         etlDescriptors.add(etlDescriptor);
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(STACK);
         when(mockConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(INSTANCE);
