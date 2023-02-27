@@ -1,0 +1,15 @@
+package org.sagebionetworks.template.etl;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import org.sagebionetworks.template.TemplateGuiceModule;
+
+public class EtlBuilderMain {
+    public static void main(String[] args) throws InterruptedException {
+        Injector injector = Guice.createInjector(new TemplateGuiceModule());
+        EtlBuilder builder = injector.getInstance(EtlBuilder.class);
+        GithubCopy githubCopy = injector.getInstance(GithubCopy.class);
+        githubCopy.copyFileFromGithub();
+        builder.buildAndDeploy();
+    }
+}

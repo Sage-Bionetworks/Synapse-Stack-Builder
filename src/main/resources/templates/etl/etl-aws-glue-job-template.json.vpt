@@ -1,0 +1,142 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Template used to create glue ETL job",
+	"Resources": {
+		"AWSGlueJobRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [{
+						"Effect": "Allow",
+						"Principal": {
+							"Service": [
+								"glue.amazonaws.com"
+							]
+						},
+						"Action": [
+							"sts:AssumeRole"
+						]
+					}]
+				},
+				"Path": "/",
+				"Policies": [{
+						"PolicyName": "Glue",
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [{
+								"Effect": "Allow",
+								"Action": [
+									"glue:*",
+									"cloudwatch:PutMetricData"
+								],
+								"Resource": "*"
+							}]
+						}
+					},
+					{
+						"PolicyName": "IAM",
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [{
+								"Effect": "Allow",
+								"Action": [
+									"iam:ListRolePolicies",
+									"iam:GetRole",
+									"iam:GetRolePolicy"
+								],
+								"Resource": "*"
+							}]
+						}
+					},
+					{
+						"PolicyName": "ReadWriteS3",
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [{
+								"Effect": "Allow",
+								"Action": [
+									"s3:AbortMultipartUpload",
+									"s3:GetBucketLocation",
+									"s3:GetObject",
+									"s3:ListBucket",
+									"s3:ListBucketMultipartUploads",
+									"s3:PutObject"
+								],
+								"Resource":[
+                                	"arn:aws:s3:::${stack}.log.sagebase.org",
+                                    "arn:aws:s3:::${stack}.log.sagebase.org/*",
+                                    "arn:aws:s3:::${stack}.aws-glue.sagebase.org",
+                                    "arn:aws:s3:::${stack}.aws-glue.sagebase.org/*",
+                                ]
+							}]
+						}
+					},
+					{
+						"PolicyName": "Log",
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [{
+								"Effect": "Allow",
+								"Action": [
+									"logs:CreateLogGroup",
+									"logs:CreateLogStream",
+									"logs:PutLogEvents"
+								],
+								"Resource": [
+									"arn:aws:logs:*:*:/aws-glue/*"
+								]
+							}]
+						}
+					}
+				]
+			}
+		},
+		#foreach( $etl in $etlDescriptors)
+		"${etl.name}GlueJob": {
+			"Type": "AWS::Glue::Job",
+			"Properties": {
+				"Command": {
+					"Name": "glueetl",
+					"ScriptLocation": "s3://${stack}.${etl.scriptLocation}"
+				},
+				"DefaultArguments": {
+				    "--enable-continuous-cloudwatch-log": "true",
+					"--job-bookmark-option": "job-bookmark-enable",
+					"--enable-metrics": "true",
+                    "--enable-spark-ui": "true",
+					"--job-language": "python",
+					"--DESTINATION_FILE_FORMAT": "${etl.destinationFileFormat}",
+					"--S3_DESTINATION_PATH": "s3://${stack}.${etl.destinationPath}",
+					"--S3_SOURCE_PATH": "s3://${stack}.${etl.sourcePath}"
+				},
+				"Description": "${etl.description}",
+				"GlueVersion": "3.0",
+				"Name": "${etl.name}",
+				"Role": {
+				    "Fn::GetAtt":[
+                        "AWSGlueJobRole",
+                        "Arn"
+                    ]
+                }
+			}
+		},
+        "${etl.name}GlueJobTrigger": {
+            "Type" : "AWS::Glue::Trigger",
+            "Properties" : {
+            "Type": "SCHEDULED",
+            "StartOnCreation": "true",
+            "Description" : "Trigger for job ${etl.name}",
+             "Name" : "${etl.name}Trigger",
+             "Schedule" : "cron(0 * * * ? *)",
+            "Actions" : [
+                {
+                     "JobName" : "${etl.name}"
+                 }
+             ]
+            }
+        }
+		#end
+	}
+
+}

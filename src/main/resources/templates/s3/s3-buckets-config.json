@@ -69,6 +69,9 @@
 		},
 		{
 			"name": "${stack}.lambda.sagebase.org"
+		},
+		{
+			"name": "${stack}.aws-glue.sagebase.org"
 		}
 	],
 	"inventoryBucket": "${stack}.inventory.sagebase.org",
