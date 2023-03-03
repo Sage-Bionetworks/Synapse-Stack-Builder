@@ -2,9 +2,47 @@
 	"etlDescriptors":[{
 		"name": "ProcessAccessRecord",
 		"description": "This job processes the access records",
-		"scriptLocation": "aws-glue.sagebase.org/scripts/process_access_record_v0.1.0.py",
+		"scriptLocation": "aws-glue.sagebase.org/scripts/process_access_record_v1.0.0.py",
 		"sourcePath" : "log.sagebase.org/accessRecord/",
 		"destinationPath" : "log.sagebase.org/processedAccessRecord/",
-		"destinationFileFormat" : "json"
+		"destinationFileFormat" : "json",
+		"tableDescriptor": {
+			"name": "ProcessedAccessRecord",
+			"columns": {
+				"SESSION_ID": "string",
+				"TIMESTAMP": "bigint",
+				"USER_ID": "int",
+				"METHOD": "string",
+				"REQUEST_URL": "string",
+				"USERAGENT": "string",
+				"HOST": "string",
+				"ORIGIN": "string",
+				"X_FORWARDED_FOR": "string",
+				"VIA": "string",
+				"THREAD_ID": "int",
+				"ELAPSE_MS": "int",
+				"SUCCESS" : "boolean",
+				"STACK": "string",
+				"INSTANCE": "string",
+				"DATE": "date",
+				"VM_Id": "string",
+				"RETURN_OBJECT_ID": "string",
+				"QUERY_STRING": "string",
+				"RESPONSE_STATUS": "int",
+				"OAUTH_CLIENT_ID": "string",
+				"BASIC_AUTH_USERNAME": "string",
+				"AUTHENTICATION_METHOD": "string",
+				"NORMALIZED_METHOD_SIGNATURE": "string",
+				"CLIENT": "string",
+				"CLIENT_VERSION": "string",
+				"ENTITY_ID": "int",
+				"DATE_TIME": "timestamp"
+			},
+			"partitionKeys": {
+				"YEAR": "string",
+				"MONTH": "string",
+				"DAY": "string"
+			}
+		}
 	}]
 }

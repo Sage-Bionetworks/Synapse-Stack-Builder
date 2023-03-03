@@ -1,5 +1,7 @@
 package org.sagebionetworks.template.etl;
 
+import org.sagebionetworks.template.repo.kinesis.firehose.GlueTableDescriptor;
+
 import java.util.Objects;
 
 public class EtlDescriptor {
@@ -9,6 +11,7 @@ public class EtlDescriptor {
     private String sourcePath;
     private String destinationPath;
     private String destinationFileFormat;
+    private GlueTableDescriptor tableDescriptor = null;
 
     public String getName() {
         return name;
@@ -58,19 +61,30 @@ public class EtlDescriptor {
         this.destinationFileFormat = destinationFileFormat;
     }
 
+    public GlueTableDescriptor getTableDescriptor() {
+        return tableDescriptor;
+    }
+
+    public void setTableDescriptor(GlueTableDescriptor tableDescriptor) {
+        this.tableDescriptor = tableDescriptor;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         EtlDescriptor that = (EtlDescriptor) o;
-        return name.equals(that.name) && description.equals(that.description)
-                && scriptLocation.equals(that.scriptLocation) && sourcePath.equals(that.sourcePath)
-                && destinationPath.equals(that.destinationPath) && destinationFileFormat.equals(that.destinationFileFormat);
+        return Objects.equals(name, that.name) && Objects.equals(description, that.description)
+                && Objects.equals(scriptLocation, that.scriptLocation)
+                && Objects.equals(sourcePath, that.sourcePath)
+                && Objects.equals(destinationPath, that.destinationPath)
+                && Objects.equals(destinationFileFormat, that.destinationFileFormat)
+                && Objects.equals(tableDescriptor, that.tableDescriptor);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, description, scriptLocation, sourcePath, destinationPath,
-                destinationFileFormat);
+        return Objects.hash(name, description, scriptLocation, sourcePath, destinationPath, destinationFileFormat,
+                tableDescriptor);
     }
 }
