@@ -8,6 +8,7 @@ public class EtlDescriptor {
     private String name;
     private String description;
     private String scriptLocation;
+    private String scriptName;
     private String sourcePath;
     private String destinationPath;
     private String destinationFileFormat;
@@ -35,6 +36,14 @@ public class EtlDescriptor {
 
     public void setScriptLocation(String scriptLocation) {
         this.scriptLocation = scriptLocation;
+    }
+
+    public String getScriptName() {
+        return scriptName;
+    }
+
+    public void setScriptName(String scriptName) {
+        this.scriptName = scriptName;
     }
 
     public String getSourcePath() {
@@ -76,6 +85,7 @@ public class EtlDescriptor {
         EtlDescriptor that = (EtlDescriptor) o;
         return Objects.equals(name, that.name) && Objects.equals(description, that.description)
                 && Objects.equals(scriptLocation, that.scriptLocation)
+                && Objects.equals(scriptName, that.scriptName)
                 && Objects.equals(sourcePath, that.sourcePath)
                 && Objects.equals(destinationPath, that.destinationPath)
                 && Objects.equals(destinationFileFormat, that.destinationFileFormat)
@@ -84,7 +94,7 @@ public class EtlDescriptor {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, description, scriptLocation, sourcePath, destinationPath, destinationFileFormat,
-                tableDescriptor);
+        return Objects.hash(name, description, scriptLocation, scriptName, sourcePath, destinationPath,
+                destinationFileFormat, tableDescriptor);
     }
 }

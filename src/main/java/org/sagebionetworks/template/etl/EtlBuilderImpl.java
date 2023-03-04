@@ -50,10 +50,17 @@ public class EtlBuilderImpl implements EtlBuilder {
     }
 
     @Override
-    public void buildAndDeploy() {
+    public void buildAndDeploy(String version) {
         VelocityContext context = new VelocityContext();
         String stack = config.getProperty(PROPERTY_KEY_STACK);
         List<EtlDescriptor> etlDescriptors = etlConfig.getEtlDescriptors();
+        etlDescriptors.forEach(etlDescriptor -> {
+            String scriptName = etlDescriptor.getScriptName();
+            String scriptNameWithVersion = scriptName.substring(0, scriptName.indexOf(".")) + "_" + version +
+                    scriptName.substring(scriptName.indexOf("."));
+            String scriptLocation = etlDescriptor.getScriptLocation() + scriptNameWithVersion;
+            etlDescriptor.setScriptLocation(scriptLocation);
+        });
         context.put(GLUE_DATABASE_NAME, GLUE_DB_NAME);
         context.put(EXCEPTION_THROWER, new VelocityExceptionThrower());
         context.put(STACK, stack);

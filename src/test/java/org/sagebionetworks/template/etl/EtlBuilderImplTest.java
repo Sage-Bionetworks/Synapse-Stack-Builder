@@ -36,6 +36,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 public class EtlBuilderImplTest {
     private static String STACK_NAME = "dev";
     private static String INSTANCE = "test";
+    private static String version ="v1.0.0";
     @Captor
     ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
     @Mock
@@ -61,7 +62,8 @@ public class EtlBuilderImplTest {
         Tag t = new Tag().withKey("aKey").withValue("aValue");
         tags.add(t);
         etlDescriptor.setName("processAccessRecord");
-        etlDescriptor.setScriptLocation("fakeBucket");
+        etlDescriptor.setScriptLocation("fakeBucket/");
+        etlDescriptor.setScriptName("someFile.py");
         etlDescriptor.setDestinationPath("destination");
         etlDescriptor.setSourcePath("source");
         etlDescriptor.setDestinationFileFormat("json");
@@ -83,7 +85,7 @@ public class EtlBuilderImplTest {
     public void testEtlBuildAndDeployJob() {
         String expectedStackName = new StringJoiner("-")
                 .add(STACK_NAME).add(INSTANCE).add("etl").toString();
-        etlBuilderImpl.buildAndDeploy();
+        etlBuilderImpl.buildAndDeploy(version);
         verify(cloudFormationClient).createOrUpdateStack(requestCaptor.capture());
         CreateOrUpdateStackRequest req = requestCaptor.getValue();
         JSONObject json = new JSONObject(req.getTemplateBody());
