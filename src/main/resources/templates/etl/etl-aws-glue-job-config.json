@@ -47,14 +47,17 @@
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.year.type": "integer",
-				"projection.year.range": "2022,9999",
-				"projection.year.interval": "4",
+				"projection.year.range": "2022,2033",
+				"projection.year.interval": "1",
+				"projection.year.digits": "4",
 				"projection.month.type": "integer",
 				"projection.month.range": "1,12",
-				"projection.month.interval": "2",
+				"projection.month.interval": "1",
+				"projection.month.digits": "2",
 				"projection.day.type": "integer",
 				"projection.day.range": "1,31",
-				"projection.day.interval": "2"
+				"projection.day.interval": "1",
+				"projection.month.digits": "2"
 			}
 		}
 	}]
