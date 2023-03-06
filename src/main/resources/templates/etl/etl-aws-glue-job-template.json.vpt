@@ -187,6 +187,13 @@
                         #if( $foreach.hasNext),#end
                         #end
                     ],
+                    #if ($etl.tableDescriptor.parameters)
+                    "Parameters": {
+                        #foreach($parameter in $etl.tableDescriptor.parameters.entrySet())
+                        "${parameter.key}": "${parameter.value}" #if($foreach.hasNext),#end
+                        #end
+                    },
+                    #end
                     "TableType": "EXTERNAL_TABLE"
                 }
             }
