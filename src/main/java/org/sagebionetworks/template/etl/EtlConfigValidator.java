@@ -25,6 +25,9 @@ public class EtlConfigValidator {
         if (StringUtils.isBlank(etlDescriptor.getScriptLocation())) {
             throw new IllegalStateException("The etl job script location cannot be empty");
         }
+        if (StringUtils.isBlank(etlDescriptor.getScriptName())) {
+            throw new IllegalStateException("The etl job script name cannot be empty");
+        }
         if (StringUtils.isBlank(etlDescriptor.getSourcePath())) {
             throw new IllegalStateException("The etl s3 source path cannot be empty");
         }

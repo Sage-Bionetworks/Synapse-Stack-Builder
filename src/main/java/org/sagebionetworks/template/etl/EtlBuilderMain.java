@@ -9,7 +9,7 @@ public class EtlBuilderMain {
         Injector injector = Guice.createInjector(new TemplateGuiceModule());
         EtlBuilder builder = injector.getInstance(EtlBuilder.class);
         GithubCopy githubCopy = injector.getInstance(GithubCopy.class);
-        githubCopy.copyFileFromGithub();
-        builder.buildAndDeploy();
+        String version = githubCopy.copyFileFromGithub();
+        builder.buildAndDeploy(version);
     }
 }

@@ -37,7 +37,7 @@ public class GithubCopyImpl implements GithubCopy {
     }
 
     @Override
-    public void copyFileFromGithub() throws ConfigurationPropertyNotFound {
+    public String copyFileFromGithub() throws ConfigurationPropertyNotFound {
         String stack = configuration.getProperty(PROPERTY_KEY_STACK);
         String bucket = String.join(".", stack, S3_GLUE_BUCKET);
         String githubUrl = new StringJoiner("/").add(githubConfig.getBasePath())
@@ -58,6 +58,7 @@ public class GithubCopyImpl implements GithubCopy {
                 entry.getValue().delete();
             }
         }
+        return githubConfig.getVersion();
     }
 
     private String addRepositoryName(String input, String version) {

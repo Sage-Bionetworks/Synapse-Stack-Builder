@@ -78,6 +78,7 @@ public class EtlConfigValidatorTest {
         etlDescriptor.setName("abc");
         etlDescriptor.setDescription("test");
         etlDescriptor.setScriptLocation("fakeScriptPath");
+        etlDescriptor.setScriptName("abc.py");
         etlDescriptor.setSourcePath("");
         etlDescriptors.add(etlDescriptor);
 
@@ -97,6 +98,7 @@ public class EtlConfigValidatorTest {
         etlDescriptor.setName("abc");
         etlDescriptor.setDescription("test");
         etlDescriptor.setScriptLocation("fakeScriptPath");
+        etlDescriptor.setScriptName("abc.py");
         etlDescriptor.setSourcePath("sourcePath");
         etlDescriptor.setDestinationPath("");
         etlDescriptors.add(etlDescriptor);
@@ -117,6 +119,7 @@ public class EtlConfigValidatorTest {
         etlDescriptor.setName("abc");
         etlDescriptor.setDescription("test");
         etlDescriptor.setScriptLocation("fakeScriptPath");
+        etlDescriptor.setScriptName("abc.py");
         etlDescriptor.setSourcePath("sourcePath");
         etlDescriptor.setDestinationPath("destinationPath");
         etlDescriptor.setDestinationFileFormat("");
@@ -150,5 +153,25 @@ public class EtlConfigValidatorTest {
             etlConfigValidator.validate();
         }).getMessage();
         assertEquals("The etl job description cannot be empty", errorMessage);
+    }
+
+    @Test
+    public void testEtlConfigWithOutScriptName() {
+        List<EtlDescriptor> etlDescriptors = new ArrayList<>();
+        EtlDescriptor etlDescriptor = new EtlDescriptor();
+        etlDescriptor.setName("abc");
+        etlDescriptor.setDescription("test");
+        etlDescriptor.setScriptLocation("fakeScriptPath");
+        etlDescriptor.setScriptName("");
+
+        etlDescriptors.add(etlDescriptor);
+
+        when(etlConfig.getEtlDescriptors()).thenReturn(etlDescriptors);
+
+        //call under test
+        String errorMessage = assertThrows(IllegalStateException.class, () -> {
+            etlConfigValidator.validate();
+        }).getMessage();
+        assertEquals("The etl job script name cannot be empty", errorMessage);
     }
 }

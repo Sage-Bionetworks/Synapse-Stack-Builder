@@ -3,5 +3,5 @@
 	"filePaths" :[
 			"/src/scripts/glue_jobs/process_access_record.py"
 	],
-	"version" : "v0.1.0"
+	"version" : "v1.1.0"
 }
