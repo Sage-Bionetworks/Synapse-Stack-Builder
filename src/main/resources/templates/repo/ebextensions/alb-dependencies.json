@@ -3,7 +3,7 @@
 	"Description": "Application Load balancer dependencies",
 	"Resources": {
 		"webACLAssociation": {
-			"Type": "AWS::WAFRegional::WebACLAssociation",
+			"Type": "AWS::WAFv2::WebACLAssociation",
 			"DependsOn": [
 				"AWSEBV2LoadBalancer",
 				"AWSEBV2LoadBalancerListener",

@@ -8,13 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.BEANSTALK_INSTANCES_SUBNETS;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
@@ -731,24 +729,14 @@ public class RepositoryTemplateBuilderImplTest {
 	}
 
 	public static void validateWebAcl(JSONObject resources) {
-		assertTrue(resources.keySet()
-				.containsAll(Set.of("prod101WebACL", "prod101AdminAccessRule", "prod101AdminRemoteAddrIpSet",
-						"prod101AdminUrlStringSet", "prod101PathTraversalRemoteRule", "prod101PathTraversalLocalRule",
-						"prod101PathTraversalRemoteStringSet", "prod101PathTraversalLocalStringSet",
-						"prod101HeaderXssRule", "prod101BodyXssRule", "prod101URIQueryXssRule", "prod101HeaderXssSet",
-						"prod101BodyXssSet", "prod101URIQueryXssSet", "prod101HeaderSQLInjectionRule",
-						"prod101URIQuerySQLInjectionRule", "prod101HeaderSQLInjectionSet", "prod101BodySQLInjectionSet",
-						"prod101URIQuerySQLInjectionSet", "prod101SizeRestrictionRule", "prod101SizeRestrictionSet")));
-
-		JSONArray byteMatch = resources.getJSONObject("prod101AdminUrlStringSet").getJSONObject("Properties")
-				.getJSONArray("ByteMatchTuples");
-		assertEquals("/repo/v1/admin", byteMatch.getJSONObject(0).get("TargetString"));
-		assertEquals("/repo/v1/migration", byteMatch.getJSONObject(1).get("TargetString"));
+		JSONObject webAcl = resources.getJSONObject("prod101WebACL");
+		JSONObject props = webAcl.getJSONObject("Properties");
+		JSONArray rules = props.getJSONArray("Rules");
+		assertEquals(10, rules.length());
 		
-		assertEquals(
-				"[{\"Type\":\"IPV4\",\"Value\":\"10.50.0.0/16\"},{\"Type\":\"IPV4\",\"Value\":\"34.195.10.214/32\"}]",
-				resources.getJSONObject("prod101AdminRemoteAddrIpSet").getJSONObject("Properties")
-						.getJSONArray("IPSetDescriptors").toString());
+		JSONObject adminRule = rules.getJSONObject(9);
+		assertEquals("prod-101-Admin-Access-Rule",adminRule.get("Name"));
+		assertEquals("{\"Block\":{}}",adminRule.getJSONObject("Action").toString());
 	}
 
 	public void validateEnhancedMonitoring(JSONObject props, String enableEnhancedMonitoring) {
