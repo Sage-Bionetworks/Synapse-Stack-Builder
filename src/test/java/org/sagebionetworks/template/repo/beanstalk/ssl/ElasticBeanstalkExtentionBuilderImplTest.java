@@ -169,16 +169,14 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		assertTrue(alarmsConf.contains("-AWS-ELB-Some-Alarm"));
 
 		JSONObject albJson = new JSONObject(albDependencies.toString());
-		
-		System.out.println(albJson.toString(5));
-		
+				
 		JSONObject webAclAssociation = albJson.getJSONObject("Resources").getJSONObject("webACLAssociation");
 		assertEquals("[\"AWSEBV2LoadBalancer\",\"AWSEBV2LoadBalancerListener\",\"AWSEBV2LoadBalancerListener443\","
 				+ "\"AWSEBV2LoadBalancerListener443default\",\"AWSEBV2LoadBalancerListenerdefault\","
 				+ "\"AWSEBV2LoadBalancerTargetGroup\"]", webAclAssociation.getJSONArray("DependsOn").toString());
 		JSONObject props = webAclAssociation.getJSONObject("Properties");
 		assertEquals("{\"Ref\":\"AWSEBV2LoadBalancer\"}", props.getJSONObject("ResourceArn").toString());
-		assertEquals("{\"Fn::ImportValue\":\"us-east-1-dev-123-shared-resources-Web-ACL-ARN\"}", props.getJSONObject("WebACLId").toString());
+		assertEquals("{\"Fn::ImportValue\":\"us-east-1-dev-123-shared-resources-Web-ACL-ARN\"}", props.getJSONObject("WebACLArn").toString());
 		
 		JSONObject output = albJson.getJSONObject("Outputs").getJSONObject("repodev1230");
 		assertEquals("{\"Ref\":\"AWSEBV2LoadBalancer\"}", output.get("Value").toString());

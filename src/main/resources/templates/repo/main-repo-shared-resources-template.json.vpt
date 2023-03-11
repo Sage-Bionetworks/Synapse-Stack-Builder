@@ -734,7 +734,7 @@
 		"webAclArn": {
 			"Description": "The ARN of the web ACL.",
 			"Value": {
-				"Ref": "${stack}${instance}WebACL"
+				"Fn::GetAtt" : [ "${stack}${instance}WebACL" , "Arn" ]
 			},
 			"Export": {
 				"Name": {
