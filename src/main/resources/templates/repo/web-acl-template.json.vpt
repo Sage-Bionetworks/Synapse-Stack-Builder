@@ -82,7 +82,7 @@
 											"ComparisonOperator": "GT",
 											"FieldToMatch": {
 												"Body": {
-													
+													"OversizeHandling": "CONTINUE"
 												}
 											},
 											"Size": 2097152,
@@ -198,7 +198,7 @@
 										"SqliMatchStatement": {
 											"FieldToMatch": {
 												"Body": {
-													
+													"OversizeHandling": "CONTINUE"
 												}
 											},
 											"TextTransformations": [
@@ -213,7 +213,7 @@
 										"SqliMatchStatement": {
 											"FieldToMatch": {
 												"Body": {
-													
+													"OversizeHandling": "CONTINUE"
 												}
 											},
 											"TextTransformations": [
@@ -378,7 +378,7 @@
 										"XssMatchStatement": {
 											"FieldToMatch": {
 												"Body": {
-													
+													"OversizeHandling": "CONTINUE"
 												}
 											},
 											"TextTransformations": [
@@ -393,7 +393,7 @@
 										"XssMatchStatement": {
 											"FieldToMatch": {
 												"Body": {
-													
+													"OversizeHandling": "CONTINUE"
 												}
 											},
 											"TextTransformations": [

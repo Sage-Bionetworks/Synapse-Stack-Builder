@@ -169,9 +169,7 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		assertTrue(alarmsConf.contains("-AWS-ELB-Some-Alarm"));
 
 		JSONObject albJson = new JSONObject(albDependencies.toString());
-		
-		System.out.println(albJson.toString(5));
-		
+				
 		JSONObject webAclAssociation = albJson.getJSONObject("Resources").getJSONObject("webACLAssociation");
 		assertEquals("[\"AWSEBV2LoadBalancer\",\"AWSEBV2LoadBalancerListener\",\"AWSEBV2LoadBalancerListener443\","
 				+ "\"AWSEBV2LoadBalancerListener443default\",\"AWSEBV2LoadBalancerListenerdefault\","
