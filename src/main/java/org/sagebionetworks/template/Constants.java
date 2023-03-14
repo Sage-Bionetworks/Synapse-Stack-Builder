@@ -201,6 +201,9 @@ public class Constants {
 
 	public static final String CAPABILITY_NAMED_IAM = "CAPABILITY_NAMED_IAM";
 	public static final String OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT = "RepositoryDBEndpoint";
+	
+	public static final String DELETION_POLICY = "deletionPolicy";
+	public static final String ADMIN_RULE_ACTION = "adminRuleAction";
 
 	public static final String SNS_TOPIC_DESCRIPTORS = "snsTopicDescriptors";
 	public static final String SQS_QUEUE_DESCRIPTORS = "sqsQueueDescriptors";

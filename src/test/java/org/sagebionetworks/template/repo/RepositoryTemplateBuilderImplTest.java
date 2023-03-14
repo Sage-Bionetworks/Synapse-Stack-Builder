@@ -14,9 +14,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.sagebionetworks.template.Constants.ADMIN_RULE_ACTION;
 import static org.sagebionetworks.template.Constants.BEANSTALK_INSTANCES_SUBNETS;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
+import static org.sagebionetworks.template.Constants.DELETION_POLICY;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.INSTANCE;
@@ -737,6 +739,8 @@ public class RepositoryTemplateBuilderImplTest {
 		JSONObject adminRule = rules.getJSONObject(9);
 		assertEquals("prod-101-Admin-Access-Rule",adminRule.get("Name"));
 		assertEquals("{\"Block\":{}}",adminRule.getJSONObject("Action").toString());
+		
+		assertEquals("Retain", resources.getJSONObject("prod101WebAclLogGroup").get("DeletionPolicy"));
 	}
 
 	public void validateEnhancedMonitoring(JSONObject props, String enableEnhancedMonitoring) {
@@ -852,6 +856,9 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("Green", context.get(VPC_SUBNET_COLOR));
 		assertEquals("dev-101-shared-resources", context.get(SHARED_RESOUCES_STACK_NAME));
 		assertEquals("us-east-1-synapse-dev-vpc-2", context.get(VPC_EXPORT_PREFIX));
+		
+		assertEquals("Count:{}", context.get(ADMIN_RULE_ACTION));
+		assertEquals("Delete", context.get(DELETION_POLICY));
 
 		DatabaseDescriptor[] descriptors = (DatabaseDescriptor[]) context.get(DATABASE_DESCRIPTORS);
 		assertNotNull(descriptors);
@@ -891,6 +898,47 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(mockContextProvider1).addToContext(context);
 		verify(mockContextProvider2).addToContext(context);
 	}
+	
+	@Test
+	public void testCreateContextProd() {
+		stack = "prod";
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
+		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
+
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE)).thenReturn(4);
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(8);
+		when(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS)).thenReturn("db.t2.small");
+		when(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
+		when(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.standard.name());
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS)).thenReturn(-1);
+
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(6);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_INSTANCE_COUNT)).thenReturn(2);
+		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).thenReturn("db.t2.micro");
+		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
+		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("true");
+
+		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
+		String[] noSnapshots = new String[] { NOSNAPSHOT };
+		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
+
+		// call under test
+		VelocityContext context = builder.createSharedContext();
+
+		assertNotNull(context);
+		assertEquals("prod", context.get(STACK));
+		assertEquals("101", context.get(INSTANCE));
+		assertEquals("Green", context.get(VPC_SUBNET_COLOR));
+		assertEquals("prod-101-shared-resources", context.get(SHARED_RESOUCES_STACK_NAME));
+		assertEquals("us-east-1-synapse-prod-vpc-2", context.get(VPC_EXPORT_PREFIX));
+		
+		assertEquals("Block:{}", context.get(ADMIN_RULE_ACTION));
+		assertEquals("Retain", context.get(DELETION_POLICY));
+	}
+
 
 	@Test
 	public void testCreateEnvironments() {

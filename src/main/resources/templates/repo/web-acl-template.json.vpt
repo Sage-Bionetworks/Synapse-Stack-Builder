@@ -641,15 +641,7 @@
 					},
 					{
 						"Action": {
-#if ($stack == "prod")
-							"Block": {
-								
-							}
-#else
-							"Count": {
-								
-							}
-#end
+							${adminRuleAction}
 						},
 						"Name": "${stack}-${instance}-Admin-Access-Rule",
 						"Priority": 10,
@@ -736,5 +728,32 @@
 				"Scope": "REGIONAL",
 				"Description": "Source IP address allowed to make admin calls.",
 				"Name": "${stack}-${instance}-match-admin-remote-ip"
+			}
+		},
+		"${stack}${instance}WebAclLogGroup": {
+			"Type": "AWS::Logs::LogGroup",
+			"DeletionPolicy": "${deletionPolicy}",
+			"Properties": {
+				"LogGroupName": "aws-waf-logs-${stack}-${instance}",
+				"RetentionInDays": 30
+			}
+		},
+		"${stack}${instance}WebAclLoggingConfiguration": {
+			"Type": "AWS::WAFv2::LoggingConfiguration",
+			"Properties": {
+				"LogDestinationConfigs": [
+					{
+						"Fn::GetAtt": [
+							"${stack}${instance}WebAclLogGroup",
+							"Arn"
+						]
+					}
+				],
+				"ResourceArn": {
+					"Fn::GetAtt": [
+						"${stack}${instance}WebACL",
+						"Arn"
+					]
+				}
 			}
 		}
