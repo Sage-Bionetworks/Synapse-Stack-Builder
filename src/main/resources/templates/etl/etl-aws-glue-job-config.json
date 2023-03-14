@@ -5,7 +5,7 @@
 		"scriptLocation": "aws-glue.sagebase.org/scripts/",
 		"scriptName": "process_access_record.py",
 		"sourcePath" : "log.sagebase.org/accessRecord/",
-		"destinationPath" : "log.sagebase.org/processedAccessRecord/",
+		"destinationPath" : "glue-data.sagebase.org/processedAccessRecord/",
 		"destinationFileFormat" : "json",
 		"tableDescriptor": {
 			"name": "ProcessedAccessRecord",

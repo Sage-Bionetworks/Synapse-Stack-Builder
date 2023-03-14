@@ -72,6 +72,9 @@
 		},
 		{
 			"name": "${stack}.aws-glue.sagebase.org"
+		},
+		{
+			"name": "${stack}.glue-data.sagebase.org"
 		}
 	],
 	"inventoryBucket": "${stack}.inventory.sagebase.org",
