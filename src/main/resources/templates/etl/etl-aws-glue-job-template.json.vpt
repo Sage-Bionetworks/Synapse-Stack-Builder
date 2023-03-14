@@ -68,6 +68,8 @@
                                     "arn:aws:s3:::${stack}.log.sagebase.org/*",
                                     "arn:aws:s3:::${stack}.aws-glue.sagebase.org",
                                     "arn:aws:s3:::${stack}.aws-glue.sagebase.org/*",
+                                    "arn:aws:s3:::${stack}.glue-data.sagebase.org",
+                                    "arn:aws:s3:::${stack}.glue-data.sagebase.org/*",
                                 ]
 							}]
 						}
@@ -154,7 +156,7 @@
                             #if( $foreach.hasNext),#end
                             #end
                         ],
-                        #if ($etl.destinationFileFormat == "PARQUET")
+                        #if ($etl.destinationFileFormat == "parquet")
                         "InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
                         "OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
                         "SerdeInfo": {
