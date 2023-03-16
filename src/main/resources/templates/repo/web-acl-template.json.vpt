@@ -756,4 +756,39 @@
 					]
 				}
 			}
+		},
+		"${stack}${instance}WebAclLoggingPolicy": {
+			"Type": "AWS::IAM::ManagedPolicy",
+			"Properties": {
+				"PolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Sid": "LoggingConfigurationAPI",
+							"Action": [
+								"wafv2:PutLoggingConfiguration",
+								"wafv2:DeleteLoggingConfiguration"
+							],
+							"Resource": [
+								"*"
+							],
+							"Effect": "Allow"
+						},
+						{
+							"Sid": "WebACLLoggingCWL",
+							"Action": [
+								"logs:CreateLogDelivery",
+								"logs:DeleteLogDelivery",
+								"logs:PutResourcePolicy",
+								"logs:DescribeResourcePolicies",
+								"logs:DescribeLogGroups"
+							],
+							"Resource": [
+								"*"
+							],
+							"Effect": "Allow"
+						}
+					]
+				}
+			}
 		}
