@@ -742,7 +742,17 @@
 			"Type": "AWS::WAFv2::LoggingConfiguration",
 			"Properties": {
 				"LoggingFilter": {
-					"DefaultBehavior" : "KEEP"
+					"DefaultBehavior" : "KEEP",
+					"Filters": [
+						{
+							"Behavior" : "KEEP",
+							"Conditions" : [
+								{ "ActionCondition" : "COUNT" },
+								{ "ActionCondition" : "BLOCK" }
+							],
+							"Requirement" : "MEETS_ANY"
+						}
+					]
 				},
 				"LogDestinationConfigs": [
 					{
