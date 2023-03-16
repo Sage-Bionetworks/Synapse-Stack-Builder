@@ -741,6 +741,9 @@
 		"${stack}${instance}WebAclLoggingConfiguration": {
 			"Type": "AWS::WAFv2::LoggingConfiguration",
 			"Properties": {
+				"LoggingFilter": {
+					"DefaultBehavior" : "KEEP"
+				},
 				"LogDestinationConfigs": [
 					{
 						"Fn::GetAtt": [
