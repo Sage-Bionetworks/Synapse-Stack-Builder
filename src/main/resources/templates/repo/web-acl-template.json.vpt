@@ -747,8 +747,8 @@
 						{
 							"Behavior" : "KEEP",
 							"Conditions" : [
-								{ "ActionCondition" : "COUNT" },
-								{ "ActionCondition" : "BLOCK" }
+								{ "ActionCondition" : { "Action" : "COUNT"} },
+								{ "ActionCondition" : { "Action" : "BLOCK"} }
 							],
 							"Requirement" : "MEETS_ANY"
 						}
