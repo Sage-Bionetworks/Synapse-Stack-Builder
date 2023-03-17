@@ -742,7 +742,7 @@
 			"Type": "AWS::WAFv2::LoggingConfiguration",
 			"Properties": {
 				"LoggingFilter": {
-					"DefaultBehavior" : "KEEP",
+					"DefaultBehavior" : "DROP",
 					"Filters": [
 						{
 							"Behavior" : "KEEP",
