@@ -113,28 +113,6 @@ public class EtlConfigValidatorTest {
     }
 
     @Test
-    public void testEtlConfigWithOutDestinationFileFormat() {
-        List<EtlDescriptor> etlDescriptors = new ArrayList<>();
-        EtlDescriptor etlDescriptor = new EtlDescriptor();
-        etlDescriptor.setName("abc");
-        etlDescriptor.setDescription("test");
-        etlDescriptor.setScriptLocation("fakeScriptPath");
-        etlDescriptor.setScriptName("abc.py");
-        etlDescriptor.setSourcePath("sourcePath");
-        etlDescriptor.setDestinationPath("destinationPath");
-        etlDescriptor.setDestinationFileFormat("");
-        etlDescriptors.add(etlDescriptor);
-
-        when(etlConfig.getEtlDescriptors()).thenReturn(etlDescriptors);
-
-        //call under test
-        String errorMessage = assertThrows(IllegalStateException.class, () -> {
-            etlConfigValidator.validate();
-        }).getMessage();
-        assertEquals("The etl s3 destination file format cannot be empty", errorMessage);
-    }
-
-    @Test
     public void testEtlConfigWithOutDescription() {
         List<EtlDescriptor> etlDescriptors = new ArrayList<>();
         EtlDescriptor etlDescriptor = new EtlDescriptor();
@@ -142,7 +120,6 @@ public class EtlConfigValidatorTest {
         etlDescriptor.setScriptLocation("fakeScriptPath");
         etlDescriptor.setSourcePath("sourcePath");
         etlDescriptor.setDestinationPath("destinationPath");
-        etlDescriptor.setDestinationFileFormat("json");
         etlDescriptor.setDescription(null);
         etlDescriptors.add(etlDescriptor);
 

@@ -11,7 +11,6 @@ public class EtlDescriptor {
     private String scriptName;
     private String sourcePath;
     private String destinationPath;
-    private String destinationFileFormat;
     private GlueTableDescriptor tableDescriptor = null;
 
     public String getName() {
@@ -62,14 +61,6 @@ public class EtlDescriptor {
         this.destinationPath = destinationPath;
     }
 
-    public String getDestinationFileFormat() {
-        return destinationFileFormat;
-    }
-
-    public void setDestinationFileFormat(String destinationFileFormat) {
-        this.destinationFileFormat = destinationFileFormat;
-    }
-
     public GlueTableDescriptor getTableDescriptor() {
         return tableDescriptor;
     }
@@ -88,13 +79,11 @@ public class EtlDescriptor {
                 && Objects.equals(scriptName, that.scriptName)
                 && Objects.equals(sourcePath, that.sourcePath)
                 && Objects.equals(destinationPath, that.destinationPath)
-                && Objects.equals(destinationFileFormat, that.destinationFileFormat)
                 && Objects.equals(tableDescriptor, that.tableDescriptor);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, description, scriptLocation, scriptName, sourcePath, destinationPath,
-                destinationFileFormat, tableDescriptor);
+        return Objects.hash(name, description, scriptLocation, scriptName, sourcePath, destinationPath, tableDescriptor);
     }
 }

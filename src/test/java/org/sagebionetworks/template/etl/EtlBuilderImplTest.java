@@ -36,7 +36,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 public class EtlBuilderImplTest {
     private static String STACK_NAME = "dev";
     private static String INSTANCE = "test";
-    private static String version ="v1.0.0";
+    private static String version = "v1.0.0";
     @Captor
     ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
     @Mock
@@ -66,7 +66,6 @@ public class EtlBuilderImplTest {
         etlDescriptor.setScriptName("someFile.py");
         etlDescriptor.setDestinationPath("destination");
         etlDescriptor.setSourcePath("source");
-        etlDescriptor.setDestinationFileFormat("json");
         etlDescriptor.setDescription("test");
         GlueTableDescriptor table = new GlueTableDescriptor();
         table.setName("someTableRef");
@@ -103,17 +102,15 @@ public class EtlBuilderImplTest {
         assertEquals(etlDescriptor.getDescription(), props.get("Description"));
         assertEquals("{\"--enable-continuous-cloudwatch-log\":\"true\",\"--job-bookmark-option\":" +
                         "\"job-bookmark-enable\",\"--enable-metrics\":\"true\",\"--enable-spark-ui\":\"true\"," +
-                        "\"--job-language\":\"python\",\"--DESTINATION_FILE_FORMAT\":\"json\",\"--S3_DESTINATION_PATH\":\"s3://dev."
-                        + etlDescriptor.getDestinationPath() + "\",\"" +
-                        "--S3_SOURCE_PATH\":\"s3://dev." + etlDescriptor.getSourcePath() + "\"}",
+                        "\"--job-language\":\"python\",\"--DATABASE_NAME\":\"synapsewarehouse\",\"--TABLE_NAME\"" +
+                        ":\"sometableref\",\"--S3_SOURCE_PATH\":\"s3://dev." + etlDescriptor.getSourcePath() + "\"}",
                 props.getString("DefaultArguments"));
 
         JSONObject tableProperty = resources.getJSONObject("someTableRefGlueTable").getJSONObject("Properties");
         assertEquals("{\"Name\":\"" + etlDescriptor.getTableDescriptor().getName().toLowerCase() +
                 "\",\"StorageDescriptor\":{\"Columns\":[{\"Name\":\"someColumn\"," +
-                "\"Type\":\"string\"}],\"InputFormat\":\"org.apache.hadoop.mapred.TextInputFormat\",\"OutputFormat\":" +
-                "\"org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat\",\"SerdeInfo\":{\"SerializationLibrary\":" +
-                "\"org.openx.data.jsonserde.JsonSerDe\",\"Parameters\":{\"serialization.format\":\"1\"}}," +
+                "\"Type\":\"string\"}],\"InputFormat\":\"org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat\"," +
+                "\"SerdeInfo\":{\"SerializationLibrary\":" + "\"org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe\"}," +
                 "\"Compressed\":false,\"Location\":\"s3://dev.destination\"},\"PartitionKeys\":[],\"TableType\":" +
                 "\"EXTERNAL_TABLE\"}", tableProperty.getString("TableInput"));
 

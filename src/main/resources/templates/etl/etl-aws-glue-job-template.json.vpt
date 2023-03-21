@@ -106,34 +106,6 @@
             }
         },
 		#foreach( $etl in $etlDescriptors)
-		"${etl.name}GlueJob": {
-			"Type": "AWS::Glue::Job",
-			"Properties": {
-				"Command": {
-					"Name": "glueetl",
-					"ScriptLocation": "s3://${stack}.${etl.scriptLocation}"
-				},
-				"DefaultArguments": {
-				    "--enable-continuous-cloudwatch-log": "true",
-					"--job-bookmark-option": "job-bookmark-enable",
-					"--enable-metrics": "true",
-                    "--enable-spark-ui": "true",
-					"--job-language": "python",
-					"--DESTINATION_FILE_FORMAT": "${etl.destinationFileFormat}",
-					"--S3_DESTINATION_PATH": "s3://${stack}.${etl.destinationPath}",
-					"--S3_SOURCE_PATH": "s3://${stack}.${etl.sourcePath}"
-				},
-				"Description": "${etl.description}",
-				"GlueVersion": "3.0",
-				"Name": "${etl.name}",
-				"Role": {
-				    "Fn::GetAtt":[
-                        "AWSGlueJobRole",
-                        "Arn"
-                    ]
-                }
-			}
-		},
         #if( $etl.tableDescriptor )
         "${etl.tableDescriptor.name}GlueTable": {
             "Type":"AWS::Glue::Table",
@@ -156,29 +128,12 @@
                             #if( $foreach.hasNext),#end
                             #end
                         ],
-                        #if ($etl.destinationFileFormat == "parquet")
                         "InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
-                        "OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
                         "SerdeInfo": {
-                            "SerializationLibrary": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
-                            "Parameters": {
-                                "serialization.format": "1"
-                            }
-                        }
-                        #elseif( $etl.destinationFileFormat == "json" )
-                        "InputFormat": "org.apache.hadoop.mapred.TextInputFormat",
-                        "OutputFormat": "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat",
-                        "SerdeInfo": {
-                            "SerializationLibrary": "org.openx.data.jsonserde.JsonSerDe",
-                            "Parameters": {
-                                "serialization.format": "1"
-                            }
-                        }
-                        #else
-                        $exceptionThrower.throwException("Unsupported format: ${etl.destinationFileFormat}")
-                        #end,
+                            "SerializationLibrary": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe"
+                        },
                         "Compressed": false,
-                        "Location": "s3://${stack}.${etl.destinationPath}"
+                        "Location": "s3://${stack}.${etl.destinationPath}",
                     },
                     "PartitionKeys": [
                         #foreach($partition in $etl.tableDescriptor.partitionKeys.entrySet())
@@ -201,6 +156,34 @@
             }
         },
         #end
+		"${etl.name}GlueJob": {
+			"Type": "AWS::Glue::Job",
+			"Properties": {
+				"Command": {
+					"Name": "glueetl",
+					"ScriptLocation": "s3://${stack}.${etl.scriptLocation}"
+				},
+				"DefaultArguments": {
+				    "--enable-continuous-cloudwatch-log": "true",
+					"--job-bookmark-option": "job-bookmark-enable",
+					"--enable-metrics": "true",
+                    "--enable-spark-ui": "true",
+					"--job-language": "python",
+					"--DATABASE_NAME": "${glueDatabaseName.toLowerCase()}",
+					"--TABLE_NAME": "${etl.tableDescriptor.name.toLowerCase()}",
+					"--S3_SOURCE_PATH": "s3://${stack}.${etl.sourcePath}"
+				},
+				"Description": "${etl.description}",
+				"GlueVersion": "3.0",
+				"Name": "${etl.name}",
+				"Role": {
+				    "Fn::GetAtt":[
+                        "AWSGlueJobRole",
+                        "Arn"
+                    ]
+                }
+			}
+		},
         "${etl.name}GlueJobTrigger": {
             "Type" : "AWS::Glue::Trigger",
             "Properties" : {
