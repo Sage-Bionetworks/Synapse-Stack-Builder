@@ -111,7 +111,7 @@ public class EtlBuilderImplTest {
                 "\",\"StorageDescriptor\":{\"Columns\":[{\"Name\":\"someColumn\"," +
                 "\"Type\":\"string\"}],\"InputFormat\":\"org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat\"," +
                 "\"SerdeInfo\":{\"SerializationLibrary\":" + "\"org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe\"}," +
-                "\"Compressed\":false,\"Location\":\"s3://dev.destination\"},\"PartitionKeys\":[],\"TableType\":" +
+                "\"Compressed\":true,\"Location\":\"s3://dev.destination\"},\"PartitionKeys\":[],\"TableType\":" +
                 "\"EXTERNAL_TABLE\"}", tableProperty.getString("TableInput"));
 
         JSONObject dataBaseProperty = resources.getJSONObject("synapsewarehouseGlueDatabase").getJSONObject("Properties");
