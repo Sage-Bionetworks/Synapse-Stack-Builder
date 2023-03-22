@@ -132,7 +132,7 @@
                         "SerdeInfo": {
                             "SerializationLibrary": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe"
                         },
-                        "Compressed": false,
+                        "Compressed": true,
                         "Location": "s3://${stack}.${etl.destinationPath}",
                     },
                     "PartitionKeys": [
@@ -174,7 +174,7 @@
 					"--S3_SOURCE_PATH": "s3://${stack}.${etl.sourcePath}"
 				},
 				"Description": "${etl.description}",
-				"GlueVersion": "3.0",
+				"GlueVersion": "4.0",
 				"Name": "${etl.name}",
 				"Role": {
 				    "Fn::GetAtt":[
