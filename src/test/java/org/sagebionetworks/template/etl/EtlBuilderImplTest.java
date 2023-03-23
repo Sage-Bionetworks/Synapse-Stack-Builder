@@ -64,7 +64,7 @@ public class EtlBuilderImplTest {
         etlDescriptor.setName("testjob");
         etlDescriptor.setScriptLocation("fakeBucket/");
         etlDescriptor.setScriptName("someFile.py");
-        etlDescriptor.setDestinationBucket("destination");
+        etlDescriptor.setDestinationBucket("destination/");
         etlDescriptor.setSourcePath("source");
         etlDescriptor.setDescription("test");
         GlueTableDescriptor table = new GlueTableDescriptor();
