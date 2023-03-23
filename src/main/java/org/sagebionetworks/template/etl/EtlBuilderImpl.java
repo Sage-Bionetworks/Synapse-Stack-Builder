@@ -22,7 +22,6 @@ import static org.sagebionetworks.template.Constants.ETL_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
 import static org.sagebionetworks.template.Constants.GLUE_DATABASE_NAME;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.TEMPLATE_ETL_GLUE_JOB_RESOURCES;
@@ -66,7 +65,7 @@ public class EtlBuilderImpl implements EtlBuilder {
         context.put(STACK, stack);
         context.put(ETL_DESCRIPTORS, etlDescriptors);
         String stackName = new StringJoiner("-")
-                .add(stack).add(config.getProperty(PROPERTY_KEY_INSTANCE)).add("etl").toString();
+                .add(stack).add("glue-etl-job").toString();
 
         // Merge the context with the template
         Template template = this.velocityEngine.getTemplate(TEMPLATE_ETL_GLUE_JOB_RESOURCES);
