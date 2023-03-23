@@ -22,6 +22,7 @@ import static org.sagebionetworks.template.Constants.ETL_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
 import static org.sagebionetworks.template.Constants.GLUE_DATABASE_NAME;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_GLUE_DATA_BASE_NAME;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.S3_KEY;
 import static org.sagebionetworks.template.Constants.STACK;
@@ -50,9 +51,10 @@ public class EtlBuilderImpl implements EtlBuilder {
     }
 
     @Override
-    public void buildAndDeploy(String version, String databaseName) {
+    public void buildAndDeploy(String version) {
         VelocityContext context = new VelocityContext();
         String stack = config.getProperty(PROPERTY_KEY_STACK);
+        String databaseName = config.getProperty(PROPERTY_KEY_GLUE_DATA_BASE_NAME);
         List<EtlDescriptor> etlDescriptors = etlConfig.getEtlDescriptors();
         etlDescriptors.forEach(etlDescriptor -> {
             String scriptName = etlDescriptor.getScriptName();

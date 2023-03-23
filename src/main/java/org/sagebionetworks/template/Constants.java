@@ -132,6 +132,9 @@ public class Constants {
 	
 	public static final String PARAM_KEY_TIME_TO_LIVE = "TimeToLive";
 
+	// Etl job needs database name to create separate stack for database
+	public static final String PROPERTY_KEY_GLUE_DATA_BASE_NAME = "org.sagebionetworks.glue.processedaccessrecord.database";
+
 	// tag values
 	public static final String TAG_VALUE_DEPARTMENT = "Platform";
 	public static final String TAG_VALUE_PROJECT = "Synapse";
