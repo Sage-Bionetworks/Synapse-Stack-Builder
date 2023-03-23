@@ -29,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 @ExtendWith(MockitoExtension.class)
@@ -73,7 +72,6 @@ public class EtlBuilderImplTest {
         etlDescriptor.setTableDescriptor(table);
         etlDescriptors.add(etlDescriptor);
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(STACK_NAME);
-        when(mockConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(INSTANCE);
         when(etlConfig.getEtlDescriptors()).thenReturn(etlDescriptors);
         when(tagsProvider.getStackTags()).thenReturn(tags);
         when(loggerFactory.getLogger(EtlBuilderImpl.class)).thenReturn(logger);
@@ -83,7 +81,7 @@ public class EtlBuilderImplTest {
     @Test
     public void testEtlBuildAndDeployJob() {
         String expectedStackName = new StringJoiner("-")
-                .add(STACK_NAME).add(INSTANCE).add("etl").toString();
+                .add(STACK_NAME).add("glue-etl-job").toString();
         etlBuilderImpl.buildAndDeploy(version);
         verify(cloudFormationClient).createOrUpdateStack(requestCaptor.capture());
         CreateOrUpdateStackRequest req = requestCaptor.getValue();
