@@ -23,12 +23,13 @@ import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
 import static org.sagebionetworks.template.Constants.GLUE_DATABASE_NAME;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
+import static org.sagebionetworks.template.Constants.S3_KEY;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.TEMPLATE_ETL_GLUE_JOB_RESOURCES;
 
 public class EtlBuilderImpl implements EtlBuilder {
 
-    public static final String GLUE_DB_NAME = "synapsewarehouse";
+    public static final String PROCESSED_ACCESS_RECORD_FOLDER_NAME = "processedAccessRecord";
     private CloudFormationClient cloudFormationClient;
     private VelocityEngine velocityEngine;
     private Configuration config;
@@ -49,7 +50,7 @@ public class EtlBuilderImpl implements EtlBuilder {
     }
 
     @Override
-    public void buildAndDeploy(String version) {
+    public void buildAndDeploy(String version, String databaseName) {
         VelocityContext context = new VelocityContext();
         String stack = config.getProperty(PROPERTY_KEY_STACK);
         List<EtlDescriptor> etlDescriptors = etlConfig.getEtlDescriptors();
@@ -60,12 +61,14 @@ public class EtlBuilderImpl implements EtlBuilder {
             String scriptLocation = etlDescriptor.getScriptLocation() + scriptNameWithVersion;
             etlDescriptor.setScriptLocation(scriptLocation);
         });
-        context.put(GLUE_DATABASE_NAME, GLUE_DB_NAME);
+        context.put(GLUE_DATABASE_NAME, databaseName);
         context.put(EXCEPTION_THROWER, new VelocityExceptionThrower());
         context.put(STACK, stack);
+        String destinationS3Key = new StringJoiner("/").add(databaseName).add(PROCESSED_ACCESS_RECORD_FOLDER_NAME).toString();
+        context.put(S3_KEY, destinationS3Key);
         context.put(ETL_DESCRIPTORS, etlDescriptors);
         String stackName = new StringJoiner("-")
-                .add(stack).add("glue-etl-job").toString();
+                .add(stack).add(databaseName).add("etl-job").toString();
 
         // Merge the context with the template
         Template template = this.velocityEngine.getTemplate(TEMPLATE_ETL_GLUE_JOB_RESOURCES);

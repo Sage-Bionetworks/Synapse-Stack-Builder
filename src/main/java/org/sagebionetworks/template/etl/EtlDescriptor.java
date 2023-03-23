@@ -10,7 +10,7 @@ public class EtlDescriptor {
     private String scriptLocation;
     private String scriptName;
     private String sourcePath;
-    private String destinationPath;
+    private String destinationBucket;
     private GlueTableDescriptor tableDescriptor = null;
 
     public String getName() {
@@ -53,12 +53,12 @@ public class EtlDescriptor {
         this.sourcePath = sourcePath;
     }
 
-    public String getDestinationPath() {
-        return destinationPath;
+    public String getDestinationBucket() {
+        return destinationBucket;
     }
 
-    public void setDestinationPath(String destinationPath) {
-        this.destinationPath = destinationPath;
+    public void setDestinationBucket(String destinationBucket) {
+        this.destinationBucket = destinationBucket;
     }
 
     public GlueTableDescriptor getTableDescriptor() {
@@ -78,12 +78,12 @@ public class EtlDescriptor {
                 && Objects.equals(scriptLocation, that.scriptLocation)
                 && Objects.equals(scriptName, that.scriptName)
                 && Objects.equals(sourcePath, that.sourcePath)
-                && Objects.equals(destinationPath, that.destinationPath)
+                && Objects.equals(destinationBucket, that.destinationBucket)
                 && Objects.equals(tableDescriptor, that.tableDescriptor);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, description, scriptLocation, scriptName, sourcePath, destinationPath, tableDescriptor);
+        return Objects.hash(name, description, scriptLocation, scriptName, sourcePath, destinationBucket, tableDescriptor);
     }
 }

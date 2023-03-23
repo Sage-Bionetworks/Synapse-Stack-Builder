@@ -29,7 +29,7 @@ public class EtlConfigValidatorTest {
         etlDescriptor.setDescription("test");
         etlDescriptor.setName("test");
         etlDescriptor.setScriptLocation("S3://fakeBucket/");
-        etlDescriptor.setDestinationPath("S3://destination/");
+        etlDescriptor.setDestinationBucket("S3://destination/");
         etlDescriptor.setSourcePath("S3://source/");
         etlConfig.setEtlDescriptors(etlDescriptors);
 
@@ -100,7 +100,7 @@ public class EtlConfigValidatorTest {
         etlDescriptor.setScriptLocation("fakeScriptPath");
         etlDescriptor.setScriptName("abc.py");
         etlDescriptor.setSourcePath("sourcePath");
-        etlDescriptor.setDestinationPath("");
+        etlDescriptor.setDestinationBucket("");
         etlDescriptors.add(etlDescriptor);
 
         when(etlConfig.getEtlDescriptors()).thenReturn(etlDescriptors);
@@ -109,7 +109,7 @@ public class EtlConfigValidatorTest {
         String errorMessage = assertThrows(IllegalStateException.class, () -> {
             etlConfigValidator.validate();
         }).getMessage();
-        assertEquals("The etl s3 destination path cannot be empty", errorMessage);
+        assertEquals("The etl s3 destination bucket cannot be empty", errorMessage);
     }
 
     @Test
@@ -119,7 +119,7 @@ public class EtlConfigValidatorTest {
         etlDescriptor.setName("abc");
         etlDescriptor.setScriptLocation("fakeScriptPath");
         etlDescriptor.setSourcePath("sourcePath");
-        etlDescriptor.setDestinationPath("destinationPath");
+        etlDescriptor.setDestinationBucket("destinationPath");
         etlDescriptor.setDescription(null);
         etlDescriptors.add(etlDescriptor);
 

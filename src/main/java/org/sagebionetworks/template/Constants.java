@@ -230,6 +230,7 @@ public class Constants {
 
 	public static final String EC2_INSTANCE_TYPE = "Ec2InstanceType";
 	public static final String BEANSTALK_INSTANCES_SUBNETS = "BeanstalkInstancesSubnets";
+	public static final String S3_KEY = "s3Key";
 
 	// CDNs context keys
 	public static final String CTXT_KEY_ACM_CERT_ARN = "AcmCertificateArn";

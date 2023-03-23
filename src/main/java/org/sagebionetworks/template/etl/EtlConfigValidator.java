@@ -31,8 +31,8 @@ public class EtlConfigValidator {
         if (StringUtils.isBlank(etlDescriptor.getSourcePath())) {
             throw new IllegalStateException("The etl s3 source path cannot be empty");
         }
-        if (StringUtils.isBlank(etlDescriptor.getDestinationPath())) {
-            throw new IllegalStateException("The etl s3 destination path cannot be empty");
+        if (StringUtils.isBlank(etlDescriptor.getDestinationBucket())) {
+            throw new IllegalStateException("The etl s3 destination bucket cannot be empty");
         }
     }
 }

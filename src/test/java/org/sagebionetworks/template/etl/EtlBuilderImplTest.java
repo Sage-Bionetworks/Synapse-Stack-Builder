@@ -34,7 +34,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 @ExtendWith(MockitoExtension.class)
 public class EtlBuilderImplTest {
     private static String STACK_NAME = "dev";
-    private static String INSTANCE = "test";
+    private static String DATABASE_NAME = "synapsewarehouse";
     private static String version = "v1.0.0";
     @Captor
     ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
@@ -60,10 +60,10 @@ public class EtlBuilderImplTest {
     public void before() {
         Tag t = new Tag().withKey("aKey").withValue("aValue");
         tags.add(t);
-        etlDescriptor.setName("processAccessRecord");
+        etlDescriptor.setName("testjob");
         etlDescriptor.setScriptLocation("fakeBucket/");
         etlDescriptor.setScriptName("someFile.py");
-        etlDescriptor.setDestinationPath("destination");
+        etlDescriptor.setDestinationBucket("destination");
         etlDescriptor.setSourcePath("source");
         etlDescriptor.setDescription("test");
         GlueTableDescriptor table = new GlueTableDescriptor();
@@ -81,8 +81,8 @@ public class EtlBuilderImplTest {
     @Test
     public void testEtlBuildAndDeployJob() {
         String expectedStackName = new StringJoiner("-")
-                .add(STACK_NAME).add("glue-etl-job").toString();
-        etlBuilderImpl.buildAndDeploy(version);
+                .add(STACK_NAME).add(DATABASE_NAME).add("etl-job").toString();
+        etlBuilderImpl.buildAndDeploy(version, DATABASE_NAME);
         verify(cloudFormationClient).createOrUpdateStack(requestCaptor.capture());
         CreateOrUpdateStackRequest req = requestCaptor.getValue();
         JSONObject json = new JSONObject(req.getTemplateBody());
@@ -91,33 +91,33 @@ public class EtlBuilderImplTest {
         assertNotNull(req.getTemplateBody());
         JSONObject resources = json.getJSONObject("Resources");
         assertNotNull(resources);
-        assertEquals(Set.of("AWSGlueJobRole", "synapsewarehouseGlueDatabase", "processAccessRecordGlueJob",
-                        "someTableRefGlueTable", "processAccessRecordGlueJobTrigger"),
+        assertEquals(Set.of("AWSGlueJobRole", "synapsewarehouseGlueDatabase", "testjobGlueJob",
+                        "someTableRefGlueTable", "testjobGlueJobTrigger"),
                 resources.keySet());
 
-        JSONObject props = resources.getJSONObject("processAccessRecordGlueJob").getJSONObject("Properties");
-        assertEquals(etlDescriptor.getName(), props.get("Name"));
+        JSONObject props = resources.getJSONObject("testjobGlueJob").getJSONObject("Properties");
+        assertEquals(DATABASE_NAME+etlDescriptor.getName(), props.get("Name"));
         assertEquals(etlDescriptor.getDescription(), props.get("Description"));
         assertEquals("{\"--enable-continuous-cloudwatch-log\":\"true\",\"--job-bookmark-option\":" +
                         "\"job-bookmark-enable\",\"--enable-metrics\":\"true\",\"--enable-spark-ui\":\"true\"," +
                         "\"--job-language\":\"python\",\"--DATABASE_NAME\":\"synapsewarehouse\",\"--TABLE_NAME\"" +
-                        ":\"sometableref\",\"--S3_SOURCE_PATH\":\"s3://dev." + etlDescriptor.getSourcePath() + "\"}",
+                        ":\"someTableRef\",\"--S3_SOURCE_PATH\":\"s3://dev." + etlDescriptor.getSourcePath() + "\"}",
                 props.getString("DefaultArguments"));
 
         JSONObject tableProperty = resources.getJSONObject("someTableRefGlueTable").getJSONObject("Properties");
-        assertEquals("{\"Name\":\"" + etlDescriptor.getTableDescriptor().getName().toLowerCase() +
+        assertEquals("{\"Name\":\"" + etlDescriptor.getTableDescriptor().getName() +
                 "\",\"StorageDescriptor\":{\"Columns\":[{\"Name\":\"someColumn\"," +
                 "\"Type\":\"string\"}],\"InputFormat\":\"org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat\"," +
                 "\"SerdeInfo\":{\"SerializationLibrary\":" + "\"org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe\"}," +
-                "\"Compressed\":true,\"Location\":\"s3://dev.destination\"},\"PartitionKeys\":[],\"TableType\":" +
+                "\"Compressed\":true,\"Location\":\"s3://dev.destination/synapsewarehouse/processedAccessRecord/\"},\"PartitionKeys\":[],\"TableType\":" +
                 "\"EXTERNAL_TABLE\"}", tableProperty.getString("TableInput"));
 
         JSONObject dataBaseProperty = resources.getJSONObject("synapsewarehouseGlueDatabase").getJSONObject("Properties");
         assertEquals("{\"Name\":\"synapsewarehouse\"}", dataBaseProperty.getString("DatabaseInput"));
 
-        JSONObject glueJobTrigger = resources.getJSONObject("processAccessRecordGlueJobTrigger").getJSONObject("Properties");
+        JSONObject glueJobTrigger = resources.getJSONObject("testjobGlueJobTrigger").getJSONObject("Properties");
         assertEquals("{\"Type\":\"SCHEDULED\",\"StartOnCreation\":\"true\",\"Description\":" +
-                "\"Trigger for job processAccessRecord\",\"Name\":\"processAccessRecordTrigger\",\"Schedule\":" +
-                "\"cron(0 * * * ? *)\",\"Actions\":[{\"JobName\":\"processAccessRecord\"}]}", glueJobTrigger.toString());
+                "\"Trigger for job synapsewarehousetestjob\",\"Name\":\"synapsewarehousetestjobtrigger\",\"Schedule\":" +
+                "\"cron(0 * * * ? *)\",\"Actions\":[{\"JobName\":\"synapsewarehousetestjob\"}]}", glueJobTrigger.toString());
     }
 }

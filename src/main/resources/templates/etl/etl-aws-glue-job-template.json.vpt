@@ -68,8 +68,8 @@
                                     "arn:aws:s3:::${stack}.log.sagebase.org/*",
                                     "arn:aws:s3:::${stack}.aws-glue.sagebase.org",
                                     "arn:aws:s3:::${stack}.aws-glue.sagebase.org/*",
-                                    "arn:aws:s3:::${stack}.glue-data.sagebase.org",
-                                    "arn:aws:s3:::${stack}.glue-data.sagebase.org/*",
+                                    "arn:aws:s3:::${stack}.datawarehouse.sagebase.org",
+                                    "arn:aws:s3:::${stack}.datawarehouse.sagebase.org/*",
                                 ]
 							}]
 						}
@@ -101,7 +101,7 @@
                     "Ref":"AWS::AccountId"
                 },
                 "DatabaseInput": {
-                    "Name": "${glueDatabaseName.toLowerCase()}"
+                    "Name": "${glueDatabaseName}"
                 }
             }
         },
@@ -117,7 +117,7 @@
                     "Ref":"${glueDatabaseName}GlueDatabase"
                 },
                 "TableInput": {
-                    "Name": "$etl.tableDescriptor.name.toLowerCase()",
+                    "Name": "$etl.tableDescriptor.name",
                     "StorageDescriptor": {
                         "Columns": [
                             #foreach($column in $etl.tableDescriptor.columns.entrySet())
@@ -133,7 +133,7 @@
                             "SerializationLibrary": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe"
                         },
                         "Compressed": true,
-                        "Location": "s3://${stack}.${etl.destinationPath}",
+                        "Location": "s3://${stack}.${etl.destinationBucket}/${s3Key}/",
                     },
                     "PartitionKeys": [
                         #foreach($partition in $etl.tableDescriptor.partitionKeys.entrySet())
@@ -169,13 +169,13 @@
 					"--enable-metrics": "true",
                     "--enable-spark-ui": "true",
 					"--job-language": "python",
-					"--DATABASE_NAME": "${glueDatabaseName.toLowerCase()}",
-					"--TABLE_NAME": "${etl.tableDescriptor.name.toLowerCase()}",
+					"--DATABASE_NAME": "${glueDatabaseName}",
+					"--TABLE_NAME": "${etl.tableDescriptor.name}",
 					"--S3_SOURCE_PATH": "s3://${stack}.${etl.sourcePath}"
 				},
 				"Description": "${etl.description}",
 				"GlueVersion": "4.0",
-				"Name": "${etl.name}",
+				"Name": "${glueDatabaseName}${etl.name}",
 				"Role": {
 				    "Fn::GetAtt":[
                         "AWSGlueJobRole",
@@ -189,12 +189,12 @@
             "Properties" : {
             "Type": "SCHEDULED",
             "StartOnCreation": "true",
-            "Description" : "Trigger for job ${etl.name}",
-             "Name" : "${etl.name}Trigger",
+            "Description" : "Trigger for job ${glueDatabaseName}${etl.name}",
+             "Name" : "${glueDatabaseName}${etl.name}trigger",
              "Schedule" : "cron(0 * * * ? *)",
             "Actions" : [
                 {
-                     "JobName" : "${etl.name}"
+                     "JobName" : "${glueDatabaseName}${etl.name}"
                  }
              ]
             }

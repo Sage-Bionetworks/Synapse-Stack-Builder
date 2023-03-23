@@ -1,13 +1,13 @@
 {
 	"etlDescriptors":[{
-		"name": "ProcessAccessRecord",
+		"name": "processaccessrecord",
 		"description": "This job processes the access records",
 		"scriptLocation": "aws-glue.sagebase.org/scripts/",
 		"scriptName": "process_access_record.py",
 		"sourcePath" : "log.sagebase.org/accessRecord/",
-		"destinationPath" : "glue-data.sagebase.org/processedAccessRecord/",
+		"destinationBucket" : "datawarehouse.sagebase.org/",
 		"tableDescriptor": {
-			"name": "ProcessedAccessRecord",
+			"name": "processedaccessrecord",
 			"columns": {
 				"SESSION_ID": "string",
 				"TIMESTAMP": "timestamp",
