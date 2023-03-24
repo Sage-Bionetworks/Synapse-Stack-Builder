@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -27,6 +26,7 @@ import java.util.StringJoiner;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_GLUE_DATA_BASE_NAME;
@@ -57,9 +57,8 @@ public class EtlBuilderImplTest {
     private List<EtlDescriptor> etlDescriptors = new ArrayList<>();
     private EtlDescriptor etlDescriptor = new EtlDescriptor();
 
-    @BeforeEach
-    public void before() {
-        Tag t = new Tag().withKey("aKey").withValue("aValue");
+    @Test
+    public void testEtlBuildAndDeployJob() {Tag t = new Tag().withKey("aKey").withValue("aValue");
         tags.add(t);
         etlDescriptor.setName("testjob");
         etlDescriptor.setScriptLocation("fakeBucket/");
@@ -78,12 +77,10 @@ public class EtlBuilderImplTest {
         when(tagsProvider.getStackTags()).thenReturn(tags);
         when(loggerFactory.getLogger(EtlBuilderImpl.class)).thenReturn(logger);
         etlBuilderImpl = new EtlBuilderImpl(cloudFormationClient, velocityEngine, mockConfig, loggerFactory, tagsProvider, etlConfig);
-    }
-
-    @Test
-    public void testEtlBuildAndDeployJob() {
         String expectedStackName = new StringJoiner("-")
                 .add(STACK_NAME).add(DATABASE_NAME).add("etl-job").toString();
+
+        //call under test
         etlBuilderImpl.buildAndDeploy(version);
         verify(cloudFormationClient).createOrUpdateStack(requestCaptor.capture());
         CreateOrUpdateStackRequest req = requestCaptor.getValue();
@@ -121,5 +118,15 @@ public class EtlBuilderImplTest {
         assertEquals("{\"Type\":\"SCHEDULED\",\"StartOnCreation\":\"true\",\"Description\":" +
                 "\"Trigger for job synapsewarehousetestjob\",\"Name\":\"synapsewarehousetestjobtrigger\",\"Schedule\":" +
                 "\"cron(0 * * * ? *)\",\"Actions\":[{\"JobName\":\"synapsewarehousetestjob\"}]}", glueJobTrigger.toString());
+    }
+
+    @Test
+    public void testInvalidProdDatabaseName() {
+        when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("prod");
+        when(mockConfig.getProperty(PROPERTY_KEY_GLUE_DATA_BASE_NAME)).thenReturn("test");
+        etlBuilderImpl = new EtlBuilderImpl(cloudFormationClient, velocityEngine, mockConfig, loggerFactory, tagsProvider, etlConfig);
+        //call under test
+        Exception exception = assertThrows(IllegalArgumentException.class, ()-> etlBuilderImpl.buildAndDeploy(version));
+        assertEquals("Invalid database name", exception.getMessage());
     }
 }

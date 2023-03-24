@@ -7,6 +7,7 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
@@ -31,6 +32,7 @@ import static org.sagebionetworks.template.Constants.TEMPLATE_ETL_GLUE_JOB_RESOU
 public class EtlBuilderImpl implements EtlBuilder {
 
     public static final String PROCESSED_ACCESS_RECORD_FOLDER_NAME = "processedAccessRecord";
+    public static final String PROD_GLUE_DATABASE_NAME = "synapsewarehouse";
     private CloudFormationClient cloudFormationClient;
     private VelocityEngine velocityEngine;
     private Configuration config;
@@ -54,7 +56,8 @@ public class EtlBuilderImpl implements EtlBuilder {
     public void buildAndDeploy(String version) {
         VelocityContext context = new VelocityContext();
         String stack = config.getProperty(PROPERTY_KEY_STACK);
-        String databaseName = config.getProperty(PROPERTY_KEY_GLUE_DATA_BASE_NAME);
+        String databaseName = config.getProperty(PROPERTY_KEY_GLUE_DATA_BASE_NAME).toLowerCase();
+        checkDatabaseName(stack, databaseName);
         List<EtlDescriptor> etlDescriptors = etlConfig.getEtlDescriptors();
         etlDescriptors.forEach(etlDescriptor -> {
             String scriptName = etlDescriptor.getScriptName();
@@ -87,5 +90,11 @@ public class EtlBuilderImpl implements EtlBuilder {
         this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
                 .withTemplateBody(resultJSON).withTags(tagsProvider.getStackTags())
                 .withCapabilities(CAPABILITY_NAMED_IAM));
+    }
+
+    private void checkDatabaseName(String stack, String databaseName){
+        if(Constants.isProd(stack) && !databaseName.equals(PROD_GLUE_DATABASE_NAME)){
+            throw new IllegalArgumentException("Invalid database name");
+        }
     }
 }
