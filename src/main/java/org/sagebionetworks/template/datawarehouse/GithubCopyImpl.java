@@ -1,4 +1,4 @@
-package org.sagebionetworks.template.etl;
+package org.sagebionetworks.template.datawarehouse;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.google.inject.Inject;

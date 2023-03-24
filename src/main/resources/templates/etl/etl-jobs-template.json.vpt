@@ -105,7 +105,7 @@
                 }
             }
         },
-		#foreach( $etl in $etlDescriptors)
+		#foreach( $etl in $etlJobDescriptors)
         #if( $etl.tableDescriptor )
         "${etl.tableDescriptor.name}GlueTable": {
             "Type":"AWS::Glue::Table",
@@ -133,7 +133,7 @@
                             "SerializationLibrary": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe"
                         },
                         "Compressed": true,
-                        "Location": "s3://${stack}.${etl.destinationBucket}${s3Key}/",
+                        "Location": "s3://${stack}.datawarehouse.sagebase.org/${glueDatabaseName}/${etl.tableDescriptor.name}/",
                     },
                     "PartitionKeys": [
                         #foreach($partition in $etl.tableDescriptor.partitionKeys.entrySet())
@@ -175,7 +175,7 @@
 				},
 				"Description": "${etl.description}",
 				"GlueVersion": "4.0",
-				"Name": "${glueDatabaseName}${etl.name}",
+				"Name": "${glueDatabaseName}_${etl.name}",
 				"Role": {
 				    "Fn::GetAtt":[
                         "AWSGlueJobRole",
@@ -189,12 +189,12 @@
             "Properties" : {
             "Type": "SCHEDULED",
             "StartOnCreation": "true",
-            "Description" : "Trigger for job ${glueDatabaseName}${etl.name}",
-             "Name" : "${glueDatabaseName}${etl.name}trigger",
+            "Description" : "Trigger for job ${glueDatabaseName}_${etl.name}",
+             "Name" : "${glueDatabaseName}_${etl.name}_trigger",
              "Schedule" : "cron(0 * * * ? *)",
             "Actions" : [
                 {
-                     "JobName" : "${glueDatabaseName}${etl.name}"
+                     "JobName" : "${glueDatabaseName}_${etl.name}"
                  }
              ]
             }

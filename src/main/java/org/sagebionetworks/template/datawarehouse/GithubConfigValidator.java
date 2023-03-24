@@ -1,4 +1,4 @@
-package org.sagebionetworks.template.etl;
+package org.sagebionetworks.template.datawarehouse;
 
 import io.jsonwebtoken.lang.Collections;
 import org.apache.commons.lang3.StringUtils;

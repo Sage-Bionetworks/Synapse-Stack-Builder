@@ -1,19 +1,31 @@
 package org.sagebionetworks.template;
 
-import static org.sagebionetworks.template.Constants.ATHENA_QUERIES_CONFIG_FILE;
-import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_CONFIG_FILE;
-import static org.sagebionetworks.template.Constants.ETL_CONFIG_FILE;
-import static org.sagebionetworks.template.Constants.GITHUB_CONFIG_FILE;
-import static org.sagebionetworks.template.Constants.KINESIS_CONFIG_FILE;
-import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARM_CONFIG_FILE;
-import static org.sagebionetworks.template.Constants.S3_CONFIG_FILE;
-import static org.sagebionetworks.template.Constants.SNS_AND_SQS_CONFIG_FILE;
-import static org.sagebionetworks.template.TemplateUtils.loadFromJsonFile;
-
-import java.io.IOException;
-
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.cloudformation.AmazonCloudFormation;
+import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
+import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
+import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
+import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClientBuilder;
+import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
+import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClientBuilder;
+import com.amazonaws.services.kms.AWSKMS;
+import com.amazonaws.services.kms.AWSKMSAsyncClientBuilder;
+import com.amazonaws.services.lambda.AWSLambda;
+import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
 import com.amazonaws.services.route53.AmazonRoute53;
 import com.amazonaws.services.route53.AmazonRoute53ClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.secretsmanager.AWSSecretsManager;
+import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
+import com.google.inject.Provides;
+import com.google.inject.multibindings.Multibinder;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.velocity.app.VelocityEngine;
@@ -33,11 +45,18 @@ import org.sagebionetworks.template.config.TimeToLive;
 import org.sagebionetworks.template.config.TimeToLiveImpl;
 import org.sagebionetworks.template.cron.ExpiredStackTeardown;
 import org.sagebionetworks.template.cron.ExpiredStackTeardownImpl;
+import org.sagebionetworks.template.datawarehouse.DataWarehouseBuilder;
+import org.sagebionetworks.template.datawarehouse.DataWarehouseBuilderImpl;
+import org.sagebionetworks.template.datawarehouse.EtlJobConfig;
+import org.sagebionetworks.template.datawarehouse.EtlJobConfigValidator;
+import org.sagebionetworks.template.datawarehouse.GithubConfig;
+import org.sagebionetworks.template.datawarehouse.GithubConfigValidator;
+import org.sagebionetworks.template.datawarehouse.GithubCopy;
+import org.sagebionetworks.template.datawarehouse.GithubCopyImpl;
 import org.sagebionetworks.template.dns.DnsBuilder;
 import org.sagebionetworks.template.dns.DnsBuilderImpl;
 import org.sagebionetworks.template.docs.SynapseDocsBuilder;
 import org.sagebionetworks.template.docs.SynapseDocsBuilderImpl;
-import org.sagebionetworks.template.etl.GithubConfigValidator;
 import org.sagebionetworks.template.global.GlobalResourcesBuilder;
 import org.sagebionetworks.template.global.GlobalResourcesBuilderImpl;
 import org.sagebionetworks.template.ip.address.IpAddressPoolBuilder;
@@ -50,10 +69,6 @@ import org.sagebionetworks.template.nlb.NetworkLoadBalancerBuilder;
 import org.sagebionetworks.template.nlb.NetworkLoadBalancerBuilderImpl;
 import org.sagebionetworks.template.redirectors.userdocs.UserDocsRedirectorBuilder;
 import org.sagebionetworks.template.redirectors.userdocs.UserDocsRedirectorBuilderImpl;
-import org.sagebionetworks.template.etl.EtlBuilder;
-import org.sagebionetworks.template.etl.EtlBuilderImpl;
-import org.sagebionetworks.template.etl.EtlConfig;
-import org.sagebionetworks.template.etl.EtlConfigValidator;
 import org.sagebionetworks.template.repo.IdGeneratorBuilder;
 import org.sagebionetworks.template.repo.IdGeneratorBuilderImpl;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
@@ -64,12 +79,12 @@ import org.sagebionetworks.template.repo.athena.RecurrentAthenaQueryConfigValida
 import org.sagebionetworks.template.repo.athena.RecurrentAthenaQueryContextProvider;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopyImpl;
+import org.sagebionetworks.template.repo.beanstalk.ElasticBeanstalkSolutionStackNameProvider;
+import org.sagebionetworks.template.repo.beanstalk.ElasticBeanstalkSolutionStackNameProviderImpl;
 import org.sagebionetworks.template.repo.beanstalk.LoadBalancerAlarmsConfig;
 import org.sagebionetworks.template.repo.beanstalk.LoadBalancerAlarmsConfigValidator;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilderImpl;
-import org.sagebionetworks.template.repo.beanstalk.ElasticBeanstalkSolutionStackNameProvider;
-import org.sagebionetworks.template.repo.beanstalk.ElasticBeanstalkSolutionStackNameProviderImpl;
 import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateBuilder;
 import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateBuilderImpl;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilder;
@@ -78,9 +93,6 @@ import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsConfig;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsConfigValidator;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProviderImpl;
-import org.sagebionetworks.template.etl.GithubCopy;
-import org.sagebionetworks.template.etl.GithubCopyImpl;
-import org.sagebionetworks.template.etl.GithubConfig;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfig;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfigValidator;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseVelocityContextProvider;
@@ -103,30 +115,17 @@ import org.sagebionetworks.util.DefaultClock;
 import org.sagebionetworks.war.WarAppender;
 import org.sagebionetworks.war.WarAppenderImpl;
 
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClientBuilder;
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClientBuilder;
-import com.amazonaws.services.kms.AWSKMS;
-import com.amazonaws.services.kms.AWSKMSAsyncClientBuilder;
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
-import com.google.inject.Provides;
-import com.google.inject.multibindings.Multibinder;
+import java.io.IOException;
+
+import static org.sagebionetworks.template.Constants.ATHENA_QUERIES_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.ETL_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.GITHUB_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.KINESIS_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARM_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.S3_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.SNS_AND_SQS_CONFIG_FILE;
+import static org.sagebionetworks.template.TemplateUtils.loadFromJsonFile;
 
 public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
@@ -173,7 +172,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(TimeToLive.class).to(TimeToLiveImpl.class);
 		bind(Clock.class).to(DefaultClock.class);
 		bind(ExpiredStackTeardown.class).to(ExpiredStackTeardownImpl.class);
-		bind(EtlBuilder.class).to(EtlBuilderImpl.class);
+		bind(DataWarehouseBuilder.class).to(DataWarehouseBuilderImpl.class);
 		bind(GithubCopy.class).to(GithubCopyImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
@@ -332,8 +331,8 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 
 	@Provides
-	public EtlConfig etlConfigProvider() throws IOException {
-		return new EtlConfigValidator(loadFromJsonFile(ETL_CONFIG_FILE, EtlConfig.class)).validate();
+	public EtlJobConfig etlConfigProvider() throws IOException {
+		return new EtlJobConfigValidator(loadFromJsonFile(ETL_CONFIG_FILE, EtlJobConfig.class)).validate();
 	}
 
 	@Provides

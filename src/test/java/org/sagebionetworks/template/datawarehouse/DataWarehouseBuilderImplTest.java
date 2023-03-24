@@ -1,4 +1,4 @@
-package org.sagebionetworks.template.etl;
+package org.sagebionetworks.template.datawarehouse;
 
 import com.amazonaws.services.cloudformation.model.Tag;
 import com.google.common.collect.ImmutableMap;
@@ -29,11 +29,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_GLUE_DATA_BASE_NAME;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 @ExtendWith(MockitoExtension.class)
-public class EtlBuilderImplTest {
+public class DataWarehouseBuilderImplTest {
     private static String STACK_NAME = "dev";
     private static String DATABASE_NAME = "synapsewarehouse";
     private static String version = "v1.0.0";
@@ -49,36 +49,35 @@ public class EtlBuilderImplTest {
     @Mock
     private StackTagsProvider tagsProvider;
     @Mock
-    private EtlConfig etlConfig;
+    private EtlJobConfig etlJobConfig;
     @Mock
     private LoggerFactory loggerFactory;
-    private EtlBuilderImpl etlBuilderImpl;
+    private DataWarehouseBuilderImpl etlBuilderImpl;
     private List<Tag> tags = new ArrayList<>();
-    private List<EtlDescriptor> etlDescriptors = new ArrayList<>();
-    private EtlDescriptor etlDescriptor = new EtlDescriptor();
+    private List<EtlJobDescriptor> etlJobDescriptors = new ArrayList<>();
+    private EtlJobDescriptor etlJobDescriptor = new EtlJobDescriptor();
 
     @Test
     public void testEtlBuildAndDeployJob() {Tag t = new Tag().withKey("aKey").withValue("aValue");
         tags.add(t);
-        etlDescriptor.setName("testjob");
-        etlDescriptor.setScriptLocation("fakeBucket/");
-        etlDescriptor.setScriptName("someFile.py");
-        etlDescriptor.setDestinationBucket("destination/");
-        etlDescriptor.setSourcePath("source");
-        etlDescriptor.setDescription("test");
+        etlJobDescriptor.setName("testjob");
+        etlJobDescriptor.setScriptLocation("fakeBucket/");
+        etlJobDescriptor.setScriptName("someFile.py");
+        etlJobDescriptor.setSourcePath("source");
+        etlJobDescriptor.setDescription("test");
         GlueTableDescriptor table = new GlueTableDescriptor();
         table.setName("someTableRef");
         table.setColumns(ImmutableMap.of("someColumn", "string"));
-        etlDescriptor.setTableDescriptor(table);
-        etlDescriptors.add(etlDescriptor);
+        etlJobDescriptor.setTableDescriptor(table);
+        etlJobDescriptors.add(etlJobDescriptor);
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(STACK_NAME);
-        when(mockConfig.getProperty(PROPERTY_KEY_GLUE_DATA_BASE_NAME)).thenReturn(DATABASE_NAME);
-        when(etlConfig.getEtlDescriptors()).thenReturn(etlDescriptors);
+        when(mockConfig.getProperty(PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME)).thenReturn(DATABASE_NAME);
+        when(etlJobConfig.getEtlDescriptors()).thenReturn(etlJobDescriptors);
         when(tagsProvider.getStackTags()).thenReturn(tags);
-        when(loggerFactory.getLogger(EtlBuilderImpl.class)).thenReturn(logger);
-        etlBuilderImpl = new EtlBuilderImpl(cloudFormationClient, velocityEngine, mockConfig, loggerFactory, tagsProvider, etlConfig);
+        when(loggerFactory.getLogger(DataWarehouseBuilderImpl.class)).thenReturn(logger);
+        etlBuilderImpl = new DataWarehouseBuilderImpl(cloudFormationClient, velocityEngine, mockConfig, loggerFactory, tagsProvider, etlJobConfig);
         String expectedStackName = new StringJoiner("-")
-                .add(STACK_NAME).add(DATABASE_NAME).add("etl-job").toString();
+                .add(STACK_NAME).add(DATABASE_NAME).add("etl-jobs").toString();
 
         //call under test
         etlBuilderImpl.buildAndDeploy(version);
@@ -95,20 +94,20 @@ public class EtlBuilderImplTest {
                 resources.keySet());
 
         JSONObject props = resources.getJSONObject("testjobGlueJob").getJSONObject("Properties");
-        assertEquals(DATABASE_NAME+etlDescriptor.getName(), props.get("Name"));
-        assertEquals(etlDescriptor.getDescription(), props.get("Description"));
+        assertEquals(DATABASE_NAME + "_"+ etlJobDescriptor.getName(), props.get("Name"));
+        assertEquals(etlJobDescriptor.getDescription(), props.get("Description"));
         assertEquals("{\"--enable-continuous-cloudwatch-log\":\"true\",\"--job-bookmark-option\":" +
                         "\"job-bookmark-enable\",\"--enable-metrics\":\"true\",\"--enable-spark-ui\":\"true\"," +
                         "\"--job-language\":\"python\",\"--DATABASE_NAME\":\"synapsewarehouse\",\"--TABLE_NAME\"" +
-                        ":\"someTableRef\",\"--S3_SOURCE_PATH\":\"s3://dev." + etlDescriptor.getSourcePath() + "\"}",
+                        ":\"someTableRef\",\"--S3_SOURCE_PATH\":\"s3://dev." + etlJobDescriptor.getSourcePath() + "\"}",
                 props.getString("DefaultArguments"));
 
         JSONObject tableProperty = resources.getJSONObject("someTableRefGlueTable").getJSONObject("Properties");
-        assertEquals("{\"Name\":\"" + etlDescriptor.getTableDescriptor().getName() +
+        assertEquals("{\"Name\":\"" + etlJobDescriptor.getTableDescriptor().getName() +
                 "\",\"StorageDescriptor\":{\"Columns\":[{\"Name\":\"someColumn\"," +
                 "\"Type\":\"string\"}],\"InputFormat\":\"org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat\"," +
                 "\"SerdeInfo\":{\"SerializationLibrary\":" + "\"org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe\"}," +
-                "\"Compressed\":true,\"Location\":\"s3://dev.destination/synapsewarehouse/processedAccessRecord/\"},\"PartitionKeys\":[],\"TableType\":" +
+                "\"Compressed\":true,\"Location\":\"s3://dev.datawarehouse.sagebase.org/synapsewarehouse/someTableRef/\"},\"PartitionKeys\":[],\"TableType\":" +
                 "\"EXTERNAL_TABLE\"}", tableProperty.getString("TableInput"));
 
         JSONObject dataBaseProperty = resources.getJSONObject("synapsewarehouseGlueDatabase").getJSONObject("Properties");
@@ -116,17 +115,17 @@ public class EtlBuilderImplTest {
 
         JSONObject glueJobTrigger = resources.getJSONObject("testjobGlueJobTrigger").getJSONObject("Properties");
         assertEquals("{\"Type\":\"SCHEDULED\",\"StartOnCreation\":\"true\",\"Description\":" +
-                "\"Trigger for job synapsewarehousetestjob\",\"Name\":\"synapsewarehousetestjobtrigger\",\"Schedule\":" +
-                "\"cron(0 * * * ? *)\",\"Actions\":[{\"JobName\":\"synapsewarehousetestjob\"}]}", glueJobTrigger.toString());
+                "\"Trigger for job synapsewarehouse_testjob\",\"Name\":\"synapsewarehouse_testjob_trigger\",\"Schedule\":" +
+                "\"cron(0 * * * ? *)\",\"Actions\":[{\"JobName\":\"synapsewarehouse_testjob\"}]}", glueJobTrigger.toString());
     }
 
     @Test
     public void testInvalidProdDatabaseName() {
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("prod");
-        when(mockConfig.getProperty(PROPERTY_KEY_GLUE_DATA_BASE_NAME)).thenReturn("test");
-        etlBuilderImpl = new EtlBuilderImpl(cloudFormationClient, velocityEngine, mockConfig, loggerFactory, tagsProvider, etlConfig);
+        when(mockConfig.getProperty(PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME)).thenReturn(null);
+        etlBuilderImpl = new DataWarehouseBuilderImpl(cloudFormationClient, velocityEngine, mockConfig, loggerFactory, tagsProvider, etlJobConfig);
         //call under test
         Exception exception = assertThrows(IllegalArgumentException.class, ()-> etlBuilderImpl.buildAndDeploy(version));
-        assertEquals("Invalid database name", exception.getMessage());
+        assertEquals("Database name is required.", exception.getMessage());
     }
 }

@@ -1,13 +1,13 @@
-package org.sagebionetworks.template.etl;
+package org.sagebionetworks.template.datawarehouse;
 
 import com.google.inject.Inject;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.sagebionetworks.template.CloudFormationClient;
-import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
@@ -23,57 +23,51 @@ import static org.sagebionetworks.template.Constants.ETL_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
 import static org.sagebionetworks.template.Constants.GLUE_DATABASE_NAME;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_GLUE_DATA_BASE_NAME;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
-import static org.sagebionetworks.template.Constants.S3_KEY;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.TEMPLATE_ETL_GLUE_JOB_RESOURCES;
 
-public class EtlBuilderImpl implements EtlBuilder {
-
-    public static final String PROCESSED_ACCESS_RECORD_FOLDER_NAME = "processedAccessRecord";
-    public static final String PROD_GLUE_DATABASE_NAME = "synapsewarehouse";
+public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
     private CloudFormationClient cloudFormationClient;
     private VelocityEngine velocityEngine;
     private Configuration config;
     private Logger logger;
     private StackTagsProvider tagsProvider;
-    private EtlConfig etlConfig;
+    private EtlJobConfig etlJobConfig;
 
     @Inject
-    public EtlBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
-                          Configuration config, LoggerFactory loggerFactory,
-                          StackTagsProvider tagsProvider, EtlConfig etlConfig) {
+    public DataWarehouseBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
+                                    Configuration config, LoggerFactory loggerFactory,
+                                    StackTagsProvider tagsProvider, EtlJobConfig etlJobConfig) {
         this.cloudFormationClient = cloudFormationClient;
         this.velocityEngine = velocityEngine;
         this.config = config;
-        this.logger = loggerFactory.getLogger(EtlBuilderImpl.class);
+        this.logger = loggerFactory.getLogger(DataWarehouseBuilderImpl.class);
         this.tagsProvider = tagsProvider;
-        this.etlConfig = etlConfig;
+        this.etlJobConfig = etlJobConfig;
     }
 
     @Override
     public void buildAndDeploy(String version) {
         VelocityContext context = new VelocityContext();
         String stack = config.getProperty(PROPERTY_KEY_STACK);
-        String databaseName = config.getProperty(PROPERTY_KEY_GLUE_DATA_BASE_NAME).toLowerCase();
-        checkDatabaseName(stack, databaseName);
-        List<EtlDescriptor> etlDescriptors = etlConfig.getEtlDescriptors();
-        etlDescriptors.forEach(etlDescriptor -> {
+        String databaseName = config.getProperty(PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME);
+        validateDatabaseName(databaseName);
+        List<EtlJobDescriptor> etlJobDescriptors = etlJobConfig.getEtlDescriptors();
+        etlJobDescriptors.forEach(etlDescriptor -> {
             String scriptName = etlDescriptor.getScriptName();
             String scriptNameWithVersion = scriptName.substring(0, scriptName.indexOf(".")) + "_" + version +
                     scriptName.substring(scriptName.indexOf("."));
             String scriptLocation = etlDescriptor.getScriptLocation() + scriptNameWithVersion;
             etlDescriptor.setScriptLocation(scriptLocation);
         });
-        context.put(GLUE_DATABASE_NAME, databaseName);
+        context.put(GLUE_DATABASE_NAME, databaseName.toLowerCase());
         context.put(EXCEPTION_THROWER, new VelocityExceptionThrower());
         context.put(STACK, stack);
-        String destinationS3Key = new StringJoiner("/").add(databaseName).add(PROCESSED_ACCESS_RECORD_FOLDER_NAME).toString();
-        context.put(S3_KEY, destinationS3Key);
-        context.put(ETL_DESCRIPTORS, etlDescriptors);
+        context.put(ETL_DESCRIPTORS, etlJobDescriptors);
         String stackName = new StringJoiner("-")
-                .add(stack).add(databaseName).add("etl-job").toString();
+                .add(stack).add(databaseName).add("etl-jobs").toString();
 
         // Merge the context with the template
         Template template = this.velocityEngine.getTemplate(TEMPLATE_ETL_GLUE_JOB_RESOURCES);
@@ -92,9 +86,9 @@ public class EtlBuilderImpl implements EtlBuilder {
                 .withCapabilities(CAPABILITY_NAMED_IAM));
     }
 
-    private void checkDatabaseName(String stack, String databaseName){
-        if(Constants.isProd(stack) && !databaseName.equals(PROD_GLUE_DATABASE_NAME)){
-            throw new IllegalArgumentException("Invalid database name");
+    private void validateDatabaseName(String databaseName){
+        if (StringUtils.isEmpty(databaseName)) {
+            throw new IllegalArgumentException("Database name is required.");
         }
     }
 }
