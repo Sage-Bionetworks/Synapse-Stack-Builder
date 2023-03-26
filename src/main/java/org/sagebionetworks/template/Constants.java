@@ -28,7 +28,7 @@ public class Constants {
 	public static final String ROUTE53_PROD_DOCS_CLIENT_DNS_CONFIG_FILE = "templates/dns/prod_docs_clients_dns.json";
 	public static final String TEMPLATE_RESOURCE_PATH = "templates/dns/%s_dns.json";
 
-	public static final String ETL_CONFIG_FILE = "templates/etl/etl-jobs-config.json";
+	public static final String ETL_CONFIG_FILE = "templates/datewarehouse/etl-jobs-config.json";
 	public static final String GITHUB_CONFIG_FILE = "templates/repo/github-path-config.json";
 	/**
 	 * A VPC peering role ARN must start with this prefix.
@@ -155,7 +155,7 @@ public class Constants {
 	public static final String TEMPLATE_INVENTORY_BUCKET_POLICY_TEMPLATE = "templates/s3/s3-inventory-bucket-policy.json.vpt";
 	public static final String TEMPLATE_GLOBAL_RESOURCES = "templates/global/global-template.json.vpt";
 	public static final String TEMPLATE_S3_VIRUS_SCANNER = "templates/s3/s3-virus-scanner-template.json.vpt";
-	public static final String TEMPLATE_ETL_GLUE_JOB_RESOURCES = "templates/etl/etl-jobs-template.json.vpt";
+	public static final String TEMPLATE_ETL_GLUE_JOB_RESOURCES = "templates/datewarehouse/etl-jobs-template.json.vpt";
 
 	public static final int JSON_INDENT = 5;
 
@@ -234,7 +234,6 @@ public class Constants {
 
 	public static final String EC2_INSTANCE_TYPE = "Ec2InstanceType";
 	public static final String BEANSTALK_INSTANCES_SUBNETS = "BeanstalkInstancesSubnets";
-	public static final String S3_KEY = "s3Key";
 
 	// CDNs context keys
 	public static final String CTXT_KEY_ACM_CERT_ARN = "AcmCertificateArn";

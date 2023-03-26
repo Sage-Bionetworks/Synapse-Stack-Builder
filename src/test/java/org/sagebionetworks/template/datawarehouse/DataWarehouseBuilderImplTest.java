@@ -120,7 +120,7 @@ public class DataWarehouseBuilderImplTest {
     }
 
     @Test
-    public void testInvalidProdDatabaseName() {
+    public void testNullDatabaseNameThrowsIllegalArgumentException() {
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("prod");
         when(mockConfig.getProperty(PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME)).thenReturn(null);
         etlBuilderImpl = new DataWarehouseBuilderImpl(cloudFormationClient, velocityEngine, mockConfig, loggerFactory, tagsProvider, etlJobConfig);
