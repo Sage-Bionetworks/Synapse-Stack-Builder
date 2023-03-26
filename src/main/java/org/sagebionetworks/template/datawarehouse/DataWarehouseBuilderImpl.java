@@ -52,8 +52,7 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
     public void buildAndDeploy(String version) {
         VelocityContext context = new VelocityContext();
         String stack = config.getProperty(PROPERTY_KEY_STACK);
-        String databaseName = config.getProperty(PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME);
-        validateDatabaseName(databaseName);
+        String databaseName = getAndValidateDatabaseName();
         List<EtlJobDescriptor> etlJobDescriptors = etlJobConfig.getEtlJobDescriptors();
         etlJobDescriptors.forEach(etlDescriptor -> {
             String scriptName = etlDescriptor.getScriptName();
@@ -86,9 +85,11 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
                 .withCapabilities(CAPABILITY_NAMED_IAM));
     }
 
-    private void validateDatabaseName(String databaseName){
+    private String getAndValidateDatabaseName(){
+        String databaseName = config.getProperty(PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME);
         if (StringUtils.isEmpty(databaseName)) {
             throw new IllegalArgumentException("Database name is required.");
         }
+        return databaseName.toLowerCase();
     }
 }

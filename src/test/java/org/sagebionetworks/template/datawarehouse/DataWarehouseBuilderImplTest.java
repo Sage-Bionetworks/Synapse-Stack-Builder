@@ -35,7 +35,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 @ExtendWith(MockitoExtension.class)
 public class DataWarehouseBuilderImplTest {
     private static String STACK_NAME = "dev";
-    private static String DATABASE_NAME = "synapsewarehouse";
+    private static String DATABASE_NAME = "SynapseWarehouse";
     private static String version = "v1.0.0";
     @Captor
     ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
@@ -77,7 +77,7 @@ public class DataWarehouseBuilderImplTest {
         when(loggerFactory.getLogger(DataWarehouseBuilderImpl.class)).thenReturn(logger);
         etlBuilderImpl = new DataWarehouseBuilderImpl(cloudFormationClient, velocityEngine, mockConfig, loggerFactory, tagsProvider, etlJobConfig);
         String expectedStackName = new StringJoiner("-")
-                .add(STACK_NAME).add(DATABASE_NAME).add("etl-jobs").toString();
+                .add(STACK_NAME).add(DATABASE_NAME.toLowerCase()).add("etl-jobs").toString();
 
         //call under test
         etlBuilderImpl.buildAndDeploy(version);
@@ -94,7 +94,7 @@ public class DataWarehouseBuilderImplTest {
                 resources.keySet());
 
         JSONObject props = resources.getJSONObject("testjobGlueJob").getJSONObject("Properties");
-        assertEquals(DATABASE_NAME + "_"+ etlJobDescriptor.getName(), props.get("Name"));
+        assertEquals(DATABASE_NAME.toLowerCase() + "_"+ etlJobDescriptor.getName(), props.get("Name"));
         assertEquals(etlJobDescriptor.getDescription(), props.get("Description"));
         assertEquals("{\"--enable-continuous-cloudwatch-log\":\"true\",\"--job-bookmark-option\":" +
                         "\"job-bookmark-enable\",\"--enable-metrics\":\"true\",\"--enable-spark-ui\":\"true\"," +
