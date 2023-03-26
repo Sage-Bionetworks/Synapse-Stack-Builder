@@ -72,7 +72,7 @@ public class DataWarehouseBuilderImplTest {
         etlJobDescriptors.add(etlJobDescriptor);
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(STACK_NAME);
         when(mockConfig.getProperty(PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME)).thenReturn(DATABASE_NAME);
-        when(etlJobConfig.getEtlDescriptors()).thenReturn(etlJobDescriptors);
+        when(etlJobConfig.getEtlJobDescriptors()).thenReturn(etlJobDescriptors);
         when(tagsProvider.getStackTags()).thenReturn(tags);
         when(loggerFactory.getLogger(DataWarehouseBuilderImpl.class)).thenReturn(logger);
         etlBuilderImpl = new DataWarehouseBuilderImpl(cloudFormationClient, velocityEngine, mockConfig, loggerFactory, tagsProvider, etlJobConfig);

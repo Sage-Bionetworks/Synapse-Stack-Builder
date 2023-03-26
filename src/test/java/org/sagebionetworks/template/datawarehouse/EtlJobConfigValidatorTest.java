@@ -30,7 +30,7 @@ public class EtlJobConfigValidatorTest {
         etlJobDescriptor.setName("test");
         etlJobDescriptor.setScriptLocation("S3://fakeBucket/");
         etlJobDescriptor.setSourcePath("S3://source/");
-        etlJobConfig.setEtlDescriptors(etlJobDescriptors);
+        etlJobConfig.setEtlJobDescriptors(etlJobDescriptors);
 
         //call under test
         etlJobConfigValidator.validate();
@@ -43,7 +43,7 @@ public class EtlJobConfigValidatorTest {
         etlJobDescriptor.setName(" ");
         etlJobDescriptors.add(etlJobDescriptor);
 
-        when(etlJobConfig.getEtlDescriptors()).thenReturn(etlJobDescriptors);
+        when(etlJobConfig.getEtlJobDescriptors()).thenReturn(etlJobDescriptors);
 
         //call under test
         String errorMessage = assertThrows(IllegalStateException.class, () -> {
@@ -61,7 +61,7 @@ public class EtlJobConfigValidatorTest {
         etlJobDescriptor.setScriptLocation("");
         etlJobDescriptors.add(etlJobDescriptor);
 
-        when(etlJobConfig.getEtlDescriptors()).thenReturn(etlJobDescriptors);
+        when(etlJobConfig.getEtlJobDescriptors()).thenReturn(etlJobDescriptors);
 
         //call under test
         String errorMessage = assertThrows(IllegalStateException.class, () -> {
@@ -81,7 +81,7 @@ public class EtlJobConfigValidatorTest {
         etlJobDescriptor.setSourcePath("");
         etlJobDescriptors.add(etlJobDescriptor);
 
-        when(etlJobConfig.getEtlDescriptors()).thenReturn(etlJobDescriptors);
+        when(etlJobConfig.getEtlJobDescriptors()).thenReturn(etlJobDescriptors);
 
         //call under test
         String errorMessage = assertThrows(IllegalStateException.class, () -> {
@@ -100,7 +100,7 @@ public class EtlJobConfigValidatorTest {
         etlJobDescriptor.setDescription(null);
         etlJobDescriptors.add(etlJobDescriptor);
 
-        when(etlJobConfig.getEtlDescriptors()).thenReturn(etlJobDescriptors);
+        when(etlJobConfig.getEtlJobDescriptors()).thenReturn(etlJobDescriptors);
 
         //call under test
         String errorMessage = assertThrows(IllegalStateException.class, () -> {
@@ -120,7 +120,7 @@ public class EtlJobConfigValidatorTest {
 
         etlJobDescriptors.add(etlJobDescriptor);
 
-        when(etlJobConfig.getEtlDescriptors()).thenReturn(etlJobDescriptors);
+        when(etlJobConfig.getEtlJobDescriptors()).thenReturn(etlJobDescriptors);
 
         //call under test
         String errorMessage = assertThrows(IllegalStateException.class, () -> {

@@ -12,20 +12,20 @@ public class EtlJobConfig {
         return etlJobDescriptors;
     }
 
+    public void setEtlJobDescriptors(List<EtlJobDescriptor> etlJobDescriptors) {
+        this.etlJobDescriptors = etlJobDescriptors;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EtlJobConfig that = (EtlJobConfig) o;
-        return Objects.equals(etlJobDescriptors, that.etlJobDescriptors);
+        EtlJobConfig etlJobConfig = (EtlJobConfig) o;
+        return Objects.equals(etlJobDescriptors, etlJobConfig.etlJobDescriptors);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(etlJobDescriptors);
-    }
-
-    public void setEtlJobDescriptors(List<EtlJobDescriptor> etlJobDescriptors) {
-        this.etlJobDescriptors = etlJobDescriptors;
     }
 }

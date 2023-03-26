@@ -54,7 +54,7 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
         String stack = config.getProperty(PROPERTY_KEY_STACK);
         String databaseName = config.getProperty(PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME);
         validateDatabaseName(databaseName);
-        List<EtlJobDescriptor> etlJobDescriptors = etlJobConfig.getEtlDescriptors();
+        List<EtlJobDescriptor> etlJobDescriptors = etlJobConfig.getEtlJobDescriptors();
         etlJobDescriptors.forEach(etlDescriptor -> {
             String scriptName = etlDescriptor.getScriptName();
             String scriptNameWithVersion = scriptName.substring(0, scriptName.indexOf(".")) + "_" + version +

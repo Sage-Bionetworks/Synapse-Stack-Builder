@@ -11,7 +11,7 @@ public class EtlJobConfigValidator {
     }
 
     public EtlJobConfig validate() {
-        etlJobConfig.getEtlDescriptors().forEach(this::validateStream);
+        etlJobConfig.getEtlJobDescriptors().forEach(this::validateStream);
         return etlJobConfig;
     }
 
