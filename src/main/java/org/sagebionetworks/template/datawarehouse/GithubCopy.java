@@ -1,4 +1,4 @@
-package org.sagebionetworks.template.etl;
+package org.sagebionetworks.template.datawarehouse;
 
 
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;

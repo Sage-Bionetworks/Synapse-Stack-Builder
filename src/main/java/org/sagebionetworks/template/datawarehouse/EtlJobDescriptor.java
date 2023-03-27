@@ -1,16 +1,15 @@
-package org.sagebionetworks.template.etl;
+package org.sagebionetworks.template.datawarehouse;
 
 import org.sagebionetworks.template.repo.kinesis.firehose.GlueTableDescriptor;
 
 import java.util.Objects;
 
-public class EtlDescriptor {
+public class EtlJobDescriptor {
     private String name;
     private String description;
     private String scriptLocation;
     private String scriptName;
     private String sourcePath;
-    private String destinationPath;
     private GlueTableDescriptor tableDescriptor = null;
 
     public String getName() {
@@ -53,14 +52,6 @@ public class EtlDescriptor {
         this.sourcePath = sourcePath;
     }
 
-    public String getDestinationPath() {
-        return destinationPath;
-    }
-
-    public void setDestinationPath(String destinationPath) {
-        this.destinationPath = destinationPath;
-    }
-
     public GlueTableDescriptor getTableDescriptor() {
         return tableDescriptor;
     }
@@ -73,17 +64,14 @@ public class EtlDescriptor {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EtlDescriptor that = (EtlDescriptor) o;
+        EtlJobDescriptor that = (EtlJobDescriptor) o;
         return Objects.equals(name, that.name) && Objects.equals(description, that.description)
-                && Objects.equals(scriptLocation, that.scriptLocation)
-                && Objects.equals(scriptName, that.scriptName)
-                && Objects.equals(sourcePath, that.sourcePath)
-                && Objects.equals(destinationPath, that.destinationPath)
-                && Objects.equals(tableDescriptor, that.tableDescriptor);
+                && Objects.equals(scriptLocation, that.scriptLocation) && Objects.equals(scriptName, that.scriptName)
+                && Objects.equals(sourcePath, that.sourcePath) && Objects.equals(tableDescriptor, that.tableDescriptor);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, description, scriptLocation, scriptName, sourcePath, destinationPath, tableDescriptor);
+        return Objects.hash(name, description, scriptLocation, scriptName, sourcePath, tableDescriptor);
     }
 }
