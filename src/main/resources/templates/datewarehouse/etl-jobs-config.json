@@ -56,5 +56,45 @@
 				"projection.month.digits": "2"
 			}
 		}
+	},
+	{
+		"name": "nodesnapshots",
+		"description": "This job processes the node snapshot data",
+		"scriptLocation": "aws-glue.sagebase.org/scripts/",
+		"scriptName": "node_snapshots.py",
+		"sourcePath" : "log.sagebase.org/nodeSnapshots/",
+		"tableDescriptor": {
+			"name": "nodesnapshots",
+			"columns": {
+				"change_type": "string",
+				"change_timestamp": "timestamp",
+				"change_user_id": "bigint",
+				"snapshot_timestamp": "timestamp",
+				"id": "bigint",
+				"benefactor_id": "bigint",
+				"project_id": "bigint",
+				"parent_id": "bigint",
+				"node_type": "string",
+				"created_on": "timestamp",
+				"created_by": "bigint",
+				"modified_on": "timsestamp",
+				"modified_by": "bigint",
+				"version_number": "bigint",
+				"file_handle_id": "bigint",
+				"name": "string",
+				"is_public": "boolean",
+				"is_controlled": "boolean",
+				"is_restricted": "boolean"
+			},
+			"partitionKeys": {
+				"change_date": "date"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.change_date.type": "date",
+				"projection.change_date.range": "NOW-10YEARS,NOW",
+				"projection.change_date.format": "yyyy-MM-dd"
+			}
+		}
 	}]
 }
