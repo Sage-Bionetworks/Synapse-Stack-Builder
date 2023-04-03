@@ -77,7 +77,7 @@
 				"node_type": "string",
 				"created_on": "timestamp",
 				"created_by": "bigint",
-				"modified_on": "timsestamp",
+				"modified_on": "timestamp",
 				"modified_by": "bigint",
 				"version_number": "bigint",
 				"file_handle_id": "bigint",
