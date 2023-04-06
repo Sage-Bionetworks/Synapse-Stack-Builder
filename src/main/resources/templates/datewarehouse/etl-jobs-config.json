@@ -87,13 +87,13 @@
 				"is_restricted": "boolean"
 			},
 			"partitionKeys": {
-				"change_date": "date"
+				"snapshot_date": "date"
 			},
 			"parameters": {
 				"projection.enabled": "true",
-				"projection.change_date.type": "date",
-				"projection.change_date.range": "NOW-10YEARS,NOW",
-				"projection.change_date.format": "yyyy-MM-dd"
+				"projection.snapshot_date.type": "date",
+				"projection.snapshot_date.range": "NOW-10YEARS,NOW",
+				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
 		}
 	}]
