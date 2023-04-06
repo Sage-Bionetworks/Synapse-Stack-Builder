@@ -168,7 +168,7 @@
 		"bufferFlushInterval": 900
 	},
 	{
-		"name": "fileHandleSnapshots",
+		"name": "fileSnapshots",
 		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
 		"format": "JSON",
 		"bufferFlushSize": 64,

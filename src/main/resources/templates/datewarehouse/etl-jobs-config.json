@@ -96,5 +96,44 @@
 				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
 		}
+	},
+	{
+		"name": "filesnapshots",
+		"description": "This job processes the file snapshot data",
+		"scriptLocation": "aws-glue.sagebase.org/scripts/",
+		"scriptName": "file_snapshots.py",
+		"sourcePath" : "log.sagebase.org/fileSnapshots/",
+		"tableDescriptor": {
+			"name": "filesnapshots",
+			"columns": {
+				"change_type": "string",
+				"change_timestamp": "timestamp",
+				"change_user_id": "bigint",
+				"snapshot_timestamp": "timestamp",
+				"id": "bigint",
+				"created_by": "bigint",
+				"created_on": "timestamp",
+				"modified_on": "timestamp",
+				"concrete_type": "string",
+				"content_md5": "string",
+				"file_name": "string",
+				"storage_location_id": "bigint",
+				"content_size": "bigint",
+				"bucket": "string",
+				"key": "string",
+				"preview_id": "bigint",
+				"is_preview": "boolean",
+				"status": "string"
+			},
+			"partitionKeys": {
+				"snapshot_date": "date"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.snapshot_date.type": "date",
+				"projection.snapshot_date.range": "NOW-10YEARS,NOW",
+				"projection.snapshot_date.format": "yyyy-MM-dd"
+			}
+		}
 	}]
 }
