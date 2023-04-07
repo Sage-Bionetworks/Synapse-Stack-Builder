@@ -116,6 +116,7 @@
 				"modified_on": "timestamp",
 				"concrete_type": "string",
 				"content_md5": "string",
+				"content_type": "string",
 				"file_name": "string",
 				"storage_location_id": "bigint",
 				"content_size": "bigint",
