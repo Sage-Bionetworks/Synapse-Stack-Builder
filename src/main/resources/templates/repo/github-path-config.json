@@ -2,7 +2,8 @@
 	"basePath": "https://codeload.github.com/Sage-Bionetworks/Synapse-ETL-Jobs/zip/refs/tags",
 	"filePaths" :[
 			"/src/scripts/glue_jobs/process_access_record.py",
-			"/src/scripts/glue_jobs/node_snapshots.py"
+			"/src/scripts/glue_jobs/node_snapshots.py",
+			"/src/scripts/glue_jobs/file_snapshots.py"
 	],
-	"version" : "v1.8.0"
+	"version" : "v1.9.0"
 }
