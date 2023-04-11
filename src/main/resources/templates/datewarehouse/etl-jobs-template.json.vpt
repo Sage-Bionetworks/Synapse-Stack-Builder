@@ -161,17 +161,17 @@
 			"Properties": {
 				"Command": {
 					"Name": "glueetl",
-					"ScriptLocation": "s3://${stack}.${etl.scriptLocation}"
+					"ScriptLocation": "s3://${scriptLocationPrefix}${etl.scriptName}"
 				},
 				"DefaultArguments": {
 				    "--enable-continuous-cloudwatch-log": "true",
 					"--job-bookmark-option": "job-bookmark-enable",
 					"--enable-metrics": "true",
-                    "--enable-spark-ui": "true",
 					"--job-language": "python",
 					"--DATABASE_NAME": "${glueDatabaseName}",
 					"--TABLE_NAME": "${etl.tableDescriptor.name}",
-					"--S3_SOURCE_PATH": "s3://${stack}.${etl.sourcePath}"
+					"--S3_SOURCE_PATH": "s3://${stack}.${etl.sourcePath}",
+					"--extra-py-files": "${extraScripts}"
 				},
 				"Description": "${etl.description}",
 				"GlueVersion": "4.0",
