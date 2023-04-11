@@ -1,31 +1,16 @@
 package org.sagebionetworks.template;
 
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClientBuilder;
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClientBuilder;
-import com.amazonaws.services.kms.AWSKMS;
-import com.amazonaws.services.kms.AWSKMSAsyncClientBuilder;
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
-import com.amazonaws.services.route53.AmazonRoute53;
-import com.amazonaws.services.route53.AmazonRoute53ClientBuilder;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
-import com.google.inject.Provides;
-import com.google.inject.multibindings.Multibinder;
+import static org.sagebionetworks.template.Constants.ATHENA_QUERIES_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.ETL_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.KINESIS_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARM_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.S3_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.SNS_AND_SQS_CONFIG_FILE;
+import static org.sagebionetworks.template.TemplateUtils.loadFromJsonFile;
+
+import java.io.IOException;
+
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.velocity.app.VelocityEngine;
@@ -49,10 +34,6 @@ import org.sagebionetworks.template.datawarehouse.DataWarehouseBuilder;
 import org.sagebionetworks.template.datawarehouse.DataWarehouseBuilderImpl;
 import org.sagebionetworks.template.datawarehouse.EtlJobConfig;
 import org.sagebionetworks.template.datawarehouse.EtlJobConfigValidator;
-import org.sagebionetworks.template.datawarehouse.GithubConfig;
-import org.sagebionetworks.template.datawarehouse.GithubConfigValidator;
-import org.sagebionetworks.template.datawarehouse.GithubCopy;
-import org.sagebionetworks.template.datawarehouse.GithubCopyImpl;
 import org.sagebionetworks.template.dns.DnsBuilder;
 import org.sagebionetworks.template.dns.DnsBuilderImpl;
 import org.sagebionetworks.template.docs.SynapseDocsBuilder;
@@ -115,17 +96,32 @@ import org.sagebionetworks.util.DefaultClock;
 import org.sagebionetworks.war.WarAppender;
 import org.sagebionetworks.war.WarAppenderImpl;
 
-import java.io.IOException;
-
-import static org.sagebionetworks.template.Constants.ATHENA_QUERIES_CONFIG_FILE;
-import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_CONFIG_FILE;
-import static org.sagebionetworks.template.Constants.ETL_CONFIG_FILE;
-import static org.sagebionetworks.template.Constants.GITHUB_CONFIG_FILE;
-import static org.sagebionetworks.template.Constants.KINESIS_CONFIG_FILE;
-import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARM_CONFIG_FILE;
-import static org.sagebionetworks.template.Constants.S3_CONFIG_FILE;
-import static org.sagebionetworks.template.Constants.SNS_AND_SQS_CONFIG_FILE;
-import static org.sagebionetworks.template.TemplateUtils.loadFromJsonFile;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.cloudformation.AmazonCloudFormation;
+import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
+import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
+import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
+import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClientBuilder;
+import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
+import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClientBuilder;
+import com.amazonaws.services.kms.AWSKMS;
+import com.amazonaws.services.kms.AWSKMSAsyncClientBuilder;
+import com.amazonaws.services.lambda.AWSLambda;
+import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
+import com.amazonaws.services.route53.AmazonRoute53;
+import com.amazonaws.services.route53.AmazonRoute53ClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.secretsmanager.AWSSecretsManager;
+import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
+import com.google.inject.Provides;
+import com.google.inject.multibindings.Multibinder;
 
 public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
@@ -173,7 +169,6 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(Clock.class).to(DefaultClock.class);
 		bind(ExpiredStackTeardown.class).to(ExpiredStackTeardownImpl.class);
 		bind(DataWarehouseBuilder.class).to(DataWarehouseBuilderImpl.class);
-		bind(GithubCopy.class).to(GithubCopyImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 		
@@ -333,10 +328,5 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public EtlJobConfig etlConfigProvider() throws IOException {
 		return new EtlJobConfigValidator(loadFromJsonFile(ETL_CONFIG_FILE, EtlJobConfig.class)).validate();
-	}
-
-	@Provides
-	public GithubConfig githubPathConfigProvider() throws IOException {
-		return new GithubConfigValidator(loadFromJsonFile(GITHUB_CONFIG_FILE, GithubConfig.class)).validate();
 	}
 }

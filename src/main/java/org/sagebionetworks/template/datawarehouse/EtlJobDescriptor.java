@@ -7,7 +7,6 @@ import java.util.Objects;
 public class EtlJobDescriptor {
     private String name;
     private String description;
-    private String scriptLocation;
     private String scriptName;
     private String sourcePath;
     private GlueTableDescriptor tableDescriptor = null;
@@ -16,48 +15,45 @@ public class EtlJobDescriptor {
         return name;
     }
 
-    public void setName(String name) {
+    public EtlJobDescriptor withName(String name) {
         this.name = name;
+        return this;
     }
 
     public String getDescription() {
         return description;
     }
 
-    public void setDescription(String description) {
+    public EtlJobDescriptor withDescription(String description) {
         this.description = description;
-    }
-
-    public String getScriptLocation() {
-        return scriptLocation;
-    }
-
-    public void setScriptLocation(String scriptLocation) {
-        this.scriptLocation = scriptLocation;
+        return this;
     }
 
     public String getScriptName() {
         return scriptName;
     }
 
-    public void setScriptName(String scriptName) {
+    public EtlJobDescriptor withScriptName(String scriptName) {
         this.scriptName = scriptName;
+        return this;
     }
 
     public String getSourcePath() {
         return sourcePath;
     }
 
-    public void setSourcePath(String sourcePath) {
+    public EtlJobDescriptor withSourcePath(String sourcePath) {
         this.sourcePath = sourcePath;
+        return this;
     }
 
     public GlueTableDescriptor getTableDescriptor() {
         return tableDescriptor;
     }
 
-    public void setTableDescriptor(GlueTableDescriptor tableDescriptor) {
+    public EtlJobDescriptor withTableDescriptor(GlueTableDescriptor tableDescriptor) {
         this.tableDescriptor = tableDescriptor;
+        return this;
     }
 
     @Override
@@ -66,12 +62,12 @@ public class EtlJobDescriptor {
         if (o == null || getClass() != o.getClass()) return false;
         EtlJobDescriptor that = (EtlJobDescriptor) o;
         return Objects.equals(name, that.name) && Objects.equals(description, that.description)
-                && Objects.equals(scriptLocation, that.scriptLocation) && Objects.equals(scriptName, that.scriptName)
+                && Objects.equals(scriptName, that.scriptName)
                 && Objects.equals(sourcePath, that.sourcePath) && Objects.equals(tableDescriptor, that.tableDescriptor);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, description, scriptLocation, scriptName, sourcePath, tableDescriptor);
+        return Objects.hash(name, description, scriptName, sourcePath, tableDescriptor);
     }
 }
