@@ -150,13 +150,16 @@ public class DataWarehouseBuilderImplTest {
 		JSONObject props = resources.getJSONObject("testjobGlueJob").getJSONObject("Properties");
 		assertEquals(DATABASE_NAME.toLowerCase() + "_testjob", props.get("Name"));
 		assertEquals("test", props.get("Description"));
-		assertEquals(
-				"{\"--enable-continuous-cloudwatch-log\":\"true\",\"--job-bookmark-option\":"
-						+ "\"job-bookmark-enable\",\"--enable-metrics\":\"true\",\"--enable-spark-ui\":\"true\","
-						+ "\"--job-language\":\"python\",\"--DATABASE_NAME\":\"synapsewarehouse\",\"--TABLE_NAME\""
-						+ ":\"someTableRef\",\"--S3_SOURCE_PATH\":\"s3://dev.source\","
-						+ "\"--extra-py-files\":\"s3://dev.aws-glue.sagebase.org/scripts/v1.0.0/utilities/utils.py\"}",
-				props.getString("DefaultArguments"));
+		assertEquals("{"
+			+ "\"--enable-continuous-cloudwatch-log\":\"true\","
+			+ "\"--job-bookmark-option\":\"job-bookmark-enable\","
+			+ "\"--enable-metrics\":\"true\","
+			+ "\"--job-language\":\"python\","
+			+ "\"--DATABASE_NAME\":\"synapsewarehouse\","
+			+ "\"--TABLE_NAME\":\"someTableRef\","
+			+ "\"--S3_SOURCE_PATH\":\"s3://dev.source\","
+			+ "\"--extra-py-files\":\"s3://dev.aws-glue.sagebase.org/scripts/v1.0.0/utilities/utils.py\"}", props.getString("DefaultArguments")
+		);
 
 		JSONObject tableProperty = resources.getJSONObject("someTableRefGlueTable").getJSONObject("Properties");
 		assertEquals("{\"Name\":\"someTableRef"
