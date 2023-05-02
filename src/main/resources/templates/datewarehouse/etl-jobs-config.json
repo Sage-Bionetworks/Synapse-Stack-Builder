@@ -125,5 +125,33 @@
 				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
 		}
+	},
+	{
+		"name": "teamsnapshots",
+		"description": "This job processes the team snapshot data",
+		"scriptName": "team_snapshots.py",
+		"sourcePath" : "log.sagebase.org/teamSnapshots/",
+		"tableDescriptor": {
+			"name": "teamsnapshots",
+			"columns": {
+				"timestamp": "timestamp",
+				"id": "bigint",
+				"name": "string",
+				"can_join_public": "tinyint",
+				"created_on": "timestamp",
+				"created_by": "bigint",
+				"modified_on": "timestamp",
+				"modified_by": "bigint"
+			},
+			"partitionKeys": {
+				"snapshot_date": "date"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.snapshot_date.type": "date",
+				"projection.snapshot_date.range": "NOW-10YEARS,NOW",
+				"projection.snapshot_date.format": "yyyy-MM-dd"
+			}
+		}
 	}]
 }
