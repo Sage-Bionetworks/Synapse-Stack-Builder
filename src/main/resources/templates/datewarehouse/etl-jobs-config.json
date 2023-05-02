@@ -137,11 +137,35 @@
 				"timestamp": "timestamp",
 				"id": "bigint",
 				"name": "string",
-				"can_join_public": "tinyint",
+				"can_join_public": "boolean",
 				"created_on": "timestamp",
 				"created_by": "bigint",
 				"modified_on": "timestamp",
 				"modified_by": "bigint"
+			},
+			"partitionKeys": {
+				"snapshot_date": "date"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.snapshot_date.type": "date",
+				"projection.snapshot_date.range": "NOW-10YEARS,NOW",
+				"projection.snapshot_date.format": "yyyy-MM-dd"
+			}
+		}
+	},
+	{
+		"name": "teammembersnapshots",
+		"description": "This job processes the team member snapshot data",
+		"scriptName": "team_member_snapshots.py",
+		"sourcePath" : "log.sagebase.org/teamMemberSnapshots/",
+		"tableDescriptor": {
+			"name": "teammembersnapshots",
+			"columns": {
+				"timestamp": "timestamp",
+				"team_id": "bigint",
+				"member_id": "bigint",
+				"is_admin": "boolean"
 			},
 			"partitionKeys": {
 				"snapshot_date": "date"
