@@ -189,8 +189,37 @@
 				"timestamp": "timestamp",
 				"id": "bigint",
 				"is_individual": "boolean",
-				"created_on": "bigint"
+				"created_on": "timestamp"
 
+			},
+			"partitionKeys": {
+				"snapshot_date": "date"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.snapshot_date.type": "date",
+				"projection.snapshot_date.range": "NOW-10YEARS,NOW",
+				"projection.snapshot_date.format": "yyyy-MM-dd"
+			}
+		}
+	},
+	{
+		"name": "userprofilesnapshots",
+		"description": "This job processes the user profile snapshot data",
+		"scriptName": "user_profile_snapshots.py",
+		"sourcePath" : "log.sagebase.org/userProfileSnapshots/",
+		"tableDescriptor": {
+			"name": "userprofilesnapshots",
+			"columns": {
+				"timestamp": "timestamp",
+				"id": "bigint",
+				"user_name": "string",
+				"first_name": "string",
+				"last_name": "string",
+				"email": "string",
+				"location": "string",
+				"company": "string",
+				"position": "string"
 			},
 			"partitionKeys": {
 				"snapshot_date": "date"
