@@ -1,6 +1,6 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
-	"version": "1.14.0",
+	"version": "1.16.0",
 	"extraScripts": ["utils.py"],
 	"etlJobDescriptors":[{
 		"name": "processaccessrecord",
@@ -114,6 +114,112 @@
 				"preview_id": "bigint",
 				"is_preview": "boolean",
 				"status": "string"
+			},
+			"partitionKeys": {
+				"snapshot_date": "date"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.snapshot_date.type": "date",
+				"projection.snapshot_date.range": "NOW-10YEARS,NOW",
+				"projection.snapshot_date.format": "yyyy-MM-dd"
+			}
+		}
+	},
+	{
+		"name": "teamsnapshots",
+		"description": "This job processes the team snapshot data",
+		"scriptName": "team_snapshots.py",
+		"sourcePath" : "log.sagebase.org/teamSnapshots/",
+		"tableDescriptor": {
+			"name": "teamsnapshots",
+			"columns": {
+				"timestamp": "timestamp",
+				"id": "bigint",
+				"name": "string",
+				"can_join_public": "boolean",
+				"created_on": "timestamp",
+				"created_by": "bigint",
+				"modified_on": "timestamp",
+				"modified_by": "bigint"
+			},
+			"partitionKeys": {
+				"snapshot_date": "date"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.snapshot_date.type": "date",
+				"projection.snapshot_date.range": "NOW-10YEARS,NOW",
+				"projection.snapshot_date.format": "yyyy-MM-dd"
+			}
+		}
+	},
+	{
+		"name": "teammembersnapshots",
+		"description": "This job processes the team member snapshot data",
+		"scriptName": "team_member_snapshots.py",
+		"sourcePath" : "log.sagebase.org/teamMemberSnapshots/",
+		"tableDescriptor": {
+			"name": "teammembersnapshots",
+			"columns": {
+				"timestamp": "timestamp",
+				"team_id": "bigint",
+				"member_id": "bigint",
+				"is_admin": "boolean"
+			},
+			"partitionKeys": {
+				"snapshot_date": "date"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.snapshot_date.type": "date",
+				"projection.snapshot_date.range": "NOW-10YEARS,NOW",
+				"projection.snapshot_date.format": "yyyy-MM-dd"
+			}
+		}
+	},
+	{
+		"name": "usergroupsnapshots",
+		"description": "This job processes the user group snapshot data",
+		"scriptName": "user_group_snapshots.py",
+		"sourcePath" : "log.sagebase.org/userGroupSnapshots/",
+		"tableDescriptor": {
+			"name": "usergroupsnapshots",
+			"columns": {
+				"timestamp": "timestamp",
+				"id": "bigint",
+				"is_individual": "boolean",
+				"created_on": "timestamp"
+
+			},
+			"partitionKeys": {
+				"snapshot_date": "date"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.snapshot_date.type": "date",
+				"projection.snapshot_date.range": "NOW-10YEARS,NOW",
+				"projection.snapshot_date.format": "yyyy-MM-dd"
+			}
+		}
+	},
+	{
+		"name": "userprofilesnapshots",
+		"description": "This job processes the user profile snapshot data",
+		"scriptName": "user_profile_snapshots.py",
+		"sourcePath" : "log.sagebase.org/userProfileSnapshots/",
+		"tableDescriptor": {
+			"name": "userprofilesnapshots",
+			"columns": {
+				"timestamp": "timestamp",
+				"id": "bigint",
+				"user_name": "string",
+				"first_name": "string",
+				"last_name": "string",
+				"email": "string",
+				"location": "string",
+				"company": "string",
+				"position": "string"
 			},
 			"partitionKeys": {
 				"snapshot_date": "date"
