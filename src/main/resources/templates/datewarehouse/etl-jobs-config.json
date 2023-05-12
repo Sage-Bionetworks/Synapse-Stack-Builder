@@ -1,6 +1,6 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
-	"version": "1.16.0",
+	"version": "1.17.0",
 	"extraScripts": ["utils.py"],
 	"etlJobDescriptors":[{
 		"name": "processaccessrecord",
@@ -134,7 +134,8 @@
 		"tableDescriptor": {
 			"name": "teamsnapshots",
 			"columns": {
-				"timestamp": "timestamp",
+				"change_timestamp": "timestamp",
+				"snapshot_timestamp": "timestamp",
 				"id": "bigint",
 				"name": "string",
 				"can_join_public": "boolean",
@@ -162,7 +163,8 @@
 		"tableDescriptor": {
 			"name": "teammembersnapshots",
 			"columns": {
-				"timestamp": "timestamp",
+				"change_timestamp": "timestamp",
+				"snapshot_timestamp": "timestamp",
 				"team_id": "bigint",
 				"member_id": "bigint",
 				"is_admin": "boolean"
@@ -186,7 +188,8 @@
 		"tableDescriptor": {
 			"name": "usergroupsnapshots",
 			"columns": {
-				"timestamp": "timestamp",
+				"change_timestamp": "timestamp",
+				"snapshot_timestamp": "timestamp",
 				"id": "bigint",
 				"is_individual": "boolean",
 				"created_on": "timestamp"
@@ -211,7 +214,8 @@
 		"tableDescriptor": {
 			"name": "userprofilesnapshots",
 			"columns": {
-				"timestamp": "timestamp",
+				"change_timestamp": "timestamp",
+				"snapshot_timestamp": "timestamp",
 				"id": "bigint",
 				"user_name": "string",
 				"first_name": "string",
