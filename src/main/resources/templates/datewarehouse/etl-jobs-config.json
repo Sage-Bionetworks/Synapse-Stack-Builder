@@ -138,7 +138,7 @@
 				"snapshot_timestamp": "timestamp",
 				"id": "bigint",
 				"name": "string",
-				"can_join_public": "boolean",
+				"can_public_join": "boolean",
 				"created_on": "timestamp",
 				"created_by": "bigint",
 				"modified_on": "timestamp",
