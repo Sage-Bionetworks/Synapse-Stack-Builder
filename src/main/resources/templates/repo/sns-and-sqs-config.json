@@ -24,7 +24,8 @@
 		"THREAD_VIEW",
 		"MATERIALIZED_VIEW",
 		"TABLE_STATUS_EVENT",
-		"DATA_ACCESS_SUBMISSION_EVENT"
+		"DATA_ACCESS_SUBMISSION_EVENT",
+		"FILE_EVENT"
 	],
 	"snsGlobalTopicNames": [
 		"SES_SYNAPSE_ORG_BOUNCE",
@@ -353,6 +354,13 @@
 			"queueName": "TABLE_SNAPSHOTS",
 			"subscribedTopicNames":[
 				"TABLE_STATUS_EVENT"
+			],
+			"messageVisibilityTimeoutSec":120
+		},
+		{
+			"queueName": "FILE_RECORDS",
+			"subscribedTopicNames":[
+				"FILE_EVENT"
 			],
 			"messageVisibilityTimeoutSec":120
 		}
