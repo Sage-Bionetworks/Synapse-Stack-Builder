@@ -235,5 +235,57 @@
 				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
 		}
+	},
+	{
+		"name": "fileUploadRecords",
+		"description": "This job processes the file upload records",
+		"scriptName": "file_upload_records.py",
+		"sourcePath" : "log.sagebase.org/fileUploadRecords/",
+		"tableDescriptor": {
+			"name": "fileuploadrecords",
+			"columns": {
+				"timestamp": "timestamp",
+				"user_id": "bigint",
+				"project_id": "bigint",
+				"file_handle_id": "bigint",
+				"association_object_id": "bigint",
+				"association_object_type": "string"
+			},
+			"partitionKeys": {
+				"record_date": "date"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.record_date.type": "date",
+				"projection.record_date.range": "NOW-11YEARS,NOW",
+				"projection.record_date.format": "yyyy-MM-dd"
+			}
+		}
+	},
+	{
+		"name": "fileDownloadRecords",
+		"description": "This job processes the file download records",
+		"scriptName": "file_download_records.py",
+		"sourcePath" : "log.sagebase.org/fileDownloadRecords/",
+		"tableDescriptor": {
+			"name": "filedownloadrecords",
+			"columns": {
+				"timestamp": "timestamp",
+				"user_id": "bigint",
+				"project_id": "bigint",
+				"file_handle_id": "bigint",
+				"association_object_id": "bigint",
+				"association_object_type": "string"
+			},
+			"partitionKeys": {
+				"record_date": "date"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.record_date.type": "date",
+				"projection.record_date.range": "NOW-11YEARS,NOW",
+				"projection.record_date.format": "yyyy-MM-dd"
+			}
+		}
 	}]
 }
