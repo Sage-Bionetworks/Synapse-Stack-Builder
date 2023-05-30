@@ -237,7 +237,7 @@
 		}
 	},
 	{
-		"name": "fileUploadRecords",
+		"name": "fileuploadrecords",
 		"description": "This job processes the file upload records",
 		"scriptName": "file_upload_records.py",
 		"sourcePath" : "log.sagebase.org/fileUploadRecords/",
@@ -263,7 +263,7 @@
 		}
 	},
 	{
-		"name": "fileDownloadRecords",
+		"name": "filedownloadrecords",
 		"description": "This job processes the file download records",
 		"scriptName": "file_download_records.py",
 		"sourcePath" : "log.sagebase.org/fileDownloadRecords/",
