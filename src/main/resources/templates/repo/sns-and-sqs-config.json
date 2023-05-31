@@ -358,7 +358,7 @@
 			"messageVisibilityTimeoutSec":120
 		},
 		{
-			"queueName": "FILE_RECORDS",
+			"queueName": "FILE_EVENT_RECORDS",
 			"subscribedTopicNames":[
 				"FILE_EVENT"
 			],
