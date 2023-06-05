@@ -249,7 +249,9 @@
 				"project_id": "bigint",
 				"file_handle_id": "bigint",
 				"association_object_id": "bigint",
-				"association_object_type": "string"
+				"association_object_type": "string",
+				"stack": "string",
+				"instance": "string"
 			},
 			"partitionKeys": {
 				"record_date": "date"
@@ -257,7 +259,7 @@
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.record_date.type": "date",
-				"projection.record_date.range": "NOW-11YEARS,NOW",
+				"projection.record_date.range": "NOW-5YEARS,NOW",
 				"projection.record_date.format": "yyyy-MM-dd"
 			}
 		}
@@ -275,7 +277,9 @@
 				"project_id": "bigint",
 				"file_handle_id": "bigint",
 				"association_object_id": "bigint",
-				"association_object_type": "string"
+				"association_object_type": "string",
+				"stack": "string",
+				"instance": "string"
 			},
 			"partitionKeys": {
 				"record_date": "date"
@@ -283,7 +287,7 @@
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.record_date.type": "date",
-				"projection.record_date.range": "NOW-11YEARS,NOW",
+				"projection.record_date.range": "NOW-5YEARS,NOW",
 				"projection.record_date.format": "yyyy-MM-dd"
 			}
 		}
