@@ -1,6 +1,6 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
-	"version": "1.17.0",
+	"version": "1.19.0",
 	"extraScripts": ["utils.py"],
 	"etlJobDescriptors":[{
 		"name": "processaccessrecord",
@@ -233,6 +233,62 @@
 				"projection.snapshot_date.type": "date",
 				"projection.snapshot_date.range": "NOW-10YEARS,NOW",
 				"projection.snapshot_date.format": "yyyy-MM-dd"
+			}
+		}
+	},
+	{
+		"name": "fileuploadrecords",
+		"description": "This job processes the file upload records",
+		"scriptName": "file_event_records.py",
+		"sourcePath" : "log.sagebase.org/fileUploadRecords/",
+		"tableDescriptor": {
+			"name": "fileuploadrecords",
+			"columns": {
+				"timestamp": "timestamp",
+				"user_id": "bigint",
+				"project_id": "bigint",
+				"file_handle_id": "bigint",
+				"association_object_id": "bigint",
+				"association_object_type": "string",
+				"stack": "string",
+				"instance": "string"
+			},
+			"partitionKeys": {
+				"record_date": "date"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.record_date.type": "date",
+				"projection.record_date.range": "NOW-5YEARS,NOW",
+				"projection.record_date.format": "yyyy-MM-dd"
+			}
+		}
+	},
+	{
+		"name": "filedownloadrecords",
+		"description": "This job processes the file download records",
+		"scriptName": "file_event_records.py",
+		"sourcePath" : "log.sagebase.org/fileDownloadRecords/",
+		"tableDescriptor": {
+			"name": "filedownloadrecords",
+			"columns": {
+				"timestamp": "timestamp",
+				"user_id": "bigint",
+				"project_id": "bigint",
+				"file_handle_id": "bigint",
+				"association_object_id": "bigint",
+				"association_object_type": "string",
+				"stack": "string",
+				"instance": "string"
+			},
+			"partitionKeys": {
+				"record_date": "date"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.record_date.type": "date",
+				"projection.record_date.range": "NOW-5YEARS,NOW",
+				"projection.record_date.format": "yyyy-MM-dd"
 			}
 		}
 	}]
