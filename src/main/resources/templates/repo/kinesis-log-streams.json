@@ -222,5 +222,12 @@
 		"format": "JSON",
 		"bufferFlushSize": 64,
 		"bufferFlushInterval": 900
+	},
+	{
+		"name": "verificationSubmissionSnapshots",
+		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
+		"format": "JSON",
+		"bufferFlushSize": 64,
+		"bufferFlushInterval": 900
 	}]
 }
