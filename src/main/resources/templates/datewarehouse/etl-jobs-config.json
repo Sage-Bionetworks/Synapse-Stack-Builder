@@ -1,6 +1,6 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
-	"version": "1.19.0",
+	"version": "1.20.0",
 	"extraScripts": ["utils.py"],
 	"etlJobDescriptors":[{
 		"name": "processaccessrecord",
@@ -291,5 +291,33 @@
 				"projection.record_date.format": "yyyy-MM-dd"
 			}
 		}
-	}]
+	},
+	{
+		"name": "aclsnapshots",
+		"description": "This job processes the acl snapshot data",
+		"scriptName": "acl_snapshots.py",
+		"sourcePath" : "log.sagebase.org/aclSnapshots/",
+		"tableDescriptor": {
+			"name": "aclsnapshots",
+			"columns": {
+				"change_timestamp": "timestamp",
+				"change_type": "string",
+				"snapshot_timestamp": "timestamp",
+				"owner_id": "bigint",
+				"owner_type": "string",
+				"created_on": "timestamp",
+				"resource_access": "array<struct<principalId:bigint,accessType:array<string>>>"
+			},
+			"partitionKeys": {
+				"snapshot_date": "date"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.snapshot_date.type": "date",
+				"projection.snapshot_date.range": "NOW-6YEARS,NOW",
+				"projection.snapshot_date.format": "yyyy-MM-dd"
+			}
+		}
+	}
+	]
 }
