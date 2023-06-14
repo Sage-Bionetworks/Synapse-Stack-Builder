@@ -318,6 +318,32 @@
 				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
 		}
-	}
-	]
+	},
+	{
+		"name": "verificationsubmissionsnapshots",
+		"description": "This job processes the verification submission snapshot data",
+		"scriptName": "verification_submission_snapshots.py",
+		"sourcePath" : "log.sagebase.org/verificationSubmissionSnapshots/",
+		"tableDescriptor": {
+			"name": "verificationsubmissionsnapshots",
+			"columns": {
+				"change_timestamp": "timestamp",
+				"change_type": "string",
+				"snapshot_timestamp": "timestamp",
+				"id": "bigint",
+				"created_on": "timestamp",
+				"created_by": "bigint",
+				"state_history": "array<struct<createdOn:bigint,createdBy:string,state:string>>"
+			},
+			"partitionKeys": {
+				"snapshot_date": "date"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.snapshot_date.type": "date",
+				"projection.snapshot_date.range": "NOW-6YEARS,NOW",
+				"projection.snapshot_date.format": "yyyy-MM-dd"
+			}
+		}
+	}]
 }
