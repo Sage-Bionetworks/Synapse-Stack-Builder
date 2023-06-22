@@ -231,7 +231,7 @@
 		"bufferFlushInterval": 900
 	},
 	{
-		"name": "userCertificationSnapshots",
+		"name": "certifiedUserPassingRecords",
 		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
 		"format": "JSON",
 		"bufferFlushSize": 64,

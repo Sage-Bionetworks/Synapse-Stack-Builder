@@ -345,5 +345,29 @@
 				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
 		}
+	},
+	{
+		"name": "certifiedquizrecords",
+		"description": "This job processes the user's certified quiz records",
+		"scriptName": "certified_quiz_records.py",
+		"sourcePath" : "log.sagebase.org/certifiedUserPassingRecords/",
+		"tableDescriptor": {
+			"name": "certifiedquizrecords",
+			"columns": {
+				"response_id": "bigint",
+				"user_id": "bigint",
+				"passed": "boolean",
+				"passed_on": "timestamp"
+			},
+			"partitionKeys": {
+				"record_date": "date"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.record_date.type": "date",
+				"projection.record_date.range": "NOW-6YEARS,NOW",
+				"projection.record_date.format": "yyyy-MM-dd"
+			}
+		}
 	}]
 }
