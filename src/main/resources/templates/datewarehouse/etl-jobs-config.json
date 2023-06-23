@@ -357,7 +357,9 @@
 				"response_id": "bigint",
 				"user_id": "bigint",
 				"passed": "boolean",
-				"passed_on": "timestamp"
+				"passed_on": "timestamp",
+				"stack": "string",
+				"instance": "string"
 			},
 			"partitionKeys": {
 				"record_date": "date"
