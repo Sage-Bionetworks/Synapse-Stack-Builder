@@ -84,8 +84,7 @@
                                     "s3:GetObject"
                                 ],
                                 "Resource":[
-                                    "arn:aws:s3:::aws-glue-studio-transforms-510798373988-prod-us-east-1/gs_common.py",
-                                    "arn:aws:s3:::aws-glue-studio-transforms-510798373988-prod-us-east-1/gs_explode.py"
+                                    "arn:aws:s3:::aws-glue-studio-transforms-510798373988-prod-us-east-1/*"
                                 ]
                             }]
                         }
