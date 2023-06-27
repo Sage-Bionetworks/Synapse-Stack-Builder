@@ -1,24 +1,8 @@
 package org.sagebionetworks.template.datawarehouse;
 
-import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
-import static org.sagebionetworks.template.Constants.ETL_DESCRIPTORS;
-import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
-import static org.sagebionetworks.template.Constants.GLUE_DATABASE_NAME;
-import static org.sagebionetworks.template.Constants.JSON_INDENT;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
-import static org.sagebionetworks.template.Constants.STACK;
-import static org.sagebionetworks.template.Constants.TEMPLATE_ETL_GLUE_JOB_RESOURCES;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.nio.file.Files;
-import java.util.StringJoiner;
-import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
+import com.amazonaws.internal.ReleasableInputStream;
+import com.amazonaws.services.s3.AmazonS3;
+import com.google.inject.Inject;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -33,9 +17,25 @@ import org.sagebionetworks.template.repo.VelocityExceptionThrower;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 import org.sagebionetworks.util.ValidateArgument;
 
-import com.amazonaws.internal.ReleasableInputStream;
-import com.amazonaws.services.s3.AmazonS3;
-import com.google.inject.Inject;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.nio.file.Files;
+import java.util.List;
+import java.util.StringJoiner;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
+import static org.sagebionetworks.template.Constants.ETL_DESCRIPTORS;
+import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
+import static org.sagebionetworks.template.Constants.GLUE_DATABASE_NAME;
+import static org.sagebionetworks.template.Constants.JSON_INDENT;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
+import static org.sagebionetworks.template.Constants.STACK;
+import static org.sagebionetworks.template.Constants.TEMPLATE_ETL_GLUE_JOB_RESOURCES;
 
 public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
 	
@@ -43,6 +43,8 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
 	private static final String GITHUB_URL_TPL = "https://codeload.github.com/Sage-Bionetworks/%s/zip/refs/tags/v%s";
 	private static final String SCRIPT_PATH_TPL = "%s-%s/src/scripts/glue_jobs/"; 
 	private static final String S3_KEY_PATH_TPL = "scripts/v%s/";
+    private static final String GS_EXPLODE_SCRIPT = "s3://aws-glue-studio-transforms-510798373988-prod-us-east-1/gs_explode.py";
+    private static final String GS_COMMON_SCRIPT = "s3://aws-glue-studio-transforms-510798373988-prod-us-east-1/gs_common.py";
 	
     private CloudFormationClient cloudFormationClient;
     private VelocityEngine velocityEngine;
@@ -85,8 +87,12 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
         context.put(STACK, stack);
         context.put(ETL_DESCRIPTORS, etlJobConfig.getEtlJobDescriptors());
         context.put("scriptLocationPrefix", scriptLocationPrefix);
-        context.put("extraScripts", String.join(",", etlJobConfig.getExtraScripts().stream().map(s-> "s3://" + scriptLocationPrefix + s).collect(Collectors.toList())));
-        
+        List<String> extraScripts = etlJobConfig.getExtraScripts().stream().map(s -> "s3://" + scriptLocationPrefix + s)
+                .collect(Collectors.toList());
+        extraScripts.add(GS_EXPLODE_SCRIPT);
+        extraScripts.add(GS_COMMON_SCRIPT);
+        context.put("extraScripts", String.join(",", extraScripts));
+
         String stackName = new StringJoiner("-").add(stack).add(databaseName).add("etl-jobs").toString();
 
         // Merge the context with the template
