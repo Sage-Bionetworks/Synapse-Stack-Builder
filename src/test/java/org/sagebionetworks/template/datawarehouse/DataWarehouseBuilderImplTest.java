@@ -1,25 +1,8 @@
 package org.sagebionetworks.template.datawarehouse;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.List;
-import java.util.Set;
-import java.util.StringJoiner;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
+import com.amazonaws.services.cloudformation.model.Tag;
+import com.amazonaws.services.s3.AmazonS3;
+import com.google.common.collect.ImmutableMap;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
@@ -40,9 +23,25 @@ import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.repo.kinesis.firehose.GlueTableDescriptor;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 
-import com.amazonaws.services.cloudformation.model.Tag;
-import com.amazonaws.services.s3.AmazonS3;
-import com.google.common.collect.ImmutableMap;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 @ExtendWith(MockitoExtension.class)
 public class DataWarehouseBuilderImplTest {
@@ -158,7 +157,9 @@ public class DataWarehouseBuilderImplTest {
 			+ "\"--DATABASE_NAME\":\"synapsewarehouse\","
 			+ "\"--TABLE_NAME\":\"someTableRef\","
 			+ "\"--S3_SOURCE_PATH\":\"s3://dev.source\","
-			+ "\"--extra-py-files\":\"s3://dev.aws-glue.sagebase.org/scripts/v1.0.0/utilities/utils.py\"}", props.getString("DefaultArguments")
+			+ "\"--extra-py-files\":\"s3://dev.aws-glue.sagebase.org/scripts/v1.0.0/utilities/utils.py," +
+				"s3://aws-glue-studio-transforms-510798373988-prod-us-east-1/gs_explode.py," +
+				"s3://aws-glue-studio-transforms-510798373988-prod-us-east-1/gs_common.py\"}", props.getString("DefaultArguments")
 		);
 
 		JSONObject tableProperty = resources.getJSONObject("someTableRefGlueTable").getJSONObject("Properties");
