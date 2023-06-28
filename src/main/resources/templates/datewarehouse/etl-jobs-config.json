@@ -1,6 +1,6 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
-	"version": "1.22.0",
+	"version": "1.23.0",
 	"extraScripts": ["utils.py"],
 	"etlJobDescriptors":[{
 		"name": "processaccessrecord",
@@ -343,6 +343,57 @@
 				"projection.snapshot_date.type": "date",
 				"projection.snapshot_date.range": "NOW-6YEARS,NOW",
 				"projection.snapshot_date.format": "yyyy-MM-dd"
+			}
+		}
+	},
+	{
+		"name": "certifiedquizrecords",
+		"description": "This job processes the user's certified quiz records",
+		"scriptName": "certified_quiz_records.py",
+		"sourcePath" : "log.sagebase.org/certifiedUserPassingRecords/",
+		"tableDescriptor": {
+			"name": "certifiedquizrecords",
+			"columns": {
+				"response_id": "bigint",
+				"user_id": "bigint",
+				"passed": "boolean",
+				"passed_on": "timestamp",
+				"stack": "string",
+				"instance": "string"
+			},
+			"partitionKeys": {
+				"record_date": "date"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.record_date.type": "date",
+				"projection.record_date.range": "NOW-6YEARS,NOW",
+				"projection.record_date.format": "yyyy-MM-dd"
+			}
+		}
+	},
+	{
+		"name": "certifiedquizquestionrecords",
+		"description": "This job processes the user's certified quiz question records",
+		"scriptName": "certified_quiz_question_records.py",
+		"sourcePath" : "log.sagebase.org/certifiedUserPassingRecords/",
+		"tableDescriptor": {
+			"name": "certifiedquizquestionrecords",
+			"columns": {
+				"response_id": "bigint",
+				"question_index": "bigint",
+				"is_correct": "boolean",
+				"stack": "string",
+				"instance": "string"
+			},
+			"partitionKeys": {
+				"record_date": "date"
+			},
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.record_date.type": "date",
+				"projection.record_date.range": "NOW-6YEARS,NOW",
+				"projection.record_date.format": "yyyy-MM-dd"
 			}
 		}
 	}]
