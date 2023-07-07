@@ -14,7 +14,51 @@
 				},
 				"Description": "${stack}${instance}WebACL",
 				"Name": "${stack}${instance}WebACL",
+				"CustomResponseBodies": {
+			      "throttle-response-body": {
+			        "ContentType": "APPLICATION_JSON",
+			        "Content": "{\"reason\":\"limit of 10,000 calls per 5 minutes\"}"
+			      }
+			    },
 				"Rules": [
+					{
+						"Name": "${stack}-${instance}-throttle-file-handle-batch",
+					    "Priority": 0,
+						"Statement": {
+						    "RateBasedStatement": {
+						    "Limit": 10000,
+						    "AggregateKeyType": "IP",
+						    "ScopeDownStatement": {
+						      "ByteMatchStatement": {
+						        "SearchString": "/file/v1/fileHandle/batch",
+						        "FieldToMatch": {
+						          "UriPath": {}
+						        },
+						        "TextTransformations": [
+						          {
+						            "Priority": 0,
+						            "Type": "NONE"
+						          }
+						        ],
+						        "PositionalConstraint": "EXACTLY"
+						      }
+						    }
+						  }
+						},
+						"Action": {
+						  "Block": {
+						    "CustomResponse": {
+						      "ResponseCode": 429,
+						      "CustomResponseBodyKey": "throttle-response-body"
+						    }
+						  }
+						},
+						"VisibilityConfig": {
+						  "SampledRequestsEnabled": true,
+						  "CloudWatchMetricsEnabled": true,
+						  "MetricName": "${stack}${instance}ThrottleFileHandleBatchRule",
+						}
+					},
 					{
 						"Action": {
 							"Block": {
