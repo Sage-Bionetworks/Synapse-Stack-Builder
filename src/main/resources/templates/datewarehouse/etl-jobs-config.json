@@ -143,7 +143,7 @@
 			"partitionKeys":[{
 				"name": "record_date",
 				"type" : "date",
-				"comment" : "The date on which the request to Synapse server was made. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The date on which the request to Synapse server was made. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -259,7 +259,7 @@
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The date on which the snapshot was recorded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The date on which the snapshot was recorded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -375,7 +375,7 @@
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The date on which the snapshot was recorded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The date on which the snapshot was recorded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -442,7 +442,7 @@
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The date on which the snapshot was recorded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The date on which the snapshot was recorded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -488,7 +488,7 @@
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The date on which the snapshot was recorded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The date on which the snapshot was recorded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -534,7 +534,7 @@
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The date on which the snapshot was recorded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The date on which the snapshot was recorded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -605,7 +605,7 @@
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The date on which the snapshot was recorded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The date on which the snapshot was recorded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -666,7 +666,7 @@
 			"partitionKeys":[{
 				"name": "record_date",
 				"type" : "date",
-				"comment" : "The date on which the file was uploaded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The date on which the file was uploaded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -727,7 +727,7 @@
 			"partitionKeys":[{
 				"name": "record_date",
 				"type" : "date",
-				"comment" : "The date on which the file was downloaded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The date on which the file was downloaded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -783,7 +783,7 @@
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The date on which the snapshot was recorded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The date on which the snapshot was recorded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -890,7 +890,7 @@
 			"partitionKeys":[{
 				"name": "record_date",
 				"type" : "date",
-				"comment" : "The date on which the file was downloaded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The date on which the file was downloaded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -936,7 +936,7 @@
 			"partitionKeys":[{
 				"name": "record_date",
 				"type" : "date",
-				"comment" : "The date on which the file was downloaded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The date on which the file was downloaded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
