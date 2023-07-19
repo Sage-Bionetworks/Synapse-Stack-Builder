@@ -1,6 +1,7 @@
 package org.sagebionetworks.template.repo.kinesis.firehose;
 
 import org.apache.commons.lang3.StringUtils;
+import org.sagebionetworks.template.repo.glue.GlueTableDescriptor;
 
 public class KinesisFirehoseConfigValidator {
 

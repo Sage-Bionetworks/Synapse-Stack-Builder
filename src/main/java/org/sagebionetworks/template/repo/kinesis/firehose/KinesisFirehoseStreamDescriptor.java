@@ -1,5 +1,7 @@
 package org.sagebionetworks.template.repo.kinesis.firehose;
 
+import org.sagebionetworks.template.repo.glue.GlueTableDescriptor;
+
 import java.util.Objects;
 
 public class KinesisFirehoseStreamDescriptor {

@@ -9,37 +9,142 @@
 		"sourcePath" : "log.sagebase.org/accessRecord/",
 		"tableDescriptor": {
 			"name": "processedaccessrecord",
-			"columns": {
-				"session_id": "string",
-				"timestamp": "timestamp",
-				"user_id": "bigint",
-				"method": "string",
-				"request_url": "string",
-				"user_agent": "string",
-				"host": "string",
-				"origin": "string",
-				"x_forwarded_for": "string",
-				"via": "string",
-				"thread_id": "bigint",
-				"elapse_ms": "bigint",
-				"success" : "boolean",
-				"stack": "string",
-				"instance": "string",
-				"vm_id": "string",
-				"return_object_id": "string",
-				"query_string": "string",
-				"response_status": "bigint",
-				"oauth_client_id": "string",
-				"basic_auth_username": "string",
-				"auth_method": "string",
-				"normalized_method_signature": "string",
-				"client": "string",
-				"client_version": "string",
-				"entity_id": "bigint"
+			"description" : "The table contains access records. Records contains information of all the API request received on Synapse server. Records data is useful for audit and to analyse API performance such as delays, error or success rate.",
+			"columns":[{
+				"name": "session_id",
+				"type" : "string",
+				"comment" : "A unique number that Synapse server assigns to a specific user for the duration of that user's visit."
 			},
-			"partitionKeys": {
-				"record_date": "date"
+			{
+				"name": "timestamp",
+				"type" : "timestamp",
+				"comment" : "The timestamp when the user sent a request to Synapse server."
 			},
+			{
+				"name": "user_id",
+				"type" : "bigint",
+				"comment" : "The identifier of user who sent request to Synapse server."
+			},
+			{
+				"name": "method",
+				"type" : "string",
+				"comment" : "The http method for the API call."
+			},
+			{
+				"name": "request_url",
+				"type" : "string",
+				"comment" : "The URL of the request."
+			},
+			{
+				"name": "user_agent",
+				"type" : "string",
+				"comment" : "The user agent used by request and it helps identify the client used to make that request like Mozilla, Chrome, Java client etc."
+			},
+			{
+				"name": "host",
+				"type" : "string",
+				"comment" : "The IP address (IPv4) of the host that made the request."
+			},
+			{
+				"name": "origin",
+				"type" : "string",
+				"comment" : "The host name of the portal used to make the request like https://staging.synapse.org,https://adknowledgeportal.synapse.org,https://dhealth.synapse.org."
+			},
+			{
+				"name": "x_forwarded_for",
+				"type" : "string",
+				"comment" : "The originating IP address of a user connecting to a Synapse through a portal."
+			},
+			{
+				"name": "via",
+				"type" : "string",
+				"comment" : "The via is used for tracking message forwards, avoiding request loops, and identifying the protocol capabilities of senders along the request/response chain."
+			},
+			{
+				"name": "thread_id",
+				"type" : "bigint",
+				"comment" : "The identifier of thread in which the request was processed."
+			},
+			{
+				"name": "elapse_ms",
+				"type" : "bigint",
+				"comment" : "The total time consumed in processing of user request in milliseconds."
+			},
+			{
+				"name": "success",
+				"type" : "boolean",
+				"comment" : "Indicates if the user request is success (true) or failure (false)."
+			},
+			{
+				"name": "stack",
+				"type" : "string",
+				"comment" : "The stack (prod, dev) on which request was made."
+			},
+			{
+				"name": "instance",
+				"type" : "string",
+				"comment" : "The version of the stack that processed the request."
+			},
+			{
+				"name": "vm_id",
+				"type" : "string",
+				"comment" : "The unique identifier of the actual EC2 instance that processed the request."
+			},
+			{
+				"name": "return_object_id",
+				"type" : "string",
+				"comment" : "The Synapse id of the object effected by the request, if available."
+			},
+			{
+				"name": "query_string",
+				"type" : "string",
+				"comment" : "A query string is a set of characters tacked onto the end of a URL. The query string begins after the question mark (?) and can include one or more parameters. Each parameter is represented by a unique key-value pair or a set of two linked data items."
+			},
+			{
+				"name": "response_status",
+				"type" : "bigint",
+				"comment" : "The response code of request like 200,401,500 etc."
+			},
+			{
+				"name": "oauth_client_id",
+				"type" : "string",
+				"comment" : "The unique id of the oauth client used in request."
+			},
+			{
+				"name": "basic_auth_username",
+				"type" : "string",
+				"comment" : "The user name used to authenticate the request."
+			},
+			{
+				"name": "auth_method",
+				"type" : "string",
+				"comment" : "The authentication method used by user like BEARERTOKEN, SESSIONTOKEN, BASIC etc."
+			},
+			{
+				"name": "normalized_method_signature",
+				"type" : "string",
+				"comment" : "The simplified version of request url. It includes the http method and the path with all id's extracted"
+			},
+			{
+				"name": "client",
+				"type" : "string",
+				"comment" : "The is an alias to the user agent like WEB, JAVA, PYTHON etc."
+			},
+			{
+				"name": "client_version",
+				"type" : "string",
+				"comment" : "The version of the client used to make the request."
+			},
+			{
+				"name": "entity_id",
+				"type" : "bigint",
+				"comment" : "The requested entity id by the user, if applicable."
+			}],
+			"partitionKeys":[{
+				"name": "record_date",
+				"type" : "date",
+				"comment" : "The date on which the request to Synapse server was made. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+			}],
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.record_date.type": "date",
@@ -55,30 +160,107 @@
 		"sourcePath" : "log.sagebase.org/nodeSnapshots/",
 		"tableDescriptor": {
 			"name": "nodesnapshots",
-			"columns": {
-				"change_type": "string",
-				"change_timestamp": "timestamp",
-				"change_user_id": "bigint",
-				"snapshot_timestamp": "timestamp",
-				"id": "bigint",
-				"benefactor_id": "bigint",
-				"project_id": "bigint",
-				"parent_id": "bigint",
-				"node_type": "string",
-				"created_on": "timestamp",
-				"created_by": "bigint",
-				"modified_on": "timestamp",
-				"modified_by": "bigint",
-				"version_number": "bigint",
-				"file_handle_id": "bigint",
-				"name": "string",
-				"is_public": "boolean",
-				"is_controlled": "boolean",
-				"is_restricted": "boolean"
+			"description" : "This table contains snapshots of nodes (Nodes are project, file, folders...). Snapshots are taken when nodes created, updated or deleted.",
+			"columns":[{
+				"name": "change_type",
+				"type" : "string",
+				"comment" : "The type of changed that occurred on node like CREATE, UPDATE, DELETE."
 			},
-			"partitionKeys": {
-				"snapshot_date": "date"
+			{
+				"name": "change_timestamp",
+				"type" : "timestamp",
+				"comment" : "The timestamp of change on node."
 			},
+			{
+				"name": "change_user_id",
+				"type" : "bigint",
+				"comment" : "The identifier of the user who made the change on the node."
+			},
+			{
+				"name": "snapshot_timestamp",
+				"type" : "timestamp",
+				"comment" : "The timestamp, when the change was recorded (It's usually shortly after the change happened)."
+			},
+			{
+				"name": "id",
+				"type" : "bigint",
+				"comment" : "The identifier of the node."
+			},
+			{
+				"name": "benefactor_id",
+				"type" : "bigint",
+				"comment" : "The identifier of the node which its permissions are inherited from."
+			},
+			{
+				"name": "project_id",
+				"type" : "bigint",
+				"comment" : "The project where the node resides."
+			},
+			{
+				"name": "parent_id",
+				"type" : "bigint",
+				"comment" : "The identifier of the parent in node hierarchy."
+			},
+			{
+				"name": "node_type",
+				"type" : "string",
+				"comment" : "The type of node like project, folder, file ,table etc."
+			},
+			{
+				"name": "created_on",
+				"type" : "timestamp",
+				"comment" : "The creation timestamp of the node."
+			},
+			{
+				"name": "created_by",
+				"type" : "bigint",
+				"comment" : "The identifier of user who created the node."
+			},
+			{
+				"name": "modified_on",
+				"type" : "timestamp",
+				"comment" : "The most recent modification timestamp of the node."
+			},
+			{
+				"name": "modified_by",
+				"type" : "bigint",
+				"comment" : "The identifier of user who last modified the node."
+			},
+			{
+				"name": "version_number",
+				"type" : "bigint",
+				"comment" : "The version of node on which change occurred. If applicable."
+			},
+			{
+				"name": "file_handle_id",
+				"type" : "bigint",
+				"comment" : "The identifier of the file handle if the node is a file."
+			},
+			{
+				"name": "name",
+				"type" : "string",
+				"comment" : "The name of the node."
+			},
+			{
+				"name": "is_public",
+				"type" : "boolean",
+				"comment" : "If true, any logged in user can access the node."
+			},
+			{
+				"name": "is_controlled",
+				"type" : "boolean",
+				"comment" : "If true, any terms of use access requirement effects the node."
+			},
+			{
+				"name": "is_restricted",
+				"type" : "boolean",
+				"comment" : "If true, any access requirement managed by ACT effects the node."
+			}],
+			"partitionKeys":[{
+				"name": "snapshot_date",
+				"type" : "date",
+				"comment" : "The date on which the snapshot was recorded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+			}],
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.snapshot_date.type": "date",
@@ -94,30 +276,107 @@
 		"sourcePath" : "log.sagebase.org/fileSnapshots/",
 		"tableDescriptor": {
 			"name": "filesnapshots",
-			"columns": {
-				"change_type": "string",
-				"change_timestamp": "timestamp",
-				"change_user_id": "bigint",
-				"snapshot_timestamp": "timestamp",
-				"id": "bigint",
-				"created_by": "bigint",
-				"created_on": "timestamp",
-				"modified_on": "timestamp",
-				"concrete_type": "string",
-				"content_md5": "string",
-				"content_type": "string",
-				"file_name": "string",
-				"storage_location_id": "bigint",
-				"content_size": "bigint",
-				"bucket": "string",
-				"key": "string",
-				"preview_id": "bigint",
-				"is_preview": "boolean",
-				"status": "string"
+			"description" : "This table contains snapshots of file handles. Snapshots are taken when file handles are created, updated or deleted",
+			"columns":[{
+				"name": "change_type",
+				"type" : "string",
+				"comment" : "The type of changed that occurred on file handle like CREATE, UPDATE, DELETE."
 			},
-			"partitionKeys": {
-				"snapshot_date": "date"
+			{
+				"name": "change_timestamp",
+				"type" : "timestamp",
+				"comment" : "The timestamp of change on file handle."
 			},
+			{
+				"name": "change_user_id",
+				"type" : "bigint",
+				"comment" : "The identifier of the user who made the change on the file."
+			},
+			{
+				"name": "snapshot_timestamp",
+				"type" : "timestamp",
+				"comment" : "The timestamp, when the change was recorded (It's usually shortly after the change happened)."
+			},
+			{
+				"name": "id",
+				"type" : "bigint",
+				"comment" : "The identifier of the file handle."
+			},
+			{
+				"name": "created_by",
+				"type" : "bigint",
+				"comment" : "The identifier of user who created the file handle."
+			},
+			{
+				"name": "created_on",
+				"type" : "timestamp",
+				"comment" : "The creation timestamp of the file handle."
+			},
+			{
+				"name": "modified_on",
+				"type" : "timestamp",
+				"comment" : "The modification timestamp of the file handle."
+			},
+			{
+				"name": "concrete_type",
+				"type" : "string",
+				"comment" : "The type of actual file handle like s3, google cloud, external file handle etc..."
+			},
+			{
+				"name": "content_md5",
+				"type" : "string",
+				"comment" : "The md5 hash (using MD5 algorithm) of the file referenced by the file handle."
+			},
+			{
+				"name": "content_type",
+				"type" : "string",
+				"comment" : "It's meta data about the content of the file."
+			},
+			{
+				"name": "file_name",
+				"type" : "string",
+				"comment" : "The file name of the file reference by the file handle."
+			},
+			{
+				"name": "storage_location_id",
+				"type" : "bigint",
+				"comment" : "The identifier of the environment where the physical files are stored."
+			},
+			{
+				"name": "content_size",
+				"type" : "bigint",
+				"comment" : "The size of the file referenced by file handle."
+			},
+			{
+				"name": "bucket",
+				"type" : "string",
+				"comment" : "The bucket where the file is physically stored. If s3-compatible."
+			},
+			{
+				"name": "key",
+				"type" : "string",
+				"comment" : "The full physical path of the file referenced by file handle."
+			},
+			{
+				"name": "preview_id",
+				"type" : "bigint",
+				"comment" : "The identifier of the file handle that contains a preview of the file referenced by this file handle."
+			},
+			{
+				"name": "is_preview",
+				"type" : "boolean",
+				"comment" : "If true, the file referenced by this file handle is a preview of a file"
+			},
+			{
+				"name": "status",
+				"type" : "string",
+				"comment" : "The availability status of the the file referenced by file handle."
+			}],
+			"partitionKeys":[{
+				"name": "snapshot_date",
+				"type" : "date",
+				"comment" : "The date on which the snapshot was recorded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+			}],
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.snapshot_date.type": "date",
@@ -133,20 +392,58 @@
 		"sourcePath" : "log.sagebase.org/teamSnapshots/",
 		"tableDescriptor": {
 			"name": "teamsnapshots",
-			"columns": {
-				"change_timestamp": "timestamp",
-				"snapshot_timestamp": "timestamp",
-				"id": "bigint",
-				"name": "string",
-				"can_public_join": "boolean",
-				"created_on": "timestamp",
-				"created_by": "bigint",
-				"modified_on": "timestamp",
-				"modified_by": "bigint"
+			"description" : "This table contains snapshots of teams. Snapshots are taken when teams are created, updated or deleted",
+
+			"columns":[{
+				"name": "change_timestamp",
+				"type" : "timestamp",
+				"comment" : "The timestamp of change on team."
 			},
-			"partitionKeys": {
-				"snapshot_date": "date"
+			{
+				"name": "snapshot_timestamp",
+				"type" : "timestamp",
+				"comment" : "The timestamp, when the change was recorded (It's usually shortly after the change happened)."
 			},
+			{
+				"name": "id",
+				"type" : "bigint",
+				"comment" : "The unique identifier of the team."
+			},
+			{
+				"name": "name",
+				"type" : "string",
+				"comment" : "The name of the team."
+			},
+			{
+				"name": "can_public_join",
+				"type" : "boolean",
+				"comment" : "If true, any logged in user can join the team."
+			},
+			{
+				"name": "created_on",
+				"type" : "timestamp",
+				"comment" : "The creation timestamp of the team."
+			},
+			{
+				"name": "created_by",
+				"type" : "bigint",
+				"comment" : "The identifier of user who created the team."
+			},
+			{
+				"name": "modified_on",
+				"type" : "timestamp",
+				"comment" : "The modification timestamp of the team."
+			},
+			{
+				"name": "modified_by",
+				"type" : "bigint",
+				"comment" : "The identifier of user who last modified the team."
+			}],
+			"partitionKeys":[{
+				"name": "snapshot_date",
+				"type" : "date",
+				"comment" : "The date on which the snapshot was recorded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+			}],
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.snapshot_date.type": "date",
@@ -162,16 +459,37 @@
 		"sourcePath" : "log.sagebase.org/teamMemberSnapshots/",
 		"tableDescriptor": {
 			"name": "teammembersnapshots",
-			"columns": {
-				"change_timestamp": "timestamp",
-				"snapshot_timestamp": "timestamp",
-				"team_id": "bigint",
-				"member_id": "bigint",
-				"is_admin": "boolean"
+			"description" : "This table contains snapshots of team-members. Snapshots are taken when members are added or deleted from a team.",
+			"columns":[{
+				"name": "change_timestamp",
+				"type" : "timestamp",
+				"comment" : "The timestamp of change of the team membership."
 			},
-			"partitionKeys": {
-				"snapshot_date": "date"
+			{
+				"name": "snapshot_timestamp",
+				"type" : "timestamp",
+				"comment" : "The timestamp when the change was recorded (It's usually shortly after the change happened)."
 			},
+			{
+				"name": "team_id",
+				"type" : "bigint",
+				"comment" : "The unique identifier of the team."
+			},
+			{
+				"name": "member_id",
+				"type" : "bigint",
+				"comment" : "The unique identifier of the member."
+			},
+			{
+				"name": "is_admin",
+				"type" : "boolean",
+				"comment" : "If true, then the member is manager of the team."
+			}],
+			"partitionKeys":[{
+				"name": "snapshot_date",
+				"type" : "date",
+				"comment" : "The date on which the snapshot was recorded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+			}],
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.snapshot_date.type": "date",
@@ -187,17 +505,37 @@
 		"sourcePath" : "log.sagebase.org/userGroupSnapshots/",
 		"tableDescriptor": {
 			"name": "usergroupsnapshots",
-			"columns": {
-				"change_timestamp": "timestamp",
-				"snapshot_timestamp": "timestamp",
-				"id": "bigint",
-				"is_individual": "boolean",
-				"created_on": "timestamp"
-
+			"description" : "This table contains snapshots of user-groups. Snapshots are taken when user-groups are created, updated or deleted",
+			"columns":[{
+				"name": "change_timestamp",
+				"type" : "timestamp",
+				"comment" : "The timestamp of change on user-group."
 			},
-			"partitionKeys": {
-				"snapshot_date": "date"
+			{
+				"name": "snapshot_timestamp",
+				"type" : "timestamp",
+				"comment" : "The timestamp when the change was recorded (It's usually shortly after the change happened)."
 			},
+			{
+				"name": "id",
+				"type" : "bigint",
+				"comment" : "The unique identifier of user."
+			},
+			{
+				"name": "is_individual",
+				"type" : "boolean",
+				"comment" : "If true, then this user group is individual user not a team."
+			},
+			{
+				"name": "created_on",
+				"type" : "timestamp",
+				"comment" : "The creation timestamp of user-group."
+			}],
+			"partitionKeys":[{
+				"name": "snapshot_date",
+				"type" : "date",
+				"comment" : "The date on which the snapshot was recorded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+			}],
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.snapshot_date.type": "date",
@@ -213,21 +551,62 @@
 		"sourcePath" : "log.sagebase.org/userProfileSnapshots/",
 		"tableDescriptor": {
 			"name": "userprofilesnapshots",
-			"columns": {
-				"change_timestamp": "timestamp",
-				"snapshot_timestamp": "timestamp",
-				"id": "bigint",
-				"user_name": "string",
-				"first_name": "string",
-				"last_name": "string",
-				"email": "string",
-				"location": "string",
-				"company": "string",
-				"position": "string"
+			"description" : "This table contains snapshots of user-profiles. Snapshots are taken when user-profiles are created, updated or deleted",
+			"columns":[{
+				"name": "change_timestamp",
+				"type" : "timestamp",
+				"comment" : "The timestamp of change on user-profile."
 			},
-			"partitionKeys": {
-				"snapshot_date": "date"
+			{
+				"name": "snapshot_timestamp",
+				"type" : "timestamp",
+				"comment" : "The timestamp when the change was recorded (It's usually shortly after the change happened)."
 			},
+			{
+				"name": "id",
+				"type" : "bigint",
+				"comment" : "The unique identifier of the user."
+			},
+			{
+				"name": "user_name",
+				"type" : "string",
+				"comment" : "The name of user used for login to Synapse."
+			},
+			{
+				"name": "first_name",
+				"type" : "string",
+				"comment" : "The first name of the user."
+			},
+			{
+				"name": "last_name",
+				"type" : "string",
+				"comment" : "The last name of the user."
+			},
+			{
+				"name": "email",
+				"type" : "string",
+				"comment" : "The email of the user."
+			},
+			{
+				"name": "location",
+				"type" : "string",
+				"comment" : "The location of the user."
+			},
+			{
+				"name": "company",
+				"type" : "string",
+				"comment" : "The company where user works."
+			},
+			{
+				"name": "position",
+				"type" : "string",
+				"comment" : "The position of user in the company."
+			}],
+			"partitionKeys":[{
+				"name": "snapshot_date",
+				"type" : "date",
+				"comment" : "The date on which the snapshot was recorded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+			}],
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.snapshot_date.type": "date",
@@ -243,19 +622,52 @@
 		"sourcePath" : "log.sagebase.org/fileUploadRecords/",
 		"tableDescriptor": {
 			"name": "fileuploadrecords",
-			"columns": {
-				"timestamp": "timestamp",
-				"user_id": "bigint",
-				"project_id": "bigint",
-				"file_handle_id": "bigint",
-				"association_object_id": "bigint",
-				"association_object_type": "string",
-				"stack": "string",
-				"instance": "string"
+			"description" : "The table contains file upload records. Records contains information regarding upload of a file on Synapse.",
+			"columns":[{
+				"name": "timestamp",
+				"type" : "timestamp",
+				"comment" : "The timestamp of the file upload."
 			},
-			"partitionKeys": {
-				"record_date": "date"
+			{
+				"name": "user_id",
+				"type" : "bigint",
+				"comment" : "The identifier of user who uploaded the file."
 			},
+			{
+				"name": "project_id",
+				"type" : "bigint",
+				"comment" : "The unique identifier of the project where the file resides."
+			},
+			{
+				"name": "file_handle_id",
+				"type" : "bigint",
+				"comment" : "The unique identifier of the file handle."
+			},
+			{
+				"name": "association_object_id",
+				"type" : "bigint",
+				"comment" : "The unique identifier of the Synapse object that wraps the file."
+			},
+			{
+				"name": "association_object_type",
+				"type" : "string",
+				"comment" : "The type of the Synapse object that wraps the file."
+			},
+			{
+				"name": "stack",
+				"type" : "string",
+				"comment" : "The stack (prod, dev) on which the file was uploaded."
+			},
+			{
+				"name": "instance",
+				"type" : "string",
+				"comment" : "The version of the stack that processed the file upload."
+			}],
+			"partitionKeys":[{
+				"name": "record_date",
+				"type" : "date",
+				"comment" : "The date on which the file was uploaded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+			}],
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.record_date.type": "date",
@@ -271,19 +683,52 @@
 		"sourcePath" : "log.sagebase.org/fileDownloadRecords/",
 		"tableDescriptor": {
 			"name": "filedownloadrecords",
-			"columns": {
-				"timestamp": "timestamp",
-				"user_id": "bigint",
-				"project_id": "bigint",
-				"file_handle_id": "bigint",
-				"association_object_id": "bigint",
-				"association_object_type": "string",
-				"stack": "string",
-				"instance": "string"
+			"description" : "The table contains file download records. Records contains information regarding download of the file from the system.",
+			"columns":[{
+				"name": "timestamp",
+				"type" : "timestamp",
+				"comment" : "The timestamp of file download."
 			},
-			"partitionKeys": {
-				"record_date": "date"
+			{
+				"name": "user_id",
+				"type" : "bigint",
+				"comment" : "The user id who downloaded the file."
 			},
+			{
+				"name": "project_id",
+				"type" : "bigint",
+				"comment" : "The unique identifier of the project where the file resides."
+			},
+			{
+				"name": "file_handle_id",
+				"type" : "bigint",
+				"comment" : "The unique identifier of the file handle."
+			},
+			{
+				"name": "association_object_id",
+				"type" : "bigint",
+				"comment" : "The unique identifier of the Synapse object that wraps the file."
+			},
+			{
+				"name": "association_object_type",
+				"type" : "string",
+				"comment" : "The type of the Synapse object that wraps the file."
+			},
+			{
+				"name": "stack",
+				"type" : "string",
+				"comment" : "The stack (prod, dev) on which the file was uploaded."
+			},
+			{
+				"name": "instance",
+				"type" : "string",
+				"comment" : "The version of the stack that processed the file download."
+			}],
+			"partitionKeys":[{
+				"name": "record_date",
+				"type" : "date",
+				"comment" : "The date on which the file was downloaded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+			}],
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.record_date.type": "date",
@@ -299,18 +744,47 @@
 		"sourcePath" : "log.sagebase.org/aclSnapshots/",
 		"tableDescriptor": {
 			"name": "aclsnapshots",
-			"columns": {
-				"change_timestamp": "timestamp",
-				"change_type": "string",
-				"snapshot_timestamp": "timestamp",
-				"owner_id": "bigint",
-				"owner_type": "string",
-				"created_on": "timestamp",
-				"resource_access": "array<struct<principalId:bigint,accessType:array<string>>>"
+			"description" : "This table contains snapshots of access-control-list. Snapshots are taken when acl is created, updated or deleted",
+			"columns":[{
+				"name": "change_timestamp",
+				"type" : "timestamp",
+				"comment" : "The timestamp of change on acl."
 			},
-			"partitionKeys": {
-				"snapshot_date": "date"
+			{
+				"name": "change_type",
+				"type" : "string",
+				"comment" : "The type of changed that occurred on acl like CREATE, UPDATE, DELETE."
 			},
+			{
+				"name": "snapshot_timestamp",
+				"type" : "timestamp",
+				"comment" : "The timestamp, when the change was recorded (It's usually shortly after the change happened)."
+			},
+			{
+				"name": "owner_id",
+				"type" : "bigint",
+				"comment" : "The unique identifier of the Synapse object that the acl is affecting like node-id, team-id..."
+			},
+			{
+				"name": "owner_type",
+				"type" : "string",
+				"comment" : "The type of the Synapse object that the acl is affecting like ENTITY, TEAM..."
+			},
+			{
+				"name": "created_on",
+				"type" : "timestamp",
+				"comment" : "The creation time of the acl."
+			},
+			{
+				"name": "resource_access",
+				"type" : "array<struct<principalId:bigint,accessType:array<string>>>",
+				"comment" : "It's a list of user-groups and the associated permission on the object specified by owner_id."
+			}],
+			"partitionKeys":[{
+				"name": "snapshot_date",
+				"type" : "date",
+				"comment" : "The date on which the snapshot was recorded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+			}],
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.snapshot_date.type": "date",
@@ -326,18 +800,47 @@
 		"sourcePath" : "log.sagebase.org/verificationSubmissionSnapshots/",
 		"tableDescriptor": {
 			"name": "verificationsubmissionsnapshots",
-			"columns": {
-				"change_timestamp": "timestamp",
-				"change_type": "string",
-				"snapshot_timestamp": "timestamp",
-				"id": "bigint",
-				"created_on": "timestamp",
-				"created_by": "bigint",
-				"state_history": "array<struct<createdOn:bigint,createdBy:string,state:string>>"
+			"description" : "This table contains snapshots of submissions of user verification data by ACT. Snapshots are taken when submissions are is created or updated ",
+			"columns":[{
+				"name": "change_timestamp",
+				"type" : "timestamp",
+				"comment" : "The timestamp of change on the submission."
 			},
-			"partitionKeys": {
-				"snapshot_date": "date"
+			{
+				"name": "change_type",
+				"type" : "string",
+				"comment" : "The type of change that occurred on the submission like CREATE, UPDATE."
 			},
+			{
+				"name": "snapshot_timestamp",
+				"type" : "timestamp",
+				"comment" : "The timestamp, when the change was recorded (It's usually shortly after the change happened)."
+			},
+			{
+				"name": "id",
+				"type" : "bigint",
+				"comment" : "The unique identifier of the submission."
+			},
+			{
+				"name": "created_on",
+				"type" : "timestamp",
+				"comment" : "The creation timestamp of the submission."
+			},
+			{
+				"name": "created_by",
+				"type" : "bigint",
+				"comment" : "The identifier of the user who created the submission"
+			},
+			{
+				"name": "state_history",
+				"type" : "array<struct<createdOn:bigint,createdBy:string,state:string>>",
+				"comment" : "List of submission states (SUBMITTED, REJECTED, APPROVED) for the submission."
+			}],
+			"partitionKeys":[{
+				"name": "snapshot_date",
+				"type" : "date",
+				"comment" : ""
+			}],
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.snapshot_date.type": "date",
@@ -353,17 +856,42 @@
 		"sourcePath" : "log.sagebase.org/certifiedUserPassingRecords/",
 		"tableDescriptor": {
 			"name": "certifiedquizrecords",
-			"columns": {
-				"response_id": "bigint",
-				"user_id": "bigint",
-				"passed": "boolean",
-				"passed_on": "timestamp",
-				"stack": "string",
-				"instance": "string"
+			"description" : "This table contains records of the certification quiz taken by Synapse user.",
+			"columns":[{
+				"name": "response_id",
+				"type" : "bigint",
+				"comment" : "The unique identifier for the an instance of a quiz taken by user."
 			},
-			"partitionKeys": {
-				"record_date": "date"
+			{
+				"name": "user_id",
+				"type" : "bigint",
+				"comment" : "The identifier of the user who took the quiz."
 			},
+			{
+				"name": "passed",
+				"type" : "boolean",
+				"comment" : "If true, user passed the quiz."
+			},
+			{
+				"name": "passed_on",
+				"type" : "timestamp",
+				"comment" : "The date on which user took the quiz."
+			},
+			{
+				"name": "stack",
+				"type" : "string",
+				"comment" : "The stack (prod, dev) on which the quiz record was processed."
+			},
+			{
+				"name": "instance",
+				"type" : "string",
+				"comment" : "The unique identifier for the an instance of a quiz taken by user."
+			}],
+			"partitionKeys":[{
+				"name": "record_date",
+				"type" : "date",
+				"comment" : "The date on which the file was downloaded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+			}],
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.record_date.type": "date",
@@ -379,16 +907,37 @@
 		"sourcePath" : "log.sagebase.org/certifiedUserPassingRecords/",
 		"tableDescriptor": {
 			"name": "certifiedquizquestionrecords",
-			"columns": {
-				"response_id": "bigint",
-				"question_index": "bigint",
-				"is_correct": "boolean",
-				"stack": "string",
-				"instance": "string"
+			"description" : "",
+			"columns":[{
+				"name": "response_id",
+				"type" : "bigint",
+				"comment" : "The identifier of the certified quiz record associated with this question record."
 			},
-			"partitionKeys": {
-				"record_date": "date"
+			{
+				"name": "question_index",
+				"type" : "bigint",
+				"comment" : "The position of the question within the quiz. "
 			},
+			{
+				"name": "is_correct",
+				"type" : "boolean",
+				"comment" : "If true, the answer to the question was correct."
+			},
+			{
+				"name": "stack",
+				"type" : "string",
+				"comment" : "The stack (prod, dev) on which the quiz question record was processed."
+			},
+			{
+				"name": "instance",
+				"type" : "string",
+				"comment" : "The unique identifier for the an instance of a quiz taken by user."
+			}],
+			"partitionKeys":[{
+				"name": "record_date",
+				"type" : "date",
+				"comment" : "The date on which the file was downloaded. The date should be should as condition (WHERE CLAUSE) for fast and cost effective queries."
+			}],
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.record_date.type": "date",
