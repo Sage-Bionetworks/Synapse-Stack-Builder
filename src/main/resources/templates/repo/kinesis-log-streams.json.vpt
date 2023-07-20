@@ -143,6 +143,10 @@
 					{
 						"Name":"$partition.name",
 						"Type":"$partition.type"
+						#if( $partition.comment )
+                            ,
+                            "Comment":"$partition.comment"
+                        #end
 					}
 					#if( $foreach.hasNext),#end
 					#end
