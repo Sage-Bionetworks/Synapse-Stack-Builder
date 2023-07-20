@@ -160,7 +160,7 @@
 		"sourcePath" : "log.sagebase.org/nodeSnapshots/",
 		"tableDescriptor": {
 			"name": "nodesnapshots",
-			"description" : "This table contains snapshots of nodes (Nodes are project, file, folders...). Snapshots are taken when nodes created, updated or deleted.",
+			"description" : "This table contains snapshots of nodes (Nodes are project, file, folders...). Snapshots are taken when nodes created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
 				"name": "change_type",
 				"type" : "string",
@@ -169,7 +169,7 @@
 			{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp of change on node."
+				"comment" : "The time when the user created/updated/deleted the node."
 			},
 			{
 				"name": "change_user_id",
@@ -179,7 +179,7 @@
 			{
 				"name": "snapshot_timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp, when the change was recorded (It's usually shortly after the change happened)."
+				"comment" : "The time when the snapshot was taken(It's usually shortly after the change happened)."
 			},
 			{
 				"name": "id",
@@ -276,7 +276,7 @@
 		"sourcePath" : "log.sagebase.org/fileSnapshots/",
 		"tableDescriptor": {
 			"name": "filesnapshots",
-			"description" : "This table contains snapshots of file handles. Snapshots are taken when file handles are created, updated or deleted",
+			"description" : "This table contains snapshots of file handles. Snapshots are taken when file handles are created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
 				"name": "change_type",
 				"type" : "string",
@@ -285,7 +285,7 @@
 			{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp of change on file handle."
+				"comment" : "The time when the user created/updated/deleted the file handle."
 			},
 			{
 				"name": "change_user_id",
@@ -295,7 +295,7 @@
 			{
 				"name": "snapshot_timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp, when the change was recorded (It's usually shortly after the change happened)."
+				"comment" : "The time when the snapshot was taken(It's usually shortly after the change happened)."
 			},
 			{
 				"name": "id",
@@ -392,17 +392,17 @@
 		"sourcePath" : "log.sagebase.org/teamSnapshots/",
 		"tableDescriptor": {
 			"name": "teamsnapshots",
-			"description" : "This table contains snapshots of teams. Snapshots are taken when teams are created, updated or deleted",
+			"description" : "This table contains snapshots of teams. Snapshots are taken when teams are created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp of change on team."
+				"comment" : "The time when the user created/updated/deleted the team."
 			},
 			{
 				"name": "snapshot_timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp, when the change was recorded (It's usually shortly after the change happened)."
+				"comment" : "The time when the snapshot was taken(It's usually shortly after the change happened)."
 			},
 			{
 				"name": "id",
@@ -459,16 +459,16 @@
 		"sourcePath" : "log.sagebase.org/teamMemberSnapshots/",
 		"tableDescriptor": {
 			"name": "teammembersnapshots",
-			"description" : "This table contains snapshots of team-members. Snapshots are taken when members are added or deleted from a team.",
+			"description" : "This table contains snapshots of team-members. Snapshots are taken when members are added or deleted from a team. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp of change of the team membership."
+				"comment" : "The time when the user added/deleted the team member."
 			},
 			{
 				"name": "snapshot_timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp when the change was recorded (It's usually shortly after the change happened)."
+				"comment" : "The time when the snapshot was taken(It's usually shortly after the change happened)."
 			},
 			{
 				"name": "team_id",
@@ -505,16 +505,16 @@
 		"sourcePath" : "log.sagebase.org/userGroupSnapshots/",
 		"tableDescriptor": {
 			"name": "usergroupsnapshots",
-			"description" : "This table contains snapshots of user-groups. Snapshots are taken when user-groups are created, updated or deleted",
+			"description" : "This table contains snapshots of user-groups. Snapshots are taken when user-groups are created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp of change on user-group."
+				"comment" : "The time when the user created/updated/deleted the user-group."
 			},
 			{
 				"name": "snapshot_timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp when the change was recorded (It's usually shortly after the change happened)."
+				"comment" : "The time when the snapshot was taken(It's usually shortly after the change happened)."
 			},
 			{
 				"name": "id",
@@ -551,16 +551,16 @@
 		"sourcePath" : "log.sagebase.org/userProfileSnapshots/",
 		"tableDescriptor": {
 			"name": "userprofilesnapshots",
-			"description" : "This table contains snapshots of user-profiles. Snapshots are taken when user-profiles are created, updated or deleted",
+			"description" : "This table contains snapshots of user-profiles. Snapshots are taken when user-profiles are created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp of change on user-profile."
+				"comment" : "The time when the user created/updated/deleted the user-profile."
 			},
 			{
 				"name": "snapshot_timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp when the change was recorded (It's usually shortly after the change happened)."
+				"comment" : "The time when the snapshot was taken(It's usually shortly after the change happened)."
 			},
 			{
 				"name": "id",
@@ -717,7 +717,7 @@
 			{
 				"name": "stack",
 				"type" : "string",
-				"comment" : "The stack (prod, dev) on which the file was uploaded."
+				"comment" : "The stack (prod, dev) on which the file was downloaded."
 			},
 			{
 				"name": "instance",
@@ -744,11 +744,11 @@
 		"sourcePath" : "log.sagebase.org/aclSnapshots/",
 		"tableDescriptor": {
 			"name": "aclsnapshots",
-			"description" : "This table contains snapshots of access-control-list. Snapshots are taken when acl is created, updated or deleted",
+			"description" : "This table contains snapshots of access-control-list. Snapshots are taken when acl is created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp of change on acl."
+				"comment" : "The time when the user created/updated/deleted the acl."
 			},
 			{
 				"name": "change_type",
@@ -758,7 +758,7 @@
 			{
 				"name": "snapshot_timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp, when the change was recorded (It's usually shortly after the change happened)."
+				"comment" : "The time when the snapshot was taken(It's usually shortly after the change happened)."
 			},
 			{
 				"name": "owner_id",
@@ -800,11 +800,11 @@
 		"sourcePath" : "log.sagebase.org/verificationSubmissionSnapshots/",
 		"tableDescriptor": {
 			"name": "verificationsubmissionsnapshots",
-			"description" : "This table contains snapshots of submissions of user verification data by ACT. Snapshots are taken when submissions are is created or updated ",
+			"description" : "This table contains snapshots of submissions of user verification data by ACT. Snapshots are taken when submissions are is created or updated. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken. ",
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp of change on the submission."
+				"comment" : "The time when the user created/updated the submission."
 			},
 			{
 				"name": "change_type",
@@ -814,7 +814,7 @@
 			{
 				"name": "snapshot_timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp, when the change was recorded (It's usually shortly after the change happened)."
+				"comment" : "The time when the snapshot was taken(It's usually shortly after the change happened)."
 			},
 			{
 				"name": "id",
@@ -907,7 +907,7 @@
 		"sourcePath" : "log.sagebase.org/certifiedUserPassingRecords/",
 		"tableDescriptor": {
 			"name": "certifiedquizquestionrecords",
-			"description" : "",
+			"description" : "This table contains records of the questions of certified quiz taken bu Synapse user.",
 			"columns":[{
 				"name": "response_id",
 				"type" : "bigint",

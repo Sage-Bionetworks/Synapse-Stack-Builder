@@ -14,49 +14,61 @@
 		"bufferFlushInterval": 900,
 		"tableDescriptor": {
 			"name": "fileDownloadsRecords",
+			"description" : "The table contains file download records. Records contains information regarding download of the file from the system.",
 			"columns": [{
 				"name": "userId",
-				"type" : "bigint"
+				"type" : "bigint",
+				"comment" : "The user id who downloaded the file."
 			},
 			{
 				"name": "timestamp",
-				"type" : "timestamp"
+				"type" : "timestamp",
+				"comment" : "The timestamp of file download."
 			},
 			{
 				"name": "projectId",
-				"type" : "bigint"
+				"type" : "bigint",
+				"comment" : "The unique identifier of the project where the file resides."
 			},
 			{
 				"name": "fileHandleId",
-				"type" : "string"
+				"type" : "string",
+				"comment" : "The unique identifier of the file handle."
 			},
 			{
 				"name": "associateType",
-				"type" : "string"
+				"type" : "string",
+				"comment" : "The type of the Synapse object that wraps the file."
 			},
 			{
 				"name": "associateId",
-				"type" : "string"
+				"type" : "string",
+				"comment" : "The unique identifier of the Synapse object that wraps the file."
 			},
 			{
 				"name": "stack",
-				"type" : "string"
+				"type" : "string",
+				"comment" : "The stack (prod, dev) on which the file was downloaded."
 			},
 			{
 				"name": "instance",
-				"type" : "string"
+				"type" : "string",
+				"comment" : "The version of the stack that processed the file download."
 			}],
 			"partitionKeys":[{
 				"name": "year",
-				"type" : "string"
+				"type" : "string",
+				"comment": "The year when file was downloaded.The year should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			},
 			{
 				"name": "month",
-				"type" : "string"
+				"type" : "string",
+				"comment": "The month when file was downloaded.The year should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			},
 			{
 				"name": "day",
-				"type" : "string"
+				"type" : "string",
+				"comment": "The day when file was downloaded.The year should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}]
 		}
 	},
@@ -68,49 +80,61 @@
 		"bufferFlushInterval": 900,
 		"tableDescriptor": {
 			"name": "fileUploadsRecords",
+			"description" : "The table contains file upload records. Records contains information regarding upload of the file from the system.",
 			"columns": [{
 				"name": "userId",
-				"type" : "bigint"
+				"type" : "bigint",
+				"comment" : "The user id who uploaded the file."
 			},
 			{
 				"name": "timestamp",
-				"type" : "timestamp"
+				"type" : "timestamp",
+				"comment" : "The timestamp of file uploaded."
 			},
 			{
 				"name": "projectId",
-				"type" : "bigint"
+				"type" : "bigint",
+				"comment" : "The unique identifier of the project where the file resides."
 			},
 			{
 				"name": "fileHandleId",
-				"type" : "string"
+				"type" : "string",
+				"comment" : "The unique identifier of the file handle."
 			},
 			{
 				"name": "associateType",
-				"type" : "string"
+				"type" : "string",
+				"comment" : "The type of the Synapse object that wraps the file."
 			},
 			{
 				"name": "associateId",
-				"type" : "string"
+				"type" : "string",
+				"comment" : "The unique identifier of the Synapse object that wraps the file."
 			},
 			{
 				"name": "stack",
-				"type" : "string"
+				"type" : "string",
+				"comment" : "The stack (prod, dev) on which the file was uploaded."
 			},
 			{
 				"name": "instance",
-				"type" : "string"
+				"type" : "string",
+				"comment" : "The version of the stack that processed the file upload."
 			}],
 			"partitionKeys":[{
 				"name": "year",
-				"type" : "string"
+				"type" : "string",
+				"comment": "The year when file was uploaded.The year should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			},
 			{
 				"name": "month",
-				"type" : "string"
+				"type" : "string",
+				"comment": "The month when file was uploaded.The year should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			},
 			{
 				"name": "day",
-				"type" : "string"
+				"type" : "string",
+				"comment": "The day when file was uploaded.The year should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}]
 		}
 	},
@@ -124,33 +148,41 @@
 		"backupDisabled": true,
 		"tableDescriptor": {
 			"name": "fileHandleAssociationsRecords",
+			"description" : "The table contains file handle association records.",
 			"columns": [{
 				"name": "timestamp",
-				"type" : "timestamp"
+				"type" : "timestamp",
+				"comment" : "The time when association was data was collected."
 			},
 			{
 				"name": "associateType",
-				"type" : "string"
+				"type" : "string",
+				"comment" : "The type of the Synapse object that wraps the file."
 			},
 			{
 				"name": "associateId",
-				"type" : "string"
+				"type" : "string",
+				"comment" : "The unique identifier of the Synapse object that wraps the file."
 			},
 			{
 				"name": "fileHandleId",
-				"type" : "string"
+				"type" : "string",
+				"comment" : "The unique identifier of the file handle."
 			},
 			{
 				"name": "stack",
-				"type" : "string"
+				"type" : "string",
+				"comment" : "The stack (prod, dev) on which the file was association happened."
 			},
 			{
 				"name": "instance",
-				"type" : "string"
+				"type" : "string",
+				"comment" : "The version of the stack that processed the file association."
 			}],
 			"partitionKeys":[{
 				"name": "dt",
-				"type" : "string"
+				"type" : "string",
+				"comment" : "The date on which the file association was collected. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -172,29 +204,36 @@
 		"backupDisabled": true,
 		"tableDescriptor": {
 			"name": "fileHandleDataRecords",
+			"description" : "This table contains file handle records. Records are logged when file handles are created, updated or deleted.",
 			"columns": [{
 				"name": "id",
-				"type" : "bigint"
+				"type" : "bigint",
+				"comment" : "The identifier of the file handle."
 			},
 			{
 				"name": "createdOn",
-				"type" : "timestamp"
+				"type" : "timestamp",
+				"comment" : "The creation time of the file handle."
 			},
 			{
 				"name": "updatedOn",
-				"type" : "timestamp"
+				"type" : "timestamp",
+				"comment" : "The update time of the file handle."
 			},
 			{
 				"name": "status",
-				"type" : "string"
+				"type" : "string",
+				"comment" : "The availability status of the the file referenced by file handle."
 			},
 			{
 				"name": "isPreview",
-				"type" : "boolean"
+				"type" : "boolean",
+				"comment" : "If true, the file referenced by this file handle is a preview of a file"
 			},
 			{
 				"name": "contentSize",
-				"type" : "bigint"
+				"type" : "bigint",
+				"comment" : "The size of the file referenced by file handle."
 			},
 			{
 				"name": "bucket",
@@ -202,15 +241,18 @@
 			},
 			{
 				"name": "key",
-				"type" : "string"
+				"type" : "string",
+				"comment" : "The bucket where the file is physically stored. If s3-compatible."
 			},
 			{
 				"name": "stack",
-				"type" : "string"
+				"type" : "string",
+				"comment" : "The stack (prod, dev) on which the file handle processed."
 			},
 			{
 				"name": "instance",
-				"type" : "string"
+				"type" : "string",
+				"comment" : "The version of the stack that processed the file handle."
 			}],
 			"partitionKeys":[{
 				"name": "dt",

@@ -93,12 +93,14 @@
 			},
 			"TableInput": {
 				"Name": "$stream.tableDescriptor.name.toLowerCase()",
+				"Description" : "$etl.tableDescriptor.description",
 				"StorageDescriptor": {
 					"Columns": [
 						#foreach($column in $stream.tableDescriptor.columns)
 						{
 							"Name":"$column.name",
                             "Type":"$column.type"
+                            "Comment":"$column.comment"
 						}
 						#if( $foreach.hasNext),#end
 						#end
