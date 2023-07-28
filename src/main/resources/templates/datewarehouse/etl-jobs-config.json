@@ -9,11 +9,11 @@
 		"sourcePath" : "log.sagebase.org/accessRecord/",
 		"tableDescriptor": {
 			"name": "processedaccessrecord",
-			"description" : "The table contains access records. Records contains information of all the API request received on Synapse server. Records data is useful for audit and to analyse API performance such as delays, error or success rate.",
+			"description" : "The table contains access records. Each record reflects a single API request received by Synapse server. The record data is useful for audit and to analyse API performance such as delays, error or success rate.",
 			"columns":[{
 				"name": "session_id",
 				"type" : "string",
-				"comment" : "A unique number that Synapse server assigns to a specific user for the duration of that user's visit."
+				"comment" : "A unique number that Synapse assigns for the duration of a session. Sessions are linked to a user or API key or token."
 			},
 			{
 				"name": "timestamp",
@@ -23,7 +23,7 @@
 			{
 				"name": "user_id",
 				"type" : "bigint",
-				"comment" : "The identifier of user who sent request to Synapse server."
+				"comment" : "The unique identifier for the Synapse user."
 			},
 			{
 				"name": "method",
@@ -38,7 +38,7 @@
 			{
 				"name": "user_agent",
 				"type" : "string",
-				"comment" : "The user agent used by request and it helps identify the client used to make that request like Mozilla, Chrome, Java client etc."
+				"comment" : "The User-Agent header from the http request. see: https://en.wikipedia.org/wiki/User-Agent_header"
 			},
 			{
 				"name": "host",
@@ -48,32 +48,32 @@
 			{
 				"name": "origin",
 				"type" : "string",
-				"comment" : "The host name of the portal used to make the request like https://staging.synapse.org,https://adknowledgeportal.synapse.org,https://dhealth.synapse.org."
+				"comment" : "The host name of the portal making request, e.g., https://staging.synapse.org, https://adknowledgeportal.synapse.org, https://dhealth.synapse.org."
 			},
 			{
 				"name": "x_forwarded_for",
 				"type" : "string",
-				"comment" : "The originating IP address of a user connecting to a Synapse through a portal."
+				"comment" : "The HTTP Header contains IP address of user connecting through a proxy. see: https://en.wikipedia.org/wiki/X-Forwarded-For"
 			},
 			{
 				"name": "via",
 				"type" : "string",
-				"comment" : "The via is used for tracking message forwards, avoiding request loops, and identifying the protocol capabilities of senders along the request/response chain."
+				"comment" : "The HTTP Header Via informs the server of proxies through which the request was sent."
 			},
 			{
 				"name": "thread_id",
 				"type" : "bigint",
-				"comment" : "The identifier of thread in which the request was processed."
+				"comment" : "The identifier of the thread in which the request was processed."
 			},
 			{
 				"name": "elapse_ms",
 				"type" : "bigint",
-				"comment" : "The total time consumed in processing of user request in milliseconds."
+				"comment" : "The total time consumed processing the user request in milliseconds."
 			},
 			{
 				"name": "success",
 				"type" : "boolean",
-				"comment" : "Indicates if the user request is success (true) or failure (false)."
+				"comment" : "Indicates if the user request succeeded (true) or failed (false)."
 			},
 			{
 				"name": "stack",
@@ -93,42 +93,42 @@
 			{
 				"name": "return_object_id",
 				"type" : "string",
-				"comment" : "The Synapse id of the object effected by the request, if available."
+				"comment" : "The Synapse id of the object affected by the request, if available."
 			},
 			{
 				"name": "query_string",
 				"type" : "string",
-				"comment" : "A query string is a set of characters tacked onto the end of a URL. The query string begins after the question mark (?) and can include one or more parameters. Each parameter is represented by a unique key-value pair or a set of two linked data items."
+				"comment" : "The set of characters tacked onto the end of a URL after the the question mark (?)."
 			},
 			{
 				"name": "response_status",
 				"type" : "bigint",
-				"comment" : "The response code of request like 200,401,500 etc."
+				"comment" : "The response code of request, e.g., 200, 401, 500 etc."
 			},
 			{
 				"name": "oauth_client_id",
 				"type" : "string",
-				"comment" : "The unique id of the oauth client used in request."
+				"comment" : "The unique id of the oauth client used in the request. It will be empty in case request is not made by OAuth client."
 			},
 			{
 				"name": "basic_auth_username",
 				"type" : "string",
-				"comment" : "The user name used to authenticate the request."
+				"comment" : "For requests that are authenticated with Basic Authentication, this is the content of the user-name field."
 			},
 			{
 				"name": "auth_method",
 				"type" : "string",
-				"comment" : "The authentication method used by user like BEARERTOKEN, SESSIONTOKEN, BASIC etc."
+				"comment" : "The authentication method used by the client. Currently BEARERTOKEN, SESSIONTOKEN, BASIC, APIKEY methods are supported."
 			},
 			{
 				"name": "normalized_method_signature",
 				"type" : "string",
-				"comment" : "The simplified version of request url. It includes the http method and the path with all id's extracted"
+				"comment" : "The simplified version of the request url. It includes the http method and the path with all id's extracted."
 			},
 			{
 				"name": "client",
 				"type" : "string",
-				"comment" : "The is an alias to the user agent like WEB, JAVA, PYTHON etc."
+				"comment" : "The is an alias of the user agent e.g., WEB, JAVA, PYTHON etc."
 			},
 			{
 				"name": "client_version",
@@ -138,7 +138,7 @@
 			{
 				"name": "entity_id",
 				"type" : "bigint",
-				"comment" : "The requested entity id by the user, if applicable."
+				"comment" : "The entity id referenced in the request, if any."
 			}],
 			"partitionKeys":[{
 				"name": "record_date",
@@ -164,22 +164,22 @@
 			"columns":[{
 				"name": "change_type",
 				"type" : "string",
-				"comment" : "The type of changed that occurred on node like CREATE, UPDATE, DELETE."
+				"comment" : "The type of change that occurred on node, e.g., CREATE, UPDATE, DELETE."
 			},
 			{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the user created/updated/deleted the node."
+				"comment" : "The time when change(created/updated/deleted) on node is pushed to the queue for snapshotting."
 			},
 			{
 				"name": "change_user_id",
 				"type" : "bigint",
-				"comment" : "The identifier of the user who made the change on the node."
+				"comment" : "who made the change to the node."
 			},
 			{
 				"name": "snapshot_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the snapshot was taken(It's usually shortly after the change happened)."
+				"comment" : "The time when the snapshot was taken (It is usually after the change happened)."
 			},
 			{
 				"name": "id",
@@ -189,7 +189,7 @@
 			{
 				"name": "benefactor_id",
 				"type" : "bigint",
-				"comment" : "The identifier of the node which its permissions are inherited from."
+				"comment" : "The identifier of the (ancestor) node which provides the permissions that apply to this node. Can be the id of the node itself."
 			},
 			{
 				"name": "project_id",
@@ -204,7 +204,7 @@
 			{
 				"name": "node_type",
 				"type" : "string",
-				"comment" : "The type of node like project, folder, file ,table etc."
+				"comment" : "The type of node, e.g., project, folder, file ,table."
 			},
 			{
 				"name": "created_on",
@@ -219,7 +219,7 @@
 			{
 				"name": "modified_on",
 				"type" : "timestamp",
-				"comment" : "The most recent modification timestamp of the node."
+				"comment" : "The most recent change timestamp of the node."
 			},
 			{
 				"name": "modified_by",
@@ -229,12 +229,12 @@
 			{
 				"name": "version_number",
 				"type" : "bigint",
-				"comment" : "The version of node on which change occurred. If applicable."
+				"comment" : "The version of node on which the change occurred, if applicable."
 			},
 			{
 				"name": "file_handle_id",
 				"type" : "bigint",
-				"comment" : "The identifier of the file handle if the node is a file."
+				"comment" : "The identifier of the file handle if the node is a file, null otherwise."
 			},
 			{
 				"name": "name",
@@ -244,22 +244,22 @@
 			{
 				"name": "is_public",
 				"type" : "boolean",
-				"comment" : "If true, any logged in user can access the node."
+				"comment" : "If true, READ permission is granted to all Synapse users, including anonymous user."
 			},
 			{
 				"name": "is_controlled",
 				"type" : "boolean",
-				"comment" : "If true, any terms of use access requirement effects the node."
+				"comment" : "If true, any access requirement managed by ACT affects the node."
 			},
 			{
 				"name": "is_restricted",
 				"type" : "boolean",
-				"comment" : "If true, any access requirement managed by ACT effects the node."
+				"comment" : "If true, any terms of use access requirement affects the node."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The date on which the snapshot was recorded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The node snapshot data is partitioned on snapshot_date, which is snapshot_timestamp in date format. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -280,22 +280,22 @@
 			"columns":[{
 				"name": "change_type",
 				"type" : "string",
-				"comment" : "The type of changed that occurred on file handle like CREATE, UPDATE, DELETE."
+				"comment" : "The type of changed that occurred on file handle, e.g., CREATE, UPDATE, DELETE."
 			},
 			{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the user created/updated/deleted the file handle."
+				"comment" : "The time when change(created/updated/deleted) on file is pushed to the queue for snapshotting."
 			},
 			{
 				"name": "change_user_id",
 				"type" : "bigint",
-				"comment" : "The identifier of the user who made the change on the file."
+				"comment" : "who made the change to the file."
 			},
 			{
 				"name": "snapshot_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the snapshot was taken(It's usually shortly after the change happened)."
+				"comment" : "The time when the snapshot was taken (It is usually after the change happened)."
 			},
 			{
 				"name": "id",
@@ -305,7 +305,7 @@
 			{
 				"name": "created_by",
 				"type" : "bigint",
-				"comment" : "The identifier of user who created the file handle."
+				"comment" : "The identifier of the user who created the file handle."
 			},
 			{
 				"name": "created_on",
@@ -315,12 +315,12 @@
 			{
 				"name": "modified_on",
 				"type" : "timestamp",
-				"comment" : "The modification timestamp of the file handle."
+				"comment" : "The most recent change timestamp of the file handle."
 			},
 			{
 				"name": "concrete_type",
 				"type" : "string",
-				"comment" : "The type of actual file handle like s3, google cloud, external file handle etc..."
+				"comment" : "The type of file handle, e.g., s3, google cloud, external file handle."
 			},
 			{
 				"name": "content_md5",
@@ -330,12 +330,12 @@
 			{
 				"name": "content_type",
 				"type" : "string",
-				"comment" : "It's meta data about the content of the file."
+				"comment" : "It's meta data about the content of the file e.g., application/json, application/zip, application/octet-stream."
 			},
 			{
 				"name": "file_name",
 				"type" : "string",
-				"comment" : "The file name of the file reference by the file handle."
+				"comment" : "The name of the file referenced by the file handle."
 			},
 			{
 				"name": "storage_location_id",
@@ -345,17 +345,17 @@
 			{
 				"name": "content_size",
 				"type" : "bigint",
-				"comment" : "The size of the file referenced by file handle."
+				"comment" : "The size of the file referenced by the file handle."
 			},
 			{
 				"name": "bucket",
 				"type" : "string",
-				"comment" : "The bucket where the file is physically stored. If s3-compatible."
+				"comment" : "The bucket where the file is physically stored, if s3-compatible."
 			},
 			{
 				"name": "key",
 				"type" : "string",
-				"comment" : "The full physical path of the file referenced by file handle."
+				"comment" : "The key name uniquely identifies the object (file) in an Amazon S3 bucket."
 			},
 			{
 				"name": "preview_id",
@@ -365,7 +365,7 @@
 			{
 				"name": "is_preview",
 				"type" : "boolean",
-				"comment" : "If true, the file referenced by this file handle is a preview of a file"
+				"comment" : "If true, the file referenced by this file handle is a preview of another file"
 			},
 			{
 				"name": "status",
@@ -375,7 +375,7 @@
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The date on which the snapshot was recorded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The file snapshot data is partitioned on snapshot_date, which is snapshot_timestamp in date format. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -397,12 +397,12 @@
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the user created/updated/deleted the team."
+				"comment" : "The time when change(created/updated/deleted) on team is pushed to the queue for snapshotting."
 			},
 			{
 				"name": "snapshot_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the snapshot was taken(It's usually shortly after the change happened)."
+				"comment" : "The time when the snapshot was taken (It is usually after the change happened)."
 			},
 			{
 				"name": "id",
@@ -417,7 +417,7 @@
 			{
 				"name": "can_public_join",
 				"type" : "boolean",
-				"comment" : "If true, any logged in user can join the team."
+				"comment" : "If true, a user can join the team without approval of a team manager."
 			},
 			{
 				"name": "created_on",
@@ -427,22 +427,22 @@
 			{
 				"name": "created_by",
 				"type" : "bigint",
-				"comment" : "The identifier of user who created the team."
+				"comment" : "The unique identifier of the user who created the team."
 			},
 			{
 				"name": "modified_on",
 				"type" : "timestamp",
-				"comment" : "The modification timestamp of the team."
+				"comment" : "The timestamp when the team was last modified."
 			},
 			{
 				"name": "modified_by",
 				"type" : "bigint",
-				"comment" : "The identifier of user who last modified the team."
+				"comment" : "The unique identifier of the user who last modified the team."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The date on which the snapshot was recorded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The team snapshot data is partitioned on snapshot_date, which is snapshot_timestamp in date format. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -463,12 +463,12 @@
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the user added/deleted the team member."
+				"comment" : "The time when a user was added to or deleted from the team."
 			},
 			{
 				"name": "snapshot_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the snapshot was taken(It's usually shortly after the change happened)."
+				"comment" : "The time when the snapshot was taken (It is usually after the change happened)."
 			},
 			{
 				"name": "team_id",
@@ -488,7 +488,7 @@
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The date on which the snapshot was recorded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The team member snapshot data is partitioned on snapshot_date, which is snapshot_timestamp in date format. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -505,36 +505,36 @@
 		"sourcePath" : "log.sagebase.org/userGroupSnapshots/",
 		"tableDescriptor": {
 			"name": "usergroupsnapshots",
-			"description" : "This table contains snapshots of user-groups. Snapshots are taken when user-groups are created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
+			"description" : "This table lists all principals (individual users and groups of users). (A group is the low-level object underlying a team, much like a file handle is the low-level object underlying a file entity.) In addition to explicit users and teams, principals in Synapse include the anonymous user, the implicit group of all authenticated users, and the implicit public group which includes all users, authenticated or not. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the user created/updated/deleted the user-group."
+				"comment" : "The time when change(created/updated/deleted) on user-group is pushed to the queue for snapshotting."
 			},
 			{
 				"name": "snapshot_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the snapshot was taken(It's usually shortly after the change happened)."
+				"comment" : "The time when the snapshot was taken (It is usually after the change happened)."
 			},
 			{
 				"name": "id",
 				"type" : "bigint",
-				"comment" : "The unique identifier of user."
+				"comment" : "The unique identifier of user or group."
 			},
 			{
 				"name": "is_individual",
 				"type" : "boolean",
-				"comment" : "If true, then this user group is individual user not a team."
+				"comment" : "If true, then this user group an is individual user not a team."
 			},
 			{
 				"name": "created_on",
 				"type" : "timestamp",
-				"comment" : "The creation timestamp of user-group."
+				"comment" : "The creation timestamp of the user-group."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The date on which the snapshot was recorded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The user group snapshot data is partitioned on snapshot_date, which is snapshot_timestamp in date format. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -555,12 +555,12 @@
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the user created/updated/deleted the user-profile."
+				"comment" : "The time when change(created/updated/deleted) on user profile is pushed to the queue for snapshotting."
 			},
 			{
 				"name": "snapshot_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the snapshot was taken(It's usually shortly after the change happened)."
+				"comment" : "The time when the snapshot was taken (It is usually after the change happened)."
 			},
 			{
 				"name": "id",
@@ -570,7 +570,7 @@
 			{
 				"name": "user_name",
 				"type" : "string",
-				"comment" : "The name of user used for login to Synapse."
+				"comment" : "The Synapse username."
 			},
 			{
 				"name": "first_name",
@@ -585,7 +585,7 @@
 			{
 				"name": "email",
 				"type" : "string",
-				"comment" : "The email of the user."
+				"comment" : "The first available email of the user from the email list."
 			},
 			{
 				"name": "location",
@@ -595,17 +595,17 @@
 			{
 				"name": "company",
 				"type" : "string",
-				"comment" : "The company where user works."
+				"comment" : "The company where the user works."
 			},
 			{
 				"name": "position",
 				"type" : "string",
-				"comment" : "The position of user in the company."
+				"comment" : "The position of the user in the company."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The date on which the snapshot was recorded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The user profile snapshot data is partitioned on snapshot_date, which is snapshot_timestamp in date format. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -622,21 +622,21 @@
 		"sourcePath" : "log.sagebase.org/fileUploadRecords/",
 		"tableDescriptor": {
 			"name": "fileuploadrecords",
-			"description" : "The table contains file upload records. Records contains information regarding upload of a file on Synapse.",
+			"description" : "The table contain upload records for FileEntity and TableEntity.The events are recorded only after the file is successfully uploaded.",
 			"columns":[{
 				"name": "timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp of the file upload."
+				"comment" : "The time when file upload event is pushed to the queue, after upload of a file."
 			},
 			{
 				"name": "user_id",
 				"type" : "bigint",
-				"comment" : "The identifier of user who uploaded the file."
+				"comment" : "The id of the user who uploaded the file."
 			},
 			{
 				"name": "project_id",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the project where the file resides."
+				"comment" : "The unique identifier of the project where the uploaded entity resides. Applicable only for FileEntity and TableEntity."
 			},
 			{
 				"name": "file_handle_id",
@@ -646,7 +646,7 @@
 			{
 				"name": "association_object_id",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the Synapse object that wraps the file."
+				"comment" : "The unique identifier of the Synapse object ( with out prefix syn) that wraps the file."
 			},
 			{
 				"name": "association_object_type",
@@ -666,7 +666,7 @@
 			"partitionKeys":[{
 				"name": "record_date",
 				"type" : "date",
-				"comment" : "The date on which the file was uploaded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The file upload record data is partitioned on record_date, which is timestamp in date format. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -683,21 +683,21 @@
 		"sourcePath" : "log.sagebase.org/fileDownloadRecords/",
 		"tableDescriptor": {
 			"name": "filedownloadrecords",
-			"description" : "The table contains file download records. Records contains information regarding download of the file from the system.",
+			"description" : "The table contain records of all downloads of Synapse.The events are recorded only after the pre-signed url for requested download entity is generated.",
 			"columns":[{
 				"name": "timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp of file download."
+				"comment" : "The time when file download event is pushed to the queue for recording, after generating the Pre-signed url."
 			},
 			{
 				"name": "user_id",
 				"type" : "bigint",
-				"comment" : "The user id who downloaded the file."
+				"comment" : "The id of the user who downloaded the file."
 			},
 			{
 				"name": "project_id",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the project where the file resides."
+				"comment" : "The unique identifier of the project where the downloaded entity resides. Applicable only for FileEntity and TableEntity."
 			},
 			{
 				"name": "file_handle_id",
@@ -707,7 +707,7 @@
 			{
 				"name": "association_object_id",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the Synapse object that wraps the file."
+				"comment" : "The unique identifier of the Synapse object ( with out prefix syn) that wraps the file."
 			},
 			{
 				"name": "association_object_type",
@@ -727,7 +727,7 @@
 			"partitionKeys":[{
 				"name": "record_date",
 				"type" : "date",
-				"comment" : "The date on which the file was downloaded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The download record data is partitioned on record_date, which is timestamp in date format. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -748,27 +748,27 @@
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the user created/updated/deleted the acl."
+				"comment" : "The time when change(created/updated/deleted) on acl is pushed to the queue for snapshotting."
 			},
 			{
 				"name": "change_type",
 				"type" : "string",
-				"comment" : "The type of changed that occurred on acl like CREATE, UPDATE, DELETE."
+				"comment" : "TThe type of changed that occurred on acl, e.g., CREATE, UPDATE, DELETE."
 			},
 			{
 				"name": "snapshot_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the snapshot was taken(It's usually shortly after the change happened)."
+				"comment" : "The time when the snapshot was taken (It is usually after the change happened)."
 			},
 			{
 				"name": "owner_id",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the Synapse object that the acl is affecting like node-id, team-id..."
+				"comment" : "The unique identifier of the Synapse object to which the acl is applied."
 			},
 			{
 				"name": "owner_type",
 				"type" : "string",
-				"comment" : "The type of the Synapse object that the acl is affecting like ENTITY, TEAM..."
+				"comment" : "The type of the Synapse object that the acl is affecting, .e.g., ENTITY, or TEAM."
 			},
 			{
 				"name": "created_on",
@@ -778,12 +778,12 @@
 			{
 				"name": "resource_access",
 				"type" : "array<struct<principalId:bigint,accessType:array<string>>>",
-				"comment" : "It's a list of user-groups and the associated permission on the object specified by owner_id."
+				"comment" : "The list of principals along with the permissions the principal is granted on the object to which the acl is applied."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The date on which the snapshot was recorded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The acl snapshot data is partitioned on snapshot_date, which is snapshot_timestamp in date format. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -800,21 +800,21 @@
 		"sourcePath" : "log.sagebase.org/verificationSubmissionSnapshots/",
 		"tableDescriptor": {
 			"name": "verificationsubmissionsnapshots",
-			"description" : "This table contains snapshots of submissions of user verification data by ACT. Snapshots are taken when submissions are is created or updated. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken. ",
+			"description" : "This table contains snapshots of submissions of user verification data by ACT. Snapshots are taken when submission is created or updated. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken. ",
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the user created/updated the submission."
+				"comment" : "The time when change(created/updated) on submission is pushed to the queue for snapshotting."
 			},
 			{
 				"name": "change_type",
 				"type" : "string",
-				"comment" : "The type of change that occurred on the submission like CREATE, UPDATE."
+				"comment" : "The type of change that occurred on the submission, e.g., CREATE, UPDATE."
 			},
 			{
 				"name": "snapshot_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the snapshot was taken(It's usually shortly after the change happened)."
+				"comment" : "The time when the snapshot was taken (It is usually after the change happened)."
 			},
 			{
 				"name": "id",
@@ -839,7 +839,7 @@
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : ""
+				"comment" : "The submission snapshot data is partitioned on snapshot_date, which is snapshot_timestamp in date format. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -856,11 +856,11 @@
 		"sourcePath" : "log.sagebase.org/certifiedUserPassingRecords/",
 		"tableDescriptor": {
 			"name": "certifiedquizrecords",
-			"description" : "This table contains records of the certification quiz taken by Synapse user.",
+			"description" : "This table contains records of the certification quiz taken by a Synapse user.",
 			"columns":[{
 				"name": "response_id",
 				"type" : "bigint",
-				"comment" : "The unique identifier for the an instance of a quiz taken by user."
+				"comment" : "The unique identifier for the instance of a quiz taken by user."
 			},
 			{
 				"name": "user_id",
@@ -875,7 +875,7 @@
 			{
 				"name": "passed_on",
 				"type" : "timestamp",
-				"comment" : "The date on which user took the quiz."
+				"comment" : "The date on which the user took the quiz."
 			},
 			{
 				"name": "stack",
@@ -885,12 +885,12 @@
 			{
 				"name": "instance",
 				"type" : "string",
-				"comment" : "The unique identifier for the an instance of a quiz taken by user."
+				"comment" : "The unique identifier for the instance of a quiz taken by user."
 			}],
 			"partitionKeys":[{
 				"name": "record_date",
 				"type" : "date",
-				"comment" : "The date on which the file was downloaded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The date on which the user took the quiz. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -907,11 +907,11 @@
 		"sourcePath" : "log.sagebase.org/certifiedUserPassingRecords/",
 		"tableDescriptor": {
 			"name": "certifiedquizquestionrecords",
-			"description" : "This table contains records of the questions of certified quiz taken bu Synapse user.",
+			"description" : "This table contains records of the questions of the certification quiz.Each record in the table is question attempted by the user in the quiz.",
 			"columns":[{
 				"name": "response_id",
 				"type" : "bigint",
-				"comment" : "The identifier of the certified quiz record associated with this question record."
+				"comment" : "The identifier of the certification quiz taken by the user."
 			},
 			{
 				"name": "question_index",
@@ -931,12 +931,12 @@
 			{
 				"name": "instance",
 				"type" : "string",
-				"comment" : "The unique identifier for the an instance of a quiz taken by user."
+				"comment" : "The unique identifier for the instance of a quiz taken by user."
 			}],
 			"partitionKeys":[{
 				"name": "record_date",
 				"type" : "date",
-				"comment" : "The date on which the file was downloaded. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The date on which the certification quiz was taken. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",

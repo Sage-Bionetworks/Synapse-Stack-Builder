@@ -14,21 +14,21 @@
 		"bufferFlushInterval": 900,
 		"tableDescriptor": {
 			"name": "fileDownloadsRecords",
-			"description" : "The table contains file download records. Records contains information regarding download of the file from the system.",
+			"description" : "The table contain records of all downloads of Synapse.The events are recorded only after the pre-signed url for requested download entity is generated.",
 			"columns": [{
 				"name": "userId",
 				"type" : "bigint",
-				"comment" : "The user id who downloaded the file."
+				"comment" : "The id of the user who downloaded the file."
 			},
 			{
 				"name": "timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp of file download."
+				"comment" : "The time when the download event is pushed to the queue for recording, after generating the Pre-signed url."
 			},
 			{
 				"name": "projectId",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the project where the file resides."
+				"comment" : "The unique identifier of the project where the downloaded entity resides. Applicable only for FileEntity and TableEntity"
 			},
 			{
 				"name": "fileHandleId",
@@ -43,12 +43,12 @@
 			{
 				"name": "associateId",
 				"type" : "string",
-				"comment" : "The unique identifier of the Synapse object that wraps the file."
+				"comment" : "The unique identifier of the Synapse object ( with prefix syn) that wraps the file."
 			},
 			{
 				"name": "stack",
 				"type" : "string",
-				"comment" : "The stack (prod, dev) on which the file was downloaded."
+				"comment" : "The stack (prod, dev) from which the file was downloaded."
 			},
 			{
 				"name": "instance",
@@ -58,17 +58,17 @@
 			"partitionKeys":[{
 				"name": "year",
 				"type" : "string",
-				"comment": "The year when file was downloaded.The year should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment": "The year when file was downloaded. The year should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			},
 			{
 				"name": "month",
 				"type" : "string",
-				"comment": "The month when file was downloaded.The year should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment": "The month when file was downloaded. The month should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			},
 			{
 				"name": "day",
 				"type" : "string",
-				"comment": "The day when file was downloaded.The year should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment": "The day when file was downloaded. The day should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}]
 		}
 	},
@@ -80,21 +80,21 @@
 		"bufferFlushInterval": 900,
 		"tableDescriptor": {
 			"name": "fileUploadsRecords",
-			"description" : "The table contains file upload records. Records contains information regarding upload of the file from the system.",
+			"description" : "The table contain upload records for FileEntity and TableEntity.The events are recorded only after the file is successfully uploaded.",
 			"columns": [{
 				"name": "userId",
 				"type" : "bigint",
-				"comment" : "The user id who uploaded the file."
+				"comment" : "The id of the user who uploaded the file."
 			},
 			{
 				"name": "timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp of file uploaded."
+				"comment" : "The time when file upload event is pushed to the queue, after upload of a file."
 			},
 			{
 				"name": "projectId",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the project where the file resides."
+				"comment" : "The unique identifier of the project where the uploaded entity resides. Applicable only for FileEntity and TableEntity."
 			},
 			{
 				"name": "fileHandleId",
@@ -109,12 +109,12 @@
 			{
 				"name": "associateId",
 				"type" : "string",
-				"comment" : "The unique identifier of the Synapse object that wraps the file."
+				"comment" : "The unique identifier of the Synapse object ( with prefix syn) that wraps the file."
 			},
 			{
 				"name": "stack",
 				"type" : "string",
-				"comment" : "The stack (prod, dev) on which the file was uploaded."
+				"comment" : "The stack (prod, dev) to which the file was uploaded."
 			},
 			{
 				"name": "instance",
@@ -124,17 +124,17 @@
 			"partitionKeys":[{
 				"name": "year",
 				"type" : "string",
-				"comment": "The year when file was uploaded.The year should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment": "The month when the file upload occurred, e.g., 2021, 2022. The year should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			},
 			{
 				"name": "month",
 				"type" : "string",
-				"comment": "The month when file was uploaded.The year should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment": "The month when the file upload occurred, e.g., 01, 02. The month should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			},
 			{
 				"name": "day",
 				"type" : "string",
-				"comment": "The day when file was uploaded.The year should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment": "The day-of-the-month when file upload occurred, e.g., 16, 17, 22. The day should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
 			}]
 		}
 	},
