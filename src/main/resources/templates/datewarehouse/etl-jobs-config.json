@@ -9,7 +9,7 @@
 		"sourcePath" : "log.sagebase.org/accessRecord/",
 		"tableDescriptor": {
 			"name": "processedaccessrecord",
-			"description" : "The table contains access records. Each record reflects a single API request received by Synapse server. The record data is useful for audit and to analyse API performance such as delays, error or success rate.",
+			"description" : "The table contain access records. Each record reflects a single API request received by Synapse server. The record data is useful for audit and to analyse API performance such as delays, error or success rate.",
 			"columns":[{
 				"name": "session_id",
 				"type" : "string",
@@ -43,7 +43,7 @@
 			{
 				"name": "host",
 				"type" : "string",
-				"comment" : "The IP address (IPv4) of the host that made the request."
+				"comment" : "The IP address of the host that made the request."
 			},
 			{
 				"name": "origin",
@@ -160,7 +160,7 @@
 		"sourcePath" : "log.sagebase.org/nodeSnapshots/",
 		"tableDescriptor": {
 			"name": "nodesnapshots",
-			"description" : "This table contains snapshots of nodes (Nodes are project, file, folders...). Snapshots are taken when nodes created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
+			"description" : "This table contain snapshots of nodes (Nodes are project, file, folders...). Snapshots are taken when nodes created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
 				"name": "change_type",
 				"type" : "string",
@@ -194,7 +194,7 @@
 			{
 				"name": "project_id",
 				"type" : "bigint",
-				"comment" : "The project where the node resides."
+				"comment" : "The project where the node resides. if applicable."
 			},
 			{
 				"name": "parent_id",
@@ -276,7 +276,7 @@
 		"sourcePath" : "log.sagebase.org/fileSnapshots/",
 		"tableDescriptor": {
 			"name": "filesnapshots",
-			"description" : "This table contains snapshots of file handles. Snapshots are taken when file handles are created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
+			"description" : "This table contain snapshots of file handles. Snapshots are taken when file handles are created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
 				"name": "change_type",
 				"type" : "string",
@@ -392,7 +392,7 @@
 		"sourcePath" : "log.sagebase.org/teamSnapshots/",
 		"tableDescriptor": {
 			"name": "teamsnapshots",
-			"description" : "This table contains snapshots of teams. Snapshots are taken when teams are created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
+			"description" : "This table contain snapshots of teams. Snapshots are taken when teams are created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 
 			"columns":[{
 				"name": "change_timestamp",
@@ -459,7 +459,7 @@
 		"sourcePath" : "log.sagebase.org/teamMemberSnapshots/",
 		"tableDescriptor": {
 			"name": "teammembersnapshots",
-			"description" : "This table contains snapshots of team-members. Snapshots are taken when members are added or deleted from a team. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
+			"description" : "This table contain snapshots of team-members. Snapshots are taken when members are added or deleted from a team. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
@@ -551,7 +551,7 @@
 		"sourcePath" : "log.sagebase.org/userProfileSnapshots/",
 		"tableDescriptor": {
 			"name": "userprofilesnapshots",
-			"description" : "This table contains snapshots of user-profiles. Snapshots are taken when user-profiles are created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
+			"description" : "This table contain snapshots of user-profiles. Snapshots are taken when user-profiles are created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
@@ -744,7 +744,7 @@
 		"sourcePath" : "log.sagebase.org/aclSnapshots/",
 		"tableDescriptor": {
 			"name": "aclsnapshots",
-			"description" : "This table contains snapshots of access-control-list. Snapshots are taken when acl is created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
+			"description" : "This table contain snapshots of access-control-list. Snapshots are taken when acl is created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
@@ -800,7 +800,7 @@
 		"sourcePath" : "log.sagebase.org/verificationSubmissionSnapshots/",
 		"tableDescriptor": {
 			"name": "verificationsubmissionsnapshots",
-			"description" : "This table contains snapshots of submissions of user verification data by ACT. Snapshots are taken when submission is created or updated. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken. ",
+			"description" : "This table contain snapshots of submissions of user verification data by ACT. Snapshots are taken when submission is created or updated. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken. ",
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
@@ -856,7 +856,7 @@
 		"sourcePath" : "log.sagebase.org/certifiedUserPassingRecords/",
 		"tableDescriptor": {
 			"name": "certifiedquizrecords",
-			"description" : "This table contains records of the certification quiz taken by a Synapse user.",
+			"description" : "This table contain records of the certification quiz taken by a Synapse user.",
 			"columns":[{
 				"name": "response_id",
 				"type" : "bigint",
@@ -907,7 +907,7 @@
 		"sourcePath" : "log.sagebase.org/certifiedUserPassingRecords/",
 		"tableDescriptor": {
 			"name": "certifiedquizquestionrecords",
-			"description" : "This table contains records of the questions of the certification quiz.Each record in the table is question attempted by the user in the quiz.",
+			"description" : "This table contain records of the questions of the certification quiz.Each record in the table is question attempted by the user in the quiz.",
 			"columns":[{
 				"name": "response_id",
 				"type" : "bigint",

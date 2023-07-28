@@ -148,7 +148,7 @@
 		"backupDisabled": true,
 		"tableDescriptor": {
 			"name": "fileHandleAssociationsRecords",
-			"description" : "The table contains file handle association records.",
+			"description" : "The table contain file handle association records. A FileHandleAssociation record is, a FileHandle (identified by its id) is associated with a Synapse object (identified by its id and type).",
 			"columns": [{
 				"name": "timestamp",
 				"type" : "timestamp",
@@ -172,7 +172,7 @@
 			{
 				"name": "stack",
 				"type" : "string",
-				"comment" : "The stack (prod, dev) on which the file was association happened."
+				"comment" : "The stack (prod, dev) on which the file handle association processed."
 			},
 			{
 				"name": "instance",
