@@ -244,7 +244,7 @@
 			{
 				"name": "is_public",
 				"type" : "boolean",
-				"comment" : "If true, READ permission is granted to all Synapse users, including anonymous user."
+				"comment" : "If true, READ permission is granted to all Synapse users, including anonymous user, at the time of the snapshot."
 			},
 			{
 				"name": "is_controlled",
