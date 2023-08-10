@@ -1,7 +1,7 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
 	"version": "1.28.0",
-	"extraScripts": ["utils.py"],
+	"extraScripts": ["utils.py","dynamic_frame_mapping.py","dynamic_record_transformation.py"],
 	"etlJobDescriptors":[{
 		"name": "processaccessrecord",
 		"description": "This job processes the access records",
