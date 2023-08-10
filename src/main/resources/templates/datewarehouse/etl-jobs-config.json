@@ -242,6 +242,9 @@
 		"description": "This job processes the file upload records",
 		"scriptName": "file_event_records.py",
 		"sourcePath" : "log.sagebase.org/fileUploadRecords/",
+		"jobParameters": {
+			"--FILE_EVENT_TYPE": "upload"
+		},
 		"tableDescriptor": {
 			"name": "fileuploadrecords",
 			"columns": {
@@ -270,6 +273,9 @@
 		"description": "This job processes the file download records",
 		"scriptName": "file_event_records.py",
 		"sourcePath" : "log.sagebase.org/fileDownloadRecords/",
+		"jobParameters": {
+			"--FILE_EVENT_TYPE": "download"
+		},
 		"tableDescriptor": {
 			"name": "filedownloadrecords",
 			"columns": {
@@ -277,6 +283,7 @@
 				"user_id": "bigint",
 				"project_id": "bigint",
 				"file_handle_id": "bigint",
+				"downloaded_file_handle_id": "bigint",
 				"association_object_id": "bigint",
 				"association_object_type": "string",
 				"stack": "string",

@@ -108,13 +108,13 @@ public class DataWarehouseBuilderImplTest {
 		GlueTableDescriptor table = new GlueTableDescriptor();
 		table.setName("someTableRef");
 		table.setColumns(ImmutableMap.of("someColumn", "string"));
-		
 		List<EtlJobDescriptor> jobs = List.of(
 			new EtlJobDescriptor()
 				.withName("testjob")
 				.withScriptName("someFile.py")
 				.withSourcePath("source")
 				.withDescription("test")
+				.withJobParameters(ImmutableMap.of("--TEST_PARAMETER", "test"))
 				.withTableDescriptor(table)
 		);
 
@@ -159,7 +159,8 @@ public class DataWarehouseBuilderImplTest {
 			+ "\"--S3_SOURCE_PATH\":\"s3://dev.source\","
 			+ "\"--extra-py-files\":\"s3://dev.aws-glue.sagebase.org/scripts/v1.0.0/utilities/utils.py," +
 				"s3://aws-glue-studio-transforms-510798373988-prod-us-east-1/gs_explode.py," +
-				"s3://aws-glue-studio-transforms-510798373988-prod-us-east-1/gs_common.py\"}", props.getString("DefaultArguments")
+				"s3://aws-glue-studio-transforms-510798373988-prod-us-east-1/gs_common.py\"" +
+				",\"--TEST_PARAMETER\":\"test\"}", props.getString("DefaultArguments")
 		);
 
 		JSONObject tableProperty = resources.getJSONObject("someTableRefGlueTable").getJSONObject("Properties");
