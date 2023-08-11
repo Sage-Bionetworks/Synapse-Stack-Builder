@@ -187,12 +187,6 @@
 					"--TABLE_NAME": "${etl.tableDescriptor.name}",
 					"--S3_SOURCE_PATH": "s3://${stack}.${etl.sourcePath}",
 					"--extra-py-files": "${extraScripts}"
-					#if ($etl.jobParameters)
-                        #foreach($param in $etl.jobParameters.entrySet())
-                        ,
-                        "${param.key}": "${param.value}"
-                        #end
-                    #end
 				},
 				"Description": "${etl.description}",
 				"GlueVersion": "4.0",

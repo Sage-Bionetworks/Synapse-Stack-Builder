@@ -1,7 +1,7 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
 	"version": "1.28.0",
-	"extraScripts": ["utils.py","dynamic_frame_mapping.py","dynamic_record_transformation.py"],
+	"extraScripts": ["utils.py"],
 	"etlJobDescriptors":[{
 		"name": "processaccessrecord",
 		"description": "This job processes the access records",
@@ -240,11 +240,8 @@
 	{
 		"name": "fileuploadrecords",
 		"description": "This job processes the file upload records",
-		"scriptName": "file_event_records.py",
+		"scriptName": "file_upload_records.py",
 		"sourcePath" : "log.sagebase.org/fileUploadRecords/",
-		"jobParameters": {
-			"--FILE_EVENT_TYPE": "upload"
-		},
 		"tableDescriptor": {
 			"name": "fileuploadrecords",
 			"columns": {
@@ -271,18 +268,15 @@
 	{
 		"name": "filedownloadrecords",
 		"description": "This job processes the file download records",
-		"scriptName": "file_event_records.py",
+		"scriptName": "file_download_records.py",
 		"sourcePath" : "log.sagebase.org/fileDownloadRecords/",
-		"jobParameters": {
-			"--FILE_EVENT_TYPE": "download"
-		},
 		"tableDescriptor": {
 			"name": "filedownloadrecords",
 			"columns": {
 				"timestamp": "timestamp",
 				"user_id": "bigint",
 				"project_id": "bigint",
-				"requested_file_handle_id": "bigint",
+				"file_handle_id": "bigint",
 				"downloaded_file_handle_id": "bigint",
 				"association_object_id": "bigint",
 				"association_object_type": "string",

@@ -2,7 +2,6 @@ package org.sagebionetworks.template.datawarehouse;
 
 import org.sagebionetworks.template.repo.kinesis.firehose.GlueTableDescriptor;
 
-import java.util.Map;
 import java.util.Objects;
 
 public class EtlJobDescriptor {
@@ -10,7 +9,6 @@ public class EtlJobDescriptor {
     private String description;
     private String scriptName;
     private String sourcePath;
-    private Map<String, String> jobParameters = null;
     private GlueTableDescriptor tableDescriptor = null;
 
     public String getName() {
@@ -49,15 +47,6 @@ public class EtlJobDescriptor {
         return this;
     }
 
-    public Map<String, String> getJobParameters() {
-        return jobParameters;
-    }
-
-    public EtlJobDescriptor withJobParameters(Map<String, String> jobParameters) {
-        this.jobParameters = jobParameters;
-        return this;
-    }
-
     public GlueTableDescriptor getTableDescriptor() {
         return tableDescriptor;
     }
@@ -73,12 +62,12 @@ public class EtlJobDescriptor {
         if (o == null || getClass() != o.getClass()) return false;
         EtlJobDescriptor that = (EtlJobDescriptor) o;
         return Objects.equals(name, that.name) && Objects.equals(description, that.description)
-                && Objects.equals(scriptName, that.scriptName) && Objects.equals(sourcePath, that.sourcePath)
-                && Objects.equals(tableDescriptor, that.tableDescriptor) && Objects.equals(jobParameters, that.jobParameters);
+                && Objects.equals(scriptName, that.scriptName)
+                && Objects.equals(sourcePath, that.sourcePath) && Objects.equals(tableDescriptor, that.tableDescriptor);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, description, scriptName, sourcePath, tableDescriptor, jobParameters);
+        return Objects.hash(name, description, scriptName, sourcePath, tableDescriptor);
     }
 }
