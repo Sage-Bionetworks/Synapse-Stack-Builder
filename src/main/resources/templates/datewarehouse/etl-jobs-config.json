@@ -282,7 +282,7 @@
 				"timestamp": "timestamp",
 				"user_id": "bigint",
 				"project_id": "bigint",
-				"file_handle_id": "bigint",
+				"requested_file_handle_id": "bigint",
 				"downloaded_file_handle_id": "bigint",
 				"association_object_id": "bigint",
 				"association_object_type": "string",
