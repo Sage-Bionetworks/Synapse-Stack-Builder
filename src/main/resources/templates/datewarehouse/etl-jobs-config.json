@@ -14,7 +14,6 @@
 				"timestamp": "timestamp",
 				"user_id": "bigint",
 				"method": "string",
-				"request_concrete_type" : "string",
 				"request_url": "string",
 				"user_agent": "string",
 				"host": "string",
