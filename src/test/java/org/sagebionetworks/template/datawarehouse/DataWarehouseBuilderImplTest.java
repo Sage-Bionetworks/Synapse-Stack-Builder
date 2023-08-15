@@ -108,7 +108,7 @@ public class DataWarehouseBuilderImplTest {
 		GlueTableDescriptor table = new GlueTableDescriptor();
 		table.setName("someTableRef");
 		table.setColumns(ImmutableMap.of("someColumn", "string"));
-		
+
 		List<EtlJobDescriptor> jobs = List.of(
 			new EtlJobDescriptor()
 				.withName("testjob")

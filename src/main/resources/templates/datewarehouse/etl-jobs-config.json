@@ -1,6 +1,6 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
-	"version": "1.23.0",
+	"version": "1.30.0",
 	"extraScripts": ["utils.py"],
 	"etlJobDescriptors":[{
 		"name": "processaccessrecord",
@@ -239,7 +239,7 @@
 	{
 		"name": "fileuploadrecords",
 		"description": "This job processes the file upload records",
-		"scriptName": "file_event_records.py",
+		"scriptName": "file_upload_records.py",
 		"sourcePath" : "log.sagebase.org/fileUploadRecords/",
 		"tableDescriptor": {
 			"name": "fileuploadrecords",
@@ -267,7 +267,7 @@
 	{
 		"name": "filedownloadrecords",
 		"description": "This job processes the file download records",
-		"scriptName": "file_event_records.py",
+		"scriptName": "file_download_records.py",
 		"sourcePath" : "log.sagebase.org/fileDownloadRecords/",
 		"tableDescriptor": {
 			"name": "filedownloadrecords",
@@ -276,6 +276,7 @@
 				"user_id": "bigint",
 				"project_id": "bigint",
 				"file_handle_id": "bigint",
+				"downloaded_file_handle_id": "bigint",
 				"association_object_id": "bigint",
 				"association_object_type": "string",
 				"stack": "string",
