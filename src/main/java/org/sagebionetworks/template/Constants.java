@@ -132,6 +132,9 @@ public class Constants {
 	
 	public static final String PARAM_KEY_TIME_TO_LIVE = "TimeToLive";
 
+	// Public key for verifying signed URL signature for a CloudFront Distribution
+	public static final String PROPERTY_KEY_DATA_CDN_PUBLIC_KEY = "org.sagebionetworks.cloudfront.public.key.encoded";
+
 	// Etl jobs needs database name to create separate stack
 	public static final String PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME = "org.sagebionetworks.synapse.datawarehouse.glue.database.name";
 
@@ -239,6 +242,7 @@ public class Constants {
 	public static final String CTXT_KEY_ACM_CERT_ARN = "AcmCertificateArn";
 	public static final String CTXT_KEY_SUBDOMAIN_NAME = "SubDomainName";
 	public static final String CTXT_KEY_DOMAIN_NAME = "DomainName";
+	public static final String CTXT_KEY_PUBLIC_KEY = "DataCdnPublicKey";
 
 	public static final String CTXT_ENABLE_ENHANCED_RDS_MONITORING = "EnableRdsEnhancedMonitoring";
 

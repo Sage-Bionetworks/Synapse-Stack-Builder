@@ -18,13 +18,17 @@ import java.util.Optional;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_SUBDOMAIN_NAME;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK_INSTANCE_ALIAS;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_PUBLIC_KEY;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_ACM_CERT_ARN;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_PUBLIC_KEY;
 
 public class CdnBuilderImpl implements CdnBuilder {
 
 	private static final Logger logger = LogManager.getLogger(CdnBuilderImpl.class);
 
-	private static final String TEMPLATE_STACK_CDN = "templates/cdn/synapse_cdn.yaml.vtp";
+	private static final String TEMPLATE_STACK_PORTAL_CDN = "templates/cdn/synapse_cdn.yaml.vtp";
+
+	private static final String TEMPLATE_STACK_DATA_CDN = "templates/cdn/synapse_data_cdn.json.vtp";
 
 	private RepoConfiguration config;
 	private VelocityEngine velocity;
@@ -40,8 +44,8 @@ public class CdnBuilderImpl implements CdnBuilder {
 	}
 
 	@Override
-	public void buildCdn() {
-		buildCdnStack();
+	public void buildCdn(Type type) {
+		buildCdnStack(type);
 	}
 
 	VelocityContext createContext() {
@@ -51,18 +55,30 @@ public class CdnBuilderImpl implements CdnBuilder {
 		ctxt.put(CTXT_KEY_ACM_CERT_ARN, acmCertificateArn);
 		String stackInstanceAlias = config.getProperty(PROPERTY_KEY_STACK_INSTANCE_ALIAS);
 		ctxt.put(CTXT_KEY_SUBDOMAIN_NAME, stackInstanceAlias);
+		String dataCDNPublicKey = config.getProperty(PROPERTY_KEY_DATA_CDN_PUBLIC_KEY);
+		ctxt.put(CTXT_KEY_PUBLIC_KEY, dataCDNPublicKey);
 		return ctxt;
 	}
 
-	Optional<Stack> buildCdnStack() {
-
+	Optional<Stack> buildCdnStack(Type type) {
+		Template template;
+		String cfStackName;
 		VelocityContext context = createContext();
-		Template template = velocity.getTemplate(TEMPLATE_STACK_CDN);
+
+		if (Type.PORTAL.equals(type)) {
+			template = velocity.getTemplate(TEMPLATE_STACK_PORTAL_CDN);
+			cfStackName = String.format("cdn-%s-synapse", context.get(CTXT_KEY_SUBDOMAIN_NAME));
+		} else if (Type.DATA.equals(type)){
+			template = velocity.getTemplate(TEMPLATE_STACK_DATA_CDN);
+			cfStackName = String.format("cdn-%s-data-synapse", context.get(CTXT_KEY_SUBDOMAIN_NAME));
+		} else {
+			throw new IllegalArgumentException("A valid CdNBuilder Type must be used.");
+		}
+
 		StringWriter writer = new StringWriter();
 		template.merge(context, writer);
 		String cfTemplateYaml = writer.toString();
 		logger.info(cfTemplateYaml);
-		String cfStackName = String.format("cdn-%s-synapse", context.get(CTXT_KEY_SUBDOMAIN_NAME));
 		CreateOrUpdateStackRequest cfStackRequest = new CreateOrUpdateStackRequest()
 				.withStackName(cfStackName)
 				.withTemplateBody(cfTemplateYaml)
