@@ -8,24 +8,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import java.io.File;
 import java.io.StringWriter;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -152,7 +141,7 @@ public class S3BucketBuilderImplTest {
 	}
 
 	@Test
-	public void testBuildAllBuckets() {
+	public void testBuildAllBuckets() throws InterruptedException {
 
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		bucket.setName("${stack}.bucket");
@@ -160,6 +149,17 @@ public class S3BucketBuilderImplTest {
 		String expectedBucketName = stack + ".bucket";
 		
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
@@ -168,6 +168,21 @@ public class S3BucketBuilderImplTest {
 		verify(mockS3Client).getBucketEncryption(expectedBucketName);
 		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
 		verify(mockS3Client).setBucketLifecycleConfiguration(eq(expectedBucketName), bucketLifeCycleConfigurationCaptor.capture());
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 		
 		BucketLifecycleConfiguration config = bucketLifeCycleConfigurationCaptor.getValue();
 		
@@ -190,7 +205,7 @@ public class S3BucketBuilderImplTest {
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithExistingAbortMultipartRule() {
+	public void testBuildAllBucketsWithExistingAbortMultipartRule() throws InterruptedException {
 
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		bucket.setName("${stack}.bucket");
@@ -198,6 +213,17 @@ public class S3BucketBuilderImplTest {
 		String expectedBucketName = stack + ".bucket";
 		
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 		
 		// Mimics an existing life cycle with the abort rule already present
 		when(mockS3Client.getBucketLifecycleConfiguration(anyString())).thenReturn(new BucketLifecycleConfiguration()
@@ -218,10 +244,25 @@ public class S3BucketBuilderImplTest {
 		verify(mockS3Client, never()).setBucketPolicy(any(), any());
 		verify(mockS3Client, never()).setBucketLifecycleConfiguration(any(), any());
 
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithExistingAbortMultipartRuleAndUpdate() {
+	public void testBuildAllBucketsWithExistingAbortMultipartRuleAndUpdate() throws InterruptedException {
 
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		bucket.setName("${stack}.bucket");
@@ -229,6 +270,17 @@ public class S3BucketBuilderImplTest {
 		String expectedBucketName = stack + ".bucket";
 		
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 		
 		// Mimics an existing life cycle with the abort rule already present
 		when(mockS3Client.getBucketLifecycleConfiguration(anyString())).thenReturn(new BucketLifecycleConfiguration()
@@ -263,14 +315,40 @@ public class S3BucketBuilderImplTest {
 		verify(mockS3Client, never()).deleteBucketInventoryConfiguration(any(), any());
 		verify(mockS3Client, never()).setBucketPolicy(any(), any());
 
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 	}
 
 	@Test
-	public void testBuildAllBucketsNeedsEncypted() {
+	public void testBuildAllBucketsNeedsEncypted() throws InterruptedException {
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		bucket.setName("${stack}.bucket");
 		
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 
 		AmazonServiceException notFound = new AmazonServiceException("NotFound");
 		notFound.setStatusCode(404);
@@ -302,6 +380,21 @@ public class S3BucketBuilderImplTest {
 		verify(mockS3Client, never()).deleteBucketInventoryConfiguration(any(), any());
 		verify(mockS3Client, never()).setBucketPolicy(any(), any());
 
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 	}
 
 	@Test
@@ -322,7 +415,7 @@ public class S3BucketBuilderImplTest {
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithInventory() {
+	public void testBuildAllBucketsWithInventory() throws InterruptedException {
 
 		S3BucketDescriptor inventoryBucket = new S3BucketDescriptor();
 		inventoryBucket.setName("${stack}.inventory");
@@ -342,18 +435,18 @@ public class S3BucketBuilderImplTest {
 
 		// No inventory configuration set
 		doThrow(notFound).when(mockS3Client).getBucketInventoryConfiguration(anyString(), anyString());
-		
-		when(mockVelocity.getTemplate(any(), any())).thenReturn(mockTemplate);
-		
-		doAnswer(new Answer<Void>() {
-			@Override
-			public Void answer(InvocationOnMock invocation) throws Throwable {
-				StringWriter writer = (StringWriter) invocation.getArgument(1);
-				writer.append("fakeJsonPolicy");
-				return null;
-			}
+
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
 		}).when(mockTemplate).merge(any(), any());
-		
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 		
 		// Call under test
 		builder.buildAllBuckets();
@@ -384,24 +477,22 @@ public class S3BucketBuilderImplTest {
 		assertEquals(S3BucketBuilderImpl.INVENTORY_PREFIX, destination.getPrefix());
 		assertEquals(accountId, destination.getAccountId());
 		assertEquals(S3BucketBuilderImpl.INVENTORY_FORMAT, destination.getFormat());
-		
 		verify(mockS3Client, never()).deleteBucketInventoryConfiguration(any(), any());
-				
-		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
-		
-		VelocityContext context = velocityContextCaptor.getValue();
-		
-		assertEquals(stack, context.get("stack"));
-		assertEquals(accountId, context.get("accountId"));
-		assertEquals(expectedInventoryBucketName, context.get("inventoryBucket"));
-		assertEquals(Arrays.asList(expectedBucketName), context.get("sourceBuckets"));
-		
-		verify(mockS3Client).setBucketPolicy(expectedInventoryBucketName, "fakeJsonPolicy");
 
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+		VelocityContext context = velocityContextCaptor.getValue();
+		assertEquals(context.get(Constants.STACK), stack);
+		String expectedStackName = stack + "-synapse-bucket-policies";
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithInventoryAndExisting() {
+	public void testBuildAllBucketsWithInventoryAndExisting() throws InterruptedException {
 
 		S3BucketDescriptor inventoryBucket = new S3BucketDescriptor();
 		inventoryBucket.setName("${stack}.inventory");
@@ -423,7 +514,17 @@ public class S3BucketBuilderImplTest {
 						.withEnabled(true))
 		);
 		
-		when(mockVelocity.getTemplate(any(), any())).thenReturn(mockTemplate);
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 		
 		// Call under test
 		builder.buildAllBuckets();
@@ -441,11 +542,20 @@ public class S3BucketBuilderImplTest {
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		verify(mockS3Client, never()).deleteBucketInventoryConfiguration(expectedBucketName, S3BucketBuilderImpl.INVENTORY_ID);
 
-
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+		VelocityContext context = velocityContextCaptor.getValue();
+		assertEquals(context.get(Constants.STACK), stack);
+		String expectedStackName = stack + "-synapse-bucket-policies";
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithDisabledInventoryAndNonExisting() {
+	public void testBuildAllBucketsWithDisabledInventoryAndNonExisting() throws InterruptedException {
 
 		S3BucketDescriptor inventoryBucket = new S3BucketDescriptor();
 		inventoryBucket.setName("${stack}.inventory");
@@ -465,6 +575,18 @@ public class S3BucketBuilderImplTest {
 
 		// No inventory configuration set
 		doThrow(notFound).when(mockS3Client).getBucketInventoryConfiguration(anyString(), anyString());
+
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 		
 		// Call under test
 		builder.buildAllBuckets();
@@ -479,13 +601,22 @@ public class S3BucketBuilderImplTest {
 		
 		verify(mockS3Client, never()).setBucketEncryption(any());
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
-		// No bucket was setup to have the inventory, delete the bucket policy
-		verify(mockS3Client).deleteBucketPolicy(expectedInventoryBucketName);
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+		VelocityContext context = velocityContextCaptor.getValue();
+		assertEquals(context.get(Constants.STACK), stack);
+		String expectedStackName = stack + "-synapse-bucket-policies";
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithDisabledInventoryAndExisting() {
+	public void testBuildAllBucketsWithDisabledInventoryAndExisting() throws InterruptedException {
 
 		S3BucketDescriptor inventoryBucket = new S3BucketDescriptor();
 		inventoryBucket.setName("${stack}.inventory");
@@ -506,6 +637,18 @@ public class S3BucketBuilderImplTest {
 						new InventoryConfiguration()
 						.withEnabled(true))
 		);
+
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 		
 		// Call under test
 		builder.buildAllBuckets();
@@ -521,13 +664,22 @@ public class S3BucketBuilderImplTest {
 		verify(mockS3Client, never()).setBucketEncryption(any());
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		verify(mockS3Client).deleteBucketInventoryConfiguration(expectedBucketName, S3BucketBuilderImpl.INVENTORY_ID);
-		// No bucket was setup to have the inventory, delete the bucket policy
-		verify(mockS3Client).deleteBucketPolicy(expectedInventoryBucketName);
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+		VelocityContext context = velocityContextCaptor.getValue();
+		assertEquals(context.get(Constants.STACK), stack);
+		String expectedStackName = stack + "-synapse-bucket-policies";
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithRetentionDays() {
+	public void testBuildAllBucketsWithRetentionDays() throws InterruptedException {
 
 		
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
@@ -537,6 +689,17 @@ public class S3BucketBuilderImplTest {
 		String expectedBucketName = stack + ".bucket";
 		
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 		
 		// Call under test
 		builder.buildAllBuckets();
@@ -562,10 +725,26 @@ public class S3BucketBuilderImplTest {
 		assertNull(rule.getPrefix());
 		assertNotNull(rule.getFilter());
 		assertNull(rule.getFilter().getPredicate());
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithRetentionDaysAndExistingRule() {
+	public void testBuildAllBucketsWithRetentionDaysAndExistingRule() throws InterruptedException {
 
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		bucket.setName("${stack}.bucket");
@@ -574,6 +753,17 @@ public class S3BucketBuilderImplTest {
 		String expectedBucketName = stack + ".bucket";
 		
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 		
 		// Mimics an existing life cycle with a retention rule already present
 		when(mockS3Client.getBucketLifecycleConfiguration(anyString())).thenReturn(new BucketLifecycleConfiguration()
@@ -595,10 +785,26 @@ public class S3BucketBuilderImplTest {
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		
 		verify(mockS3Client, never()).setBucketLifecycleConfiguration(any(), any());
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithRetentionDaysAndExistingRuleWithUpdate() {
+	public void testBuildAllBucketsWithRetentionDaysAndExistingRuleWithUpdate() throws InterruptedException {
 
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		bucket.setName("${stack}.bucket");
@@ -607,6 +813,17 @@ public class S3BucketBuilderImplTest {
 		String expectedBucketName = stack + ".bucket";
 		
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 		
 		// Mimics an existing life cycle with a retention rule already present
 		when(mockS3Client.getBucketLifecycleConfiguration(anyString())).thenReturn(new BucketLifecycleConfiguration()
@@ -640,10 +857,26 @@ public class S3BucketBuilderImplTest {
 		assertNull(rule.getPrefix());
 		assertNotNull(rule.getFilter());
 		assertNull(rule.getFilter().getPredicate());
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithTransitionRule() {
+	public void testBuildAllBucketsWithTransitionRule() throws InterruptedException {
 
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		bucket.setName("${stack}.bucket");
@@ -656,6 +889,17 @@ public class S3BucketBuilderImplTest {
 		String expectedBucketName = stack + ".bucket";
 		
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 				
 		// Call under test
 		builder.buildAllBuckets();
@@ -684,10 +928,26 @@ public class S3BucketBuilderImplTest {
 		assertNull(rule.getPrefix());
 		assertNotNull(rule.getFilter());
 		assertNull(rule.getFilter().getPredicate());
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithTransitionRuleAndExistingRule() {
+	public void testBuildAllBucketsWithTransitionRuleAndExistingRule() throws InterruptedException {
 
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		bucket.setName("${stack}.bucket");
@@ -700,6 +960,17 @@ public class S3BucketBuilderImplTest {
 		String expectedBucketName = stack + ".bucket";
 		
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 		
 		// Mimics an existing life cycle with a transition rule already present
 		when(mockS3Client.getBucketLifecycleConfiguration(anyString())).thenReturn(new BucketLifecycleConfiguration()
@@ -719,10 +990,26 @@ public class S3BucketBuilderImplTest {
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		
 		verify(mockS3Client, never()).setBucketLifecycleConfiguration(any(), any());
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithTransitionRuleAndExistingRuleWithUpdate() {
+	public void testBuildAllBucketsWithTransitionRuleAndExistingRuleWithUpdate() throws InterruptedException {
 
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		bucket.setName("${stack}.bucket");
@@ -735,6 +1022,17 @@ public class S3BucketBuilderImplTest {
 		String expectedBucketName = stack + ".bucket";
 		
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 		
 		// Mimics an existing life cycle with a transition rule already present
 		when(mockS3Client.getBucketLifecycleConfiguration(anyString())).thenReturn(new BucketLifecycleConfiguration()
@@ -767,10 +1065,26 @@ public class S3BucketBuilderImplTest {
 		assertNull(intRule.getPrefix());
 		assertNotNull(intRule.getFilter());
 		assertNull(intRule.getFilter().getPredicate());
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithTransitionRuleMultiple() {
+	public void testBuildAllBucketsWithTransitionRuleMultiple() throws InterruptedException {
 
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		bucket.setName("${stack}.bucket");
@@ -790,6 +1104,17 @@ public class S3BucketBuilderImplTest {
 		String expectedBucketName = stack + ".bucket";
 		
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 		
 		when(mockS3Client.getBucketLifecycleConfiguration(anyString())).thenReturn(new BucketLifecycleConfiguration()
 			.withRules(
@@ -845,10 +1170,26 @@ public class S3BucketBuilderImplTest {
 		assertNull(iaRule.getPrefix());
 		assertNotNull(iaRule.getFilter());
 		assertNull(iaRule.getFilter().getPredicate());
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithTransitionRuleMultipleWithUpdate() {
+	public void testBuildAllBucketsWithTransitionRuleMultipleWithUpdate() throws InterruptedException {
 
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		bucket.setName("${stack}.bucket");
@@ -865,6 +1206,17 @@ public class S3BucketBuilderImplTest {
 		String expectedBucketName = stack + ".bucket";
 		
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 				
 		// Call under test
 		builder.buildAllBuckets();
@@ -901,10 +1253,26 @@ public class S3BucketBuilderImplTest {
 		assertNull(arcRule.getPrefix());
 		assertNotNull(arcRule.getFilter());
 		assertNull(arcRule.getFilter().getPredicate());
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithDevOnly() {
+	public void testBuildAllBucketsWithDevOnly() throws InterruptedException {
 		
 		stack = "someStackOtherThanProd";
 		
@@ -917,6 +1285,17 @@ public class S3BucketBuilderImplTest {
 		String expectedBucketName = stack + ".bucket";
 		
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
@@ -929,6 +1308,22 @@ public class S3BucketBuilderImplTest {
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		verify(mockS3Client, never()).deleteBucketInventoryConfiguration(any(), any());
 		verify(mockS3Client, never()).setBucketPolicy(any(), any());
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 
 	}
 	
@@ -944,6 +1339,17 @@ public class S3BucketBuilderImplTest {
 		bucket.setDevOnly(true);
 
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
@@ -953,7 +1359,7 @@ public class S3BucketBuilderImplTest {
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithIntArchiveConfiguration() {
+	public void testBuildAllBucketsWithIntArchiveConfiguration() throws InterruptedException {
 		
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		bucket.setName("${stack}.bucket");
@@ -971,6 +1377,18 @@ public class S3BucketBuilderImplTest {
 		
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
 		doThrow(notFound).when(mockS3Client).getBucketIntelligentTieringConfiguration(any(), any());
+
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 				
 		// Call under test
 		builder.buildAllBuckets();
@@ -990,6 +1408,22 @@ public class S3BucketBuilderImplTest {
 		
 		assertEquals("test",  tag.getKey());
 		assertEquals("tag",  tag.getValue());
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 		
 	}
 	
@@ -1022,7 +1456,7 @@ public class S3BucketBuilderImplTest {
 		
 		verify(mockS3Client).getBucketIntelligentTieringConfiguration(expectedBucketName, S3BucketBuilderImpl.INT_ARCHIVE_ID);
 		verify(mockS3Client, never()).setBucketIntelligentTieringConfiguration(any(), any());
-		
+
 	}
 	
 	@Test
@@ -1058,7 +1492,7 @@ public class S3BucketBuilderImplTest {
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithIntArchiveConfigurationAndNotTagFilter() {
+	public void testBuildAllBucketsWithIntArchiveConfigurationAndNotTagFilter() throws InterruptedException {
 		
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		bucket.setName("${stack}.bucket");
@@ -1075,6 +1509,17 @@ public class S3BucketBuilderImplTest {
 		
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
 		doThrow(notFound).when(mockS3Client).getBucketIntelligentTieringConfiguration(any(), any());
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 				
 		// Call under test
 		builder.buildAllBuckets();
@@ -1091,11 +1536,26 @@ public class S3BucketBuilderImplTest {
 		), config.getTierings());
 		
 		assertNull(config.getFilter().getPredicate());
-		
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithIntArchiveConfigurationAndSingleTier() {
+	public void testBuildAllBucketsWithIntArchiveConfigurationAndSingleTier() throws InterruptedException {
 		
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		bucket.setName("${stack}.bucket");
@@ -1111,6 +1571,17 @@ public class S3BucketBuilderImplTest {
 		
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
 		doThrow(notFound).when(mockS3Client).getBucketIntelligentTieringConfiguration(any(), any());
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 				
 		// Call under test
 		builder.buildAllBuckets();
@@ -1126,11 +1597,27 @@ public class S3BucketBuilderImplTest {
 		), config.getTierings());
 		
 		assertNull(config.getFilter().getPredicate());
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 		
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithIntArchiveConfigurationAndExisting() {
+	public void testBuildAllBucketsWithIntArchiveConfigurationAndExisting() throws InterruptedException {
 		
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		bucket.setName("${stack}.bucket");
@@ -1144,16 +1631,43 @@ public class S3BucketBuilderImplTest {
 		
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
 		when(mockS3Client.getBucketIntelligentTieringConfiguration(any(), any())).thenReturn(new GetBucketIntelligentTieringConfigurationResult().withIntelligentTieringConfiguration(new IntelligentTieringConfiguration()));
-				
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+
 		// Call under test
 		builder.buildAllBuckets();
 		
 		verify(mockS3Client).getBucketIntelligentTieringConfiguration(expectedBucketName, S3BucketBuilderImpl.INT_ARCHIVE_ID);
 		verify(mockS3Client, never()).setBucketIntelligentTieringConfiguration(any(), any());
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithNotificationsConfiguration() {
+	public void testBuildAllBucketsWithNotificationsConfiguration() throws InterruptedException {
 		
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		String topic = "GlobalTopic";
@@ -1172,6 +1686,17 @@ public class S3BucketBuilderImplTest {
 
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
 		when(mockCloudFormationClient.getOutput(any(), any())).thenReturn(expectedTopicArn);
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
@@ -1191,11 +1716,27 @@ public class S3BucketBuilderImplTest {
 		
 		assertEquals(expectedTopicArn, snsConfig.getTopicARN());
 		assertEquals(events, snsConfig.getEvents());
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 		
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithNotificationsConfigurationWithEmpty() {
+	public void testBuildAllBucketsWithNotificationsConfigurationWithEmpty() throws InterruptedException {
 		
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		String topic = "GlobalTopic";
@@ -1217,6 +1758,17 @@ public class S3BucketBuilderImplTest {
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
 		when(mockCloudFormationClient.getOutput(any(), any())).thenReturn(expectedTopicArn);
 		when(mockS3Client.getBucketNotificationConfiguration(anyString())).thenReturn(existingConfig);
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
@@ -1236,11 +1788,27 @@ public class S3BucketBuilderImplTest {
 		
 		assertEquals(expectedTopicArn, snsConfig.getTopicARN());
 		assertEquals(events, snsConfig.getEvents());
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 		
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithNotificationsConfigurationWithExistingNoMatch() {
+	public void testBuildAllBucketsWithNotificationsConfigurationWithExistingNoMatch() throws InterruptedException {
 		
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		String topic = "GlobalTopic";
@@ -1264,6 +1832,17 @@ public class S3BucketBuilderImplTest {
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
 		when(mockCloudFormationClient.getOutput(any(), any())).thenReturn(expectedTopicArn);
 		when(mockS3Client.getBucketNotificationConfiguration(anyString())).thenReturn(existingConfig);
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
@@ -1283,11 +1862,27 @@ public class S3BucketBuilderImplTest {
 		
 		assertEquals(expectedTopicArn, snsConfig.getTopicARN());
 		assertEquals(events, snsConfig.getEvents());
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 		
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithNotificationsConfigurationWithExistingAndDifferentArn() {
+	public void testBuildAllBucketsWithNotificationsConfigurationWithExistingAndDifferentArn() throws InterruptedException {
 		
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		String topic = "GlobalTopic";
@@ -1311,6 +1906,17 @@ public class S3BucketBuilderImplTest {
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
 		when(mockCloudFormationClient.getOutput(any(), any())).thenReturn(expectedTopicArn);
 		when(mockS3Client.getBucketNotificationConfiguration(anyString())).thenReturn(existingConfig);
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
@@ -1330,11 +1936,27 @@ public class S3BucketBuilderImplTest {
 		
 		assertEquals(expectedTopicArn, snsConfig.getTopicARN());
 		assertEquals(events, snsConfig.getEvents());
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 		
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithNotificationsConfigurationWithExistingAndDifferentEvents() {
+	public void testBuildAllBucketsWithNotificationsConfigurationWithExistingAndDifferentEvents() throws InterruptedException {
 		
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		String topic = "GlobalTopic";
@@ -1358,6 +1980,17 @@ public class S3BucketBuilderImplTest {
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
 		when(mockCloudFormationClient.getOutput(any(), any())).thenReturn(expectedTopicArn);
 		when(mockS3Client.getBucketNotificationConfiguration(anyString())).thenReturn(existingConfig);
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
@@ -1377,11 +2010,27 @@ public class S3BucketBuilderImplTest {
 		
 		assertEquals(expectedTopicArn, snsConfig.getTopicARN());
 		assertEquals(events, snsConfig.getEvents());
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 		
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithNotificationsConfigurationWithExistingAndNoUpdate() {
+	public void testBuildAllBucketsWithNotificationsConfigurationWithExistingAndNoUpdate() throws InterruptedException {
 		
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		String topic = "GlobalTopic";
@@ -1405,6 +2054,17 @@ public class S3BucketBuilderImplTest {
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
 		when(mockCloudFormationClient.getOutput(any(), any())).thenReturn(expectedTopicArn);
 		when(mockS3Client.getBucketNotificationConfiguration(anyString())).thenReturn(existingConfig);
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
@@ -1412,11 +2072,26 @@ public class S3BucketBuilderImplTest {
 		verify(mockCloudFormationClient).getOutput(expectedGlobalStackName, topic);
 		verify(mockS3Client).getBucketNotificationConfiguration(expectedBucketName);
 		verify(mockS3Client, never()).setBucketNotificationConfiguration(any(), any());
-		
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithNotificationsConfigurationWithMatchingButDifferentType() {
+	public void testBuildAllBucketsWithNotificationsConfigurationWithMatchingButDifferentType() throws InterruptedException {
 		
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		String topic = "GlobalTopic";
@@ -1451,7 +2126,6 @@ public class S3BucketBuilderImplTest {
 		verify(mockCloudFormationClient).getOutput(expectedGlobalStackName, topic);
 		verify(mockS3Client).getBucketNotificationConfiguration(expectedBucketName);
 		verify(mockS3Client, never()).setBucketNotificationConfiguration(any(), any());
-		
 	}
 	
 	@Test
@@ -1495,26 +2169,49 @@ public class S3BucketBuilderImplTest {
 		verify(mockDownloader).downloadFile("https://some-url/lambda-name.zip");
 		verify(mockS3Client).putObject(expectedBucket, expectedKey, mockFile);
 		verify(mockFile).delete();
-		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+		verify(mockTemplate, times(2)).merge(velocityContextCaptor.capture(), any());
 		
-		VelocityContext context = velocityContextCaptor.getValue();
+		List<VelocityContext> contexts = velocityContextCaptor.getAllValues();
 		
-		assertEquals(context.get(Constants.STACK), stack);
-		assertEquals(context.get(S3BucketBuilderImpl.CF_PROPERTY_BUCKETS), Arrays.asList(bucket.getName()));
-		assertEquals(context.get(S3BucketBuilderImpl.CF_PROPERTY_NOTIFICATION_EMAIL), "notification@sagebase.org");
-		assertEquals(context.get(S3BucketBuilderImpl.CF_PROPERTY_LAMBDA_BUCKET), expectedBucket);
-		assertEquals(context.get(S3BucketBuilderImpl.CF_PROPERTY_LAMBDA_KEY), expectedKey);
-		
-		String expectedStackName = stack + "-synapse-virus-scanner";
+		assertEquals(contexts.get(0).get(Constants.STACK), stack);
+		assertEquals(contexts.get(0).get(S3BucketBuilderImpl.CF_PROPERTY_BUCKETS), Arrays.asList(bucket.getName()));
+		assertEquals(contexts.get(0).get(S3BucketBuilderImpl.CF_PROPERTY_NOTIFICATION_EMAIL), "notification@sagebase.org");
+		assertEquals(contexts.get(0).get(S3BucketBuilderImpl.CF_PROPERTY_LAMBDA_BUCKET), expectedBucket);
+		assertEquals(contexts.get(0).get(S3BucketBuilderImpl.CF_PROPERTY_LAMBDA_KEY), expectedKey);
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
-				.withStackName(expectedStackName)
+		assertEquals(contexts.get(1).get(Constants.STACK), stack);
+		
+		String expectedVirusScannerStackName = stack + "-synapse-virus-scanner";
+		String expectedBucketPolicyStackName = stack + "-synapse-bucket-policies";
+
+		ArgumentCaptor<String> argCaptorWaitForStack = ArgumentCaptor.forClass(String.class);
+		ArgumentCaptor<String> argCaptorDescribeStack = ArgumentCaptor.forClass(String.class);
+		ArgumentCaptor<CreateOrUpdateStackRequest> argCreateOrUpdateStack = ArgumentCaptor.forClass(CreateOrUpdateStackRequest.class);
+
+		verify(mockCloudFormationClient, times(2)).createOrUpdateStack(argCreateOrUpdateStack.capture());
+
+		assertEquals(argCreateOrUpdateStack.getAllValues().get(0), new CreateOrUpdateStackRequest()
+				.withStackName(expectedVirusScannerStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList())
 				.withCapabilities(CAPABILITY_NAMED_IAM));
+
+		assertEquals(argCreateOrUpdateStack.getAllValues().get(1), new CreateOrUpdateStackRequest()
+				.withStackName(expectedBucketPolicyStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
 				
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClient, times(2)).waitForStackToComplete(argCaptorWaitForStack.capture());
+		verify(mockCloudFormationClient, times(2)).describeStack(argCaptorDescribeStack.capture());
+
+		List<String> capturedWaitForStackArgs = argCaptorWaitForStack.getAllValues();
+		List<String> capturedDescribeStackArgs = argCaptorDescribeStack.getAllValues();
+
+		assertEquals(expectedVirusScannerStackName, capturedWaitForStackArgs.get(0));
+		assertEquals(expectedVirusScannerStackName, capturedDescribeStackArgs.get(0));
+
+		assertEquals(expectedBucketPolicyStackName, capturedWaitForStackArgs.get(1));
+		assertEquals(expectedBucketPolicyStackName, capturedDescribeStackArgs.get(1));
 		
 		ArgumentCaptor<BucketNotificationConfiguration> argCaptor = ArgumentCaptor.forClass(BucketNotificationConfiguration.class);
 		
@@ -1536,7 +2233,7 @@ public class S3BucketBuilderImplTest {
 	}
 		
 	@Test
-	public void testBuildAllBucketsWithVirusScannerConfigurationAndBucketNotificationRemoval() {
+	public void testBuildAllBucketsWithVirusScannerConfigurationAndBucketNotificationRemoval() throws InterruptedException {
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		
 		bucket.setName("bucket");
@@ -1557,6 +2254,11 @@ public class S3BucketBuilderImplTest {
 			((StringWriter) invocation.getArgument(1)).append("{}");
 			return null;
 		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 		
 		Stack virusScannerStack = new Stack().withOutputs(
 			new Output().withOutputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_TRIGGER_TOPIC).withOutputValue("snsTopicArn"),
@@ -1585,18 +2287,65 @@ public class S3BucketBuilderImplTest {
 		
 		// Make sure the config was removed
 		assertTrue(configuration.getConfigurations().isEmpty());
+
+		verify(mockTemplate, times(2)).merge(velocityContextCaptor.capture(), any());
+
+		List<VelocityContext> contexts = velocityContextCaptor.getAllValues();
+
+		// Context for virus scanner stack
+		assertEquals(contexts.get(0).get(Constants.STACK), stack);
+		// Context for bucket policy stack
+		assertEquals(contexts.get(1).get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithNoVirusScannerConfiguration() {
+	public void testBuildAllBucketsWithNoVirusScannerConfiguration() throws InterruptedException {
 		S3VirusScannerConfig virusScannerConfig = null;
 		
 		when(mockS3Config.getVirusScannerConfig()).thenReturn(virusScannerConfig);
+
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 		
 		// Call under test
 		builder.buildAllBuckets();
-		
-		verifyZeroInteractions(mockCloudFormationClient);
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
+
+
 	}
 	
 	private Rule allBucketRule(String ruleName) {

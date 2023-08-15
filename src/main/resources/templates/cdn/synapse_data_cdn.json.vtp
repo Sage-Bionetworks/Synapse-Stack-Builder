@@ -4,26 +4,26 @@
   "Resources": {
     "CloudFront": {
       "Type": "AWS::CloudFront::Distribution",
-      "DeletionPolicy": "Retain",
+      "DependsOn": [
+        "CloudFrontPublicKeyGroup",
+        "OriginAccessControl"
+      ],
       "Properties": {
         "DistributionConfig": {
-          "Comment": "CloudFront distribution for ${SubDomainName}data.synapse.org",
+          "Comment": "CloudFront distribution for ${SubDomainName}data.sagebase.org",
           "Origins": [
             {
-              "DomainName": "${SubDomainName}data.synapse.org",
+              "DomainName": "${SubDomainName}data.sagebase.org.s3.us-east-1.amazonaws.com",
               "Id": "S3OriginId",
+              "OriginAccessControlId": {
+                "Ref": "OriginAccessControl"
+              },
               "S3OriginConfig": {
-                "OriginAccessIdentity": {
-                }
+                "OriginAccessIdentity": ""
               }
             }
           ],
           "DefaultCacheBehavior": {
-            "AllowedMethods": [
-              "GET",
-              "HEAD"
-            ],
-            "Compress": false,
             "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
             "TargetOriginId": "S3OriginId",
             "TrustedKeyGroups": [
@@ -34,25 +34,22 @@
             "ViewerProtocolPolicy": "redirect-to-https"
           },
           "Enabled": true,
-          "IPV6Enabled": true,
-          "PriceClass": "PriceClass_100",
-          "ViewerCertificate": {
-            "CloudFrontDefaultCertificate": true
-          }
+          "IPV6Enabled": true
         }
       }
     },
     "CloudFrontPublicKeyGroup": {
       "Type": "AWS::CloudFront::KeyGroup",
+      "DependsOn": "CloudFrontPublicKey",
       "Properties": {
         "KeyGroupConfig": {
-          "Comment": "Public key group for ${SubDomainName}data.synapse.org CloudFront infrastructure",
+          "Comment": "Public key group for ${SubDomainName}data.sagebase.org CloudFront infrastructure",
           "Items": [
             {
               "Ref": "CloudFrontPublicKey"
             }
           ],
-          "Name": "${SubDomainName}data.synapse.org-key-group"
+          "Name": "${SubDomainName}data-key-group"
         }
       }
     },
@@ -60,15 +57,35 @@
       "Type": "AWS::CloudFront::PublicKey",
       "Properties": {
         "PublicKeyConfig": {
-          "CallerReference": "${SubDomainName}data.synapse.org-public-key",
-          "Comment": "Public key for ${SubDomainName}data.synapse.org CloudFront infrastructure",
-          "Name": "${SubDomainName}data.synapse.org-public-key",
-          "EncodedKey": {
-            "Ref": ${DataCdnPublicKey}
-          }
+          "CallerReference": "${SubDomainName}data-public-key",
+          "Comment": "Public key for ${SubDomainName}data.sagebase.org CloudFront infrastructure",
+          "Name": "${SubDomainName}data-public-key",
+          "EncodedKey": "${DataCdnPublicKey}"
+        }
+      }
+    },
+    "OriginAccessControl": {
+      "Type": "AWS::CloudFront::OriginAccessControl",
+      "Properties": {
+        "OriginAccessControlConfig": {
+          "Description": "Origin Access Control for origin ${SubDomainName}data.sagebase.org",
+          "Name": "${SubDomainName}data-origin-access-control",
+          "OriginAccessControlOriginType": "s3",
+          "SigningBehavior": "always",
+          "SigningProtocol": "sigv4"
         }
       }
     }
-  }
+  },
+  "Outputs" : {
+        "CloudFrontDistributionARN" : {
+          "Description" : "The ARN for the ${SubDomainName}data.sagebase.org CloudFront distribution",
+          "Value" : { "Fn::Join": ["", ["arn:aws:cloudfront::", { "Ref": "AWS::AccountId" }, ":distribution/", { "Ref": "CloudFront" }]] },
+          "Export" : {
+            "Name" : "${SubDomainName}data-sagebase-org-CDN-ARN"
+          }
+        }
+      }
+
 }
 
