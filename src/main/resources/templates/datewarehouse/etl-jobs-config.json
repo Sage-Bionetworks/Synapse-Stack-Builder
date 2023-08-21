@@ -505,7 +505,7 @@
 		"sourcePath" : "log.sagebase.org/userGroupSnapshots/",
 		"tableDescriptor": {
 			"name": "usergroupsnapshots",
-			"description" : "This table lists all principals (individual users and groups of users). (A group is the low-level object underlying a team, much like a file handle is the low-level object underlying a file entity.) In addition to explicit users and teams, principals in Synapse include the anonymous user, the implicit group of all authenticated users, and the implicit public group which includes all users, authenticated or not. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
+			"description" : "This table lists all principals (individual users and groups of users). (A group is the low-level object of a underlying team, much like a file handle is the low-level object of an underlying file entity.) In addition to explicit users and teams, principals in Synapse include the anonymous user, the implicit group of all authenticated users, and the implicit public group which includes all users, authenticated or not. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
@@ -524,7 +524,7 @@
 			{
 				"name": "is_individual",
 				"type" : "boolean",
-				"comment" : "If true, then this user group an is individual user not a team."
+				"comment" : "If true, then this user group is an individual user not a team."
 			},
 			{
 				"name": "created_on",
@@ -683,7 +683,7 @@
 		"sourcePath" : "log.sagebase.org/fileDownloadRecords/",
 		"tableDescriptor": {
 			"name": "filedownloadrecords",
-			"description" : "The table contain records of all downloads of the Synapse. The events are recorded only after the pre-signed url for requested download entity is generated.",
+			"description" : "The table contain records of all the downloads of the Synapse, e.g, file, zip/package, attachments. The events are recorded only after the pre-signed url for requested download entity is generated.",
 			"columns":[{
 				"name": "timestamp",
 				"type" : "timestamp",
@@ -758,7 +758,7 @@
 			{
 				"name": "change_type",
 				"type" : "string",
-				"comment" : "The type of changed that occurred on acl, e.g., CREATE, UPDATE, DELETE."
+				"comment" : "The type of change that occurred on acl, e.g., CREATE, UPDATE, DELETE."
 			},
 			{
 				"name": "snapshot_timestamp",
@@ -895,7 +895,7 @@
 			"partitionKeys":[{
 				"name": "record_date",
 				"type" : "date",
-				"comment" : "The data is partitioned for fast and cost effective queries. The timestamp when the quiz was taken converted into a date and stored in the record_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The timestamp when the quiz was taken is converted into a date and stored in the record_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -941,7 +941,7 @@
 			"partitionKeys":[{
 				"name": "record_date",
 				"type" : "date",
-				"comment" : "The data is partitioned for fast and cost effective queries. The timestamp when the quiz was taken converted into a date and stored in the record_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The timestamp when the quiz was taken is converted into a date and stored in the record_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
