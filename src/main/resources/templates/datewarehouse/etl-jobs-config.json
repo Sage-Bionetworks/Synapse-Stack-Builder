@@ -1,6 +1,6 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
-	"version": "1.23.0",
+	"version": "1.30.0",
 	"extraScripts": ["utils.py"],
 	"etlJobDescriptors":[{
 		"name": "processaccessrecord",
@@ -9,26 +9,26 @@
 		"sourcePath" : "log.sagebase.org/accessRecord/",
 		"tableDescriptor": {
 			"name": "processedaccessrecord",
-			"description" : "The table contain access records. Each record reflects a single API request received by Synapse server. The record data is useful for audit and to analyse API performance such as delays, error or success rate.",
+			"description" : "The table contains access records. Each record reflects a single API request received by the Synapse server. The recorded data is useful for audits and to analyse API performance such as delays, errors or success rates.",
 			"columns":[{
 				"name": "session_id",
 				"type" : "string",
-				"comment" : "A unique number that Synapse assigns for the duration of a session. Sessions are linked to a user or API key or token."
+				"comment" : "A unique identifier that Synapse assigns for the duration of a session. Sessions are linked to a user, an API key or a token."
 			},
 			{
 				"name": "timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp when the user sent a request to Synapse server."
+				"comment" : "The timestamp when the user sends a request to the Synapse server."
 			},
 			{
 				"name": "user_id",
 				"type" : "bigint",
-				"comment" : "The unique identifier for the Synapse user."
+				"comment" : "The unique identifier of the Synapse user."
 			},
 			{
 				"name": "method",
 				"type" : "string",
-				"comment" : "The http method for the API call."
+				"comment" : "The http method of the API call."
 			},
 			{
 				"name": "request_url",
@@ -38,7 +38,7 @@
 			{
 				"name": "user_agent",
 				"type" : "string",
-				"comment" : "The User-Agent header from the http request. see: https://en.wikipedia.org/wiki/User-Agent_header"
+				"comment" : "The User-Agent header from the http request. See: https://en.wikipedia.org/wiki/User-Agent_header"
 			},
 			{
 				"name": "host",
@@ -53,22 +53,22 @@
 			{
 				"name": "x_forwarded_for",
 				"type" : "string",
-				"comment" : "The HTTP Header contains IP address of user connecting through a proxy. see: https://en.wikipedia.org/wiki/X-Forwarded-For"
+				"comment" : "The HTTP Header contains the IP address of the user connecting through a proxy. See: https://en.wikipedia.org/wiki/X-Forwarded-For"
 			},
 			{
 				"name": "via",
 				"type" : "string",
-				"comment" : "The HTTP Header Via informs the server of proxies through which the request was sent."
+				"comment" : "The HTTP Header Via, informs the server of proxies through which the request was sent."
 			},
 			{
 				"name": "thread_id",
 				"type" : "bigint",
-				"comment" : "The identifier of the thread in which the request was processed."
+				"comment" : "The unique identifier of the thread in which the request was processed."
 			},
 			{
 				"name": "elapse_ms",
 				"type" : "bigint",
-				"comment" : "The total time consumed processing the user request in milliseconds."
+				"comment" : "The total time of processing the user request in milliseconds."
 			},
 			{
 				"name": "success",
@@ -88,32 +88,32 @@
 			{
 				"name": "vm_id",
 				"type" : "string",
-				"comment" : "The unique identifier of the actual EC2 instance that processed the request."
+				"comment" : "The unique identifier of the Synapse ec2 server in the cluster that processed the request."
 			},
 			{
 				"name": "return_object_id",
 				"type" : "string",
-				"comment" : "The Synapse id of the object affected by the request, if available."
+				"comment" : "The Synapse object identifier which is returned to the user in response body of a GET, PUT or POST API, if available."
 			},
 			{
 				"name": "query_string",
 				"type" : "string",
-				"comment" : "The set of characters tacked onto the end of a URL after the the question mark (?)."
+				"comment" : "The set of characters tacked onto the end of a URL after the question mark (?)."
 			},
 			{
 				"name": "response_status",
 				"type" : "bigint",
-				"comment" : "The response code of request, e.g., 200, 401, 500 etc."
+				"comment" : "The response code for the request, e.g., 200, 401, 500. See: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes"
 			},
 			{
 				"name": "oauth_client_id",
 				"type" : "string",
-				"comment" : "The unique id of the oauth client used in the request. It will be empty in case request is not made by OAuth client."
+				"comment" : "The unique identifier of the oauth client used in the request. It will be empty when the request is not made by OAuth client."
 			},
 			{
 				"name": "basic_auth_username",
 				"type" : "string",
-				"comment" : "For requests that are authenticated with Basic Authentication, this is the content of the user-name field."
+				"comment" : "The name of the user who made the request using BASIC authentication method. It will be empty otherwise."
 			},
 			{
 				"name": "auth_method",
@@ -123,12 +123,12 @@
 			{
 				"name": "normalized_method_signature",
 				"type" : "string",
-				"comment" : "The simplified version of the request url. It includes the http method and the path with all id's extracted."
+				"comment" : "This is calculated field from method and request_url filed to get a simplified version of the request url (the http method and the request url with all IDs extracted)."
 			},
 			{
 				"name": "client",
 				"type" : "string",
-				"comment" : "The is an alias of the user agent e.g., WEB, JAVA, PYTHON etc."
+				"comment" : "The is an alias of the user agent, e.g., WEB, JAVA, PYTHON."
 			},
 			{
 				"name": "client_version",
@@ -138,12 +138,12 @@
 			{
 				"name": "entity_id",
 				"type" : "bigint",
-				"comment" : "The entity id referenced in the request, if any."
+				"comment" : "The Synapse object identifier used by the user in the request url, if any."
 			}],
 			"partitionKeys":[{
 				"name": "record_date",
 				"type" : "date",
-				"comment" : "The date on which the request to Synapse server was made. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The timestamp filed is converted into a date and stored in the record_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -160,31 +160,31 @@
 		"sourcePath" : "log.sagebase.org/nodeSnapshots/",
 		"tableDescriptor": {
 			"name": "nodesnapshots",
-			"description" : "This table contain snapshots of nodes (Nodes are project, file, folders...). Snapshots are taken when nodes created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
+			"description" : "This table contain snapshots of nodes (Nodes are project, file, folders...). Snapshots are taken when nodes are created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp is the time when the snapshot was taken.",
 			"columns":[{
 				"name": "change_type",
 				"type" : "string",
-				"comment" : "The type of change that occurred on node, e.g., CREATE, UPDATE, DELETE."
+				"comment" : "The type of change that occurred on the node, e.g., CREATE, UPDATE, DELETE."
 			},
 			{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when change(created/updated/deleted) on node is pushed to the queue for snapshotting."
+				"comment" : "The time when the change (created/updated/deleted) on the node is pushed to the queue for snapshotting."
 			},
 			{
 				"name": "change_user_id",
 				"type" : "bigint",
-				"comment" : "who made the change to the node."
+				"comment" : "The unique identifier of the user who made the change to the node."
 			},
 			{
 				"name": "snapshot_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the snapshot was taken (It is usually after the change happened)."
+				"comment" : "The time stamp when the snapshot was taken. (It is usually after the change happened)."
 			},
 			{
 				"name": "id",
 				"type" : "bigint",
-				"comment" : "The identifier of the node."
+				"comment" : "The unique identifier of the node."
 			},
 			{
 				"name": "benefactor_id",
@@ -194,17 +194,17 @@
 			{
 				"name": "project_id",
 				"type" : "bigint",
-				"comment" : "The project where the node resides. if applicable."
+				"comment" : "The project where the node resides. It will be empty for the change type DELETE."
 			},
 			{
 				"name": "parent_id",
 				"type" : "bigint",
-				"comment" : "The identifier of the parent in node hierarchy."
+				"comment" : "The identifier of the parent in the node hierarchy."
 			},
 			{
 				"name": "node_type",
 				"type" : "string",
-				"comment" : "The type of node, e.g., project, folder, file ,table."
+				"comment" : "The type of node. Allowed node types are : project, folder, file, table, link, entityview, dockerrepo, submissionview, dataset, datasetcollection, materializedview, virtualtable."
 			},
 			{
 				"name": "created_on",
@@ -214,7 +214,7 @@
 			{
 				"name": "created_by",
 				"type" : "bigint",
-				"comment" : "The identifier of user who created the node."
+				"comment" : "The identifier of the user who created the node."
 			},
 			{
 				"name": "modified_on",
@@ -224,12 +224,12 @@
 			{
 				"name": "modified_by",
 				"type" : "bigint",
-				"comment" : "The identifier of user who last modified the node."
+				"comment" : "The identifier of the user who last modified the node."
 			},
 			{
 				"name": "version_number",
 				"type" : "bigint",
-				"comment" : "The version of node on which the change occurred, if applicable."
+				"comment" : "The version of the node on which the change occurred, if applicable."
 			},
 			{
 				"name": "file_handle_id",
@@ -244,22 +244,22 @@
 			{
 				"name": "is_public",
 				"type" : "boolean",
-				"comment" : "If true, READ permission is granted to all Synapse users, including anonymous user, at the time of the snapshot."
+				"comment" : "If true, READ permission is granted to all the Synapse users, including the anonymous user, at the time of the snapshot."
 			},
 			{
 				"name": "is_controlled",
 				"type" : "boolean",
-				"comment" : "If true, any access requirement managed by ACT affects the node."
+				"comment" : "If true, an access requirement managed by the ACT affects the node."
 			},
 			{
 				"name": "is_restricted",
 				"type" : "boolean",
-				"comment" : "If true, any terms of use access requirement affects the node."
+				"comment" : "If true, a terms-of-use access requirement is set on the node."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The node snapshot data is partitioned on snapshot_date, which is snapshot_timestamp in date format. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp filed is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -280,17 +280,17 @@
 			"columns":[{
 				"name": "change_type",
 				"type" : "string",
-				"comment" : "The type of changed that occurred on file handle, e.g., CREATE, UPDATE, DELETE."
+				"comment" : "The type of change that occurred on the file handle, e.g., CREATE, UPDATE, DELETE."
 			},
 			{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when change(created/updated/deleted) on file is pushed to the queue for snapshotting."
+				"comment" : "The time when change (created/updated/deleted) on the file is pushed to the queue for snapshotting."
 			},
 			{
 				"name": "change_user_id",
 				"type" : "bigint",
-				"comment" : "who made the change to the file."
+				"comment" : "The unique identifier of the user who made the change to the file."
 			},
 			{
 				"name": "snapshot_timestamp",
@@ -320,7 +320,7 @@
 			{
 				"name": "concrete_type",
 				"type" : "string",
-				"comment" : "The type of file handle, e.g., s3, google cloud, external file handle."
+				"comment" : "The type of the file handle. Allowed file handles are : S3FileHandle, ProxyFileHandle, ExternalFileHandle, ExternalObjectStoreFileHandle, GoogleCloudFileHandle."
 			},
 			{
 				"name": "content_md5",
@@ -370,12 +370,12 @@
 			{
 				"name": "status",
 				"type" : "string",
-				"comment" : "The availability status of the the file referenced by file handle."
+				"comment" : "The availability status of the file referenced by file handle."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The file snapshot data is partitioned on snapshot_date, which is snapshot_timestamp in date format. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp filed is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -397,12 +397,12 @@
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when change(created/updated/deleted) on team is pushed to the queue for snapshotting."
+				"comment" : "The time when the change (created/updated/deleted) on team is pushed to the queue for snapshotting."
 			},
 			{
 				"name": "snapshot_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the snapshot was taken (It is usually after the change happened)."
+				"comment" : "The time when the snapshot was taken (it is usually after the change happened)."
 			},
 			{
 				"name": "id",
@@ -442,7 +442,7 @@
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The team snapshot data is partitioned on snapshot_date, which is snapshot_timestamp in date format. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp filed is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -478,7 +478,7 @@
 			{
 				"name": "member_id",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the member."
+				"comment" : "The unique identifier of the member of the team. The member is a Synapse user."
 			},
 			{
 				"name": "is_admin",
@@ -488,7 +488,7 @@
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The team member snapshot data is partitioned on snapshot_date, which is snapshot_timestamp in date format. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp filed is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -509,7 +509,7 @@
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when change(created/updated/deleted) on user-group is pushed to the queue for snapshotting."
+				"comment" : "The time when the change (created/updated/deleted) on user-group is pushed to the queue for snapshotting."
 			},
 			{
 				"name": "snapshot_timestamp",
@@ -534,7 +534,7 @@
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The user group snapshot data is partitioned on snapshot_date, which is snapshot_timestamp in date format. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp filed is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -555,7 +555,7 @@
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when change(created/updated/deleted) on user profile is pushed to the queue for snapshotting."
+				"comment" : "The time when the change (created/updated/deleted) on user profile is pushed to the queue for snapshotting."
 			},
 			{
 				"name": "snapshot_timestamp",
@@ -585,7 +585,7 @@
 			{
 				"name": "email",
 				"type" : "string",
-				"comment" : "The first available email of the user from the email list."
+				"comment" : "The primary email of the user."
 			},
 			{
 				"name": "location",
@@ -605,7 +605,7 @@
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The user profile snapshot data is partitioned on snapshot_date, which is snapshot_timestamp in date format. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp filed is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -618,15 +618,15 @@
 	{
 		"name": "fileuploadrecords",
 		"description": "This job processes the file upload records",
-		"scriptName": "file_event_records.py",
+		"scriptName": "file_upload_records.py",
 		"sourcePath" : "log.sagebase.org/fileUploadRecords/",
 		"tableDescriptor": {
 			"name": "fileuploadrecords",
-			"description" : "The table contain upload records for FileEntity and TableEntity.The events are recorded only after the file is successfully uploaded.",
+			"description" : "The table contain upload records for FileEntity and TableEntity. The events are recorded only after the file or table is successfully uploaded.",
 			"columns":[{
 				"name": "timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when file upload event is pushed to the queue, after upload of a file."
+				"comment" : "The time when the file upload event is pushed to the queue, after upload of a file."
 			},
 			{
 				"name": "user_id",
@@ -646,7 +646,7 @@
 			{
 				"name": "association_object_id",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the Synapse object ( with out prefix syn) that wraps the file."
+				"comment" : "The unique identifier of the Synapse object (without 'syn' prefix) that wraps the file."
 			},
 			{
 				"name": "association_object_type",
@@ -666,7 +666,7 @@
 			"partitionKeys":[{
 				"name": "record_date",
 				"type" : "date",
-				"comment" : "The file upload record data is partitioned on record_date, which is timestamp in date format. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The timestamp filed is converted into a date and stored in the record_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -679,15 +679,15 @@
 	{
 		"name": "filedownloadrecords",
 		"description": "This job processes the file download records",
-		"scriptName": "file_event_records.py",
+		"scriptName": "file_download_records.py",
 		"sourcePath" : "log.sagebase.org/fileDownloadRecords/",
 		"tableDescriptor": {
 			"name": "filedownloadrecords",
-			"description" : "The table contain records of all downloads of Synapse.The events are recorded only after the pre-signed url for requested download entity is generated.",
+			"description" : "The table contain records of all downloads of the Synapse. The events are recorded only after the pre-signed url for requested download entity is generated.",
 			"columns":[{
 				"name": "timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when file download event is pushed to the queue for recording, after generating the Pre-signed url."
+				"comment" : "The time when the file download event is pushed to the queue for recording, after generating the Pre-signed url."
 			},
 			{
 				"name": "user_id",
@@ -705,14 +705,19 @@
 				"comment" : "The unique identifier of the file handle."
 			},
 			{
+				"name": "downloaded_file_handle_id",
+				"type" : "bigint",
+				"comment" : "The unique identifier of the file handle of zip. It will same as file_handle_id if download was not requested as zip download."
+			},
+			{
 				"name": "association_object_id",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the Synapse object ( with out prefix syn) that wraps the file."
+				"comment" : "The unique identifier of the Synapse object (without 'syn' prefix) that wraps the file."
 			},
 			{
 				"name": "association_object_type",
 				"type" : "string",
-				"comment" : "The type of the Synapse object that wraps the file."
+				"comment" : "The type of the Synapse object that wraps the file, e.g, FileEntity, TableEntity, WikiAttachment, WikiMarkdown, UserProfileAttachment, MessageAttachment, TeamAttachment."
 			},
 			{
 				"name": "stack",
@@ -727,7 +732,7 @@
 			"partitionKeys":[{
 				"name": "record_date",
 				"type" : "date",
-				"comment" : "The download record data is partitioned on record_date, which is timestamp in date format. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The timestamp filed is converted into a date and stored in the record_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -748,12 +753,12 @@
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when change(created/updated/deleted) on acl is pushed to the queue for snapshotting."
+				"comment" : "The time when the change (created/updated/deleted) on acl is pushed to the queue for snapshotting."
 			},
 			{
 				"name": "change_type",
 				"type" : "string",
-				"comment" : "TThe type of changed that occurred on acl, e.g., CREATE, UPDATE, DELETE."
+				"comment" : "The type of changed that occurred on acl, e.g., CREATE, UPDATE, DELETE."
 			},
 			{
 				"name": "snapshot_timestamp",
@@ -768,7 +773,7 @@
 			{
 				"name": "owner_type",
 				"type" : "string",
-				"comment" : "The type of the Synapse object that the acl is affecting, .e.g., ENTITY, or TEAM."
+				"comment" : "The type of the Synapse object that the acl is affecting, .e.g., ENTITY, FILE, SUBMISSION, MESSAGE, TEAM."
 			},
 			{
 				"name": "created_on",
@@ -778,12 +783,12 @@
 			{
 				"name": "resource_access",
 				"type" : "array<struct<principalId:bigint,accessType:array<string>>>",
-				"comment" : "The list of principals along with the permissions the principal is granted on the object to which the acl is applied."
+				"comment" : "The list of principal (user or team) along with the permissions the principal is granted on the object to which the acl is applied."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The acl snapshot data is partitioned on snapshot_date, which is snapshot_timestamp in date format. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp filed is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -800,11 +805,11 @@
 		"sourcePath" : "log.sagebase.org/verificationSubmissionSnapshots/",
 		"tableDescriptor": {
 			"name": "verificationsubmissionsnapshots",
-			"description" : "This table contain snapshots of submissions of user verification data by ACT. Snapshots are taken when submission is created or updated. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken. ",
+			"description" : "This table contain snapshots of submissions of user verification data by ACT. Snapshots are taken when submission is created or updated. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when change(created/updated) on submission is pushed to the queue for snapshotting."
+				"comment" : "The time when the change (created/updated) on submission is pushed to the queue for snapshotting."
 			},
 			{
 				"name": "change_type",
@@ -839,7 +844,7 @@
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The submission snapshot data is partitioned on snapshot_date, which is snapshot_timestamp in date format. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp filed is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -875,7 +880,7 @@
 			{
 				"name": "passed_on",
 				"type" : "timestamp",
-				"comment" : "The date on which the user took the quiz."
+				"comment" : "The date on which the user took or passed the quiz."
 			},
 			{
 				"name": "stack",
@@ -885,12 +890,12 @@
 			{
 				"name": "instance",
 				"type" : "string",
-				"comment" : "The unique identifier for the instance of a quiz taken by user."
+				"comment" : "The version of the stack that processed the quiz record."
 			}],
 			"partitionKeys":[{
 				"name": "record_date",
 				"type" : "date",
-				"comment" : "The date on which the user took the quiz. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The timestamp when the quiz was taken converted into a date and stored in the record_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -907,7 +912,7 @@
 		"sourcePath" : "log.sagebase.org/certifiedUserPassingRecords/",
 		"tableDescriptor": {
 			"name": "certifiedquizquestionrecords",
-			"description" : "This table contain records of the questions of the certification quiz.Each record in the table is question attempted by the user in the quiz.",
+			"description" : "This table contain records of the questions of the certification quiz. Each record in the table is question attempted by the user in the quiz.",
 			"columns":[{
 				"name": "response_id",
 				"type" : "bigint",
@@ -916,7 +921,7 @@
 			{
 				"name": "question_index",
 				"type" : "bigint",
-				"comment" : "The position of the question within the quiz. "
+				"comment" : "The position of the question within the quiz."
 			},
 			{
 				"name": "is_correct",
@@ -931,12 +936,12 @@
 			{
 				"name": "instance",
 				"type" : "string",
-				"comment" : "The unique identifier for the instance of a quiz taken by user."
+				"comment" : "The version of the stack that processed the quiz question record."
 			}],
 			"partitionKeys":[{
 				"name": "record_date",
 				"type" : "date",
-				"comment" : "The date on which the certification quiz was taken. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The timestamp when the quiz was taken converted into a date and stored in the record_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
