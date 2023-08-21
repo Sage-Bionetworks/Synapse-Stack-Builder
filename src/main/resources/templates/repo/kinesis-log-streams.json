@@ -14,7 +14,7 @@
 		"bufferFlushInterval": 900,
 		"tableDescriptor": {
 			"name": "fileDownloadsRecords",
-			"description" : "The table contain records of all downloads of Synapse.The events are recorded only after the pre-signed url for requested download entity is generated.",
+			"description" : "The table contain records of all downloads of Synapse. The events are recorded only after the pre-signed url for requested download entity is generated.",
 			"columns": [{
 				"name": "userId",
 				"type" : "bigint",

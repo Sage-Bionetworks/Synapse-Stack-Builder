@@ -249,7 +249,7 @@
 			{
 				"name": "is_controlled",
 				"type" : "boolean",
-				"comment" : "If true, an access requirement managed by the ACT affects the node."
+				"comment" : "If true, an access requirement managed by the ACT on the node."
 			},
 			{
 				"name": "is_restricted",
@@ -350,12 +350,12 @@
 			{
 				"name": "bucket",
 				"type" : "string",
-				"comment" : "The bucket where the file is physically stored, if s3-compatible."
+				"comment" : "The bucket where the file is physically stored. Applicable for s3 and GCP otherwise empty"
 			},
 			{
 				"name": "key",
 				"type" : "string",
-				"comment" : "The key name uniquely identifies the object (file) in an Amazon S3 bucket."
+				"comment" : "The key name uniquely identifies the object (file) in the bucket."
 			},
 			{
 				"name": "preview_id",
