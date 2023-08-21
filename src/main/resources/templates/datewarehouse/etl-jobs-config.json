@@ -138,7 +138,7 @@
 			{
 				"name": "entity_id",
 				"type" : "bigint",
-				"comment" : "The Synapse object identifier used by the user in the request url, if any."
+				"comment" : "The Synapse object identifier sent by the user in the request url, if any."
 			}],
 			"partitionKeys":[{
 				"name": "record_date",
@@ -179,7 +179,7 @@
 			{
 				"name": "snapshot_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time stamp when the snapshot was taken. (It is usually after the change happened)."
+				"comment" : "The timestamp when the snapshot was taken. (It is usually after the change happened)."
 			},
 			{
 				"name": "id",
@@ -285,7 +285,7 @@
 			{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when change (created/updated/deleted) on the file is pushed to the queue for snapshotting."
+				"comment" : "The time when the change (created/updated/deleted) on the file is pushed to the queue for snapshotting."
 			},
 			{
 				"name": "change_user_id",
@@ -370,7 +370,7 @@
 			{
 				"name": "status",
 				"type" : "string",
-				"comment" : "The availability status of the file referenced by file handle."
+				"comment" : "The availability status of the file referenced by the file handle."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
@@ -651,7 +651,7 @@
 			{
 				"name": "association_object_type",
 				"type" : "string",
-				"comment" : "The type of the Synapse object that wraps the file."
+				"comment" : "The type of the Synapse object that wraps the file, e.g, FileEntity, TableEntity."
 			},
 			{
 				"name": "stack",
@@ -707,7 +707,7 @@
 			{
 				"name": "downloaded_file_handle_id",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the file handle of zip. It will same as file_handle_id if download was not requested as zip download."
+				"comment" : "The unique identifier of the file handle of a zip file when the download is requested as zip/package otherwise file_handle_id is downloaded_file_handle_id."
 			},
 			{
 				"name": "association_object_id",
