@@ -18,7 +18,7 @@
 			"columns": [{
 				"name": "userId",
 				"type" : "bigint",
-				"comment" : "The id of the user, who downloaded the file."
+				"comment" : "The id of the user who downloaded the file."
 			},
 			{
 				"name": "timestamp",
@@ -84,7 +84,7 @@
 			"columns": [{
 				"name": "userId",
 				"type" : "bigint",
-				"comment" : "The id of the user, who requested the upload."
+				"comment" : "The id of the user who requested the upload."
 			},
 			{
 				"name": "timestamp",
@@ -208,7 +208,7 @@
 			"columns": [{
 				"name": "id",
 				"type" : "bigint",
-				"comment" : "The identifier of the file handle."
+				"comment" : "The unique identifier of the file handle."
 			},
 			{
 				"name": "createdOn",

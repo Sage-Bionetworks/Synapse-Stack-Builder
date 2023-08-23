@@ -113,7 +113,7 @@
 			{
 				"name": "basic_auth_username",
 				"type" : "string",
-				"comment" : "The name of the user, who made the request using BASIC authentication method. It will be empty otherwise."
+				"comment" : "The name of the user who made the request using BASIC authentication method. It will be empty otherwise."
 			},
 			{
 				"name": "auth_method",
@@ -174,7 +174,7 @@
 			{
 				"name": "change_user_id",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the user, who made the change to the node."
+				"comment" : "The unique identifier of the user who made the change to the node."
 			},
 			{
 				"name": "snapshot_timestamp",
@@ -199,7 +199,7 @@
 			{
 				"name": "parent_id",
 				"type" : "bigint",
-				"comment" : "The identifier of the parent in the node hierarchy."
+				"comment" : "The unique identifier of the parent in the node hierarchy."
 			},
 			{
 				"name": "node_type",
@@ -214,7 +214,7 @@
 			{
 				"name": "created_by",
 				"type" : "bigint",
-				"comment" : "The identifier of the user, who created the node."
+				"comment" : "The unique identifier of the user who created the node."
 			},
 			{
 				"name": "modified_on",
@@ -224,7 +224,7 @@
 			{
 				"name": "modified_by",
 				"type" : "bigint",
-				"comment" : "The identifier of the user, who last modified the node."
+				"comment" : "The unique identifier of the user who last modified the node."
 			},
 			{
 				"name": "version_number",
@@ -234,7 +234,7 @@
 			{
 				"name": "file_handle_id",
 				"type" : "bigint",
-				"comment" : "The identifier of the file handle if the node is a file, null otherwise."
+				"comment" : "The unique identifier of the file handle if the node is a file, null otherwise."
 			},
 			{
 				"name": "name",
@@ -290,7 +290,7 @@
 			{
 				"name": "change_user_id",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the user, who made the change to the file."
+				"comment" : "The unique identifier of the user who made the change to the file."
 			},
 			{
 				"name": "snapshot_timestamp",
@@ -300,12 +300,12 @@
 			{
 				"name": "id",
 				"type" : "bigint",
-				"comment" : "The identifier of the file handle."
+				"comment" : "The unique identifier of the file handle."
 			},
 			{
 				"name": "created_by",
 				"type" : "bigint",
-				"comment" : "The identifier of the user who created the file handle."
+				"comment" : "The unique identifier of the user who created the file handle."
 			},
 			{
 				"name": "created_on",
@@ -427,7 +427,7 @@
 			{
 				"name": "created_by",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the user, who created the team."
+				"comment" : "The unique identifier of the user who created the team."
 			},
 			{
 				"name": "modified_on",
@@ -631,7 +631,7 @@
 			{
 				"name": "user_id",
 				"type" : "bigint",
-				"comment" : "The id of the user, who requested the upload."
+				"comment" : "The id of the user who requested the upload."
 			},
 			{
 				"name": "project_id",
@@ -692,7 +692,7 @@
 			{
 				"name": "user_id",
 				"type" : "bigint",
-				"comment" : "The id of the user, who downloaded the file."
+				"comment" : "The id of the user who downloaded the file."
 			},
 			{
 				"name": "project_id",
@@ -834,7 +834,7 @@
 			{
 				"name": "created_by",
 				"type" : "bigint",
-				"comment" : "The identifier of the user who, created the submission"
+				"comment" : "The unique identifier of the user who, created the submission"
 			},
 			{
 				"name": "state_history",
@@ -870,12 +870,12 @@
 			{
 				"name": "user_id",
 				"type" : "bigint",
-				"comment" : "The identifier of the user who took the quiz."
+				"comment" : "The unique identifier of the user who took the quiz."
 			},
 			{
 				"name": "passed",
 				"type" : "boolean",
-				"comment" : "If true, user passed the quiz."
+				"comment" : "If true, the user passed the quiz."
 			},
 			{
 				"name": "passed_on",
@@ -916,7 +916,7 @@
 			"columns":[{
 				"name": "response_id",
 				"type" : "bigint",
-				"comment" : "The identifier of the certification quiz taken by the user."
+				"comment" : "The unique identifier of the certification quiz taken by the user."
 			},
 			{
 				"name": "question_index",
