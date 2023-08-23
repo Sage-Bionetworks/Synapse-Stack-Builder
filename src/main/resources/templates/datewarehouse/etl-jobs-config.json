@@ -13,7 +13,7 @@
 			"columns":[{
 				"name": "session_id",
 				"type" : "string",
-				"comment" : "A unique identifier that Synapse assigns for the duration of a session. Sessions are linked to a user, an API key or a token."
+				"comment" : "A unique identifier that the Synapse server assigns for the duration of a session. Sessions are linked to a user, an API key or a token."
 			},
 			{
 				"name": "timestamp",
@@ -48,17 +48,17 @@
 			{
 				"name": "origin",
 				"type" : "string",
-				"comment" : "The host name of the portal making request, e.g., https://staging.synapse.org, https://adknowledgeportal.synapse.org, https://dhealth.synapse.org."
+				"comment" : "The host name of the portal making the request, e.g., https://staging.synapse.org, https://adknowledgeportal.synapse.org, https://dhealth.synapse.org."
 			},
 			{
 				"name": "x_forwarded_for",
 				"type" : "string",
-				"comment" : "The HTTP Header contains the IP address of the user connecting through a proxy. See: https://en.wikipedia.org/wiki/X-Forwarded-For"
+				"comment" : "The HTTP header x_forwarded_for contains the IP address of the user connecting through a proxy. See: https://en.wikipedia.org/wiki/X-Forwarded-For"
 			},
 			{
 				"name": "via",
 				"type" : "string",
-				"comment" : "The HTTP Header Via, informs the server of proxies through which the request was sent."
+				"comment" : "The HTTP header Via, informs the server of proxies through which the request was sent."
 			},
 			{
 				"name": "thread_id",
@@ -78,7 +78,7 @@
 			{
 				"name": "stack",
 				"type" : "string",
-				"comment" : "The stack (prod, dev) on which request was made."
+				"comment" : "The stack (prod, dev) on which the request was processed."
 			},
 			{
 				"name": "instance",
@@ -113,7 +113,7 @@
 			{
 				"name": "basic_auth_username",
 				"type" : "string",
-				"comment" : "The name of the user who made the request using BASIC authentication method. It will be empty otherwise."
+				"comment" : "The name of the user, who made the request using BASIC authentication method. It will be empty otherwise."
 			},
 			{
 				"name": "auth_method",
@@ -174,12 +174,12 @@
 			{
 				"name": "change_user_id",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the user who made the change to the node."
+				"comment" : "The unique identifier of the user, who made the change to the node."
 			},
 			{
 				"name": "snapshot_timestamp",
 				"type" : "timestamp",
-				"comment" : "The timestamp when the snapshot was taken. (It is usually after the change happened)."
+				"comment" : "The time when the snapshot was taken. (It is usually after the change happened)."
 			},
 			{
 				"name": "id",
@@ -204,27 +204,27 @@
 			{
 				"name": "node_type",
 				"type" : "string",
-				"comment" : "The type of node. Allowed node types are : project, folder, file, table, link, entityview, dockerrepo, submissionview, dataset, datasetcollection, materializedview, virtualtable."
+				"comment" : "The type of the node. Allowed node types are : project, folder, file, table, link, entityview, dockerrepo, submissionview, dataset, datasetcollection, materializedview, virtualtable."
 			},
 			{
 				"name": "created_on",
 				"type" : "timestamp",
-				"comment" : "The creation timestamp of the node."
+				"comment" : "The creation time of the node."
 			},
 			{
 				"name": "created_by",
 				"type" : "bigint",
-				"comment" : "The identifier of the user who created the node."
+				"comment" : "The identifier of the user, who created the node."
 			},
 			{
 				"name": "modified_on",
 				"type" : "timestamp",
-				"comment" : "The most recent change timestamp of the node."
+				"comment" : "The most recent change time of the node."
 			},
 			{
 				"name": "modified_by",
 				"type" : "bigint",
-				"comment" : "The identifier of the user who last modified the node."
+				"comment" : "The identifier of the user, who last modified the node."
 			},
 			{
 				"name": "version_number",
@@ -290,7 +290,7 @@
 			{
 				"name": "change_user_id",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the user who made the change to the file."
+				"comment" : "The unique identifier of the user, who made the change to the file."
 			},
 			{
 				"name": "snapshot_timestamp",
@@ -315,7 +315,7 @@
 			{
 				"name": "modified_on",
 				"type" : "timestamp",
-				"comment" : "The most recent change timestamp of the file handle."
+				"comment" : "The most recent change time of the file handle."
 			},
 			{
 				"name": "concrete_type",
@@ -340,7 +340,7 @@
 			{
 				"name": "storage_location_id",
 				"type" : "bigint",
-				"comment" : "The identifier of the environment where the physical files are stored."
+				"comment" : "The identifier of the environment, where the physical files are stored."
 			},
 			{
 				"name": "content_size",
@@ -422,17 +422,17 @@
 			{
 				"name": "created_on",
 				"type" : "timestamp",
-				"comment" : "The creation timestamp of the team."
+				"comment" : "The creation time of the team."
 			},
 			{
 				"name": "created_by",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the user who created the team."
+				"comment" : "The unique identifier of the user, who created the team."
 			},
 			{
 				"name": "modified_on",
 				"type" : "timestamp",
-				"comment" : "The timestamp when the team was last modified."
+				"comment" : "The time when the team was last modified."
 			},
 			{
 				"name": "modified_by",
@@ -529,7 +529,7 @@
 			{
 				"name": "created_on",
 				"type" : "timestamp",
-				"comment" : "The creation timestamp of the user-group."
+				"comment" : "The creation time of the user-group."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
@@ -631,7 +631,7 @@
 			{
 				"name": "user_id",
 				"type" : "bigint",
-				"comment" : "The id of the user who requested the upload."
+				"comment" : "The id of the user, who requested the upload."
 			},
 			{
 				"name": "project_id",
@@ -692,7 +692,7 @@
 			{
 				"name": "user_id",
 				"type" : "bigint",
-				"comment" : "The id of the user who downloaded the file."
+				"comment" : "The id of the user, who downloaded the file."
 			},
 			{
 				"name": "project_id",
@@ -829,12 +829,12 @@
 			{
 				"name": "created_on",
 				"type" : "timestamp",
-				"comment" : "The creation timestamp of the submission."
+				"comment" : "The creation time of the submission."
 			},
 			{
 				"name": "created_by",
 				"type" : "bigint",
-				"comment" : "The identifier of the user who created the submission"
+				"comment" : "The identifier of the user who, created the submission"
 			},
 			{
 				"name": "state_history",
