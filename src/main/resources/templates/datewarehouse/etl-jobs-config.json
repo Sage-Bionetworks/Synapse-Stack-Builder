@@ -28,7 +28,7 @@
 			{
 				"name": "method",
 				"type" : "string",
-				"comment" : "The http method of the API call."
+				"comment" : "The http method of the request."
 			},
 			{
 				"name": "request_url",
@@ -108,7 +108,7 @@
 			{
 				"name": "oauth_client_id",
 				"type" : "string",
-				"comment" : "The unique identifier of the oauth client used in the request. It will be empty when the request is not made by OAuth client."
+				"comment" : "The unique identifier of the oauth client used in the request. It will be empty when the request is not made by an OAuth client."
 			},
 			{
 				"name": "basic_auth_username",
@@ -123,7 +123,7 @@
 			{
 				"name": "normalized_method_signature",
 				"type" : "string",
-				"comment" : "This is calculated field from method and request_url filed to get a simplified version of the request url (the http method and the request url with all IDs extracted)."
+				"comment" : "This is the http method followed by a simplified version of the request url (with all IDs extracted)."
 			},
 			{
 				"name": "client",
@@ -143,7 +143,7 @@
 			"partitionKeys":[{
 				"name": "record_date",
 				"type" : "date",
-				"comment" : "The data is partitioned for fast and cost effective queries. The timestamp filed is converted into a date and stored in the record_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The timestamp field is converted into a date and stored in the record_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -249,7 +249,7 @@
 			{
 				"name": "is_controlled",
 				"type" : "boolean",
-				"comment" : "If true, an access requirement managed by the ACT on the node."
+				"comment" : "If true, an access requirement managed by the ACT is set on the node."
 			},
 			{
 				"name": "is_restricted",
@@ -259,7 +259,7 @@
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp filed is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp field is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -320,7 +320,7 @@
 			{
 				"name": "concrete_type",
 				"type" : "string",
-				"comment" : "The type of the file handle. Allowed file handles are : S3FileHandle, ProxyFileHandle, ExternalFileHandle, ExternalObjectStoreFileHandle, GoogleCloudFileHandle."
+				"comment" : "The type of the file handle. Allowed file handles are: S3FileHandle, ProxyFileHandle, ExternalFileHandle, ExternalObjectStoreFileHandle, GoogleCloudFileHandle."
 			},
 			{
 				"name": "content_md5",
@@ -330,7 +330,7 @@
 			{
 				"name": "content_type",
 				"type" : "string",
-				"comment" : "It's meta data about the content of the file e.g., application/json, application/zip, application/octet-stream."
+				"comment" : "Metadata about the content of the file, e.g., application/json, application/zip, application/octet-stream."
 			},
 			{
 				"name": "file_name",
@@ -350,7 +350,7 @@
 			{
 				"name": "bucket",
 				"type" : "string",
-				"comment" : "The bucket where the file is physically stored. Applicable for s3 and GCP otherwise empty"
+				"comment" : "The bucket where the file is physically stored. Applicable for s3 and GCP, otherwise empty."
 			},
 			{
 				"name": "key",
@@ -375,7 +375,7 @@
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp filed is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp field is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -442,7 +442,7 @@
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp filed is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp field is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -488,7 +488,7 @@
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp filed is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp field is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -534,7 +534,7 @@
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp filed is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp field is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -605,7 +605,7 @@
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp filed is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp field is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -622,16 +622,16 @@
 		"sourcePath" : "log.sagebase.org/fileUploadRecords/",
 		"tableDescriptor": {
 			"name": "fileuploadrecords",
-			"description" : "The table contain upload records for FileEntity and TableEntity. The events are recorded only after the file or table is successfully uploaded.",
+			"description" : "The table contains upload records for FileEntity (new file creation/upload or update to the existing file) and TableEntity (append a row set to the existing table, upload file to the existing table). The events are recorded only after the file or change to a table is successfully uploaded.",
 			"columns":[{
 				"name": "timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the file upload event is pushed to the queue, after upload of a file."
+				"comment" : "The time when the upload event is pushed to the queue, after a successful upload of a file or change in the existing table."
 			},
 			{
 				"name": "user_id",
 				"type" : "bigint",
-				"comment" : "The id of the user who uploaded the file."
+				"comment" : "The id of the user who requested the upload."
 			},
 			{
 				"name": "project_id",
@@ -646,27 +646,27 @@
 			{
 				"name": "association_object_id",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the Synapse object (without 'syn' prefix) that wraps the file."
+				"comment" : "The unique identifier of the related FileEntity or TableEntity (without the 'syn' prefix)."
 			},
 			{
 				"name": "association_object_type",
 				"type" : "string",
-				"comment" : "The type of the Synapse object that wraps the file, e.g, FileEntity, TableEntity."
+				"comment" : "The type of the Synapse object that wraps the file, e.g., FileEntity, TableEntity."
 			},
 			{
 				"name": "stack",
 				"type" : "string",
-				"comment" : "The stack (prod, dev) on which the file was uploaded."
+				"comment" : "The stack (prod, dev) on which the upload request was processed."
 			},
 			{
 				"name": "instance",
 				"type" : "string",
-				"comment" : "The version of the stack that processed the file upload."
+				"comment" : "The version of the stack that processed the upload request."
 			}],
 			"partitionKeys":[{
 				"name": "record_date",
 				"type" : "date",
-				"comment" : "The data is partitioned for fast and cost effective queries. The timestamp filed is converted into a date and stored in the record_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The timestamp field is converted into a date and stored in the record_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -683,11 +683,11 @@
 		"sourcePath" : "log.sagebase.org/fileDownloadRecords/",
 		"tableDescriptor": {
 			"name": "filedownloadrecords",
-			"description" : "The table contain records of all the downloads of the Synapse, e.g, file, zip/package, attachments. The events are recorded only after the pre-signed url for requested download entity is generated.",
+			"description" : "The table contain records of all the downloads of the Synapse, e.g., file, zip/package, attachments. The events are recorded only after the pre-signed url for requested download entity is generated.",
 			"columns":[{
 				"name": "timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the file download event is pushed to the queue for recording, after generating the Pre-signed url."
+				"comment" : "The time when the file download event is pushed to the queue for recording, after generating the pre-signed url."
 			},
 			{
 				"name": "user_id",
@@ -707,7 +707,7 @@
 			{
 				"name": "downloaded_file_handle_id",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the file handle of a zip file when the download is requested as zip/package otherwise file_handle_id is downloaded_file_handle_id."
+				"comment" : "The unique identifier of the zip file handle containing the downloaded file when the download is requested as zip/package, otherwise the id of the file handle itself."
 			},
 			{
 				"name": "association_object_id",
@@ -717,22 +717,22 @@
 			{
 				"name": "association_object_type",
 				"type" : "string",
-				"comment" : "The type of the Synapse object that wraps the file, e.g, FileEntity, TableEntity, WikiAttachment, WikiMarkdown, UserProfileAttachment, MessageAttachment, TeamAttachment."
+				"comment" : "The type of the Synapse object that wraps the file, e.g., FileEntity, TableEntity, WikiAttachment, WikiMarkdown, UserProfileAttachment, MessageAttachment, TeamAttachment."
 			},
 			{
 				"name": "stack",
 				"type" : "string",
-				"comment" : "The stack (prod, dev) on which the file was downloaded."
+				"comment" : "The stack (prod, dev) on which the download request was processed."
 			},
 			{
 				"name": "instance",
 				"type" : "string",
-				"comment" : "The version of the stack that processed the file download."
+				"comment" : "The version of the stack that processed the download request."
 			}],
 			"partitionKeys":[{
 				"name": "record_date",
 				"type" : "date",
-				"comment" : "The data is partitioned for fast and cost effective queries. The timestamp filed is converted into a date and stored in the record_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The timestamp field is converted into a date and stored in the record_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -749,16 +749,16 @@
 		"sourcePath" : "log.sagebase.org/aclSnapshots/",
 		"tableDescriptor": {
 			"name": "aclsnapshots",
-			"description" : "This table contain snapshots of access-control-list. Snapshots are taken when acl is created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
+			"description" : "This table contain snapshots of access-control-list. Snapshots are taken when an acl is created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the change (created/updated/deleted) on acl is pushed to the queue for snapshotting."
+				"comment" : "The time when the change (created/updated/deleted) on an acl is pushed to the queue for snapshotting."
 			},
 			{
 				"name": "change_type",
 				"type" : "string",
-				"comment" : "The type of change that occurred on acl, e.g., CREATE, UPDATE, DELETE."
+				"comment" : "The type of change that occurred on the acl, e.g., CREATE, UPDATE, DELETE."
 			},
 			{
 				"name": "snapshot_timestamp",
@@ -783,12 +783,12 @@
 			{
 				"name": "resource_access",
 				"type" : "array<struct<principalId:bigint,accessType:array<string>>>",
-				"comment" : "The list of principal (user or team) along with the permissions the principal is granted on the object to which the acl is applied."
+				"comment" : "The list of principals (users or teams) along with the permissions the principal is granted on the object to which the acl is applied."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp filed is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp field is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -805,11 +805,11 @@
 		"sourcePath" : "log.sagebase.org/verificationSubmissionSnapshots/",
 		"tableDescriptor": {
 			"name": "verificationsubmissionsnapshots",
-			"description" : "This table contain snapshots of submissions of user verification data by ACT. Snapshots are taken when submission is created or updated. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
+			"description" : "This table contain snapshots of submissions of user verification data by ACT. Snapshots are taken when a submission is created or updated. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the change (created/updated) on submission is pushed to the queue for snapshotting."
+				"comment" : "The time when the change (created/updated) on a submission is pushed to the queue for snapshotting."
 			},
 			{
 				"name": "change_type",
@@ -839,12 +839,12 @@
 			{
 				"name": "state_history",
 				"type" : "array<struct<createdOn:bigint,createdBy:string,state:string>>",
-				"comment" : "List of submission states (SUBMITTED, REJECTED, APPROVED) for the submission."
+				"comment" : "The sequence of submission states (SUBMITTED, REJECTED, APPROVED) for the submission."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp filed is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp field is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
@@ -880,7 +880,7 @@
 			{
 				"name": "passed_on",
 				"type" : "timestamp",
-				"comment" : "The date on which the user took or passed the quiz."
+				"comment" : "The date on which the user took the quiz, regardless of whether user passed or failed the test."
 			},
 			{
 				"name": "stack",
@@ -912,7 +912,7 @@
 		"sourcePath" : "log.sagebase.org/certifiedUserPassingRecords/",
 		"tableDescriptor": {
 			"name": "certifiedquizquestionrecords",
-			"description" : "This table contain records of the questions of the certification quiz. Each record in the table is question attempted by the user in the quiz.",
+			"description" : "This table contain records of the questions of the certification quiz. Each record in the table is question answered by the user in the quiz.",
 			"columns":[{
 				"name": "response_id",
 				"type" : "bigint",

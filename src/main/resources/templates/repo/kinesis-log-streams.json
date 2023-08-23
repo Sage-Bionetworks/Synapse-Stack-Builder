@@ -23,12 +23,12 @@
 			{
 				"name": "timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the download event is pushed to the queue for recording, after generating the Pre-signed url."
+				"comment" : "The time when the file download event is pushed to the queue for recording, after generating the pre-signed url."
 			},
 			{
 				"name": "projectId",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the project where the downloaded entity resides. Applicable only for FileEntity and TableEntity"
+				"comment" : "The unique identifier of the project where the downloaded entity resides. Applicable only for FileEntity and TableEntity."
 			},
 			{
 				"name": "fileHandleId",
@@ -38,22 +38,22 @@
 			{
 				"name": "associateType",
 				"type" : "string",
-				"comment" : "The type of the Synapse object that wraps the file."
+				"comment" : "The type of the Synapse object that wraps the file, e.g., FileEntity, TableEntity, WikiAttachment, WikiMarkdown, UserProfileAttachment, MessageAttachment, TeamAttachment."
 			},
 			{
 				"name": "associateId",
 				"type" : "string",
-				"comment" : "The unique identifier of the Synapse object ( with prefix syn) that wraps the file."
+				"comment" : "The unique identifier of the Synapse object ( with prefix 'syn') that wraps the file."
 			},
 			{
 				"name": "stack",
 				"type" : "string",
-				"comment" : "The stack (prod, dev) from which the file was downloaded."
+				"comment" : "The stack (prod, dev) on which the download request was processed."
 			},
 			{
 				"name": "instance",
 				"type" : "string",
-				"comment" : "The version of the stack that processed the file download."
+				"comment" : "The version of the stack that processed the download request."
 			}],
 			"partitionKeys":[{
 				"name": "year",
@@ -80,16 +80,16 @@
 		"bufferFlushInterval": 900,
 		"tableDescriptor": {
 			"name": "fileUploadsRecords",
-			"description" : "The table contain upload records for FileEntity and TableEntity.The events are recorded only after the file is successfully uploaded.",
+			"description" : "The table contains upload records for FileEntity (new file creation/upload or update to the existing file) and TableEntity (append a row set to the existing table, upload file to the existing table). The events are recorded only after the file or change to a table is successfully uploaded.",
 			"columns": [{
 				"name": "userId",
 				"type" : "bigint",
-				"comment" : "The id of the user who uploaded the file."
+				"comment" : "The id of the user who requested the upload."
 			},
 			{
 				"name": "timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when file upload event is pushed to the queue, after upload of a file."
+				"comment" : "The time when the upload event is pushed to the queue, after a successful upload of a file or change in the existing table."
 			},
 			{
 				"name": "projectId",
@@ -104,22 +104,22 @@
 			{
 				"name": "associateType",
 				"type" : "string",
-				"comment" : "The type of the Synapse object that wraps the file."
+				"comment" : "The type of the Synapse object that wraps the file, e.g., FileEntity, TableEntity."
 			},
 			{
 				"name": "associateId",
 				"type" : "string",
-				"comment" : "The unique identifier of the Synapse object ( with prefix syn) that wraps the file."
+				"comment" : "The unique identifier of the related FileEntity or TableEntity (with the 'syn' prefix)."
 			},
 			{
 				"name": "stack",
 				"type" : "string",
-				"comment" : "The stack (prod, dev) to which the file was uploaded."
+				"comment" : "The stack (prod, dev) on which the upload request was processed."
 			},
 			{
 				"name": "instance",
 				"type" : "string",
-				"comment" : "The version of the stack that processed the file upload."
+				"comment" : "The version of the stack that processed the upload request."
 			}],
 			"partitionKeys":[{
 				"name": "year",
@@ -148,11 +148,11 @@
 		"backupDisabled": true,
 		"tableDescriptor": {
 			"name": "fileHandleAssociationsRecords",
-			"description" : "The table contain file handle association records. A FileHandleAssociation record is, a FileHandle (identified by its id) is associated with a Synapse object (identified by its id and type).",
+			"description" : "The table contains file handle association records. A FileHandleAssociation record is a FileHandle (identified by its id) along with a Synapse object (identified by its id and type).",
 			"columns": [{
 				"name": "timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when association was data was collected."
+				"comment" : "The time when the association was data was collected."
 			},
 			{
 				"name": "associateType",
