@@ -1,7 +1,8 @@
 package org.sagebionetworks.template.s3;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import java.util.Arrays;
@@ -16,9 +17,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.sagebionetworks.template.*;
+import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.StackTagsProvider;
+import org.sagebionetworks.template.TemplateGuiceModule;
+import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.utils.ArtifactDownload;
+import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.s3.AmazonS3;
@@ -83,9 +88,6 @@ public class S3BucketBuilderIntegrationTest {
     public void testBuildS3BucketPolicyStack() throws InterruptedException {
 
         S3BucketDescriptor bucket = new S3BucketDescriptor();
-
-        bucket.setName("${stack}.bucket");
-        String expectedBucketName = stack + ".bucket";
 
         when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
 

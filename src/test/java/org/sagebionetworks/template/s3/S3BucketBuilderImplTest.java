@@ -8,13 +8,25 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
 import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import java.io.File;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.List;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -1328,7 +1340,7 @@ public class S3BucketBuilderImplTest {
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithDevAndProd() {
+	public void testBuildAllBucketsWithDevAndProd() throws InterruptedException {
 		
 		stack = "prod";
 		
@@ -1355,6 +1367,22 @@ public class S3BucketBuilderImplTest {
 		builder.buildAllBuckets();
 		
 		verifyNoMoreInteractions(mockS3Client);
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);
 
 	}
 	
@@ -2172,40 +2200,42 @@ public class S3BucketBuilderImplTest {
 		verify(mockTemplate, times(2)).merge(velocityContextCaptor.capture(), any());
 		
 		List<VelocityContext> contexts = velocityContextCaptor.getAllValues();
+		VelocityContext virusScannerBuilderContext = contexts.get(0);
+		VelocityContext bucketPolicyBuilderContext = contexts.get(1);
 		
-		assertEquals(contexts.get(0).get(Constants.STACK), stack);
-		assertEquals(contexts.get(0).get(S3BucketBuilderImpl.CF_PROPERTY_BUCKETS), Arrays.asList(bucket.getName()));
-		assertEquals(contexts.get(0).get(S3BucketBuilderImpl.CF_PROPERTY_NOTIFICATION_EMAIL), "notification@sagebase.org");
-		assertEquals(contexts.get(0).get(S3BucketBuilderImpl.CF_PROPERTY_LAMBDA_BUCKET), expectedBucket);
-		assertEquals(contexts.get(0).get(S3BucketBuilderImpl.CF_PROPERTY_LAMBDA_KEY), expectedKey);
+		assertEquals(virusScannerBuilderContext.get(Constants.STACK), stack);
+		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_BUCKETS), Arrays.asList(bucket.getName()));
+		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_NOTIFICATION_EMAIL), "notification@sagebase.org");
+		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_LAMBDA_BUCKET), expectedBucket);
+		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_LAMBDA_KEY), expectedKey);
 
-		assertEquals(contexts.get(1).get(Constants.STACK), stack);
+		assertEquals(bucketPolicyBuilderContext.get(Constants.STACK), stack);
 		
 		String expectedVirusScannerStackName = stack + "-synapse-virus-scanner";
 		String expectedBucketPolicyStackName = stack + "-synapse-bucket-policies";
 
+		ArgumentCaptor<CreateOrUpdateStackRequest> argCreateOrUpdateStack = ArgumentCaptor.forClass(CreateOrUpdateStackRequest.class);
 		ArgumentCaptor<String> argCaptorWaitForStack = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<String> argCaptorDescribeStack = ArgumentCaptor.forClass(String.class);
-		ArgumentCaptor<CreateOrUpdateStackRequest> argCreateOrUpdateStack = ArgumentCaptor.forClass(CreateOrUpdateStackRequest.class);
 
 		verify(mockCloudFormationClient, times(2)).createOrUpdateStack(argCreateOrUpdateStack.capture());
+		verify(mockCloudFormationClient, times(2)).waitForStackToComplete(argCaptorWaitForStack.capture());
+		verify(mockCloudFormationClient, times(2)).describeStack(argCaptorDescribeStack.capture());
 
-		assertEquals(argCreateOrUpdateStack.getAllValues().get(0), new CreateOrUpdateStackRequest()
+		List<CreateOrUpdateStackRequest> capturedCreateOrUpdateStackArgs = argCreateOrUpdateStack.getAllValues();
+		List<String> capturedWaitForStackArgs = argCaptorWaitForStack.getAllValues();
+		List<String> capturedDescribeStackArgs = argCaptorDescribeStack.getAllValues();
+
+		assertEquals(capturedCreateOrUpdateStackArgs.get(0), new CreateOrUpdateStackRequest()
 				.withStackName(expectedVirusScannerStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList())
 				.withCapabilities(CAPABILITY_NAMED_IAM));
 
-		assertEquals(argCreateOrUpdateStack.getAllValues().get(1), new CreateOrUpdateStackRequest()
+		assertEquals(capturedCreateOrUpdateStackArgs.get(1), new CreateOrUpdateStackRequest()
 				.withStackName(expectedBucketPolicyStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
-				
-		verify(mockCloudFormationClient, times(2)).waitForStackToComplete(argCaptorWaitForStack.capture());
-		verify(mockCloudFormationClient, times(2)).describeStack(argCaptorDescribeStack.capture());
-
-		List<String> capturedWaitForStackArgs = argCaptorWaitForStack.getAllValues();
-		List<String> capturedDescribeStackArgs = argCaptorDescribeStack.getAllValues();
 
 		assertEquals(expectedVirusScannerStackName, capturedWaitForStackArgs.get(0));
 		assertEquals(expectedVirusScannerStackName, capturedDescribeStackArgs.get(0));
@@ -2238,7 +2268,8 @@ public class S3BucketBuilderImplTest {
 		
 		bucket.setName("bucket");
 		bucket.setVirusScanEnabled(false);
-		
+
+		when(mockConfig.getProperty(Constants.PROPERTY_KEY_LAMBDA_VIRUS_SCANNER_ARTIFACT_URL)).thenReturn("https://some-url/lambda-name.zip");
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
 		
 		S3VirusScannerConfig virusScannerConfig = new S3VirusScannerConfig();
@@ -2275,6 +2306,9 @@ public class S3BucketBuilderImplTest {
 		when(mockS3Config.getVirusScannerConfig()).thenReturn(virusScannerConfig);
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
 		when(mockS3Client.getBucketNotificationConfiguration(any(String.class))).thenReturn(bucketConfiguration);
+
+		String expectedBucket = stack + "-lambda-bucket";
+		String expectedKey = "artifacts/virus-scanner/lambda-name.zip";
 		
 		// Call under test
 		builder.buildAllBuckets();
@@ -2289,23 +2323,52 @@ public class S3BucketBuilderImplTest {
 		assertTrue(configuration.getConfigurations().isEmpty());
 
 		verify(mockTemplate, times(2)).merge(velocityContextCaptor.capture(), any());
-
 		List<VelocityContext> contexts = velocityContextCaptor.getAllValues();
+		VelocityContext virusScannerBuilderContext = contexts.get(0);
+		VelocityContext bucketPolicyBuilderContext = contexts.get(1);
 
-		// Context for virus scanner stack
-		assertEquals(contexts.get(0).get(Constants.STACK), stack);
-		// Context for bucket policy stack
-		assertEquals(contexts.get(1).get(Constants.STACK), stack);
+		assertEquals(virusScannerBuilderContext.get(Constants.STACK), stack);
+		assertEquals(bucketPolicyBuilderContext.get(Constants.STACK), stack);
 
-		String expectedStackName = stack + "-synapse-bucket-policies";
+		assertEquals(virusScannerBuilderContext.get(Constants.STACK), stack);
+		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_BUCKETS), Arrays.asList());
+		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_NOTIFICATION_EMAIL), "notification@sagebase.org");
+		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_LAMBDA_BUCKET), expectedBucket);
+		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_LAMBDA_KEY), expectedKey);
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
-				.withStackName(expectedStackName)
+		assertEquals(bucketPolicyBuilderContext.get(Constants.STACK), stack);
+
+		String expectedVirusScannerStackName = stack + "-synapse-virus-scanner";
+		String expectedBucketPolicyStackName = stack + "-synapse-bucket-policies";
+
+		ArgumentCaptor<CreateOrUpdateStackRequest> argCreateOrUpdateStack = ArgumentCaptor.forClass(CreateOrUpdateStackRequest.class);
+		ArgumentCaptor<String> argCaptorWaitForStack = ArgumentCaptor.forClass(String.class);
+		ArgumentCaptor<String> argCaptorDescribeStack = ArgumentCaptor.forClass(String.class);
+
+		verify(mockCloudFormationClient, times(2)).createOrUpdateStack(argCreateOrUpdateStack.capture());
+		verify(mockCloudFormationClient, times(2)).waitForStackToComplete(argCaptorWaitForStack.capture());
+		verify(mockCloudFormationClient, times(2)).describeStack(argCaptorDescribeStack.capture());
+
+		List<CreateOrUpdateStackRequest> capturedCreateOrUpdateStackArgs = argCreateOrUpdateStack.getAllValues();
+		List<String> capturedWaitForStackArgs = argCaptorWaitForStack.getAllValues();
+		List<String> capturedDescribeStackArgs = argCaptorDescribeStack.getAllValues();
+
+		assertEquals(capturedCreateOrUpdateStackArgs.get(0), new CreateOrUpdateStackRequest()
+				.withStackName(expectedVirusScannerStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList())
+				.withCapabilities(CAPABILITY_NAMED_IAM));
+
+		assertEquals(capturedCreateOrUpdateStackArgs.get(1), new CreateOrUpdateStackRequest()
+				.withStackName(expectedBucketPolicyStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		assertEquals(expectedVirusScannerStackName, capturedWaitForStackArgs.get(0));
+		assertEquals(expectedVirusScannerStackName, capturedDescribeStackArgs.get(0));
+
+		assertEquals(expectedBucketPolicyStackName, capturedWaitForStackArgs.get(1));
+		assertEquals(expectedBucketPolicyStackName, capturedDescribeStackArgs.get(1));
 	}
 	
 	@Test
