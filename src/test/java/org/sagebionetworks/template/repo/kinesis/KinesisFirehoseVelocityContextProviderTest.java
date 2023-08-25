@@ -1,18 +1,6 @@
 package org.sagebionetworks.template.repo.kinesis;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.sagebionetworks.template.Constants.GLUE_DATABASE_NAME;
-import static org.sagebionetworks.template.Constants.KINESIS_FIREHOSE_STREAM_DESCRIPTORS;
-import static org.sagebionetworks.template.Constants.KINESIS_FIREHOSE_BUCKETS;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
-import static org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseVelocityContextProvider.GLUE_DB_SUFFIX;
-
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.ImmutableSet;
 import org.apache.velocity.VelocityContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,12 +10,23 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.RepoConfiguration;
-import org.sagebionetworks.template.repo.kinesis.firehose.GlueTableDescriptor;
+import org.sagebionetworks.template.repo.glue.GlueTableDescriptor;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfig;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseStreamDescriptor;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseVelocityContextProvider;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.sagebionetworks.template.Constants.GLUE_DATABASE_NAME;
+import static org.sagebionetworks.template.Constants.KINESIS_FIREHOSE_BUCKETS;
+import static org.sagebionetworks.template.Constants.KINESIS_FIREHOSE_STREAM_DESCRIPTORS;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
+import static org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseVelocityContextProvider.GLUE_DB_SUFFIX;
 
 @ExtendWith(MockitoExtension.class)
 public class KinesisFirehoseVelocityContextProviderTest {

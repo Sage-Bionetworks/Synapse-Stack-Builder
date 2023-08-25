@@ -14,21 +14,62 @@
 		"bufferFlushInterval": 900,
 		"tableDescriptor": {
 			"name": "fileDownloadsRecords",
-			"columns": {
-				"userId": "bigint",
-				"timestamp": "timestamp",
-				"projectId": "bigint",
-				"fileHandleId": "string",
-				"associateType": "string",
-				"associateId": "string",
-				"stack": "string",
-				"instance": "string"
+			"description" : "The table contain records of all downloads of Synapse. The events are recorded only after the pre-signed url for requested download entity is generated.",
+			"columns": [{
+				"name": "userId",
+				"type" : "bigint",
+				"comment" : "The id of the user who downloaded the file."
 			},
-			"partitionKeys": {
-				"year": "string",
-				"month": "string",
-				"day": "string"
-			}
+			{
+				"name": "timestamp",
+				"type" : "timestamp",
+				"comment" : "The time when the file download event is pushed to the queue for recording, after generating the pre-signed url."
+			},
+			{
+				"name": "projectId",
+				"type" : "bigint",
+				"comment" : "The unique identifier of the project where the downloaded entity resides. Applicable only for FileEntity and TableEntity."
+			},
+			{
+				"name": "fileHandleId",
+				"type" : "string",
+				"comment" : "The unique identifier of the file handle."
+			},
+			{
+				"name": "associateType",
+				"type" : "string",
+				"comment" : "The type of the Synapse object that wraps the file, e.g., FileEntity, TableEntity, WikiAttachment, WikiMarkdown, UserProfileAttachment, MessageAttachment, TeamAttachment."
+			},
+			{
+				"name": "associateId",
+				"type" : "string",
+				"comment" : "The unique identifier of the Synapse object ( with prefix 'syn') that wraps the file."
+			},
+			{
+				"name": "stack",
+				"type" : "string",
+				"comment" : "The stack (prod, dev) on which the download request was processed."
+			},
+			{
+				"name": "instance",
+				"type" : "string",
+				"comment" : "The version of the stack that processed the download request."
+			}],
+			"partitionKeys":[{
+				"name": "year",
+				"type" : "string",
+				"comment": "The year when file was downloaded. The year should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+			},
+			{
+				"name": "month",
+				"type" : "string",
+				"comment": "The month when file was downloaded. The month should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+			},
+			{
+				"name": "day",
+				"type" : "string",
+				"comment": "The day when file was downloaded. The day should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+			}]
 		}
 	},
 	{
@@ -39,21 +80,62 @@
 		"bufferFlushInterval": 900,
 		"tableDescriptor": {
 			"name": "fileUploadsRecords",
-			"columns": {
-				"userId": "bigint",
-				"timestamp": "timestamp",
-				"projectId": "bigint",
-				"fileHandleId": "string",
-				"associateType": "string",
-				"associateId": "string",
-				"stack": "string",
-				"instance": "string"
+			"description" : "The table contains upload records for FileEntity (new file creation/upload or update to the existing file) and TableEntity (append a row set to the existing table, upload file to the existing table). The events are recorded only after the file or change to a table is successfully uploaded.",
+			"columns": [{
+				"name": "userId",
+				"type" : "bigint",
+				"comment" : "The id of the user who requested the upload."
 			},
-			"partitionKeys": {
-				"year": "string",
-				"month": "string",
-				"day": "string"
-			}
+			{
+				"name": "timestamp",
+				"type" : "timestamp",
+				"comment" : "The time when the upload event is pushed to the queue, after a successful upload of a file or change in the existing table."
+			},
+			{
+				"name": "projectId",
+				"type" : "bigint",
+				"comment" : "The unique identifier of the project where the uploaded entity resides. Applicable only for FileEntity and TableEntity."
+			},
+			{
+				"name": "fileHandleId",
+				"type" : "string",
+				"comment" : "The unique identifier of the file handle."
+			},
+			{
+				"name": "associateType",
+				"type" : "string",
+				"comment" : "The type of the Synapse object that wraps the file, e.g., FileEntity, TableEntity."
+			},
+			{
+				"name": "associateId",
+				"type" : "string",
+				"comment" : "The unique identifier of the related FileEntity or TableEntity (with the 'syn' prefix)."
+			},
+			{
+				"name": "stack",
+				"type" : "string",
+				"comment" : "The stack (prod, dev) on which the upload request was processed."
+			},
+			{
+				"name": "instance",
+				"type" : "string",
+				"comment" : "The version of the stack that processed the upload request."
+			}],
+			"partitionKeys":[{
+				"name": "year",
+				"type" : "string",
+				"comment": "The month when the file upload occurred, e.g., 2021, 2022. The year should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+			},
+			{
+				"name": "month",
+				"type" : "string",
+				"comment": "The month when the file upload occurred, e.g., 01, 02. The month should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+			},
+			{
+				"name": "day",
+				"type" : "string",
+				"comment": "The day-of-the-month when file upload occurred, e.g., 16, 17, 22. The day should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+			}]
 		}
 	},
 	{
@@ -66,17 +148,42 @@
 		"backupDisabled": true,
 		"tableDescriptor": {
 			"name": "fileHandleAssociationsRecords",
-			"columns": {
-				"timestamp": "timestamp",
-				"associateType": "string",
-				"associateId": "bigint",
-				"fileHandleId": "bigint",
-				"stack": "string",
-				"instance": "string"
+			"description" : "The table contains file handle association records. A FileHandleAssociation record is a FileHandle (identified by its id) along with a Synapse object (identified by its id and type).",
+			"columns": [{
+				"name": "timestamp",
+				"type" : "timestamp",
+				"comment" : "The time when the association was data was collected."
 			},
-			"partitionKeys": {
-				"dt": "string"
+			{
+				"name": "associateType",
+				"type" : "string",
+				"comment" : "The type of the Synapse object that wraps the file."
 			},
+			{
+				"name": "associateId",
+				"type" : "string",
+				"comment" : "The unique identifier of the Synapse object that wraps the file."
+			},
+			{
+				"name": "fileHandleId",
+				"type" : "string",
+				"comment" : "The unique identifier of the file handle."
+			},
+			{
+				"name": "stack",
+				"type" : "string",
+				"comment" : "The stack (prod, dev) on which the file handle association processed."
+			},
+			{
+				"name": "instance",
+				"type" : "string",
+				"comment" : "The version of the stack that processed the file association."
+			}],
+			"partitionKeys":[{
+				"name": "dt",
+				"type" : "string",
+				"comment" : "The date on which the file association was collected. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+			}],
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.dt.type": "date",
@@ -97,21 +204,60 @@
 		"backupDisabled": true,
 		"tableDescriptor": {
 			"name": "fileHandleDataRecords",
-			"columns": {
-				"id": "bigint",
-				"createdOn": "timestamp",
-				"updatedOn": "timestamp",
-				"status": "string",
-				"isPreview": "boolean",
-				"contentSize": "bigint",
-				"bucket": "string",
-				"key": "string",
-				"stack": "string",
-				"instance": "string"
+			"description" : "This table contains file handle records. Records are logged when file handles are created, updated or deleted.",
+			"columns": [{
+				"name": "id",
+				"type" : "bigint",
+				"comment" : "The unique identifier of the file handle."
 			},
-			"partitionKeys": {
-				"dt": "string"
+			{
+				"name": "createdOn",
+				"type" : "timestamp",
+				"comment" : "The creation time of the file handle."
 			},
+			{
+				"name": "updatedOn",
+				"type" : "timestamp",
+				"comment" : "The update time of the file handle."
+			},
+			{
+				"name": "status",
+				"type" : "string",
+				"comment" : "The availability status of the the file referenced by file handle."
+			},
+			{
+				"name": "isPreview",
+				"type" : "boolean",
+				"comment" : "If true, the file referenced by this file handle is a preview of a file"
+			},
+			{
+				"name": "contentSize",
+				"type" : "bigint",
+				"comment" : "The size of the file referenced by file handle."
+			},
+			{
+				"name": "bucket",
+				"type" : "string"
+			},
+			{
+				"name": "key",
+				"type" : "string",
+				"comment" : "The bucket where the file is physically stored. If s3-compatible."
+			},
+			{
+				"name": "stack",
+				"type" : "string",
+				"comment" : "The stack (prod, dev) on which the file handle processed."
+			},
+			{
+				"name": "instance",
+				"type" : "string",
+				"comment" : "The version of the stack that processed the file handle."
+			}],
+			"partitionKeys":[{
+				"name": "dt",
+				"type" : "string"
+			}],
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.dt.type": "date",
@@ -133,16 +279,30 @@
 		"bufferFlushInterval": 60,
 		"tableDescriptor": {
 			"name": "testStreamRecords",
-			"columns": {
-				"id": "bigint",
-				"timestamp": "timestamp",
-				"someField": "string",
-				"stack": "string",
-				"instance": "string"
+			"columns": [{
+				"name": "id",
+				"type" : "bigint"
 			},
-			"partitionKeys": {
-				"dt": "string"
+			{
+				"name": "timestamp",
+				"type" : "timestamp"
 			},
+			{
+				"name": "someField",
+				"type" : "string"
+			},
+			{
+				"name": "stack",
+				"type" : "string"
+			},
+			{
+				"name": "instance",
+				"type" : "string"
+			}],
+			"partitionKeys":[{
+				"name": "dt",
+				"type" : "string"
+			}],
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.dt.type": "date",
@@ -225,13 +385,6 @@
 	},
 	{
 		"name": "verificationSubmissionSnapshots",
-		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
-		"format": "JSON",
-		"bufferFlushSize": 64,
-		"bufferFlushInterval": 900
-	},
-	{
-		"name": "certifiedUserPassingRecords",
 		"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
 		"format": "JSON",
 		"bufferFlushSize": 64,
