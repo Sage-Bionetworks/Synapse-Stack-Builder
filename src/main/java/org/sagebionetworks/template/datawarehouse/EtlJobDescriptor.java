@@ -1,6 +1,6 @@
 package org.sagebionetworks.template.datawarehouse;
 
-import org.sagebionetworks.template.repo.glue.GlueTableDescriptor;
+import org.sagebionetworks.template.repo.kinesis.firehose.GlueTableDescriptor;
 
 import java.util.Objects;
 

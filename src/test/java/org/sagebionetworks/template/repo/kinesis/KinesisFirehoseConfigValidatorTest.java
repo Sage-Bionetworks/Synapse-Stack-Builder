@@ -1,23 +1,23 @@
 package org.sagebionetworks.template.repo.kinesis;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
+
+import java.util.Collections;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.sagebionetworks.template.repo.glue.GlueColumn;
-import org.sagebionetworks.template.repo.glue.GlueTableDescriptor;
+import org.sagebionetworks.template.repo.kinesis.firehose.GlueTableDescriptor;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfig;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfigValidator;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseRecordFormat;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseStreamDescriptor;
 
-import java.util.Arrays;
-import java.util.Collections;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
+import com.google.common.collect.ImmutableMap;
 
 @ExtendWith(MockitoExtension.class)
 public class KinesisFirehoseConfigValidatorTest {
@@ -43,14 +43,11 @@ public class KinesisFirehoseConfigValidatorTest {
 
 	@Test
 	public void testWithTablesRef() {
-		GlueColumn column = new GlueColumn();
-		column.setName("someColumn");
-		column.setType("string");
 
 		GlueTableDescriptor table = new GlueTableDescriptor();
 
 		table.setName("someTableRef");
-		table.setColumns(Arrays.asList(column));
+		table.setColumns(ImmutableMap.of("someColumn", "string"));
 
 		KinesisFirehoseStreamDescriptor stream = new KinesisFirehoseStreamDescriptor();
 		stream.setName(STREAM_NAME);
