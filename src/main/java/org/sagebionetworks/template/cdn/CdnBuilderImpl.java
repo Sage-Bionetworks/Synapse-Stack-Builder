@@ -77,11 +77,11 @@ public class CdnBuilderImpl implements CdnBuilder {
 
 		StringWriter writer = new StringWriter();
 		template.merge(context, writer);
-		String cfTemplateYaml = writer.toString();
-		logger.info(cfTemplateYaml);
+		String cfTemplate = writer.toString();
+		logger.info(cfTemplate);
 		CreateOrUpdateStackRequest cfStackRequest = new CreateOrUpdateStackRequest()
 				.withStackName(cfStackName)
-				.withTemplateBody(cfTemplateYaml)
+				.withTemplateBody(cfTemplate)
 				.withTags(tagsProvider.getStackTags());
 		cloudFormationClient.createOrUpdateStack(cfStackRequest);
 		try {
