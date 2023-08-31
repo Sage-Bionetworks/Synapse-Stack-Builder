@@ -17,6 +17,9 @@
               "Id": "tstdata.sagebase.org",
               "OriginAccessControlId": {
                 "Ref": "OriginAccessControl"
+              },
+              "S3OriginConfig": {
+                "OriginAccessIdentity": ""
               }
             }
           ],
@@ -26,6 +29,7 @@
               "HEAD"
             ],
             "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
+            "OriginRequestPolicyId": "b689b0a8-53d0-40ab-baf2-68738e2966ac",
             "TargetOriginId": "tstdata.sagebase.org",
             "TrustedKeyGroups": [
               {
@@ -35,16 +39,14 @@
             "ViewerProtocolPolicy": "https-only"
           },
           "Logging": {
-            "Bucket": "tst.log.sagebase.org",
+            "Bucket": "tst.log.sagebase.org.s3.us-east-1.amazonaws.com",
             "IncludeCookies": true,
             "Prefix": "cloudFrontDataRequests"
           },
           "Enabled": true,
           "HttpVersion": "http2and3",
           "IPV6Enabled": false,
-          "ViewerCertificate": {
-            "CloudFrontDefaultCertificate": true
-          }
+          "PriceClass": "PriceClass_100"
         }
       }
     },
@@ -94,8 +96,21 @@
       "Export" : {
         "Name" : "tstdata-sagebase-org-CDN-ARN"
       }
+    },
+    "CloudFrontDistributionDomain" : {
+      "Description" : "The domain for the tstdata.sagebase.org CloudFront distribution",
+      "Value" : { "Fn::GetAtt": ["CloudFront", "DomainName"] },
+      "Export" : {
+        "Name" : "tstdata-sagebase-org-CDN-domain"
+      }
+    },
+    "CloudFrontDistributionKeyPairId" : {
+      "Description" : "The Key Pair ID for the tstdata.sagebase.org CloudFront distribution",
+      "Value" : { "Ref": "CloudFrontPublicKey" },
+      "Export" : {
+        "Name" : "tstdata-sagebase-org-CDN-key-pair-id"
+      }
     }
   }
-
 }
 
