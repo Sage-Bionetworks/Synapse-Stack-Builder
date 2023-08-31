@@ -660,7 +660,7 @@
 			"DependsOn":["${stack}${instance}SynapesRepoWorkersServiceRole"],
 			"Properties": {
 				"Description": "The master encryption key for ${stack}-${instance}",
-				"EnableKeyRotation": false,
+				"EnableKeyRotation": true,
 				"KeyPolicy": {
 					"Version": "2012-10-17",
 					"Id": "key-default-1",
