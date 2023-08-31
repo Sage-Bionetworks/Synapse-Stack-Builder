@@ -1,0 +1,101 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Provision a CloudFront distribution for synapse data",
+  "Resources": {
+    "CloudFront": {
+      "Type": "AWS::CloudFront::Distribution",
+      "DependsOn": [
+        "CloudFrontPublicKeyGroup",
+        "OriginAccessControl"
+      ],
+      "Properties": {
+        "DistributionConfig": {
+          "Comment": "CloudFront distribution for ${stack}data.sagebase.org",
+          "Origins": [
+            {
+              "DomainName": "${stack}data.sagebase.org.s3.us-east-1.amazonaws.com",
+              "Id": "${stack}data.sagebase.org",
+              "OriginAccessControlId": {
+                "Ref": "OriginAccessControl"
+              }
+            }
+          ],
+          "DefaultCacheBehavior": {
+            "AllowedMethods": [
+              "GET",
+              "HEAD"
+            ],
+            "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
+            "TargetOriginId": "${stack}data.sagebase.org",
+            "TrustedKeyGroups": [
+              {
+                "Ref": "CloudFrontPublicKeyGroup"
+              }
+            ],
+            "ViewerProtocolPolicy": "https-only"
+          },
+          "Logging": {
+            "Bucket": "${stack}.log.sagebase.org",
+            "IncludeCookies": true,
+            "Prefix": "cloudFrontDataRequests"
+          },
+          "Enabled": true,
+          "HttpVersion": "http2and3",
+          "IPV6Enabled": false,
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": true
+          }
+        }
+      }
+    },
+    "CloudFrontPublicKeyGroup": {
+      "Type": "AWS::CloudFront::KeyGroup",
+      "DependsOn": "CloudFrontPublicKey",
+      "Properties": {
+        "KeyGroupConfig": {
+          "Comment": "Public key group for ${stack}data.sagebase.org CloudFront infrastructure",
+          "Items": [
+            {
+              "Ref": "CloudFrontPublicKey"
+            }
+          ],
+          "Name": "${stack}data-key-group"
+        }
+      }
+    },
+    "CloudFrontPublicKey": {
+      "Type": "AWS::CloudFront::PublicKey",
+      "Properties": {
+        "PublicKeyConfig": {
+          "CallerReference": "${stack}data-public-key",
+          "Comment": "Public key for ${stack}data.sagebase.org CloudFront infrastructure",
+          "Name": "${stack}data-public-key",
+          "EncodedKey": "${DataCdnPublicKey}"
+        }
+      }
+    },
+    "OriginAccessControl": {
+      "Type": "AWS::CloudFront::OriginAccessControl",
+      "Properties": {
+        "OriginAccessControlConfig": {
+          "Description": "Origin Access Control for origin ${stack}data.sagebase.org",
+          "Name": "${stack}data-origin-access-control",
+          "OriginAccessControlOriginType": "s3",
+          "SigningBehavior": "always",
+          "SigningProtocol": "sigv4"
+        }
+      }
+    }
+  },
+  "Outputs" : {
+        "CloudFrontDistributionARN" : {
+          "Description" : "The ARN for the ${stack}data.sagebase.org CloudFront distribution",
+          "Value" : { "Fn::Join": ["", ["arn:aws:cloudfront::", { "Ref": "AWS::AccountId" }, ":distribution/", { "Ref": "CloudFront" }]] },
+          "Export" : {
+            "Name" : "${stack}data-sagebase-org-CDN-ARN"
+          }
+        }
+      }
+
+}
+

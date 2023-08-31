@@ -73,7 +73,7 @@ class CdnBuilderImplTest {
 		VelocityContext ctxt = builder.createContext();
 
 		assertEquals("acmarn", ctxt.get("AcmCertificateArn"));
-		assertEquals("tst", ctxt.get("SubDomainName"));
+		assertEquals("tst", ctxt.get("stack"));
 		assertEquals("12345", ctxt.get("DataCdnPublicKey"));
 	}
 
@@ -137,7 +137,7 @@ class CdnBuilderImplTest {
 		// call under test
 		Optional<Stack> optStack = builder.buildCdnStack(CdnBuilder.Type.DATA);
 
-		verify(mockVelocityEngine).getTemplate("templates/cdn/synapse_data_cdn.json.vtp");
+		verify(mockVelocityEngine).getTemplate("templates/cdn/synapse-data-cdn.json.vtp");
 		verify(mockCloudFormationClient).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
 		CreateOrUpdateStackRequest req = createOrUpdateStackRequestArgumentCaptor.getValue();
 		assertEquals("cdn-tst-data-synapse", req.getStackName());

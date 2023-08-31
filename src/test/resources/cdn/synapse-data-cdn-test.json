@@ -10,31 +10,41 @@
       ],
       "Properties": {
         "DistributionConfig": {
-          "Comment": "CloudFront distribution for ${SubDomainName}data.sagebase.org",
+          "Comment": "CloudFront distribution for tstdata.sagebase.org",
           "Origins": [
             {
-              "DomainName": "${SubDomainName}data.sagebase.org.s3.us-east-1.amazonaws.com",
-              "Id": "S3OriginId",
+              "DomainName": "tstdata.sagebase.org.s3.us-east-1.amazonaws.com",
+              "Id": "tstdata.sagebase.org",
               "OriginAccessControlId": {
                 "Ref": "OriginAccessControl"
-              },
-              "S3OriginConfig": {
-                "OriginAccessIdentity": ""
               }
             }
           ],
           "DefaultCacheBehavior": {
+            "AllowedMethods": [
+              "GET",
+              "HEAD"
+            ],
             "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
-            "TargetOriginId": "S3OriginId",
+            "TargetOriginId": "tstdata.sagebase.org",
             "TrustedKeyGroups": [
               {
                 "Ref": "CloudFrontPublicKeyGroup"
               }
             ],
-            "ViewerProtocolPolicy": "redirect-to-https"
+            "ViewerProtocolPolicy": "https-only"
+          },
+          "Logging": {
+            "Bucket": "tst.log.sagebase.org",
+            "IncludeCookies": true,
+            "Prefix": "cloudFrontDataRequests"
           },
           "Enabled": true,
-          "IPV6Enabled": true
+          "HttpVersion": "http2and3",
+          "IPV6Enabled": false,
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": true
+          }
         }
       }
     },
@@ -43,13 +53,13 @@
       "DependsOn": "CloudFrontPublicKey",
       "Properties": {
         "KeyGroupConfig": {
-          "Comment": "Public key group for ${SubDomainName}data.sagebase.org CloudFront infrastructure",
+          "Comment": "Public key group for tstdata.sagebase.org CloudFront infrastructure",
           "Items": [
             {
               "Ref": "CloudFrontPublicKey"
             }
           ],
-          "Name": "${SubDomainName}data-key-group"
+          "Name": "tstdata-key-group"
         }
       }
     },
@@ -57,10 +67,10 @@
       "Type": "AWS::CloudFront::PublicKey",
       "Properties": {
         "PublicKeyConfig": {
-          "CallerReference": "${SubDomainName}data-public-key",
-          "Comment": "Public key for ${SubDomainName}data.sagebase.org CloudFront infrastructure",
-          "Name": "${SubDomainName}data-public-key",
-          "EncodedKey": "${DataCdnPublicKey}"
+          "CallerReference": "tstdata-public-key",
+          "Comment": "Public key for tstdata.sagebase.org CloudFront infrastructure",
+          "Name": "tstdata-public-key",
+          "EncodedKey": "1234"
         }
       }
     },
@@ -68,8 +78,8 @@
       "Type": "AWS::CloudFront::OriginAccessControl",
       "Properties": {
         "OriginAccessControlConfig": {
-          "Description": "Origin Access Control for origin ${SubDomainName}data.sagebase.org",
-          "Name": "${SubDomainName}data-origin-access-control",
+          "Description": "Origin Access Control for origin tstdata.sagebase.org",
+          "Name": "tstdata-origin-access-control",
           "OriginAccessControlOriginType": "s3",
           "SigningBehavior": "always",
           "SigningProtocol": "sigv4"
@@ -78,14 +88,14 @@
     }
   },
   "Outputs" : {
-        "CloudFrontDistributionARN" : {
-          "Description" : "The ARN for the ${SubDomainName}data.sagebase.org CloudFront distribution",
-          "Value" : { "Fn::Join": ["", ["arn:aws:cloudfront::", { "Ref": "AWS::AccountId" }, ":distribution/", { "Ref": "CloudFront" }]] },
-          "Export" : {
-            "Name" : "${SubDomainName}data-sagebase-org-CDN-ARN"
-          }
-        }
+    "CloudFrontDistributionARN" : {
+      "Description" : "The ARN for the tstdata.sagebase.org CloudFront distribution",
+      "Value" : { "Fn::Join": ["", ["arn:aws:cloudfront::", { "Ref": "AWS::AccountId" }, ":distribution/", { "Ref": "CloudFront" }]] },
+      "Export" : {
+        "Name" : "tstdata-sagebase-org-CDN-ARN"
       }
+    }
+  }
 
 }
 

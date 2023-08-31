@@ -100,7 +100,7 @@ public class S3BucketBuilderIntegrationTest {
         builder.buildAllBuckets();
 
         String expectedStackName = stack + "-synapse-bucket-policies";
-        String expectedBucketPolicyTemplate = new JSONObject(TemplateUtils.loadContentFromFile("s3/s3bucketpolicy.json")).toString(5);
+        String expectedBucketPolicyTemplate = new JSONObject(TemplateUtils.loadContentFromFile("s3/s3-bucket-policy-test.json")).toString(5);
 
         verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
                 .withStackName("dev-synapse-bucket-policies")
