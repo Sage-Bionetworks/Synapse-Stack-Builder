@@ -1,9 +1,8 @@
 name: Build and run unit tests
 
-#on:
-#  pull_request:
-#    branches: [develop, release-**]
-on: workflow_dispatch
+on:
+  pull_request:
+    branches: [develop, release-*]
   
 jobs:
   build:
