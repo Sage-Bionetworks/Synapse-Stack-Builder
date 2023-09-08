@@ -135,6 +135,9 @@ public class Constants {
 	// Public key for verifying signed URL signature for a CloudFront Distribution
 	public static final String PROPERTY_KEY_DATA_CDN_PUBLIC_KEY = "org.sagebionetworks.cloudfront.public.key.encoded";
 
+	// ARN for the SSL Certificate for CloudFront
+	public static final String PROPERTY_KEY_DATA_CDN_CERTIFICATE_ARN = "org.sagebionetworks.cloudfront.certificate.arn";
+
 	// Etl jobs needs database name to create separate stack
 	public static final String PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME = "org.sagebionetworks.synapse.datawarehouse.glue.database.name";
 
@@ -245,6 +248,8 @@ public class Constants {
 	public static final String CTXT_KEY_STACK_INSTANCE_ALIAS = "stack";
 	public static final String CTXT_KEY_DOMAIN_NAME = "DomainName";
 	public static final String CTXT_KEY_PUBLIC_KEY = "DataCdnPublicKey";
+	public static final String CTXT_KEY_CERTIFICATE_ARN= "DataCdnCertificateArn";
+	public static final String CTXT_KEY_SUBDOMAIN= "SubDomain";
 
 	public static final String CTXT_ENABLE_ENHANCED_RDS_MONITORING = "EnableRdsEnhancedMonitoring";
 
@@ -316,6 +321,7 @@ public class Constants {
 	}
 
 	public static final String PROD_STACK_NAME = "prod";
+	public static final String DEV_STACK_NAME = "dev";
 
 	/**
 	 * Is the given stack prod?

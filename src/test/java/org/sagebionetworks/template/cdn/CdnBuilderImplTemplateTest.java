@@ -50,8 +50,9 @@ public class CdnBuilderImplTemplateTest {
 	@BeforeEach
 	void setUp() {
 		when(mockConfig.getProperty("org.sagebionetworks.beanstalk.ssl.arn.portal")).thenReturn("acmarn");
-		when(mockConfig.getProperty("org.sagebionetworks.stack.instance.alias")).thenReturn("tst");
+		when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("tst");
 		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.public.key.encoded")).thenReturn("1234");
+		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.certificate.arn")).thenReturn("arn:aws:acm:us-east-1:5678:certificate/1234");
 		velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
 		builder = new CdnBuilderImpl(mockConfig, mockCloudFormationClient, mockStackTagsProvider, velocityEngine);
 	}

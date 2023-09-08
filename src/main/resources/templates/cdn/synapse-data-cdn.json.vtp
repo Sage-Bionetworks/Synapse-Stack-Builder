@@ -10,6 +10,7 @@
       ],
       "Properties": {
         "DistributionConfig": {
+          "Aliases": ["data.${SubDomain}.sagebase.org"],
           "Comment": "CloudFront distribution for ${stack}data.sagebase.org",
           "Origins": [
             {
@@ -40,13 +41,18 @@
           },
           "Logging": {
             "Bucket": "${stack}.log.sagebase.org.s3.us-east-1.amazonaws.com",
-            "IncludeCookies": true,
+            "IncludeCookies": false,
             "Prefix": "cloudFrontDataRequests"
           },
           "Enabled": true,
           "HttpVersion": "http2and3",
           "IPV6Enabled": false,
-          "PriceClass": "PriceClass_100"
+          "PriceClass": "PriceClass_100",
+          "ViewerCertificate": {
+            "AcmCertificateArn" : "${DataCdnCertificateArn}",
+            "MinimumProtocolVersion" : "TLSv1.2_2021",
+            "SslSupportMethod" : "sni-only"
+          }
         }
       }
     },
@@ -86,6 +92,30 @@
           "SigningBehavior": "always",
           "SigningProtocol": "sigv4"
         }
+      }
+    },
+    "CloudFrontMonitoringSubscription": {
+      "Type" : "AWS::CloudFront::MonitoringSubscription",
+      "Properties" : {
+        "DistributionId" : { "Ref": "CloudFront" },
+        "MonitoringSubscription" : {
+          "RealtimeMetricsSubscriptionConfig" : {
+            "RealtimeMetricsSubscriptionStatus" : "Enabled"
+          }
+        }
+      }
+    },
+    "CloudFrontRecordSet": {
+      "Type" : "AWS::Route53::RecordSet",
+      "Properties" : {
+        "AliasTarget" : {
+          "DNSName" : { "Fn::GetAtt": ["CloudFront", "DomainName"] },
+          "HostedZoneId" : "Z2FDTNDATAQYW2"
+        },
+        "Comment" : "Record set for the CloudFront distribution for ${stack}data.sagebase.org",
+        "HostedZoneName" : "${SubDomain}.sagebase.org.",
+        "Name" : "data.${SubDomain}.sagebase.org",
+        "Type" : "A"
       }
     }
   },

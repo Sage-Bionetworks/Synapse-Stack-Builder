@@ -17,10 +17,16 @@ import java.util.Optional;
 
 import static org.sagebionetworks.template.Constants.CTXT_KEY_STACK_INSTANCE_ALIAS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK_INSTANCE_ALIAS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_PUBLIC_KEY;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_CERTIFICATE_ARN;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_ACM_CERT_ARN;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_PUBLIC_KEY;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_CERTIFICATE_ARN;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_SUBDOMAIN;
+import static org.sagebionetworks.template.Constants.STACK;
+import static org.sagebionetworks.template.Constants.PROD_STACK_NAME;
+import static org.sagebionetworks.template.Constants.DEV_STACK_NAME;
 
 public class CdnBuilderImpl implements CdnBuilder {
 
@@ -53,10 +59,21 @@ public class CdnBuilderImpl implements CdnBuilder {
 		// The ACM ARN is the same as the one used for portal
 		String acmCertificateArn = config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN+"portal");
 		ctxt.put(CTXT_KEY_ACM_CERT_ARN, acmCertificateArn);
-		String stackInstanceAlias = config.getProperty(PROPERTY_KEY_STACK_INSTANCE_ALIAS);
-		ctxt.put(CTXT_KEY_STACK_INSTANCE_ALIAS, stackInstanceAlias);
+		String stack = config.getProperty(PROPERTY_KEY_STACK);
+		ctxt.put(STACK, stack);
 		String dataCDNPublicKey = config.getProperty(PROPERTY_KEY_DATA_CDN_PUBLIC_KEY);
 		ctxt.put(CTXT_KEY_PUBLIC_KEY, dataCDNPublicKey);
+		String dataCDNCertificateArn = config.getProperty(PROPERTY_KEY_DATA_CDN_CERTIFICATE_ARN);
+		ctxt.put(CTXT_KEY_CERTIFICATE_ARN, dataCDNCertificateArn);
+
+		String subDomain;
+		if (stack == PROD_STACK_NAME) {
+			subDomain = PROD_STACK_NAME;
+		} else {
+			subDomain = DEV_STACK_NAME;
+		}
+		ctxt.put(CTXT_KEY_SUBDOMAIN, subDomain);
+
 		return ctxt;
 	}
 

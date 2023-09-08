@@ -59,7 +59,7 @@ class CdnBuilderImplTest {
 	@BeforeEach
 	void setUp() {
 		when(mockConfig.getProperty("org.sagebionetworks.beanstalk.ssl.arn.portal")).thenReturn("acmarn");
-		when(mockConfig.getProperty("org.sagebionetworks.stack.instance.alias")).thenReturn("tst");
+		when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("tst");
 		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.public.key.encoded")).thenReturn("12345");
 	}
 
