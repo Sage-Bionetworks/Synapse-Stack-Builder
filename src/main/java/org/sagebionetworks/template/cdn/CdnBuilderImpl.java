@@ -8,6 +8,7 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.RepoConfiguration;
@@ -65,7 +66,7 @@ public class CdnBuilderImpl implements CdnBuilder {
 		ctxt.put(CTXT_KEY_PUBLIC_KEY, dataCDNPublicKey);
 		String dataCDNCertificateArn = config.getProperty(PROPERTY_KEY_DATA_CDN_CERTIFICATE_ARN);
 		ctxt.put(CTXT_KEY_CERTIFICATE_ARN, dataCDNCertificateArn);
-		String subDomain = stack.equals(PROD_STACK_NAME) ? PROD_STACK_NAME : DEV_STACK_NAME;
+		String subDomain = Constants.isProd(stack) ? PROD_STACK_NAME : DEV_STACK_NAME;
 		ctxt.put(CTXT_KEY_SUBDOMAIN, subDomain);
 
 		return ctxt;
