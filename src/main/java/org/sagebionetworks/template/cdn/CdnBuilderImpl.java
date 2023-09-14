@@ -65,13 +65,7 @@ public class CdnBuilderImpl implements CdnBuilder {
 		ctxt.put(CTXT_KEY_PUBLIC_KEY, dataCDNPublicKey);
 		String dataCDNCertificateArn = config.getProperty(PROPERTY_KEY_DATA_CDN_CERTIFICATE_ARN);
 		ctxt.put(CTXT_KEY_CERTIFICATE_ARN, dataCDNCertificateArn);
-
-		String subDomain;
-		if (stack == PROD_STACK_NAME) {
-			subDomain = PROD_STACK_NAME;
-		} else {
-			subDomain = DEV_STACK_NAME;
-		}
+		String subDomain = stack.equals(PROD_STACK_NAME) ? PROD_STACK_NAME : DEV_STACK_NAME;
 		ctxt.put(CTXT_KEY_SUBDOMAIN, subDomain);
 
 		return ctxt;
