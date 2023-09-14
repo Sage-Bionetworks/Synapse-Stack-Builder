@@ -132,6 +132,12 @@ public class Constants {
 	
 	public static final String PARAM_KEY_TIME_TO_LIVE = "TimeToLive";
 
+	// Public key for verifying signed URL signature for a CloudFront Distribution
+	public static final String PROPERTY_KEY_DATA_CDN_PUBLIC_KEY = "org.sagebionetworks.cloudfront.public.key.encoded";
+
+	// ARN for the SSL Certificate for CloudFront
+	public static final String PROPERTY_KEY_DATA_CDN_CERTIFICATE_ARN = "org.sagebionetworks.cloudfront.certificate.arn";
+
 	// Etl jobs needs database name to create separate stack
 	public static final String PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME = "org.sagebionetworks.synapse.datawarehouse.glue.database.name";
 
@@ -156,6 +162,7 @@ public class Constants {
 	public static final String TEMPLATE_GLOBAL_RESOURCES = "templates/global/global-template.json.vpt";
 	public static final String TEMPLATE_S3_VIRUS_SCANNER = "templates/s3/s3-virus-scanner-template.json.vpt";
 	public static final String TEMPLATE_ETL_GLUE_JOB_RESOURCES = "templates/datewarehouse/etl-jobs-template.json.vpt";
+	public static final String TEMPLATE_S3_BUCKET_POLICY = "templates/s3/s3-bucket-policy.json.vpt";
 
 	public static final int JSON_INDENT = 5;
 
@@ -238,7 +245,11 @@ public class Constants {
 	// CDNs context keys
 	public static final String CTXT_KEY_ACM_CERT_ARN = "AcmCertificateArn";
 	public static final String CTXT_KEY_SUBDOMAIN_NAME = "SubDomainName";
+	public static final String CTXT_KEY_STACK_INSTANCE_ALIAS = "stack";
 	public static final String CTXT_KEY_DOMAIN_NAME = "DomainName";
+	public static final String CTXT_KEY_PUBLIC_KEY = "DataCdnPublicKey";
+	public static final String CTXT_KEY_CERTIFICATE_ARN= "DataCdnCertificateArn";
+	public static final String CTXT_KEY_SUBDOMAIN= "SubDomain";
 
 	public static final String CTXT_ENABLE_ENHANCED_RDS_MONITORING = "EnableRdsEnhancedMonitoring";
 
@@ -310,6 +321,7 @@ public class Constants {
 	}
 
 	public static final String PROD_STACK_NAME = "prod";
+	public static final String DEV_STACK_NAME = "dev";
 
 	/**
 	 * Is the given stack prod?

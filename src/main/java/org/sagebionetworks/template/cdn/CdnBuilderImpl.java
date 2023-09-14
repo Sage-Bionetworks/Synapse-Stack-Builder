@@ -8,6 +8,7 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.RepoConfiguration;
@@ -15,16 +16,26 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import java.io.StringWriter;
 import java.util.Optional;
 
-import static org.sagebionetworks.template.Constants.CTXT_KEY_SUBDOMAIN_NAME;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_STACK_INSTANCE_ALIAS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK_INSTANCE_ALIAS;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_PUBLIC_KEY;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_CERTIFICATE_ARN;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_ACM_CERT_ARN;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_PUBLIC_KEY;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_CERTIFICATE_ARN;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_SUBDOMAIN;
+import static org.sagebionetworks.template.Constants.STACK;
+import static org.sagebionetworks.template.Constants.PROD_STACK_NAME;
+import static org.sagebionetworks.template.Constants.DEV_STACK_NAME;
 
 public class CdnBuilderImpl implements CdnBuilder {
 
 	private static final Logger logger = LogManager.getLogger(CdnBuilderImpl.class);
 
-	private static final String TEMPLATE_STACK_CDN = "templates/cdn/synapse_cdn.yaml.vtp";
+	private static final String TEMPLATE_STACK_PORTAL_CDN = "templates/cdn/synapse_cdn.yaml.vtp";
+
+	private static final String TEMPLATE_STACK_DATA_CDN = "templates/cdn/synapse-data-cdn.json.vtp";
 
 	private RepoConfiguration config;
 	private VelocityEngine velocity;
@@ -40,8 +51,8 @@ public class CdnBuilderImpl implements CdnBuilder {
 	}
 
 	@Override
-	public void buildCdn() {
-		buildCdnStack();
+	public void buildCdn(Type type) {
+		buildCdnStack(type);
 	}
 
 	VelocityContext createContext() {
@@ -49,23 +60,40 @@ public class CdnBuilderImpl implements CdnBuilder {
 		// The ACM ARN is the same as the one used for portal
 		String acmCertificateArn = config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN+"portal");
 		ctxt.put(CTXT_KEY_ACM_CERT_ARN, acmCertificateArn);
-		String stackInstanceAlias = config.getProperty(PROPERTY_KEY_STACK_INSTANCE_ALIAS);
-		ctxt.put(CTXT_KEY_SUBDOMAIN_NAME, stackInstanceAlias);
+		String stack = config.getProperty(PROPERTY_KEY_STACK);
+		ctxt.put(STACK, stack);
+		String dataCDNPublicKey = config.getProperty(PROPERTY_KEY_DATA_CDN_PUBLIC_KEY);
+		ctxt.put(CTXT_KEY_PUBLIC_KEY, dataCDNPublicKey);
+		String dataCDNCertificateArn = config.getProperty(PROPERTY_KEY_DATA_CDN_CERTIFICATE_ARN);
+		ctxt.put(CTXT_KEY_CERTIFICATE_ARN, dataCDNCertificateArn);
+		String subDomain = Constants.isProd(stack) ? PROD_STACK_NAME : DEV_STACK_NAME;
+		ctxt.put(CTXT_KEY_SUBDOMAIN, subDomain);
+
 		return ctxt;
 	}
 
-	Optional<Stack> buildCdnStack() {
-
+	Optional<Stack> buildCdnStack(Type type) {
+		Template template;
+		String cfStackName;
 		VelocityContext context = createContext();
-		Template template = velocity.getTemplate(TEMPLATE_STACK_CDN);
+
+		if (Type.PORTAL.equals(type)) {
+			template = velocity.getTemplate(TEMPLATE_STACK_PORTAL_CDN);
+			cfStackName = String.format("cdn-%s-synapse", context.get(CTXT_KEY_STACK_INSTANCE_ALIAS));
+		} else if (Type.DATA.equals(type)){
+			template = velocity.getTemplate(TEMPLATE_STACK_DATA_CDN);
+			cfStackName = String.format("cdn-%s-data-synapse", context.get(CTXT_KEY_STACK_INSTANCE_ALIAS));
+		} else {
+			throw new IllegalArgumentException("A valid CdNBuilder Type must be used.");
+		}
+
 		StringWriter writer = new StringWriter();
 		template.merge(context, writer);
-		String cfTemplateYaml = writer.toString();
-		logger.info(cfTemplateYaml);
-		String cfStackName = String.format("cdn-%s-synapse", context.get(CTXT_KEY_SUBDOMAIN_NAME));
+		String cfTemplate = writer.toString();
+		logger.info(cfTemplate);
 		CreateOrUpdateStackRequest cfStackRequest = new CreateOrUpdateStackRequest()
 				.withStackName(cfStackName)
-				.withTemplateBody(cfTemplateYaml)
+				.withTemplateBody(cfTemplate)
 				.withTags(tagsProvider.getStackTags());
 		cloudFormationClient.createOrUpdateStack(cfStackRequest);
 		try {
