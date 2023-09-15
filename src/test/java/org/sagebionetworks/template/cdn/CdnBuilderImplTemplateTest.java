@@ -49,10 +49,6 @@ public class CdnBuilderImplTemplateTest {
 
 	@BeforeEach
 	void setUp() {
-		when(mockConfig.getProperty("org.sagebionetworks.beanstalk.ssl.arn.portal")).thenReturn("acmarn");
-		when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("tst");
-		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.public.key.encoded")).thenReturn("1234");
-		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.certificate.arn")).thenReturn("arn:aws:acm:us-east-1:5678:certificate/1234");
 		velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
 		builder = new CdnBuilderImpl(mockConfig, mockCloudFormationClient, mockStackTagsProvider, velocityEngine);
 	}
@@ -66,17 +62,20 @@ public class CdnBuilderImplTemplateTest {
 		List<Tag> expectedTags = new ArrayList<>();
 		Tag tag = new Tag().withKey("aKey").withValue("aValue");
 		expectedTags.add(tag);
-		Stack expectedStack = new Stack().withStackName("cdn-tst-synapse").withTags(expectedTags);
+		Stack expectedStack = new Stack().withStackName("cdn-dev-synapse").withTags(expectedTags);
 		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
 
 		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
 		when(mockCloudFormationClient.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
 
+		when(mockConfig.getProperty("org.sagebionetworks.beanstalk.ssl.arn.portal")).thenReturn("acmarn");
+		when(mockConfig.getProperty("org.sagebionetworks.stack.instance.alias")).thenReturn("dev");
+
 		// call under test
 		Optional<Stack> optStack = builder.buildCdnStack(CdnBuilder.Type.PORTAL);
 
 		assertTrue(optStack.isPresent());
-		assertEquals("cdn-tst-synapse", optStack.get().getStackName());
+		assertEquals("cdn-dev-synapse", optStack.get().getStackName());
 		assertEquals(1, optStack.get().getTags().size());
 		assertEquals(tag, optStack.get().getTags().get(0));
 
@@ -92,6 +91,10 @@ public class CdnBuilderImplTemplateTest {
 
 		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
 		when(mockCloudFormationClient.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
+
+		when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("tst");
+		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.public.key.encoded")).thenReturn("1234");
+		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.certificate.arn")).thenReturn("arn:aws:acm:us-east-1:5678:certificate/1234");
 
 		// call under test
 		Optional<Stack> optStack = builder.buildCdnStack(CdnBuilder.Type.DATA);
