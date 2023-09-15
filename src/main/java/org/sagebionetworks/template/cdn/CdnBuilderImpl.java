@@ -16,8 +16,9 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import java.io.StringWriter;
 import java.util.Optional;
 
-import static org.sagebionetworks.template.Constants.CTXT_KEY_STACK_INSTANCE_ALIAS;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_SUBDOMAIN_NAME;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK_INSTANCE_ALIAS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_PUBLIC_KEY;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_CERTIFICATE_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
@@ -60,6 +61,8 @@ public class CdnBuilderImpl implements CdnBuilder {
 		// The ACM ARN is the same as the one used for portal
 		String acmCertificateArn = config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN+"portal");
 		ctxt.put(CTXT_KEY_ACM_CERT_ARN, acmCertificateArn);
+		String stackInstanceAlias = config.getProperty(PROPERTY_KEY_STACK_INSTANCE_ALIAS);
+		ctxt.put(CTXT_KEY_SUBDOMAIN_NAME, stackInstanceAlias);
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
 		ctxt.put(STACK, stack);
 		String dataCDNPublicKey = config.getProperty(PROPERTY_KEY_DATA_CDN_PUBLIC_KEY);
@@ -79,10 +82,10 @@ public class CdnBuilderImpl implements CdnBuilder {
 
 		if (Type.PORTAL.equals(type)) {
 			template = velocity.getTemplate(TEMPLATE_STACK_PORTAL_CDN);
-			cfStackName = String.format("cdn-%s-synapse", context.get(CTXT_KEY_STACK_INSTANCE_ALIAS));
+			cfStackName = String.format("cdn-%s-synapse", context.get(CTXT_KEY_SUBDOMAIN_NAME));
 		} else if (Type.DATA.equals(type)){
 			template = velocity.getTemplate(TEMPLATE_STACK_DATA_CDN);
-			cfStackName = String.format("cdn-%s-data-synapse", context.get(CTXT_KEY_STACK_INSTANCE_ALIAS));
+			cfStackName = String.format("cdn-%s-data-synapse", context.get(STACK));
 		} else {
 			throw new IllegalArgumentException("A valid CdNBuilder Type must be used.");
 		}

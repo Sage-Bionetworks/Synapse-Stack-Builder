@@ -59,6 +59,7 @@ class CdnBuilderImplTest {
 	@BeforeEach
 	void setUp() {
 		when(mockConfig.getProperty("org.sagebionetworks.beanstalk.ssl.arn.portal")).thenReturn("acmarn");
+		when(mockConfig.getProperty("org.sagebionetworks.stack.instance.alias")).thenReturn("dev");
 		when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("tst");
 		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.public.key.encoded")).thenReturn("12345");
 	}
@@ -73,6 +74,7 @@ class CdnBuilderImplTest {
 		VelocityContext ctxt = builder.createContext();
 
 		assertEquals("acmarn", ctxt.get("AcmCertificateArn"));
+		assertEquals("dev", ctxt.get("SubDomainName"));
 		assertEquals("tst", ctxt.get("stack"));
 		assertEquals("12345", ctxt.get("DataCdnPublicKey"));
 	}
@@ -91,7 +93,7 @@ class CdnBuilderImplTest {
 		List<Tag> expectedTags = new ArrayList<>();
 		Tag tag = new Tag().withKey("aKey").withValue("aValue");
 		expectedTags.add(tag);
-		Stack expectedStack = new Stack().withStackName("cdn-tst-synapse").withTags(expectedTags);
+		Stack expectedStack = new Stack().withStackName("cdn-dev-synapse").withTags(expectedTags);
 		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
 
 		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
@@ -103,12 +105,12 @@ class CdnBuilderImplTest {
 		verify(mockVelocityEngine).getTemplate("templates/cdn/synapse_cdn.yaml.vtp");
 		verify(mockCloudFormationClient).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
 		CreateOrUpdateStackRequest req = createOrUpdateStackRequestArgumentCaptor.getValue();
-		assertEquals("cdn-tst-synapse", req.getStackName());
+		assertEquals("cdn-dev-synapse", req.getStackName());
 		assertEquals("someYamlTemplate", req.getTemplateBody());
 		assertEquals(expectedTags, req.getTags());
 
 		assertTrue(optStack.isPresent());
-		assertEquals("cdn-tst-synapse", optStack.get().getStackName());
+		assertEquals("cdn-dev-synapse", optStack.get().getStackName());
 		assertEquals(1, optStack.get().getTags().size());
 		assertEquals(tag, optStack.get().getTags().get(0));
 
