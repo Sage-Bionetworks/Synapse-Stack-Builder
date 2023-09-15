@@ -10,7 +10,7 @@
       ],
       "Properties": {
         "DistributionConfig": {
-          "Aliases": ["data.${SubDomain}.sagebase.org"],
+          "Aliases": ["data.${SubDomainName}.sagebase.org"],
           "Comment": "CloudFront distribution for ${stack}data.sagebase.org",
           "Origins": [
             {
@@ -49,7 +49,7 @@
           "IPV6Enabled": false,
           "PriceClass": "PriceClass_100",
           "ViewerCertificate": {
-            "AcmCertificateArn" : "${DataCdnCertificateArn}",
+            "AcmCertificateArn" : "${AcmCertificateArn}",
             "MinimumProtocolVersion" : "TLSv1.2_2021",
             "SslSupportMethod" : "sni-only"
           }
@@ -113,8 +113,8 @@
           "HostedZoneId" : "Z2FDTNDATAQYW2"
         },
         "Comment" : "Record set for the CloudFront distribution for ${stack}data.sagebase.org",
-        "HostedZoneName" : "${SubDomain}.sagebase.org.",
-        "Name" : "data.${SubDomain}.sagebase.org",
+        "HostedZoneName" : "${SubDomainName}.sagebase.org.",
+        "Name" : "data.${SubDomainName}.sagebase.org",
         "Type" : "A"
       }
     }

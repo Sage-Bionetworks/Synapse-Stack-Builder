@@ -24,8 +24,6 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_CERTI
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_ACM_CERT_ARN;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_PUBLIC_KEY;
-import static org.sagebionetworks.template.Constants.CTXT_KEY_CERTIFICATE_ARN;
-import static org.sagebionetworks.template.Constants.CTXT_KEY_SUBDOMAIN;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.PROD_STACK_NAME;
 import static org.sagebionetworks.template.Constants.DEV_STACK_NAME;
@@ -56,21 +54,27 @@ public class CdnBuilderImpl implements CdnBuilder {
 		buildCdnStack(type);
 	}
 
-	VelocityContext createContext() {
+	VelocityContext createContext(Type type) {
 		VelocityContext ctxt = new VelocityContext();
-		// The ACM ARN is the same as the one used for portal
-		String acmCertificateArn = config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN+"portal");
-		ctxt.put(CTXT_KEY_ACM_CERT_ARN, acmCertificateArn);
-		String stackInstanceAlias = config.getProperty(PROPERTY_KEY_STACK_INSTANCE_ALIAS);
-		ctxt.put(CTXT_KEY_SUBDOMAIN_NAME, stackInstanceAlias);
-		String stack = config.getProperty(PROPERTY_KEY_STACK);
-		ctxt.put(STACK, stack);
-		String dataCDNPublicKey = config.getProperty(PROPERTY_KEY_DATA_CDN_PUBLIC_KEY);
-		ctxt.put(CTXT_KEY_PUBLIC_KEY, dataCDNPublicKey);
-		String dataCDNCertificateArn = config.getProperty(PROPERTY_KEY_DATA_CDN_CERTIFICATE_ARN);
-		ctxt.put(CTXT_KEY_CERTIFICATE_ARN, dataCDNCertificateArn);
-		String subDomain = Constants.isProd(stack) ? PROD_STACK_NAME : DEV_STACK_NAME;
-		ctxt.put(CTXT_KEY_SUBDOMAIN, subDomain);
+
+		if (Type.PORTAL.equals(type)) {
+			// The ACM ARN is the same as the one used for portal
+			String acmCertificateArn = config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN + "portal");
+			ctxt.put(CTXT_KEY_ACM_CERT_ARN, acmCertificateArn);
+			String stackInstanceAlias = config.getProperty(PROPERTY_KEY_STACK_INSTANCE_ALIAS);
+			ctxt.put(CTXT_KEY_SUBDOMAIN_NAME, stackInstanceAlias);
+		} else if (Type.DATA.equals(type)) {
+			String stack = config.getProperty(PROPERTY_KEY_STACK);
+			ctxt.put(STACK, stack);
+			String dataCDNPublicKey = config.getProperty(PROPERTY_KEY_DATA_CDN_PUBLIC_KEY);
+			ctxt.put(CTXT_KEY_PUBLIC_KEY, dataCDNPublicKey);
+			String acmCertificateArn = config.getProperty(PROPERTY_KEY_DATA_CDN_CERTIFICATE_ARN);
+			ctxt.put(CTXT_KEY_ACM_CERT_ARN, acmCertificateArn);
+			String subDomain = Constants.isProd(stack) ? PROD_STACK_NAME : DEV_STACK_NAME;
+			ctxt.put(CTXT_KEY_SUBDOMAIN_NAME, subDomain);
+		} else {
+			throw new IllegalArgumentException("A valid CdnBuilder Type must be used.");
+		}
 
 		return ctxt;
 	}
@@ -78,7 +82,7 @@ public class CdnBuilderImpl implements CdnBuilder {
 	Optional<Stack> buildCdnStack(Type type) {
 		Template template;
 		String cfStackName;
-		VelocityContext context = createContext();
+		VelocityContext context = createContext(type);
 
 		if (Type.PORTAL.equals(type)) {
 			template = velocity.getTemplate(TEMPLATE_STACK_PORTAL_CDN);
@@ -87,7 +91,7 @@ public class CdnBuilderImpl implements CdnBuilder {
 			template = velocity.getTemplate(TEMPLATE_STACK_DATA_CDN);
 			cfStackName = String.format("cdn-%s-data-synapse", context.get(STACK));
 		} else {
-			throw new IllegalArgumentException("A valid CdNBuilder Type must be used.");
+			throw new IllegalArgumentException("A valid CdnBuilder Type must be used.");
 		}
 
 		StringWriter writer = new StringWriter();

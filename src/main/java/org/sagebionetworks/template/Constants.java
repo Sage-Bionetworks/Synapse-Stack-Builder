@@ -247,8 +247,6 @@ public class Constants {
 	public static final String CTXT_KEY_SUBDOMAIN_NAME = "SubDomainName";
 	public static final String CTXT_KEY_DOMAIN_NAME = "DomainName";
 	public static final String CTXT_KEY_PUBLIC_KEY = "DataCdnPublicKey";
-	public static final String CTXT_KEY_CERTIFICATE_ARN= "DataCdnCertificateArn";
-	public static final String CTXT_KEY_SUBDOMAIN= "SubDomain";
 
 	public static final String CTXT_ENABLE_ENHANCED_RDS_MONITORING = "EnableRdsEnhancedMonitoring";
 
