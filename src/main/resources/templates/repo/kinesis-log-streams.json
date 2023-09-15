@@ -161,12 +161,12 @@
 			},
 			{
 				"name": "associateId",
-				"type" : "string",
+				"type" : "bigint",
 				"comment" : "The unique identifier of the Synapse object that wraps the file."
 			},
 			{
 				"name": "fileHandleId",
-				"type" : "string",
+				"type" : "bigint",
 				"comment" : "The unique identifier of the file handle."
 			},
 			{

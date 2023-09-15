@@ -865,7 +865,7 @@
 			"columns":[{
 				"name": "response_id",
 				"type" : "bigint",
-				"comment" : "The unique identifier for the instance of a quiz taken by user."
+				"comment" : "The unique identifier of a response wherein a user submitted a set of answers while participating in the quiz."
 			},
 			{
 				"name": "user_id",
@@ -916,7 +916,7 @@
 			"columns":[{
 				"name": "response_id",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the certification quiz taken by the user."
+				"comment" : "The unique identifier of a response wherein a user submitted a set of answers while participating in the quiz."
 			},
 			{
 				"name": "question_index",
