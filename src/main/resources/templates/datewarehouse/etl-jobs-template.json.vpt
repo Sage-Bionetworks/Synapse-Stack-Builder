@@ -1,6 +1,9 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
 	"Description": "Template used to create glue ETL job",
+	"Parameters": {
+	    #parse("templates/repo/time-to-live-parameter.vpt")
+	},
 	"Resources": {
 		"AWSGlueJobRole": {
 			"Type": "AWS::IAM::Role",
@@ -215,5 +218,8 @@
             }
         },
 		#end
+	},
+	"Outputs": {
+	    #parse("templates/repo/time-to-live-out.vpt")
 	}
 }

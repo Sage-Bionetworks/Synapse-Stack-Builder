@@ -1,6 +1,7 @@
 package org.sagebionetworks.template.datawarehouse;
 
 import com.amazonaws.internal.ReleasableInputStream;
+import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.s3.AmazonS3;
 import com.google.inject.Inject;
 import org.apache.logging.log4j.Logger;
@@ -13,6 +14,7 @@ import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.Configuration;
+import org.sagebionetworks.template.config.TimeToLive;
 import org.sagebionetworks.template.repo.VelocityExceptionThrower;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 import org.sagebionetworks.util.ValidateArgument;
@@ -21,6 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.file.Files;
+import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
@@ -55,10 +59,14 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
     private ArtifactDownload downloader;
     private AmazonS3 s3Client;
 
+    private TimeToLive timeToLive;
+
+
     @Inject
     public DataWarehouseBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
                                     Configuration config, LoggerFactory loggerFactory,
-                                    StackTagsProvider tagsProvider, EtlJobConfig etlJobConfig, ArtifactDownload downloader, AmazonS3 s3Client) {
+                                    StackTagsProvider tagsProvider, EtlJobConfig etlJobConfig, ArtifactDownload downloader,
+                                    AmazonS3 s3Client, TimeToLive timeToLive) {
         this.cloudFormationClient = cloudFormationClient;
         this.velocityEngine = velocityEngine;
         this.config = config;
@@ -67,6 +75,7 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
         this.etlJobConfig = etlJobConfig;
         this.downloader = downloader;
         this.s3Client = s3Client;
+        this.timeToLive = timeToLive;
     }
 
     @Override
@@ -104,13 +113,17 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
         String resultJSON = stringWriter.toString();
         JSONObject templateJson = new JSONObject(resultJSON);
 
+        // Add the param
+        Parameter param = timeToLive.createTimeToLiveParameter().orElse(null);
+
         // Format the JSON
         resultJSON = templateJson.toString(JSON_INDENT);
         this.logger.info(resultJSON);
         // create or update the template
         this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
                 .withTemplateBody(resultJSON).withTags(tagsProvider.getStackTags())
-                .withCapabilities(CAPABILITY_NAMED_IAM));
+                .withCapabilities(CAPABILITY_NAMED_IAM)
+                .withParameters(param));
     }
     
     String copyArtifactFromGithub(String bucket) {
