@@ -2,32 +2,7 @@
    "AWSTemplateFormatVersion":"2010-09-09",
    "Description":"Template used to set up virus scanning of S3 buckets",
    "Resources":{
-   	#foreach( $bucket in $buckets)
-      "$bucket.replaceAll("[^a-zA-Z0-9]", "")BucketPolicy":{
-         "Type":"AWS::S3::BucketPolicy",
-         "Properties":{
-            "Bucket": "${bucket}",
-            "PolicyDocument":{
-               "Statement":[
-                  {
-                     "Effect":"Deny",
-                     "Action":[
-                        "s3:GetObject"
-                     ],
-                     "Principal":"*",
-                     "Resource": "arn:aws:s3:::${bucket}/*",
-                     "Condition":{
-                        "StringEquals":{
-                           "s3:ExistingObjectTag/av-status":"INFECTED"
-                        }
-                     }
-                  }
-               ]
-            }
-         }
-      }#if( $foreach.hasNext), #end
-    #end
-      ,"CloudWatchTimer":{
+      "CloudWatchTimer":{
          "Type":"AWS::Events::Rule",
          "Properties":{
             "ScheduleExpression":"rate(3 hours)",

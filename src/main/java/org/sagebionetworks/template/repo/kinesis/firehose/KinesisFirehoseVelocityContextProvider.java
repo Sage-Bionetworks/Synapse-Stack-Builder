@@ -1,21 +1,21 @@
 package org.sagebionetworks.template.repo.kinesis.firehose;
 
-import com.google.inject.Inject;
-import org.apache.velocity.VelocityContext;
-import org.sagebionetworks.template.Constants;
-import org.sagebionetworks.template.TemplateUtils;
-import org.sagebionetworks.template.config.RepoConfiguration;
-import org.sagebionetworks.template.repo.VelocityContextProvider;
-import org.sagebionetworks.template.repo.glue.GlueTableDescriptor;
-
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import static org.sagebionetworks.template.Constants.GLUE_DATABASE_NAME;
 import static org.sagebionetworks.template.Constants.KINESIS_FIREHOSE_BUCKETS;
 import static org.sagebionetworks.template.Constants.KINESIS_FIREHOSE_STREAM_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.velocity.VelocityContext;
+import org.sagebionetworks.template.Constants;
+import org.sagebionetworks.template.TemplateUtils;
+import org.sagebionetworks.template.config.RepoConfiguration;
+import org.sagebionetworks.template.repo.VelocityContextProvider;
+
+import com.google.inject.Inject;
 
 public class KinesisFirehoseVelocityContextProvider implements VelocityContextProvider {
 

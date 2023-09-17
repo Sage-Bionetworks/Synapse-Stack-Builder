@@ -4,7 +4,6 @@ import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
 import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_STACK_NAME_FORMAT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_VIRUS_SCANNER_ARTIFACT_URL;
-import static org.sagebionetworks.template.Constants.TEMPLATE_INVENTORY_BUCKET_POLICY_TEMPLATE;
 
 import java.io.File;
 import java.io.StringWriter;
@@ -100,6 +99,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	static final String VIRUS_SCANNER_STACK_NAME = "${stack}-synapse-virus-scanner";
 	static final String VIRUS_SCANNER_NOTIFICATION_CONFIG_NAME = "virusScannerNotificationConfiguration";
 	static final String VIRUS_SCANNER_KEY_TEMPLATE = "artifacts/virus-scanner/%s";
+	static final String BUCKET_POLICY_STACK_NAME = "${stack}-synapse-bucket-policies";
 	
 
 	private static String getStackOutput(Stack stack, String key) {
@@ -140,9 +140,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		String accountId = stsClient.getCallerIdentity(new GetCallerIdentityRequest()).getAccount();
 		
 		String inventoryBucket = TemplateUtils.replaceStackVariable(s3Config.getInventoryBucket(), stack);
-		
-		List<String> inventoriedBuckets = new ArrayList<>();
-				
+
 		List<String> virusScanEnabledBuckets = new ArrayList<>();
 		List<String> virusScanDisabledBuckets = new ArrayList<>();
 		
@@ -163,10 +161,6 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			configureIntelligentTieringArchive(bucket);
 			configureBucketNotifications(bucket, stack);
 			
-			if (bucket.isInventoryEnabled()) {
-				inventoriedBuckets.add(bucket.getName());
-			}
-			
 			if (bucket.isVirusScanEnabled()) {
 				virusScanEnabledBuckets.add(bucket.getName());
 			} else {
@@ -174,10 +168,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			}
 			
 		}
-		
-		// Makes sure the bucket policy on the inventory is correct
-		configureInventoryBucketPolicy(stack, accountId, inventoryBucket, inventoriedBuckets);
-		
+
 		buildVirusScannerStack(stack, s3Config.getVirusScannerConfig(), virusScanEnabledBuckets).ifPresent( virusScannerStack -> {
 			// Once the virus scanner stack is built we need to setup for each bucket a notification configuration to
 			// send upload events to the topic the lambda is triggered by, this cannot be done in the cloud formation
@@ -204,7 +195,42 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 				.withInvocationType(InvocationType.Event)
 			);
 		});
-		
+
+		buildS3BucketPolicyStack(stack);
+	}
+
+	private Optional<Stack> buildS3BucketPolicyStack(String stack) {
+		VelocityContext context = new VelocityContext();
+
+		context.put(Constants.STACK, stack);
+
+		// Merge the context with the template
+		Template template = velocity.getTemplate(Constants.TEMPLATE_S3_BUCKET_POLICY);
+
+		StringWriter stringWriter = new StringWriter();
+
+		template.merge(context, stringWriter);
+
+		String resultJSON = stringWriter.toString();
+
+		LOG.info(resultJSON);
+
+		resultJSON = new JSONObject(resultJSON).toString(5);
+
+		String stackName = TemplateUtils.replaceStackVariable(BUCKET_POLICY_STACK_NAME, stack);
+
+		cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(stackName)
+				.withTemplateBody(resultJSON)
+				.withTags(tagsProvider.getStackTags()));
+
+		try {
+			cloudFormationClient.waitForStackToComplete(stackName);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+
+		return Optional.of(cloudFormationClient.describeStack(stackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+stackName)));
 	}
 	
 	private Optional<Stack>buildVirusScannerStack(String stack, S3VirusScannerConfig config, List<String> buckets) {
@@ -611,43 +637,5 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		LOG.info("Removing {} bucket notification configuration {}.", bucketName, configName);
 		
 		s3Client.setBucketNotificationConfiguration(bucketName, bucketConfig);		
-	}	
-	
-	private void configureInventoryBucketPolicy(String stack, String accountId, String inventoryBucket, List<String> sourceBuckets) {
-		if (inventoryBucket == null) {
-			LOG.warn("An inventory bucket was not specified.");
-			return;
-		} 
-		
-		if (sourceBuckets == null || sourceBuckets.isEmpty()) {
-			LOG.warn("No bucket had the inventory enabled, removing bucket policy.");
-			s3Client.deleteBucketPolicy(inventoryBucket);
-			return;
-		}
-		
-		updateInventoryBucketPolicy(stack, accountId, inventoryBucket, sourceBuckets);
-		
 	}
-	
-	private void updateInventoryBucketPolicy(String stack, String accountId, String inventoryBucket, List<String> sourceBuckets) {
-		VelocityContext context = new VelocityContext();
-		
-		context.put("stack", stack);
-		context.put("accountId", accountId);
-		context.put("inventoryBucket", inventoryBucket);
-		context.put("sourceBuckets", sourceBuckets);
-		
-		Template policyTemplate = velocity.getTemplate(TEMPLATE_INVENTORY_BUCKET_POLICY_TEMPLATE, StandardCharsets.UTF_8.name());
-		
-		StringWriter stringWriter = new StringWriter();
-		
-		policyTemplate.merge(context, stringWriter);
-		
-		String jsonPolicy = stringWriter.toString();
-		
-		LOG.info("Updating inventory bucket {} policy.", inventoryBucket);
-		
-		s3Client.setBucketPolicy(inventoryBucket, jsonPolicy);
-	}
-
 }

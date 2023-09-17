@@ -1,0 +1,72 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Provision bucket policies for Synapse S3 buckets",
+  "Resources": {
+    "DataBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": "${stack}data.sagebase.org",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement":[
+            {
+              "Sid": "VirusScannerPolicy",
+              "Effect":"Deny",
+              "Action":[
+                "s3:GetObject"
+              ],
+              "Principal":"*",
+              "Resource": "arn:aws:s3:::${stack}data.sagebase.org/*",
+              "Condition":{
+                "StringEquals":{
+                  "s3:ExistingObjectTag/av-status":"INFECTED"
+                }
+              }
+            },
+            {
+              "Sid": "AllowCloudFrontServicePrincipal",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "cloudfront.amazonaws.com"
+              },
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::${stack}data.sagebase.org/*",
+              "Condition": {
+                "StringEquals": {
+                  "AWS:SourceArn": {"Fn::ImportValue": "${stack}data-sagebase-org-CDN-ARN"}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "InventoryBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": "${stack}.inventory.sagebase.org",
+        "PolicyDocument": {
+          "Version":"2012-10-17",
+          "Statement":[
+            {
+              "Sid":"InventoryPolicy",
+              "Effect":"Allow",
+              "Principal": {"Service": "s3.amazonaws.com"},
+              "Action":"s3:PutObject",
+              "Resource":["arn:aws:s3:::${stack}.inventory.sagebase.org/*"],
+              "Condition": {
+                "ArnLike": {
+                  "aws:SourceArn": "arn:aws:s3:::${stack}data.sagebase.org"
+                },
+                "StringEquals": {
+                  "aws:SourceAccount": { "Ref": "AWS::AccountId" },
+                  "s3:x-amz-acl": "bucket-owner-full-control"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
