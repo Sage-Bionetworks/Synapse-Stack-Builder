@@ -136,12 +136,14 @@
                 },
                 "TableInput": {
                     "Name": "$etl.tableDescriptor.name",
+                    "Description" : "$etl.tableDescriptor.description",
                     "StorageDescriptor": {
                         "Columns": [
-                            #foreach($column in $etl.tableDescriptor.columns.entrySet())
+                            #foreach($column in $etl.tableDescriptor.columns)
                             {
-                                "Name":"${column.key}",
-                                "Type":"${column.value}"
+                                "Name":"$column.name",
+                                "Type":"$column.type",
+                                "Comment":"$column.comment"
                             }
                             #if( $foreach.hasNext),#end
                             #end
@@ -154,10 +156,11 @@
                         "Location": "s3://${stack}.datawarehouse.sagebase.org/${glueDatabaseName}/${etl.tableDescriptor.name}/",
                     },
                     "PartitionKeys": [
-                        #foreach($partition in $etl.tableDescriptor.partitionKeys.entrySet())
+                        #foreach($partition in $etl.tableDescriptor.partitionKeys)
                         {
-                            "Name":"${partition.key}",
-                            "Type":"${partition.value}"
+                            "Name":"$partition.name",
+                            "Type":"$partition.type",
+                            "Comment":"$partition.comment"
                         }
                         #if( $foreach.hasNext),#end
                         #end

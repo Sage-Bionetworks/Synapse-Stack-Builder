@@ -1,5 +1,7 @@
 package org.sagebionetworks.template.repo.kinesis.firehose;
 
+import org.sagebionetworks.template.repo.glue.GlueTableDescriptor;
+
 import java.util.Objects;
 
 public class KinesisFirehoseStreamDescriptor {
@@ -29,7 +31,7 @@ public class KinesisFirehoseStreamDescriptor {
 	private GlueTableDescriptor tableDescriptor = null;
 	// When the format is PARQUET by default we create a backup of the raw JSON data, setting this to true will disable the backup
 	private boolean backupDisabled = false;
-	
+
 	public String getName() {
 		return name;
 	}
@@ -37,11 +39,11 @@ public class KinesisFirehoseStreamDescriptor {
 	public void setName(String name) {
 		this.name = name;
 	}
-	
+
 	public String getBucket() {
 		return bucket;
 	}
-	
+
 	public void setBucket(String bucket) {
 		this.bucket = bucket;
 	}
@@ -49,7 +51,7 @@ public class KinesisFirehoseStreamDescriptor {
 	public boolean isParameterizeDestinationByStack() {
 		return parameterizeDestinationByStack;
 	}
-	
+
 	public void setParameterizeDestinationByStack(boolean parameterizeDestinationByStack) {
 		this.parameterizeDestinationByStack = parameterizeDestinationByStack;
 	}
@@ -101,11 +103,11 @@ public class KinesisFirehoseStreamDescriptor {
 	public void setTableDescriptor(GlueTableDescriptor tableDescriptor) {
 		this.tableDescriptor = tableDescriptor;
 	}
-	
+
 	public boolean isBackupDisabled() {
 		return backupDisabled;
 	}
-	
+
 	public void setBackupDisabled(boolean backupDisabled) {
 		this.backupDisabled = backupDisabled;
 	}
@@ -133,6 +135,6 @@ public class KinesisFirehoseStreamDescriptor {
 				&& format == other.format && Objects.equals(name, other.name)
 				&& parameterizeDestinationByStack == other.parameterizeDestinationByStack
 				&& Objects.equals(partitionScheme, other.partitionScheme) && Objects.equals(tableDescriptor, other.tableDescriptor);
-	}	
+	}
 
 }

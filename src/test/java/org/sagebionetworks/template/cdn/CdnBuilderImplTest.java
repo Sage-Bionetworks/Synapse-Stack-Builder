@@ -56,23 +56,35 @@ class CdnBuilderImplTest {
 	@InjectMocks
 	CdnBuilderImpl builder;
 
-	@BeforeEach
-	void setUp() {
-		when(mockConfig.getProperty("org.sagebionetworks.beanstalk.ssl.arn.portal")).thenReturn("acmarn");
-		when(mockConfig.getProperty("org.sagebionetworks.stack.instance.alias")).thenReturn("tst");
-	}
-
 	@AfterEach
 	void tearDown() {
 	}
 
 	@Test
-	void testCreateContext() {
+	void testCreatePortalContext() {
+		when(mockConfig.getProperty("org.sagebionetworks.beanstalk.ssl.arn.portal")).thenReturn("acmarn");
+		when(mockConfig.getProperty("org.sagebionetworks.stack.instance.alias")).thenReturn("dev");
+
 		// call under test
-		VelocityContext ctxt = builder.createContext();
+		VelocityContext ctxt = builder.createContext(CdnBuilder.Type.PORTAL);
 
 		assertEquals("acmarn", ctxt.get("AcmCertificateArn"));
-		assertEquals("tst", ctxt.get("SubDomainName"));
+		assertEquals("dev", ctxt.get("SubDomainName"));
+	}
+
+	@Test
+	void testCreateDataContext() {
+		when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("tst");
+		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.public.key.encoded")).thenReturn("12345");
+		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.certificate.arn")).thenReturn("arn:aws:acm:us-east-1:5678:certificate/1234");
+
+		// call under test
+		VelocityContext ctxt = builder.createContext(CdnBuilder.Type.DATA);
+
+		assertEquals("arn:aws:acm:us-east-1:5678:certificate/1234", ctxt.get("AcmCertificateArn"));
+		assertEquals("dev", ctxt.get("SubDomainName"));
+		assertEquals("tst", ctxt.get("stack"));
+		assertEquals("12345", ctxt.get("DataCdnPublicKey"));
 	}
 
 	@Test
@@ -89,24 +101,68 @@ class CdnBuilderImplTest {
 		List<Tag> expectedTags = new ArrayList<>();
 		Tag tag = new Tag().withKey("aKey").withValue("aValue");
 		expectedTags.add(tag);
-		Stack expectedStack = new Stack().withStackName("cdn-tst-synapse").withTags(expectedTags);
+		Stack expectedStack = new Stack().withStackName("cdn-dev-synapse").withTags(expectedTags);
 		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
 
 		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
 		when(mockCloudFormationClient.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
 
+		when(mockConfig.getProperty("org.sagebionetworks.beanstalk.ssl.arn.portal")).thenReturn("acmarn");
+		when(mockConfig.getProperty("org.sagebionetworks.stack.instance.alias")).thenReturn("dev");
+
 		// call under test
-		Optional<Stack> optStack = builder.buildCdnStack();
+		Optional<Stack> optStack = builder.buildCdnStack(CdnBuilder.Type.PORTAL);
 
 		verify(mockVelocityEngine).getTemplate("templates/cdn/synapse_cdn.yaml.vtp");
 		verify(mockCloudFormationClient).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
 		CreateOrUpdateStackRequest req = createOrUpdateStackRequestArgumentCaptor.getValue();
-		assertEquals("cdn-tst-synapse", req.getStackName());
+		assertEquals("cdn-dev-synapse", req.getStackName());
 		assertEquals("someYamlTemplate", req.getTemplateBody());
 		assertEquals(expectedTags, req.getTags());
 
 		assertTrue(optStack.isPresent());
-		assertEquals("cdn-tst-synapse", optStack.get().getStackName());
+		assertEquals("cdn-dev-synapse", optStack.get().getStackName());
+		assertEquals(1, optStack.get().getTags().size());
+		assertEquals(tag, optStack.get().getTags().get(0));
+
+	}
+
+	@Test
+	void testBuildDataCdnStack() throws Exception{
+		when(mockVelocityEngine.getTemplate(any(String.class))).thenReturn(mockTemplate);
+		doAnswer(new Answer<Void>() {
+			@Override
+			public Void answer(InvocationOnMock invocation) throws Throwable {
+				StringWriter writer = (StringWriter) invocation.getArgument(1);
+				writer.append("someJsonTemplate");
+				return null;
+			}
+		}).when(mockTemplate).merge(any(), any());
+		List<Tag> expectedTags = new ArrayList<>();
+		Tag tag = new Tag().withKey("aKey").withValue("aValue");
+		expectedTags.add(tag);
+		Stack expectedStack = new Stack().withStackName("cdn-tst-data-synapse").withTags(expectedTags);
+		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
+
+		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
+		when(mockCloudFormationClient.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
+
+		when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("tst");
+		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.public.key.encoded")).thenReturn("12345");
+		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.certificate.arn")).thenReturn("arn:aws:acm:us-east-1:5678:certificate/1234");
+
+		// call under test
+		Optional<Stack> optStack = builder.buildCdnStack(CdnBuilder.Type.DATA);
+
+		verify(mockVelocityEngine).getTemplate("templates/cdn/synapse-data-cdn.json.vtp");
+		verify(mockCloudFormationClient).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
+		CreateOrUpdateStackRequest req = createOrUpdateStackRequestArgumentCaptor.getValue();
+		assertEquals("cdn-tst-data-synapse", req.getStackName());
+		assertEquals("someJsonTemplate", req.getTemplateBody());
+		assertEquals(expectedTags, req.getTags());
+
+		assertTrue(optStack.isPresent());
+		assertEquals("cdn-tst-data-synapse", optStack.get().getStackName());
 		assertEquals(1, optStack.get().getTags().size());
 		assertEquals(tag, optStack.get().getTags().get(0));
 
