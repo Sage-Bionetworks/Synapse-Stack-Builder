@@ -175,7 +175,7 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
 
     String copyArtifactFromGithub(String bucket) {
         String githubRepo = "Synapse-ETL-Jobs";
-        String version = "1.32.0";
+        String version = "1.33.0";
         String githubUrl = String.format(GITHUB_URL_TPL, githubRepo, version);
         String scriptPath = String.format(SCRIPT_PATH_TPL, githubRepo, version);
         String s3ScriptsPath = S3_BACKFILL_KEY_PATH_TPL;
