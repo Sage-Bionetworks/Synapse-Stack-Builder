@@ -262,7 +262,7 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
     }
 
     private Map<String, List<String>> getAthenaQueryResult(String year, String stack, String database, String table, String location) {
-        String query = "select instance, min(month) as minmonth, max(month) as maxmonth, min(day) as minday, max(day) as maxday from" + table + " where year='" + year + "' group by instance ";
+        String query = "select instance, min(month) as minmonth, max(month) as maxmonth, min(day) as minday, max(day) as maxday from " + table + " where year='" + year + "' group by instance ";
         QueryExecutionContext queryExecutionContext = new QueryExecutionContext().withDatabase(database);
 
         // Create a ResultConfiguration
