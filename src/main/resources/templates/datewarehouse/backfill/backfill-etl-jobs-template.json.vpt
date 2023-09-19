@@ -1,0 +1,443 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Template used to create glue backfill ETL job",
+  "Resources": {
+    "AWSGlueJobRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "glue.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "Glue",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "glue:*",
+                    "cloudwatch:PutMetricData"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          },
+          {
+            "PolicyName": "IAM",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "iam:ListRolePolicies",
+                    "iam:GetRole",
+                    "iam:GetRolePolicy"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          },
+          {
+            "PolicyName": "ReadWriteS3",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:AbortMultipartUpload",
+                    "s3:GetBucketLocation",
+                    "s3:GetObject",
+                    "s3:ListBucket",
+                    "s3:ListBucketMultipartUploads",
+                    "s3:PutObject"
+                  ],
+                  "Resource": [
+                    "arn:aws:s3:::${stack}.snapshot.record.sagebase.org",
+                    "arn:aws:s3:::${stack}.snapshot.record.sagebase.org/*",
+                    "arn:aws:s3:::${stack}.log.sagebase.org",
+                    "arn:aws:s3:::${stack}.log.sagebase.org/*",
+                    "arn:aws:s3:::${stack}.aws-glue.sagebase.org",
+                    "arn:aws:s3:::${stack}.aws-glue.sagebase.org/*"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "PolicyName": "GlueStudioAccess",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetObject"
+                  ],
+                  "Resource": [
+                    "arn:aws:s3:::aws-glue-studio-transforms-510798373988-prod-us-east-1/*"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "PolicyName": "Log",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": [
+                    "arn:aws:logs:*:*:/aws-glue/*"
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "${backfillDatabaseName}GlueDatabase": {
+        "Type":"AWS::Glue::Database",
+        "Properties":{
+            "CatalogId":{
+                "Ref":"AWS::AccountId"
+            },
+            "DatabaseInput": {
+                "Name": "${backfillDatabaseName}"
+            }
+        }
+    },
+    "backfillolddatawarehousefiledownloadrecordsGlueJob": {
+      "Type": "AWS::Glue::Job",
+      "Properties": {
+        "Command": {
+          "Name": "glueetl",
+          "ScriptLocation": "s3://${stack}.aws-glue.sagebase.org/scripts/backfill/backfill_old_dataware_house_file_download_records.py"
+        },
+        "DefaultArguments": {
+          "--enable-continuous-cloudwatch-log": "true",
+          "--job-bookmark-option": "job-bookmark-disable",
+          "--enable-metrics": "true",
+          "--enable-spark-ui": "true",
+          "--job-language": "python",
+          "--RELEASE_NUMBER": "000000400",
+          "--SOURCE_DATABASE_NAME": "${glueDatabaseName}",
+          "--SOURCE_FILE_TABLE_NAME": "filedownloadscsv",
+          "--SOURCE_BULK_TABLE_NAME": "bulkfiledownloadscsv",
+          "--DESTINATION_DATABASE_NAME": "backfill",
+          "--DESTINATION_TABLE_NAME": "allfiledownloads",
+          "--STACK": "${stack}",
+          "--START_DATE": "2023-01-01",
+          "--END_DATE": "2023-12-31",
+          "--extra-py-files": "${extraScripts}"
+        },
+        "Description": "This job back fill the old data-ware house file download records",
+        "ExecutionProperty": {
+          "MaxConcurrentRuns" : 100
+          },
+        "GlueVersion": "4.0",
+        "Name": "${glueDatabaseName}_backfill_old_datawarehouse_filedownload_records",
+        "Role": {
+          "Fn::GetAtt": [
+            "AWSGlueJobRole",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "backfillkinesisfiledownloadrecordsGlueJob": {
+      "Type": "AWS::Glue::Job",
+      "Properties": {
+        "Command": {
+          "Name": "glueetl",
+          "ScriptLocation": "s3://${stack}.aws-glue.sagebase.org/scripts/backfill/backfill_kinesis_file_download_records.py"
+        },
+        "DefaultArguments": {
+          "--enable-continuous-cloudwatch-log": "true",
+          "--job-bookmark-option": "job-bookmark-disable",
+          "--enable-metrics": "true",
+          "--enable-spark-ui": "true",
+          "--job-language": "python",
+          "--SOURCE_DATABASE_NAME": "${stack}470firehoselogs",
+          "--SOURCE_TABLE_NAME": "${stack}470filedownloadsrecords",
+          "--YEAR": "2023",
+          "--MONTH": "08",
+          "--DESTINATION_DATABASE_NAME": "backfill",
+          "--DESTINATION_TABLE_NAME": "allfiledownloads",
+          "--extra-py-files": "${extraScripts}"
+        },
+        "Description": "This job back fill the kinesis file download records",
+        "GlueVersion": "4.0",
+        "Name": "${glueDatabaseName}_backfill_kinesis_filedownload_records",
+        "Role": {
+          "Fn::GetAtt": [
+            "AWSGlueJobRole",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "duplicatefiledownloadGlueTable": {
+      "Type": "AWS::Glue::Table",
+      "Properties": {
+        "CatalogId": {
+          "Ref": "AWS::AccountId"
+        },
+        "DatabaseName":
+        {
+            "Ref":"${backfillDatabaseName}GlueDatabase"
+        },
+        "TableInput": {
+          "Name": "allfiledownloads",
+          "Description" : "This table contains all the file downloads of old data-ware house downloads and kinesis stream download.",
+          "StorageDescriptor" : {
+            "Columns": [
+              {
+                "Name": "timestamp",
+                "Type": "timestamp"
+              },
+              {
+                "Name": "user_id",
+                "Type": "bigint"
+              },
+              {
+                "Name": "project_id",
+                "Type": "bigint"
+              },
+              {
+                "Name": "file_handle_id",
+                "Type": "string"
+              },
+              {
+                "Name": "downloaded_file_handle_id",
+                "Type": "string"
+              },
+              {
+                "Name": "association_object_id",
+                "Type": "string"
+              },
+              {
+                "Name": "association_object_type",
+                "Type": "string"
+              },
+              {
+                "Name": "stack",
+                "Type": "string"
+              },
+              {
+                "Name": "instance",
+                "Type": "string"
+              }],
+            "InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+            "SerdeInfo": {
+              "SerializationLibrary": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe"
+            },
+            "Compressed": true,
+            "Location": "s3://${stack}.log.sagebase.org/allfiledownloads/"
+          },
+          "PartitionKeys": [
+            {
+              "Name": "record_date",
+              "Type": "date"
+            }],
+          "TableType": "EXTERNAL_TABLE"
+        }
+        }
+      },
+    "bulkfiledownloadscsvGlueTable": {
+      "Type": "AWS::Glue::Table",
+      "Properties": {
+        "CatalogId": {
+          "Ref": "AWS::AccountId"
+        },
+        "DatabaseName":
+        {
+            "Ref":"${backfillDatabaseName}GlueDatabase"
+        },
+        "TableInput": {
+          "Name": "bulkfiledownloadscsv",
+          "Description" : "This table contains bulk file downloads of old data-ware house.",
+          "StorageDescriptor" : {
+            "Columns": [
+              {
+                "Name": "timestamp",
+                "Type": "string"
+              },
+              {
+                "Name": "type",
+                "Type": "string"
+              },
+              {
+                "Name": "json",
+                "Type": "string"
+              }],
+            "SerdeInfo": {
+              "Parameters": {
+                "serialization.format": "1",
+                "separatorChar": ","
+              },
+              "SerializationLibrary": "org.apache.hadoop.hive.serde2.OpenCSVSerde"
+            },
+            "Compressed": true,
+            "InputFormat": "org.apache.hadoop.mapred.TextInputFormat",
+            "OutputFormat": "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat",
+            "Location": "s3://${stack}.snapshot.record.sagebase.org/"
+          },
+          "PartitionKeys": [
+            {
+              "Name": "release_number",
+              "Type": "string"
+            },
+            {
+              "Name": "record_date",
+              "Type": "date"
+            }],
+          "Parameters": {
+            "classification": "csv"
+          },
+          "TableType": "EXTERNAL_TABLE"
+        }
+      }
+    },
+    "filedownloadscsvGlueTable": {
+      "Type": "AWS::Glue::Table",
+      "Properties": {
+        "CatalogId": {
+          "Ref": "AWS::AccountId"
+        },
+        "DatabaseName":
+        {
+            "Ref":"${backfillDatabaseName}GlueDatabase"
+        },
+        "TableInput": {
+          "Name": "filedownloadscsv",
+          "Description" : "This table contains the file downloads of old data-ware house.",
+          "StorageDescriptor" : {
+            "Columns": [
+              {
+                "Name": "timestamp",
+                "Type": "string"
+              },
+              {
+                "Name": "type",
+                "Type": "string"
+              },
+              {
+                "Name": "json",
+                "Type": "string"
+              }],
+            "SerdeInfo": {
+              "Parameters": {
+                "serialization.format": "1",
+                "separatorChar": ","
+              },
+              "SerializationLibrary": "org.apache.hadoop.hive.serde2.OpenCSVSerde"
+            },
+            "Compressed": true,
+            "InputFormat": "org.apache.hadoop.mapred.TextInputFormat",
+            "OutputFormat": "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat",
+            "Location": "s3://${stack}.snapshot.record.sagebase.org/"
+          },
+          "PartitionKeys": [
+            {
+              "Name": "release_number",
+              "Type": "string"
+            },
+            {
+              "Name": "record_date",
+              "Type": "date"
+            }],
+          "Parameters": {
+            "classification": "csv"
+          },
+          "TableType": "EXTERNAL_TABLE"
+        }
+      }
+    },
+  "transformedfiledownloadGlueTable": {
+      "Type": "AWS::Glue::Table",
+      "Properties": {
+        "CatalogId": {
+          "Ref": "AWS::AccountId"
+        },
+        "DatabaseName":
+        {
+            "Ref":"${backfillDatabaseName}GlueDatabase"
+        },
+        "TableInput": {
+          "Name": "transformed_filedownloads",
+          "Description" : "This table contains de-duplicated the file download.",
+          "StorageDescriptor" : {
+            "Columns": [
+              {
+                "Name": "timestamp",
+                "Type": "bigint"
+              },
+              {
+                "Name": "stack",
+                "Type": "string"
+              },
+              {
+                 "Name": "instance",
+                 "Type": "string"
+               },
+               {
+                 "Name": "payload",
+                 "Type": "struct<userId:bigint,projectId:bigint,fileHandleId:string,downloadedFileHandleId:string,associateType:string,associateId:string>"
+               }],
+            "SerdeInfo": {
+              "SerializationLibrary": "org.apache.hive.hcatalog.data.JsonSerDe"
+            },
+            "Compressed": true,
+            "InputFormat": "org.apache.hadoop.mapred.TextInputFormat",
+            "OutputFormat": "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat",
+            "Location": "s3://${stack}.log.sagebase.org/fileDownloadRecords/records_backfill/"
+          },
+          "PartitionKeys": [
+            {
+              "Name": "year",
+              "Type": "string"
+            },
+            {
+              "Name": "month",
+              "Type": "string"
+            },
+            {
+              "Name": "day",
+              "Type": "string"
+            }],
+          "Parameters": {
+            "write.compression": "GZIP"
+          },
+          "TableType": "EXTERNAL_TABLE"
+        }
+      }
+        }
+    }
+  }
