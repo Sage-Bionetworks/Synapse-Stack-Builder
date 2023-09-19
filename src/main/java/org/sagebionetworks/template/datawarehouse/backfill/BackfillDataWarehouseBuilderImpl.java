@@ -311,8 +311,12 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
         GetQueryResultsResult queryResultsResponse = athenaClient.getQueryResults(getQueryResultsRequest);
 
         Map<String, List<String>> glueJobInputList = new HashMap<>();
-
+        boolean firstRow = false;
         for (Row row : queryResultsResponse.getResultSet().getRows()) {
+            if(!firstRow){
+                firstRow = true;
+                continue;
+            }
             String instance = getColumnValue(row.getData().get(0));
             String minMonth = getColumnValue(row.getData().get(1));
             String maxMonth = getColumnValue(row.getData().get(2));
