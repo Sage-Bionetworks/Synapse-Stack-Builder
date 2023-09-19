@@ -120,8 +120,7 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
 
         String stack = config.getProperty(PROPERTY_KEY_STACK);
         String bucket = String.join(".", stack, S3_GLUE_BUCKET);
-        //String scriptLocationPrefix = bucket + "/" + copyArtifactFromGithub(bucket);
-        String scriptLocationPrefix = bucket + "/scripts/backfill/";
+        String scriptLocationPrefix = bucket + "/" + copyArtifactFromGithub(bucket);
 
         VelocityContext context = new VelocityContext();
 
@@ -174,7 +173,7 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
 
     String copyArtifactFromGithub(String bucket) {
         String githubRepo = "Synapse-ETL-Jobs";
-        String version = "1.30.0";
+        String version = "1.32.0";
         String githubUrl = String.format(GITHUB_URL_TPL, githubRepo, version);
         String scriptPath = String.format(SCRIPT_PATH_TPL, githubRepo, version);
         String s3ScriptsPath = S3_BACKFILL_KEY_PATH_TPL;
