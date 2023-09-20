@@ -74,6 +74,7 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
     private static final String FIREHOSE_DATABASE_NAME = "org.sagebionetworks.synapse.datawarehouse.glue.backfill.firehouse.database.name";
     private static final String FIREHOSE_TABLE_NAME = "org.sagebionetworks.synapse.datawarehouse.glue.backfill.firehouse.table.name";
     private static final String ATHENA_QUERY_LOCATION = "org.sagebionetworks.synapse.datawarehouse.glue.backfill.athena.query.location";
+    private static final String CREATE_PARTITION = "org.sagebionetworks.synapse.datawarehouse.glue.backfill.create.partition";
     private static final String BACKFILL_DATABASE_NAME = "backfill";
     private static final String BUCKET_NAME = "%s.snapshot.record.sagebase.org";
     private static final String BULK_FILE_DOWNLOAD_FOLDER_NAME = "bulkfiledownloadresponse";
@@ -160,7 +161,10 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
         }
 
         String backfillBucket = String.format(BUCKET_NAME, stack);
-        createGluePartitionForOldData("", backfillBucket, BACKFILL_DATABASE_NAME);
+        boolean createPartition = config.getBooleanProperty(CREATE_PARTITION);
+        if(createPartition){
+            createGluePartitionForOldData("", backfillBucket, BACKFILL_DATABASE_NAME);
+        }
         Map<String, List<String>> glueJobInputList = getAthenaQueryResult(backfillYear, stack, firehoseDatabaseName, firehoseTableName,athenaQueryLocation);
         for (Map.Entry<String, List<String>> glueJobInput : glueJobInputList.entrySet()) {
             startOldDataWareHouseBackFillAWSGLueJob(databaseName + "_backfill_old_datawarehouse_filedownload_records", glueJobInput.getKey(),

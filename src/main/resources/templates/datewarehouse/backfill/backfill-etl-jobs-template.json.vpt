@@ -77,7 +77,9 @@
                     "arn:aws:s3:::${stack}.log.sagebase.org",
                     "arn:aws:s3:::${stack}.log.sagebase.org/*",
                     "arn:aws:s3:::${stack}.aws-glue.sagebase.org",
-                    "arn:aws:s3:::${stack}.aws-glue.sagebase.org/*"
+                    "arn:aws:s3:::${stack}.aws-glue.sagebase.org/*",
+                    {"Fn::Join": ["",["arn:aws:s3:::aws-athena-query-results-", {"Ref" : "AWS::AccountId"} ,"-us-east-1"]]},
+                    {"Fn::Join": ["",["arn:aws:s3:::aws-athena-query-results-", {"Ref" : "AWS::AccountId"} ,"-us-east-1/*"]]}
                   ]
                 }
               ]
