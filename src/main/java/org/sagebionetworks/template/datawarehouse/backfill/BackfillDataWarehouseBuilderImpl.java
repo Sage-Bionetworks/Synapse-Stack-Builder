@@ -45,8 +45,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -164,12 +162,16 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
         boolean createPartition = config.getBooleanProperty(CREATE_PARTITION);
         if(createPartition){
             createGluePartitionForOldData("", backfillBucket, BACKFILL_DATABASE_NAME);
+            logger.info("Partition creation for glue table done");
         }
-        Map<String, List<String>> glueJobInputList = getAthenaQueryResult(backfillYear, stack, firehoseDatabaseName, firehoseTableName,athenaQueryLocation);
-        for (Map.Entry<String, List<String>> glueJobInput : glueJobInputList.entrySet()) {
-            startOldDataWareHouseBackFillAWSGLueJob(databaseName + "_backfill_old_datawarehouse_filedownload_records", glueJobInput.getKey(),
+        String startDate = String.join("-",backfillYear,"01","01");
+        String endDate = String.join("-",backfillYear,"12","31");
+        List<String> glueJobInputList = getAthenaQueryResult(backfillYear, firehoseDatabaseName, firehoseTableName,athenaQueryLocation);
+        logger.info("Instance list : "+glueJobInputList);
+        for (String instance : glueJobInputList) {
+            startOldDataWareHouseBackFillAWSGLueJob(databaseName + "_backfill_old_datawarehouse_filedownload_records", instance,
                     stack, BACKFILL_DATABASE_NAME, BULK_FILE_DOWNLOAD_TABLE_NAME, FILE_DOWNLOAD_TABLE_NAME,
-                    ALL_FILE_DOWNLOAD_TABLE_NAME, glueJobInput.getValue().get(0), glueJobInput.getValue().get(1));
+                    ALL_FILE_DOWNLOAD_TABLE_NAME, startDate,endDate);
         }
 
         startKinesisBackFillAWSGLueJob(databaseName + "_backfill_kinesis_filedownload_records", BACKFILL_DATABASE_NAME,
@@ -265,8 +267,8 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
         return awsGlue.getTable(getTableRequest);
     }
 
-    private Map<String, List<String>> getAthenaQueryResult(String year, String stack, String database, String table, String location) {
-        String query = "select instance, min(month) as minmonth, max(month) as maxmonth, min(day) as minday, max(day) as maxday from " + table + " where year='" + year + "' group by instance ";
+    private List<String> getAthenaQueryResult(String year, String database, String table, String location) {
+        String query = "select distinct instance from " + table + " where year='" + year + "' order by instance desc ";
         QueryExecutionContext queryExecutionContext = new QueryExecutionContext().withDatabase(database);
 
         // Create a ResultConfiguration
@@ -285,7 +287,7 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
         String queryExecutionId = startQueryExecutionResult.getQueryExecutionId();
         // Wait for the query to complete (optional)
         waitForQueryCompletion(athena, queryExecutionId);
-        return getQueryResults(athena, queryExecutionId, year);
+        return getQueryResults(athena, queryExecutionId);
     }
 
     private static void waitForQueryCompletion(AmazonAthena athenaClient, String queryExecutionId) {
@@ -310,13 +312,13 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
         return String.join("/", s3Localtion, releaseNumber, midPath, recordDate);
     }
 
-    private static Map<String, List<String>> getQueryResults(AmazonAthena athenaClient, String queryExecutionId, String year) {
+    private static List<String> getQueryResults(AmazonAthena athenaClient, String queryExecutionId) {
         GetQueryResultsRequest getQueryResultsRequest = new GetQueryResultsRequest()
                 .withQueryExecutionId(queryExecutionId);
 
         GetQueryResultsResult queryResultsResponse = athenaClient.getQueryResults(getQueryResultsRequest);
 
-        Map<String, List<String>> glueJobInputList = new HashMap<>();
+        List<String> glueJobInputList = new ArrayList<>();
         boolean firstRow = false;
         for (Row row : queryResultsResponse.getResultSet().getRows()) {
             if(!firstRow){
@@ -324,13 +326,7 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
                 continue;
             }
             String instance = getColumnValue(row.getData().get(0));
-            String minMonth = getColumnValue(row.getData().get(1));
-            String maxMonth = getColumnValue(row.getData().get(2));
-            String minDay = getColumnValue(row.getData().get(3));
-            String maxDay = getColumnValue(row.getData().get(4));
-            String startDate = String.join("-", year, minMonth, minDay);
-            String endDate = String.join("-", year, maxMonth, maxDay);
-            glueJobInputList.put(instance, Arrays.asList(startDate, endDate));
+            glueJobInputList.add(instance);
         }
 
         return glueJobInputList;
