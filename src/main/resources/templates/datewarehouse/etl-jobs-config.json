@@ -392,17 +392,27 @@
 		"sourcePath" : "log.sagebase.org/teamSnapshots/",
 		"tableDescriptor": {
 			"name": "teamsnapshots",
-			"description" : "This table contain snapshots of teams. Snapshots are taken when teams are created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
+			"description" : "This table contain snapshots of teams. Snapshots are taken when teams are created or updated. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 
 			"columns":[{
+				"name": "change_type",
+				"type" : "string",
+				"comment" : "The type of change that occurred to the team, e.g., CREATE, UPDATE (Snapshotting does not capture DELETE change)."
+			},
+			{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the change (created/updated/deleted) on team is pushed to the queue for snapshotting."
+				"comment" : "The time when the change (creation/update) to the team is pushed to the queue for snapshotting."
+			},
+			{
+				"name": "change_user_id",
+				"type" : "bigint",
+				"comment" : "The unique identifier of the user who made the change to the team."
 			},
 			{
 				"name": "snapshot_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the snapshot was taken (it is usually after the change happened)."
+				"comment" : "The time when the snapshot was taken (It is usually after the change happened)."
 			},
 			{
 				"name": "id",
@@ -459,11 +469,21 @@
 		"sourcePath" : "log.sagebase.org/teamMemberSnapshots/",
 		"tableDescriptor": {
 			"name": "teammembersnapshots",
-			"description" : "This table contain snapshots of team-members. Snapshots are taken when members are added or deleted from a team. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
+			"description" : "This table contain snapshots of team-members. Snapshots are taken when the members are added to a team. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
+				"name": "change_type",
+				"type" : "string",
+				"comment" : "The type of change that occurred to the member of team, e.g., CREATE, UPDATE (Snapshotting does not capture DELETE change)."
+			},
+			{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when a user was added to or deleted from the team."
+				"comment" : "The time when the team member are added or removed from the team."
+			},
+			{
+				"name": "change_user_id",
+				"type" : "bigint",
+				"comment" : "The unique identifier of the user who made the change to the team member."
 			},
 			{
 				"name": "snapshot_timestamp",
@@ -507,9 +527,19 @@
 			"name": "usergroupsnapshots",
 			"description" : "This table lists all principals (individual users and groups of users). (A group is the low-level object of a underlying team, much like a file handle is the low-level object of an underlying file entity.) In addition to explicit users and teams, principals in Synapse include the anonymous user, the implicit group of all authenticated users, and the implicit public group which includes all users, authenticated or not. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
+				"name": "change_type",
+				"type" : "string",
+				"comment" : "The type of change that occurred to the user-group, e.g., CREATE, UPDATE (Snapshotting does not capture DELETE change)."
+			},
+			{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the change (created/updated/deleted) on user-group is pushed to the queue for snapshotting."
+				"comment" : "The time when the change (creation/update) to the user-group is pushed to the queue for snapshotting."
+			},
+			{
+				"name": "change_user_id",
+				"type" : "bigint",
+				"comment" : "The unique identifier of the user who made the change to the user-group."
 			},
 			{
 				"name": "snapshot_timestamp",
@@ -553,9 +583,19 @@
 			"name": "userprofilesnapshots",
 			"description" : "This table contain snapshots of user-profiles. Snapshots are taken when user-profiles are created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
+				"name": "change_type",
+				"type" : "string",
+				"comment" : "The type of change that occurred to the user profile, e.g., CREATE, UPDATE (Snapshotting does not capture DELETE change)."
+			},
+			{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the change (created/updated/deleted) on user profile is pushed to the queue for snapshotting."
+				"comment" : "The time when the change (creation/update) to the user profile is pushed to the queue for snapshotting."
+			},
+			{
+				"name": "change_user_id",
+				"type" : "bigint",
+				"comment" : "The unique identifier of the user who made the change to the user profile."
 			},
 			{
 				"name": "snapshot_timestamp",
