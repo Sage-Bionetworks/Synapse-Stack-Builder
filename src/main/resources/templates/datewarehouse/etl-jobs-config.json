@@ -478,7 +478,7 @@
 			{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the team member are added or removed from the team."
+				"comment" : "The time when the team member are added or updated within the team."
 			},
 			{
 				"name": "change_user_id",
