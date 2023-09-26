@@ -1,6 +1,7 @@
 package org.sagebionetworks.template.repo.kinesis.firehose;
 
 import org.apache.commons.lang3.StringUtils;
+import org.sagebionetworks.template.repo.glue.GlueTableDescriptor;
 
 public class KinesisFirehoseConfigValidator {
 
@@ -18,7 +19,7 @@ public class KinesisFirehoseConfigValidator {
 	private void validateStream(KinesisFirehoseStreamDescriptor stream) {
 		if (StringUtils.isBlank(stream.getName())) {
 			throw new IllegalStateException("The stream name cannot be empty");
-		}		
+		}
 		if (stream.getBufferFlushInterval() < KinesisFirehoseStreamDescriptor.MIN_BUFFER_INTERVAL) {
 			throw new IllegalStateException(
 					"Stream " + stream.getName() + ": the minimum value for the bufferFlushInterval is "

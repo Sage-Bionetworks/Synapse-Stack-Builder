@@ -93,12 +93,19 @@
 			},
 			"TableInput": {
 				"Name": "$stream.tableDescriptor.name.toLowerCase()",
+				#if( $stream.tableDescriptor.description )
+				    "Description" : "$stream.tableDescriptor.description",
+				#end
 				"StorageDescriptor": {
 					"Columns": [
-						#foreach($column in $stream.tableDescriptor.columns.entrySet())
+						#foreach($column in $stream.tableDescriptor.columns)
 						{
-							"Name":"${column.key}",
-							"Type":"${column.value}"
+							"Name":"$column.name",
+                            "Type":"$column.type"
+                            #if( $column.comment )
+                                ,
+                                "Comment":"$column.comment"
+                            #end
 						}
 						#if( $foreach.hasNext),#end
 						#end
@@ -132,10 +139,14 @@
 					#end
 				},
 				"PartitionKeys": [
-					#foreach($partition in $stream.tableDescriptor.partitionKeys.entrySet())
+					#foreach($partition in $stream.tableDescriptor.partitionKeys)
 					{
-						"Name":"${partition.key}",
-						"Type":"${partition.value}"
+						"Name":"$partition.name",
+						"Type":"$partition.type"
+						#if( $partition.comment )
+                            ,
+                            "Comment":"$partition.comment"
+                        #end
 					}
 					#if( $foreach.hasNext),#end
 					#end

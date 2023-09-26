@@ -1,21 +1,21 @@
 package org.sagebionetworks.template.repo.kinesis.firehose;
 
-import static org.sagebionetworks.template.Constants.GLUE_DATABASE_NAME;
-import static org.sagebionetworks.template.Constants.KINESIS_FIREHOSE_BUCKETS;
-import static org.sagebionetworks.template.Constants.KINESIS_FIREHOSE_STREAM_DESCRIPTORS;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
-
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.google.inject.Inject;
 import org.apache.velocity.VelocityContext;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
+import org.sagebionetworks.template.repo.glue.GlueTableDescriptor;
 
-import com.google.inject.Inject;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.sagebionetworks.template.Constants.GLUE_DATABASE_NAME;
+import static org.sagebionetworks.template.Constants.KINESIS_FIREHOSE_BUCKETS;
+import static org.sagebionetworks.template.Constants.KINESIS_FIREHOSE_STREAM_DESCRIPTORS;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 public class KinesisFirehoseVelocityContextProvider implements VelocityContextProvider {
 
@@ -33,7 +33,7 @@ public class KinesisFirehoseVelocityContextProvider implements VelocityContextPr
 	@Override
 	public void addToContext(VelocityContext context) {
 		Set<KinesisFirehoseStreamDescriptor> streams = config.getStreamDescriptors();
-		
+
 		streams.forEach(this::postProcessStream);
 
 		// Does not deploy to prod stacks that are dev only
@@ -43,9 +43,9 @@ public class KinesisFirehoseVelocityContextProvider implements VelocityContextPr
 
 		context.put(GLUE_DATABASE_NAME, parameterizeWithInstance(GLUE_DB_SUFFIX));
 		context.put(KINESIS_FIREHOSE_STREAM_DESCRIPTORS, streams);
-		
+
 		Set<String> buckets = streams.stream().map(KinesisFirehoseStreamDescriptor::getBucket).collect(Collectors.toSet());
-		
+
 		context.put(KINESIS_FIREHOSE_BUCKETS, buckets);
 	}
 
@@ -53,12 +53,12 @@ public class KinesisFirehoseVelocityContextProvider implements VelocityContextPr
 		if (stream == null) {
 			return;
 		}
-		
+
 		stream.setBucket(TemplateUtils.replaceStackVariable(stream.getBucket(), getStack()));
-		
+
 		postProcessTable(stream.getTableDescriptor());
 	}
-	
+
 	private void postProcessTable(GlueTableDescriptor table) {
 		if (table == null) {
 			return;
