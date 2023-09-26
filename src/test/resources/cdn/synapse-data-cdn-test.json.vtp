@@ -58,20 +58,20 @@
     },
     "CloudFrontPublicKeyGroup": {
       "Type": "AWS::CloudFront::KeyGroup",
-      "DependsOn": "CloudFrontPublicKey",
+      "DependsOn": "CloudFrontPublicKey${PublicKeyHash}",
       "Properties": {
         "KeyGroupConfig": {
           "Comment": "Public key group for tstdata.sagebase.org CloudFront infrastructure",
           "Items": [
             {
-              "Ref": "CloudFrontPublicKey"
+              "Ref": "CloudFrontPublicKey${PublicKeyHash}"
             }
           ],
           "Name": "tstdata-key-group"
         }
       }
     },
-    "CloudFrontPublicKey": {
+    "CloudFrontPublicKey${PublicKeyHash}": {
       "Type": "AWS::CloudFront::PublicKey",
       "Properties": {
         "PublicKeyConfig": {

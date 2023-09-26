@@ -2,6 +2,9 @@ package org.sagebionetworks.template.cdn;
 
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.Tag;
+import com.amazonaws.util.Base16Lower;
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
@@ -16,9 +19,10 @@ import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
-import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
+import java.io.StringWriter;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_PUBLIC_KEY_HASH;
 
 @ExtendWith(MockitoExtension.class)
 public class CdnBuilderImplTemplateTest {
@@ -46,6 +51,8 @@ public class CdnBuilderImplTemplateTest {
 
 	VelocityEngine velocityEngine;
 	CdnBuilderImpl builder;
+
+	private static final String FAKE_PUBLIC_KEY = "1234";
 
 	@BeforeEach
 	void setUp() {
@@ -93,13 +100,22 @@ public class CdnBuilderImplTemplateTest {
 		when(mockCloudFormationClient.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
 
 		when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("tst");
-		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.public.key.encoded")).thenReturn("1234");
+		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.public.key.encoded")).thenReturn(FAKE_PUBLIC_KEY);
 		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.certificate.arn")).thenReturn("arn:aws:acm:us-east-1:5678:certificate/1234");
 
 		// call under test
 		Optional<Stack> optStack = builder.buildCdnStack(CdnBuilder.Type.DATA);
 
-		String expectedDataCdnTemplate = new JSONObject(TemplateUtils.loadContentFromFile("cdn/synapse-data-cdn-test.json")).toString(5);
+		Template template = velocityEngine.getTemplate("cdn/synapse-data-cdn-test.json.vtp");
+		VelocityContext ctxt = new VelocityContext();
+		byte[] publicKey = FAKE_PUBLIC_KEY.getBytes("UTF-8");
+		byte[] publicKeyMD5 = MessageDigest.getInstance("MD5").digest(publicKey);
+		ctxt.put(CTXT_KEY_PUBLIC_KEY_HASH, Base16Lower.encodeAsString(publicKeyMD5));
+
+		StringWriter writer = new StringWriter();
+		template.merge(ctxt, writer);
+
+		String expectedDataCdnTemplate = new JSONObject(writer.toString()).toString(5);
 
 		verify(mockCloudFormationClient).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
 		CreateOrUpdateStackRequest req = createOrUpdateStackRequestArgumentCaptor.getValue();
