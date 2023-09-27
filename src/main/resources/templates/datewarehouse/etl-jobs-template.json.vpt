@@ -209,7 +209,7 @@
             "StartOnCreation": "true",
             "Description" : "Trigger for job ${glueDatabaseName}_${etl.name}",
              "Name" : "${glueDatabaseName}_${etl.name}_trigger",
-             "Schedule" : "cron(0 * * * ? *)",
+             "Schedule" : ${etlGlueJobSchedule},
             "Actions" : [
                 {
                      "JobName" : "${glueDatabaseName}_${etl.name}"

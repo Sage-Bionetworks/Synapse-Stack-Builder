@@ -140,7 +140,7 @@ public class Constants {
 
 	// Etl jobs needs database name to create separate stack
 	public static final String PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME = "org.sagebionetworks.synapse.datawarehouse.glue.database.name";
-
+	public static final String PROPERTY_KEY_DATAWAREHOUSE_GLUE_JOB_TRIGGER_SCHEDULE = "org.sagebionetworks.synapse.datawarehouse.glue.schedule";
 	// tag values
 	public static final String TAG_VALUE_DEPARTMENT = "Platform";
 
@@ -231,6 +231,8 @@ public class Constants {
 	public static final String ATHENA_QUERY_DESCRIPTORS = "athenaQueryDescriptors";
 	public static final String ATHENA_QUERY_DATA_BUCKETS = "athenaQueryDataBuckets";
 	public static final String ETL_DESCRIPTORS = "etlJobDescriptors";
+	public static final String ETL_GLUE_JOB_SCHEDULE = "etlGlueJobSchedule";
+
 	public static final String LOAD_BALANCER_ALARMS = "loadBalancerAlarms";
 
 	public static final String OAUTH_ENDPOINT = "oauthEndpoint";

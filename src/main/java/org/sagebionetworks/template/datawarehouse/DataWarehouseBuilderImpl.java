@@ -27,15 +27,7 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
-import static org.sagebionetworks.template.Constants.ETL_DESCRIPTORS;
-import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
-import static org.sagebionetworks.template.Constants.GLUE_DATABASE_NAME;
-import static org.sagebionetworks.template.Constants.JSON_INDENT;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
-import static org.sagebionetworks.template.Constants.STACK;
-import static org.sagebionetworks.template.Constants.TEMPLATE_ETL_GLUE_JOB_RESOURCES;
+import static org.sagebionetworks.template.Constants.*;
 
 public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
 	
@@ -79,7 +71,9 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
         String bucket = String.join(".", stack, S3_GLUE_BUCKET);
 
     	String scriptLocationPrefix = bucket + "/" + copyArtifactFromGithub(bucket);
-    	
+
+        String etlGlueJobSchedule = config.getProperty(PROPERTY_KEY_DATAWAREHOUSE_GLUE_JOB_TRIGGER_SCHEDULE);
+
         VelocityContext context = new VelocityContext();
         
         context.put(GLUE_DATABASE_NAME, databaseName);
@@ -92,6 +86,7 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
         extraScripts.add(GS_EXPLODE_SCRIPT);
         extraScripts.add(GS_COMMON_SCRIPT);
         context.put("extraScripts", String.join(",", extraScripts));
+        context.put(ETL_GLUE_JOB_SCHEDULE, etlGlueJobSchedule);
 
         String stackName = new StringJoiner("-").add(stack).add(databaseName).add("etl-jobs").toString();
 
