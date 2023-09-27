@@ -110,7 +110,8 @@ public class CdnBuilderImplTemplateTest {
 		VelocityContext ctxt = new VelocityContext();
 		byte[] publicKey = FAKE_PUBLIC_KEY.getBytes("UTF-8");
 		byte[] publicKeyMD5 = MessageDigest.getInstance("MD5").digest(publicKey);
-		ctxt.put(CTXT_KEY_PUBLIC_KEY_HASH, Base16Lower.encodeAsString(publicKeyMD5));
+		String publicKeyHash = Base16Lower.encodeAsString(publicKeyMD5).replaceAll("[^a-zA-Z0-9]", "");
+		ctxt.put(CTXT_KEY_PUBLIC_KEY_HASH, publicKeyHash);
 
 		StringWriter writer = new StringWriter();
 		template.merge(ctxt, writer);

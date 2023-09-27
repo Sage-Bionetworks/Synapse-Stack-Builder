@@ -80,7 +80,8 @@ public class CdnBuilderImpl implements CdnBuilder {
 			try {
 				byte[] publicKey = dataCDNPublicKey.getBytes("UTF-8");
 				byte[] publicKeyMD5 = MessageDigest.getInstance("MD5").digest(publicKey);
-				ctxt.put(CTXT_KEY_PUBLIC_KEY_HASH, Base16Lower.encodeAsString(publicKeyMD5));
+				String publicKeyHash = Base16Lower.encodeAsString(publicKeyMD5).replaceAll("[^a-zA-Z0-9]", "");
+				ctxt.put(CTXT_KEY_PUBLIC_KEY_HASH, publicKeyHash);
 			} catch (UnsupportedEncodingException e) {
 				throw new RuntimeException("Failed to calculate the MD5 of the public key: " + dataCDNPublicKey, e);
 			} catch (NoSuchAlgorithmException e) {
