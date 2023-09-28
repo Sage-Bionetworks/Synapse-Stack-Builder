@@ -1,8 +1,8 @@
 package org.sagebionetworks.template.cdn;
 
 import com.amazonaws.services.cloudformation.model.Stack;
-import com.amazonaws.util.Base16Lower;
 import com.google.inject.Inject;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
@@ -15,9 +15,6 @@ import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
 import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
 import static org.sagebionetworks.template.Constants.CTXT_KEY_SUBDOMAIN_NAME;
@@ -77,16 +74,8 @@ public class CdnBuilderImpl implements CdnBuilder {
 			ctxt.put(CTXT_KEY_ACM_CERT_ARN, acmCertificateArn);
 			String subDomain = Constants.isProd(stack) ? PROD_STACK_NAME : DEV_STACK_NAME;
 			ctxt.put(CTXT_KEY_SUBDOMAIN_NAME, subDomain);
-			try {
-				byte[] publicKey = dataCDNPublicKey.getBytes("UTF-8");
-				byte[] publicKeyMD5 = MessageDigest.getInstance("MD5").digest(publicKey);
-				String publicKeyHash = Base16Lower.encodeAsString(publicKeyMD5).replaceAll("[^a-zA-Z0-9]", "");
-				ctxt.put(CTXT_KEY_PUBLIC_KEY_HASH, publicKeyHash);
-			} catch (UnsupportedEncodingException e) {
-				throw new RuntimeException("Failed to calculate the MD5 of the public key: " + dataCDNPublicKey, e);
-			} catch (NoSuchAlgorithmException e) {
-				throw new RuntimeException("Failed to calculate the MD5 of the public key: " + dataCDNPublicKey, e);
-			}
+			String publicKeyHash = DigestUtils.md5Hex(dataCDNPublicKey);
+			ctxt.put(CTXT_KEY_PUBLIC_KEY_HASH, publicKeyHash);
 		} else {
 			throw new IllegalArgumentException("A valid CdnBuilder Type must be used.");
 		}

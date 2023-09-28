@@ -2,9 +2,6 @@ package org.sagebionetworks.template.cdn;
 
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.Tag;
-import com.amazonaws.util.Base16Lower;
-import org.apache.velocity.Template;
-import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
@@ -20,9 +17,8 @@ import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.config.RepoConfiguration;
+import org.sagebionetworks.template.TemplateUtils;
 
-import java.io.StringWriter;
-import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -32,7 +28,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.sagebionetworks.template.Constants.CTXT_KEY_PUBLIC_KEY_HASH;
 
 @ExtendWith(MockitoExtension.class)
 public class CdnBuilderImplTemplateTest {
@@ -106,17 +101,7 @@ public class CdnBuilderImplTemplateTest {
 		// call under test
 		Optional<Stack> optStack = builder.buildCdnStack(CdnBuilder.Type.DATA);
 
-		Template template = velocityEngine.getTemplate("cdn/synapse-data-cdn-test.json.vtp");
-		VelocityContext ctxt = new VelocityContext();
-		byte[] publicKey = FAKE_PUBLIC_KEY.getBytes("UTF-8");
-		byte[] publicKeyMD5 = MessageDigest.getInstance("MD5").digest(publicKey);
-		String publicKeyHash = Base16Lower.encodeAsString(publicKeyMD5).replaceAll("[^a-zA-Z0-9]", "");
-		ctxt.put(CTXT_KEY_PUBLIC_KEY_HASH, publicKeyHash);
-
-		StringWriter writer = new StringWriter();
-		template.merge(ctxt, writer);
-
-		String expectedDataCdnTemplate = new JSONObject(writer.toString()).toString(5);
+		String expectedDataCdnTemplate = new JSONObject(TemplateUtils.loadContentFromFile("cdn/synapse-data-cdn-test.json")).toString(5);
 
 		verify(mockCloudFormationClient).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
 		CreateOrUpdateStackRequest req = createOrUpdateStackRequestArgumentCaptor.getValue();

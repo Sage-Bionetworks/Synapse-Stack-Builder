@@ -58,26 +58,26 @@
     },
     "CloudFrontPublicKeyGroup": {
       "Type": "AWS::CloudFront::KeyGroup",
-      "DependsOn": "CloudFrontPublicKey${PublicKeyHash}",
+      "DependsOn": "CloudFrontPublicKey81dc9bdb52d04dc20036dbd8313ed055",
       "Properties": {
         "KeyGroupConfig": {
           "Comment": "Public key group for tstdata.sagebase.org CloudFront infrastructure",
           "Items": [
             {
-              "Ref": "CloudFrontPublicKey${PublicKeyHash}"
+              "Ref": "CloudFrontPublicKey81dc9bdb52d04dc20036dbd8313ed055"
             }
           ],
           "Name": "tstdata-key-group"
         }
       }
     },
-    "CloudFrontPublicKey${PublicKeyHash}": {
+    "CloudFrontPublicKey81dc9bdb52d04dc20036dbd8313ed055": {
       "Type": "AWS::CloudFront::PublicKey",
       "Properties": {
         "PublicKeyConfig": {
-          "CallerReference": "tstdata-public-key",
+          "CallerReference": "tstdata-public-key81dc9bdb52d04dc20036dbd8313ed055",
           "Comment": "Public key for tstdata.sagebase.org CloudFront infrastructure",
-          "Name": "tstdata-public-key",
+          "Name": "tstdata-public-key81dc9bdb52d04dc20036dbd8313ed055",
           "EncodedKey": "1234"
         }
       }

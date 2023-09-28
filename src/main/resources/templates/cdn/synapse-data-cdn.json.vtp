@@ -75,9 +75,9 @@
       "Type": "AWS::CloudFront::PublicKey",
       "Properties": {
         "PublicKeyConfig": {
-          "CallerReference": "${stack}data-public-key",
+          "CallerReference": "${stack}data-public-key${PublicKeyHash}",
           "Comment": "Public key for ${stack}data.sagebase.org CloudFront infrastructure",
-          "Name": "${stack}data-public-key",
+          "Name": "${stack}data-public-key${PublicKeyHash}",
           "EncodedKey": "${DataCdnPublicKey}"
         }
       }
