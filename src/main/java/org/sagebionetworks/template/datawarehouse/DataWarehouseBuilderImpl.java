@@ -27,7 +27,17 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static org.sagebionetworks.template.Constants.*;
+import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
+import static org.sagebionetworks.template.Constants.ETL_DESCRIPTORS;
+import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
+import static org.sagebionetworks.template.Constants.GLUE_DATABASE_NAME;
+import static org.sagebionetworks.template.Constants.JSON_INDENT;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
+import static org.sagebionetworks.template.Constants.STACK;
+import static org.sagebionetworks.template.Constants.TEMPLATE_ETL_GLUE_JOB_RESOURCES;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATAWAREHOUSE_GLUE_JOB_TRIGGER_SCHEDULE;
+import static org.sagebionetworks.template.Constants.ETL_GLUE_JOB_SCHEDULE;
 
 public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
 	
