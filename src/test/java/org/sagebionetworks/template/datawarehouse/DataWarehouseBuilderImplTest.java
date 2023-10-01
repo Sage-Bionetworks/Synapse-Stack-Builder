@@ -41,8 +41,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATAWAREHOUSE_GLUE_JOB_TRIGGER_SCHEDULE;
 
 @ExtendWith(MockitoExtension.class)
 public class DataWarehouseBuilderImplTest {
@@ -92,6 +94,7 @@ public class DataWarehouseBuilderImplTest {
 	public void testEtlBuildAndDeployJob() throws IOException {
 		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(STACK_NAME);
 		when(mockConfig.getProperty(PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME)).thenReturn(DATABASE_NAME);
+		when(mockConfig.getProperty(PROPERTY_KEY_DATAWAREHOUSE_GLUE_JOB_TRIGGER_SCHEDULE)).thenReturn("someScheduleString");
 
 		zipFile = File.createTempFile("test", "zip");
 
@@ -182,7 +185,7 @@ public class DataWarehouseBuilderImplTest {
 		JSONObject glueJobTrigger = resources.getJSONObject("testjobGlueJobTrigger").getJSONObject("Properties");
 		assertEquals("{\"Type\":\"SCHEDULED\",\"StartOnCreation\":\"true\",\"Description\":"
 				+ "\"Trigger for job synapsewarehouse_testjob\",\"Name\":\"synapsewarehouse_testjob_trigger\",\"Schedule\":"
-				+ "\"cron(0 * * * ? *)\",\"Actions\":[{\"JobName\":\"synapsewarehouse_testjob\"}]}", glueJobTrigger.toString());
+				+ "\"someScheduleString\",\"Actions\":[{\"JobName\":\"synapsewarehouse_testjob\"}]}", glueJobTrigger.toString());
 	}
 
 	@Test
