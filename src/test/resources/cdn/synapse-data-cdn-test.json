@@ -126,20 +126,6 @@
       "Export" : {
         "Name" : "tstdata-sagebase-org-CDN-ARN"
       }
-    },
-    "CloudFrontDistributionDomain" : {
-      "Description" : "The domain for the tstdata.sagebase.org CloudFront distribution",
-      "Value" : { "Fn::GetAtt": ["CloudFront", "DomainName"] },
-      "Export" : {
-        "Name" : "tstdata-sagebase-org-CDN-domain"
-      }
-    },
-    "CloudFrontDistributionKeyPairId" : {
-      "Description" : "The Key Pair ID for the tstdata.sagebase.org CloudFront distribution",
-      "Value" : { "Ref": "CloudFrontPublicKey" },
-      "Export" : {
-        "Name" : "tstdata-sagebase-org-CDN-key-pair-id"
-      }
     }
   }
 }
