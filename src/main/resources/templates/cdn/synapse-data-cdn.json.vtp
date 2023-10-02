@@ -136,7 +136,7 @@
         },
         "CloudFrontDistributionKeyPairId" : {
           "Description" : "The Key Pair ID for the ${stack}data.sagebase.org CloudFront distribution",
-          "Value" : { "Ref": "CloudFrontPublicKey" },
+          "Value" : { "Ref": "CloudFrontPublicKey${PublicKeyHash}" },
           "Export" : {
             "Name" : "${stack}data-sagebase-org-CDN-key-pair-id"
           }
