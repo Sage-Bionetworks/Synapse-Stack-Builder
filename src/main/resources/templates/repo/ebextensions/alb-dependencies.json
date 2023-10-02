@@ -1,6 +1,4 @@
 {
-	"AWSTemplateFormatVersion": "2010-09-09",
-	"Description": "Application Load balancer dependencies",
 	"Resources": {
 		"webACLAssociation": {
 			"Type": "AWS::WAFv2::WebACLAssociation",
