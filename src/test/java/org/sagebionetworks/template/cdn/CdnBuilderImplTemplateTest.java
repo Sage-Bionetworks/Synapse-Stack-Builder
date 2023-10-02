@@ -16,8 +16,8 @@ import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
-import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.RepoConfiguration;
+import org.sagebionetworks.template.TemplateUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +46,8 @@ public class CdnBuilderImplTemplateTest {
 
 	VelocityEngine velocityEngine;
 	CdnBuilderImpl builder;
+
+	private static final String FAKE_PUBLIC_KEY = "1234";
 
 	@BeforeEach
 	void setUp() {
@@ -93,7 +95,7 @@ public class CdnBuilderImplTemplateTest {
 		when(mockCloudFormationClient.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
 
 		when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("tst");
-		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.public.key.encoded")).thenReturn("1234");
+		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.public.key.encoded")).thenReturn(FAKE_PUBLIC_KEY);
 		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.certificate.arn")).thenReturn("arn:aws:acm:us-east-1:5678:certificate/1234");
 
 		// call under test

@@ -2,6 +2,7 @@ package org.sagebionetworks.template.cdn;
 
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.google.inject.Inject;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
@@ -24,6 +25,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_CERTI
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_ACM_CERT_ARN;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_PUBLIC_KEY;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_PUBLIC_KEY_HASH;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.PROD_STACK_NAME;
 import static org.sagebionetworks.template.Constants.DEV_STACK_NAME;
@@ -72,6 +74,8 @@ public class CdnBuilderImpl implements CdnBuilder {
 			ctxt.put(CTXT_KEY_ACM_CERT_ARN, acmCertificateArn);
 			String subDomain = Constants.isProd(stack) ? PROD_STACK_NAME : DEV_STACK_NAME;
 			ctxt.put(CTXT_KEY_SUBDOMAIN_NAME, subDomain);
+			String publicKeyHash = DigestUtils.md5Hex(dataCDNPublicKey);
+			ctxt.put(CTXT_KEY_PUBLIC_KEY_HASH, publicKeyHash);
 		} else {
 			throw new IllegalArgumentException("A valid CdnBuilder Type must be used.");
 		}
