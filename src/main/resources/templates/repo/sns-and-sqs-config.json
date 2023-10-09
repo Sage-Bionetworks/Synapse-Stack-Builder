@@ -26,7 +26,9 @@
 		"TABLE_STATUS_EVENT",
 		"DATA_ACCESS_SUBMISSION_EVENT",
 		"FILE_EVENT",
-		"QUERY_CACHE_HIT"
+		"QUERY_CACHE_HIT",
+		"ACCESS_REQUIREMENT"
+		
 	],
 	"snsGlobalTopicNames": [
 		"SES_SYNAPSE_ORG_BOUNCE",
@@ -123,7 +125,8 @@
 				"PROJECT_SETTING",
 				"VERIFICATION_SUBMISSION",
 				"CERTIFIED_USER_PASSING_RECORD",
-				"FILE"
+				"FILE",
+				"ACCESS_REQUIREMENT"
 			],
 			"messageVisibilityTimeoutSec":120,
 			"messageRetentionPeriodSec":1209600
