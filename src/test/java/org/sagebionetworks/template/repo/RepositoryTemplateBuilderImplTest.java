@@ -1042,6 +1042,7 @@ public class RepositoryTemplateBuilderImplTest {
 		ListPlatformVersionsResult expectedLpvr = new ListPlatformVersionsResult()
 				.withPlatformSummaryList(expectedSummaries);
 		when(mockBeanstalkClient.listPlatformVersions(any())).thenReturn(expectedLpvr);
+		when(config.getProperty("org.sagebionetworks.cloudfront.keypair")).thenReturn("dataCdnKeyPairId");
 
 		EnvironmentDescriptor environment = new EnvironmentDescriptor().withType(EnvironmentType.REPOSITORY_SERVICES);
 
@@ -1060,6 +1061,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(databaseEndpointSuffix, context.get(DB_ENDPOINT_SUFFIX));
 		assertEquals("t2.medium", context.get(EC2_INSTANCE_TYPE));
 		assertEquals(String.join(",", EXPECTED_SUBNETS), context.get(BEANSTALK_INSTANCES_SUBNETS));
+		assertEquals("data.dev.sagebase.org", context.get(CTXT_KEY_DATA_CDN_DOMAIN_NAME));
+		assertEquals("dataCdnKeyPairId", context.get(CTXT_KEY_DATA_CDN_KEYPAIR_ID));
 	}
 
 	@Test
