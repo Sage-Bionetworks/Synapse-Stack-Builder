@@ -1,6 +1,5 @@
 package org.sagebionetworks.template.cdn;
 
-
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.google.inject.Inject;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -18,7 +17,18 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import java.io.StringWriter;
 import java.util.Optional;
 
-import static org.sagebionetworks.template.Constants.*;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_SUBDOMAIN_NAME;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK_INSTANCE_ALIAS;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_PUBLIC_KEY;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_CERTIFICATE_ARN;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_ACM_CERT_ARN;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_PUBLIC_KEY;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_PUBLIC_KEY_HASH;
+import static org.sagebionetworks.template.Constants.STACK;
+import static org.sagebionetworks.template.Constants.PROD_STACK_NAME;
+import static org.sagebionetworks.template.Constants.DEV_STACK_NAME;
 
 public class CdnBuilderImpl implements CdnBuilder {
 
