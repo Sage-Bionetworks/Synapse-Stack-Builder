@@ -138,6 +138,9 @@ public class Constants {
 	// ARN for the SSL Certificate for CloudFront
 	public static final String PROPERTY_KEY_DATA_CDN_CERTIFICATE_ARN = "org.sagebionetworks.cloudfront.certificate.arn";
 
+	public static final String PROPERTY_KEY_DATA_CDN_KEYPAIR_ID = "org.sagebionetworks.cloudfront.keypair";
+	public static final String DATA_CDN_DOMAIN_NAME_FMT = "data.%s.sagebase.org";
+
 	// Etl jobs needs database name to create separate stack
 	public static final String PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME = "org.sagebionetworks.synapse.datawarehouse.glue.database.name";
 	public static final String PROPERTY_KEY_DATAWAREHOUSE_GLUE_JOB_TRIGGER_SCHEDULE = "org.sagebionetworks.synapse.datawarehouse.glue.schedule";
@@ -250,6 +253,8 @@ public class Constants {
 	public static final String CTXT_KEY_DOMAIN_NAME = "DomainName";
 	public static final String CTXT_KEY_PUBLIC_KEY = "DataCdnPublicKey";
 	public static final String CTXT_KEY_PUBLIC_KEY_HASH = "PublicKeyHash";
+	public static final String CTXT_KEY_DATA_CDN_KEYPAIR_ID = "dataCdnKeyPairId";
+	public static final String CTXT_KEY_DATA_CDN_DOMAIN_NAME = "dataCdnDomainName";
 
 	public static final String CTXT_ENABLE_ENHANCED_RDS_MONITORING = "EnableRdsEnhancedMonitoring";
 
