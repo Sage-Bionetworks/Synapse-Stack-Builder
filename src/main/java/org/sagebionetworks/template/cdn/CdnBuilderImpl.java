@@ -1,5 +1,6 @@
 package org.sagebionetworks.template.cdn;
 
+
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.google.inject.Inject;
 import org.apache.commons.codec.digest.DigestUtils;
