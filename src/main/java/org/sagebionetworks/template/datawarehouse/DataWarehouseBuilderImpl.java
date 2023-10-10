@@ -36,8 +36,6 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATAWAREHOUSE_
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.TEMPLATE_ETL_GLUE_JOB_RESOURCES;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATAWAREHOUSE_GLUE_JOB_TRIGGER_SCHEDULE;
-import static org.sagebionetworks.template.Constants.ETL_GLUE_JOB_SCHEDULE;
 
 public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
 	
@@ -81,9 +79,7 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
         String bucket = String.join(".", stack, S3_GLUE_BUCKET);
 
     	String scriptLocationPrefix = bucket + "/" + copyArtifactFromGithub(bucket);
-
-        String etlGlueJobSchedule = config.getProperty(PROPERTY_KEY_DATAWAREHOUSE_GLUE_JOB_TRIGGER_SCHEDULE);
-
+    	
         VelocityContext context = new VelocityContext();
         
         context.put(GLUE_DATABASE_NAME, databaseName);
@@ -96,7 +92,6 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
         extraScripts.add(GS_EXPLODE_SCRIPT);
         extraScripts.add(GS_COMMON_SCRIPT);
         context.put("extraScripts", String.join(",", extraScripts));
-        context.put(ETL_GLUE_JOB_SCHEDULE, etlGlueJobSchedule);
 
         String stackName = new StringJoiner("-").add(stack).add(databaseName).add("etl-jobs").toString();
 

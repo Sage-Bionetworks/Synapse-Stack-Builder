@@ -1,4 +1,5 @@
 {
+	"Description": "Application Load balancer dependencies",
 	"Resources": {
 		"webACLAssociation": {
 			"Type": "AWS::WAFv2::WebACLAssociation",
