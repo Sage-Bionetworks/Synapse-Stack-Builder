@@ -539,7 +539,17 @@
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.sts.iam.arn",
 						"Value": {"Fn::ImportValue": "${sharedExportPrefix}-Temp-Credentials-Service-Role-Arn"}
-					}
+					},
+                    {
+                        "Namespace": "aws:elasticbeanstalk:application:environment",
+                        "OptionName": "org.sagebionetworks.cloudfront.keypair",
+                        "Value": "${dataCdnKeyPairId}"
+                    },
+                    {
+                         "Namespace": "aws:elasticbeanstalk:application:environment",
+                         "OptionName": "org.sagebionetworks.cloudfront.domainname",
+                         "Value": "${dataCdnDomainName}"
+                     }
 
 					#end
 				]
