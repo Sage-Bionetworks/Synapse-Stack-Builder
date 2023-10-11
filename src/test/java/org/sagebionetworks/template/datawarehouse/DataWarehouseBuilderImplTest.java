@@ -182,7 +182,7 @@ public class DataWarehouseBuilderImplTest {
 		JSONObject glueJobTrigger = resources.getJSONObject("testjobGlueJobTrigger").getJSONObject("Properties");
 		assertEquals("{\"Type\":\"SCHEDULED\",\"StartOnCreation\":\"true\",\"Description\":"
 				+ "\"Trigger for job synapsewarehouse_testjob\",\"Name\":\"synapsewarehouse_testjob_trigger\",\"Schedule\":"
-				+ "\"cron(* 1 * * ? *)\",\"Actions\":[{\"JobName\":\"synapsewarehouse_testjob\"}]}", glueJobTrigger.toString());
+				+ "\"cron(0 1 * * ? *)\",\"Actions\":[{\"JobName\":\"synapsewarehouse_testjob\"}]}", glueJobTrigger.toString());
 	}
 
 	@Test
