@@ -209,7 +209,11 @@
             "StartOnCreation": "true",
             "Description" : "Trigger for job ${glueDatabaseName}_${etl.name}",
              "Name" : "${glueDatabaseName}_${etl.name}_trigger",
+             #if (${stack} == 'prod')
              "Schedule" : "cron(0 * * * ? *)",
+             #else
+             "Schedule" : "cron(* 1 * * ? *)",
+             #end
             "Actions" : [
                 {
                      "JobName" : "${glueDatabaseName}_${etl.name}"
