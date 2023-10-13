@@ -999,162 +999,164 @@
 		"tableDescriptor": {
 			"name": "accessrequirementsnapshots",
 			"description" : "This table contain snapshots of access requirements. Snapshots are taken when an access requirement is created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
-			"columns":[{
-				"name": "change_timestamp",
-				"type" : "timestamp",
-				"comment" : "The time when the change (created/updated/deleted) on an access requirement is pushed to the queue for snapshotting."
-			},
-			{
-				"name": "change_type",
-				"type" : "string",
-				"comment" : "The type of change that occurred on the access requirement, e.g., CREATE, UPDATE, DELETE."
-			},
-			{
-				"name": "change_user_id",
-				"type": "bigint",
-				"comment": "The id of the user that created, updated or deleted the access requirement being snapshotted"
-			},
-			{
-				"name": "snapshot_timestamp",
-				"type" : "timestamp",
-				"comment" : "The time when the snapshot was taken (It is usually after the change happened)."
-			},
-			{
-				"name": "id",
-				"type" : "bigint",
-				"comment" : "The unique identifier of the access requirement."
-			},
-			{
-				"name": "version_number",
-				"type" : "bigint",
-				"comment" : "The version of the access requirement. Each time an access requirement is updated a new version is issued."
-			},
-			{
-				"name": "name",
-				"type" : "string",
-				"comment" : "The name assigned to the access requirement."
-			},
-			{
-				"name": "description",
-				"type" : "string",
-				"comment" : "The description assigned to the access requirement."
-			},
-			{
-				"name": "created_by",
-				"type" : "bigint",
-				"comment" : "The id of the user that created the access requirement."
-			},
-			{
-				"name": "modified_by",
-				"type" : "bigint",
-				"comment" : "The id of the user that modified the access requirement."
-			},
-			{
-				"name": "created_on",
-				"type" : "timestamp",
-				"comment" : "The creation time of the access requirement."
-			},
-			{
-				"name": "modified_on",
-				"type" : "timestamp",
-				"comment" : "The most recent change time of the access requirement."
-			},
-			{
-				"name": "access_type",
-				"type" : "string",
-				"comment" : "The type of access this access requirement applies to, currently supports only DOWNLOAD (for entities) and PARTICIPATE (for teams)."
-			},
-			{
-				"name": "concrete_type",
-				"type" : "string",
-				"comment" : "The type of access requirement. See https://rest-docs.synapse.org/rest/org/sagebionetworks/repo/model/AccessRequirement.html."
-			},
-			{
-				"name": "subjects_defined_by_annotations",
-				"type" : "boolean",
-				"comment" : "True if the subjects of the access requirement are automatically inferred by derived annotations. If true the subjectIds will be empty."
-			},			
-			{
-				"name": "subjects_ids",
-				"type" : "array<struct<id:bigint,type:string>>",
-				"comment" : "The list of objects controlled by this access requirement. If the access_type is DOWNLOAD each element will be an ENTITY, If the access_type is PARTICIPATE each element will be a TEAM. This list is empty if subjects_defined_by_annotations is true."
-			},
-			{
-				"name": "is_certified_user_required",
-				"type" : "boolean",
-				"comment" : "True if the user certification is required to fulfill the access requirement. Applies only to ManagedACTAccessRequirement and SelfSignAccessRequirement."
-			},
-			{
-				"name": "is_validated_profile_required",
-				"type" : "boolean",
-				"comment" : "True if the profile validation is required to fulfill the access requirement. Applies only to ManagedACTAccessRequirement and SelfSignAccessRequirement."
-			},
-			{
-				"name": "is_duc_required",
-				"type" : "boolean",
-				"comment" : "True if a Data Use Certificate (DUC) is required to fulfill the access requirement. Applies only to ManagedACTAccessRequirement."
-			},
-			{
-				"name": "is_irb_approval_required",
-				"type" : "boolean",
-				"comment" : "True if an Institutional Review Board (IRB) approval document is required to fulfill the access requirement. Applies only to ManagedACTAccessRequirement."
-			},
-			{
-				"name": "are_other_attachments_required",
-				"type" : "boolean",
-				"comment" : "True if additional attachment(s) are required to fulfill the access requirement. Applies only to ManagedACTAccessRequirement."
-			},
-			{
-				"name": "is_idu_public",
-				"type" : "boolean",
-				"comment" : "True if the Intended Data Use Statements submitted to gain access to the data will be presented to public. Applies only to ManagedACTAccessRequirement."
-			},
-			{
-				"name": "is_idu_required",
-				"type" : "boolean",
-				"comment" : "True the Intended Data Use Statement for a research project is required to fulfill the access requirement. Applies only to ManagedACTAccessRequirement."
-			},
-			{
-				"name": "is_two_fa_required",
-				"type" : "boolean",
-				"comment" : "True if two factor authentication is required to fulfill the access requirement. Applies only to ManagedACTAccessRequirement."
-			},
-			{
-				"name": "duc_template_file_handle_id",
-				"type" : "bigint",
-				"comment" : "The id of the file handle containing the DUC template (if a DUC is required) that needs to be filled and signed by users to fulfill the access requirement. Applies only to ManagedACTAccessRequirement."
-			},
-			{
-				"name": "expiration_period",
-				"type" : "bigint",
-				"comment" : "The amount in milliseconds that an approval of this access requirement is valid for. Applies only to ManagedACTAccessRequirement."
-			},
-			{
-				"name": "terms_of_user",
-				"type" : "string",
-				"comment" : "The terms of use text. Applies only to TermsOfUseAccessRequirement."
-			},
-			{
-				"name": "act_contact_info",
-				"type" : "string",
-				"comment" : "Information on how to contact the Synapse ACT for access approval (external to Synapse). Applies only to ACTAccessRequirement."
-			},
-			{
-				"name": "open_jira_issue",
-				"type" : "boolean",
-				"comment" : "Flag that indicate if a JIRA issue needs to be opened in addition to follow the act_contact_info . Applies only to ACTAccessRequirement."
-			},
-			{
-				"name": "jira_key",
-				"type" : "string",
-				"comment" : "The key of the jira issue created for this Access Requirement. Applies only to LockAccessRequirement."
-			}
+			"columns":[
+				{
+					"name": "change_timestamp",
+					"type" : "timestamp",
+					"comment" : "The time when the change (created/updated/deleted) on an access requirement is pushed to the queue for snapshotting."
+				},
+				{
+					"name": "change_type",
+					"type" : "string",
+					"comment" : "The type of change that occurred on the access requirement, e.g., CREATE, UPDATE, DELETE."
+				},
+				{
+					"name": "change_user_id",
+					"type": "bigint",
+					"comment": "The id of the user that created, updated or deleted the access requirement being snapshotted"
+				},
+				{
+					"name": "snapshot_timestamp",
+					"type" : "timestamp",
+					"comment" : "The time when the snapshot was taken (It is usually after the change happened)."
+				},
+				{
+					"name": "id",
+					"type" : "bigint",
+					"comment" : "The unique identifier of the access requirement."
+				},
+				{
+					"name": "version_number",
+					"type" : "bigint",
+					"comment" : "The version of the access requirement. Each time an access requirement is updated a new version is issued."
+				},
+				{
+					"name": "name",
+					"type" : "string",
+					"comment" : "The name assigned to the access requirement."
+				},
+				{
+					"name": "description",
+					"type" : "string",
+					"comment" : "The description assigned to the access requirement."
+				},
+				{
+					"name": "created_by",
+					"type" : "bigint",
+					"comment" : "The id of the user that created the access requirement."
+				},
+				{
+					"name": "modified_by",
+					"type" : "bigint",
+					"comment" : "The id of the user that modified the access requirement."
+				},
+				{
+					"name": "created_on",
+					"type" : "timestamp",
+					"comment" : "The creation time of the access requirement."
+				},
+				{
+					"name": "modified_on",
+					"type" : "timestamp",
+					"comment" : "The most recent change time of the access requirement."
+				},
+				{
+					"name": "access_type",
+					"type" : "string",
+					"comment" : "The type of access this access requirement applies to, currently supports only DOWNLOAD (for entities) and PARTICIPATE (for teams)."
+				},
+				{
+					"name": "concrete_type",
+					"type" : "string",
+					"comment" : "The type of access requirement. See https://rest-docs.synapse.org/rest/org/sagebionetworks/repo/model/AccessRequirement.html."
+				},
+				{
+					"name": "subjects_defined_by_annotations",
+					"type" : "boolean",
+					"comment" : "True if the subjects of the access requirement are automatically inferred by derived annotations. If true the subjectIds will be empty."
+				},			
+				{
+					"name": "subjects_ids",
+					"type" : "array<struct<id:string,type:string>>",
+					"comment" : "The list of objects controlled by this access requirement. If the access_type is DOWNLOAD each element will be an ENTITY, If the access_type is PARTICIPATE each element will be a TEAM. This list is empty if subjects_defined_by_annotations is true."
+				},
+				{
+					"name": "is_certified_user_required",
+					"type" : "boolean",
+					"comment" : "True if the user certification is required to fulfill the access requirement. Applies only to ManagedACTAccessRequirement and SelfSignAccessRequirement."
+				},
+				{
+					"name": "is_validated_profile_required",
+					"type" : "boolean",
+					"comment" : "True if the profile validation is required to fulfill the access requirement. Applies only to ManagedACTAccessRequirement and SelfSignAccessRequirement."
+				},
+				{
+					"name": "is_duc_required",
+					"type" : "boolean",
+					"comment" : "True if a Data Use Certificate (DUC) is required to fulfill the access requirement. Applies only to ManagedACTAccessRequirement."
+				},
+				{
+					"name": "is_irb_approval_required",
+					"type" : "boolean",
+					"comment" : "True if an Institutional Review Board (IRB) approval document is required to fulfill the access requirement. Applies only to ManagedACTAccessRequirement."
+				},
+				{
+					"name": "are_other_attachments_required",
+					"type" : "boolean",
+					"comment" : "True if additional attachment(s) are required to fulfill the access requirement. Applies only to ManagedACTAccessRequirement."
+				},
+				{
+					"name": "is_idu_public",
+					"type" : "boolean",
+					"comment" : "True if the Intended Data Use Statements submitted to gain access to the data will be presented to public. Applies only to ManagedACTAccessRequirement."
+				},
+				{
+					"name": "is_idu_required",
+					"type" : "boolean",
+					"comment" : "True the Intended Data Use Statement for a research project is required to fulfill the access requirement. Applies only to ManagedACTAccessRequirement."
+				},
+				{
+					"name": "is_two_fa_required",
+					"type" : "boolean",
+					"comment" : "True if two factor authentication is required to fulfill the access requirement. Applies only to ManagedACTAccessRequirement."
+				},
+				{
+					"name": "duc_template_file_handle_id",
+					"type" : "bigint",
+					"comment" : "The id of the file handle containing the DUC template (if a DUC is required) that needs to be filled and signed by users to fulfill the access requirement. Applies only to ManagedACTAccessRequirement."
+				},
+				{
+					"name": "expiration_period",
+					"type" : "bigint",
+					"comment" : "The amount in milliseconds that an approval of this access requirement is valid for. Applies only to ManagedACTAccessRequirement."
+				},
+				{
+					"name": "terms_of_user",
+					"type" : "string",
+					"comment" : "The terms of use text. Applies only to TermsOfUseAccessRequirement."
+				},
+				{
+					"name": "act_contact_info",
+					"type" : "string",
+					"comment" : "Information on how to contact the Synapse ACT for access approval (external to Synapse). Applies only to ACTAccessRequirement."
+				},
+				{
+					"name": "open_jira_issue",
+					"type" : "boolean",
+					"comment" : "Flag that indicate if a JIRA issue needs to be opened in addition to follow the act_contact_info . Applies only to ACTAccessRequirement."
+				},
+				{
+					"name": "jira_key",
+					"type" : "string",
+					"comment" : "The key of the jira issue created for this Access Requirement. Applies only to LockAccessRequirement."
+				}
+				],
+				"partitionKeys":[{
+					"name": "snapshot_date",
+					"type" : "date",
+					"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp field is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
+				}
 			],
-			"partitionKeys":[{
-				"name": "snapshot_date",
-				"type" : "date",
-				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp field is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
-			}],
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.snapshot_date.type": "date",
