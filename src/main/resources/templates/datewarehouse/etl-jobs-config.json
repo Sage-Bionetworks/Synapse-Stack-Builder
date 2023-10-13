@@ -1077,7 +1077,7 @@
 			{
 				"name": "subjects_ids",
 				"type" : "array<struct<id:bigint,type:string>>",
-				"comment" : "The list of objects directly controlled by this access requirement. If the access_type is DOWNLOAD, the list will contain entity ids (the type of each element will be ENTITY). If the access_typoe is PARTICIPATE the list will contain team ids (the type of the each element will be TEAM). This list is empty if subjects_defined_by_annotations is true."
+				"comment" : "The list of objects controlled by this access requirement. If the access_type is DOWNLOAD each element will be an ENTITY, If the access_type is PARTICIPATE each element will be a TEAM. This list is empty if subjects_defined_by_annotations is true."
 			},
 			{
 				"name": "is_certified_user_required",
