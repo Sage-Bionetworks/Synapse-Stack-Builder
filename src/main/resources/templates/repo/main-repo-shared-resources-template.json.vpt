@@ -677,33 +677,20 @@
 							"Resource": "*",
 							"Condition": {
 								"StringNotLike": {
-									"aws:userid": [
-										{ "Fn::Join": [ "", [{"Fn::GetAtt": [ "${stack}${instance}SynapesRepoWorkersServiceRole", "RoleId"]}, ":*" ]]},
-										{ "Fn::Join": [ "", [{"Fn::ImportValue": "us-east-1-synapse-${stack}-cmk-SynapseDeploymentRoleId"}, ":*" ]]},
-										{ "Fn::Join": [ "", [{"Fn::ImportValue": "us-east-1-accounts-AWSIAMAdminRoleId"}, ":*" ]]},
-										{
-											"Ref": "AWS::AccountId"
-										}
-									]
-								}
+								    "aws:PrincipalArn": [
+                                        { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:root" },
+                                        { "Fn::ImportValue": "us-east-1-synapse-${stack}-cmk-SynapseDeploymentRoleArn"},
+                                        { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/sagebase-github-oidc-sage-bionetworks-it" },
+                                        { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Administrator_6620166dd0e7f1b6" }
+                                    ]
+                                }
 							}
 						},
 						{
 							"Sid": "Allow root administration of the key",
 							"Effect": "Allow",
 							"Principal": {
-								"AWS": {
-									"Fn::Join": [
-										"",
-										[
-											"arn:aws:iam::",
-											{
-												"Ref": "AWS::AccountId"
-											},
-											":root"
-										]
-									]
-								    }
+								"AWS": { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:root" }
 							},
 							"Action": [
 								"kms:*"
