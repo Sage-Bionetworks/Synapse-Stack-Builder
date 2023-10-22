@@ -681,7 +681,11 @@
                                         { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:root" },
                                         { "Fn::ImportValue": "us-east-1-synapse-${stack}-cmk-SynapseDeploymentRoleArn"},
                                         { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/sagebase-github-oidc-sage-bionetworks-it" },
+                                        #if(${stack} == 'prod')
                                         { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Administrator_6620166dd0e7f1b6" }
+                                        #else
+                                        { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Administrator_693a85eb20cd5043" }
+                                        #end
                                     ]
                                 }
 							}
@@ -694,7 +698,11 @@
 								    { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:root" },
                                     { "Fn::ImportValue": "us-east-1-synapse-${stack}-cmk-SynapseDeploymentRoleArn"},
                                     { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/sagebase-github-oidc-sage-bionetworks-it" },
+                                    #if(${stack} == 'prod')
                                     { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Administrator_6620166dd0e7f1b6" }
+                                    #else
+                                    { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Administrator_693a85eb20cd5043" }
+                                    #end
 								]
 							},
 							"Action": [
