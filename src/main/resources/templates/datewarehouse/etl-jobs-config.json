@@ -1,6 +1,6 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
-	"version": "1.45.0",
+	"version": "1.47.0",
 	"extraScripts": ["utils.py"],
 	"etlJobDescriptors":[{
 		"name": "processaccessrecord",
@@ -954,9 +954,9 @@
 			}],
 			"parameters": {
 				"projection.enabled": "true",
-				"projection.record_date.type": "date",
-				"projection.record_date.range": "NOW-6YEARS,NOW",
-				"projection.record_date.format": "yyyy-MM-dd"
+				"projection.snapshot_date.type": "date",
+				"projection.snapshot_date.range": "NOW-6YEARS,NOW",
+				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
 		}
 	},
@@ -1020,9 +1020,9 @@
 			}],
 			"parameters": {
 				"projection.enabled": "true",
-				"projection.record_date.type": "date",
-				"projection.record_date.range": "NOW-6YEARS,NOW",
-				"projection.record_date.format": "yyyy-MM-dd"
+				"projection.snapshot_date.type": "date",
+				"projection.snapshot_date.range": "NOW-6YEARS,NOW",
+				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
 		}
 	},
