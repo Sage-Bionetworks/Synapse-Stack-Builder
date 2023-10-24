@@ -641,6 +641,11 @@
 				"name": "position",
 				"type" : "string",
 				"comment" : "The position of the user in the company."
+			},
+			{
+				"name": "created_on",
+				"type" : "timestamp",
+				"comment" : "The creation time of the user profile."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
