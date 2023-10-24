@@ -370,7 +370,7 @@
 			{
 				"name": "status",
 				"type" : "string",
-				"comment" : "The availability status of the file referenced by the file handle."
+				"comment" : "The availability status of the file referenced by the file handle. AVAILABLE:  accessible via Synapse; UNLINKED: not reference by Synapse and therefore available for garbage collection; ARCHIVED: the file has been garbage collected."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
