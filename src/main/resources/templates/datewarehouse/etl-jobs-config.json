@@ -1,6 +1,6 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
-	"version": "1.45.0",
+	"version": "1.48.0",
 	"extraScripts": ["utils.py"],
 	"etlJobDescriptors":[{
 		"name": "processaccessrecord",
@@ -370,7 +370,7 @@
 			{
 				"name": "status",
 				"type" : "string",
-				"comment" : "The availability status of the file referenced by the file handle."
+				"comment" : "The availability status of the file referenced by the file handle. AVAILABLE:  accessible via Synapse; UNLINKED: not referenced by Synapse and therefore available for garbage collection; ARCHIVED: the file has been garbage collected."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
@@ -641,6 +641,11 @@
 				"name": "position",
 				"type" : "string",
 				"comment" : "The position of the user in the company."
+			},
+			{
+				"name": "created_on",
+				"type" : "timestamp",
+				"comment" : "The creation time of the user profile."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
@@ -895,14 +900,29 @@
 		}
 	},
 	{
-		"name": "certifiedquizrecords",
-		"description": "This job processes the user's certified quiz records",
-		"scriptName": "certified_quiz_records.py",
-		"sourcePath" : "log.sagebase.org/certifiedUserPassingRecords/records/",
+		"name": "certifiedquizSnapshots",
+		"description": "This job processes the user's certified quiz snapshots",
+		"scriptName": "certified_quiz_snapshots.py",
+		"sourcePath" : "log.sagebase.org/certifiedUserPassingSnapshots/records/",
 		"tableDescriptor": {
-			"name": "certifiedquizrecords",
-			"description" : "This table contain records of the certification quiz taken by a Synapse user.",
+			"name": "certifiedquizsnapshots",
+			"description" : "This table contain snapshots of the certification quiz submitted by a Synapse user. Snapshots are taken when a user submit the quiz. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
+				"name": "change_type",
+				"type" : "string",
+				"comment" : "The change type is always as CREATE since each instance of a user submitting a quiz results in a new submission of the quiz."
+			},
+			{
+				"name": "change_timestamp",
+				"type" : "timestamp",
+				"comment" : "The time when the user submitted the quiz."
+			},
+			{
+				"name": "snapshot_timestamp",
+				"type" : "timestamp",
+				"comment" : "The time when the snapshot was taken (It is usually after the change happened)."
+			},
+			{
 				"name": "response_id",
 				"type" : "bigint",
 				"comment" : "The unique identifier of a response wherein a user submitted a set of answers while participating in the quiz."
@@ -910,7 +930,7 @@
 			{
 				"name": "user_id",
 				"type" : "bigint",
-				"comment" : "The unique identifier of the user who took the quiz."
+				"comment" : "The unique identifier of the user who submitted the quiz."
 			},
 			{
 				"name": "passed",
@@ -920,7 +940,7 @@
 			{
 				"name": "passed_on",
 				"type" : "timestamp",
-				"comment" : "The date on which the user took the quiz, regardless of whether user passed or failed the test."
+				"comment" : "The date on which the user submit the quiz, regardless of whether user passed or failed the test."
 			},
 			{
 				"name": "stack",
@@ -933,27 +953,47 @@
 				"comment" : "The version of the stack that processed the quiz record."
 			}],
 			"partitionKeys":[{
-				"name": "record_date",
+				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The data is partitioned for fast and cost effective queries. The timestamp when the quiz was taken is converted into a date and stored in the record_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp field is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
-				"projection.record_date.type": "date",
-				"projection.record_date.range": "NOW-6YEARS,NOW",
-				"projection.record_date.format": "yyyy-MM-dd"
+				"projection.snapshot_date.type": "date",
+				"projection.snapshot_date.range": "NOW-6YEARS,NOW",
+				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
 		}
 	},
 	{
-		"name": "certifiedquizquestionrecords",
-		"description": "This job processes the user's certified quiz question records",
-		"scriptName": "certified_quiz_question_records.py",
-		"sourcePath" : "log.sagebase.org/certifiedUserPassingRecords/records/",
+		"name": "certifiedquizquestionsnapshots",
+		"description": "This job processes the user's certified quiz question snapshots",
+		"scriptName": "certified_quiz_question_snapshots.py",
+		"sourcePath" : "log.sagebase.org/certifiedUserPassingSnapshots/records/",
 		"tableDescriptor": {
-			"name": "certifiedquizquestionrecords",
-			"description" : "This table contain records of the questions of the certification quiz. Each record in the table is question answered by the user in the quiz.",
+			"name": "certifiedquizquestionsnapshots",
+			"description" : "This table contain snapshots of the questions of the certification quiz. With each entry representing a question answered by the user during the quiz.",
 			"columns":[{
+				"name": "change_type",
+				"type" : "string",
+				"comment" : "The change type is always as CREATE since each instance of a user submitting a quiz results in a new submission of the quiz."
+			},
+			{
+				"name": "change_timestamp",
+				"type" : "timestamp",
+				"comment" : "The time when the user submitted the quiz."
+			},
+			{
+				"name": "change_user_id",
+				"type": "bigint",
+				"comment": "The unique identifier of the user that submitted the quiz."
+			},
+			{
+				"name": "snapshot_timestamp",
+				"type" : "timestamp",
+				"comment" : "The time when the snapshot was taken (It is usually after the change happened)."
+			},
+			{
 				"name": "response_id",
 				"type" : "bigint",
 				"comment" : "The unique identifier of a response wherein a user submitted a set of answers while participating in the quiz."
@@ -979,15 +1019,15 @@
 				"comment" : "The version of the stack that processed the quiz question record."
 			}],
 			"partitionKeys":[{
-				"name": "record_date",
+				"name": "snapshot_date",
 				"type" : "date",
-				"comment" : "The data is partitioned for fast and cost effective queries. The timestamp when the quiz was taken is converted into a date and stored in the record_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
+				"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp field is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
 			}],
 			"parameters": {
 				"projection.enabled": "true",
-				"projection.record_date.type": "date",
-				"projection.record_date.range": "NOW-6YEARS,NOW",
-				"projection.record_date.format": "yyyy-MM-dd"
+				"projection.snapshot_date.type": "date",
+				"projection.snapshot_date.range": "NOW-6YEARS,NOW",
+				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
 		}
 	},
