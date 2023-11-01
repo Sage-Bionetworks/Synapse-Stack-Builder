@@ -1,6 +1,6 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
-	"version": "1.48.0",
+	"version": "1.49.0",
 	"extraScripts": ["utils.py"],
 	"etlJobDescriptors":[{
 		"name": "processaccessrecord",
