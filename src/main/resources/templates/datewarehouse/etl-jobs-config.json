@@ -1204,6 +1204,80 @@
 				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
 		}
+	},
+		{
+		"name": "projectsettingsnapshots",
+		"description": "This job processes the project setting data",
+		"scriptName": "project_settings_snapshots.py",
+		"sourcePath" : "log.sagebase.org/projectSettingSnapshots/records/",
+		"tableDescriptor": {
+			"name": "projectsettingsnapshots",
+			"description" : "This table contain snapshots of projects settings. Snapshots are taken when a project setting is created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
+			"columns":[
+				{
+					"name": "change_timestamp",
+					"type" : "timestamp",
+					"comment" : "The time when the a project settings change (created/updated/deleted) occured."
+				},
+				{
+					"name": "change_type",
+					"type" : "string",
+					"comment" : "The type of change that occurred on the access requirement, e.g., CREATE, UPDATE, DELETE."
+				},
+				{
+					"name": "change_user_id",
+					"type": "bigint",
+					"comment": "The id of the user that created, updated or deleted the project settings being snapshotted"
+				},
+				{
+					"name": "snapshot_timestamp",
+					"type" : "timestamp",
+					"comment" : "The time when the snapshot was taken. Snapshots are taken after each change event and periodically."
+				},
+				{
+					"name": "id",
+					"type" : "bigint",
+					"comment" : "The unique identifier of the project setting."
+				},
+				{
+					"name": "concrete_type",
+					"type" : "string",
+					"comment" : "The type of project setting. See https://rest-docs.synapse.org/rest/org/sagebionetworks/repo/model/project/ProjectSetting.html."
+				},
+				{
+					"name": "project_id",
+					"type" : "bigint",
+					"comment" : "The ID of the project to which the settings apply"
+				},
+				{
+					"name": "settings_type",
+					"type" : "string",
+					"comment" : "The short type of the project settings. See: https://rest-docs.synapse.org/rest/org/sagebionetworks/repo/model/project/ProjectSettingsType.html"
+				},
+				{
+					"name": "etag",
+					"type" : "string",
+					"comment" : "UUID issued each time the project settings changes"
+				},			
+				{
+					"name": "locations",
+					"type" : "array<bigint>",
+					"comment" : "The storage location IDs associated with the project setting."
+				}
+				],
+				"partitionKeys":[{
+					"name": "snapshot_date",
+					"type" : "date",
+					"comment" : "The data is partitioned for fast and cost effective queries. The snapshot_timestamp field is converted into a date and stored in the snapshot_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
+				}
+			],
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.snapshot_date.type": "date",
+				"projection.snapshot_date.range": "NOW-6YEARS,NOW",
+				"projection.snapshot_date.format": "yyyy-MM-dd"
+			}
+		}
 	}
 	]
 }
