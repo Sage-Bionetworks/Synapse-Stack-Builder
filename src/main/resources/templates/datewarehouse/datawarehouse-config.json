@@ -2,7 +2,7 @@
 	"githubRepo": "Synapse-ETL-Jobs",
 	"version": "1.50.0",
 	"extraScripts": ["utils.py"],
-	"tables": [{
+	"tableDescriptors": [{
 			"name": "processedaccessrecord",
 			"description" : "The table contains access records. Each record reflects a single API request received by the Synapse server. The recorded data is useful for audits and to analyse API performance such as delays, errors or success rates.",
 			"columns":[{
@@ -1201,52 +1201,52 @@
 				{
 					"name": "key",
 					"type" : "string",
-					"comment" : "The object key"
+					"comment" : "The object key name (or key) that uniquely identifies the object in the bucket"
 				},
 				{
 					"name": "version_id",
 					"type": "string",
-					"comment": "The version of the object"
+					"comment": "The object version ID"
 				},
 				{
 					"name": "is_latest",
 					"type" : "boolean",
-					"comment" : "Specifies if this is the latest version of the object"
+					"comment" : "Set to True if the object is the current version of the object"
 				},
 				{
 					"name": "is_delete_marker",
 					"type" : "boolean",
-					"comment" : "The S3 delete marker status"
+					"comment" : "Set to True if the object is a delete marker"
 				},
 				{
 					"name": "size",
 					"type" : "bigint",
-					"comment" : "The size in bytes of the object"
+					"comment" : "The object size in bytes, not including the size of incomplete multipart uploads, object metadata, and delete markers"
 				},
 				{
 					"name": "last_modified_date",
 					"type" : "timestamp",
-					"comment" : "The lasst modification date of the object"
+					"comment" : "The object creation date or the last modified date, whichever is the latest."
 				},
 				{
 					"name": "e_tag",
 					"type" : "string",
-					"comment" : "The etag assigned by S3 to the object"
+					"comment" : "The entity tag (ETag) is a hash of the object. The ETag reflects changes only to the contents of an object, not to its metadata. The ETag can be an MD5 digest of the object data. Whether it is depends on how the object was created and how it is encrypted."
 				},
 				{
 					"name": "storage_class",
 					"type" : "string",
-					"comment" : "The S3 storage class assigned to the object"
+					"comment" : "The storage class that's used for storing the object. Set to STANDARD, REDUCED_REDUNDANCY, STANDARD_IA, ONEZONE_IA, INTELLIGENT_TIERING, GLACIER, DEEP_ARCHIVE, OUTPOSTS, GLACIER_IR, or SNOW. See https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html"
 				},			
 				{
 					"name": "intelligent_tiering_access_tier",
 					"type" : "string",
-					"comment" : "If the object is in the intelligent tiering, the current access tier of the object"
+					"comment" : "Access tier (frequent or infrequent) of the object if it is stored in the S3 Intelligent-Tiering storage class. Set to FREQUENT, INFREQUENT, ARCHIVE_INSTANT_ACCESS, ARCHIVE, or DEEP_ARCHIVE. See https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html#sc-dynamic-data-access"
 				},
 				{
 					"name": "is_multipart_uploaded",
 					"type" : "boolean",
-					"comment" : "Specifies if the object was uploaded as a multipart upload"
+					"comment" : "Set to True if the object was uploaded as a multipart upload"
 				}],
 				"partitionKeys":[{
 					"name": "dt",

@@ -11,7 +11,7 @@ public class DataWarehouseConfig {
 	private String githubRepo;
 	private String version;
 	private List<String> extraScripts;
-	private List<GlueTableDescriptor> tableDescriptors;
+	private List<GlueTableDescriptor> tableDescriptors = new ArrayList<>();
     private List<EtlJobDescriptor> etlJobDescriptors = new ArrayList<>();
     
     public String getGithubRepo() {
