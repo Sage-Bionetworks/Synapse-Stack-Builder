@@ -12,6 +12,7 @@ import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
+import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.repo.VelocityExceptionThrower;
 import org.sagebionetworks.template.utils.ArtifactDownload;
@@ -85,13 +86,22 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
         context.put(GLUE_DATABASE_NAME, databaseName);
         context.put(EXCEPTION_THROWER, new VelocityExceptionThrower());
         context.put(STACK, stack);
+        
+        // The table location can contain the stack variable
+        dataWarehouseConfig.getTableDescriptors().forEach( table -> {
+        	if (table.getLocation() != null) {
+        		table.setLocation(TemplateUtils.replaceStackVariable(table.getLocation(), stack));
+        	}
+        });
+        
         context.put("tableDescriptors", dataWarehouseConfig.getTableDescriptors());
         context.put(ETL_DESCRIPTORS, dataWarehouseConfig.getEtlJobDescriptors());
         context.put("scriptLocationPrefix", scriptLocationPrefix);
-        List<String> extraScripts = dataWarehouseConfig.getExtraScripts().stream().map(s -> "s3://" + scriptLocationPrefix + s)
-                .collect(Collectors.toList());
+        
+        List<String> extraScripts = dataWarehouseConfig.getExtraScripts().stream().map(s -> "s3://" + scriptLocationPrefix + s).collect(Collectors.toList());
         extraScripts.add(GS_EXPLODE_SCRIPT);
         extraScripts.add(GS_COMMON_SCRIPT);
+        
         context.put("extraScripts", String.join(",", extraScripts));
 
         String stackName = new StringJoiner("-").add(stack).add(databaseName).add("etl-jobs").toString();

@@ -1188,6 +1188,82 @@
 				"projection.snapshot_date.range": "NOW-6YEARS,NOW",
 				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
+		},
+		{
+			"name": "filesinventory",
+			"description" : "This table contains the S3 inventory of the main synapse bucket, the inventory is a snapshot taken weekly. For more information see https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-inventory.html.",
+			"columns":[
+				{
+					"name": "bucket",
+					"type" : "string",
+					"comment" : "The object bucket"
+				},
+				{
+					"name": "key",
+					"type" : "string",
+					"comment" : "The object key"
+				},
+				{
+					"name": "version_id",
+					"type": "string",
+					"comment": "The version of the object"
+				},
+				{
+					"name": "is_latest",
+					"type" : "boolean",
+					"comment" : "Specifies if this is the latest version of the object"
+				},
+				{
+					"name": "is_delete_marker",
+					"type" : "boolean",
+					"comment" : "The S3 delete marker status"
+				},
+				{
+					"name": "size",
+					"type" : "bigint",
+					"comment" : "The size in bytes of the object"
+				},
+				{
+					"name": "last_modified_date",
+					"type" : "timestamp",
+					"comment" : "The lasst modification date of the object"
+				},
+				{
+					"name": "e_tag",
+					"type" : "string",
+					"comment" : "The etag assigned by S3 to the object"
+				},
+				{
+					"name": "storage_class",
+					"type" : "string",
+					"comment" : "The S3 storage class assigned to the object"
+				},			
+				{
+					"name": "intelligent_tiering_access_tier",
+					"type" : "string",
+					"comment" : "If the object is in the intelligent tiering, the current access tier of the object"
+				},
+				{
+					"name": "is_multipart_uploaded",
+					"type" : "boolean",
+					"comment" : "Specifies if the object was uploaded as a multipart upload"
+				}],
+				"partitionKeys":[{
+					"name": "dt",
+					"type" : "string",
+					"comment" : "An inventory snapshot is taken on a weekly cadence, the data is partitioned by the snapshot date"
+				}
+			],
+			"inputFormat": "org.apache.hadoop.hive.ql.io.SymlinkTextInputFormat",
+			"location": "s3://${stack}.inventory.sagebase.org/inventory/${stack}data.synapse.org/defaultInventory/hive/",
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.dt.type": "date",
+				"projection.dt.format": "yyyy-MM-dd-HH-mm",
+				"projection.dt.range": "2023-01-01-00-00,NOW",
+				"projection.dt.interval": "1",
+				"projection.dt.unit": "HOURS"
+			}
 		}
 	],
 	"etlJobDescriptors":[{

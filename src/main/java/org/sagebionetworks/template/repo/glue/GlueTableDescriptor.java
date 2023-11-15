@@ -11,6 +11,8 @@ public class GlueTableDescriptor {
 	private String description;
 	private List<GlueColumn> columns = new ArrayList<>();
 	private List<GlueColumn> partitionKeys = new ArrayList<>();
+	private String inputFormat;
+	private String location;
 
 	// Additional custom parameters for the glue table
 	private Map<String, String> parameters = null;
@@ -47,6 +49,22 @@ public class GlueTableDescriptor {
 		this.partitionKeys = partitionKeys;
 	}
 
+	public String getInputFormat() {
+		return inputFormat;
+	}
+
+	public void setInputFormat(String inputFormat) {
+		this.inputFormat = inputFormat;
+	}
+
+	public String getLocation() {
+		return location;
+	}
+
+	public void setLocation(String location) {
+		this.location = location;
+	}
+
 	public Map<String, String> getParameters() {
 		return parameters;
 	}
@@ -56,16 +74,22 @@ public class GlueTableDescriptor {
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		GlueTableDescriptor that = (GlueTableDescriptor) o;
-		return name.equals(that.name) && Objects.equals(description, that.description) && columns.equals(that.columns)
-				&& Objects.equals(partitionKeys, that.partitionKeys) && Objects.equals(parameters, that.parameters);
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof GlueTableDescriptor)) {
+			return false;
+		}
+		GlueTableDescriptor other = (GlueTableDescriptor) obj;
+		return Objects.equals(columns, other.columns) && Objects.equals(description, other.description)
+				&& Objects.equals(inputFormat, other.inputFormat) && Objects.equals(location, other.location)
+				&& Objects.equals(name, other.name) && Objects.equals(parameters, other.parameters)
+				&& Objects.equals(partitionKeys, other.partitionKeys);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(name, description, columns, partitionKeys, parameters);
+		return Objects.hash(columns, description, inputFormat, location, name, parameters, partitionKeys);
 	}
 }

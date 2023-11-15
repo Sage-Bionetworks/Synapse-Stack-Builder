@@ -144,12 +144,20 @@
                             #if( $foreach.hasNext),#end
                             #end
                         ],
+                        #if ($tableDescriptor.inputFormat)
+                        "InputFormat": "$tableDescriptor.inputFormat",
+                        #else 
                         "InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+                        #end
                         "SerdeInfo": {
                             "SerializationLibrary": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe"
                         },
                         "Compressed": true,
-                        "Location": "s3://${stack}.datawarehouse.sagebase.org/${glueDatabaseName}/${tableDescriptor.name}/",
+                        #if ($tableDescriptor.location)
+                        "Location": "$tableDescriptor.location"
+                        #else
+                        "Location": "s3://${stack}.datawarehouse.sagebase.org/${glueDatabaseName}/${tableDescriptor.name}/"
+                        #end
                     },
                     "PartitionKeys": [
                         #foreach($partition in $tableDescriptor.partitionKeys)

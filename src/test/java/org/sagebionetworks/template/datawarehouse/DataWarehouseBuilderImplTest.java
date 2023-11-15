@@ -120,6 +120,8 @@ public class DataWarehouseBuilderImplTest {
 		anotherTable.setName("anotherTable");
 		anotherTable.setDescription("Another Test table");
 		anotherTable.setColumns(Arrays.asList(column));
+		anotherTable.setLocation("s3://${stack}.inventory.sagebase.org/inventory/${stack}data.synapse.org/defaultInventory/hive/");
+		anotherTable.setInputFormat("org.apache.hadoop.hive.ql.io.SymlinkTextInputFormat");
 		
 		when(dataWarehouseConfig.getTableDescriptors()).thenReturn(List.of(jobTable, anotherTable));
 
@@ -186,9 +188,9 @@ public class DataWarehouseBuilderImplTest {
 		JSONObject anotherTableProperty = resources.getJSONObject("anotherTableGlueTable").getJSONObject("Properties");
 		assertEquals("{\"Name\":\"anotherTable"
 				+ "\",\"Description\":\"Another Test table\",\"StorageDescriptor\":{\"Columns\":[{\"Name\":\"someColumn\","
-				+ "\"Type\":\"string\",\"Comment\":\"This is test column\"}],\"InputFormat\":\"org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat\","
+				+ "\"Type\":\"string\",\"Comment\":\"This is test column\"}],\"InputFormat\":\"org.apache.hadoop.hive.ql.io.SymlinkTextInputFormat\","
 				+ "\"SerdeInfo\":{\"SerializationLibrary\":" + "\"org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe\"},"
-				+ "\"Compressed\":true,\"Location\":\"s3://dev.datawarehouse.sagebase.org/synapsewarehouse/anotherTable/\"},\"PartitionKeys\":[],\"TableType\":"
+				+ "\"Compressed\":true,\"Location\":\"s3://dev.inventory.sagebase.org/inventory/devdata.synapse.org/defaultInventory/hive/\"},\"PartitionKeys\":[],\"TableType\":"
 				+ "\"EXTERNAL_TABLE\"}", anotherTableProperty.getString("TableInput"));
 
 		JSONObject dataBaseProperty = resources.getJSONObject("synapsewarehouseGlueDatabase").getJSONObject("Properties");
