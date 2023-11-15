@@ -9,7 +9,6 @@ public class EtlJobDescriptor {
     private String description;
     private String scriptName;
     private String sourcePath;
-    private GlueTableDescriptor tableDescriptor = null;
 
     public String getName() {
         return name;
@@ -47,15 +46,6 @@ public class EtlJobDescriptor {
         return this;
     }
 
-    public GlueTableDescriptor getTableDescriptor() {
-        return tableDescriptor;
-    }
-
-    public EtlJobDescriptor withTableDescriptor(GlueTableDescriptor tableDescriptor) {
-        this.tableDescriptor = tableDescriptor;
-        return this;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -63,11 +53,11 @@ public class EtlJobDescriptor {
         EtlJobDescriptor that = (EtlJobDescriptor) o;
         return Objects.equals(name, that.name) && Objects.equals(description, that.description)
                 && Objects.equals(scriptName, that.scriptName)
-                && Objects.equals(sourcePath, that.sourcePath) && Objects.equals(tableDescriptor, that.tableDescriptor);
+                && Objects.equals(sourcePath, that.sourcePath);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, description, scriptName, sourcePath, tableDescriptor);
+        return Objects.hash(name, description, scriptName, sourcePath);
     }
 }

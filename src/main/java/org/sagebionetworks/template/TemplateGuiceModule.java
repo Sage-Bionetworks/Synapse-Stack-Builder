@@ -51,8 +51,8 @@ import org.sagebionetworks.template.cron.ExpiredStackTeardown;
 import org.sagebionetworks.template.cron.ExpiredStackTeardownImpl;
 import org.sagebionetworks.template.datawarehouse.DataWarehouseBuilder;
 import org.sagebionetworks.template.datawarehouse.DataWarehouseBuilderImpl;
-import org.sagebionetworks.template.datawarehouse.EtlJobConfig;
-import org.sagebionetworks.template.datawarehouse.EtlJobConfigValidator;
+import org.sagebionetworks.template.datawarehouse.DataWarehouseConfig;
+import org.sagebionetworks.template.datawarehouse.DataWarehouseConfigValidator;
 import org.sagebionetworks.template.datawarehouse.backfill.BackfillDataWarehouseBuilder;
 import org.sagebionetworks.template.datawarehouse.backfill.BackfillDataWarehouseBuilderImpl;
 import org.sagebionetworks.template.dns.DnsBuilder;
@@ -121,7 +121,7 @@ import java.io.IOException;
 
 import static org.sagebionetworks.template.Constants.ATHENA_QUERIES_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_CONFIG_FILE;
-import static org.sagebionetworks.template.Constants.ETL_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.DATAWAREHOUSE_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.KINESIS_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARM_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.S3_CONFIG_FILE;
@@ -348,7 +348,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 
 	@Provides
-	public EtlJobConfig etlConfigProvider() throws IOException {
-		return new EtlJobConfigValidator(loadFromJsonFile(ETL_CONFIG_FILE, EtlJobConfig.class)).validate();
+	public DataWarehouseConfig dataWarehouseConfigProvider() throws IOException {
+		return new DataWarehouseConfigValidator(loadFromJsonFile(DATAWAREHOUSE_CONFIG_FILE, DataWarehouseConfig.class)).validate();
 	}
 }
