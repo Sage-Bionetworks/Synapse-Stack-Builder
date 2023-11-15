@@ -112,7 +112,7 @@ public class DataWarehouseBuilderImplTest {
 		column.setComment("This is test column");
 		
 		GlueTableDescriptor jobTable = new GlueTableDescriptor();
-		jobTable.setName("testjob");
+		jobTable.setName("testTable");
 		jobTable.setDescription("Test table");
 		jobTable.setColumns(Arrays.asList(column));
 		
@@ -131,6 +131,7 @@ public class DataWarehouseBuilderImplTest {
 						.withScriptName("someFile.py")
 						.withSourcePath("source")
 						.withDescription("test")
+						.withTargetTable("testTable")
 		);
 
 		when(dataWarehouseConfig.getEtlJobDescriptors()).thenReturn(jobs);
@@ -158,7 +159,7 @@ public class DataWarehouseBuilderImplTest {
 		assertNotNull(req.getTemplateBody());
 		JSONObject resources = json.getJSONObject("Resources");
 		assertNotNull(resources);
-		assertEquals(Set.of("AWSGlueJobRole", "synapsewarehouseGlueDatabase", "testjobGlueJob", "testjobGlueTable", "anotherTableGlueTable",
+		assertEquals(Set.of("AWSGlueJobRole", "synapsewarehouseGlueDatabase", "testjobGlueJob", "testTableGlueTable", "anotherTableGlueTable",
 				"testjobGlueJobTrigger"), resources.keySet());
 
 		JSONObject props = resources.getJSONObject("testjobGlueJob").getJSONObject("Properties");
@@ -170,19 +171,19 @@ public class DataWarehouseBuilderImplTest {
 				+ "\"--enable-metrics\":\"true\","
 				+ "\"--job-language\":\"python\","
 				+ "\"--DATABASE_NAME\":\"synapsewarehouse\","
-				+ "\"--TABLE_NAME\":\"testjob\","
+				+ "\"--TABLE_NAME\":\"testTable\","
 				+ "\"--S3_SOURCE_PATH\":\"s3://dev.source\","
 				+ "\"--extra-py-files\":\"s3://dev.aws-glue.sagebase.org/scripts/v1.0.0/utilities/utils.py," +
 				"s3://aws-glue-studio-transforms-510798373988-prod-us-east-1/gs_explode.py," +
 				"s3://aws-glue-studio-transforms-510798373988-prod-us-east-1/gs_common.py\"}", props.getString("DefaultArguments")
 		);
 
-		JSONObject tableProperty = resources.getJSONObject("testjobGlueTable").getJSONObject("Properties");
-		assertEquals("{\"Name\":\"testjob"
+		JSONObject tableProperty = resources.getJSONObject("testTableGlueTable").getJSONObject("Properties");
+		assertEquals("{\"Name\":\"testTable"
 				+ "\",\"Description\":\"Test table\",\"StorageDescriptor\":{\"Columns\":[{\"Name\":\"someColumn\","
 				+ "\"Type\":\"string\",\"Comment\":\"This is test column\"}],\"InputFormat\":\"org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat\","
 				+ "\"SerdeInfo\":{\"SerializationLibrary\":" + "\"org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe\"},"
-				+ "\"Compressed\":true,\"Location\":\"s3://dev.datawarehouse.sagebase.org/synapsewarehouse/testjob/\"},\"PartitionKeys\":[],\"TableType\":"
+				+ "\"Compressed\":true,\"Location\":\"s3://dev.datawarehouse.sagebase.org/synapsewarehouse/testTable/\"},\"PartitionKeys\":[],\"TableType\":"
 				+ "\"EXTERNAL_TABLE\"}", tableProperty.getString("TableInput"));
 		
 		JSONObject anotherTableProperty = resources.getJSONObject("anotherTableGlueTable").getJSONObject("Properties");

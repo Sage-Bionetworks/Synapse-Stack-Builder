@@ -24,8 +24,9 @@ public class DataWarehouseConfigValidator {
         	ValidateArgument.requiredNotBlank(job.getName(), "The name");
         	ValidateArgument.requiredNotBlank(job.getDescription(), "The description");
         	ValidateArgument.requiredNotBlank(job.getScriptName(), "The script name");
-        	ValidateArgument.requiredNotBlank(job.getSourcePath(), "The source path");	
-        	ValidateArgument.requirement(tableNames.contains(job.getName()), "No table defined for job " + job.getName());
+        	ValidateArgument.requiredNotBlank(job.getSourcePath(), "The source path");
+        	ValidateArgument.requiredNotBlank(job.getTargetTable(), "The target table");
+        	ValidateArgument.requirement(tableNames.contains(job.getTargetTable()), "The table " + job.getTargetTable()+ " defined for job " + job.getName() + " is not defined");
         });
         
         return dataWarehouseConfig;

@@ -195,7 +195,7 @@
 					"--enable-metrics": "true",
 					"--job-language": "python",
 					"--DATABASE_NAME": "${glueDatabaseName}",
-					"--TABLE_NAME": "${etl.name}",
+					"--TABLE_NAME": "${etl.targetTable}",
 					"--S3_SOURCE_PATH": "s3://${stack}.${etl.sourcePath}",
 					"--extra-py-files": "${extraScripts}"
 				},

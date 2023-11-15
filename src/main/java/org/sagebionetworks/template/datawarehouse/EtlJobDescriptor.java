@@ -9,6 +9,7 @@ public class EtlJobDescriptor {
     private String description;
     private String scriptName;
     private String sourcePath;
+    private String targetTable;
 
     public String getName() {
         return name;
@@ -45,19 +46,32 @@ public class EtlJobDescriptor {
         this.sourcePath = sourcePath;
         return this;
     }
+    
+    public String getTargetTable() {
+		return targetTable;
+	}
+    
+    public EtlJobDescriptor withTargetTable(String targetTable) {
+		this.targetTable = targetTable;
+		return this;
+	}
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        EtlJobDescriptor that = (EtlJobDescriptor) o;
-        return Objects.equals(name, that.name) && Objects.equals(description, that.description)
-                && Objects.equals(scriptName, that.scriptName)
-                && Objects.equals(sourcePath, that.sourcePath);
-    }
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof EtlJobDescriptor)) {
+			return false;
+		}
+		EtlJobDescriptor other = (EtlJobDescriptor) obj;
+		return Objects.equals(description, other.description) && Objects.equals(name, other.name)
+				&& Objects.equals(scriptName, other.scriptName) && Objects.equals(sourcePath, other.sourcePath)
+				&& Objects.equals(targetTable, other.targetTable);
+	}
 
     @Override
-    public int hashCode() {
-        return Objects.hash(name, description, scriptName, sourcePath);
-    }
+	public int hashCode() {
+		return Objects.hash(description, name, scriptName, sourcePath, targetTable);
+	}
 }
