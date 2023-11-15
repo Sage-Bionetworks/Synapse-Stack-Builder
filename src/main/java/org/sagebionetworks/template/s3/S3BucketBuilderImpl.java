@@ -75,7 +75,6 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 
 	static final String INVENTORY_ID = "defaultInventory";
 	static final String INVENTORY_FORMAT = "Parquet";
-	static final String INVENTORY_PREFIX = "inventory";
 	static final List<String> INVENTORY_FIELDS = Arrays.asList(
 			"Size", "LastModifiedDate", "ETag", "IsMultipartUploaded", "StorageClass", "IntelligentTieringAccessTier", "EncryptionStatus", "ObjectOwner"
 	);
@@ -138,8 +137,6 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		
 		String accountId = stsClient.getCallerIdentity(new GetCallerIdentityRequest()).getAccount();
 		
-		String inventoryBucket = TemplateUtils.replaceStackVariable(s3Config.getInventoryBucket(), stack);
-
 		List<String> virusScanEnabledBuckets = new ArrayList<>();
 		List<String> virusScanDisabledBuckets = new ArrayList<>();
 		
@@ -155,7 +152,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			
 			createBucket(bucket.getName());
 			configureEncryption(bucket.getName());	
-			configureInventory(bucket.getName(), accountId, inventoryBucket, bucket.isInventoryEnabled());
+			configureInventory(stack, bucket.getName(), accountId, s3Config.getInventoryConfig(), bucket.isInventoryEnabled());
 			configureBucketLifeCycle(bucket);
 			configureIntelligentTieringArchive(bucket);
 			configureBucketNotifications(bucket, stack);
@@ -314,8 +311,8 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		} 
 	}
 	
-	private void configureInventory(String bucketName, String accountId, String inventoryBucket, boolean enabled) {
-		if (inventoryBucket == null) {
+	private void configureInventory(String stack, String bucketName, String accountId, S3InventoryConfig inventoryConfig, boolean enabled) {
+		if (inventoryConfig == null) {
 			return;
 		}
 		
@@ -339,9 +336,9 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 							new InventoryDestination()
 								.withS3BucketDestination(
 										new InventoryS3BucketDestination()
-											.withBucketArn("arn:aws:s3:::" + inventoryBucket)
+											.withBucketArn("arn:aws:s3:::" + TemplateUtils.replaceStackVariable(inventoryConfig.getBucket(), stack))
 											.withAccountId(accountId)
-											.withPrefix(INVENTORY_PREFIX)
+											.withPrefix(inventoryConfig.getPrefix())
 											.withFormat(INVENTORY_FORMAT)
 								)
 					)

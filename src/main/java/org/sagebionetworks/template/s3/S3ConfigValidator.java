@@ -17,13 +17,14 @@ public class S3ConfigValidator {
 	}
 	
 	public S3Config validate() {
-		String inventoryBucket = config.getInventoryBucket();
+		S3InventoryConfig inventoryBucket = config.getInventoryConfig();
 	
 		// Makes sure the inventory bucket is defined in the list
 		if (inventoryBucket != null ) {
+			ValidateArgument.required(inventoryBucket.getBucket(), "The invetory bucket is required.");
 			config.getBuckets()
 				.stream()
-				.filter(bucket -> bucket.getName().equals(inventoryBucket))
+				.filter(bucket -> bucket.getName().equals(inventoryBucket.getBucket()))
 				.findFirst()
 				.orElseThrow(() -> new IllegalArgumentException("An inventory bucket is defined but was not in the list of buckets."));
 		} 
