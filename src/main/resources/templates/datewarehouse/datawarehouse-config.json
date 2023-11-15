@@ -1236,12 +1236,12 @@
 				{
 					"name": "storage_class",
 					"type" : "string",
-					"comment" : "The storage class that's used for storing the object. Set to STANDARD, REDUCED_REDUNDANCY, STANDARD_IA, ONEZONE_IA, INTELLIGENT_TIERING, GLACIER, DEEP_ARCHIVE, OUTPOSTS, GLACIER_IR, or SNOW. See https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html"
+					"comment" : "The storage class that's used for storing the object. See https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html"
 				},			
 				{
 					"name": "intelligent_tiering_access_tier",
 					"type" : "string",
-					"comment" : "Access tier (frequent or infrequent) of the object if it is stored in the S3 Intelligent-Tiering storage class. Set to FREQUENT, INFREQUENT, ARCHIVE_INSTANT_ACCESS, ARCHIVE, or DEEP_ARCHIVE. See https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html#sc-dynamic-data-access"
+					"comment" : "Access tier (frequent or infrequent) of the object if it is stored in the S3 Intelligent-Tiering storage class. See https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html#sc-dynamic-data-access"
 				},
 				{
 					"name": "is_multipart_uploaded",
