@@ -1255,7 +1255,7 @@
 				}
 			],
 			"inputFormat": "org.apache.hadoop.hive.ql.io.SymlinkTextInputFormat",
-			"location": "s3://${stack}.inventory.sagebase.org/inventory/${stack}data.sagebase.org/defaultInventory/hive/",
+			"location": "s3://${stack}.datawarehouse.sagebase.org/warehouse/inventory/${stack}data.sagebase.org/defaultInventory/hive/",
 			"parameters": {
 				"projection.enabled": "true",
 				"projection.dt.type": "date",
