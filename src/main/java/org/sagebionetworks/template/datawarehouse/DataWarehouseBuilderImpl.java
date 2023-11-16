@@ -12,6 +12,7 @@ import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
+import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.repo.VelocityExceptionThrower;
 import org.sagebionetworks.template.utils.ArtifactDownload;
@@ -35,7 +36,7 @@ import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.STACK;
-import static org.sagebionetworks.template.Constants.TEMPLATE_ETL_GLUE_JOB_RESOURCES;
+import static org.sagebionetworks.template.Constants.TEMPLATE_DATAWAREHOUSE;
 
 public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
 	
@@ -51,20 +52,20 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
     private Configuration config;
     private Logger logger;
     private StackTagsProvider tagsProvider;
-    private EtlJobConfig etlJobConfig;
+    private DataWarehouseConfig dataWarehouseConfig;
     private ArtifactDownload downloader;
     private AmazonS3 s3Client;
 
     @Inject
     public DataWarehouseBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
                                     Configuration config, LoggerFactory loggerFactory,
-                                    StackTagsProvider tagsProvider, EtlJobConfig etlJobConfig, ArtifactDownload downloader, AmazonS3 s3Client) {
+                                    StackTagsProvider tagsProvider, DataWarehouseConfig dataWarehouseConfig, ArtifactDownload downloader, AmazonS3 s3Client) {
         this.cloudFormationClient = cloudFormationClient;
         this.velocityEngine = velocityEngine;
         this.config = config;
         this.logger = loggerFactory.getLogger(DataWarehouseBuilderImpl.class);
         this.tagsProvider = tagsProvider;
-        this.etlJobConfig = etlJobConfig;
+        this.dataWarehouseConfig = dataWarehouseConfig;
         this.downloader = downloader;
         this.s3Client = s3Client;
     }
@@ -85,18 +86,28 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
         context.put(GLUE_DATABASE_NAME, databaseName);
         context.put(EXCEPTION_THROWER, new VelocityExceptionThrower());
         context.put(STACK, stack);
-        context.put(ETL_DESCRIPTORS, etlJobConfig.getEtlJobDescriptors());
+        
+        // The table location can contain the stack variable
+        dataWarehouseConfig.getTableDescriptors().forEach( table -> {
+        	if (table.getLocation() != null) {
+        		table.setLocation(TemplateUtils.replaceStackVariable(table.getLocation(), stack));
+        	}
+        });
+        
+        context.put("tableDescriptors", dataWarehouseConfig.getTableDescriptors());
+        context.put(ETL_DESCRIPTORS, dataWarehouseConfig.getEtlJobDescriptors());
         context.put("scriptLocationPrefix", scriptLocationPrefix);
-        List<String> extraScripts = etlJobConfig.getExtraScripts().stream().map(s -> "s3://" + scriptLocationPrefix + s)
-                .collect(Collectors.toList());
+        
+        List<String> extraScripts = dataWarehouseConfig.getExtraScripts().stream().map(s -> "s3://" + scriptLocationPrefix + s).collect(Collectors.toList());
         extraScripts.add(GS_EXPLODE_SCRIPT);
         extraScripts.add(GS_COMMON_SCRIPT);
+        
         context.put("extraScripts", String.join(",", extraScripts));
 
         String stackName = new StringJoiner("-").add(stack).add(databaseName).add("etl-jobs").toString();
 
         // Merge the context with the template
-        Template template = this.velocityEngine.getTemplate(TEMPLATE_ETL_GLUE_JOB_RESOURCES);
+        Template template = this.velocityEngine.getTemplate(TEMPLATE_DATAWAREHOUSE);
         
         StringWriter stringWriter = new StringWriter();
         template.merge(context, stringWriter);
@@ -114,8 +125,8 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
     }
     
     String copyArtifactFromGithub(String bucket) {
-        String githubRepo = etlJobConfig.getGithubRepo();
-        String version = etlJobConfig.getVersion();
+        String githubRepo = dataWarehouseConfig.getGithubRepo();
+        String version = dataWarehouseConfig.getVersion();
         String githubUrl = String.format(GITHUB_URL_TPL, githubRepo, version);
         String scriptPath = String.format(SCRIPT_PATH_TPL, githubRepo, version);
         String s3ScriptsPath = String.format(S3_KEY_PATH_TPL, version);

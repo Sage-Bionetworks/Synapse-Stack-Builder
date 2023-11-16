@@ -28,7 +28,7 @@ public class Constants {
 	public static final String ROUTE53_PROD_DOCS_CLIENT_DNS_CONFIG_FILE = "templates/dns/prod_docs_clients_dns.json";
 	public static final String TEMPLATE_RESOURCE_PATH = "templates/dns/%s_dns.json";
 
-	public static final String ETL_CONFIG_FILE = "templates/datewarehouse/etl-jobs-config.json";
+	public static final String DATAWAREHOUSE_CONFIG_FILE = "templates/datewarehouse/datawarehouse-config.json";
 	public static final String GITHUB_CONFIG_FILE = "templates/repo/github-path-config.json";
 	/**
 	 * A VPC peering role ARN must start with this prefix.
@@ -161,10 +161,9 @@ public class Constants {
 	public static final String TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";
 	public static final String TEMPALTE_BEAN_STALK_ENVIRONMENT = "templates/repo/elasticbeanstalk-template.json.vpt";
 	public static final String TEMPLATE_ID_GENERATOR = "templates/repo/id-generator-template.json.vpt";
-	public static final String TEMPLATE_INVENTORY_BUCKET_POLICY_TEMPLATE = "templates/s3/s3-inventory-bucket-policy.json.vpt";
 	public static final String TEMPLATE_GLOBAL_RESOURCES = "templates/global/global-template.json.vpt";
 	public static final String TEMPLATE_S3_VIRUS_SCANNER = "templates/s3/s3-virus-scanner-template.json.vpt";
-	public static final String TEMPLATE_ETL_GLUE_JOB_RESOURCES = "templates/datewarehouse/etl-jobs-template.json.vpt";
+	public static final String TEMPLATE_DATAWAREHOUSE = "templates/datewarehouse/datawarehouse-template.json.vpt";
 	public static final String TEMPLATE_S3_BUCKET_POLICY = "templates/s3/s3-bucket-policy.json.vpt";
 
 	public static final int JSON_INDENT = 5;

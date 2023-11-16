@@ -62,7 +62,7 @@ public class DataWarehouseBuilderImplTest {
 	@Mock
 	private StackTagsProvider tagsProvider;
 	@Mock
-	private EtlJobConfig etlJobConfig;
+	private DataWarehouseConfig dataWarehouseConfig;
 	@Mock
 	private LoggerFactory loggerFactory;
 	@Mock
@@ -70,15 +70,15 @@ public class DataWarehouseBuilderImplTest {
 	@Mock
 	private AmazonS3 mockS3Client;
 
-	private DataWarehouseBuilderImpl etlBuilderImpl;
+	private DataWarehouseBuilderImpl builder;
 
 	private File zipFile;
 
 	@BeforeEach
 	public void before() {
 		when(loggerFactory.getLogger(any())).thenReturn(logger);
-		etlBuilderImpl = new DataWarehouseBuilderImpl(cloudFormationClient, velocityEngine, mockConfig, loggerFactory, tagsProvider,
-				etlJobConfig, mockDownloader, mockS3Client);
+		builder = new DataWarehouseBuilderImpl(cloudFormationClient, velocityEngine, mockConfig, loggerFactory, tagsProvider,
+				dataWarehouseConfig, mockDownloader, mockS3Client);
 	}
 
 	@AfterEach
@@ -89,7 +89,7 @@ public class DataWarehouseBuilderImplTest {
 	}
 
 	@Test
-	public void testEtlBuildAndDeployJob() throws IOException {
+	public void testBuildAndDeploy() throws IOException {
 		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(STACK_NAME);
 		when(mockConfig.getProperty(PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME)).thenReturn(DATABASE_NAME);
 
@@ -102,18 +102,28 @@ public class DataWarehouseBuilderImplTest {
 		}
 
 		when(mockDownloader.downloadFile(any())).thenReturn(zipFile);
-		when(etlJobConfig.getGithubRepo()).thenReturn("repo");
-		when(etlJobConfig.getVersion()).thenReturn("1.0.0");
-		when(etlJobConfig.getExtraScripts()).thenReturn(List.of("utilities/utils.py"));
+		when(dataWarehouseConfig.getGithubRepo()).thenReturn("repo");
+		when(dataWarehouseConfig.getVersion()).thenReturn("1.0.0");
+		when(dataWarehouseConfig.getExtraScripts()).thenReturn(List.of("utilities/utils.py"));
 
 		GlueColumn column = new GlueColumn();
 		column.setName("someColumn");
 		column.setType("string");
 		column.setComment("This is test column");
-		GlueTableDescriptor table = new GlueTableDescriptor();
-		table.setName("someTableRef");
-		table.setDescription("Test table");
-		table.setColumns(Arrays.asList(column));
+		
+		GlueTableDescriptor jobTable = new GlueTableDescriptor();
+		jobTable.setName("testTable");
+		jobTable.setDescription("Test table");
+		jobTable.setColumns(Arrays.asList(column));
+		
+		GlueTableDescriptor anotherTable = new GlueTableDescriptor();
+		anotherTable.setName("anotherTable");
+		anotherTable.setDescription("Another Test table");
+		anotherTable.setColumns(Arrays.asList(column));
+		anotherTable.setLocation("s3://${stack}.inventory.sagebase.org/inventory/${stack}data.sagebase.org/defaultInventory/hive/");
+		anotherTable.setInputFormat("org.apache.hadoop.hive.ql.io.SymlinkTextInputFormat");
+		
+		when(dataWarehouseConfig.getTableDescriptors()).thenReturn(List.of(jobTable, anotherTable));
 
 		List<EtlJobDescriptor> jobs = List.of(
 				new EtlJobDescriptor()
@@ -121,10 +131,10 @@ public class DataWarehouseBuilderImplTest {
 						.withScriptName("someFile.py")
 						.withSourcePath("source")
 						.withDescription("test")
-						.withTableDescriptor(table)
+						.withTargetTable("testTable")
 		);
 
-		when(etlJobConfig.getEtlJobDescriptors()).thenReturn(jobs);
+		when(dataWarehouseConfig.getEtlJobDescriptors()).thenReturn(jobs);
 
 		List<Tag> tags = List.of(new Tag().withKey("aKey").withValue("aValue"));
 
@@ -133,7 +143,7 @@ public class DataWarehouseBuilderImplTest {
 		String expectedStackName = new StringJoiner("-").add(STACK_NAME).add(DATABASE_NAME.toLowerCase()).add("etl-jobs").toString();
 
 		// call under test
-		etlBuilderImpl.buildAndDeploy();
+		builder.buildAndDeploy();
 
 		verify(mockDownloader).downloadFile("https://codeload.github.com/Sage-Bionetworks/repo/zip/refs/tags/v1.0.0");
 		verify(mockS3Client).putObject(eq("dev.aws-glue.sagebase.org"), eq("scripts/v1.0.0/testjob.py"), any(), any());
@@ -149,7 +159,7 @@ public class DataWarehouseBuilderImplTest {
 		assertNotNull(req.getTemplateBody());
 		JSONObject resources = json.getJSONObject("Resources");
 		assertNotNull(resources);
-		assertEquals(Set.of("AWSGlueJobRole", "synapsewarehouseGlueDatabase", "testjobGlueJob", "someTableRefGlueTable",
+		assertEquals(Set.of("AWSGlueJobRole", "synapsewarehouseGlueDatabase", "testjobGlueJob", "testTableGlueTable", "anotherTableGlueTable",
 				"testjobGlueJobTrigger"), resources.keySet());
 
 		JSONObject props = resources.getJSONObject("testjobGlueJob").getJSONObject("Properties");
@@ -161,20 +171,28 @@ public class DataWarehouseBuilderImplTest {
 				+ "\"--enable-metrics\":\"true\","
 				+ "\"--job-language\":\"python\","
 				+ "\"--DATABASE_NAME\":\"synapsewarehouse\","
-				+ "\"--TABLE_NAME\":\"someTableRef\","
+				+ "\"--TABLE_NAME\":\"testTable\","
 				+ "\"--S3_SOURCE_PATH\":\"s3://dev.source\","
 				+ "\"--extra-py-files\":\"s3://dev.aws-glue.sagebase.org/scripts/v1.0.0/utilities/utils.py," +
 				"s3://aws-glue-studio-transforms-510798373988-prod-us-east-1/gs_explode.py," +
 				"s3://aws-glue-studio-transforms-510798373988-prod-us-east-1/gs_common.py\"}", props.getString("DefaultArguments")
 		);
 
-		JSONObject tableProperty = resources.getJSONObject("someTableRefGlueTable").getJSONObject("Properties");
-		assertEquals("{\"Name\":\"someTableRef"
+		JSONObject tableProperty = resources.getJSONObject("testTableGlueTable").getJSONObject("Properties");
+		assertEquals("{\"Name\":\"testTable"
 				+ "\",\"Description\":\"Test table\",\"StorageDescriptor\":{\"Columns\":[{\"Name\":\"someColumn\","
 				+ "\"Type\":\"string\",\"Comment\":\"This is test column\"}],\"InputFormat\":\"org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat\","
 				+ "\"SerdeInfo\":{\"SerializationLibrary\":" + "\"org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe\"},"
-				+ "\"Compressed\":true,\"Location\":\"s3://dev.datawarehouse.sagebase.org/synapsewarehouse/someTableRef/\"},\"PartitionKeys\":[],\"TableType\":"
+				+ "\"Compressed\":true,\"Location\":\"s3://dev.datawarehouse.sagebase.org/synapsewarehouse/testTable/\"},\"PartitionKeys\":[],\"TableType\":"
 				+ "\"EXTERNAL_TABLE\"}", tableProperty.getString("TableInput"));
+		
+		JSONObject anotherTableProperty = resources.getJSONObject("anotherTableGlueTable").getJSONObject("Properties");
+		assertEquals("{\"Name\":\"anotherTable"
+				+ "\",\"Description\":\"Another Test table\",\"StorageDescriptor\":{\"Columns\":[{\"Name\":\"someColumn\","
+				+ "\"Type\":\"string\",\"Comment\":\"This is test column\"}],\"InputFormat\":\"org.apache.hadoop.hive.ql.io.SymlinkTextInputFormat\","
+				+ "\"SerdeInfo\":{\"SerializationLibrary\":" + "\"org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe\"},"
+				+ "\"Compressed\":true,\"Location\":\"s3://dev.inventory.sagebase.org/inventory/devdata.sagebase.org/defaultInventory/hive/\"},\"PartitionKeys\":[],\"TableType\":"
+				+ "\"EXTERNAL_TABLE\"}", anotherTableProperty.getString("TableInput"));
 
 		JSONObject dataBaseProperty = resources.getJSONObject("synapsewarehouseGlueDatabase").getJSONObject("Properties");
 		assertEquals("{\"Name\":\"synapsewarehouse\"}", dataBaseProperty.getString("DatabaseInput"));
@@ -190,7 +208,7 @@ public class DataWarehouseBuilderImplTest {
 		when(mockConfig.getProperty(PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME)).thenReturn(null);
 
 		// call under test
-		Exception exception = assertThrows(IllegalArgumentException.class, () -> etlBuilderImpl.buildAndDeploy());
+		Exception exception = assertThrows(IllegalArgumentException.class, () -> builder.buildAndDeploy());
 		assertEquals("The database name is required and must not be the empty string.", exception.getMessage());
 	}
 }

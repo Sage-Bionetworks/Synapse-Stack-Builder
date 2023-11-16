@@ -28,16 +28,17 @@ public class S3ConfigValidatorTest {
 
 	@Test
 	public void testValidate() {
-		String inventoryBucketName = "inventory";
+		S3InventoryConfig inventoryConfig = new S3InventoryConfig();
+		inventoryConfig.setBucket("inventory");
 
 		S3BucketDescriptor inventoryBucket = new S3BucketDescriptor();
-		inventoryBucket.setName(inventoryBucketName);
+		inventoryBucket.setName(inventoryConfig.getBucket());
 
 		S3BucketDescriptor anotherBucket = new S3BucketDescriptor();
 		anotherBucket.setName("antoherBucket");
 		anotherBucket.setInventoryEnabled(true);
 
-		when(mockConfig.getInventoryBucket()).thenReturn(inventoryBucketName);
+		when(mockConfig.getInventoryConfig()).thenReturn(inventoryConfig);
 		when(mockConfig.getBuckets()).thenReturn(Arrays.asList(inventoryBucket, anotherBucket));
 
 		// Call under test
@@ -46,7 +47,7 @@ public class S3ConfigValidatorTest {
 
 	@Test
 	public void testValidateWithNoInventoryDefinedAndInventoryEnabled() {
-		String inventoryBucketName = null;
+		S3InventoryConfig inventoryConfig = null;
 
 		S3BucketDescriptor anotherBucket = new S3BucketDescriptor();
 		anotherBucket.setName("antoherBucket");
@@ -54,7 +55,7 @@ public class S3ConfigValidatorTest {
 		// The inventory is enabled for this bucket, but not inventory bucket was defined
 		anotherBucket.setInventoryEnabled(true);
 
-		when(mockConfig.getInventoryBucket()).thenReturn(inventoryBucketName);
+		when(mockConfig.getInventoryConfig()).thenReturn(inventoryConfig);
 		when(mockConfig.getBuckets()).thenReturn(Arrays.asList(anotherBucket));
 
 		String errorMessage = assertThrows(IllegalArgumentException.class, () -> {
@@ -68,13 +69,14 @@ public class S3ConfigValidatorTest {
 	@Test
 	public void testValidateWithInventoryDefinedAndNoBucket() {
 		// The inventory bucket is defined, but it's not defined in the list of buckets
-		String inventoryBucketName = "inventory";
+		S3InventoryConfig inventoryConfig = new S3InventoryConfig();
+		inventoryConfig.setBucket("inventory");
 
 		S3BucketDescriptor anotherBucket = new S3BucketDescriptor();
 		anotherBucket.setName("antoherBucket");
 		anotherBucket.setInventoryEnabled(true);
 
-		when(mockConfig.getInventoryBucket()).thenReturn(inventoryBucketName);
+		when(mockConfig.getInventoryConfig()).thenReturn(inventoryConfig);
 		when(mockConfig.getBuckets()).thenReturn(Arrays.asList(anotherBucket));
 
 		String errorMessage = assertThrows(IllegalArgumentException.class, () -> {

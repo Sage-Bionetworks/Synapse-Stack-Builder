@@ -44,7 +44,7 @@
     "InventoryBucketPolicy": {
       "Type": "AWS::S3::BucketPolicy",
       "Properties": {
-        "Bucket": "${stack}.inventory.sagebase.org",
+        "Bucket": "${stack}.datawarehouse.sagebase.org",
         "PolicyDocument": {
           "Version":"2012-10-17",
           "Statement":[
@@ -53,7 +53,7 @@
               "Effect":"Allow",
               "Principal": {"Service": "s3.amazonaws.com"},
               "Action":"s3:PutObject",
-              "Resource":["arn:aws:s3:::${stack}.inventory.sagebase.org/*"],
+              "Resource":["arn:aws:s3:::${stack}.datawarehouse.sagebase.org/*"],
               "Condition": {
                 "ArnLike": {
                   "aws:SourceArn": "arn:aws:s3:::${stack}data.sagebase.org"

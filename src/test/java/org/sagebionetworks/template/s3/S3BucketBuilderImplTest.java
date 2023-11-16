@@ -11,10 +11,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.times;
 import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
@@ -24,9 +24,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.List;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -38,9 +38,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
@@ -431,6 +429,10 @@ public class S3BucketBuilderImplTest {
 
 		S3BucketDescriptor inventoryBucket = new S3BucketDescriptor();
 		inventoryBucket.setName("${stack}.inventory");
+
+		S3InventoryConfig inventoryConfig = new S3InventoryConfig();
+		inventoryConfig.setBucket(inventoryBucket.getName());
+		inventoryConfig.setPrefix("prefix");
 		
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		bucket.setName("${stack}.bucket");
@@ -439,7 +441,8 @@ public class S3BucketBuilderImplTest {
 		String expectedInventoryBucketName = stack + ".inventory";
 		String expectedBucketName = stack + ".bucket";
 		
-		when(mockS3Config.getInventoryBucket()).thenReturn(inventoryBucket.getName());
+		
+		when(mockS3Config.getInventoryConfig()).thenReturn(inventoryConfig);
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(inventoryBucket, bucket));
 		
 		AmazonServiceException notFound = new AmazonServiceException("NotFound");
@@ -486,7 +489,7 @@ public class S3BucketBuilderImplTest {
 		InventoryS3BucketDestination destination = config.getDestination().getS3BucketDestination();
 		
 		assertEquals("arn:aws:s3:::" + expectedInventoryBucketName, destination.getBucketArn());
-		assertEquals(S3BucketBuilderImpl.INVENTORY_PREFIX, destination.getPrefix());
+		assertEquals("prefix", destination.getPrefix());
 		assertEquals(accountId, destination.getAccountId());
 		assertEquals(S3BucketBuilderImpl.INVENTORY_FORMAT, destination.getFormat());
 		verify(mockS3Client, never()).deleteBucketInventoryConfiguration(any(), any());
@@ -509,6 +512,10 @@ public class S3BucketBuilderImplTest {
 		S3BucketDescriptor inventoryBucket = new S3BucketDescriptor();
 		inventoryBucket.setName("${stack}.inventory");
 		
+		S3InventoryConfig inventoryConfig = new S3InventoryConfig();
+		inventoryConfig.setBucket(inventoryBucket.getName());
+		inventoryConfig.setPrefix("prefix");
+		
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		bucket.setName("${stack}.bucket");
 		bucket.setInventoryEnabled(true);
@@ -516,7 +523,7 @@ public class S3BucketBuilderImplTest {
 		String expectedInventoryBucketName = stack + ".inventory";
 		String expectedBucketName = stack + ".bucket";
 		
-		when(mockS3Config.getInventoryBucket()).thenReturn(inventoryBucket.getName());
+		when(mockS3Config.getInventoryConfig()).thenReturn(inventoryConfig);
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(inventoryBucket, bucket));
 		
 		// Mimics an existing configuration that is enabled
@@ -551,7 +558,20 @@ public class S3BucketBuilderImplTest {
 		
 		verify(mockS3Client, never()).setBucketEncryption(any());
 
-		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
+		verify(mockS3Client).setBucketInventoryConfiguration(eq(expectedBucketName), inventoryConfigurationCaptor.capture());
+		
+		InventoryConfiguration config = inventoryConfigurationCaptor.getValue();
+		
+		assertEquals(S3BucketBuilderImpl.INVENTORY_ID, config.getId());
+		assertEquals(S3BucketBuilderImpl.INVENTORY_FIELDS, config.getOptionalFields());
+		assertEquals(InventoryFrequency.Weekly.toString(), config.getSchedule().getFrequency());
+		
+		InventoryS3BucketDestination destination = config.getDestination().getS3BucketDestination();
+		
+		assertEquals("arn:aws:s3:::" + expectedInventoryBucketName, destination.getBucketArn());
+		assertEquals("prefix", destination.getPrefix());
+		assertEquals(accountId, destination.getAccountId());
+		assertEquals(S3BucketBuilderImpl.INVENTORY_FORMAT, destination.getFormat());
 		verify(mockS3Client, never()).deleteBucketInventoryConfiguration(expectedBucketName, S3BucketBuilderImpl.INVENTORY_ID);
 
 		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
@@ -572,6 +592,10 @@ public class S3BucketBuilderImplTest {
 		S3BucketDescriptor inventoryBucket = new S3BucketDescriptor();
 		inventoryBucket.setName("${stack}.inventory");
 		
+		S3InventoryConfig inventoryConfig = new S3InventoryConfig();
+		inventoryConfig.setBucket(inventoryBucket.getName());
+		inventoryConfig.setPrefix("prefix");
+		
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		bucket.setName("${stack}.bucket");
 		bucket.setInventoryEnabled(false);
@@ -579,7 +603,7 @@ public class S3BucketBuilderImplTest {
 		String expectedInventoryBucketName = stack + ".inventory";
 		String expectedBucketName = stack + ".bucket";
 		
-		when(mockS3Config.getInventoryBucket()).thenReturn(inventoryBucket.getName());
+		when(mockS3Config.getInventoryConfig()).thenReturn(inventoryConfig);
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(inventoryBucket, bucket));
 		
 		AmazonServiceException notFound = new AmazonServiceException("NotFound");
@@ -633,6 +657,10 @@ public class S3BucketBuilderImplTest {
 		S3BucketDescriptor inventoryBucket = new S3BucketDescriptor();
 		inventoryBucket.setName("${stack}.inventory");
 		
+		S3InventoryConfig inventoryConfig = new S3InventoryConfig();
+		inventoryConfig.setBucket(inventoryBucket.getName());
+		inventoryConfig.setPrefix("prefix");
+		
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		bucket.setName("${stack}.bucket");
 		bucket.setInventoryEnabled(false);
@@ -640,7 +668,7 @@ public class S3BucketBuilderImplTest {
 		String expectedInventoryBucketName = stack + ".inventory";
 		String expectedBucketName = stack + ".bucket";
 		
-		when(mockS3Config.getInventoryBucket()).thenReturn(inventoryBucket.getName());
+		when(mockS3Config.getInventoryConfig()).thenReturn(inventoryConfig);
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(inventoryBucket, bucket));
 		
 		// Mimics an existing configuration that is enabled

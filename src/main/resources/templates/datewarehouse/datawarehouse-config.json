@@ -2,12 +2,7 @@
 	"githubRepo": "Synapse-ETL-Jobs",
 	"version": "1.50.0",
 	"extraScripts": ["utils.py"],
-	"etlJobDescriptors":[{
-		"name": "processaccessrecord",
-		"description": "This job processes the access records",
-		"scriptName": "process_access_record.py",
-		"sourcePath" : "log.sagebase.org/accessRecord/records/",
-		"tableDescriptor": {
+	"tableDescriptors": [{
 			"name": "processedaccessrecord",
 			"description" : "The table contains access records. Each record reflects a single API request received by the Synapse server. The recorded data is useful for audits and to analyse API performance such as delays, errors or success rates.",
 			"columns":[{
@@ -151,14 +146,8 @@
 				"projection.record_date.range": "NOW-11YEARS,NOW",
 				"projection.record_date.format": "yyyy-MM-dd"
 			}
-		}
-	},
-	{
-		"name": "nodesnapshots",
-		"description": "This job processes the node snapshot data",
-		"scriptName": "node_snapshots.py",
-		"sourcePath" : "log.sagebase.org/nodeSnapshots/records/",
-		"tableDescriptor": {
+		},
+		{
 			"name": "nodesnapshots",
 			"description" : "This table contain snapshots of nodes (Nodes are project, file, folders...). Snapshots are taken when nodes are created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp is the time when the snapshot was taken.",
 			"columns":[{
@@ -267,14 +256,8 @@
 				"projection.snapshot_date.range": "NOW-10YEARS,NOW",
 				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
-		}
-	},
-	{
-		"name": "filesnapshots",
-		"description": "This job processes the file snapshot data",
-		"scriptName": "file_snapshots.py",
-		"sourcePath" : "log.sagebase.org/fileSnapshots/records/",
-		"tableDescriptor": {
+		},
+		{
 			"name": "filesnapshots",
 			"description" : "This table contain snapshots of file handles. Snapshots are taken when file handles are created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
@@ -383,14 +366,8 @@
 				"projection.snapshot_date.range": "NOW-10YEARS,NOW",
 				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
-		}
-	},
-	{
-		"name": "teamsnapshots",
-		"description": "This job processes the team snapshot data",
-		"scriptName": "team_snapshots.py",
-		"sourcePath" : "log.sagebase.org/teamSnapshots/records/",
-		"tableDescriptor": {
+		},
+		{
 			"name": "teamsnapshots",
 			"description" : "This table contain snapshots of teams. Snapshots are taken when teams are created or updated. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 
@@ -460,14 +437,8 @@
 				"projection.snapshot_date.range": "NOW-10YEARS,NOW",
 				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
-		}
-	},
-	{
-		"name": "teammembersnapshots",
-		"description": "This job processes the team member snapshot data",
-		"scriptName": "team_member_snapshots.py",
-		"sourcePath" : "log.sagebase.org/teamMemberSnapshots/records/",
-		"tableDescriptor": {
+		},
+		{
 			"name": "teammembersnapshots",
 			"description" : "This table contain snapshots of team-members. Snapshots are captured when team members are added or updated. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
@@ -516,14 +487,8 @@
 				"projection.snapshot_date.range": "NOW-10YEARS,NOW",
 				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
-		}
-	},
-	{
-		"name": "usergroupsnapshots",
-		"description": "This job processes the user group snapshot data",
-		"scriptName": "user_group_snapshots.py",
-		"sourcePath" : "log.sagebase.org/userGroupSnapshots/records/",
-		"tableDescriptor": {
+		},
+		{
 			"name": "usergroupsnapshots",
 			"description" : "This table lists all principals (individual users and groups of users). (A group is the low-level object of a underlying team, much like a file handle is the low-level object of an underlying file entity.) In addition to explicit users and teams, principals in Synapse include the anonymous user, the implicit group of all authenticated users, and the implicit public group which includes all users, authenticated or not. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
@@ -572,14 +537,8 @@
 				"projection.snapshot_date.range": "NOW-10YEARS,NOW",
 				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
-		}
-	},
-	{
-		"name": "userprofilesnapshots",
-		"description": "This job processes the user profile snapshot data",
-		"scriptName": "user_profile_snapshots.py",
-		"sourcePath" : "log.sagebase.org/userProfileSnapshots/records/",
-		"tableDescriptor": {
+		},
+		{
 			"name": "userprofilesnapshots",
 			"description" : "This table contain snapshots of user-profiles. Snapshots are taken when user-profiles are created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
@@ -658,14 +617,8 @@
 				"projection.snapshot_date.range": "NOW-10YEARS,NOW",
 				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
-		}
-	},
-	{
-		"name": "fileuploadrecords",
-		"description": "This job processes the file upload records",
-		"scriptName": "file_upload_records.py",
-		"sourcePath" : "log.sagebase.org/fileUploadRecords/records/",
-		"tableDescriptor": {
+		},
+		{
 			"name": "fileuploadrecords",
 			"description" : "The table contains upload records for FileEntity (new file creation/upload or update to the existing file) and TableEntity (append a row set to the existing table, upload file to the existing table). The events are recorded only after the file or change to a table is successfully uploaded.",
 			"columns":[{
@@ -719,14 +672,8 @@
 				"projection.record_date.range": "NOW-5YEARS,NOW",
 				"projection.record_date.format": "yyyy-MM-dd"
 			}
-		}
-	},
-	{
-		"name": "filedownloadrecords",
-		"description": "This job processes the file download records",
-		"scriptName": "file_download_records.py",
-		"sourcePath" : "log.sagebase.org/fileDownloadRecords/records/",
-		"tableDescriptor": {
+		},
+		{
 			"name": "filedownloadrecords",
 			"description" : "The table contain records of all the downloads of the Synapse, e.g., file, zip/package, attachments. The events are recorded only after the pre-signed url for requested download entity is generated.",
 			"columns":[{
@@ -785,14 +732,8 @@
 				"projection.record_date.range": "NOW-5YEARS,NOW",
 				"projection.record_date.format": "yyyy-MM-dd"
 			}
-		}
-	},
-	{
-		"name": "aclsnapshots",
-		"description": "This job processes the acl snapshot data",
-		"scriptName": "acl_snapshots.py",
-		"sourcePath" : "log.sagebase.org/aclSnapshots/records/",
-		"tableDescriptor": {
+		},
+		{
 			"name": "aclsnapshots",
 			"description" : "This table contain snapshots of access-control-list. Snapshots are taken when an acl is created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
@@ -841,14 +782,8 @@
 				"projection.snapshot_date.range": "NOW-6YEARS,NOW",
 				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
-		}
-	},
-	{
-		"name": "verificationsubmissionsnapshots",
-		"description": "This job processes the verification submission snapshot data",
-		"scriptName": "verification_submission_snapshots.py",
-		"sourcePath" : "log.sagebase.org/verificationSubmissionSnapshots/records/",
-		"tableDescriptor": {
+		},
+		{
 			"name": "verificationsubmissionsnapshots",
 			"description" : "This table contain snapshots of submissions of user verification data by ACT. Snapshots are taken when a submission is created or updated. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
@@ -897,14 +832,8 @@
 				"projection.snapshot_date.range": "NOW-6YEARS,NOW",
 				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
-		}
-	},
-	{
-		"name": "certifiedquizSnapshots",
-		"description": "This job processes the user's certified quiz snapshots",
-		"scriptName": "certified_quiz_snapshots.py",
-		"sourcePath" : "log.sagebase.org/certifiedUserPassingSnapshots/records/",
-		"tableDescriptor": {
+		},
+		{
 			"name": "certifiedquizsnapshots",
 			"description" : "This table contain snapshots of the certification quiz submitted by a Synapse user. Snapshots are taken when a user submit the quiz. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
@@ -963,14 +892,8 @@
 				"projection.snapshot_date.range": "NOW-6YEARS,NOW",
 				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
-		}
-	},
-	{
-		"name": "certifiedquizquestionsnapshots",
-		"description": "This job processes the user's certified quiz question snapshots",
-		"scriptName": "certified_quiz_question_snapshots.py",
-		"sourcePath" : "log.sagebase.org/certifiedUserPassingSnapshots/records/",
-		"tableDescriptor": {
+		},
+		{
 			"name": "certifiedquizquestionsnapshots",
 			"description" : "This table contain snapshots of the questions of the certification quiz. With each entry representing a question answered by the user during the quiz.",
 			"columns":[{
@@ -1029,14 +952,8 @@
 				"projection.snapshot_date.range": "NOW-6YEARS,NOW",
 				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
-		}
-	},
-	{
-		"name": "accessrequirementsnapshots",
-		"description": "This job processes the access requirement snapshot data",
-		"scriptName": "access_requirement_snapshot.py",
-		"sourcePath" : "log.sagebase.org/accessRequirementSnapshots/records/",
-		"tableDescriptor": {
+		},
+		{
 			"name": "accessrequirementsnapshots",
 			"description" : "This table contain snapshots of access requirements. Snapshots are taken when an access requirement is created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[
@@ -1203,14 +1120,8 @@
 				"projection.snapshot_date.range": "NOW-6YEARS,NOW",
 				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
-		}
-	},
+		},
 		{
-		"name": "projectsettingsnapshots",
-		"description": "This job processes the project setting data",
-		"scriptName": "project_settings_snapshots.py",
-		"sourcePath" : "log.sagebase.org/projectSettingSnapshots/records/",
-		"tableDescriptor": {
 			"name": "projectsettingsnapshots",
 			"description" : "This table contain snapshots of projects settings. Snapshots are taken when a project setting is created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[
@@ -1277,7 +1188,188 @@
 				"projection.snapshot_date.range": "NOW-6YEARS,NOW",
 				"projection.snapshot_date.format": "yyyy-MM-dd"
 			}
+		},
+		{
+			"name": "filesinventory",
+			"description" : "This table contains the S3 inventory of the main synapse bucket, the inventory is a snapshot taken weekly. For more information see https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-inventory.html.",
+			"columns":[
+				{
+					"name": "bucket",
+					"type" : "string",
+					"comment" : "The object bucket"
+				},
+				{
+					"name": "key",
+					"type" : "string",
+					"comment" : "The object key name (or key) that uniquely identifies the object in the bucket"
+				},
+				{
+					"name": "version_id",
+					"type": "string",
+					"comment": "The object version ID"
+				},
+				{
+					"name": "is_latest",
+					"type" : "boolean",
+					"comment" : "Set to True if the object is the current version of the object"
+				},
+				{
+					"name": "is_delete_marker",
+					"type" : "boolean",
+					"comment" : "Set to True if the object is a delete marker"
+				},
+				{
+					"name": "size",
+					"type" : "bigint",
+					"comment" : "The object size in bytes, not including the size of incomplete multipart uploads, object metadata, and delete markers"
+				},
+				{
+					"name": "last_modified_date",
+					"type" : "timestamp",
+					"comment" : "The object creation date or the last modified date, whichever is the latest."
+				},
+				{
+					"name": "e_tag",
+					"type" : "string",
+					"comment" : "The entity tag (ETag) is a hash of the object. The ETag reflects changes only to the contents of an object, not to its metadata. The ETag can be an MD5 digest of the object data. Whether it is depends on how the object was created and how it is encrypted."
+				},
+				{
+					"name": "storage_class",
+					"type" : "string",
+					"comment" : "The storage class that's used for storing the object. See https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html"
+				},			
+				{
+					"name": "intelligent_tiering_access_tier",
+					"type" : "string",
+					"comment" : "Access tier (frequent or infrequent) of the object if it is stored in the S3 Intelligent-Tiering storage class. See https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html#sc-dynamic-data-access"
+				},
+				{
+					"name": "is_multipart_uploaded",
+					"type" : "boolean",
+					"comment" : "Set to True if the object was uploaded as a multipart upload"
+				}],
+				"partitionKeys":[{
+					"name": "dt",
+					"type" : "string",
+					"comment" : "An inventory snapshot is taken on a weekly cadence, the data is partitioned by the snapshot date"
+				}
+			],
+			"inputFormat": "org.apache.hadoop.hive.ql.io.SymlinkTextInputFormat",
+			"location": "s3://${stack}.datawarehouse.sagebase.org/warehouse/inventory/${stack}data.sagebase.org/defaultInventory/hive/",
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.dt.type": "date",
+				"projection.dt.format": "yyyy-MM-dd-HH-mm",
+				"projection.dt.range": "2023-01-01-00-00,NOW",
+				"projection.dt.interval": "1",
+				"projection.dt.interval.unit": "HOURS"
+			}
 		}
-	}
+	],
+	"etlJobDescriptors":[{
+			"name": "processaccessrecord",
+			"description": "This job processes the access records",
+			"scriptName": "process_access_record.py",
+			"sourcePath" : "log.sagebase.org/accessRecord/records/",
+			"targetTable": "processedaccessrecord"
+		},
+		{
+			"name": "nodesnapshots",
+			"description": "This job processes the node snapshot data",
+			"scriptName": "node_snapshots.py",
+			"sourcePath" : "log.sagebase.org/nodeSnapshots/records/",
+			"targetTable": "nodesnapshots"
+		},
+		{
+			"name": "filesnapshots",
+			"description": "This job processes the file snapshot data",
+			"scriptName": "file_snapshots.py",
+			"sourcePath" : "log.sagebase.org/fileSnapshots/records/",
+			"targetTable": "filesnapshots"
+		},
+		{
+			"name": "teamsnapshots",
+			"description": "This job processes the team snapshot data",
+			"scriptName": "team_snapshots.py",
+			"sourcePath" : "log.sagebase.org/teamSnapshots/records/",
+			"targetTable": "teamsnapshots"
+		},
+		{
+			"name": "teammembersnapshots",
+			"description": "This job processes the team member snapshot data",
+			"scriptName": "team_member_snapshots.py",
+			"sourcePath" : "log.sagebase.org/teamMemberSnapshots/records/",
+			"targetTable": "teammembersnapshots"
+		},
+		{
+			"name": "usergroupsnapshots",
+			"description": "This job processes the user group snapshot data",
+			"scriptName": "user_group_snapshots.py",
+			"sourcePath" : "log.sagebase.org/userGroupSnapshots/records/",
+			"targetTable": "usergroupsnapshots"
+		},
+		{
+			"name": "userprofilesnapshots",
+			"description": "This job processes the user profile snapshot data",
+			"scriptName": "user_profile_snapshots.py",
+			"sourcePath" : "log.sagebase.org/userProfileSnapshots/records/",
+			"targetTable": "userprofilesnapshots"
+		},
+		{
+			"name": "fileuploadrecords",
+			"description": "This job processes the file upload records",
+			"scriptName": "file_upload_records.py",
+			"sourcePath" : "log.sagebase.org/fileUploadRecords/records/",
+			"targetTable": "fileuploadrecords"
+		},
+		{
+			"name": "filedownloadrecords",
+			"description": "This job processes the file download records",
+			"scriptName": "file_download_records.py",
+			"sourcePath" : "log.sagebase.org/fileDownloadRecords/records/",
+			"targetTable": "filedownloadrecords"
+		},
+		{
+			"name": "aclsnapshots",
+			"description": "This job processes the acl snapshot data",
+			"scriptName": "acl_snapshots.py",
+			"sourcePath" : "log.sagebase.org/aclSnapshots/records/",
+			"targetTable": "aclsnapshots"
+		},
+		{
+			"name": "verificationsubmissionsnapshots",
+			"description": "This job processes the verification submission snapshot data",
+			"scriptName": "verification_submission_snapshots.py",
+			"sourcePath" : "log.sagebase.org/verificationSubmissionSnapshots/records/",
+			"targetTable": "verificationsubmissionsnapshots"
+		},
+		{
+			"name": "certifiedquizSnapshots",
+			"description": "This job processes the user's certified quiz snapshots",
+			"scriptName": "certified_quiz_snapshots.py",
+			"sourcePath" : "log.sagebase.org/certifiedUserPassingSnapshots/records/",
+			"targetTable": "certifiedquizsnapshots"
+		},
+		{
+			"name": "certifiedquizquestionsnapshots",
+			"description": "This job processes the user's certified quiz question snapshots",
+			"scriptName": "certified_quiz_question_snapshots.py",
+			"sourcePath" : "log.sagebase.org/certifiedUserPassingSnapshots/records/",
+			"targetTable": "certifiedquizquestionsnapshots"
+		},
+		{
+			"name": "accessrequirementsnapshots",
+			"description": "This job processes the access requirement snapshot data",
+			"scriptName": "access_requirement_snapshot.py",
+			"sourcePath" : "log.sagebase.org/accessRequirementSnapshots/records/",
+			"targetTable": "accessrequirementsnapshots"
+		},
+		{
+			"name": "projectsettingsnapshots",
+			"description": "This job processes the project setting data",
+			"scriptName": "project_settings_snapshots.py",
+			"sourcePath" : "log.sagebase.org/projectSettingSnapshots/records/",
+			"targetTable": "projectsettingsnapshots"
+		}
 	]
 }
