@@ -41,7 +41,7 @@
             "ViewerProtocolPolicy": "https-only"
           },
           "Logging": {
-            "Bucket": "${stack}.log.sagebase.org.s3.us-east-1.amazonaws.com",
+            "Bucket": "${stack}.log.sagebase.org.s3.amazonaws.com",
             "IncludeCookies": false,
             "Prefix": "cloudFrontDataRequests"
           },
