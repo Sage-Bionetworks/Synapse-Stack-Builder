@@ -220,7 +220,7 @@
              #if (${stack} == 'prod')
              "Schedule" : "cron(0 * * * ? *)",
              #else
-             "Schedule" : "cron(0 /6 ? * * *)",
+             "Schedule" : "cron(0 */6 ? * * *)",
              #end
             "Actions" : [
                 {
