@@ -54,13 +54,18 @@ import com.amazonaws.services.lambda.model.InvocationType;
 import com.amazonaws.services.lambda.model.InvokeRequest;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AbortIncompleteMultipartUpload;
+import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Rule;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Transition;
 import com.amazonaws.services.s3.model.BucketNotificationConfiguration;
+import com.amazonaws.services.s3.model.CanonicalGrantee;
 import com.amazonaws.services.s3.model.GetBucketIntelligentTieringConfigurationResult;
 import com.amazonaws.services.s3.model.GetBucketInventoryConfigurationResult;
+import com.amazonaws.services.s3.model.Grant;
+import com.amazonaws.services.s3.model.Owner;
+import com.amazonaws.services.s3.model.Permission;
 import com.amazonaws.services.s3.model.QueueConfiguration;
 import com.amazonaws.services.s3.model.S3Event;
 import com.amazonaws.services.s3.model.SSEAlgorithm;
@@ -211,6 +216,7 @@ public class S3BucketBuilderImplTest {
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		verify(mockS3Client, never()).deleteBucketInventoryConfiguration(any(), any());
 		verify(mockS3Client, never()).setBucketPolicy(any(), any());
+		verify(mockS3Client, never()).setBucketAcl(any(), any(AccessControlList.class));
 
 	}
 	
@@ -2436,6 +2442,158 @@ public class S3BucketBuilderImplTest {
 		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
 		verify(mockCloudFormationClient).describeStack(expectedStackName);
 
+
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithAdditionalAclGrants() throws InterruptedException {
+
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		bucket.setName("${stack}.bucket");
+		
+		S3BucketAclGrant grant = new S3BucketAclGrant();
+		grant.setCanonicalGrantee("abc");
+		grant.setPermission(Permission.FullControl);
+		
+		S3BucketAclGrant existingGrant = new S3BucketAclGrant();
+		existingGrant.setCanonicalGrantee("existing");
+		existingGrant.setPermission(Permission.Write);
+		
+		bucket.setAdditionalAclGrants(List.of(grant, existingGrant));
+
+		String expectedBucketName = stack + ".bucket";
+		
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		
+		AccessControlList existingAcl = new AccessControlList();
+		existingAcl.setOwner(new Owner("owner", "ownerDisplay"));
+		existingAcl.grantAllPermissions(
+			new Grant(new CanonicalGrantee("existing"), Permission.Write),
+			new Grant(new CanonicalGrantee("def"), Permission.FullControl),
+			// Already has read
+			new Grant(new CanonicalGrantee("abc"), Permission.Read)
+		);
+				
+		when(mockS3Client.getBucketAcl(anyString())).thenReturn(existingAcl);
+
+		// Call under test
+		builder.buildAllBuckets();
+
+		verify(mockS3Client).createBucket(expectedBucketName);
+		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
+		verify(mockS3Client).setBucketLifecycleConfiguration(eq(expectedBucketName), any());
+		
+		AccessControlList newAcl = new AccessControlList();
+		newAcl.setOwner(new Owner("owner", "ownerDisplay"));
+		newAcl.grantAllPermissions(
+			new Grant(new CanonicalGrantee("existing"), Permission.Write),
+			new Grant(new CanonicalGrantee("def"), Permission.FullControl),
+			new Grant(new CanonicalGrantee("abc"), Permission.Read),
+			new Grant(new CanonicalGrantee("abc"), Permission.FullControl)
+		);
+		
+		verify(mockS3Client).setBucketAcl(expectedBucketName, newAcl);
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);		
+
+		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
+		verify(mockS3Client, never()).deleteBucketInventoryConfiguration(any(), any());
+		verify(mockS3Client, never()).setBucketPolicy(any(), any());
+
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithAdditionalAclGrantsAndNoChange() throws InterruptedException {
+
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		bucket.setName("${stack}.bucket");
+		
+		S3BucketAclGrant grant = new S3BucketAclGrant();
+		grant.setCanonicalGrantee("abc");
+		grant.setPermission(Permission.FullControl);
+				
+		bucket.setAdditionalAclGrants(List.of(grant));
+
+		String expectedBucketName = stack + ".bucket";
+		
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		
+		AccessControlList existingAcl = new AccessControlList();
+		existingAcl.setOwner(new Owner("owner", "ownerDisplay"));
+		existingAcl.grantAllPermissions(
+			new Grant(new CanonicalGrantee("existing"), Permission.Write),
+			new Grant(new CanonicalGrantee("def"), Permission.FullControl),
+			// Already has read
+			new Grant(new CanonicalGrantee("abc"), Permission.FullControl)
+		);
+				
+		when(mockS3Client.getBucketAcl(anyString())).thenReturn(existingAcl);
+
+		// Call under test
+		builder.buildAllBuckets();
+
+		verify(mockS3Client).createBucket(expectedBucketName);
+		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
+		verify(mockS3Client).setBucketLifecycleConfiguration(eq(expectedBucketName), any());
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClient).describeStack(expectedStackName);		
+
+		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
+		verify(mockS3Client, never()).deleteBucketInventoryConfiguration(any(), any());
+		verify(mockS3Client, never()).setBucketPolicy(any(), any());
+		verify(mockS3Client, never()).setBucketAcl(any(), any(AccessControlList.class));
 
 	}
 	

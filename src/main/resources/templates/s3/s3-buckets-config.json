@@ -32,7 +32,11 @@
 			"name": "${stack}.discussion.sagebase.org"
 		},
 		{
-			"name": "${stack}.log.sagebase.org"
+			"name": "${stack}.log.sagebase.org",
+			"additionalAclGrants": [{
+				"canonicalGrantee": "c4c1ede66af53448b93c283ce9448c4ba468c9432aa01d700d3878632f77d2d0",
+				"permission": "FullControl"
+			}]
 		},
 		{
 			"name": "${stack}.view.snapshots"

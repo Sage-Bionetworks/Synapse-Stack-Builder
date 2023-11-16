@@ -44,6 +44,8 @@ public class S3BucketDescriptor {
 	 * True if the uploads to the bucket should be 
 	 */
 	private boolean virusScanEnabled = false;
+	
+	private List<S3BucketAclGrant> additionalAclGrants;
 
 	public S3BucketDescriptor() {
 	}
@@ -111,11 +113,19 @@ public class S3BucketDescriptor {
 	public void setNotificationsConfiguration(S3NotificationsConfiguration notificationsConfiguration) {
 		this.notificationsConfiguration = notificationsConfiguration;
 	}
+	
+	public List<S3BucketAclGrant> getAdditionalAclGrants() {
+		return additionalAclGrants;
+	}
+	
+	public void setAdditionalAclGrants(List<S3BucketAclGrant> additionalAclGrants) {
+		this.additionalAclGrants = additionalAclGrants;
+	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(devOnly, intArchiveConfiguration, inventoryEnabled, name, notificationsConfiguration, retentionDays,
-				storageClassTransitions, virusScanEnabled);
+		return Objects.hash(additionalAclGrants, devOnly, intArchiveConfiguration, inventoryEnabled, name, notificationsConfiguration,
+				retentionDays, storageClassTransitions, virusScanEnabled);
 	}
 
 	@Override
@@ -123,16 +133,13 @@ public class S3BucketDescriptor {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
+		if (!(obj instanceof S3BucketDescriptor)) {
 			return false;
 		}
 		S3BucketDescriptor other = (S3BucketDescriptor) obj;
-		return devOnly == other.devOnly && Objects.equals(intArchiveConfiguration, other.intArchiveConfiguration)
-				&& inventoryEnabled == other.inventoryEnabled && Objects.equals(name, other.name)
-				&& Objects.equals(notificationsConfiguration, other.notificationsConfiguration)
+		return Objects.equals(additionalAclGrants, other.additionalAclGrants) && devOnly == other.devOnly
+				&& Objects.equals(intArchiveConfiguration, other.intArchiveConfiguration) && inventoryEnabled == other.inventoryEnabled
+				&& Objects.equals(name, other.name) && Objects.equals(notificationsConfiguration, other.notificationsConfiguration)
 				&& Objects.equals(retentionDays, other.retentionDays)
 				&& Objects.equals(storageClassTransitions, other.storageClassTransitions) && virusScanEnabled == other.virusScanEnabled;
 	}

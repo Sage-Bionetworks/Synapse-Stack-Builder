@@ -38,11 +38,14 @@ import com.amazonaws.services.lambda.model.InvocationType;
 import com.amazonaws.services.lambda.model.InvokeRequest;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AbortIncompleteMultipartUpload;
+import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Rule;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Transition;
 import com.amazonaws.services.s3.model.BucketNotificationConfiguration;
+import com.amazonaws.services.s3.model.CanonicalGrantee;
+import com.amazonaws.services.s3.model.Grant;
 import com.amazonaws.services.s3.model.NotificationConfiguration;
 import com.amazonaws.services.s3.model.S3Event;
 import com.amazonaws.services.s3.model.SSEAlgorithm;
@@ -156,6 +159,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			configureBucketLifeCycle(bucket);
 			configureIntelligentTieringArchive(bucket);
 			configureBucketNotifications(bucket, stack);
+			configureBucketAcl(bucket.getName(), bucket.getAdditionalAclGrants());
 			
 			if (bucket.isVirusScanEnabled()) {
 				virusScanEnabledBuckets.add(bucket.getName());
@@ -626,5 +630,38 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		LOG.info("Removing {} bucket notification configuration {}.", bucketName, configName);
 		
 		s3Client.setBucketNotificationConfiguration(bucketName, bucketConfig);		
+	}
+	
+	private void configureBucketAcl(String bucketName, List<S3BucketAclGrant> additionalGrants) {
+		if (additionalGrants == null || additionalGrants.isEmpty()) {
+			return;
+		}
+		
+		AccessControlList bucketAcl = s3Client.getBucketAcl(bucketName);
+		
+		List<Grant> toAdd = new ArrayList<>();
+		
+		additionalGrants.forEach( additionalGrant -> {
+			// We need to adapt our custom grant to the one used by the s3 model
+			Grant s3GrantAdapter = new Grant(new CanonicalGrantee(additionalGrant.getCanonicalGrantee()), additionalGrant.getPermission());
+			
+			if (!bucketAcl.getGrantsAsList().contains(s3GrantAdapter)) {
+				toAdd.add(s3GrantAdapter);
+			}
+		});
+		
+		if (!toAdd.isEmpty()) {
+			LOG.info("Updating {} bucket ACL with the following additional grants:", bucketName);
+			toAdd.forEach( grant -> {
+				LOG.info(" -> " + grant.getGrantee().getIdentifier() + ": " + grant.getPermission());
+			});
+			bucketAcl.getGrantsAsList().addAll(toAdd);
+			s3Client.setBucketAcl(bucketName, bucketAcl);
+		} else {
+			LOG.info("The {} bucket ACL is already up to date:", bucketName);
+			bucketAcl.getGrantsAsList().forEach( grant -> {
+				LOG.info(" -> " + grant.getGrantee().getIdentifier() + ": " + grant.getPermission());
+			});
+		}
 	}
 }
