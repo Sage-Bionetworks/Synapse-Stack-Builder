@@ -290,10 +290,24 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	}
 		
 	private void createBucket(String bucketName) {
-		LOG.info("Creating bucket: {}.", bucketName);
+		boolean exists = true;
 		
-		// This is idempotent
-		s3Client.createBucket(bucketName);
+		try {
+			s3Client.getBucketLocation(bucketName);
+		} catch (AmazonS3Exception e) {
+			if (e.getStatusCode() == 404) {
+				exists = false;
+			} else {
+				throw e;
+			}
+			
+		}
+		
+		if (!exists) {
+			LOG.info("Creating bucket: {}.", bucketName);
+			// This is idempotent
+			s3Client.createBucket(bucketName);
+		}
 	}
 	
 	private void configureEncryption(String bucketName) {
