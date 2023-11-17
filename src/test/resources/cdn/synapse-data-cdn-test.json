@@ -40,11 +40,6 @@
             ],
             "ViewerProtocolPolicy": "https-only"
           },
-          "Logging": {
-            "Bucket": "tst.log.sagebase.org.s3.us-east-1.amazonaws.com",
-            "IncludeCookies": false,
-            "Prefix": "cloudFrontDataRequests"
-          },
           "Enabled": true,
           "HttpVersion": "http2and3",
           "IPV6Enabled": false,
