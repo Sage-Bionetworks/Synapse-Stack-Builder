@@ -784,6 +784,7 @@
 		},
 		"${stack}${instance}WafLogResourcePolicy": {
 		    "Type": "AWS::Logs::ResourcePolicy",
+		    "DependsOn": "${stack}${instance}WebAclLogGroup",
 		    "Properties": {
 		        "PolicyName": "${stack}${instance}WafLogResourcePolicy",
 		        "PolicyDocument": "{\"Version\":\"2012-10-17\",\"Statement\":{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"wafv2.amazonaws.com\"},\"Action\":[\"logs:PutLogEvents\"],\"Resource\":\"arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:log-group:aws-waf-logs-${stack}-${instance}\"}}"
@@ -791,6 +792,7 @@
 		},
 		"${stack}${instance}WebAclLoggingConfiguration": {
 			"Type": "AWS::WAFv2::LoggingConfiguration",
+		    "DependsOn": "${stack}${instance}WafLogResourcePolicy",
 			"Properties": {
 				"LoggingFilter": {
 					"DefaultBehavior" : "DROP",
