@@ -786,7 +786,7 @@
 		    "Type": "AWS::Logs::ResourcePolicy",
 		    "Properties": {
 		        "PolicyName": "${stack}${instance}WafLogResourcePolicy",
-		        "PolicyDocument": "{\"Version\":\"2012-10-17\",\"Statement\":{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"waf.amazonaws.com\"},\"Action\":[\"logs:PutLogEvents\"],\"Resource\":{\"Fn::GetAtt\":[\"${stack}${instance}WebAclLogGroup\", \"Arn\"]}}}"
+		        "PolicyDocument": "{\"Version\":\"2012-10-17\",\"Statement\":{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"waf.amazonaws.com\"},\"Action\":[\"logs:PutLogEvents\"],\"Resource\":\"arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:log-group:${stack}${instance}WebAclLogGroup\"}}"
 		    }
 		},
 		"${stack}${instance}WebAclLoggingConfiguration": {
