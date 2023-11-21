@@ -7,14 +7,17 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.SesClient;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.Configuration;
+import org.sagebionetworks.template.repo.DeletionPolicy;
 
 import java.io.StringWriter;
 
+import static org.sagebionetworks.template.Constants.DELETION_POLICY;
 import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_STACK_NAME_FORMAT;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
@@ -79,7 +82,10 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
 
     public VelocityContext createContext() {
         VelocityContext context = new VelocityContext();
-        context.put(STACK, config.getProperty(PROPERTY_KEY_STACK));
+        String stack = config.getProperty(PROPERTY_KEY_STACK);
+        context.put(STACK, stack);
+        context.put(DELETION_POLICY,
+                Constants.isProd(stack) ? DeletionPolicy.Retain.name() : DeletionPolicy.Delete.name());
         return context;
     }
 

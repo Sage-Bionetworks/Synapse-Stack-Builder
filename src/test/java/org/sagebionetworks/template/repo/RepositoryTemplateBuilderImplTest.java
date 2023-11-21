@@ -749,7 +749,11 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("prod-101-Admin-Access-Rule",adminRule.get("Name"));
 		assertEquals("{\"Block\":{}}",adminRule.getJSONObject("Action").toString());
 		
-		assertEquals("Retain", resources.getJSONObject("prod101WebAclLogGroup").get("DeletionPolicy"));
+		JSONObject webAclLoggingConfig = resources.getJSONObject("prod101WebAclLoggingConfiguration");
+		JSONObject webAclCfgProps = webAclLoggingConfig.getJSONObject("Properties");
+		JSONArray logDestConfigs = webAclCfgProps.getJSONArray("LogDestinationConfigs");
+		assertEquals(1, logDestConfigs.length());
+		assertEquals("{\"Fn::ImportValue\":{\"Fn::Sub\":\"${AWS::Region}:synapse-prod-global-resources-WebAclLogGroupArn\"}}", logDestConfigs.get(0).toString());
 	}
 
 	public void validateEnhancedMonitoring(JSONObject props, String enableEnhancedMonitoring) {
@@ -867,7 +871,6 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("us-east-1-synapse-dev-vpc-2", context.get(VPC_EXPORT_PREFIX));
 		
 		assertEquals("Count:{}", context.get(ADMIN_RULE_ACTION));
-		assertEquals("Delete", context.get(DELETION_POLICY));
 
 		DatabaseDescriptor[] descriptors = (DatabaseDescriptor[]) context.get(DATABASE_DESCRIPTORS);
 		assertNotNull(descriptors);
@@ -945,7 +948,6 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("us-east-1-synapse-prod-vpc-2", context.get(VPC_EXPORT_PREFIX));
 		
 		assertEquals("Block:{}", context.get(ADMIN_RULE_ACTION));
-		assertEquals("Retain", context.get(DELETION_POLICY));
 	}
 
 
