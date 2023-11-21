@@ -21,7 +21,6 @@ import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_DOMAIN_NA
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_KEYPAIR_ID;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
-import static org.sagebionetworks.template.Constants.DELETION_POLICY;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.INSTANCE;
@@ -430,7 +429,6 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_WORKERS);
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.PORTAL);
 
-		List<String> evironmentNames = Lists.newArrayList("repo-prod-101-0", "workers-prod-101-0", "portal-prod-101-0");
 		// prod should have alarms.
 		assertTrue(resources.has("prod101Table1RepositoryDBAlarmSwapUsage"));
 		assertTrue(resources.has("prod101Table1RepositoryDBAlarmSwapUsage"));

@@ -53,7 +53,6 @@ import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_KEYPAIR_I
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DATA_CDN_DOMAIN_NAME_FMT;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
-import static org.sagebionetworks.template.Constants.DELETION_POLICY;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
@@ -195,7 +194,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		
 		Parameter ttl = timeToLive.createTimeToLiveParameter().orElse(null);
 
-		List<String> environmentNames = new LinkedList<String>();
+		List<String> environmentNames = new LinkedList<>();
 		// each environment is treated as its own stack.
 		for (EnvironmentDescriptor environment : createEnvironments(secretsSouce)) {
 			VelocityContext context = createEnvironmentContext(sharedStackResults, environment);
