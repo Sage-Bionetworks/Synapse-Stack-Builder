@@ -103,7 +103,7 @@
       "name" : "user-guides.synapse.org.",
       "type" : "CNAME",
       "ttl" : "300",
-      "resourceRecords" : [ "sage-bionetworks.github.io" ],
+      "resourceRecords" : [ "help.synapse.org" ],
       "aliasTargetDescriptor" : null
     }
   ]
