@@ -99,12 +99,6 @@
         "hostedZoneId" : "Z3AQBSTGFYJSTF",
         "dnsName" : "s3-website-us-east-1.amazonaws.com."
       }
-    }, {
-      "name" : "user-guides.synapse.org.",
-      "type" : "CNAME",
-      "ttl" : "300",
-      "resourceRecords" : [ "sage-bionetworks.github.io" ],
-      "aliasTargetDescriptor" : null
     }
   ]
 }
