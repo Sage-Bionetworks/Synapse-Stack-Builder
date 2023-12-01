@@ -1,6 +1,6 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
-	"version": "1.50.0",
+	"version": "1.51.0",
 	"extraScripts": ["utils.py"],
 	"tableDescriptors": [{
 			"name": "processedaccessrecord",
@@ -244,6 +244,11 @@
 				"name": "is_restricted",
 				"type" : "boolean",
 				"comment" : "If true, a terms-of-use access requirement is set on the node."
+			},
+			{
+				"name": "effective_ars",
+				"type" : "array<bigint>",
+				"comment" : "The list of access requirement ids that apply to the entity at the time the snapshot was taken."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
