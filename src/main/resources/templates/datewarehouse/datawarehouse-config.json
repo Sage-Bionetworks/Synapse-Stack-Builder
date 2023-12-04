@@ -1,6 +1,6 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
-	"version": "1.51.0",
+	"version": "1.52.0",
 	"extraScripts": ["utils.py"],
 	"tableDescriptors": [{
 			"name": "processedaccessrecord",
@@ -725,6 +725,11 @@
 				"name": "instance",
 				"type" : "string",
 				"comment" : "The version of the stack that processed the download request."
+			},
+			{
+				"name": "session_id",
+				"type" : "string",
+				"comment" : "The UUID assigned to the API request that triggered this download.  By joining this table with the processedaccessrecord on session_id, more information about the call that triggered this download can be found."
 			}],
 			"partitionKeys":[{
 				"name": "record_date",
