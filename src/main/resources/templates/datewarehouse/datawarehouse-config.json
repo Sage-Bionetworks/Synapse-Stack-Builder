@@ -1,6 +1,6 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
-	"version": "1.51.0",
+	"version": "1.52.0",
 	"extraScripts": ["utils.py"],
 	"tableDescriptors": [{
 			"name": "processedaccessrecord",
