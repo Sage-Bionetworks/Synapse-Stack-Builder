@@ -216,12 +216,8 @@
             "Type": "SCHEDULED",
             "StartOnCreation": "true",
             "Description" : "Trigger for job ${glueDatabaseName}_${etl.name}",
-             "Name" : "${glueDatabaseName}_${etl.name}_trigger",
-             #if (${stack} == 'prod')
-             "Schedule" : "cron(0 * * * ? *)",
-             #else
-             "Schedule" : "cron(0 */6 ? * * *)",
-             #end
+            "Name" : "${glueDatabaseName}_${etl.name}_trigger",
+            "Schedule" : "cron(0 */6 ? * * *)",
             "Actions" : [
                 {
                      "JobName" : "${glueDatabaseName}_${etl.name}"
