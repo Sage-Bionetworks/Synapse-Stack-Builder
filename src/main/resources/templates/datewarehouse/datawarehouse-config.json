@@ -374,7 +374,7 @@
 		},
 		{
 			"name": "teamsnapshots",
-			"description" : "This table contain snapshots of teams. Snapshots are taken when teams are created or updated. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
+			"description" : "This table contain snapshots of teams. Snapshots are taken when teams or its members are created or updated. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 
 			"columns":[{
 				"name": "change_type",
@@ -384,7 +384,7 @@
 			{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the change (creation/update) to the team is pushed to the queue for snapshotting."
+				"comment" : "The time when any change to the team was made (e.g. create, update or a change to its members)."
 			},
 			{
 				"name": "change_user_id",
@@ -445,7 +445,7 @@
 		},
 		{
 			"name": "teammembersnapshots",
-			"description" : "This table contain snapshots of team-members. Snapshots are captured when team members are added or updated. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
+			"description" : "This table contain snapshots of team-members. Snapshots are captured when a team and/or its members are modified. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
 				"name": "change_type",
 				"type" : "string",
@@ -454,7 +454,7 @@
 			{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the team member are added or updated within the team."
+				"comment" : "The time when any change to the team was made (e.g. update of the team or a change to its members)."
 			},
 			{
 				"name": "change_user_id",
@@ -545,7 +545,7 @@
 		},
 		{
 			"name": "userprofilesnapshots",
-			"description" : "This table contain snapshots of user-profiles. Snapshots are taken when user-profiles are created, updated or deleted. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
+			"description" : "This table contain snapshots of user-profiles. Snapshots are taken when user profiles are created or modified. Note: Snapshots are also taken periodically and independently of the changes. The snapshot_timestamp records when the snapshot was taken.",
 			"columns":[{
 				"name": "change_type",
 				"type" : "string",
@@ -554,7 +554,7 @@
 			{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the change (creation/update) to the user profile is pushed to the queue for snapshotting."
+				"comment" : "The time when any change to the user profile was made (e.g. create or update)."
 			},
 			{
 				"name": "change_user_id",
