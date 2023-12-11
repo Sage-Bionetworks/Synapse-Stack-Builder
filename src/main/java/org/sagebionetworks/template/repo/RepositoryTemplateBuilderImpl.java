@@ -195,7 +195,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		
 		Parameter ttl = timeToLive.createTimeToLiveParameter().orElse(null);
 
-		List<String> environmentNames = new LinkedList<String>();
+		List<String> environmentNames = new LinkedList<>();
 		// each environment is treated as its own stack.
 		for (EnvironmentDescriptor environment : createEnvironments(secretsSouce)) {
 			VelocityContext context = createEnvironmentContext(sharedStackResults, environment);

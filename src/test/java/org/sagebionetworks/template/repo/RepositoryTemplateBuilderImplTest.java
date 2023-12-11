@@ -750,6 +750,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("{\"Block\":{}}",adminRule.getJSONObject("Action").toString());
 		
 		assertEquals("Retain", resources.getJSONObject("prod101WebAclLogGroup").get("DeletionPolicy"));
+		assertNotNull(resources.getJSONObject("prod101WebAclLogResourcePolicy"));
 	}
 
 	public void validateEnhancedMonitoring(JSONObject props, String enableEnhancedMonitoring) {
