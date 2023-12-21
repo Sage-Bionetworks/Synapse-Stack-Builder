@@ -1,7 +1,7 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
-	"version": "1.52.0",
-	"extraScripts": ["utils.py"],
+	"version": "1.53.0",
+	"extraScripts": ["utils.py","glue_job.py"],
 	"tableDescriptors": [{
 			"name": "processedaccessrecord",
 			"description" : "The table contains access records. Each record reflects a single API request received by the Synapse server. The recorded data is useful for audits and to analyse API performance such as delays, errors or success rates.",
