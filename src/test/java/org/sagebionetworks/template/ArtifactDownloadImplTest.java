@@ -24,7 +24,7 @@ public class ArtifactDownloadImplTest {
         File temp = downloader.downloadFile(url);
         try {
             assertNotNull(temp);
-            assertEquals(376L, temp.length());
+            assertEquals(405L, temp.length());
         } finally {
             if (temp != null) {
                 temp.delete();
