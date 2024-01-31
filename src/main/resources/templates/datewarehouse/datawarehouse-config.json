@@ -1,6 +1,6 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
-	"version": "1.55.0",
+	"version": "1.56.0",
 	"extraScripts": ["utils.py","glue_job.py"],
 	"tableDescriptors": [{
 			"name": "processedaccessrecord",
@@ -610,7 +610,13 @@
 				"name": "created_on",
 				"type" : "timestamp",
 				"comment" : "The creation time of the user profile."
-			}],
+			},
+			{
+				"name": "is_two_factor_auth_enabled",
+				"type": "boolean",
+				"comment": "Indicates if the user had two factor authentication enabled when the snapshot was captured."
+			}
+			],
 			"partitionKeys":[{
 				"name": "snapshot_date",
 				"type" : "date",
