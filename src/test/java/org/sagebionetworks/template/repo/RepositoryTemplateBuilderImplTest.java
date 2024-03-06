@@ -1,5 +1,6 @@
 package org.sagebionetworks.template.repo;
 
+import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -750,7 +751,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("{\"Block\":{}}",adminRule.getJSONObject("Action").toString());
 		
 		assertEquals("Retain", resources.getJSONObject("prod101WebAclLogGroup").get("DeletionPolicy"));
-		assertNotNull(resources.getJSONObject("prod101WebAclLogResourcePolicy"));
+		assertFalse(resources.has("prod101WebAclLogResourcePolicy"));
 	}
 
 	public void validateEnhancedMonitoring(JSONObject props, String enableEnhancedMonitoring) {
