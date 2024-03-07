@@ -799,17 +799,7 @@
 					]
 				},
 				"LogDestinationConfigs": [
-					{
-					    "Fn::Select": [
-                            0,
-                            {
-                                "Fn::Split": [
-                                 ":*",
-						        { "Fn::GetAtt": ["${stack}${instance}WebAclLogGroup", "Arn"] }
-					            ]
-					        }
-				        ]
-				    }
+				    { "Fn::GetAtt": ["${stack}${instance}WebAclLogGroup", "Arn"] }
 				],
 				"ResourceArn": {
 					"Fn::GetAtt": [
