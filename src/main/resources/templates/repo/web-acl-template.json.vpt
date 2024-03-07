@@ -778,7 +778,7 @@
 			"Type": "AWS::Logs::LogGroup",
 			"DeletionPolicy": "${deletionPolicy}",
 			"Properties": {
-				"LogGroupName": "waf-logs-${stack}-${instance}",
+				"LogGroupName": "/aws/vendedlogs/waf-logs-${stack}-${instance}",
 				"RetentionInDays": 30
 			}
 		},
