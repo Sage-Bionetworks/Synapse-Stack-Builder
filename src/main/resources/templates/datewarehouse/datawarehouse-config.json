@@ -249,6 +249,16 @@
 				"name": "effective_ars",
 				"type" : "array<bigint>",
 				"comment" : "The list of access requirement ids that apply to the entity at the time the snapshot was taken."
+			},
+			{
+				"name": "annotations",
+				"type": "string",
+				"comment": "The json representation of the entity annotations assigned by the user."
+			},
+			{
+				"name": "derived_annotations",
+				"type": "string",
+				"comment": "The json representation of the entity annotations that were derived by the schema of the entity."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
