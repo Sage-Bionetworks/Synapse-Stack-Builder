@@ -160,7 +160,7 @@ public class DataWarehouseBuilderImplTest {
 		JSONObject resources = json.getJSONObject("Resources");
 		assertNotNull(resources);
 		assertEquals(Set.of("AWSGlueJobRole", "synapsewarehouseGlueDatabase", "testjobGlueJob", "testTableGlueTable", "anotherTableGlueTable",
-				"testjobGlueJobTrigger"), resources.keySet());
+				"testjobGlueJobTrigger","devFailedJobRule"), resources.keySet());
 
 		JSONObject props = resources.getJSONObject("testjobGlueJob").getJSONObject("Properties");
 		assertEquals(DATABASE_NAME.toLowerCase() + "_testjob", props.get("Name"));
@@ -201,6 +201,18 @@ public class DataWarehouseBuilderImplTest {
 		assertEquals("{\"Type\":\"SCHEDULED\",\"StartOnCreation\":\"true\",\"Description\":"
 				+ "\"Trigger for job synapsewarehouse_testjob\",\"Name\":\"synapsewarehouse_testjob_trigger\",\"Schedule\":"
 				+ "\"cron(0 */6 ? * * *)\",\"Actions\":[{\"JobName\":\"synapsewarehouse_testjob\"}]}", glueJobTrigger.toString());
+		
+		// Rule to send email on job failure
+		JSONObject eventRule = resources.getJSONObject("devFailedJobRule");
+		assertEquals("AWS::Events::Rule",eventRule.get("Type"));
+		JSONObject eventRuleProperties = eventRule.getJSONObject("Properties");
+		assertEquals("[\"aws.glue\"]", eventRuleProperties.getJSONObject("EventPattern").getJSONArray("source").toString());
+		assertEquals("[\"Glue Job State Change\"]", eventRuleProperties.getJSONObject("EventPattern").getJSONArray("detail-type").toString());
+		assertEquals("{\"state\":[\"SUCCEEDED\"],\"jobName\":[\"synapsewarehouse_testjob\"]}",
+				eventRuleProperties.getJSONObject("EventPattern").getJSONObject("detail").toString());
+		assertEquals("[{\"Id\":\"warehouse-etl-job-failure-target\","
+				+ "\"Arn\":{\"Fn::ImportValue\":\"us-east-1-synapse-dev-global-resources-NotificationTopic\"}}]",
+				eventRuleProperties.getJSONArray("Targets").toString());
 	}
 
 	@Test

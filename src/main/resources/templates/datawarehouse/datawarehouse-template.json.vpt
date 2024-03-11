@@ -226,5 +226,38 @@
             }
         },
 		#end
+		"${stack}FailedJobRule": {
+			"Type": "AWS::Events::Rule",
+			"Properties": {
+				"Description": "Rule to send an email for each failed warehouse ETL job failure",
+				"EventBusName": "default",
+				"EventPattern": {
+					"source": [
+						"aws.glue"
+					],
+					"detail-type": [
+						"Glue Job State Change"
+					],
+					"detail": {
+						"state": [
+							"SUCCEEDED"
+						],
+						"jobName": [
+							#foreach( $etl in $etlJobDescriptors)
+								"${glueDatabaseName}_${etl.name}",
+							#end
+						]
+					}
+				},
+				"Name": "warehouse-etl-job-failure",
+				"State": "ENABLED",
+				"Targets": [
+					{
+						"Id": "warehouse-etl-job-failure-target",
+						"Arn": {"Fn::ImportValue": "us-east-1-synapse-${stack}-global-resources-NotificationTopic"}
+					}
+				]
+			}
+		}
 	}
 }
