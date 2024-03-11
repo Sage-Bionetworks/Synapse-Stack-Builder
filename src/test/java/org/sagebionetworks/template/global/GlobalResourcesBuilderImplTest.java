@@ -121,6 +121,7 @@ public class GlobalResourcesBuilderImplTest {
         assertTrue(resources.has("SesSynapseOrgComplaintTopic"));
         assertTrue(resources.has("devNotificationTopic"));
         assertFalse(resources.has("SesHighBounceRateAlarm")); // dev stack does not have alarm
+        assertTrue(resources.has("devWebAclLogGroup"));
 
         verify(mockSesClient, never()).setComplaintNotificationTopic(anyString(), anyString());
         verify(mockSesClient, never()).setBounceNotificationTopic(anyString(), anyString());
@@ -149,6 +150,8 @@ public class GlobalResourcesBuilderImplTest {
         assertTrue(resources.has("SesSynapseOrgComplaintTopic"));
         assertTrue(resources.has("prodNotificationTopic"));
         assertTrue(resources.has("SesHighBounceRateAlarm"));
+        assertTrue(resources.has("prodWebAclLogGroup"));
+        JSONObject outputs = templateJSON.getJSONObject("Outputs");
 
         verify(mockSesClient).setComplaintNotificationTopic(SES_SYNAPSE_DOMAIN, "complaintTopicArn");
         verify(mockSesClient).setBounceNotificationTopic(SES_SYNAPSE_DOMAIN, "bounceTopicArn");
