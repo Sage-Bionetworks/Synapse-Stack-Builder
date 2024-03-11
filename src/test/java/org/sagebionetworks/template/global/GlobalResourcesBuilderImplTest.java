@@ -155,7 +155,6 @@ public class GlobalResourcesBuilderImplTest {
         assertTrue(resources.has("prodNotificationTopic"));
         assertTrue(resources.has("SesHighBounceRateAlarm"));
         assertTrue(resources.has("prodWebAclLogGroup"));
-        JSONObject outputs = templateJSON.getJSONObject("Outputs");
 
         verify(mockSesClient).setComplaintNotificationTopic(SES_SYNAPSE_DOMAIN, "complaintTopicArn");
         verify(mockSesClient).setBounceNotificationTopic(SES_SYNAPSE_DOMAIN, "bounceTopicArn");
