@@ -312,6 +312,7 @@ public class RepositoryTemplateBuilderImplTest {
 		validateResouceDatabaseInstance(resources, stack, "true");
 		// tables database
 		validateResouceTablesDatabase(resources, stack, "true");
+		// WebAcl
 		validateWebAcl(resources);
 
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
@@ -749,8 +750,15 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("prod-101-Admin-Access-Rule",adminRule.get("Name"));
 		assertEquals("{\"Block\":{}}",adminRule.getJSONObject("Action").toString());
 		
-		assertEquals("Retain", resources.getJSONObject("prod101WebAclLogGroup").get("DeletionPolicy"));
-		assertNotNull(resources.getJSONObject("prod101WebAclLogResourcePolicy"));
+		JSONObject webACLLoggingConfig = resources.getJSONObject("prod101WebAclLoggingConfiguration");
+		JSONObject webACLCfgProps = webACLLoggingConfig.getJSONObject("Properties");
+		JSONArray logDestConfigs = webACLCfgProps.getJSONArray("LogDestinationConfigs");
+		assertEquals(1, logDestConfigs.length());
+		JSONObject config = logDestConfigs.getJSONObject(0);
+		JSONArray configVals = config.getJSONArray("Fn::ImportValue");
+		assertEquals(1, configVals.length());
+		String configVal = configVals.getString(0);
+		assertEquals("us-east-1-synapse-prod-global-resources-WebAclCloudWatchLogGroupArn", configVal);
 	}
 
 	public void validateEnhancedMonitoring(JSONObject props, String enableEnhancedMonitoring) {
