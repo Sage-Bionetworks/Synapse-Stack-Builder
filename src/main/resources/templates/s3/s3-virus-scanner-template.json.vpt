@@ -206,7 +206,7 @@
                ]
             },
             "Timeout":300,
-            "Runtime":"python3.7",
+            "Runtime":"python3.11",
             "Handler":"scan.lambda_handler",
             "Environment":{
                "Variables":{
@@ -217,7 +217,8 @@
                      "Ref":"ScanResultSNSTopic"
                   },
                   "AV_STATUS_SNS_PUBLISH_CLEAN": "False",
-                  "EVENT_SOURCE":"SNS"
+                  "EVENT_SOURCE":"SNS",
+                  "LD_LIBRARY_PATH":"/opt/app/bin"
                }
             },
             "MemorySize":2048,
@@ -252,13 +253,14 @@
                ]
             },
             "Timeout":300,
-            "Runtime":"python3.7",
+            "Runtime":"python3.11",
             "Handler":"update.lambda_handler",
             "Environment":{
                "Variables":{
                   "AV_DEFINITION_S3_BUCKET":{
                      "Ref":"ClamavVirusDefinitionsBucket"
-                  }
+                  },
+                  "LD_LIBRARY_PATH":"/opt/app/bin"
                }
             },
             "MemorySize":1024
