@@ -3,6 +3,7 @@
 	"Description": "Creates a VPC with public and private subnets for the Synapse stacks.",
 	"Resources": {
 #parse("templates/global/sns-template.json.vpt")
+#parse("templates/global/webacl-cloudwatch-loggroup.json.vpt")
 	},
 	"Outputs": {
 		"NotificationTopic": {
@@ -64,6 +65,26 @@
 					]
 				}
 			}
+		},
+		"WebAclCloudwatchLogGroupArn": {
+		    "Description": "Cloudwatch log group for the stack WebACL",
+		    "Value": { "Fn::GetAtt": ["${stack}WebAclLogGroup", "Arn"] },
+		    "Export": {
+		        "Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"WebAclCloudWatchLogGroupArn"
+						]
+					]
+		        }
+		    }
 		}
 	}
 }

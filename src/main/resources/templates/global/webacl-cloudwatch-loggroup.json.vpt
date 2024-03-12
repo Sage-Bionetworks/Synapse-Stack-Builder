@@ -1,0 +1,8 @@
+		"${stack}WebAclLogGroup": {
+			"Type": "AWS::Logs::LogGroup",
+			"DeletionPolicy": "${deletionPolicy}",
+			"Properties": {
+				"LogGroupName": "aws-waf-logs-${stack}",
+				"RetentionInDays": 30
+			}
+		}
