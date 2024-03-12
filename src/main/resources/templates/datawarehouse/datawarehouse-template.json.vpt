@@ -249,7 +249,6 @@
 						]
 					}
 				},
-				"Name": "warehouse-etl-job-failure",
 				"State": "ENABLED",
 				"Targets": [
 					{
