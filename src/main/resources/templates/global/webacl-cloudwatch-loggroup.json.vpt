@@ -5,4 +5,4 @@
 				"LogGroupName": "aws-waf-logs-${stack}",
 				"RetentionInDays": 30
 			}
-		},
+		}

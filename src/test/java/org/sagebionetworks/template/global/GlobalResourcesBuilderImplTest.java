@@ -20,6 +20,7 @@ import org.sagebionetworks.template.SesClientImpl;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.config.Configuration;
+import org.sagebionetworks.template.repo.DeletionPolicy;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -126,6 +127,8 @@ public class GlobalResourcesBuilderImplTest {
         assertTrue(resources.has("devNotificationTopic"));
         assertFalse(resources.has("SesHighBounceRateAlarm")); // dev stack does not have alarm
         assertTrue(resources.has("devWebAclLogGroup"));
+        JSONObject webAclLogGroup = resources.getJSONObject("devWebAclLogGroup");
+        assertEquals(DeletionPolicy.Delete.name(), webAclLogGroup.getString("DeletionPolicy"));
 
         verify(mockSesClient, never()).setComplaintNotificationTopic(anyString(), anyString());
         verify(mockSesClient, never()).setBounceNotificationTopic(anyString(), anyString());
@@ -155,6 +158,8 @@ public class GlobalResourcesBuilderImplTest {
         assertTrue(resources.has("prodNotificationTopic"));
         assertTrue(resources.has("SesHighBounceRateAlarm"));
         assertTrue(resources.has("prodWebAclLogGroup"));
+        JSONObject webAclLogGroup = resources.getJSONObject("prodWebAclLogGroup");
+        assertEquals(DeletionPolicy.Retain.name(), webAclLogGroup.getString("DeletionPolicy"));
 
         verify(mockSesClient).setComplaintNotificationTopic(SES_SYNAPSE_DOMAIN, "complaintTopicArn");
         verify(mockSesClient).setBounceNotificationTopic(SES_SYNAPSE_DOMAIN, "bounceTopicArn");
