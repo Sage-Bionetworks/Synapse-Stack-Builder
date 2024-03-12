@@ -208,7 +208,7 @@ public class DataWarehouseBuilderImplTest {
 		JSONObject eventRuleProperties = eventRule.getJSONObject("Properties");
 		assertEquals("[\"aws.glue\"]", eventRuleProperties.getJSONObject("EventPattern").getJSONArray("source").toString());
 		assertEquals("[\"Glue Job State Change\"]", eventRuleProperties.getJSONObject("EventPattern").getJSONArray("detail-type").toString());
-		assertEquals("{\"state\":[\"SUCCEEDED\"],\"jobName\":[\"synapsewarehouse_testjob\"]}",
+		assertEquals("{\"state\":[\"FAILED\"],\"jobName\":[\"synapsewarehouse_testjob\"]}",
 				eventRuleProperties.getJSONObject("EventPattern").getJSONObject("detail").toString());
 		assertEquals("[{\"Id\":\"warehouse-etl-job-failure-target\","
 				+ "\"Arn\":{\"Fn::ImportValue\":\"us-east-1-synapse-dev-global-resources-NotificationTopic\"}}]",

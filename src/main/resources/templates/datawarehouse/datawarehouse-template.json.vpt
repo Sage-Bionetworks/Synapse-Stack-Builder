@@ -240,7 +240,7 @@
 					],
 					"detail": {
 						"state": [
-							"SUCCEEDED"
+							"FAILED"
 						],
 						"jobName": [
 							#foreach( $etl in $etlJobDescriptors)
