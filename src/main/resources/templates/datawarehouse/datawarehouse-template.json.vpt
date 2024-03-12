@@ -226,7 +226,7 @@
             }
         },
 		#end
-		"${stack}FailedJobRule": {
+		"${glueDatabaseName}FailedJobRule": {
 			"Type": "AWS::Events::Rule",
 			"Properties": {
 				"Description": "Rule to send an email for each failed warehouse ETL job failure",
