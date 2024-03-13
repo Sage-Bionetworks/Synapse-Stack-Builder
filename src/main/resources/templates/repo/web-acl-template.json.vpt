@@ -791,7 +791,7 @@
 					]
 				},
 				"LogDestinationConfigs": [
-					{ "Fn::ImportValue": ["${globalResourcesExportPrefix}-WebAclCloudWatchLogGroupArn"] }
+					{ "Fn::ImportValue": "${globalResourcesExportPrefix}-WebAclCloudWatchLogGroupArn" }
 				],
 				"ResourceArn": {
 					"Fn::GetAtt": [
