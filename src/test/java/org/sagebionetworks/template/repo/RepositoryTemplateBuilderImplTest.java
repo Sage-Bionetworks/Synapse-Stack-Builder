@@ -755,9 +755,7 @@ public class RepositoryTemplateBuilderImplTest {
 		JSONArray logDestConfigs = webACLCfgProps.getJSONArray("LogDestinationConfigs");
 		assertEquals(1, logDestConfigs.length());
 		JSONObject config = logDestConfigs.getJSONObject(0);
-		JSONArray configVals = config.getJSONArray("Fn::ImportValue");
-		assertEquals(1, configVals.length());
-		String configVal = configVals.getString(0);
+		String configVal = config.getString("Fn::ImportValue");
 		assertEquals("us-east-1-synapse-prod-global-resources-WebAclCloudWatchLogGroupArn", configVal);
 	}
 
