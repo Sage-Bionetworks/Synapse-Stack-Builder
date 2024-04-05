@@ -1292,7 +1292,7 @@
 			}
 		},
 		{
-			"name": "fileHandleAssociationsRecords",
+			"name": "fileassociationsrecords",
 			"description" : "The table contains file handle association records that are weekly scanned. A FileHandleAssociation record is a FileHandle (identified by its id) along with a Synapse object (identified by its id and type).",
 			"columns": [{
 					"name": "timestamp",
