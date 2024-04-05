@@ -1290,6 +1290,55 @@
 				"projection.dt.interval": "1",
 				"projection.dt.interval.unit": "HOURS"
 			}
+		},
+		{
+			"name": "fileHandleAssociationsRecords",
+			"description" : "The table contains file handle association records that are weekly scanned. A FileHandleAssociation record is a FileHandle (identified by its id) along with a Synapse object (identified by its id and type).",
+			"columns": [{
+					"name": "timestamp",
+					"type" : "timestamp",
+					"comment" : "The time when the association was data was collected."
+				},
+				{
+					"name": "associateType",
+					"type" : "string",
+					"comment" : "The type of the Synapse object that wraps the file."
+				},
+				{
+					"name": "associateId",
+					"type" : "bigint",
+					"comment" : "The unique identifier of the Synapse object that wraps the file."
+				},
+				{
+					"name": "fileHandleId",
+					"type" : "bigint",
+					"comment" : "The unique identifier of the file handle."
+				},
+				{
+					"name": "stack",
+					"type" : "string",
+					"comment" : "The stack (prod, dev) on which the file handle association processed."
+				},
+				{
+					"name": "instance",
+					"type" : "string",
+					"comment" : "The version of the stack that processed the file association."
+				}
+			],
+			"partitionKeys":[{
+				"name": "dt",
+				"type" : "string",
+				"comment" : "The date on which the file association was collected. The date should be used as condition (WHERE CLAUSE) for fast and cost effective queries."
+			}],
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.dt.type": "date",
+				"projection.dt.format": "yyyy-MM",
+				"projection.dt.range": "2020-01,NOW",
+				"projection.dt.interval": "1",
+				"projection.dt.interval.unit": "MONTHS"
+			},
+			"location": "s3://${stack}.filehandles.sagebase.org/fileHandleAssociations/records/"
 		}
 	],
 	"etlJobDescriptors":[{
