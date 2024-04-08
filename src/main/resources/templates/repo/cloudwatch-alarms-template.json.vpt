@@ -1,74 +1,4 @@
-#if(${stack} == 'prod')
-	,
-	"${stack}${instance}DockerRegistryBadCredentialsAlarm": {
-		"Type" : "AWS::CloudWatch::Alarm",
-		"Properties" : {
-			"ActionsEnabled" : true,
-			"AlarmActions" : [
-				{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
-			],
-			"AlarmDescription" : "Alert when the docker registry authentication filter reports bad credentials.",
-			"AlarmName" : "${stack}-${instance}-Docker-Registry-Bad-Credentials",
-			"ComparisonOperator" : "GreaterThanOrEqualToThreshold",
-			"Dimensions" : [
-				{
-					"Name" : "filterClass",
-					"Value" : "org.sagebionetworks.auth.filter.DockerRegistryAuthFilter"
-				}
-			],
-			"EvaluationPeriods" : 1,
-			"Period" : 300,
-			"MetricName" : "BadCredentials",
-			"Namespace" : "Authentication - ${instance}",
-			"Statistic" : "SampleCount",
-			"Threshold" : 1,
-			"TreatMissingData": "notBreaching"
-		}
-	},
-	"${stack}${instance}CloudMailInBadCredentialsAlarm": {
-		"Type" : "AWS::CloudWatch::Alarm",
-		"Properties" : {
-			"ActionsEnabled" : true,
-			"AlarmActions" : [
-				{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
-			],
-			"AlarmDescription" : "Alert when the cloud mail in authentication filter reports bad credentials.",
-			"AlarmName" : "${stack}-${instance}-Cloud-MailIn-Bad-Credentials",
-			"ComparisonOperator" : "GreaterThanOrEqualToThreshold",
-			"Dimensions" : [
-				{
-					"Name" : "filterClass",
-					"Value" : "org.sagebionetworks.auth.filter.CloudMailInAuthFilter"
-				}
-			],
-			"EvaluationPeriods" : 1,
-			"Period" : 300,
-			"MetricName" : "BadCredentials",
-			"Namespace" : "Authentication - ${instance}",
-			"Statistic" : "SampleCount",
-			"Threshold" : 1,
-			"TreatMissingData": "notBreaching"
-		}
-	},
-	"${stack}${instance}UnavailableFileHandleAccessedAlarm": {
-		"Type" : "AWS::CloudWatch::Alarm",
-		"Properties" : {
-			"ActionsEnabled" : true,
-			"AlarmActions" : [
-				{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
-			],
-			"AlarmDescription" : "Alert when a user requests a pre-signed URL for an unavailable file handle.",
-			"AlarmName" : "${stack}-${instance}-Unavailable-File-Handle-Accessed",
-			"ComparisonOperator" : "GreaterThanOrEqualToThreshold",
-			"EvaluationPeriods" : 1,
-			"Period" : 300,
-			"MetricName" : "UnavailableFileHandleAccessed",
-			"Namespace" : "File Handles - ${instance}",
-			"Statistic" : "SampleCount",
-			"Threshold" : 1,
-			"TreatMissingData": "notBreaching"
-		}
-	},
+,
 	"${stack}${instance}WorkersActiveIdgenConnectionPoolExhaustedAlarm": {
     		"Type" : "AWS::CloudWatch::Alarm",
     		"Properties" : {
@@ -269,4 +199,75 @@
             "TreatMissingData": "notBreaching"
         }
     }
+#if(${stack} == 'prod')
+	,
+	"${stack}${instance}DockerRegistryBadCredentialsAlarm": {
+		"Type" : "AWS::CloudWatch::Alarm",
+		"Properties" : {
+			"ActionsEnabled" : true,
+			"AlarmActions" : [
+				{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
+			],
+			"AlarmDescription" : "Alert when the docker registry authentication filter reports bad credentials.",
+			"AlarmName" : "${stack}-${instance}-Docker-Registry-Bad-Credentials",
+			"ComparisonOperator" : "GreaterThanOrEqualToThreshold",
+			"Dimensions" : [
+				{
+					"Name" : "filterClass",
+					"Value" : "org.sagebionetworks.auth.filter.DockerRegistryAuthFilter"
+				}
+			],
+			"EvaluationPeriods" : 1,
+			"Period" : 300,
+			"MetricName" : "BadCredentials",
+			"Namespace" : "Authentication - ${instance}",
+			"Statistic" : "SampleCount",
+			"Threshold" : 1,
+			"TreatMissingData": "notBreaching"
+		}
+	},
+	"${stack}${instance}CloudMailInBadCredentialsAlarm": {
+		"Type" : "AWS::CloudWatch::Alarm",
+		"Properties" : {
+			"ActionsEnabled" : true,
+			"AlarmActions" : [
+				{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
+			],
+			"AlarmDescription" : "Alert when the cloud mail in authentication filter reports bad credentials.",
+			"AlarmName" : "${stack}-${instance}-Cloud-MailIn-Bad-Credentials",
+			"ComparisonOperator" : "GreaterThanOrEqualToThreshold",
+			"Dimensions" : [
+				{
+					"Name" : "filterClass",
+					"Value" : "org.sagebionetworks.auth.filter.CloudMailInAuthFilter"
+				}
+			],
+			"EvaluationPeriods" : 1,
+			"Period" : 300,
+			"MetricName" : "BadCredentials",
+			"Namespace" : "Authentication - ${instance}",
+			"Statistic" : "SampleCount",
+			"Threshold" : 1,
+			"TreatMissingData": "notBreaching"
+		}
+	},
+	"${stack}${instance}UnavailableFileHandleAccessedAlarm": {
+		"Type" : "AWS::CloudWatch::Alarm",
+		"Properties" : {
+			"ActionsEnabled" : true,
+			"AlarmActions" : [
+				{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
+			],
+			"AlarmDescription" : "Alert when a user requests a pre-signed URL for an unavailable file handle.",
+			"AlarmName" : "${stack}-${instance}-Unavailable-File-Handle-Accessed",
+			"ComparisonOperator" : "GreaterThanOrEqualToThreshold",
+			"EvaluationPeriods" : 1,
+			"Period" : 300,
+			"MetricName" : "UnavailableFileHandleAccessed",
+			"Namespace" : "File Handles - ${instance}",
+			"Statistic" : "SampleCount",
+			"Threshold" : 1,
+			"TreatMissingData": "notBreaching"
+		}
+	}
 #end
