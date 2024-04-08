@@ -68,5 +68,205 @@
 			"Threshold" : 1,
 			"TreatMissingData": "notBreaching"
 		}
-	}
+	},
+	"${stack}${instance}WorkersActiveIdgenConnectionPoolExhaustedAlarm": {
+    		"Type" : "AWS::CloudWatch::Alarm",
+    		"Properties" : {
+    			"ActionsEnabled" : true,
+    			"AlarmActions" : [
+    				{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
+    			],
+    			"AlarmDescription" : "Alert when workers database idgen active connection pool is exhausted.",
+    			"AlarmName" : "${stack}-${instance}-Workers-Active-Idgen-ConnectionPool-Exhausted",
+    			"ComparisonOperator" : "GreaterThanOrEqualToThreshold",
+    			"Dimensions" : [
+                    {
+                        "Name" : "dataSourceId",
+                        "Value" : "idgen"
+                    }
+                ],
+    			"EvaluationPeriods" : 2,
+    			"Period" : 120,
+    			"MetricName" : "activeConnectionsCount",
+    			"Namespace" : "Workers-Database-${instance}",
+    			"Statistic" : "Average",
+    			"Threshold" : 39,
+    			"TreatMissingData": "notBreaching"
+    		}
+    	},
+    "${stack}${instance}WorkersActiveMainConnectionPoolExhaustedAlarm": {
+        "Type" : "AWS::CloudWatch::Alarm",
+        "Properties" : {
+            "ActionsEnabled" : true,
+            "AlarmActions" : [
+                {"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
+            ],
+            "AlarmDescription" : "Alert when workers database main active connection pool is exhausted.",
+            "AlarmName" : "${stack}-${instance}-Workers-Active-Main-ConnectionPool-Exhausted",
+            "ComparisonOperator" : "GreaterThanOrEqualToThreshold",
+            "Dimensions" : [
+                {
+                    "Name" : "dataSourceId",
+                    "Value" : "main"
+                }
+            ],
+            "EvaluationPeriods" : 2,
+            "Period" : 120,
+            "MetricName" : "activeConnectionsCount",
+            "Namespace" : "Workers-Database-${instance}",
+            "Statistic" : "Average",
+            "Threshold" : 39,
+            "TreatMissingData": "notBreaching"
+        }
+    },
+    "${stack}${instance}WorkersActiveMigrationConnectionPoolExhaustedAlarm": {
+        "Type" : "AWS::CloudWatch::Alarm",
+        "Properties" : {
+            "ActionsEnabled" : true,
+            "AlarmActions" : [
+                {"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
+            ],
+            "AlarmDescription" : "Alert when workers database migration active connection pool is exhausted.",
+            "AlarmName" : "${stack}-${instance}-Workers-Active-Migration-ConnectionPool-Exhausted",
+            "ComparisonOperator" : "GreaterThanOrEqualToThreshold",
+            "Dimensions" : [
+                {
+                    "Name" : "dataSourceId",
+                    "Value" : "migration"
+                }
+            ],
+            "EvaluationPeriods" : 2,
+            "Period" : 120,
+            "MetricName" : "activeConnectionsCount",
+            "Namespace" : "Workers-Database-${instance}",
+            "Statistic" : "Average",
+            "Threshold" : 39,
+            "TreatMissingData": "notBreaching"
+        }
+    },
+    "${stack}${instance}WorkersActiveTablesConnectionPoolExhaustedAlarm": {
+        "Type" : "AWS::CloudWatch::Alarm",
+        "Properties" : {
+            "ActionsEnabled" : true,
+            "AlarmActions" : [
+                {"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
+            ],
+            "AlarmDescription" : "Alert when workers database tables active connection pool is exhausted.",
+            "AlarmName" : "${stack}-${instance}-Workers-Active-Tables-ConnectionPool-Exhausted",
+            "ComparisonOperator" : "GreaterThanOrEqualToThreshold",
+            "Dimensions" : [
+                {
+                    "Name" : "dataSourceId",
+                    "Value" : "tables"
+                }
+            ],
+            "EvaluationPeriods" : 2,
+            "Period" : 120,
+            "MetricName" : "activeConnectionsCount",
+            "Namespace" : "Workers-Database-${instance}",
+            "Statistic" : "Average",
+            "Threshold" : 39,
+            "TreatMissingData": "notBreaching"
+        }
+    },
+    "${stack}${instance}RepositoryActiveIdgenConnectionPoolExhaustedAlarm": {
+        "Type" : "AWS::CloudWatch::Alarm",
+        "Properties" : {
+            "ActionsEnabled" : true,
+            "AlarmActions" : [
+                {"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
+            ],
+            "AlarmDescription" : "Alert when repository database idgen active connection pool is exhausted.",
+            "AlarmName" : "${stack}-${instance}-Repository-Active-Idgen-ConnectionPool-Exhausted",
+            "ComparisonOperator" : "GreaterThanOrEqualToThreshold",
+            "Dimensions" : [
+                {
+                    "Name" : "dataSourceId",
+                    "Value" : "idgen"
+                }
+            ],
+            "EvaluationPeriods" : 2,
+            "Period" : 120,
+            "MetricName" : "activeConnectionsCount",
+            "Namespace" : "Repository-Database-${instance}",
+            "Statistic" : "Average",
+            "Threshold" : 39,
+            "TreatMissingData": "notBreaching"
+        }
+    },
+    "${stack}${instance}RepositoryActiveMainConnectionPoolExhaustedAlarm": {
+        "Type" : "AWS::CloudWatch::Alarm",
+        "Properties" : {
+            "ActionsEnabled" : true,
+            "AlarmActions" : [
+                {"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
+            ],
+            "AlarmDescription" : "Alert when repository database main active connection pool is exhausted.",
+            "AlarmName" : "${stack}-${instance}-Repository-Active-Main-ConnectionPool-Exhausted",
+            "ComparisonOperator" : "GreaterThanOrEqualToThreshold",
+            "Dimensions" : [
+                {
+                    "Name" : "dataSourceId",
+                    "Value" : "main"
+                }
+            ],
+            "EvaluationPeriods" : 2,
+            "Period" : 120,
+            "MetricName" : "activeConnectionsCount",
+            "Namespace" : "Repository-Database-${instance}",
+            "Statistic" : "Average",
+            "Threshold" : 39,
+            "TreatMissingData": "notBreaching"
+        }
+    },
+    "${stack}${instance}RepositoryActiveMigrationConnectionPoolExhaustedAlarm": {
+        "Type" : "AWS::CloudWatch::Alarm",
+        "Properties" : {
+            "ActionsEnabled" : true,
+            "AlarmActions" : [
+                {"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
+            ],
+            "AlarmDescription" : "Alert when repository database migration active connection pool is exhausted.",
+            "AlarmName" : "${stack}-${instance}-Repository-Active-Migration-ConnectionPool-Exhausted",
+            "ComparisonOperator" : "GreaterThanOrEqualToThreshold",
+            "Dimensions" : [
+                {
+                    "Name" : "dataSourceId",
+                    "Value" : "migration"
+                }
+            ],
+            "EvaluationPeriods" : 2,
+            "Period" : 120,
+            "MetricName" : "activeConnectionsCount",
+            "Namespace" : "Repository-Database-${instance}",
+            "Statistic" : "Average",
+            "Threshold" : 39,
+            "TreatMissingData": "notBreaching"
+        }
+    },
+    "${stack}${instance}RepositoryActiveTablesConnectionPoolExhaustedAlarm": {
+        "Type" : "AWS::CloudWatch::Alarm",
+        "Properties" : {
+            "ActionsEnabled" : true,
+            "AlarmActions" : [
+                {"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
+            ],
+            "AlarmDescription" : "Alert when repository database tables active connection pool is exhausted.",
+            "AlarmName" : "${stack}-${instance}-Repository-Active-Tables-ConnectionPool-Exhausted",
+            "ComparisonOperator" : "GreaterThanOrEqualToThreshold",
+            "Dimensions" : [
+                {
+                    "Name" : "dataSourceId",
+                    "Value" : "tables"
+                }
+            ],
+            "EvaluationPeriods" : 2,
+            "Period" : 120,
+            "MetricName" : "activeConnectionsCount",
+            "Namespace" : "Repository-Database-${instance}",
+            "Statistic" : "Average",
+            "Threshold" : 39,
+            "TreatMissingData": "notBreaching"
+        }
+    }
 #end
