@@ -268,6 +268,8 @@ public class Constants {
 	public static final String PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG = "org.sagebionetworks.docs.deploy";
 	public static final String PROPERTY_KEY_DOCS_SOURCE_BUCKET = "org.sagebionetworks.docs.source";
 	public static final String PROPERTY_KEY_DOCS_DESTINATION_BUCKET = "org.sagebionetworks.docs.destination";
+	public static final String MACHINE_TYPES = "machineTypes";
+	public static final String POOL_TYPES = "poolTypes";
 
 	/**
 	 * Create a camel case name from dash-separated-name. Given 'foo-bar' will
