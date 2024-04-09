@@ -16,7 +16,7 @@
                     }
                 ],
     			"EvaluationPeriods" : 2,
-    			"Period" : 120,
+    			"Period" : 60,
     			"MetricName" : "activeConnectionsCount",
     			"Namespace" : "Workers-Database-${instance}",
     			"Statistic" : "Average",
@@ -41,7 +41,7 @@
                 }
             ],
             "EvaluationPeriods" : 2,
-            "Period" : 120,
+            "Period" : 60,
             "MetricName" : "activeConnectionsCount",
             "Namespace" : "Workers-Database-${instance}",
             "Statistic" : "Average",
@@ -66,7 +66,7 @@
                 }
             ],
             "EvaluationPeriods" : 2,
-            "Period" : 120,
+            "Period" : 60,
             "MetricName" : "activeConnectionsCount",
             "Namespace" : "Workers-Database-${instance}",
             "Statistic" : "Average",
@@ -91,7 +91,7 @@
                 }
             ],
             "EvaluationPeriods" : 2,
-            "Period" : 120,
+            "Period" : 60,
             "MetricName" : "activeConnectionsCount",
             "Namespace" : "Workers-Database-${instance}",
             "Statistic" : "Average",
@@ -116,7 +116,7 @@
                 }
             ],
             "EvaluationPeriods" : 2,
-            "Period" : 120,
+            "Period" : 60,
             "MetricName" : "activeConnectionsCount",
             "Namespace" : "Repository-Database-${instance}",
             "Statistic" : "Average",
@@ -141,7 +141,7 @@
                 }
             ],
             "EvaluationPeriods" : 2,
-            "Period" : 120,
+            "Period" : 60,
             "MetricName" : "activeConnectionsCount",
             "Namespace" : "Repository-Database-${instance}",
             "Statistic" : "Average",
@@ -166,7 +166,7 @@
                 }
             ],
             "EvaluationPeriods" : 2,
-            "Period" : 120,
+            "Period" : 60,
             "MetricName" : "activeConnectionsCount",
             "Namespace" : "Repository-Database-${instance}",
             "Statistic" : "Average",
@@ -191,7 +191,7 @@
                 }
             ],
             "EvaluationPeriods" : 2,
-            "Period" : 120,
+            "Period" : 60,
             "MetricName" : "activeConnectionsCount",
             "Namespace" : "Repository-Database-${instance}",
             "Statistic" : "Average",
