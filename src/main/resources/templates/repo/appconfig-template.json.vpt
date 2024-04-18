@@ -34,7 +34,7 @@
                 "Ref": "${stack}${instance}AppConfigConfigProfile"
             },
             "Description": "Freeform config for toggling experimental mode features",
-            "Content": "{\"Full Text Search on TableEntity\": true}",
+            "Content": "{\"Provenance v2 visualization\": true}",
             "ContentType": "application/json"
         }
     },
