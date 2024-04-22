@@ -1,41 +1,44 @@
-
-    ,"${stack}${instance}AppConfigApp": {
-        "Type": "AWS::AppConfig::Application",
-        "Properties": {
-            "Name": "aws-appconfig-demo"
+#if($AppConfigConfigurations)
+    ,
+    #foreach( $configuration in $AppConfigConfigurations)
+        "${stack}${instance}${configuration.appConfigName}AppConfigApp": {
+            "Type": "AWS::AppConfig::Application",
+            "Properties": {
+                "Name": "${stack}-${instance}-${configuration.appConfigName}AppConfigApp"
+            }
+        },
+        "${stack}${instance}${configuration.appConfigName}AppConfigEnvironment": {
+            "Type": "AWS::AppConfig::Environment",
+            "Properties": {
+                "ApplicationId": {
+                    "Ref": "${stack}${instance}${configuration.appConfigName}AppConfigApp"
+                },
+                "Name": "${stack}-${instance}-${configuration.appConfigName}"
+            }
+        },
+        "${stack}${instance}${configuration.appConfigName}AppConfigConfigProfile": {
+            "Type": "AWS::AppConfig::ConfigurationProfile",
+            "Properties": {
+                "ApplicationId": {
+                    "Ref": "${stack}${instance}${configuration.appConfigName}AppConfigApp"
+                },
+                "LocationUri": "hosted",
+                "Name": "${configuration.appConfigName}-configurations"
+            }
+        },
+        "${stack}${instance}${configuration.appConfigName}AppConfigHostedConfiguration": {
+            "Type": "AWS::AppConfig::HostedConfigurationVersion",
+            "Properties": {
+                "ApplicationId": {
+                    "Ref": "${stack}${instance}${configuration.appConfigName}AppConfigApp"
+                },
+                "ConfigurationProfileId": {
+                    "Ref": "${stack}${instance}${configuration.appConfigName}AppConfigConfigProfile"
+                },
+                "Description": "configuration.appConfigDescription",
+                "Content": "configuration.appConfigDefaultConfiguration",
+                "ContentType": "application/json"
+            }
         }
-    },
-    "${stack}${instance}AppConfigEnvironment": {
-        "Type": "AWS::AppConfig::Environment",
-        "Properties": {
-            "ApplicationId": {
-                "Ref": "${stack}${instance}AppConfigApp"
-            },
-            "Name": "${stack}"
-        }
-    },
-    "${stack}${instance}AppConfigConfigProfile": {
-        "Type": "AWS::AppConfig::ConfigurationProfile",
-        "Properties": {
-            "ApplicationId": {
-                "Ref": "${stack}${instance}AppConfigApp"
-            },
-            "LocationUri": "hosted",
-            "Name": "experimental-mode-configurations"
-        }
-    },
-    "${stack}${instance}AppConfigHostedConfiguration": {
-        "Type": "AWS::AppConfig::HostedConfigurationVersion",
-        "Properties": {
-            "ApplicationId": {
-                "Ref": "${stack}${instance}AppConfigApp"
-            },
-            "ConfigurationProfileId": {
-                "Ref": "${stack}${instance}AppConfigConfigProfile"
-            },
-            "Description": "Freeform config for toggling experimental mode features",
-            "Content": "{\"Provenance v2 visualization\": true}",
-            "ContentType": "application/json"
-        }
-    },
-
+    #end
+#end
