@@ -1,5 +1,4 @@
 #if($AppConfigConfigurations)
-    ,
     #foreach( $configuration in $AppConfigConfigurations)
         "${stack}${instance}${configuration.appConfigName}AppConfigApp": {
             "Type": "AWS::AppConfig::Application",
