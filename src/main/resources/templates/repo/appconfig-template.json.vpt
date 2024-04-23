@@ -1,4 +1,5 @@
 #if($AppConfigConfigurations)
+    ,
     #foreach( $configuration in $AppConfigConfigurations)
         "${stack}${instance}${configuration.appConfigName}AppConfigApp": {
             "Type": "AWS::AppConfig::Application",
@@ -34,8 +35,8 @@
                 "ConfigurationProfileId": {
                     "Ref": "${stack}${instance}${configuration.appConfigName}AppConfigConfigProfile"
                 },
-                "Description": "configuration.appConfigDescription",
-                "Content": "configuration.appConfigDefaultConfiguration",
+                "Description": "${configuration.appConfigDescription}",
+                "Content": "${configuration.appConfigDefaultConfiguration}",
                 "ContentType": "application/json"
             }
         }

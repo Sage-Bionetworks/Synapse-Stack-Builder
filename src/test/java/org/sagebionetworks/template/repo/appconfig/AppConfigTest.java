@@ -49,7 +49,7 @@ public class AppConfigTest {
         template.merge(context, stringWriter);
         // Parse the resulting template
         System.out.println(stringWriter.toString());
-        StringBuilder builder = new StringBuilder("{");
+        StringBuilder builder = new StringBuilder("{\"empty\":{}");
         builder.append(stringWriter.toString());
         builder.append("}");
         JSONObject templateJson = new JSONObject(builder.toString());
