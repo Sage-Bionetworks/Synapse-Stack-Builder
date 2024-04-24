@@ -29,11 +29,11 @@ public class AppConfigVelocityContextProviderTest {
     @Test
     public void testAddToContext(){
         appConfigDescriptors = new ArrayList<>();
-        when(mockAppConfigConfig.getAppConfigConfigurations()).thenReturn(appConfigDescriptors);
+        when(mockAppConfigConfig.getAppConfigDescriptors()).thenReturn(appConfigDescriptors);
         //method under test
         provider.addToContext(mockContext);
 
-        verify(mockAppConfigConfig).getAppConfigConfigurations();
+        verify(mockAppConfigConfig).getAppConfigDescriptors();
         verify(mockContext).put(APPCONFIG_CONFIGURATIONS, appConfigDescriptors);
     }
 }

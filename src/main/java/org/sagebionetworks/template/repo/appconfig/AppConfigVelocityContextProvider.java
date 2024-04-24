@@ -21,6 +21,6 @@ public class AppConfigVelocityContextProvider implements VelocityContextProvider
 
     @Override
     public void addToContext(VelocityContext context) {
-        context.put(APPCONFIG_CONFIGURATIONS, appConfigConfig.getAppConfigConfigurations());
+        context.put(APPCONFIG_CONFIGURATIONS, appConfigConfig.getAppConfigDescriptors());
     }
 }

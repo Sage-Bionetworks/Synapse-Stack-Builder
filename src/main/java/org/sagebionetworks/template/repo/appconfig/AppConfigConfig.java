@@ -1,23 +1,15 @@
 package org.sagebionetworks.template.repo.appconfig;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Class used to deserialize JSON config. This class is immutable.
- */
 public class AppConfigConfig {
-    private final List<AppConfigDescriptor> appConfigDescriptors;
-    @JsonCreator
-    public AppConfigConfig(@JsonProperty(value = "appConfigDescriptors", required = true) List<AppConfigDescriptor> appConfigDescriptors) {
-        AppConfigConfigValidator validator = new AppConfigConfigValidator();
-        validator.validateConfigs(appConfigDescriptors);
+    private List<AppConfigDescriptor> appConfigDescriptors;
+    public AppConfigConfig() { }
+    public void setAppConfigDescriptors(List<AppConfigDescriptor> appConfigDescriptors) {
         this.appConfigDescriptors = appConfigDescriptors;
     }
-    public List<AppConfigDescriptor> getAppConfigConfigurations(){
+    public List<AppConfigDescriptor> getAppConfigDescriptors(){
         return appConfigDescriptors;
     }
 

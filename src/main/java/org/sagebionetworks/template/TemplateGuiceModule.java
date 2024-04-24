@@ -77,6 +77,7 @@ import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilderImpl;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
 import org.sagebionetworks.template.repo.appconfig.AppConfigConfig;
+import org.sagebionetworks.template.repo.appconfig.AppConfigConfigValidator;
 import org.sagebionetworks.template.repo.appconfig.AppConfigVelocityContextProvider;
 import org.sagebionetworks.template.repo.athena.RecurrentAthenaQueryConfig;
 import org.sagebionetworks.template.repo.athena.RecurrentAthenaQueryConfigValidator;
@@ -311,7 +312,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
 	@Provides
 	public AppConfigConfig appConfigProvider() throws IOException {
-		return loadFromJsonFile(APPCONFIG_CONFIG_FILE, AppConfigConfig.class);
+		return new AppConfigConfigValidator(loadFromJsonFile(APPCONFIG_CONFIG_FILE, AppConfigConfig.class)).validate();
 	}
 	
 	@Provides
