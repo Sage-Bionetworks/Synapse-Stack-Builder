@@ -221,7 +221,7 @@ public class Constants {
 
 	public static final String SNS_TOPIC_DESCRIPTORS = "snsTopicDescriptors";
 	public static final String SQS_QUEUE_DESCRIPTORS = "sqsQueueDescriptors";
-	public static final String APPCONFIG_CONFIGURATIONS = "AppConfigConfigurations";
+	public static final String APPCONFIG_CONFIGURATIONS = "appConfigConfigurations";
 
 	public static final String SOLUTION_STACK_NAME = "solutionStackName";
 	public static final String ENCRYPTED_AMI_IMAGE_ID = "encryptedImageId";

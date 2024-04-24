@@ -4,6 +4,11 @@
       "appConfigName": "portal",
       "appConfigDescription": "Freeform config for toggling experimental mode features",
       "appConfigDefaultConfiguration": "{\\\"Provenance v2 visualization\\\": true}"
+    },
+    {
+      "appConfigName": "backend",
+      "appConfigDescription": "Freeform config for toggling backend features",
+      "appConfigDefaultConfiguration": "{\\\"Two-factor authentication\\\": false}"
     }
   ]
 }

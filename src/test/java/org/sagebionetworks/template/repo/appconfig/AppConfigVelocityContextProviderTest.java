@@ -4,22 +4,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.*;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.velocity.VelocityContext;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.sagebionetworks.template.repo.queues.SnsAndSqsConfig;
-
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AppConfigVelocityContextProviderTest {
     @Mock
     VelocityContext mockContext;
@@ -31,14 +26,10 @@ public class AppConfigVelocityContextProviderTest {
     AppConfigVelocityContextProvider provider;
 
     List<AppConfigDescriptor> appConfigDescriptors;
-    @Before
-    public void setUp() throws IOException {
-        appConfigDescriptors = new ArrayList<>();
-        when(mockAppConfigConfig.getAppConfigConfigurations()).thenReturn(appConfigDescriptors);
-
-    }
     @Test
     public void testAddToContext(){
+        appConfigDescriptors = new ArrayList<>();
+        when(mockAppConfigConfig.getAppConfigConfigurations()).thenReturn(appConfigDescriptors);
         //method under test
         provider.addToContext(mockContext);
 
