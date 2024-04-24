@@ -121,8 +121,15 @@ import org.sagebionetworks.war.WarAppender;
 import org.sagebionetworks.war.WarAppenderImpl;
 
 import java.io.IOException;
+import static org.sagebionetworks.template.Constants.ATHENA_QUERIES_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.DATAWAREHOUSE_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.KINESIS_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARM_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.S3_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.SNS_AND_SQS_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.APPCONFIG_CONFIG_FILE;
 
-import static org.sagebionetworks.template.Constants.*;
 import static org.sagebionetworks.template.TemplateUtils.loadFromJsonFile;
 
 public class TemplateGuiceModule extends com.google.inject.AbstractModule {

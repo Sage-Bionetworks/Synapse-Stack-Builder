@@ -38,44 +38,5 @@
       "Content": "{\"Provenance v2 visualization\": true}",
       "ContentType": "application/json"
     }
-  },
-  "dev101backendAppConfigApp": {
-    "Type": "AWS::AppConfig::Application",
-    "Properties": {
-      "Name": "dev-101-backendAppConfigApp"
-    }
-  },
-  "dev101backendAppConfigEnvironment": {
-    "Type": "AWS::AppConfig::Environment",
-    "Properties": {
-      "ApplicationId": {
-        "Ref": "dev101backendAppConfigApp"
-      },
-      "Name": "dev-101-backend"
-    }
-  },
-  "dev101backendAppConfigConfigProfile": {
-    "Type": "AWS::AppConfig::ConfigurationProfile",
-    "Properties": {
-      "ApplicationId": {
-        "Ref": "dev101backendAppConfigApp"
-      },
-      "LocationUri": "hosted",
-      "Name": "dev-101-backend-configurations"
-    }
-  },
-  "dev101backendAppConfigHostedConfiguration": {
-    "Type": "AWS::AppConfig::HostedConfigurationVersion",
-    "Properties": {
-      "ApplicationId": {
-        "Ref": "dev101backendAppConfigApp"
-      },
-      "ConfigurationProfileId": {
-        "Ref": "dev101backendAppConfigConfigProfile"
-      },
-      "Description": "Freeform config for toggling backend features",
-      "Content": "{\"Two-factor authentication\": false}",
-      "ContentType": "application/json"
-    }
   }
 }
