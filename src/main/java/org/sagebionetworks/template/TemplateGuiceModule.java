@@ -76,6 +76,9 @@ import org.sagebionetworks.template.repo.IdGeneratorBuilderImpl;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilderImpl;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
+import org.sagebionetworks.template.repo.appconfig.AppConfigConfig;
+import org.sagebionetworks.template.repo.appconfig.AppConfigConfigValidator;
+import org.sagebionetworks.template.repo.appconfig.AppConfigVelocityContextProvider;
 import org.sagebionetworks.template.repo.athena.RecurrentAthenaQueryConfig;
 import org.sagebionetworks.template.repo.athena.RecurrentAthenaQueryConfigValidator;
 import org.sagebionetworks.template.repo.athena.RecurrentAthenaQueryContextProvider;
@@ -118,7 +121,6 @@ import org.sagebionetworks.war.WarAppender;
 import org.sagebionetworks.war.WarAppenderImpl;
 
 import java.io.IOException;
-
 import static org.sagebionetworks.template.Constants.ATHENA_QUERIES_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.DATAWAREHOUSE_CONFIG_FILE;
@@ -126,6 +128,8 @@ import static org.sagebionetworks.template.Constants.KINESIS_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARM_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.S3_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.SNS_AND_SQS_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.APPCONFIG_CONFIG_FILE;
+
 import static org.sagebionetworks.template.TemplateUtils.loadFromJsonFile;
 
 public class TemplateGuiceModule extends com.google.inject.AbstractModule {
@@ -177,7 +181,8 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(BackfillDataWarehouseBuilder.class).to(BackfillDataWarehouseBuilderImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
-		
+
+		velocityContextProviderMultibinder.addBinding().to(AppConfigVelocityContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(SnsAndSqsVelocityContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(KinesisFirehoseVelocityContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(RecurrentAthenaQueryContextProvider.class);
@@ -310,6 +315,11 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public SnsAndSqsConfig snsAndSqsConfigProvider() throws IOException {
 		return loadFromJsonFile(SNS_AND_SQS_CONFIG_FILE, SnsAndSqsConfig.class);
+	}
+
+	@Provides
+	public AppConfigConfig appConfigProvider() throws IOException {
+		return new AppConfigConfigValidator(loadFromJsonFile(APPCONFIG_CONFIG_FILE, AppConfigConfig.class)).validate();
 	}
 	
 	@Provides
