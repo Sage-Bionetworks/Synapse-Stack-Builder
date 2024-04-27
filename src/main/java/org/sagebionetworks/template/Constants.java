@@ -14,6 +14,7 @@ public class Constants {
 
 	public static final String DEFAULT_REPO_PROPERTIES = "templates/repo/repo-defaults.properties";
 	public static final String SNS_AND_SQS_CONFIG_FILE = "templates/repo/sns-and-sqs-config.json";
+	public static final String APPCONFIG_CONFIG_FILE = "templates/repo/appconfig-config.json";
 	public static final String KINESIS_CONFIG_FILE = "templates/repo/kinesis-log-streams.json";
 	public static final String CLOUDWATCH_LOGS_CONFIG_FILE = "templates/repo/cloudwatch-logs-config.json";
 	public static final String S3_CONFIG_FILE = "templates/s3/s3-buckets-config.json";
@@ -220,6 +221,7 @@ public class Constants {
 
 	public static final String SNS_TOPIC_DESCRIPTORS = "snsTopicDescriptors";
 	public static final String SQS_QUEUE_DESCRIPTORS = "sqsQueueDescriptors";
+	public static final String APPCONFIG_CONFIGURATIONS = "appConfigConfigurations";
 
 	public static final String SOLUTION_STACK_NAME = "solutionStackName";
 	public static final String ENCRYPTED_AMI_IMAGE_ID = "encryptedImageId";
