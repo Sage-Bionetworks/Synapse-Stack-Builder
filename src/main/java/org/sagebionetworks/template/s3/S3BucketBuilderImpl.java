@@ -2,12 +2,11 @@ package org.sagebionetworks.template.s3;
 
 import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
 import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_STACK_NAME_FORMAT;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_VIRUS_SCANNER_ARTIFACT_URL;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import java.io.File;
 import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -76,9 +75,8 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 
 	static final String INVENTORY_ID = "defaultInventory";
 	static final String INVENTORY_FORMAT = "Parquet";
-	static final String INVENTORY_PREFIX = "inventory";
 	static final List<String> INVENTORY_FIELDS = Arrays.asList(
-			"Size", "LastModifiedDate", "ETag", "IsMultipartUploaded"
+			"Size", "LastModifiedDate", "ETag", "IsMultipartUploaded", "StorageClass", "IntelligentTieringAccessTier", "EncryptionStatus", "ObjectOwner"
 	);
 	
 	static final String RULE_ID_RETENTION = "retentionRule";
@@ -139,8 +137,6 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		
 		String accountId = stsClient.getCallerIdentity(new GetCallerIdentityRequest()).getAccount();
 		
-		String inventoryBucket = TemplateUtils.replaceStackVariable(s3Config.getInventoryBucket(), stack);
-
 		List<String> virusScanEnabledBuckets = new ArrayList<>();
 		List<String> virusScanDisabledBuckets = new ArrayList<>();
 		
@@ -156,7 +152,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			
 			createBucket(bucket.getName());
 			configureEncryption(bucket.getName());	
-			configureInventory(bucket.getName(), accountId, inventoryBucket, bucket.isInventoryEnabled());
+			configureInventory(stack, bucket.getName(), accountId, s3Config.getInventoryConfig(), bucket.isInventoryEnabled());
 			configureBucketLifeCycle(bucket);
 			configureIntelligentTieringArchive(bucket);
 			configureBucketNotifications(bucket, stack);
@@ -315,55 +311,48 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		} 
 	}
 	
-	private void configureInventory(String bucketName, String accountId, String inventoryBucket, boolean enabled) {
-		if (inventoryBucket == null) {
+	private void configureInventory(String stack, String bucketName, String accountId, S3InventoryConfig inventoryConfig, boolean enabled) {
+		if (inventoryConfig == null) {
 			return;
 		}
+		
+		boolean configurationExists = true;
 		
 		try {
 			s3Client.getBucketInventoryConfiguration(bucketName, INVENTORY_ID);
 		} catch (AmazonServiceException e) {
 			if (e.getStatusCode() == 404) {
-				// If the inventory was disabled and does not exists, we do not add a configuration
-				if (enabled) {
-					setInventoryConfiguration(bucketName, accountId, inventoryBucket);
-				}
-				return;
+				configurationExists = false;
 			} else {
 				throw e;
 			}
 		}
 		
 		if (enabled) {
-			LOG.warn("An inventory configuration for bucket {} exists already, will not update.", bucketName);
-		} else {
+			LOG.info("Configuring inventory configuration for bucket {}.", bucketName);
+			InventoryConfiguration config = new InventoryConfiguration()
+					.withId(INVENTORY_ID)
+					.withDestination(
+							new InventoryDestination()
+								.withS3BucketDestination(
+										new InventoryS3BucketDestination()
+											.withBucketArn("arn:aws:s3:::" + TemplateUtils.replaceStackVariable(inventoryConfig.getBucket(), stack))
+											.withAccountId(accountId)
+											.withPrefix(inventoryConfig.getPrefix())
+											.withFormat(INVENTORY_FORMAT)
+								)
+					)
+					.withOptionalFields(INVENTORY_FIELDS)
+					.withSchedule(new InventorySchedule().withFrequency(InventoryFrequency.Weekly))
+					.withEnabled(true)
+					.withIncludedObjectVersions(InventoryIncludedObjectVersions.All);
+			
+			s3Client.setBucketInventoryConfiguration(bucketName, config);			
+		} else if (configurationExists) {
 			LOG.info("Removing inventory configuration for bucket {}.", bucketName);
 			s3Client.deleteBucketInventoryConfiguration(bucketName, INVENTORY_ID);
 		}
 		
-	}
-	
-	private void setInventoryConfiguration(String bucketName, String accountId, String inventoryBucket) {
-		LOG.info("Configuring inventory for bucket: {}.", bucketName);
-		
-		InventoryConfiguration config = new InventoryConfiguration()
-				.withId(INVENTORY_ID)
-				.withDestination(
-						new InventoryDestination()
-							.withS3BucketDestination(
-									new InventoryS3BucketDestination()
-										.withBucketArn("arn:aws:s3:::" + inventoryBucket)
-										.withAccountId(accountId)
-										.withPrefix(INVENTORY_PREFIX)
-										.withFormat(INVENTORY_FORMAT)
-							)
-				)
-				.withOptionalFields(INVENTORY_FIELDS)
-				.withSchedule(new InventorySchedule().withFrequency(InventoryFrequency.Weekly))
-				.withEnabled(true)
-				.withIncludedObjectVersions(InventoryIncludedObjectVersions.All);
-		
-		s3Client.setBucketInventoryConfiguration(bucketName, config);
 	}
 	
 	private void configureBucketLifeCycle(S3BucketDescriptor bucket) {

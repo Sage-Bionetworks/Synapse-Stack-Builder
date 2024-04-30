@@ -76,8 +76,7 @@ public class CertificateBuilderImplTest {
 		// expire in one one year
 		ZonedDateTime endDate = ZonedDateTime.ofInstant(certificate.getNotAfter().toInstant(), ZoneId.of("UTC"));
 		ZonedDateTime startDate = ZonedDateTime.ofInstant(certificate.getNotBefore().toInstant(), ZoneId.of("UTC"));
-		long months = ChronoUnit.MONTHS.between(startDate, endDate);
-		assertTrue( months >= 12);
+		assertEquals(endDate, startDate.plusYears(1));
 		assertNotNull(certificate.getSerialNumber());
 		assertNotNull(certificate.getPublicKey());
 		assertEquals("X.509", certificate.getPublicKey().getFormat());

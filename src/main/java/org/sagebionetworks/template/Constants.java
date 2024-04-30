@@ -14,6 +14,7 @@ public class Constants {
 
 	public static final String DEFAULT_REPO_PROPERTIES = "templates/repo/repo-defaults.properties";
 	public static final String SNS_AND_SQS_CONFIG_FILE = "templates/repo/sns-and-sqs-config.json";
+	public static final String APPCONFIG_CONFIG_FILE = "templates/repo/appconfig-config.json";
 	public static final String KINESIS_CONFIG_FILE = "templates/repo/kinesis-log-streams.json";
 	public static final String CLOUDWATCH_LOGS_CONFIG_FILE = "templates/repo/cloudwatch-logs-config.json";
 	public static final String S3_CONFIG_FILE = "templates/s3/s3-buckets-config.json";
@@ -28,7 +29,7 @@ public class Constants {
 	public static final String ROUTE53_PROD_DOCS_CLIENT_DNS_CONFIG_FILE = "templates/dns/prod_docs_clients_dns.json";
 	public static final String TEMPLATE_RESOURCE_PATH = "templates/dns/%s_dns.json";
 
-	public static final String ETL_CONFIG_FILE = "templates/datewarehouse/etl-jobs-config.json";
+	public static final String DATAWAREHOUSE_CONFIG_FILE = "templates/datawarehouse/datawarehouse-config.json";
 	public static final String GITHUB_CONFIG_FILE = "templates/repo/github-path-config.json";
 	/**
 	 * A VPC peering role ARN must start with this prefix.
@@ -161,10 +162,9 @@ public class Constants {
 	public static final String TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";
 	public static final String TEMPALTE_BEAN_STALK_ENVIRONMENT = "templates/repo/elasticbeanstalk-template.json.vpt";
 	public static final String TEMPLATE_ID_GENERATOR = "templates/repo/id-generator-template.json.vpt";
-	public static final String TEMPLATE_INVENTORY_BUCKET_POLICY_TEMPLATE = "templates/s3/s3-inventory-bucket-policy.json.vpt";
 	public static final String TEMPLATE_GLOBAL_RESOURCES = "templates/global/global-template.json.vpt";
 	public static final String TEMPLATE_S3_VIRUS_SCANNER = "templates/s3/s3-virus-scanner-template.json.vpt";
-	public static final String TEMPLATE_ETL_GLUE_JOB_RESOURCES = "templates/datewarehouse/etl-jobs-template.json.vpt";
+	public static final String TEMPLATE_DATAWAREHOUSE = "templates/datawarehouse/datawarehouse-template.json.vpt";
 	public static final String TEMPLATE_S3_BUCKET_POLICY = "templates/s3/s3-bucket-policy.json.vpt";
 
 	public static final int JSON_INDENT = 5;
@@ -221,6 +221,7 @@ public class Constants {
 
 	public static final String SNS_TOPIC_DESCRIPTORS = "snsTopicDescriptors";
 	public static final String SQS_QUEUE_DESCRIPTORS = "sqsQueueDescriptors";
+	public static final String APPCONFIG_CONFIGURATIONS = "appConfigConfigurations";
 
 	public static final String SOLUTION_STACK_NAME = "solutionStackName";
 	public static final String ENCRYPTED_AMI_IMAGE_ID = "encryptedImageId";
@@ -269,6 +270,8 @@ public class Constants {
 	public static final String PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG = "org.sagebionetworks.docs.deploy";
 	public static final String PROPERTY_KEY_DOCS_SOURCE_BUCKET = "org.sagebionetworks.docs.source";
 	public static final String PROPERTY_KEY_DOCS_DESTINATION_BUCKET = "org.sagebionetworks.docs.destination";
+	public static final String MACHINE_TYPES = "machineTypes";
+	public static final String POOL_TYPES = "poolTypes";
 
 	/**
 	 * Create a camel case name from dash-separated-name. Given 'foo-bar' will

@@ -774,14 +774,6 @@
 				"Name": "${stack}-${instance}-match-admin-remote-ip"
 			}
 		},
-		"${stack}${instance}WebAclLogGroup": {
-			"Type": "AWS::Logs::LogGroup",
-			"DeletionPolicy": "${deletionPolicy}",
-			"Properties": {
-				"LogGroupName": "aws-waf-logs-${stack}-${instance}",
-				"RetentionInDays": 30
-			}
-		},
 		"${stack}${instance}WebAclLoggingConfiguration": {
 			"Type": "AWS::WAFv2::LoggingConfiguration",
 			"Properties": {
@@ -799,12 +791,7 @@
 					]
 				},
 				"LogDestinationConfigs": [
-					{
-						"Fn::GetAtt": [
-							"${stack}${instance}WebAclLogGroup",
-							"Arn"
-						]
-					}
+					{ "Fn::ImportValue": "${globalResourcesExportPrefix}-WebAclCloudWatchLogGroupArn" }
 				],
 				"ResourceArn": {
 					"Fn::GetAtt": [

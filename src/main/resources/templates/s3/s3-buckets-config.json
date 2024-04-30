@@ -1,10 +1,6 @@
 {
 	"buckets": [
 		{
-			"name": "${stack}.inventory.sagebase.org",
-			"retentionDays": 30
-		},
-		{
 			"name": "${stack}data.sagebase.org",
 			"inventoryEnabled": true,
 			"storageClassTransitions": [
@@ -62,7 +58,13 @@
 			"retentionDays": 30
 		},
 		{
-			"name": "${stack}.datawarehouse.sagebase.org"
+			"name": "${stack}.datawarehouse.sagebase.org",
+			"storageClassTransitions": [
+				{
+					"storageClass": "IntelligentTiering",
+					"days": 1
+				}
+			]
 		},
 		{
 			"name": "${stack}.docker.registry.sagebase.org"
@@ -74,7 +76,10 @@
 			"name": "${stack}.aws-glue.sagebase.org"
 		}
 	],
-	"inventoryBucket": "${stack}.inventory.sagebase.org",
+	"inventoryConfig": {
+		"bucket": "${stack}.datawarehouse.sagebase.org",
+		"prefix": "warehouse/inventory"
+	},
 	"virusScannerConfig": {
 		"lambdaArtifactBucket": "${stack}.lambda.sagebase.org",
 		"notificationEmail": "synapse-ops@sagebase.org"

@@ -120,9 +120,8 @@
                 }
             }
         },
-		#foreach( $etl in $etlJobDescriptors)
-        #if( $etl.tableDescriptor )
-        "${etl.tableDescriptor.name}GlueTable": {
+        #foreach( $tableDescriptor in $tableDescriptors)
+        "${tableDescriptor.name}GlueTable": {
             "Type":"AWS::Glue::Table",
             "Properties": {
                 "CatalogId": {
@@ -132,11 +131,11 @@
                     "Ref":"${glueDatabaseName}GlueDatabase"
                 },
                 "TableInput": {
-                    "Name": "$etl.tableDescriptor.name",
-                    "Description" : "$etl.tableDescriptor.description",
+                    "Name": "$tableDescriptor.name",
+                    "Description" : "$tableDescriptor.description",
                     "StorageDescriptor": {
                         "Columns": [
-                            #foreach($column in $etl.tableDescriptor.columns)
+                            #foreach($column in $tableDescriptor.columns)
                             {
                                 "Name":"$column.name",
                                 "Type":"$column.type",
@@ -145,15 +144,23 @@
                             #if( $foreach.hasNext),#end
                             #end
                         ],
+                        #if ($tableDescriptor.inputFormat)
+                        "InputFormat": "$tableDescriptor.inputFormat",
+                        #else 
                         "InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+                        #end
                         "SerdeInfo": {
                             "SerializationLibrary": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe"
                         },
                         "Compressed": true,
-                        "Location": "s3://${stack}.datawarehouse.sagebase.org/${glueDatabaseName}/${etl.tableDescriptor.name}/",
+                        #if ($tableDescriptor.location)
+                        "Location": "$tableDescriptor.location"
+                        #else
+                        "Location": "s3://${stack}.datawarehouse.sagebase.org/${glueDatabaseName}/${tableDescriptor.name}/"
+                        #end
                     },
                     "PartitionKeys": [
-                        #foreach($partition in $etl.tableDescriptor.partitionKeys)
+                        #foreach($partition in $tableDescriptor.partitionKeys)
                         {
                             "Name":"$partition.name",
                             "Type":"$partition.type",
@@ -162,9 +169,9 @@
                         #if( $foreach.hasNext),#end
                         #end
                     ],
-                    #if ($etl.tableDescriptor.parameters)
+                    #if ($tableDescriptor.parameters)
                     "Parameters": {
-                        #foreach($parameter in $etl.tableDescriptor.parameters.entrySet())
+                        #foreach($parameter in $tableDescriptor.parameters.entrySet())
                         "${parameter.key}": "${parameter.value}" #if($foreach.hasNext),#end
                         #end
                     },
@@ -174,6 +181,7 @@
             }
         },
         #end
+		#foreach( $etl in $etlJobDescriptors)
 		"${etl.name}GlueJob": {
 			"Type": "AWS::Glue::Job",
 			"Properties": {
@@ -187,7 +195,7 @@
 					"--enable-metrics": "true",
 					"--job-language": "python",
 					"--DATABASE_NAME": "${glueDatabaseName}",
-					"--TABLE_NAME": "${etl.tableDescriptor.name}",
+					"--TABLE_NAME": "${etl.targetTable}",
 					"--S3_SOURCE_PATH": "s3://${stack}.${etl.sourcePath}",
 					"--extra-py-files": "${extraScripts}"
 				},
@@ -208,8 +216,8 @@
             "Type": "SCHEDULED",
             "StartOnCreation": "true",
             "Description" : "Trigger for job ${glueDatabaseName}_${etl.name}",
-             "Name" : "${glueDatabaseName}_${etl.name}_trigger",
-             "Schedule" : "cron(0 * * * ? *)",
+            "Name" : "${glueDatabaseName}_${etl.name}_trigger",
+            "Schedule" : "cron(0 */6 ? * * *)",
             "Actions" : [
                 {
                      "JobName" : "${glueDatabaseName}_${etl.name}"
@@ -218,5 +226,37 @@
             }
         },
 		#end
+		"${glueDatabaseName}FailedJobRule": {
+			"Type": "AWS::Events::Rule",
+			"Properties": {
+				"Description": "Rule to send an email for each failed warehouse ETL job failure",
+				"EventBusName": "default",
+				"EventPattern": {
+					"source": [
+						"aws.glue"
+					],
+					"detail-type": [
+						"Glue Job State Change"
+					],
+					"detail": {
+						"state": [
+							"FAILED"
+						],
+						"jobName": [
+							#foreach( $etl in $etlJobDescriptors)
+								"${glueDatabaseName}_${etl.name}",
+							#end
+						]
+					}
+				},
+				"State": "ENABLED",
+				"Targets": [
+					{
+						"Id": "warehouse-etl-job-failure-target",
+						"Arn": {"Fn::ImportValue": "us-east-1-synapse-${stack}-global-resources-NotificationTopic"}
+					}
+				]
+			}
+		}
 	}
 }

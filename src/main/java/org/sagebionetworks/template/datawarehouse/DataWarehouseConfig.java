@@ -4,18 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import org.sagebionetworks.template.repo.glue.GlueTableDescriptor;
 
-public class EtlJobConfig {
+
+public class DataWarehouseConfig {
 	private String githubRepo;
 	private String version;
 	private List<String> extraScripts;
+	private List<GlueTableDescriptor> tableDescriptors = new ArrayList<>();
     private List<EtlJobDescriptor> etlJobDescriptors = new ArrayList<>();
     
     public String getGithubRepo() {
 		return githubRepo;
 	}
 
-	public EtlJobConfig withGithubRepo(String githubRepo) {
+	public DataWarehouseConfig withGithubRepo(String githubRepo) {
 		this.githubRepo = githubRepo;
 		return this;
 	}
@@ -24,8 +27,17 @@ public class EtlJobConfig {
 		return version;
 	}
 
-	public EtlJobConfig withVersion(String version) {
+	public DataWarehouseConfig withVersion(String version) {
 		this.version = version;
+		return this;
+	}
+	
+	public List<GlueTableDescriptor> getTableDescriptors() {
+		return tableDescriptors;
+	}
+	
+	public DataWarehouseConfig withTableDescriptors(List<GlueTableDescriptor> tableDescriptors) {
+		this.tableDescriptors = tableDescriptors;
 		return this;
 	}
 
@@ -33,7 +45,7 @@ public class EtlJobConfig {
         return etlJobDescriptors;
     }
 
-    public EtlJobConfig withEtlJobDescriptors(List<EtlJobDescriptor> etlJobDescriptors) {
+    public DataWarehouseConfig withEtlJobDescriptors(List<EtlJobDescriptor> etlJobDescriptors) {
         this.etlJobDescriptors = etlJobDescriptors;
         return this;
     }
@@ -42,7 +54,7 @@ public class EtlJobConfig {
 		return extraScripts;
 	}
     
-    public EtlJobConfig withExtraScripts(List<String> extraScripts) {
+    public DataWarehouseConfig withExtraScripts(List<String> extraScripts) {
 		this.extraScripts = extraScripts;
 		return this;
 	}
@@ -52,16 +64,17 @@ public class EtlJobConfig {
 		if (this == obj) {
 			return true;
 		}
-		if (!(obj instanceof EtlJobConfig)) {
+		if (!(obj instanceof DataWarehouseConfig)) {
 			return false;
 		}
-		EtlJobConfig other = (EtlJobConfig) obj;
+		DataWarehouseConfig other = (DataWarehouseConfig) obj;
 		return Objects.equals(etlJobDescriptors, other.etlJobDescriptors) && Objects.equals(extraScripts, other.extraScripts)
-				&& Objects.equals(githubRepo, other.githubRepo) && Objects.equals(version, other.version);
+				&& Objects.equals(githubRepo, other.githubRepo) && Objects.equals(tableDescriptors, other.tableDescriptors)
+				&& Objects.equals(version, other.version);
 	}
 
     @Override
 	public int hashCode() {
-		return Objects.hash(etlJobDescriptors, extraScripts, githubRepo, version);
+		return Objects.hash(etlJobDescriptors, extraScripts, githubRepo, tableDescriptors, version);
 	}
 }

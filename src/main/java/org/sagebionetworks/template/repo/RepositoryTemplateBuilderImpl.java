@@ -1,15 +1,15 @@
 package org.sagebionetworks.template.repo;
 
 
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.StringJoiner;
-import java.util.stream.Collectors;
-
+import com.amazonaws.services.cloudformation.model.Output;
+import com.amazonaws.services.cloudformation.model.Parameter;
+import com.amazonaws.services.cloudformation.model.Stack;
+import com.amazonaws.services.cloudformation.model.Tag;
+import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
+import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
+import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
+import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
+import com.google.inject.Inject;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -33,15 +33,14 @@ import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
 
-import com.amazonaws.services.cloudformation.model.Output;
-import com.amazonaws.services.cloudformation.model.Parameter;
-import com.amazonaws.services.cloudformation.model.Stack;
-import com.amazonaws.services.cloudformation.model.Tag;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
-import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
-import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
-import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
-import com.google.inject.Inject;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 import static org.sagebionetworks.template.Constants.ADMIN_RULE_ACTION;
 import static org.sagebionetworks.template.Constants.BEANSTALK_INSTANCES_SUBNETS;
@@ -60,10 +59,12 @@ import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
 import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
+import static org.sagebionetworks.template.Constants.MACHINE_TYPES;
 import static org.sagebionetworks.template.Constants.NOSNAPSHOT;
 import static org.sagebionetworks.template.Constants.OAUTH_ENDPOINT;
 import static org.sagebionetworks.template.Constants.OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
+import static org.sagebionetworks.template.Constants.POOL_TYPES;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MAX_INSTANCES;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MIN_INSTANCES;
@@ -107,7 +108,8 @@ import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
-
+	public static final List<String> MACHINE_TYPE_LIST = List.of("Workers", "Repository");
+	public static final List<String> POOL_TYPE_LIST = List.of("Idgen", "Main", "Migration", "Tables");
 
 	private final CloudFormationClient cloudFormationClient;
 	private final Ec2Client ec2Client;
@@ -195,7 +197,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		
 		Parameter ttl = timeToLive.createTimeToLiveParameter().orElse(null);
 
-		List<String> environmentNames = new LinkedList<String>();
+		List<String> environmentNames = new LinkedList<>();
 		// each environment is treated as its own stack.
 		for (EnvironmentDescriptor environment : createEnvironments(secretsSouce)) {
 			VelocityContext context = createEnvironmentContext(sharedStackResults, environment);
@@ -303,6 +305,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
 		context.put(STACK, stack);
 		context.put(INSTANCE, config.getProperty(PROPERTY_KEY_INSTANCE));
+		context.put(MACHINE_TYPES, MACHINE_TYPE_LIST);
+		context.put(POOL_TYPES, POOL_TYPE_LIST);
 		context.put(VPC_SUBNET_COLOR, config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR));
 		context.put(SHARED_RESOUCES_STACK_NAME, createSharedResourcesStackName());
 		context.put(GLOBAL_RESOURCES_EXPORT_PREFIX, Constants.createGlobalResourcesExportPrefix(stack));

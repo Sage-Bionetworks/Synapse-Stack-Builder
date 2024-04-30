@@ -11,9 +11,9 @@ public class S3Config {
 	private List<S3BucketDescriptor> buckets;
 
 	/**
-	 * The name of the bucket used as inventory if any
+	 * The inventory configuration
 	 */
-	private String inventoryBucket;
+	private S3InventoryConfig inventoryConfig;
 
 	private S3VirusScannerConfig virusScannerConfig;
 
@@ -27,12 +27,12 @@ public class S3Config {
 		this.buckets = buckets;
 	}
 
-	public String getInventoryBucket() {
-		return inventoryBucket;
+	public S3InventoryConfig getInventoryConfig() {
+		return inventoryConfig;
 	}
 
-	public void setInventoryBucket(String inventoryBucket) {
-		this.inventoryBucket = inventoryBucket;
+	public void setInventoryConfig(S3InventoryConfig inventoryConfig) {
+		this.inventoryConfig = inventoryConfig;
 	}
 	
 	public S3VirusScannerConfig getVirusScannerConfig() {
@@ -45,7 +45,7 @@ public class S3Config {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(buckets, inventoryBucket, virusScannerConfig);
+		return Objects.hash(buckets, inventoryConfig, virusScannerConfig);
 	}
 
 	@Override
@@ -53,20 +53,17 @@ public class S3Config {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
+		if (!(obj instanceof S3Config)) {
 			return false;
 		}
 		S3Config other = (S3Config) obj;
-		return Objects.equals(buckets, other.buckets) && Objects.equals(inventoryBucket, other.inventoryBucket)
+		return Objects.equals(buckets, other.buckets) && Objects.equals(inventoryConfig, other.inventoryConfig)
 				&& Objects.equals(virusScannerConfig, other.virusScannerConfig);
 	}
 
 	@Override
 	public String toString() {
-		return "S3Config [buckets=" + buckets + ", inventoryBucket=" + inventoryBucket + "]";
+		return "S3Config [buckets=" + buckets + ", inventoryConfig=" + inventoryConfig + ", virusScannerConfig=" + virusScannerConfig + "]";
 	}
 
 }

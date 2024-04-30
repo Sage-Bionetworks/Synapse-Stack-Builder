@@ -1,3 +1,35 @@
+
+#foreach( $machineType in $machineTypes )
+    #foreach( $poolType in $poolTypes )
+        ,
+        "${stack}${instance}${machineType}Active${poolType}ConnectionPoolExhaustedAlarm": {
+            		"Type" : "AWS::CloudWatch::Alarm",
+            		"Properties" : {
+            			"ActionsEnabled" : true,
+            			"AlarmActions" : [
+            				{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
+            			],
+            			"AlarmDescription" : "Alert when ${machineType.toLowerCase()} database ${poolType.toLowerCase()} active connection pool is exhausted.",
+            			"AlarmName" : "${stack}-${instance}-${machineType}-Active-${poolType}-ConnectionPool-Exhausted",
+            			"ComparisonOperator" : "GreaterThanOrEqualToThreshold",
+            			"Dimensions" : [
+                            {
+                                "Name" : "dataSourceId",
+                                "Value" : "${poolType.toLowerCase()}"
+                            }
+                        ],
+            			"EvaluationPeriods" : 2,
+            			"Period" : 60,
+            			"MetricName" : "activeConnectionsCount",
+            			"Namespace" : "${machineType}-Database-${instance}",
+            			"Statistic" : "Average",
+            			"Threshold" : 39,
+            			"TreatMissingData": "notBreaching"
+            		}
+            	}
+    #end
+#end
+
 #if(${stack} == 'prod')
 	,
 	"${stack}${instance}DockerRegistryBadCredentialsAlarm": {

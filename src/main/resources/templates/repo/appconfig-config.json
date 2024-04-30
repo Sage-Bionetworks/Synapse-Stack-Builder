@@ -1,0 +1,9 @@
+{
+  "appConfigDescriptors": [
+    {
+      "appConfigName": "portal",
+      "appConfigDescription": "Freeform config for toggling experimental mode features",
+      "appConfigDefaultConfiguration": "{\\\"Provenance v2 visualization\\\": true}"
+    }
+  ]
+}
