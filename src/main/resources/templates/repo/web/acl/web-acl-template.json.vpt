@@ -335,72 +335,7 @@
 						},
 						"Name": "${stack}-${instance}-URI-Query-XSS-Rule",
 						"Priority": 5,
-						"Statement": {
-							"OrStatement": {
-								"Statements": [
-									{
-										"XssMatchStatement": {
-											"FieldToMatch": {
-												"UriPath": {
-													
-												}
-											},
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "URL_DECODE"
-												}
-											]
-										}
-									},
-									{
-										"XssMatchStatement": {
-											"FieldToMatch": {
-												"QueryString": {
-													
-												}
-											},
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "HTML_ENTITY_DECODE"
-												}
-											]
-										}
-									},
-									{
-										"XssMatchStatement": {
-											"FieldToMatch": {
-												"UriPath": {
-													
-												}
-											},
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "HTML_ENTITY_DECODE"
-												}
-											]
-										}
-									},
-									{
-										"XssMatchStatement": {
-											"FieldToMatch": {
-												"QueryString": {
-													
-												}
-											},
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "URL_DECODE"
-												}
-											]
-										}
-									}
-								]
-							}
-						},
+						"Statement": #parse("templates/repo/web/acl/uri-query-xss-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
 							"MetricName": "${stack}${instance}URIQueryXssRule",

@@ -1,0 +1,108 @@
+{
+	"AndStatement": {
+		"Statements": [
+			{
+				"OrStatement": {
+					"Statements": [
+						{
+							"XssMatchStatement": {
+								"FieldToMatch": {
+									"UriPath": {
+									}
+								},
+								"TextTransformations": [
+									{
+										"Priority": 0,
+										"Type": "URL_DECODE"
+									}
+								]
+							}
+						},
+						{
+							"XssMatchStatement": {
+								"FieldToMatch": {
+									"QueryString": {
+									}
+								},
+								"TextTransformations": [
+									{
+										"Priority": 0,
+										"Type": "HTML_ENTITY_DECODE"
+									}
+								]
+							}
+						},
+						{
+							"XssMatchStatement": {
+								"FieldToMatch": {
+									"UriPath": {
+									}
+								},
+								"TextTransformations": [
+									{
+										"Priority": 0,
+										"Type": "HTML_ENTITY_DECODE"
+									}
+								]
+							}
+						},
+						{
+							"XssMatchStatement": {
+								"FieldToMatch": {
+									"QueryString": {
+									}
+								},
+								"TextTransformations": [
+									{
+										"Priority": 0,
+										"Type": "URL_DECODE"
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"NotStatement": {
+					"Statement": {
+						"OrStatement": {
+							"Statements": [
+								{
+									"RegexMatchStatement": {
+										"RegexString": "/repo/v1/thread/.*/threadcount",
+										"FieldToMatch": {
+											"UriPath": {
+											}
+										},
+										"TextTransformations": [
+											{
+												"Priority": 0,
+												"Type": "NONE"
+											}
+										]
+									}
+								},
+								{
+									"RegexMatchStatement": {
+										"RegexString": "/repo/v1/thread/.*/replycount",
+										"FieldToMatch": {
+											"UriPath": {
+											}
+										},
+										"TextTransformations": [
+											{
+												"Priority": 0,
+												"Type": "NONE"
+											}
+										]
+									}
+								}
+							]
+						}
+					}
+				}
+			}
+		]
+	}
+}
