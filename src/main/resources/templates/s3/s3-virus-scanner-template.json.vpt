@@ -206,7 +206,7 @@
                ]
             },
             "Timeout":300,
-            "Runtime":"python3.11",
+            "Runtime":"python3.12",
             "Handler":"scan.lambda_handler",
             "Environment":{
                "Variables":{
@@ -253,7 +253,7 @@
                ]
             },
             "Timeout":300,
-            "Runtime":"python3.11",
+            "Runtime":"python3.12",
             "Handler":"update.lambda_handler",
             "Environment":{
                "Variables":{
