@@ -535,7 +535,6 @@ public class RepositoryTemplateBuilderImplTest {
 		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);
 		JSONObject templateJson = new JSONObject(bodyJSONString);
-		System.out.println(bodyJSONString);
 		
 		assertEquals("NONE", templateJson.getJSONObject("Parameters").getJSONObject("TimeToLive").get("Default"));
 				
