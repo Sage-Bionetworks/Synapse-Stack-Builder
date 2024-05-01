@@ -76,7 +76,7 @@
 								},
 								{
 									"RegexMatchStatement": {
-										"RegexString": "/repo/v1/entity/.*/wiki/.*",
+										"RegexString": "\\/repo\\/v1\\/entity\\/\\d+\\/wiki\\/\\d+",
 										"FieldToMatch": {
 											"UriPath": {
 											}

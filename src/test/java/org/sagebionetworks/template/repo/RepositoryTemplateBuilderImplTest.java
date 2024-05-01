@@ -457,6 +457,14 @@ public class RepositoryTemplateBuilderImplTest {
 		assertFalse(tDbProps.has("DBSnapshotIdentifier"));
 		assertTrue(tDbProps.has("DBName"));
 	}
+	
+	@Test
+	public void testJsonEncode() {
+		JSONObject ob = new JSONObject();
+		ob.put("key", "\\/repo\\/v1\\/entity\\/\\d+\\/wiki\\/\\d+");
+		System.out.println(ob.toString(2));
+		System.out.println(ob.get("key"));
+	}
 
 	@Test
 	public void testBuildAndDeployDev() throws InterruptedException {
