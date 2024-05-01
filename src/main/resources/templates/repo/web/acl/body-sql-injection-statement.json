@@ -43,8 +43,25 @@
 						"OrStatement": {
 							"Statements": [
 								{
-									"RegexMatchStatement": {
-										"RegexString": "//repo/v1/entity/.*/table/download/csv/async/start",
+									"ByteMatchStatement": {
+										"PositionalConstraint": "ENDS_WITH",
+										"SearchString": "/table/download/csv/async/start",
+										"FieldToMatch": {
+											"UriPath": {
+											}
+										},
+										"TextTransformations": [
+											{
+												"Priority": 0,
+												"Type": "NONE"
+											}
+										]
+									}
+								},
+								{
+									"ByteMatchStatement": {
+										"PositionalConstraint": "ENDS_WITH",
+										"SearchString": "/table/query/async/start",
 										"FieldToMatch": {
 											"UriPath": {
 											}
