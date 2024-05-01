@@ -1,0 +1,67 @@
+{
+	"AndStatement": {
+		"Statements": [
+			{
+				"OrStatement": {
+					"Statements": [
+						{
+							"SqliMatchStatement": {
+								"FieldToMatch": {
+									"Body": {
+										"OversizeHandling": "CONTINUE"
+									}
+								},
+								"TextTransformations": [
+									{
+										"Priority": 0,
+										"Type": "HTML_ENTITY_DECODE"
+									}
+								]
+							}
+						},
+						{
+							"SqliMatchStatement": {
+								"FieldToMatch": {
+									"Body": {
+										"OversizeHandling": "CONTINUE"
+									}
+								},
+								"TextTransformations": [
+									{
+										"Priority": 0,
+										"Type": "URL_DECODE"
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"NotStatement": {
+					"Statement": {
+						"OrStatement": {
+							"Statements": [
+								{
+									"RegexMatchStatement": {
+										"RegexString": "//repo/v1/entity/.*/table/download/csv/async/start",
+										"FieldToMatch": {
+											"UriPath": {
+											}
+										},
+										"TextTransformations": [
+											{
+												"Priority": 0,
+												"Type": "NONE"
+											}
+										]
+									}
+								}
+							]
+						}
+					}
+				}
+			}
+		]
+	}
+}

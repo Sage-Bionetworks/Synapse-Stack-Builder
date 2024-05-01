@@ -1,0 +1,181 @@
+{
+	"AndStatement": {
+		"Statements": [
+			{
+				"OrStatement": {
+					"Statements": [
+						{
+							"ByteMatchStatement": {
+								"FieldToMatch": {
+									"QueryString": {
+									}
+								},
+								"PositionalConstraint": "CONTAINS",
+								"SearchStringBase64": "Oi8v",
+								"TextTransformations": [
+									{
+										"Priority": 0,
+										"Type": "URL_DECODE"
+									}
+								]
+							}
+						},
+						{
+							"ByteMatchStatement": {
+								"FieldToMatch": {
+									"QueryString": {
+									}
+								},
+								"PositionalConstraint": "CONTAINS",
+								"SearchStringBase64": "Oi8v",
+								"TextTransformations": [
+									{
+										"Priority": 0,
+										"Type": "HTML_ENTITY_DECODE"
+									}
+								]
+							}
+						},
+						{
+							"ByteMatchStatement": {
+								"FieldToMatch": {
+									"UriPath": {
+									}
+								},
+								"PositionalConstraint": "CONTAINS",
+								"SearchStringBase64": "Oi8v",
+								"TextTransformations": [
+									{
+										"Priority": 0,
+										"Type": "URL_DECODE"
+									}
+								]
+							}
+						},
+						{
+							"ByteMatchStatement": {
+								"FieldToMatch": {
+									"UriPath": {
+									}
+								},
+								"PositionalConstraint": "CONTAINS",
+								"SearchStringBase64": "Oi8v",
+								"TextTransformations": [
+									{
+										"Priority": 0,
+										"Type": "HTML_ENTITY_DECODE"
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"NotStatement": {
+					"Statement": {
+						"OrStatement": {
+							"Statements": [
+								{
+									"ByteMatchStatement": {
+										"FieldToMatch": {
+											"UriPath": {
+											}
+										},
+										"PositionalConstraint": "EXACTLY",
+										"SearchString": "/Portal/oauth2callback",
+										"TextTransformations": [
+											{
+												"Priority": 0,
+												"Type": "NONE"
+											}
+										]
+									}
+								},
+								{
+									"RegexMatchStatement": {
+										"RegexString": "/repo/v1/team/.*/member/.*",
+										"FieldToMatch": {
+											"UriPath": {
+											}
+										},
+										"TextTransformations": [
+											{
+												"Priority": 0,
+												"Type": "NONE"
+											}
+										]
+									}
+								},
+								{
+									"ByteMatchStatement": {
+										"FieldToMatch": {
+											"UriPath": {
+											}
+										},
+										"PositionalConstraint": "EXACTLY",
+										"SearchString": "/repo/v1/account/emailValidation",
+										"TextTransformations": [
+											{
+												"Priority": 0,
+												"Type": "NONE"
+											}
+										]
+									}
+								},
+								{
+									"ByteMatchStatement": {
+										"FieldToMatch": {
+											"UriPath": {
+											}
+										},
+										"PositionalConstraint": "EXACTLY",
+										"SearchString": "/auth/v1/oauth2/token",
+										"TextTransformations": [
+											{
+												"Priority": 0,
+												"Type": "NONE"
+											}
+										]
+									}
+								},
+								{
+									"ByteMatchStatement": {
+										"FieldToMatch": {
+											"UriPath": {
+											}
+										},
+										"PositionalConstraint": "EXACTLY",
+										"SearchString": "/repo/v1/account/emailValidation",
+										"TextTransformations": [
+											{
+												"Priority": 0,
+												"Type": "NONE"
+											}
+										]
+									}
+								},
+								{
+									"ByteMatchStatement": {
+										"FieldToMatch": {
+											"UriPath": {
+											}
+										},
+										"PositionalConstraint": "EXACTLY",
+										"SearchString": "/auth/v1/user/password/reset",
+										"TextTransformations": [
+											{
+												"Priority": 0,
+												"Type": "NONE"
+											}
+										]
+									}
+								}
+							]
+						}
+					}
+				}
+			}
+		]
+	}
+}

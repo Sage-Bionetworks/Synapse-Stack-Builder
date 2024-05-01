@@ -7,21 +7,8 @@
 						{
 							"XssMatchStatement": {
 								"FieldToMatch": {
-									"UriPath": {
-									}
-								},
-								"TextTransformations": [
-									{
-										"Priority": 0,
-										"Type": "URL_DECODE"
-									}
-								]
-							}
-						},
-						{
-							"XssMatchStatement": {
-								"FieldToMatch": {
-									"QueryString": {
+									"Body": {
+										"OversizeHandling": "CONTINUE"
 									}
 								},
 								"TextTransformations": [
@@ -35,21 +22,8 @@
 						{
 							"XssMatchStatement": {
 								"FieldToMatch": {
-									"UriPath": {
-									}
-								},
-								"TextTransformations": [
-									{
-										"Priority": 0,
-										"Type": "HTML_ENTITY_DECODE"
-									}
-								]
-							}
-						},
-						{
-							"XssMatchStatement": {
-								"FieldToMatch": {
-									"QueryString": {
+									"Body": {
+										"OversizeHandling": "CONTINUE"
 									}
 								},
 								"TextTransformations": [
@@ -69,27 +43,13 @@
 						"OrStatement": {
 							"Statements": [
 								{
-									"RegexMatchStatement": {
-										"RegexString": "/repo/v1/thread/.*/threadcount",
+									"ByteMatchStatement": {
 										"FieldToMatch": {
 											"UriPath": {
 											}
 										},
-										"TextTransformations": [
-											{
-												"Priority": 0,
-												"Type": "NONE"
-											}
-										]
-									}
-								},
-								{
-									"RegexMatchStatement": {
-										"RegexString": "/repo/v1/thread/.*/replycount",
-										"FieldToMatch": {
-											"UriPath": {
-											}
-										},
+										"PositionalConstraint": "EXACTLY",
+										"SearchString": "/repo/v1/cloudMailInMessage",
 										"TextTransformations": [
 											{
 												"Priority": 0,
@@ -105,7 +65,22 @@
 											}
 										},
 										"PositionalConstraint": "EXACTLY",
-										"SearchString": "//repo/v1/projects",
+										"SearchString": "/Portal/synapseclient",
+										"TextTransformations": [
+											{
+												"Priority": 0,
+												"Type": "NONE"
+											}
+										]
+									}
+								},
+								{
+									"RegexMatchStatement": {
+										"RegexString": "/repo/v1/entity/.*/wiki/.*",
+										"FieldToMatch": {
+											"UriPath": {
+											}
+										},
 										"TextTransformations": [
 											{
 												"Priority": 0,

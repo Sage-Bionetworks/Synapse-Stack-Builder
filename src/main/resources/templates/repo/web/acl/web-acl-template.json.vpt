@@ -24,27 +24,7 @@
 					{
 						"Name": "${stack}-${instance}-throttle-file-handle-batch",
 					    "Priority": 0,
-						"Statement": {
-						    "RateBasedStatement": {
-						    "Limit": 10000,
-						    "AggregateKeyType": "IP",
-						    "ScopeDownStatement": {
-						      "ByteMatchStatement": {
-						        "SearchString": "/file/v1/fileHandle/batch",
-						        "FieldToMatch": {
-						          "UriPath": {}
-						        },
-						        "TextTransformations": [
-						          {
-						            "Priority": 0,
-						            "Type": "NONE"
-						          }
-						        ],
-						        "PositionalConstraint": "EXACTLY"
-						      }
-						    }
-						  }
-						},
+						"Statement": #parse("templates/repo/web/acl/throttle-file-handle-batch-statement.json"),
 						"Action": {
 						  "Block": {
 						    "CustomResponse": {
@@ -67,80 +47,7 @@
 						},
 						"Name": "${stack}-${instance}-size-restrictions-rule",
 						"Priority": 1,
-						"Statement": {
-							"OrStatement": {
-								"Statements": [
-									{
-										"SizeConstraintStatement": {
-											"ComparisonOperator": "GT",
-											"FieldToMatch": {
-												"QueryString": {
-													
-												}
-											},
-											"Size": 4096,
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "NONE"
-												}
-											]
-										}
-									},
-									{
-										"SizeConstraintStatement": {
-											"ComparisonOperator": "GT",
-											"FieldToMatch": {
-												"SingleHeader": {
-													"Name": "cookie"
-												}
-											},
-											"Size": 4096,
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "NONE"
-												}
-											]
-										}
-									},
-									{
-										"SizeConstraintStatement": {
-											"ComparisonOperator": "GT",
-											"FieldToMatch": {
-												"UriPath": {
-													
-												}
-											},
-											"Size": 512,
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "NONE"
-												}
-											]
-										}
-									},
-									{
-										"SizeConstraintStatement": {
-											"ComparisonOperator": "GT",
-											"FieldToMatch": {
-												"Body": {
-													"OversizeHandling": "CONTINUE"
-												}
-											},
-											"Size": 2097152,
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "NONE"
-												}
-											]
-										}
-									}
-								]
-							}
-						},
+						"Statement": #parse("templates/repo/web/acl/size-restriction-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
 							"MetricName": "${stack}${instance}SizeRestrictionsRule",
@@ -155,72 +62,7 @@
 						},
 						"Name": "${stack}-${instance}-URI-Query-SQL-Injection-Rule",
 						"Priority": 2,
-						"Statement": {
-							"OrStatement": {
-								"Statements": [
-									{
-										"SqliMatchStatement": {
-											"FieldToMatch": {
-												"UriPath": {
-													
-												}
-											},
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "URL_DECODE"
-												}
-											]
-										}
-									},
-									{
-										"SqliMatchStatement": {
-											"FieldToMatch": {
-												"QueryString": {
-													
-												}
-											},
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "HTML_ENTITY_DECODE"
-												}
-											]
-										}
-									},
-									{
-										"SqliMatchStatement": {
-											"FieldToMatch": {
-												"UriPath": {
-													
-												}
-											},
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "HTML_ENTITY_DECODE"
-												}
-											]
-										}
-									},
-									{
-										"SqliMatchStatement": {
-											"FieldToMatch": {
-												"QueryString": {
-													
-												}
-											},
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "URL_DECODE"
-												}
-											]
-										}
-									}
-								]
-							}
-						},
+						"Statement": #parse("templates/repo/web/acl/uri-query-sql-injection-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
 							"MetricName": "${stack}${instance}URIQuerySQLInjectionRule",
@@ -235,42 +77,7 @@
 						},
 						"Name": "${stack}-${instance}-Body-SQL-Injection-Rule",
 						"Priority": 3,
-						"Statement": {
-							"OrStatement": {
-								"Statements": [
-									{
-										"SqliMatchStatement": {
-											"FieldToMatch": {
-												"Body": {
-													"OversizeHandling": "CONTINUE"
-												}
-											},
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "HTML_ENTITY_DECODE"
-												}
-											]
-										}
-									},
-									{
-										"SqliMatchStatement": {
-											"FieldToMatch": {
-												"Body": {
-													"OversizeHandling": "CONTINUE"
-												}
-											},
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "URL_DECODE"
-												}
-											]
-										}
-									}
-								]
-							}
-						},
+						"Statement": #parse("templates/repo/web/acl/body-sql-injection-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
 							"MetricName": "${stack}${instance}BodySQLInjectionRule",
@@ -285,42 +92,7 @@
 						},
 						"Name": "${stack}-${instance}-Header-SQL-Injection-Rule",
 						"Priority": 4,
-						"Statement": {
-							"OrStatement": {
-								"Statements": [
-									{
-										"SqliMatchStatement": {
-											"FieldToMatch": {
-												"SingleHeader": {
-													"Name": "cookie"
-												}
-											},
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "URL_DECODE"
-												}
-											]
-										}
-									},
-									{
-										"SqliMatchStatement": {
-											"FieldToMatch": {
-												"SingleHeader": {
-													"Name": "cookie"
-												}
-											},
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "HTML_ENTITY_DECODE"
-												}
-											]
-										}
-									}
-								]
-							}
-						},
+						"Statement": #parse("templates/repo/web/acl/header-sql-injection-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
 							"MetricName": "${stack}${instance}HeaderSQLInjectionRule",
@@ -350,42 +122,7 @@
 						},
 						"Name": "${stack}-${instance}-Body-XSS-Rule",
 						"Priority": 6,
-						"Statement": {
-							"OrStatement": {
-								"Statements": [
-									{
-										"XssMatchStatement": {
-											"FieldToMatch": {
-												"Body": {
-													"OversizeHandling": "CONTINUE"
-												}
-											},
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "HTML_ENTITY_DECODE"
-												}
-											]
-										}
-									},
-									{
-										"XssMatchStatement": {
-											"FieldToMatch": {
-												"Body": {
-													"OversizeHandling": "CONTINUE"
-												}
-											},
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "URL_DECODE"
-												}
-											]
-										}
-									}
-								]
-							}
-						},
+						"Statement": #parse("templates/repo/web/acl/body-xss-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
 							"MetricName": "${stack}${instance}BodyXssRule",
@@ -400,42 +137,7 @@
 						},
 						"Name": "${stack}-${instance}-Header-XSS-Rule",
 						"Priority": 7,
-						"Statement": {
-							"OrStatement": {
-								"Statements": [
-									{
-										"XssMatchStatement": {
-											"FieldToMatch": {
-												"SingleHeader": {
-													"Name": "cookie"
-												}
-											},
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "URL_DECODE"
-												}
-											]
-										}
-									},
-									{
-										"XssMatchStatement": {
-											"FieldToMatch": {
-												"SingleHeader": {
-													"Name": "cookie"
-												}
-											},
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "HTML_ENTITY_DECODE"
-												}
-											]
-										}
-									}
-								]
-							}
-						},
+						"Statement": #parse("templates/repo/web/acl/header-xss-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
 							"MetricName": "${stack}${instance}HeaderXssRule",
@@ -450,80 +152,7 @@
 						},
 						"Name": "${stack}-${instance}-Path-Traversal-Local-Rule",
 						"Priority": 8,
-						"Statement": {
-							"OrStatement": {
-								"Statements": [
-									{
-										"ByteMatchStatement": {
-											"FieldToMatch": {
-												"QueryString": {
-													
-												}
-											},
-											"PositionalConstraint": "CONTAINS",
-											"SearchStringBase64": "Li4v",
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "HTML_ENTITY_DECODE"
-												}
-											]
-										}
-									},
-									{
-										"ByteMatchStatement": {
-											"FieldToMatch": {
-												"UriPath": {
-													
-												}
-											},
-											"PositionalConstraint": "CONTAINS",
-											"SearchStringBase64": "Li4v",
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "HTML_ENTITY_DECODE"
-												}
-											]
-										}
-									},
-									{
-										"ByteMatchStatement": {
-											"FieldToMatch": {
-												"QueryString": {
-													
-												}
-											},
-											"PositionalConstraint": "CONTAINS",
-											"SearchStringBase64": "Li4v",
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "URL_DECODE"
-												}
-											]
-										}
-									},
-									{
-										"ByteMatchStatement": {
-											"FieldToMatch": {
-												"UriPath": {
-													
-												}
-											},
-											"PositionalConstraint": "CONTAINS",
-											"SearchStringBase64": "Li4v",
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "URL_DECODE"
-												}
-											]
-										}
-									}
-								]
-							}
-						},
+						"Statement": #parse("templates/repo/web/acl/path-traversal-local-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
 							"MetricName": "${stack}${instance}PathTraversalLocalRule",
@@ -538,80 +167,7 @@
 						},
 						"Name": "${stack}-${instance}-Path-Traversal-Remote-Rule",
 						"Priority": 9,
-						"Statement": {
-							"OrStatement": {
-								"Statements": [
-									{
-										"ByteMatchStatement": {
-											"FieldToMatch": {
-												"QueryString": {
-													
-												}
-											},
-											"PositionalConstraint": "CONTAINS",
-											"SearchStringBase64": "Oi8v",
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "URL_DECODE"
-												}
-											]
-										}
-									},
-									{
-										"ByteMatchStatement": {
-											"FieldToMatch": {
-												"QueryString": {
-													
-												}
-											},
-											"PositionalConstraint": "CONTAINS",
-											"SearchStringBase64": "Oi8v",
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "HTML_ENTITY_DECODE"
-												}
-											]
-										}
-									},
-									{
-										"ByteMatchStatement": {
-											"FieldToMatch": {
-												"UriPath": {
-													
-												}
-											},
-											"PositionalConstraint": "CONTAINS",
-											"SearchStringBase64": "Oi8v",
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "URL_DECODE"
-												}
-											]
-										}
-									},
-									{
-										"ByteMatchStatement": {
-											"FieldToMatch": {
-												"UriPath": {
-													
-												}
-											},
-											"PositionalConstraint": "CONTAINS",
-											"SearchStringBase64": "Oi8v",
-											"TextTransformations": [
-												{
-													"Priority": 0,
-													"Type": "HTML_ENTITY_DECODE"
-												}
-											]
-										}
-									}
-								]
-							}
-						},
+						"Statement": #parse("templates/repo/web/acl/path-traversal-remote-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
 							"MetricName": "${stack}${instance}PathTraversalRemoteRule",
@@ -624,66 +180,7 @@
 						},
 						"Name": "${stack}-${instance}-Admin-Access-Rule",
 						"Priority": 10,
-						"Statement": {
-							"AndStatement": {
-								"Statements": [
-									{
-										"OrStatement": {
-											"Statements": [
-												{
-													"ByteMatchStatement": {
-														"FieldToMatch": {
-															"UriPath": {
-																
-															}
-														},
-														"PositionalConstraint": "STARTS_WITH",
-														"SearchStringBase64": "L3JlcG8vdjEvbWlncmF0aW9u",
-														"TextTransformations": [
-															{
-																"Priority": 0,
-																"Type": "URL_DECODE"
-															}
-														]
-													}
-												},
-												{
-													"ByteMatchStatement": {
-														"FieldToMatch": {
-															"UriPath": {
-																
-															}
-														},
-														"PositionalConstraint": "STARTS_WITH",
-														"SearchStringBase64": "L3JlcG8vdjEvYWRtaW4=",
-														"TextTransformations": [
-															{
-																"Priority": 0,
-																"Type": "URL_DECODE"
-															}
-														]
-													}
-												}
-											]
-										}
-									},
-									{
-										"NotStatement": {
-											"Statement": {
-												"IPSetReferenceStatement": {
-													"Arn": {
-														"Fn::GetAtt": [
-															"${stack}${instance}matchadminremoteipIPV4",
-															"Arn"
-														]
-													}
-												}
-											}
-										}
-									}
-								]
-							}
-						},
+						"Statement": #parse("templates/repo/web/acl/admin-access-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
 							"MetricName": "${stack}${instance}AdminAccessRule",

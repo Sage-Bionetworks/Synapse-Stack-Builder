@@ -1,0 +1,22 @@
+{
+	"RateBasedStatement": {
+		"Limit": 10000,
+		"AggregateKeyType": "IP",
+		"ScopeDownStatement": {
+			"ByteMatchStatement": {
+				"SearchString": "/file/v1/fileHandle/batch",
+				"FieldToMatch": {
+					"UriPath": {
+					}
+				},
+				"TextTransformations": [
+					{
+						"Priority": 0,
+						"Type": "NONE"
+					}
+				],
+				"PositionalConstraint": "EXACTLY"
+			}
+		}
+	}
+}

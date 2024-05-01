@@ -1,0 +1,72 @@
+{
+	"OrStatement": {
+		"Statements": [
+			{
+				"SizeConstraintStatement": {
+					"ComparisonOperator": "GT",
+					"FieldToMatch": {
+						"QueryString": {
+						}
+					},
+					"Size": 4096,
+					"TextTransformations": [
+						{
+							"Priority": 0,
+							"Type": "NONE"
+						}
+					]
+				}
+			},
+			{
+				"SizeConstraintStatement": {
+					"ComparisonOperator": "GT",
+					"FieldToMatch": {
+						"SingleHeader": {
+							"Name": "cookie"
+						}
+					},
+					"Size": 4096,
+					"TextTransformations": [
+						{
+							"Priority": 0,
+							"Type": "NONE"
+						}
+					]
+				}
+			},
+			{
+				"SizeConstraintStatement": {
+					"ComparisonOperator": "GT",
+					"FieldToMatch": {
+						"UriPath": {
+						}
+					},
+					"Size": 512,
+					"TextTransformations": [
+						{
+							"Priority": 0,
+							"Type": "NONE"
+						}
+					]
+				}
+			},
+			{
+				"SizeConstraintStatement": {
+					"ComparisonOperator": "GT",
+					"FieldToMatch": {
+						"Body": {
+							"OversizeHandling": "CONTINUE"
+						}
+					},
+					"Size": 2097152,
+					"TextTransformations": [
+						{
+							"Priority": 0,
+							"Type": "NONE"
+						}
+					]
+				}
+			}
+		]
+	}
+}
