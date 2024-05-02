@@ -42,7 +42,7 @@
     #end
     ,"Outputs": {
         #foreach($configuration in $appConfigConfigurations)
-                "${stack}${instance}${configuration.appConfigName}AppConfigApplicationId": {
+                "${stack}${instance}${configuration.appConfigName}AppConfigApplicationIdentifier": {
                     "Description": "The ID of the ${stack}${instance}${configuration.appConfigName} AppConfig Application",
                     "Value": {
                       "Ref": "${stack}${instance}${configuration.appConfigName}AppConfigApp"
@@ -52,16 +52,16 @@
                         "Fn::Join": [
                             "",
                             [
-                                {"Ref": "stack"},
-                                {"Ref": "instance"},
-                                {"Ref": "configuration.appConfigName"},
+                                "${stack}",
+                                "${instance}",
+                                "${configuration.appConfigName}",
                                 "AppConfigApplicationId"
                             ]
                         ]
                       }
                     }
                   },
-                  "${stack}${instance}${configuration.appConfigName}AppConfigEnvironmentId": {
+                  "${stack}${instance}${configuration.appConfigName}AppConfigEnvironmentIdentifier": {
                     "Description": "The ID of the ${stack}${instance}${configuration.appConfigName} AppConfig Environment",
                     "Value": {
                       "Ref": "${stack}${instance}${configuration.appConfigName}AppConfigEnvironment"
@@ -71,16 +71,16 @@
                         "Fn::Join": [
                             "",
                             [
-                                {"Ref": "stack"},
-                                {"Ref": "instance"},
-                                {"Ref": "configuration.appConfigName"},
+                               "${stack}",
+                               "${instance}",
+                               "${configuration.appConfigName}",
                                 "AppConfigEnvironmentId"
                             ]
                         ]
                       }
                     }
                   },
-                  "${stack}${instance}${configuration.appConfigName}AppConfigConfigurationProfileId": {
+                  "${stack}${instance}${configuration.appConfigName}AppConfigConfigurationProfileIdentifier": {
                     "Description": "The ID of the ${stack}${instance}${configuration.appConfigName} AppConfig Configuration Profile",
                     "Value": {
                       "Ref": "${stack}${instance}${configuration.appConfigName}AppConfigConfigProfile"
@@ -90,9 +90,9 @@
                         "Fn::Join": [
                             "",
                             [
-                                {"Ref": "stack"},
-                                {"Ref": "instance"},
-                                {"Ref": "configuration.appConfigName"},
+                               "${stack}",
+                               "${instance}",
+                               "${configuration.appConfigName}",
                                 "AppConfigEnvironmentId"
                             ]
                         ]
