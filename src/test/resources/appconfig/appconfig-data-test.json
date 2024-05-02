@@ -38,5 +38,22 @@
       "Content": "{\"Provenance v2 visualization\": true}",
       "ContentType": "application/json"
     }
+  },
+  "Outputs": {
+    "dev101portalAppConfigApplicationId": {
+      "Description": "The ID of the dev101portal AppConfig Application",
+      "Value": {"Ref": "dev101portalAppConfigApp"},
+      "Export": {"Name": {"Fn::Sub": "dev101portalAppConfigApplicationId"}}
+    },
+    "dev101portalAppConfigEnvironmentId": {
+      "Description": "The ID of the dev101portal AppConfig Environment",
+      "Value": {"Ref": "dev101portalAppConfigEnvironment"},
+      "Export": {"Name": {"Fn::Sub": "dev101portalAppConfigEnvironmentId"}}
+    },
+    "dev101portalAppConfigConfigurationProfileId": {
+      "Description": "The ID of the dev101portal AppConfig Configuration Profile",
+      "Value": {"Ref": "dev101portalAppConfigConfigProfile"},
+      "Export": {"Name": {"Fn::Sub": "dev101portalAppConfigConfigurationProfileId"}}
+    }
   }
 }

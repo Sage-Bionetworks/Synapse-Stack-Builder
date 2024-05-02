@@ -149,6 +149,14 @@ public class EnvironmentDescriptor {
 		return EnvironmentType.REPOSITORY_SERVICES.equals(type) || EnvironmentType.REPOSITORY_WORKERS.equals(type);
 	}
 
+	/**
+	 * Is the type portal?
+	 * @return
+	 */
+	public boolean isTypePortal() {
+		return EnvironmentType.PORTAL.equals(type);
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

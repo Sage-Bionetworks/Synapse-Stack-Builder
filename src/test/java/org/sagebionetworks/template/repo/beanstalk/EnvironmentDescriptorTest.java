@@ -29,5 +29,10 @@ public class EnvironmentDescriptorTest {
 		assertTrue(new EnvironmentDescriptor().withType(EnvironmentType.REPOSITORY_WORKERS).isTypeRepositoryOrWorkers());
 		assertFalse(new EnvironmentDescriptor().withType(EnvironmentType.PORTAL).isTypeRepositoryOrWorkers());
 	}
-
+	@Test
+	public void testIsTypePortal() {
+		assertFalse(new EnvironmentDescriptor().withType(EnvironmentType.REPOSITORY_SERVICES).isTypePortal());
+		assertFalse(new EnvironmentDescriptor().withType(EnvironmentType.REPOSITORY_WORKERS).isTypePortal());
+		assertTrue(new EnvironmentDescriptor().withType(EnvironmentType.PORTAL).isTypePortal());
+	}
 }
