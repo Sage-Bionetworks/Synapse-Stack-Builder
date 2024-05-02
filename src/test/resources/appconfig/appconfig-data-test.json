@@ -43,17 +43,42 @@
     "dev101portalAppConfigApplicationId": {
       "Description": "The ID of the dev101portal AppConfig Application",
       "Value": {"Ref": "dev101portalAppConfigApp"},
-      "Export": {"Name": {"Fn::Sub": "dev101portalAppConfigApplicationId"}}
+      "Export": {"Name": {"Fn::Join": [
+        "",
+        [
+          {"Ref": "stack"},
+          {"Ref": "instance"},
+          {"Ref": "configuration.appConfigName"},
+          "AppConfigApplicationId"
+        ]
+      ]}}
     },
     "dev101portalAppConfigEnvironmentId": {
       "Description": "The ID of the dev101portal AppConfig Environment",
       "Value": {"Ref": "dev101portalAppConfigEnvironment"},
-      "Export": {"Name": {"Fn::Sub": "dev101portalAppConfigEnvironmentId"}}
+      "Export": {"Name": {"Fn::Join": [
+        "",
+        [
+          {"Ref": "stack"},
+          {"Ref": "instance"},
+          {"Ref": "configuration.appConfigName"},
+          "AppConfigEnvironmentId"
+        ]
+      ]}}
     },
     "dev101portalAppConfigConfigurationProfileId": {
       "Description": "The ID of the dev101portal AppConfig Configuration Profile",
       "Value": {"Ref": "dev101portalAppConfigConfigProfile"},
-      "Export": {"Name": {"Fn::Sub": "dev101portalAppConfigConfigurationProfileId"}}
+      "Export": {"Name": {"Fn::Join": [
+        "",
+        [
+          {"Ref": "stack"},
+          {"Ref": "instance"},
+          {"Ref": "configuration.appConfigName"},
+          "AppConfigEnvironmentId"
+        ]]
+      }
+      }
     }
   }
 }
