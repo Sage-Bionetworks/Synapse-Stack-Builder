@@ -1,46 +1,48 @@
 #if($appConfigConfigurations)
-    #foreach( $configuration in $appConfigConfigurations)
-        ,"${stack}${instance}${configuration.appConfigName}AppConfigApp": {
-            "Type": "AWS::AppConfig::Application",
-            "Properties": {
-                "Name": "${stack}-${instance}-${configuration.appConfigName}AppConfigApp"
+    #if(!$includeOutputs)
+        #foreach( $configuration in $appConfigConfigurations)
+            ,"${stack}${instance}${configuration.appConfigName}AppConfigApp": {
+                "Type": "AWS::AppConfig::Application",
+                "Properties": {
+                    "Name": "${stack}-${instance}-${configuration.appConfigName}AppConfigApp"
+                }
+            },
+            "${stack}${instance}${configuration.appConfigName}AppConfigEnvironment": {
+                "Type": "AWS::AppConfig::Environment",
+                "Properties": {
+                    "ApplicationId": {
+                        "Ref": "${stack}${instance}${configuration.appConfigName}AppConfigApp"
+                    },
+                    "Name": "${stack}-${instance}-${configuration.appConfigName}"
+                }
+            },
+            "${stack}${instance}${configuration.appConfigName}AppConfigConfigProfile": {
+                "Type": "AWS::AppConfig::ConfigurationProfile",
+                "Properties": {
+                    "ApplicationId": {
+                        "Ref": "${stack}${instance}${configuration.appConfigName}AppConfigApp"
+                    },
+                    "LocationUri": "hosted",
+                    "Name": "${stack}-${instance}-${configuration.appConfigName}-configurations"
+                }
+            },
+            "${stack}${instance}${configuration.appConfigName}AppConfigHostedConfiguration": {
+                "Type": "AWS::AppConfig::HostedConfigurationVersion",
+                "Properties": {
+                    "ApplicationId": {
+                        "Ref": "${stack}${instance}${configuration.appConfigName}AppConfigApp"
+                    },
+                    "ConfigurationProfileId": {
+                        "Ref": "${stack}${instance}${configuration.appConfigName}AppConfigConfigProfile"
+                    },
+                    "Description": "${configuration.appConfigDescription}",
+                    "Content": "${configuration.appConfigDefaultConfiguration}",
+                    "ContentType": "application/json"
+                }
             }
-        },
-        "${stack}${instance}${configuration.appConfigName}AppConfigEnvironment": {
-            "Type": "AWS::AppConfig::Environment",
-            "Properties": {
-                "ApplicationId": {
-                    "Ref": "${stack}${instance}${configuration.appConfigName}AppConfigApp"
-                },
-                "Name": "${stack}-${instance}-${configuration.appConfigName}"
-            }
-        },
-        "${stack}${instance}${configuration.appConfigName}AppConfigConfigProfile": {
-            "Type": "AWS::AppConfig::ConfigurationProfile",
-            "Properties": {
-                "ApplicationId": {
-                    "Ref": "${stack}${instance}${configuration.appConfigName}AppConfigApp"
-                },
-                "LocationUri": "hosted",
-                "Name": "${stack}-${instance}-${configuration.appConfigName}-configurations"
-            }
-        },
-        "${stack}${instance}${configuration.appConfigName}AppConfigHostedConfiguration": {
-            "Type": "AWS::AppConfig::HostedConfigurationVersion",
-            "Properties": {
-                "ApplicationId": {
-                    "Ref": "${stack}${instance}${configuration.appConfigName}AppConfigApp"
-                },
-                "ConfigurationProfileId": {
-                    "Ref": "${stack}${instance}${configuration.appConfigName}AppConfigConfigProfile"
-                },
-                "Description": "${configuration.appConfigDescription}",
-                "Content": "${configuration.appConfigDefaultConfiguration}",
-                "ContentType": "application/json"
-            }
-        }
+        #end
     #end
-    ,"Outputs": {
+    #if($includeOutputs)
         #foreach($configuration in $appConfigConfigurations)
                 "${stack}${instance}${configuration.appConfigName}AppConfigApplicationIdentifier": {
                     "Description": "The ID of the ${stack}${instance}${configuration.appConfigName} AppConfig Application",
@@ -98,7 +100,7 @@
                         ]
                        }
                     }
-                  }
-            }
+                  },
         #end
+    #end
 #end

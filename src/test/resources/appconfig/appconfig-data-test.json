@@ -38,47 +38,5 @@
       "Content": "{\"Provenance v2 visualization\": true}",
       "ContentType": "application/json"
     }
-  },
-  "Outputs": {
-    "dev101portalAppConfigApplicationIdentifier": {
-      "Description": "The ID of the dev101portal AppConfig Application",
-      "Value": {"Ref": "dev101portalAppConfigApp"},
-      "Export": {"Name": {"Fn::Join": [
-        "",
-        [
-          "dev",
-          "101",
-          "portal",
-          "AppConfigApplicationId"
-        ]
-      ]}}
-    },
-    "dev101portalAppConfigEnvironmentIdentifier": {
-      "Description": "The ID of the dev101portal AppConfig Environment",
-      "Value": {"Ref": "dev101portalAppConfigEnvironment"},
-      "Export": {"Name": {"Fn::Join": [
-        "",
-        [
-          "dev",
-          "101",
-          "portal",
-          "AppConfigEnvironmentId"
-        ]
-      ]}}
-    },
-    "dev101portalAppConfigConfigurationProfileIdentifier": {
-      "Description": "The ID of the dev101portal AppConfig Configuration Profile",
-      "Value": {"Ref": "dev101portalAppConfigConfigProfile"},
-      "Export": {"Name": {"Fn::Join": [
-        "",
-        [
-          "dev",
-          "101",
-          "portal",
-          "AppConfigEnvironmentId"
-        ]]
-      }
-      }
-    }
   }
 }

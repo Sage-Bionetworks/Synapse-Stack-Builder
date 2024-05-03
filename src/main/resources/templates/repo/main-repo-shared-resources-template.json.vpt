@@ -728,6 +728,7 @@
 				}
 			}
 		}
+		#set($includeOutputs = false)
 		#parse("templates/repo/sns-and-sqs-template.json.vpt")
 		#parse("templates/repo/kinesis-log-streams.json.vpt")
 		#parse("templates/repo/step-functions-template.json.vpt")
@@ -736,6 +737,8 @@
 		#parse("templates/repo/appconfig-template.json.vpt")
 	},
 	"Outputs": {
+	    #set($includeOutputs = true)
+	    #parse("templates/repo/appconfig-template.json.vpt")
 		#parse("templates/repo/time-to-live-out.vpt"),
 		"webAclArn": {
 			"Description": "The ARN of the web ACL.",
