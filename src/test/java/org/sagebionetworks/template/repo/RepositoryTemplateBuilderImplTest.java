@@ -14,7 +14,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import static org.sagebionetworks.template.Constants.ADMIN_RULE_ACTION;
 import static org.sagebionetworks.template.Constants.BEANSTALK_INSTANCES_SUBNETS;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_DOMAIN_NAME;
@@ -753,7 +752,7 @@ public class RepositoryTemplateBuilderImplTest {
 		JSONObject props = webAcl.getJSONObject("Properties");
 		JSONArray rules = props.getJSONArray("Rules");
 		assertEquals(11, rules.length());
-		
+			
 		JSONObject adminRule = rules.getJSONObject(10);
 		assertEquals("prod-101-Admin-Access-Rule",adminRule.get("Name"));
 		assertEquals("{\"Block\":{}}",adminRule.getJSONObject("Action").toString());
@@ -766,6 +765,7 @@ public class RepositoryTemplateBuilderImplTest {
 		String configVal = config.getString("Fn::ImportValue");
 		assertEquals("us-east-1-synapse-prod-global-resources-WebAclCloudWatchLogGroupArn", configVal);
 	}
+
 
 	public void validateEnhancedMonitoring(JSONObject props, String enableEnhancedMonitoring) {
 		assertTrue(props.has("EnablePerformanceInsights"));

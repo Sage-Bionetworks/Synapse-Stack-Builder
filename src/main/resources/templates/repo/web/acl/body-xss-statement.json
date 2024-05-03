@@ -76,7 +76,7 @@
 								},
 								{
 									"RegexMatchStatement": {
-										"RegexString": "\\/repo\\/v1\\/entity\\/\\d+\\/wiki\\/\\d+",
+										"RegexString": "${regex_repo_v1_entity_synid_wiki_unsignedlong}",
 										"FieldToMatch": {
 											"UriPath": {
 											}

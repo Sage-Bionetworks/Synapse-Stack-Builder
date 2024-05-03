@@ -70,7 +70,7 @@
 							"Statements": [
 								{
 									"RegexMatchStatement": {
-										"RegexString": "/repo/v1/thread/.*/threadcount",
+										"RegexString": "regex_repo_v1_thread_unsignedlong_threadcount",
 										"FieldToMatch": {
 											"UriPath": {
 											}
@@ -85,7 +85,7 @@
 								},
 								{
 									"RegexMatchStatement": {
-										"RegexString": "/repo/v1/thread/.*/replycount",
+										"RegexString": "regex_repo_v1_thread_unsignedlong_replycount",
 										"FieldToMatch": {
 											"UriPath": {
 											}

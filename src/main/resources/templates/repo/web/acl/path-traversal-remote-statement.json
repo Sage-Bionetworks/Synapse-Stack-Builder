@@ -94,7 +94,7 @@
 								},
 								{
 									"RegexMatchStatement": {
-										"RegexString": "/repo/v1/team/.*/member/.*",
+										"RegexString": "${regex_repo_v1_team_unsignedlong_member_unsignedlong}",
 										"FieldToMatch": {
 											"UriPath": {
 											}
