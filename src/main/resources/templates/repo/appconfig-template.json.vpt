@@ -95,7 +95,7 @@
                                "${stack}",
                                "${instance}",
                                "${configuration.appConfigName}",
-                                "AppConfigEnvironmentId"
+                                "AppConfigConfigProfileId"
                             ]
                         ]
                        }
