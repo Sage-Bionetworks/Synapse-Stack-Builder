@@ -325,6 +325,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		for(VelocityContextProvider provider : contextProviders){
 			provider.addToContext(context);
 		}
+		
+		RegularExpressions.bindRegexToContext(context);
 
 		return context;
 	}

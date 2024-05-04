@@ -1,0 +1,82 @@
+{
+	"AndStatement": {
+		"Statements": [
+			{
+				"OrStatement": {
+					"Statements": [
+						{
+							"SqliMatchStatement": {
+								"FieldToMatch": {
+									"Body": {
+										"OversizeHandling": "CONTINUE"
+									}
+								},
+								"TextTransformations": [
+									{
+										"Priority": 0,
+										"Type": "HTML_ENTITY_DECODE"
+									}
+								]
+							}
+						},
+						{
+							"SqliMatchStatement": {
+								"FieldToMatch": {
+									"Body": {
+										"OversizeHandling": "CONTINUE"
+									}
+								},
+								"TextTransformations": [
+									{
+										"Priority": 0,
+										"Type": "URL_DECODE"
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"NotStatement": {
+					"Statement": {
+						"OrStatement": {
+							"Statements": [
+								{
+									"RegexMatchStatement": {
+										"RegexString": "${regex_repo_v1_entity_synid_table_query_async_start}",
+										"FieldToMatch": {
+											"UriPath": {
+											}
+										},
+										"TextTransformations": [
+											{
+												"Priority": 0,
+												"Type": "NONE"
+											}
+										]
+									}
+								},
+								{
+									"RegexMatchStatement": {
+										"RegexString": "${regex_repo_v1_entity_synid_table_csv_download_async_start}",
+										"FieldToMatch": {
+											"UriPath": {
+											}
+										},
+										"TextTransformations": [
+											{
+												"Priority": 0,
+												"Type": "NONE"
+											}
+										]
+									}
+								}
+							]
+						}
+					}
+				}
+			}
+		]
+	}
+}

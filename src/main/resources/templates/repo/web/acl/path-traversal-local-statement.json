@@ -1,0 +1,70 @@
+{
+	"OrStatement": {
+		"Statements": [
+			{
+				"ByteMatchStatement": {
+					"FieldToMatch": {
+						"QueryString": {
+						}
+					},
+					"PositionalConstraint": "CONTAINS",
+					"SearchStringBase64": "Li4v",
+					"TextTransformations": [
+						{
+							"Priority": 0,
+							"Type": "HTML_ENTITY_DECODE"
+						}
+					]
+				}
+			},
+			{
+				"ByteMatchStatement": {
+					"FieldToMatch": {
+						"UriPath": {
+						}
+					},
+					"PositionalConstraint": "CONTAINS",
+					"SearchStringBase64": "Li4v",
+					"TextTransformations": [
+						{
+							"Priority": 0,
+							"Type": "HTML_ENTITY_DECODE"
+						}
+					]
+				}
+			},
+			{
+				"ByteMatchStatement": {
+					"FieldToMatch": {
+						"QueryString": {
+						}
+					},
+					"PositionalConstraint": "CONTAINS",
+					"SearchStringBase64": "Li4v",
+					"TextTransformations": [
+						{
+							"Priority": 0,
+							"Type": "URL_DECODE"
+						}
+					]
+				}
+			},
+			{
+				"ByteMatchStatement": {
+					"FieldToMatch": {
+						"UriPath": {
+						}
+					},
+					"PositionalConstraint": "CONTAINS",
+					"SearchStringBase64": "Li4v",
+					"TextTransformations": [
+						{
+							"Priority": 0,
+							"Type": "URL_DECODE"
+						}
+					]
+				}
+			}
+		]
+	}
+}

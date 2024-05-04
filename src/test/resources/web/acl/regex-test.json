@@ -1,0 +1,114 @@
+{
+	"tests": [
+		{
+			"regexKey": "regex_unsignedlong",
+			"hits": [
+				"9223372036854775807",
+				"1234",
+				"1"
+			],
+			"misses": [
+				"+123",
+				"-456",
+				"f1",
+				"92233720368547758070"
+			]
+		},
+		{
+			"regexKey": "regex_synid",
+			"hits": [
+				"9223372036854775807",
+				"syn9223372036854775807",
+				"syn1",
+				"SYN123"
+			],
+			"misses": [
+				"f1",
+				"syn92233720368547758070"
+			]
+		},
+		{
+			"regexKey": "regex_repo_v1_entity_synid_wiki_unsignedlong",
+			"hits": [
+				"/repo/v1/entity/syn58643721/wiki/627584",
+				"/repo/v1/entity/58643721/wiki/627584",
+				"/repo/v1/entity/SYN58643721/wiki/627584",
+				"//repo/v1/entity/syn123/wiki/627584"
+			],
+			"misses": [
+				"/repo/v1/entity/syn/wiki/627584",
+				"/repo/v1/entity/foo/wiki/627584",
+				"/repo/v1/entity/syn58643721/wiki/",
+				"/repo/v1/entity/wiki/627584"
+			]
+		},
+		{
+			"regexKey": "regex_repo_v1_thread_unsignedlong_threadcount",
+			"hits": [
+				"/repo/v1/thread/9223372036854775807/threadcount",
+				"/repo/v1/thread/123/threadcount",
+				"//repo/v1/thread/123/threadcount"
+			],
+			"misses": [
+				"/repo/v1/thread/92233720368547758070/threadcount",
+				"/repo/v1/thread/foo/threadcount",
+				"/repo/v1/thread/1234/threadCount",
+				"/repo/v1/thread/123/threadcount/"
+			]
+		},
+		{
+			"regexKey": "regex_repo_v1_thread_unsignedlong_replycount",
+			"hits": [
+				"/repo/v1/thread/9223372036854775807/replycount",
+				"/repo/v1/thread/123/replycount",
+				"//repo/v1/thread/123/replycount"
+			],
+			"misses": [
+				"/repo/v1/thread/92233720368547758070/replycount",
+				"/repo/v1/thread/foo/replycount",
+				"/repo/v1/thread/1234/replyCount",
+				"/repo/v1/thread/123/replycount/"
+			]
+		},
+		{
+			"regexKey": "regex_repo_v1_team_unsignedlong_member_unsignedlong",
+			"hits": [
+				"/repo/v1/team/9223372036854775807/member/9223372036854775807",
+				"/repo/v1/team/123/member/345",
+				"//repo/v1/team/123/member/345"
+			],
+			"misses": [
+				"/repo/v1/team/92233720368547758070/member/9223372036854775807",
+				"/repo/v1/team/9223372036854775807/member/92233720368547758070",
+				"/repo/v1/team/123/member/bar",
+				"/repo/v1/team/foo/member/123",
+				"/repo/v1/team/123/member/345/"
+			]
+		},
+		{
+			"regexKey": "regex_repo_v1_entity_synid_table_query_async_start",
+			"hits": [
+				"/repo/v1/entity/syn9223372036854775807/table/query/async/start",
+				"//repo/v1/entity/syn123/table/query/async/start"
+			],
+			"misses": [
+				"/repo/v1/entity/syn92233720368547758070/table/query/async/start",
+				"/repo/v1/entity/syn123/table/query/async/start/",
+				"/repo/v1/entity/bar/table/query/async/start/"
+			]
+		}
+		,
+		{
+			"regexKey": "regex_repo_v1_entity_synid_table_csv_download_async_start",
+			"hits": [
+				"/repo/v1/entity/syn9223372036854775807/table/download/csv/async/start",
+				"//repo/v1/entity/syn51513938/table/download/csv/async/start"
+			],
+			"misses": [
+				"/repo/v1/entity/syn92233720368547758070/table/download/csv/async/start",
+				"/repo/v1/entity/bar/table/download/csv/async/start",
+				"/repo/v1/entity/syn123/table/download/csv/async/start/"
+			]
+		}
+	]
+}

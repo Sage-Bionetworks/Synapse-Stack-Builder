@@ -1,0 +1,235 @@
+		,"${stack}${instance}WebACL": {
+			"Type": "AWS::WAFv2::WebACL",
+			"Properties": {
+				"DefaultAction": {
+					"Allow": {
+						
+					}
+				},
+				"Scope": "REGIONAL",
+				"VisibilityConfig": {
+					"CloudWatchMetricsEnabled": true,
+					"MetricName": "${stack}${instance}WebACL",
+					"SampledRequestsEnabled": true
+				},
+				"Description": "${stack}${instance}WebACL",
+				"Name": "${stack}${instance}WebACL",
+				"CustomResponseBodies": {
+			      "throttle-response-body": {
+			        "ContentType": "APPLICATION_JSON",
+			        "Content": "{\"reason\":\"limit of 10,000 calls per 5 minutes\"}"
+			      }
+			    },
+				"Rules": [
+					{
+						"Name": "${stack}-${instance}-throttle-file-handle-batch",
+					    "Priority": 0,
+						"Statement": #parse("templates/repo/web/acl/throttle-file-handle-batch-statement.json"),
+						"Action": {
+						  "Block": {
+						    "CustomResponse": {
+						      "ResponseCode": 429,
+						      "CustomResponseBodyKey": "throttle-response-body"
+						    }
+						  }
+						},
+						"VisibilityConfig": {
+						  "SampledRequestsEnabled": true,
+						  "CloudWatchMetricsEnabled": true,
+						  "MetricName": "${stack}${instance}ThrottleFileHandleBatchRule",
+						}
+					},
+					{
+						"Action": {
+							"Block": {
+								
+							}
+						},
+						"Name": "${stack}-${instance}-size-restrictions-rule",
+						"Priority": 1,
+						"Statement": #parse("templates/repo/web/acl/size-restriction-statement.json"),
+						"VisibilityConfig": {
+							"CloudWatchMetricsEnabled": true,
+							"MetricName": "${stack}${instance}SizeRestrictionsRule",
+							"SampledRequestsEnabled": true
+						}
+					},
+					{
+						"Action": {
+							"Count": {
+								
+							}
+						},
+						"Name": "${stack}-${instance}-URI-Query-SQL-Injection-Rule",
+						"Priority": 2,
+						"Statement": #parse("templates/repo/web/acl/uri-query-sql-injection-statement.json"),
+						"VisibilityConfig": {
+							"CloudWatchMetricsEnabled": true,
+							"MetricName": "${stack}${instance}URIQuerySQLInjectionRule",
+							"SampledRequestsEnabled": true
+						}
+					},
+					{
+						"Action": {
+							"Count": {
+								
+							}
+						},
+						"Name": "${stack}-${instance}-Body-SQL-Injection-Rule",
+						"Priority": 3,
+						"Statement": #parse("templates/repo/web/acl/body-sql-injection-statement.json"),
+						"VisibilityConfig": {
+							"CloudWatchMetricsEnabled": true,
+							"MetricName": "${stack}${instance}BodySQLInjectionRule",
+							"SampledRequestsEnabled": true
+						}
+					},
+					{
+						"Action": {
+							"Count": {
+								
+							}
+						},
+						"Name": "${stack}-${instance}-Header-SQL-Injection-Rule",
+						"Priority": 4,
+						"Statement": #parse("templates/repo/web/acl/header-sql-injection-statement.json"),
+						"VisibilityConfig": {
+							"CloudWatchMetricsEnabled": true,
+							"MetricName": "${stack}${instance}HeaderSQLInjectionRule",
+							"SampledRequestsEnabled": true
+						}
+					},
+					{
+						"Action": {
+							"Count": {
+								
+							}
+						},
+						"Name": "${stack}-${instance}-URI-Query-XSS-Rule",
+						"Priority": 5,
+						"Statement": #parse("templates/repo/web/acl/uri-query-xss-statement.json"),
+						"VisibilityConfig": {
+							"CloudWatchMetricsEnabled": true,
+							"MetricName": "${stack}${instance}URIQueryXssRule",
+							"SampledRequestsEnabled": true
+						}
+					},
+					{
+						"Action": {
+							"Count": {
+								
+							}
+						},
+						"Name": "${stack}-${instance}-Body-XSS-Rule",
+						"Priority": 6,
+						"Statement": #parse("templates/repo/web/acl/body-xss-statement.json"),
+						"VisibilityConfig": {
+							"CloudWatchMetricsEnabled": true,
+							"MetricName": "${stack}${instance}BodyXssRule",
+							"SampledRequestsEnabled": true
+						}
+					},
+					{
+						"Action": {
+							"Count": {
+								
+							}
+						},
+						"Name": "${stack}-${instance}-Header-XSS-Rule",
+						"Priority": 7,
+						"Statement": #parse("templates/repo/web/acl/header-xss-statement.json"),
+						"VisibilityConfig": {
+							"CloudWatchMetricsEnabled": true,
+							"MetricName": "${stack}${instance}HeaderXssRule",
+							"SampledRequestsEnabled": true
+						}
+					},
+					{
+						"Action": {
+							"Count": {
+								
+							}
+						},
+						"Name": "${stack}-${instance}-Path-Traversal-Local-Rule",
+						"Priority": 8,
+						"Statement": #parse("templates/repo/web/acl/path-traversal-local-statement.json"),
+						"VisibilityConfig": {
+							"CloudWatchMetricsEnabled": true,
+							"MetricName": "${stack}${instance}PathTraversalLocalRule",
+							"SampledRequestsEnabled": true
+						}
+					},
+					{
+						"Action": {
+							"Count": {
+								
+							}
+						},
+						"Name": "${stack}-${instance}-Path-Traversal-Remote-Rule",
+						"Priority": 9,
+						"Statement": #parse("templates/repo/web/acl/path-traversal-remote-statement.json"),
+						"VisibilityConfig": {
+							"CloudWatchMetricsEnabled": true,
+							"MetricName": "${stack}${instance}PathTraversalRemoteRule",
+							"SampledRequestsEnabled": true
+						}
+					},
+					{
+						"Action": {
+							${adminRuleAction}
+						},
+						"Name": "${stack}-${instance}-Admin-Access-Rule",
+						"Priority": 10,
+						"Statement": #parse("templates/repo/web/acl/admin-access-statement.json"),
+						"VisibilityConfig": {
+							"CloudWatchMetricsEnabled": true,
+							"MetricName": "${stack}${instance}AdminAccessRule",
+							"SampledRequestsEnabled": true
+						}
+					}
+				]
+			},
+			"DependsOn": [
+				"${stack}${instance}matchadminremoteipIPV4"
+			]
+		},
+		"${stack}${instance}matchadminremoteipIPV4": {
+			"Type": "AWS::WAFv2::IPSet",
+			"Properties": {
+				"Addresses": [
+					"34.195.10.214/32",
+					"10.50.0.0/16"
+				],
+				"IPAddressVersion": "IPV4",
+				"Scope": "REGIONAL",
+				"Description": "Source IP address allowed to make admin calls.",
+				"Name": "${stack}-${instance}-match-admin-remote-ip"
+			}
+		},
+		"${stack}${instance}WebAclLoggingConfiguration": {
+			"Type": "AWS::WAFv2::LoggingConfiguration",
+			"Properties": {
+				"LoggingFilter": {
+					"DefaultBehavior" : "DROP",
+					"Filters": [
+						{
+							"Behavior" : "KEEP",
+							"Conditions" : [
+								{ "ActionCondition" : { "Action" : "COUNT"} },
+								{ "ActionCondition" : { "Action" : "BLOCK"} }
+							],
+							"Requirement" : "MEETS_ANY"
+						}
+					]
+				},
+				"LogDestinationConfigs": [
+					{ "Fn::ImportValue": "${globalResourcesExportPrefix}-WebAclCloudWatchLogGroupArn" }
+				],
+				"ResourceArn": {
+					"Fn::GetAtt": [
+						"${stack}${instance}WebACL",
+						"Arn"
+					]
+				}
+			}
+		}

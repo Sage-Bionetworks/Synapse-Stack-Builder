@@ -1,0 +1,36 @@
+{
+	"OrStatement": {
+		"Statements": [
+			{
+				"XssMatchStatement": {
+					"FieldToMatch": {
+						"SingleHeader": {
+							"Name": "cookie"
+						}
+					},
+					"TextTransformations": [
+						{
+							"Priority": 0,
+							"Type": "URL_DECODE"
+						}
+					]
+				}
+			},
+			{
+				"XssMatchStatement": {
+					"FieldToMatch": {
+						"SingleHeader": {
+							"Name": "cookie"
+						}
+					},
+					"TextTransformations": [
+						{
+							"Priority": 0,
+							"Type": "HTML_ENTITY_DECODE"
+						}
+					]
+				}
+			}
+		]
+	}
+}
