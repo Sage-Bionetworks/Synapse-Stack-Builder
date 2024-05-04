@@ -43,9 +43,8 @@
 						"OrStatement": {
 							"Statements": [
 								{
-									"ByteMatchStatement": {
-										"PositionalConstraint": "ENDS_WITH",
-										"SearchString": "/table/download/csv/async/start",
+									"RegexMatchStatement": {
+										"RegexString": "${regex_repo_v1_entity_synid_table_query_async_start}",
 										"FieldToMatch": {
 											"UriPath": {
 											}
@@ -59,9 +58,8 @@
 									}
 								},
 								{
-									"ByteMatchStatement": {
-										"PositionalConstraint": "ENDS_WITH",
-										"SearchString": "/table/query/async/start",
+									"RegexMatchStatement": {
+										"RegexString": "${regex_repo_v1_entity_synid_table_csv_download_async_start}",
 										"FieldToMatch": {
 											"UriPath": {
 											}

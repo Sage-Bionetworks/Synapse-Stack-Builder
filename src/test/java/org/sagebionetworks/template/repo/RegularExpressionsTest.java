@@ -6,7 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.velocity.VelocityContext;
@@ -24,12 +27,16 @@ public class RegularExpressionsTest {
 		// call under test
 		RegularExpressions.bindRegexToContext(context);
 
+		Set<String> expectedKeys = Arrays.stream(context.getKeys()).map(k -> k.toString())
+				.filter(k -> k.startsWith("regex")).collect(Collectors.toSet());
+
 		// All of the test cases are captured in this JSON file.
 		JSONArray tests = new JSONObject(loadResource("web/acl/regex-test.json")).getJSONArray("tests");
 
 		for (int i = 0; i < tests.length(); i++) {
 			JSONObject test = tests.getJSONObject(i);
 			String regexKey = test.getString("regexKey");
+			expectedKeys.remove(regexKey);
 			assertNotNull(regexKey, "missing regexKey");
 			String rawRegex = (String) context.get(regexKey);
 			assertNotNull(rawRegex, String.format("context missing regex for key '%s'", regexKey));
@@ -46,6 +53,8 @@ public class RegularExpressionsTest {
 				assertFalse(p.matcher(miss).matches(), String.format("Expected regex: '%s' to mis: '%s'", regex, miss));
 			}
 		}
+		expectedKeys.forEach(k -> assertTrue(false, String.format("No tests found for regex key: '%s'", k)));
+
 	}
 
 	public static String loadResource(String path) {

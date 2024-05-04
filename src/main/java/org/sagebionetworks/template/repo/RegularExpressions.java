@@ -11,16 +11,22 @@ public class RegularExpressions {
 	public static String SYN_ID = "(?i)(syn)?(?-i)" + UNSIGNED_LONG;
 
 	public static String REPO_V1_ENTITY_SYNID_WIKI_UNSIGNEDLONG = String
-			.format("\\/repo\\/v1\\/entity\\/%s\\/wiki\\/%s", SYN_ID, UNSIGNED_LONG);
+			.format("\\/+repo\\/v1\\/entity\\/%s\\/wiki\\/%s", SYN_ID, UNSIGNED_LONG);
 
 	public static String REPO_V1_THREAD_UNSIGNEDLONG_THREADCOUNT = String
-			.format("\\/repo\\/v1\\/thread\\/%s\\/threadcount", UNSIGNED_LONG);
+			.format("\\/+repo\\/v1\\/thread\\/%s\\/threadcount", UNSIGNED_LONG);
 
 	public static String REPO_V1_THREAD_UNSIGNEDLONG_REPLYCOUNT = String
-			.format("\\/repo\\/v1\\/thread\\/%s\\/replycount", UNSIGNED_LONG);
+			.format("\\/+repo\\/v1\\/thread\\/%s\\/replycount", UNSIGNED_LONG);
 
 	public static String REPO_V1_TEAM_UNSIGNEDLONG_MEMBER_UNSIGNEDLONG = String
-			.format("\\/repo\\/v1\\/team\\/%s\\/member\\/%s", UNSIGNED_LONG, UNSIGNED_LONG);
+			.format("\\/+repo\\/v1\\/team\\/%s\\/member\\/%s", UNSIGNED_LONG, UNSIGNED_LONG);
+
+	public static String REPO_V1_ENITTY_SYNID_TABLE_QUERY_ASYNC_START = String
+			.format("\\/+repo\\/v1\\/entity\\/%s\\/table\\/query\\/async\\/start", SYN_ID);
+
+	public static String REPO_V1_ENITTY_SYNID_TABLE_DOWNLOAD_CSV_ASYNC_START = String
+			.format("\\/+repo\\/v1\\/entity\\/%s\\/table\\/download\\/csv\\/async\\/start", SYN_ID);
 
 	public static long l = Long.MAX_VALUE;
 
@@ -47,6 +53,12 @@ public class RegularExpressions {
 
 		context.put("regex_repo_v1_team_unsignedlong_member_unsignedlong",
 				toEscapedJSON(REPO_V1_TEAM_UNSIGNEDLONG_MEMBER_UNSIGNEDLONG));
+
+		context.put("regex_repo_v1_entity_synid_table_query_async_start",
+				toEscapedJSON(REPO_V1_ENITTY_SYNID_TABLE_QUERY_ASYNC_START));
+
+		context.put("regex_repo_v1_entity_synid_table_csv_download_async_start",
+				toEscapedJSON(REPO_V1_ENITTY_SYNID_TABLE_DOWNLOAD_CSV_ASYNC_START));
 	}
 
 	/**
