@@ -36,7 +36,6 @@ public class RegularExpressions {
 	 * @param context
 	 */
 	public static void bindRegexToContext(Context context) {
-		JSONObject.valueToString(context);
 		ValidateArgument.required(context, "context");
 		context.put("regex_unsignedlong", toEscapedJSON(UNSIGNED_LONG));
 
