@@ -1,6 +1,6 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
-	"version": "1.58.0",
+	"version": "1.59.0",
 	"extraScripts": ["utils.py","glue_job.py"],
 	"tableDescriptors": [{
 			"name": "processedaccessrecord",
@@ -906,6 +906,21 @@
 				"name": "instance",
 				"type" : "string",
 				"comment" : "The version of the stack that processed the quiz record."
+			},
+			{
+				"name": "revoked",
+				"type": "boolean",
+				"comment": "If true, the record was revoked by an ACT member."
+			},
+			{
+				"name": "revoked_on",
+				"type": "timestamp",
+				"comment": "The date/time when the record was revoked, can be null if the record was never revoked."
+			},
+			{
+				"name": "certified",
+				"type": "boolean",
+				"comment": "If true the user is certified through this record, can be true iif passed is true and revoked is false."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
