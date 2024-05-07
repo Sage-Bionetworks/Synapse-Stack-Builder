@@ -5,21 +5,21 @@
             "Properties": {
                 "Name": "${stack}-${instance}-${configuration.appConfigName}AppConfigApplicationId"
             },
-            "Value": {"Fn::ImportValue": "${stack}${instance}${environment.type}AppConfigApplicationId"}
+            "Value": {"Fn::ImportValue": "${stack}${instance}${configuration.appConfigName}AppConfigApplicationId"}
         },
         "${stack}${instance}${configuration.appConfigName}AppConfigEnvironmentId": {
             "Type": "AWS::SSM::Parameter",
             "Properties": {
                 "Name": "${stack}-${instance}-${configuration.appConfigName}AppConfigEnvironmentId"
             },
-            "Value": {"Fn::ImportValue": "${stack}${instance}${environment.type}AppConfigEnvironmentId"}
+            "Value": {"Fn::ImportValue": "${stack}${instance}${configuration.appConfigName}AppConfigEnvironmentId"}
         },
         "${stack}${instance}${configuration.appConfigName}AppConfigConfigurationProfileId": {
             "Type": "AWS::SSM::Parameter",
             "Properties": {
                 "Name": "${stack}-${instance}-${configuration.appConfigName}AppConfigConfigurationProfileId"
             },
-            "Value": {"Fn::ImportValue": "${stack}${instance}${environment.type}AppConfigConfigurationProfileId"}
+            "Value": {"Fn::ImportValue": "${stack}${instance}${configuration.appConfigName}AppConfigConfigurationProfileId"}
         }
     #end
 #end
