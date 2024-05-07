@@ -3,23 +3,26 @@
         ,"${stack}${instance}${configuration.appConfigName}AppConfigApplicationId": {
             "Type": "AWS::SSM::Parameter",
             "Properties": {
-                "Name": "${stack}-${instance}-${configuration.appConfigName}AppConfigApplicationId"
+                "Name": "${stack}-${instance}-${configuration.appConfigName}AppConfigApplicationId",
+                "Type": "String",
+                "Value": {"Fn::ImportValue": "${stack}${instance}${configuration.appConfigName}AppConfigApplicationId"}
             },
-            "Value": {"Fn::ImportValue": "${stack}${instance}${configuration.appConfigName}AppConfigApplicationId"}
         },
         "${stack}${instance}${configuration.appConfigName}AppConfigEnvironmentId": {
             "Type": "AWS::SSM::Parameter",
             "Properties": {
-                "Name": "${stack}-${instance}-${configuration.appConfigName}AppConfigEnvironmentId"
+                "Name": "${stack}-${instance}-${configuration.appConfigName}AppConfigEnvironmentId",
+                "Type": "String",
+                "Value": {"Fn::ImportValue": "${stack}${instance}${configuration.appConfigName}AppConfigEnvironmentId"}
             },
-            "Value": {"Fn::ImportValue": "${stack}${instance}${configuration.appConfigName}AppConfigEnvironmentId"}
         },
         "${stack}${instance}${configuration.appConfigName}AppConfigConfigurationProfileId": {
             "Type": "AWS::SSM::Parameter",
             "Properties": {
-                "Name": "${stack}-${instance}-${configuration.appConfigName}AppConfigConfigurationProfileId"
+                "Name": "${stack}-${instance}-${configuration.appConfigName}AppConfigConfigurationProfileId",
+                "Type": "String",
+                "Value": {"Fn::ImportValue": "${stack}${instance}${configuration.appConfigName}AppConfigConfigurationProfileId"}
             },
-            "Value": {"Fn::ImportValue": "${stack}${instance}${configuration.appConfigName}AppConfigConfigurationProfileId"}
         }
     #end
 #end
