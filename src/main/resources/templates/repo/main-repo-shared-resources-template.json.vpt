@@ -552,6 +552,11 @@
                             "Effect": "Allow",
                             "Action": ["appconfig:StartConfigurationSession", "appconfig:GetLatestConfiguration"],
                             "Resource": "*"
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": ["ssm:GetParameter"],
+                            "Resource": "*"
                         }
                     ]
 		        }
