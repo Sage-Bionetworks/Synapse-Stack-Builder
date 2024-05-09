@@ -246,6 +246,11 @@
 				"comment": "An alias assigned to a project entity if present."
 			},
 			{
+				"name": "activity_id",
+				"type": "bigint",
+				"comment": "The reference to the id of an activity assigned to the node."
+			},
+			{
 				"name": "column_model_ids",
 				"type": "array<string>",
 				"comment": "For entities that define a table schema (e.g. table, views etc), the list of column ids assigned to the schema."
