@@ -1,6 +1,6 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
-	"version": "1.59.0",
+	"version": "1.60.0",
 	"extraScripts": ["utils.py","glue_job.py"],
 	"tableDescriptors": [{
 			"name": "processedaccessrecord",
@@ -231,6 +231,56 @@
 				"comment" : "The name of the node."
 			},
 			{
+				"name": "version_comment",
+				"type": "string",
+				"comment": "A short description assigned to this node version."
+			},
+			{
+				"name": "version_label",
+				"type": "string",
+				"comment": "A short label assigned to this this node version."
+			},
+			{
+				"name": "alias",
+				"type": "string",
+				"comment": "An alias assigned to a project entity if present."
+			},
+			{
+				"name": "activity_id",
+				"type": "bigint",
+				"comment": "The reference to the id of an activity assigned to the node."
+			},
+			{
+				"name": "column_model_ids",
+				"type": "array<string>",
+				"comment": "For entities that define a table schema (e.g. table, views etc), the list of column ids assigned to the schema."
+			},
+			{
+				"name": "scope_ids",
+				"type": "array<string>",
+				"comment": "For entities that define a scope (e.g. entity views, subsmission views etc), the list of entity ids included in the scope."
+			},
+			{
+				"name": "items",
+				"type": "array<struct<entityId:string,versionNumber:bigint>>",
+				"comment": "For entities that define a fixed list of entity references (e.g. dataset, dataset collections), the list of entity references included in the scope."
+			},
+			{
+				"name": "reference",
+				"type": "struct<targetId:string,targetVersionNumber:bigint>",
+				"comment": "For Link entities, the reference to the linked target."
+			},
+			{
+				"name": "is_search_enabled",
+				"type": "boolean",
+				"comment": "For Table like entities (e.g. EntityView, MaterializedView etc), defines if full text search is enabled on those entities."
+			},
+			{
+				"name": "defining_sql",
+				"type": "string",
+				"comment": "For tables that are driven by a synapse SQL query (e.g. MaterializedView, VirtualTable), defines the underlying SQL query."
+			},
+			{
 				"name": "is_public",
 				"type" : "boolean",
 				"comment" : "If true, READ permission is granted to all the Synapse users, including the anonymous user, at the time of the snapshot."
@@ -259,6 +309,11 @@
 				"name": "derived_annotations",
 				"type": "string",
 				"comment": "The json representation of the entity annotations that were derived by the schema of the entity."
+			},
+			{
+				"name": "internal_annotations",
+				"type": "string",
+				"comment": "The json representation of the entity internal annotations that are used to store additional data about different types of entity (e.g. dataset checksum, size, count)."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
