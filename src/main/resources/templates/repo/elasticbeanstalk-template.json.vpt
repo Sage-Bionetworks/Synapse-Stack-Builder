@@ -412,24 +412,6 @@
                         "OptionName": "RetentionInDays",
                         "Value": "14"
                     }
-                    #if ($environment.isTypePortal())
-                    ,
-                    {
-                        "Namespace": "aws:elasticbeanstalk:application:environment",
-                        "OptionName": "org.sagebionetworks.appconfig.application.identifier",
-                        "Value": {"Fn::ImportValue": "${stack}${instance}${environment.type}AppConfigApplicationId"}
-                    },
-                    {
-                        "Namespace": "aws:elasticbeanstalk:application:environment",
-                        "OptionName": "org.sagebionetworks.appconfig.environment.identifier",
-                        "Value": {"Fn::ImportValue": "${stack}${instance}${environment.type}AppConfigEnvironmentId"}
-                    },
-                    {
-                        "Namespace": "aws:elasticbeanstalk:application:environment",
-                        "OptionName": "org.sagebionetworks.appconfig.configurationprofile.identifier",
-                        "Value": {"Fn::ImportValue": "${stack}${instance}${environment.type}AppConfigConfigurationProfileId"}
-                    }
-                    #end
 					#if ($environment.isTypeRepositoryOrWorkers())
 					,
 					{
