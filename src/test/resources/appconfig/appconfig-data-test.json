@@ -3,7 +3,7 @@
   "dev101portalAppConfigApp": {
     "Type": "AWS::AppConfig::Application",
     "Properties": {
-      "Name": "dev-101-portalAppConfigApp"
+      "Name": "dev-101-portal-AppConfigApp"
     }
   },
   "dev101portalAppConfigEnvironment": {
@@ -12,7 +12,7 @@
       "ApplicationId": {
         "Ref": "dev101portalAppConfigApp"
       },
-      "Name": "dev-101-portal"
+      "Name": "dev-101-portal-environment"
     }
   },
   "dev101portalAppConfigConfigProfile": {
@@ -37,6 +37,26 @@
       "Description": "Freeform config for toggling experimental mode features",
       "Content": "{\"Provenance v2 visualization\": true}",
       "ContentType": "application/json"
+    }
+  },
+  "dev101portalAppConfigDeploymentStrategy": {
+    "Type": "AWS::AppConfig::DeploymentStrategy",
+    "Properties": {
+      "Name": "AllAtOnce",
+      "DeploymentDurationInMinutes": 0,
+      "GrowthFactor": 100,
+      "ReplicateTo": "NONE",
+      "FinalBakeTimeInMinutes": 0
+    }
+  },
+  "dev101portalAppConfigDeployment": {
+    "Type": "AWS::AppConfig::Deployment",
+    "Properties": {
+      "ApplicationId": {"Ref": "dev101portalAppConfigApp"},
+      "ConfigurationProfileId": {"Ref": "dev101portalAppConfigConfigProfile"},
+      "ConfigurationVersion": "1",
+      "DeploymentStrategyId": {"Ref": "dev101portalAppConfigDeploymentStrategy"},
+      "EnvironmentId": {"Ref": "dev101portalAppConfigEnvironment"}
     }
   }
 }
