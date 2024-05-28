@@ -54,7 +54,10 @@
     "Properties": {
       "ApplicationId": {"Ref": "dev101portalAppConfigApp"},
       "ConfigurationProfileId": {"Ref": "dev101portalAppConfigConfigProfile"},
-      "ConfigurationVersion": "1",
+      "ConfigurationVersion": {"Fn::GetAtt": [
+        "dev101portalAppConfigHostedConfiguration",
+        "VersionNumber"
+      ]},
       "DeploymentStrategyId": {"Ref": "dev101portalAppConfigDeploymentStrategy"},
       "EnvironmentId": {"Ref": "dev101portalAppConfigEnvironment"}
     }
