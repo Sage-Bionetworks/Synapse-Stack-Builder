@@ -3,7 +3,7 @@
     {
       "appConfigName": "portal",
       "appConfigDescription": "Freeform config for toggling experimental mode features",
-      "appConfigDefaultConfiguration": "{\\\"Provenance v2 visualization\\\": false}"
+      "appConfigDefaultConfiguration": "{\\\"Provenance v2 visualization\\\": false, \\\"Description field\\\": false}"
     }
   ]
 }

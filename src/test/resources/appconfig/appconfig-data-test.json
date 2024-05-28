@@ -35,7 +35,7 @@
         "Ref": "dev101portalAppConfigConfigProfile"
       },
       "Description": "Freeform config for toggling experimental mode features",
-      "Content": "{\"Provenance v2 visualization\": false}",
+      "Content": "{\"Provenance v2 visualization\": false, \"Description field\": false}",
       "ContentType": "application/json"
     }
   },
@@ -54,7 +54,10 @@
     "Properties": {
       "ApplicationId": {"Ref": "dev101portalAppConfigApp"},
       "ConfigurationProfileId": {"Ref": "dev101portalAppConfigConfigProfile"},
-      "ConfigurationVersion": "1",
+      "ConfigurationVersion": {"Fn::GetAtt": [
+        "dev101portalAppConfigHostedConfiguration",
+        "VersionNumber"
+      ]},
       "DeploymentStrategyId": {"Ref": "dev101portalAppConfigDeploymentStrategy"},
       "EnvironmentId": {"Ref": "dev101portalAppConfigEnvironment"}
     }

@@ -58,7 +58,7 @@
              "ConfigurationProfileId": {
                "Ref": "${stack}${instance}${configuration.appConfigName}AppConfigConfigProfile"
              },
-             "ConfigurationVersion": "1",
+             "ConfigurationVersion": {"Fn::GetAtt": ["${stack}${instance}${configuration.appConfigName}AppConfigHostedConfiguration", "VersionNumber"]},
              "DeploymentStrategyId": {
                "Ref": "${stack}${instance}${configuration.appConfigName}AppConfigDeploymentStrategy"
              },
