@@ -35,7 +35,7 @@
         "Ref": "dev101portalAppConfigConfigProfile"
       },
       "Description": "Freeform config for toggling experimental mode features",
-      "Content": "{\"Provenance v2 visualization\": false}",
+      "Content": "{\"Provenance v2 visualization\": false, \"Description field\": false}",
       "ContentType": "application/json"
     }
   },
