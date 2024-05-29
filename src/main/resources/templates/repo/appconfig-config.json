@@ -3,7 +3,7 @@
     {
       "appConfigName": "portal",
       "appConfigDescription": "Freeform config for toggling experimental mode features",
-      "appConfigDefaultConfiguration": "{\\\"Provenance v2 visualization\\\": false, \\\"Description field\\\": false}"
+      "appConfigDefaultConfiguration": "{\\\"Google Map on Teams page\\\": false, \\\"View Associated Projects\\\": false, \\\"Provenance widget for Docker images\\\": false, \\\"JSON Schema-aware annotation editor\\\": false, \\\"JSON Schema validation status\\\": false, \\\"Description field\\\": false, \\\"Ability to add certain Wiki Widgets\\\": false, \\\"Wiki diff tool\\\": false, \\\"Custom storage location settings\\\": false, \\\"Challenge submission configuration settings\\\": false, \\\"Provenance v2 visualization\\\": false, \\\"VirtualTable support\\\": false, \\\"SRC-based create/update AR modal\\\": false}"
     }
   ]
 }
