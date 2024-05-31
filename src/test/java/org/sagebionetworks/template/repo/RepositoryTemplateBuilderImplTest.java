@@ -748,7 +748,14 @@ public class RepositoryTemplateBuilderImplTest {
 		JSONObject adminRule = rules.getJSONObject(10);
 		assertEquals("prod-101-Admin-Access-Rule",adminRule.get("Name"));
 		assertEquals("{\"Block\":{}}",adminRule.getJSONObject("Action").toString());
-		
+
+		JSONObject sizeRestrictionsRule = rules.getJSONObject(1);
+		assertEquals("prod-101-size-restrictions-rule", sizeRestrictionsRule.get("Name"));
+		JSONObject statement = sizeRestrictionsRule.getJSONObject("Statement");
+		JSONArray ruleSizeStatements = statement.getJSONObject("OrStatement").getJSONArray("Statements");
+		JSONObject uriSizeRule = ruleSizeStatements.getJSONObject(2);
+		assertEquals(1024, uriSizeRule.getJSONObject("SizeConstraintStatement").get("Size"));
+
 		JSONObject webACLLoggingConfig = resources.getJSONObject("prod101WebAclLoggingConfiguration");
 		JSONObject webACLCfgProps = webACLLoggingConfig.getJSONObject("Properties");
 		JSONArray logDestConfigs = webACLCfgProps.getJSONArray("LogDestinationConfigs");
