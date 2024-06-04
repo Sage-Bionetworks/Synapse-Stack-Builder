@@ -25,16 +25,14 @@
 	</repositories>
 
 	<dependencies>
-		<!-- https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on -->
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk15on</artifactId>
+			<artifactId>bcprov-jdk18on</artifactId>
 			<version>${bouncycastle.version}</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk15on -->
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcpkix-jdk15on</artifactId>
+			<artifactId>bcpkix-jdk18on</artifactId>
 			<version>${bouncycastle.version}</version>
 		</dependency>
 		<dependency>
@@ -275,7 +273,7 @@
 		</plugins>
 	</build>
 	<properties>
-		<bouncycastle.version>1.67</bouncycastle.version>
+		<bouncycastle.version>1.78.1</bouncycastle.version>
 		<amazon.sdk.version>1.12.296</amazon.sdk.version>
 		<log4j.version>2.17.1</log4j.version>
 		<junit.jupiter.version>5.4.1</junit.jupiter.version>
@@ -285,6 +283,6 @@
 		<mockito.version>2.27.0</mockito.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     	<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    	<synapse.version>475.0</synapse.version>
+    	<synapse.version>501.0</synapse.version>
 	</properties>
 </project>
