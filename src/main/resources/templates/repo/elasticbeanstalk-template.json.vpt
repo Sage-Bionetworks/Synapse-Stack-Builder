@@ -45,7 +45,7 @@
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
 						"OptionName": "RootVolumeType",
-						"Value": "gp2"
+						"Value": "gp3"
 					},
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
