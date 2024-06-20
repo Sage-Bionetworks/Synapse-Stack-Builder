@@ -84,8 +84,10 @@ public class Constants {
 	public static final String PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS = "org.sagebionetworks.repo.rds.instance.class";
 	public static final String PROPERTY_KEY_REPO_RDS_STORAGE_TYPE = "org.sagebionetworks.repo.rds.storage.type";
 	public static final String PROPERTY_KEY_REPO_RDS_IOPS = "org.sagebionetworks.repo.rds.iops";
+	public static final String PROPERTY_KEY_REPO_RDS_THROUGHPUT = "org.sagebionetworks.repo.rds.throughput";
 	public static final String PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE = "org.sagebionetworks.tables.rds.storage.type";
 	public static final String PROPERTY_KEY_TABLES_RDS_IOPS = "org.sagebionetworks.tables.rds.iops";
+	public static final String PROPERTY_KEY_TABLES_RDS_THROUGHPUT = "org.sagebionetworks.tables.rds.throughput";
 	public static final String PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE = "org.sagebionetworks.repo.rds.allocated.storage";
 	public static final String PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE = "org.sagebionetworks.repo.rds.max.allocated.storage";
 	public static final String PROPERTY_KEY_TABLES_INSTANCE_COUNT = "org.sagebionetworks.tables.rds.instance.count";

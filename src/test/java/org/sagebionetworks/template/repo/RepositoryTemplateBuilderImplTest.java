@@ -47,6 +47,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_RDS_TABLES_SNA
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_IOPS;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_THROUGHPUT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MULTI_AZ;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_STORAGE_TYPE;
@@ -56,6 +57,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_INSTANC
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_IOPS;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_THROUGHPUT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_COLOR;
@@ -244,6 +246,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
 		when(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.standard.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS)).thenReturn(-1);
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_THROUGHPUT)).thenReturn(-1);
 
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(6);
@@ -251,6 +254,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).thenReturn("db.t2.micro");
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(15000);
 
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
@@ -330,18 +334,21 @@ public class RepositoryTemplateBuilderImplTest {
 		JSONObject dbProps = (JSONObject) repoDB.get("Properties");
 		assertFalse(dbProps.has("DBSnapshotIdentifier"));
 		assertTrue(dbProps.has("DBName"));
+		assertFalse(dbProps.has("StorageThroughput"));
 
 		assertTrue(resources.has("prod101Table0RepositoryDB"));
 		JSONObject tableDB = (JSONObject) resources.get("prod101Table0RepositoryDB");
 		JSONObject tDbProps = (JSONObject) tableDB.get("Properties");
 		assertFalse(tDbProps.has("DBSnapshotIdentifier"));
 		assertTrue(tDbProps.has("DBName"));
+		assertEquals(15000, tDbProps.getInt("StorageThroughput"));
 
 		assertTrue(resources.has("prod101Table1RepositoryDB"));
 		tableDB = (JSONObject) resources.get("prod101Table1RepositoryDB");
 		tDbProps = (JSONObject) tableDB.get("Properties");
 		assertFalse(tDbProps.has("DBSnapshotIdentifier"));
 		assertTrue(tDbProps.has("DBName"));
+		assertEquals(15000, tDbProps.getInt("StorageThroughput"));
 	}
 
 	@Test
@@ -359,6 +366,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
 		when(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.standard.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS)).thenReturn(-1);
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_THROUGHPUT)).thenReturn(-1);
 
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(6);
@@ -366,6 +374,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).thenReturn("db.t2.micro");
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(-1);
 
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
@@ -443,18 +452,21 @@ public class RepositoryTemplateBuilderImplTest {
 		JSONObject dbProps = (JSONObject) repoDB.get("Properties");
 		assertFalse(dbProps.has("DBSnapshotIdentifier"));
 		assertTrue(dbProps.has("DBName"));
+		assertFalse(dbProps.has("StorageThroughput"));
 
 		assertTrue(resources.has("prod101Table0RepositoryDB"));
 		JSONObject tableDB = (JSONObject) resources.get("prod101Table0RepositoryDB");
 		JSONObject tDbProps = (JSONObject) tableDB.get("Properties");
 		assertFalse(tDbProps.has("DBSnapshotIdentifier"));
 		assertTrue(tDbProps.has("DBName"));
+		assertFalse(dbProps.has("StorageThroughput"));
 
 		assertTrue(resources.has("prod101Table1RepositoryDB"));
 		tableDB = (JSONObject) resources.get("prod101Table1RepositoryDB");
 		tDbProps = (JSONObject) tableDB.get("Properties");
 		assertFalse(tDbProps.has("DBSnapshotIdentifier"));
 		assertTrue(tDbProps.has("DBName"));
+		assertFalse(dbProps.has("StorageThroughput"));
 	}
 	
 	@Test
@@ -475,6 +487,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
 		when(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.standard.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS)).thenReturn(-1);
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_THROUGHPUT)).thenReturn(-1);
 
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(6);
@@ -482,6 +495,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).thenReturn("db.t2.micro");
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(15000);
 
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
@@ -556,6 +570,7 @@ public class RepositoryTemplateBuilderImplTest {
 		JSONObject dbProps = (JSONObject) repoDB.get("Properties");
 		assertFalse(dbProps.has("DBSnapshotIdentifier"));
 		assertTrue(dbProps.has("DBName"));
+		assertFalse(dbProps.has("StorageThroughput"));
 		validateResouceDatabaseInstance(resources, stack, "true");
 
 		assertTrue(resources.has("dev101Table0RepositoryDB"));
@@ -563,12 +578,14 @@ public class RepositoryTemplateBuilderImplTest {
 		JSONObject tDbProps = (JSONObject) tableDB.get("Properties");
 		assertFalse(tDbProps.has("DBSnapshotIdentifier"));
 		assertTrue(tDbProps.has("DBName"));
+		assertEquals(15000, tDbProps.getInt("StorageThroughput"));
 
 		assertTrue(resources.has("dev101Table1RepositoryDB"));
 		tableDB = (JSONObject) resources.get("dev101Table1RepositoryDB");
 		tDbProps = (JSONObject) tableDB.get("Properties");
 		assertFalse(tDbProps.has("DBSnapshotIdentifier"));
 		assertTrue(tDbProps.has("DBName"));
+		assertEquals(15000, tDbProps.getInt("StorageThroughput"));
 
 	}
 
@@ -587,6 +604,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
 		when(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.standard.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS)).thenReturn(-1);
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_THROUGHPUT)).thenReturn(-1);
 
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(6);
@@ -594,6 +612,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).thenReturn("db.t2.micro");
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(1000);
 
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
@@ -856,13 +875,15 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
 		when(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.standard.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS)).thenReturn(-1);
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_THROUGHPUT)).thenReturn(-1);
 
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(6);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_INSTANCE_COUNT)).thenReturn(2);
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).thenReturn("db.t2.micro");
-		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
+		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.gp3.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(1000);
 		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("true");
 
 //		
@@ -896,6 +917,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("dev101RepositoryDB", desc.getResourceName());
 		assertEquals(DatabaseStorageType.standard.name(), desc.getDbStorageType());
 		assertEquals(-1, desc.getDbIops());
+		assertEquals(-1, desc.getDbThroughput());
 
 		// table zero
 		desc = descriptors[1];
@@ -905,8 +927,9 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("db.t2.micro", desc.getInstanceClass());
 		assertEquals("dev-101-table-0", desc.getInstanceIdentifier());
 		assertEquals("dev101Table0RepositoryDB", desc.getResourceName());
-		assertEquals(DatabaseStorageType.io1.name(), desc.getDbStorageType());
+		assertEquals(DatabaseStorageType.gp3.name(), desc.getDbStorageType());
 		assertEquals(1000, desc.getDbIops());
+		assertEquals(1000, desc.getDbThroughput());
 		// table one
 		desc = descriptors[2];
 		assertEquals(3, desc.getAllocatedStorage());
@@ -915,8 +938,9 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("db.t2.micro", desc.getInstanceClass());
 		assertEquals("dev-101-table-1", desc.getInstanceIdentifier());
 		assertEquals("dev101Table1RepositoryDB", desc.getResourceName());
-		assertEquals(DatabaseStorageType.io1.name(), desc.getDbStorageType());
+		assertEquals(DatabaseStorageType.gp3.name(), desc.getDbStorageType());
 		assertEquals(1000, desc.getDbIops());
+		assertEquals(1000, desc.getDbThroughput());
 
 		verify(mockContextProvider1).addToContext(context);
 		verify(mockContextProvider2).addToContext(context);
@@ -935,6 +959,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
 		when(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.standard.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS)).thenReturn(-1);
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_THROUGHPUT)).thenReturn(-1);
 
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(6);
@@ -942,6 +967,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).thenReturn("db.t2.micro");
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(1000);
 		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("true");
 
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
@@ -1273,13 +1299,15 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
 		when(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.standard.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS)).thenReturn(-1);
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_THROUGHPUT)).thenReturn(-1);
 
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(6);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_INSTANCE_COUNT)).thenReturn(1);
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).thenReturn("db.t2.micro");
-		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
+		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.gp3.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(1000);
 
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
@@ -1289,14 +1317,16 @@ public class RepositoryTemplateBuilderImplTest {
 		DatabaseDescriptor[] results = builder.createDatabaseDescriptors();
 		DatabaseDescriptor[] expected = new DatabaseDescriptor[] {
 				// repo
-				new DatabaseDescriptor().withAllocatedStorage(4).withBackupRetentionPeriodDays(7).withDbIops(-1)
+				new DatabaseDescriptor().withAllocatedStorage(4).withBackupRetentionPeriodDays(7)
+						.withDbIops(-1).withDbThroughput(-1)
 						.withDbName("prod101").withDbStorageType(DatabaseStorageType.standard.name())
 						.withInstanceClass("db.t2.small").withInstanceIdentifier("prod-101-db")
 						.withMaxAllocatedStorage(8).withMultiAZ(true).withResourceName("prod101RepositoryDB")
 						.withSnapshotIdentifier(null).withDeletionPolicy(DeletionPolicy.Snapshot),
 				// tables
-				new DatabaseDescriptor().withAllocatedStorage(3).withBackupRetentionPeriodDays(1).withDbIops(1000)
-						.withDbName("prod101").withDbStorageType(DatabaseStorageType.io1.name())
+				new DatabaseDescriptor().withAllocatedStorage(3).withBackupRetentionPeriodDays(1)
+						.withDbIops(1000).withDbThroughput(1000)
+						.withDbName("prod101").withDbStorageType(DatabaseStorageType.gp3.name())
 						.withInstanceClass("db.t2.micro").withInstanceIdentifier("prod-101-table-0")
 						.withMaxAllocatedStorage(6).withMultiAZ(false).withResourceName("prod101Table0RepositoryDB")
 						.withSnapshotIdentifier(null).withDeletionPolicy(DeletionPolicy.Snapshot)
@@ -1317,13 +1347,15 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
 		when(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.standard.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS)).thenReturn(-1);
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_THROUGHPUT)).thenReturn(-1);
 
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(6);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_INSTANCE_COUNT)).thenReturn(1);
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).thenReturn("db.t2.micro");
-		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
+		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.gp3.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(1000);
 
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
@@ -1333,14 +1365,16 @@ public class RepositoryTemplateBuilderImplTest {
 		DatabaseDescriptor[] results = builder.createDatabaseDescriptors();
 		DatabaseDescriptor[] expected = new DatabaseDescriptor[] {
 				// repo
-				new DatabaseDescriptor().withAllocatedStorage(4).withBackupRetentionPeriodDays(0).withDbIops(-1)
+				new DatabaseDescriptor().withAllocatedStorage(4).withBackupRetentionPeriodDays(0)
+						.withDbIops(-1).withDbThroughput(-1)
 						.withDbName("dev101").withDbStorageType(DatabaseStorageType.standard.name())
 						.withInstanceClass("db.t2.small").withInstanceIdentifier("dev-101-db")
 						.withMaxAllocatedStorage(8).withMultiAZ(true).withResourceName("dev101RepositoryDB")
 						.withSnapshotIdentifier(null).withDeletionPolicy(DeletionPolicy.Delete),
 				// tables
-				new DatabaseDescriptor().withAllocatedStorage(3).withBackupRetentionPeriodDays(0).withDbIops(1000)
-						.withDbName("dev101").withDbStorageType(DatabaseStorageType.io1.name())
+				new DatabaseDescriptor().withAllocatedStorage(3).withBackupRetentionPeriodDays(0)
+						.withDbIops(1000).withDbThroughput(1000)
+						.withDbName("dev101").withDbStorageType(DatabaseStorageType.gp3.name())
 						.withInstanceClass("db.t2.micro").withInstanceIdentifier("dev-101-table-0")
 						.withMaxAllocatedStorage(6).withMultiAZ(false).withResourceName("dev101Table0RepositoryDB")
 						.withSnapshotIdentifier(null).withDeletionPolicy(DeletionPolicy.Delete) };

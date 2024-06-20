@@ -136,6 +136,9 @@
 				#if (${descriptor.dbIops} > 0)
 				"Iops": ${descriptor.dbIops},
 				#end
+				#if (${descriptor.dbThroughput} > 0)
+				"StorageThroughput": ${descriptor.dbThroughput},
+				#end
 				"VPCSecurityGroups": [
 					{
 						"Ref": "${stack}${instance}VpcDBSecurityGroup"

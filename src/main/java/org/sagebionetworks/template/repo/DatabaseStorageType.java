@@ -8,5 +8,6 @@ public enum DatabaseStorageType {
 
 	standard,
 	gp2,
+	gp3,
 	io1
 }

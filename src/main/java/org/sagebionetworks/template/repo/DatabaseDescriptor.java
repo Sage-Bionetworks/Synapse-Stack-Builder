@@ -21,6 +21,7 @@ public class DatabaseDescriptor {
 	private int dbIops = -1;
 	private int backupRetentionPeriodDays = 0;
 	private DeletionPolicy deletionPolicy = DeletionPolicy.Snapshot;
+	private int dbThroughput = -1;
 
 	/**
 	 * @return the deletionPolicy
@@ -240,10 +241,19 @@ public class DatabaseDescriptor {
 		this.dbIops = dbIops;
 		return this;
 	}
+	
+	public int getDbThroughput() {
+		return dbThroughput;
+	}
+	
+	public DatabaseDescriptor withDbThroughput(int dbThroughput) {
+		this.dbThroughput = dbThroughput;
+		return this;
+	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(allocatedStorage, backupRetentionPeriodDays, dbIops, dbName, dbStorageType, deletionPolicy,
+		return Objects.hash(allocatedStorage, backupRetentionPeriodDays, dbIops, dbName, dbStorageType, dbThroughput, deletionPolicy,
 				instanceClass, instanceIdentifier, maxAllocatedStorage, multiAZ, resourceName, snapshotIdentifier);
 	}
 
@@ -256,24 +266,21 @@ public class DatabaseDescriptor {
 			return false;
 		}
 		DatabaseDescriptor other = (DatabaseDescriptor) obj;
-		return allocatedStorage == other.allocatedStorage
-				&& backupRetentionPeriodDays == other.backupRetentionPeriodDays && dbIops == other.dbIops
-				&& Objects.equals(dbName, other.dbName) && dbStorageType == other.dbStorageType
-				&& deletionPolicy == other.deletionPolicy && Objects.equals(instanceClass, other.instanceClass)
-				&& Objects.equals(instanceIdentifier, other.instanceIdentifier)
+		return allocatedStorage == other.allocatedStorage && backupRetentionPeriodDays == other.backupRetentionPeriodDays
+				&& dbIops == other.dbIops && Objects.equals(dbName, other.dbName) && dbStorageType == other.dbStorageType
+				&& dbThroughput == other.dbThroughput && deletionPolicy == other.deletionPolicy
+				&& Objects.equals(instanceClass, other.instanceClass) && Objects.equals(instanceIdentifier, other.instanceIdentifier)
 				&& maxAllocatedStorage == other.maxAllocatedStorage && multiAZ == other.multiAZ
-				&& Objects.equals(resourceName, other.resourceName)
-				&& Objects.equals(snapshotIdentifier, other.snapshotIdentifier);
+				&& Objects.equals(resourceName, other.resourceName) && Objects.equals(snapshotIdentifier, other.snapshotIdentifier);
 	}
 
 	@Override
 	public String toString() {
-		return "DatabaseDescriptor [resourceName=" + resourceName + ", allocatedStorage=" + allocatedStorage
-				+ ", maxAllocatedStorage=" + maxAllocatedStorage + ", instanceClass=" + instanceClass
-				+ ", instanceIdentifier=" + instanceIdentifier + ", snapshotIdentifier=" + snapshotIdentifier
-				+ ", dbName=" + dbName + ", multiAZ=" + multiAZ + ", dbStorageType=" + dbStorageType + ", dbIops="
-				+ dbIops + ", backupRetentionPeriodDays=" + backupRetentionPeriodDays + ", deletionPolicy="
-				+ deletionPolicy + "]";
+		return "DatabaseDescriptor [resourceName=" + resourceName + ", allocatedStorage=" + allocatedStorage + ", maxAllocatedStorage="
+				+ maxAllocatedStorage + ", instanceClass=" + instanceClass + ", instanceIdentifier=" + instanceIdentifier
+				+ ", snapshotIdentifier=" + snapshotIdentifier + ", dbName=" + dbName + ", multiAZ=" + multiAZ + ", dbStorageType="
+				+ dbStorageType + ", dbIops=" + dbIops + ", backupRetentionPeriodDays=" + backupRetentionPeriodDays + ", deletionPolicy="
+				+ deletionPolicy + ", dbThroughput=" + dbThroughput + "]";
 	}
 
 }

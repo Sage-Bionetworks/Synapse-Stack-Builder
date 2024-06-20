@@ -84,6 +84,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_RDS_TABLES_SNA
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_IOPS;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_THROUGHPUT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MULTI_AZ;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_STORAGE_TYPE;
@@ -93,6 +94,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_INSTANC
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_IOPS;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_THROUGHPUT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_COLOR;
@@ -352,6 +354,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				.withInstanceClass(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS))
 				.withDbStorageType(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE))
 				.withDbIops(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS))
+				.withDbThroughput(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_THROUGHPUT))
 				.withMultiAZ(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ))
 				// 0 indicates no automated backups will be created.
 				.withBackupRetentionPeriodDays(Constants.isProd(stack) ? 7 : 0)
@@ -380,6 +383,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				.withInstanceIdentifier(stack + "-" + instance + "-table-" + i).withDbName(stack + instance)
 				.withDbStorageType(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE))
 				.withDbIops(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS))
+				.withDbThroughput(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT))
 				.withInstanceClass(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).withMultiAZ(false)
 				// 0 indicates no automated backups will be created.
 				.withBackupRetentionPeriodDays(Constants.isProd(stack)? 1 : 0)
