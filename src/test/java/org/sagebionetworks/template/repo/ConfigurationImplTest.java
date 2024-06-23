@@ -23,10 +23,10 @@ public class ConfigurationImplTest {
 	ConfigurationImpl config;
 
 	@Test
-	public void testGetDeafult() {
+	public void testGetDefault() {
 		config.initializeWithDefaults(DEFAULT_REPO_PROPERTIES);
 		String value = config.getProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE);
-		assertEquals("5", value);
+		assertEquals("24", value);
 	}
 
 	@Test
@@ -65,7 +65,7 @@ public class ConfigurationImplTest {
 	public void testGetInteger() {
 		config.initializeWithDefaults(DEFAULT_REPO_PROPERTIES);
 		int value = config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE);
-		assertEquals(5, value);
+		assertEquals(24, value);
 	}
 
 	@Test
