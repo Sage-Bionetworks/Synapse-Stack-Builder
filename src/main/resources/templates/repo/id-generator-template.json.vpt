@@ -91,7 +91,7 @@
 				"AllowMajorVersionUpgrade": false,
 				"AutoMinorVersionUpgrade": true,
 				"BackupRetentionPeriod": "7",
-				"DBInstanceClass": "db.m5.large",
+				"DBInstanceClass": "db.m6g.large",
 				"DBInstanceIdentifier": "${databaseIdentifier}",
 				"DBName": "${stack}idgen",
 				"DBParameterGroupName": {
@@ -101,7 +101,7 @@
 					"Ref": "${stack}IdGeneratorDBSubnetGroup"
 				},
 				"Engine": "MySQL",
-				"EngineVersion": "8.0.21",
+				"EngineVersion": "8.0.35",
 				"LicenseModel": "general-public-license",
 				"MasterUsername": "${stack}idgenuser",
 				"MasterUserPassword": {
