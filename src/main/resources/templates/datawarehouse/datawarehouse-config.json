@@ -925,7 +925,7 @@
 			{
 				"name": "change_timestamp",
 				"type" : "timestamp",
-				"comment" : "The time when the user submitted the quiz."
+				"comment" : "The latest time when the change message was sent to the queue for snapshotting."
 			},
 			{
 				"name": "snapshot_timestamp",
