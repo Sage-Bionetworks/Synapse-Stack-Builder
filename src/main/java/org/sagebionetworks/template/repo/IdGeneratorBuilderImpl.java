@@ -44,7 +44,7 @@ public class IdGeneratorBuilderImpl implements IdGeneratorBuilder {
 		String color = config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR);
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
 		String hostedZoneId = config.getProperty(PROPERTY_KEY_ID_GENERATOR_HOSTED_ZONE_ID);
-		String databaseIdentifier = stack+"-id-generator-db-"+color.toLowerCase();
+		String databaseIdentifier = stack+"-id-generator-db-2-"+color.toLowerCase();
 		context.put(STACK, stack);
 		context.put(GLOBAL_RESOURCES_EXPORT_PREFIX, Constants.createGlobalResourcesExportPrefix(stack));
 		context.put(VPC_EXPORT_PREFIX, Constants.createVpcExportPrefix(stack));
