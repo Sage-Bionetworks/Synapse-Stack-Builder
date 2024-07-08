@@ -53,8 +53,6 @@ public class Constants {
 	public static final String PARAMETER_VPN_CIDR = "VpnCidr";
 	public static final String PARAMETER_VPN_CIDR_NEW = "VpnCidrNew";
 	public static final String PARAMETER_VPC_SUBNET_PREFIX = "VpcSubnetPrefix";
-	public static final String PARAMETER_OLD_VPC_ID = "OldVpcId";
-	public static final String PARAMETER_OLD_VPC_CIDR = "OldVpcCidr";
 	// repo
 	public static final String PARAMETER_MYSQL_PASSWORD = "MySQLDatabaseMasterPassword";
 	public static final String PARAMETER_ENCRYPTION_KEY = "EncryptionKey";
