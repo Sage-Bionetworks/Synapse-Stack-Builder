@@ -213,7 +213,6 @@ public class Constants {
 	public static final String VPC_STACKNAME = "vpcStackName";
 	public static final String PRIVATE_SUBNET_IDX = "privateSubnetIdx";
 	public static final String HOSTED_ZONE = "hostedZone";
-	public static final String TEMP_VPC_CIDR = "tempVpcCidr";
 
 	public static final String CAPABILITY_NAMED_IAM = "CAPABILITY_NAMED_IAM";
 	public static final String OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT = "RepositoryDBEndpoint";
