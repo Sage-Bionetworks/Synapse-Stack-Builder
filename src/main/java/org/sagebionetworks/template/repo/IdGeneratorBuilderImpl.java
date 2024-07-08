@@ -67,7 +67,7 @@ public class IdGeneratorBuilderImpl implements IdGeneratorBuilder {
 		// Format the JSON
 		resultJSON = templateJson.toString(JSON_INDENT);
 		System.out.println(resultJSON);
-		String stackName = stack + "-id-generator-"+color.toLowerCase();
+		String stackName = stack + "-id-generator-2-"+color.toLowerCase();
 		this.logger.info("Template for stack: " + stackName);
 		this.logger.info(resultJSON);
 		// create or update the template
