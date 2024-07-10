@@ -158,14 +158,6 @@
 			"messageRetentionPeriodSec":1209600
 		},
 		{
-			"queueName":"TABLE_STATUS_DELETE",
-			"subscribedTopicNames":[
-				"ENTITY"
-			],
-			"messageVisibilityTimeoutSec":600,
-			"messageRetentionPeriodSec":1209600
-		},
-		{
 			"queueName":"TABLE_UPDATE",
 			"subscribedTopicNames":[
 				"TABLE"
