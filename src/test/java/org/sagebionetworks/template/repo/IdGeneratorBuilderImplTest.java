@@ -60,7 +60,6 @@ public class IdGeneratorBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn("Green");
 		when(mockSecretBuilder.getIdGeneratorPassword()).thenReturn("somePassword");
 		when(config.getProperty(PROPERTY_KEY_ID_GENERATOR_HOSTED_ZONE_ID)).thenReturn("hostedZoneId");
-		when(config.getProperty(PROPERTY_KEY_OLD_VPC_CIDR)).thenReturn("1.2.3.4/16");
 
 		builder = new IdGeneratorBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory, mockSecretBuilder);
 	}
@@ -76,7 +75,7 @@ public class IdGeneratorBuilderImplTest {
 		builder.buildAndDeploy();
 		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
 		CreateOrUpdateStackRequest request = requestCaptor.getValue();
-		assertEquals("prod-id-generator-green", request.getStackName());
+		assertEquals("prod-id-generator-2-green", request.getStackName());
 		JSONObject template = new JSONObject(request.getTemplateBody());
 		JSONObject resources = template.getJSONObject("Resources");
 		assertTrue(resources.has("prodIdGeneratorDBSubnetGroup"));
@@ -104,7 +103,7 @@ public class IdGeneratorBuilderImplTest {
 		builder.buildAndDeploy();
 		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
 		CreateOrUpdateStackRequest request = requestCaptor.getValue();
-		assertEquals("dev-id-generator-green", request.getStackName());
+		assertEquals("dev-id-generator-2-green", request.getStackName());
 		JSONObject template = new JSONObject(request.getTemplateBody());
 		JSONObject resources = template.getJSONObject("Resources");
 		assertTrue(resources.has("devIdGeneratorDBSubnetGroup"));
