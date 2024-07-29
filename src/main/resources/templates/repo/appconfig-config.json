@@ -3,7 +3,7 @@
     {
       "appConfigName": "portal",
       "appConfigDescription": "Freeform config for toggling experimental mode features",
-      "appConfigDefaultConfiguration": "{\\\"GOOGLE_MAP\\\": false, \\\"VIEW_ASSOCIATED_PROJECTS\\\": false, \\\"PROVENANCE_DOCKER_IMAGES\\\": false, \\\"JSONSCHEMA_VALIDATION_STATUS\\\": false, \\\"DESCRIPTION_FIELD\\\": false, \\\"ADD_WIKI_WIDGETS\\\": false, \\\"WIKI_DIFF_TOOL\\\": false, \\\"CUSTOM_STORAGE_LOCATION_SETTINGS\\\": false, \\\"CHALLENGE_SUBMISSION_SETTINGS\\\": false, \\\"PROVENANCE_V2_VISUALIZATION\\\": true, \\\"VIRTUALTABLE_SUPPORT\\\": false, \\\"SRC_BASED_AR_MODAL_WIZARD\\\": false}"
+      "appConfigDefaultConfiguration": "{\\\"GOOGLE_MAP\\\": false, \\\"VIEW_ASSOCIATED_PROJECTS\\\": false, \\\"PROVENANCE_DOCKER_IMAGES\\\": false, \\\"JSONSCHEMA_VALIDATION_STATUS\\\": false, \\\"DESCRIPTION_FIELD\\\": false, \\\"ADD_WIKI_WIDGETS\\\": false, \\\"WIKI_DIFF_TOOL\\\": false, \\\"CUSTOM_STORAGE_LOCATION_SETTINGS\\\": false, \\\"CHALLENGE_SUBMISSION_SETTINGS\\\": false, \\\"PROVENANCE_V2_VISUALIZATION\\\": true, \\\"VIRTUALTABLE_SUPPORT\\\": false, \\\"SRC_BASED_AR_MODAL_WIZARD\\\": false, \\\"REACT_ENTITY_ACL_EDITOR\\\": true}"
     }
   ]
 }
