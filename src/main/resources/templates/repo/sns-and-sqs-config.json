@@ -374,6 +374,11 @@
 				"QUERY_CACHE_HIT"
 			],
 			"messageVisibilityTimeoutSec":120
+		},
+		{
+			"queueName": "WEBHOOK_EVENT",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":30
 		}
 	]
 }
