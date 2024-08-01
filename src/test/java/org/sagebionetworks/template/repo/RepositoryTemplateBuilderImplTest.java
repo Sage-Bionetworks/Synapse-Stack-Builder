@@ -349,6 +349,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertFalse(tDbProps.has("DBSnapshotIdentifier"));
 		assertTrue(tDbProps.has("DBName"));
 		assertEquals(15000, tDbProps.getInt("StorageThroughput"));
+		
+		assertFalse(resources.has("WebhookTestApi"));
 	}
 
 	@Test
@@ -552,6 +554,9 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("NONE", templateJson.getJSONObject("Parameters").getJSONObject("TimeToLive").get("Default"));
 				
 		JSONObject resources = templateJson.getJSONObject("Resources");
+		
+		System.out.println(resources.toString(2));
+		
 		assertNotNull(resources);
 
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
@@ -587,6 +592,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(tDbProps.has("DBName"));
 		assertEquals(15000, tDbProps.getInt("StorageThroughput"));
 
+		assertTrue(resources.has("WebhookTestApi"));
 	}
 
 	@Test
