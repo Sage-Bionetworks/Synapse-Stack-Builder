@@ -79,7 +79,7 @@
             "PayloadFormatVersion": "1.0",
             "RequestParameters": {
             	"QueueUrl": { "Ref":"WebhookTestQueue" },
-            	"MessageBody": "#[[$request.body.message]]#"
+            	"MessageBody": "#[[$request.body]]#"
             },
             "CredentialsArn": { "Fn::GetAtt":[ "ApiGatewayToSqsRole", "Arn"] }
 		}
