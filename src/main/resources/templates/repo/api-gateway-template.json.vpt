@@ -1,0 +1,99 @@
+#if (${stack} == 'dev')
+	,
+	"WebhookTestQueue": {
+        "Type": "AWS::SQS::Queue",
+        "Properties": {
+            "QueueName": "${stack}-${instance}-WEBHOOK_TEST",
+            "VisibilityTimeout": 30 
+        }
+    },
+    "SendToWebhookTestQueuePolicy":{
+        "Type":"AWS::SQS::QueuePolicy",
+        "Properties":{
+            "PolicyDocument":{
+                "Statement":[
+                    {
+                        "Effect":"Allow",
+                        "Principal":"*",
+                        "Action":["sqs:SendMessage"],
+                        "Resource": { "Fn::GetAtt":[ "WebhookTestQueue", "Arn"] }
+                    }
+                ]
+            },
+            "Queues":[ { "Ref":"WebhookTestQueue" } ]
+        }
+	},
+	"ApiGatewayToSqsRole": {
+		"Type": "AWS::IAM::Role",
+		"Properties": {
+			"AssumeRolePolicyDocument": {
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": ["apigateway.amazonaws.com"]
+                        },
+                        "Action": ["sts:AssumeRole"]
+                    }
+                ]
+            },
+            "Policies":[
+				{
+					"PolicyName":"apiGatewaySqsPolicy",
+					"PolicyDocument":{
+						"Statement":[
+							{
+								"Effect":"Allow",
+								"Action":[ "sqs:sendMessage" ],
+								"Resource": { "Fn::GetAtt":[ "WebhookTestQueue", "Arn"] }
+							}
+						]
+					}
+				}
+			]
+		}
+	},
+	"WebhookTestApi": {
+  		"Type" : "AWS::ApiGatewayV2::Api",
+  		"Properties" : {
+			"Description": "Api for testing webhooks, forwards events to a testing SQS queue",
+			"Name": "${stack}${instance}WebhookTestApi",
+			"ProtocolType": "HTTP"
+		}
+    },
+    "WebhookTestApiStage": {
+    	"Type": "AWS::ApiGatewayV2::Stage",
+    	"Properties": {
+	      "ApiId": { "Ref": "WebhookTestApi" },
+	      "StageName": "#[[$default]]#",
+	      "AutoDeploy": true
+      	}
+    },
+    "WebHookTestApiSqsIntegration": {
+		"Type": "AWS::ApiGatewayV2::Integration",
+		"Properties": {
+			"Description": "Integration that proxies the request body to an Sqs queue",
+			"ApiId": { "Ref": "WebhookTestApi" },
+            "IntegrationType": "AWS_PROXY",
+            "IntegrationSubtype": "SQS-SendMessage",
+            "PayloadFormatVersion": "1.0",
+            "RequestParameters": {
+            	"QueueUrl": { "Ref":"WebhookTestQueue" },
+            	"MessageBody": "#[[$request.body]]#"
+            },
+            "CredentialsArn": { "Fn::GetAtt":[ "ApiGatewayToSqsRole", "Arn"] }
+		}
+    },
+    "WebhookTestEventsRoute": {
+		"Type": "AWS::ApiGatewayV2::Route",
+	    "Properties": {
+			"ApiId": { "Ref": "WebhookTestApi" },
+			"RouteKey": "POST /events",
+			"Target": {
+                "Fn::Join": [ "/", [ "integrations", { "Ref": "WebHookTestApiSqsIntegration" } ] ]
+            }
+		}
+	}
+}
+
+#end

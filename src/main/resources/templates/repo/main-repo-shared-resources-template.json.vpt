@@ -737,6 +737,7 @@
 		#parse("templates/repo/cloudwatch-alarms-template.json.vpt")
 		#parse("templates/repo/web/acl/web-acl-template.json.vpt")
 		#parse("templates/repo/appconfig-template.json.vpt")
+		#parse("templates/repo/api-gateway-template.json.vpt")
 	},
 	"Outputs": {
 		#parse("templates/repo/time-to-live-out.vpt"),
