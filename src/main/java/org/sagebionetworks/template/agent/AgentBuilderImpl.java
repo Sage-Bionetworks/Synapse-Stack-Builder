@@ -52,7 +52,7 @@ public class AgentBuilderImpl implements AgentBuilder {
         String lambdaURL = String.format(GITHUB_URL_TEMPLATE, artifactVesion, "lambda");
         String layerURL = String.format(GITHUB_URL_TEMPLATE, artifactVesion, "layer");
 
-        String bucket = String.format("$s.lambda.sagebase.org", stack);
+        String bucket = String.format("%s.lambda.sagebase.org", stack);
         String path = String.format("bedrock-agent/%s/", artifactVesion);
         File buildArtifacts = downloader.downloadFile(lambdaURL);
         try {
