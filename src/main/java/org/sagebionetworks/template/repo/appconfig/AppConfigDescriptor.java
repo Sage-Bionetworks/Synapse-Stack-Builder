@@ -2,6 +2,10 @@ package org.sagebionetworks.template.repo.appconfig;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.sagebionetworks.schema.adapter.JSONEntity;
 
 import java.util.Objects;
 
@@ -15,11 +19,17 @@ public class AppConfigDescriptor {
     @JsonCreator
     public AppConfigDescriptor(@JsonProperty(value = "appConfigName", required=true) String appConfigName,
                               @JsonProperty(value = "appConfigDescription", required=true) String appConfigDescription,
-                              @JsonProperty(value = "appConfigDefaultConfiguration", required=true) String appConfigDefaultConfiguration) {
+                              @JsonProperty(value = "appConfigDefaultConfiguration", required=true) ObjectNode appConfigDefaultConfiguration) {
 
         this.appConfigName = appConfigName;
         this.appConfigDescription = appConfigDescription;
-        this.appConfigDefaultConfiguration = appConfigDefaultConfiguration;
+
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            this.appConfigDefaultConfiguration = mapper.writeValueAsString(mapper.writeValueAsString(appConfigDefaultConfiguration));
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Failed to serialize appConfigDefaultConfiguration", e);
+        }
     }
 
     ///////////////////////////////////////////
