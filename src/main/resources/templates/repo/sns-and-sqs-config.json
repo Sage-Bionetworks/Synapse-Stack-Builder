@@ -376,6 +376,13 @@
 			"messageVisibilityTimeoutSec":120
 		},
 		{
+			"queueName": "WEBHOOK_CHANGES",
+			"subscribedTopicNames":[
+				"ENTITY"
+			],
+			"messageVisibilityTimeoutSec":60
+		},
+		{
 			"queueName": "WEBHOOK_MESSAGE",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":30
