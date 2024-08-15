@@ -26,7 +26,10 @@ public class AppConfigDescriptor {
 
         ObjectMapper mapper = new ObjectMapper();
         try {
-            this.appConfigDefaultConfiguration = mapper.writeValueAsString(mapper.writeValueAsString(appConfigDefaultConfiguration));
+            // The template expects a string containing escaped JSON, so write the JSON to a string, then escape the string by writing it to a string again
+            String jsonAsString = mapper.writeValueAsString(appConfigDefaultConfiguration);
+            String escapedJsonString = mapper.writeValueAsString(jsonAsString);
+            this.appConfigDefaultConfiguration = mapper.writeValueAsString(escapedJsonString);
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("Failed to serialize appConfigDefaultConfiguration", e);
         }
