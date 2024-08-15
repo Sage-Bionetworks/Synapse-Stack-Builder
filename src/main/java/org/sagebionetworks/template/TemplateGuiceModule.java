@@ -37,6 +37,8 @@ import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.apache.velocity.runtime.resource.loader.FileResourceLoader;
 import org.sagebionetworks.client.SynapseAdminClient;
+import org.sagebionetworks.template.agent.AgentBuilder;
+import org.sagebionetworks.template.agent.AgentBuilderImpl;
 import org.sagebionetworks.template.cdn.CdnBuilder;
 import org.sagebionetworks.template.cdn.CdnBuilderImpl;
 import org.sagebionetworks.template.config.Configuration;
@@ -179,6 +181,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(ExpiredStackTeardown.class).to(ExpiredStackTeardownImpl.class);
 		bind(DataWarehouseBuilder.class).to(DataWarehouseBuilderImpl.class);
 		bind(BackfillDataWarehouseBuilder.class).to(BackfillDataWarehouseBuilderImpl.class);
+		bind(AgentBuilder.class).to(AgentBuilderImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 

@@ -108,6 +108,7 @@ public class Constants {
 	public static final String PROPERTY_KEY_ID_GENERATOR_HOSTED_ZONE_ID = "org.sagebionetworks.id.generator.hosted.zone.id";
 	public static final String PROPERTY_KEY_EC2_INSTANCE_TYPE = "org.sagebionetworks.beanstalk.instance.type";
 	public static final String PROPERTY_KEY_TIME_TO_LIVE_HOURS = "org.sagebionetworks.repo.time.to.live.hours";
+	public static final String PROPERTY_KEY_ARTIFACT_VERSION = "org.sagebionetworks.artifact.version";
 
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX = "org.sagebionetworks.beanstalk.image.version.";
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA = PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX + "java";
