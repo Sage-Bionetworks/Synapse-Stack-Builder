@@ -5,6 +5,12 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.app.VelocityEngine;
@@ -35,33 +41,64 @@ public class AgentBuilderImpl implements AgentBuilder {
 		this.cloudFormationClient = cloudFormationClient;
 		this.velocityEngine = velocityEngine;
 		this.config = config;
-        this.logger = loggerFactory.getLogger(AgentBuilderImpl.class);
+		this.logger = loggerFactory.getLogger(AgentBuilderImpl.class);
 		this.downloader = downloader;
 		this.s3Client = s3Client;
 	}
 
 	@Override
-	public void buildAndDeploy() {
+	public void buildAndDeploy() throws IOException {
 
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
-        ValidateArgument.requiredNotEmpty(stack, PROPERTY_KEY_STACK);
+		ValidateArgument.requiredNotEmpty(stack, PROPERTY_KEY_STACK);
 		String instance = config.getProperty(PROPERTY_KEY_INSTANCE);
-        ValidateArgument.requiredNotEmpty(instance, PROPERTY_KEY_INSTANCE);
+		ValidateArgument.requiredNotEmpty(instance, PROPERTY_KEY_INSTANCE);
 		String artifactVesion = config.getProperty(PROPERTY_KEY_ARTIFACT_VERSION);
-        ValidateArgument.requiredNotEmpty(artifactVesion, PROPERTY_KEY_ARTIFACT_VERSION);
-        String lambdaURL = String.format(GITHUB_URL_TEMPLATE, artifactVesion, "lambda");
-        String layerURL = String.format(GITHUB_URL_TEMPLATE, artifactVesion, "layer");
+		ValidateArgument.requiredNotEmpty(artifactVesion, PROPERTY_KEY_ARTIFACT_VERSION);
+		String lambdaURL = String.format(GITHUB_URL_TEMPLATE, artifactVesion, "lambda");
 
-        String bucket = String.format("%s.lambda.sagebase.org", stack);
-        String path = String.format("bedrock-agent/%s/", artifactVesion);
-        File buildArtifacts = downloader.downloadFile(lambdaURL);
-        try {
-        	String key = path+"lambda-develop-SNAPSHOT.jar";
-        	s3Client.putObject(new PutObjectRequest(bucket, key, buildArtifacts));
-        }finally {
-        	buildArtifacts.delete();
-        }
-       	
+		String bucket = String.format("%s.lambda.sagebase.org", stack);
+		String path = String.format("artifacts/bedrock-agent/%s/", artifactVesion);
+
+		// copy the lambda from github and save it to the S3 bucket.
+		File lambdaJar = downloader.downloadFile(lambdaURL);
+		try {
+			String key = path + "lambda-develop-SNAPSHOT.jar";
+			s3Client.putObject(new PutObjectRequest(bucket, key, lambdaJar));
+		} finally {
+			lambdaJar.delete();
+		}
+
+		// copy the layer from github, package it into a zip and then save the zip S3.
+		String layerURL = String.format(GITHUB_URL_TEMPLATE, artifactVesion, "layer");
+		createAndUploadLayerZip(bucket, path, layerURL);
+
+	}
+
+	void createAndUploadLayerZip(String bucket, String path, String layerURL)
+			throws IOException, FileNotFoundException {
+		File layerJar = downloader.downloadFile(layerURL);
+		try {
+			File zip = File.createTempFile("layerZip", ".zip");
+			try {
+				try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zip));
+						FileInputStream fis = new FileInputStream(layerJar)) {
+					ZipEntry zipEntry = new ZipEntry("java/lib/lambda-layer-develop-SNAPSHOT.jar");
+					zipOut.putNextEntry(zipEntry);
+					byte[] bytes = new byte[1024];
+					int length;
+					while ((length = fis.read(bytes)) >= 0) {
+						zipOut.write(bytes, 0, length);
+					}
+				}
+				String key = path + "layer-develop-SNAPSHOT.zip";
+				s3Client.putObject(new PutObjectRequest(bucket, key, zip));
+			} finally {
+				zip.delete();
+			}
+		} finally {
+			layerJar.delete();
+		}
 	}
 
 }

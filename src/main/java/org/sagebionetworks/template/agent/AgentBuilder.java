@@ -1,6 +1,8 @@
 package org.sagebionetworks.template.agent;
 
+import java.io.IOException;
+
 public interface AgentBuilder {
 
-	void buildAndDeploy();
+	void buildAndDeploy() throws IOException;
 }
