@@ -17,7 +17,7 @@
 							"Condition": {
 								"StringEquals": {
 									"aws:SourceAccount": {
-										"Ref": "#[[${AWS::AccountId}]]#"
+										"Ref": "AWS::Region"
 									}
 								},
 								"ArnLike": {
@@ -99,7 +99,9 @@
 								"Action": [
 									"logs:CreateLogGroup"
 								],
-								"Resource": "arn:aws:logs:us-east-1:#[[${AWS::AccountId}]]#:*"
+								"Resource": {
+									"Fn::Sub": "arn:aws:logs:us-east-1:#[[${AWS::AccountId}]]#:*"
+								}
 							},
 							{
 								"Effect": "Allow",
@@ -108,7 +110,9 @@
 									"logs:PutLogEvents"
 								],
 								"Resource": [
-									"arn:aws:logs:us-east-1:#[[${AWS::AccountId}]]#:log-group:/aws/lambda/${actionGroupFunctionName}:*"
+									{
+										"Fn::Sub": "arn:aws:logs:us-east-1:#[[${AWS::AccountId}]]#:log-group:/aws/lambda/${actionGroupFunctionName}:*"
+									}
 								]
 							}
 						]
