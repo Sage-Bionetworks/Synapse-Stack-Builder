@@ -198,7 +198,7 @@
 					"Ref": "AWS::AccountId"
 				},
 				"SourceArn": {
-					"Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}]]#:#[[${AWS::AccountId}]]#:agent/*"
+					"Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}]]#:#[[${AWS::AccountId}]]#:agent/"
 				}
 			}
 		}
