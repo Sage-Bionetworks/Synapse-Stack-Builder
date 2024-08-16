@@ -555,8 +555,6 @@ public class RepositoryTemplateBuilderImplTest {
 				
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		
-		System.out.println(resources.toString(2));
-		
 		assertNotNull(resources);
 
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
