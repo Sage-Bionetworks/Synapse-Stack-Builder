@@ -48,6 +48,28 @@
 				]
 			}
 		},
+		"lambdaServiceRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"AssumeRolePolicyDocument": {
+					"Statement": [
+						{
+							"Action": "sts:AssumeRole",
+							"Effect": "Allow",
+							"Principal": {
+								"Service": "lambda.amazonaws.com"
+							}
+						}
+					],
+					"Version": "2012-10-17"
+				},
+				"ManagedPolicyArns": [
+					{
+						"Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+					}
+				]
+			}
+		},
 		"baseLambdaLayer": {
 			"Type": "AWS::Lambda::LayerVersion",
 			"Properties": {
@@ -87,33 +109,12 @@
 					"Size": 512
 				},
 				"PackageType": "Zip",
-				"Policies": [
-					{
-						"Statement": [
-							{
-								"Effect": "Allow",
-								"Action": [
-									"logs:CreateLogGroup"
-								],
-								"Resource": {
-									"Fn::Sub": "arn:aws:logs:us-east-1:#[[${AWS::AccountId}]]#:*"
-								}
-							},
-							{
-								"Effect": "Allow",
-								"Action": [
-									"logs:CreateLogStream",
-									"logs:PutLogEvents"
-								],
-								"Resource": [
-									{
-										"Fn::Sub": "arn:aws:logs:us-east-1:#[[${AWS::AccountId}]]#:log-group:/aws/lambda/${actionGroupFunctionName}:*"
-									}
-								]
-							}
-						]
-					}
-				],
+				"Role": {
+					"Fn::GetAtt": [
+						"lambdaServiceRole",
+						"Arn"
+					]
+				},
 				"SnapStart": {
 					"ApplyOn": "None"
 				},
