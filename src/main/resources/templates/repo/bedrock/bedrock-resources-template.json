@@ -140,7 +140,6 @@
 				"ActionGroups": [
 					{
 						"ActionGroupExecutor": {
-							"CustomControl": "RETURN_CONTROL",
 							"Lambda": {
 								"Fn::GetAtt": [
 									"actionGroupLambdaFuncion",
