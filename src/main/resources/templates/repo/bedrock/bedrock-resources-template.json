@@ -64,7 +64,7 @@
 			}
 		},
 		"${actionGroupFunctionName}": {
-			"Type": "AWS::Serverless::Function",
+			"Type": "AWS::Lambda::Function",
 			"Properties": {
 				"Code": {
 					"S3Bucket": "${bucketName}",
