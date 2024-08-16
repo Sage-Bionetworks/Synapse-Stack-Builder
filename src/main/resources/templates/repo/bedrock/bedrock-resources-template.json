@@ -182,6 +182,28 @@
 				"Instruction": "You are a helpful agent that can assist the user in discovering new Entities within Synapse.",
 				"SkipResourceInUseCheckOnDelete": false
 			}
+		},
+		"grantInvokeLambdaToAgent": {
+			"Type": "AWS::Lambda::Permission",
+			"Properties": {
+				"FunctionName": {
+					"Fn::GetAtt": [
+						"actionGroupLambdaFuncion",
+						"Arn"
+					]
+				},
+				"Action": "lambda:InvokeFunction",
+				"Principal": "bedrock.amazonaws.com",
+				"SourceAccount": {
+					"Ref": "AWS::AccountId"
+				},
+				"SourceArn": {
+					"Fn::GetAtt": [
+						"bedrockAgent",
+						"Arn"
+					]
+				}
+			}
 		}
 	}
 }
