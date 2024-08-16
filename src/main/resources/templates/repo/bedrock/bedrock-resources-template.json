@@ -194,11 +194,8 @@
 				},
 				"Action": "lambda:InvokeFunction",
 				"Principal": "bedrock.amazonaws.com",
-				"SourceAccount": {
-					"Ref": "AWS::AccountId"
-				},
 				"SourceArn": {
-					"Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}]]#:#[[${AWS::AccountId}]]#:agent/O9QYAZPCO1"
+					"Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}]]#:#[[${AWS::AccountId}]]#:agent"
 				}
 			}
 		}
