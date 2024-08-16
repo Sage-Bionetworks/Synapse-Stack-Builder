@@ -177,7 +177,7 @@
 				},
 				"AutoPrepare": true,
 				"Description": "Test of the use of actions groups to allow the agent to make Synapse API calls.",
-				"FoundationModel": "anthropic.claude-3-sonnet-20240229-v1:0",
+				"FoundationModel": "anthropic.claude-3-5-sonnet-20240620-v1:0",
 				"IdleSessionTTLInSeconds": 3600,
 				"Instruction": "You are a helpful agent that can assist the user in discovering new Entities within Synapse.",
 				"SkipResourceInUseCheckOnDelete": false
