@@ -73,10 +73,7 @@ public class AgentBuilderImplTest {
 
 		when(mockDownloader.downloadFile(
 				"https://github.com/Sage-Bionetworks/Synapse-Agent-Lambda/releases/download/v0.0.0/lambda-develop-SNAPSHOT.jar"))
-				.thenReturn(mockLambdaFile);
-//		when(mockDownloader.downloadFile(
-//				"https://github.com/Sage-Bionetworks/Synapse-Agent-Lambda/releases/download/v0.0.0/layer-develop-SNAPSHOT.jar"))
-//				.thenReturn(mockLayerFile);
+				.thenReturn(mockLambdaFile);;
 		
 		doReturn("layers-key").when(agentBuilderSpy).createAndUploadLayerZip(any(),any(),any());
 		// call under test

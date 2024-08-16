@@ -96,6 +96,8 @@ public class AgentBuilderImpl implements AgentBuilder {
 		context.put("layerName", layerName);
 		context.put("lambdaJarKey", lambdaKey);
 		context.put("actionGroupFunctionName", actionGroupName);
+		context.put("agentName", stackName);
+
 		
         // Merge the context with the template
         Template template = this.velocityEngine.getTemplate("templates/repo/bedrock/bedrock-resources-template.json");

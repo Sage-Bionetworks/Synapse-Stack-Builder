@@ -2,7 +2,7 @@
 	"AWSTemplateFormatVersion": "2010-09-09",
 	"Description": "...",
 	"Resources": {
-		"${stack}${instance}AgentRole": {
+		"bedrockAgentRole": {
 			"Type": "AWS::IAM::Role",
 			"Properties": {
 				"AssumeRolePolicyDocument": {
@@ -31,7 +31,7 @@
 				},
 				"Policies": [
 					{
-						"PolicyName": "allowBedrockToInvokeAnyModel",
+						"PolicyName": "bedrockAgentPolicy",
 						"PolicyDocument": {
 							"Version": "2012-10-17",
 							"Statement": [
@@ -39,7 +39,18 @@
 									"Effect": "Allow",
 									"Action": "bedrock:InvokeModel",
 									"Resource": [
-										"arn:aws:bedrock:us-east-1::foundation-model/*"
+										{
+											"Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}]]#::foundation-model/*"
+										}
+									]
+								},
+								{
+									"Effect": "Allow",
+									"Action": "lambda:*",
+									"Resource": [
+										{
+											"Fn::Sub": "arn:aws:lambda:#[[${AWS::Region}]]#:#[[${AWS::AccountId}]]#:function:*"
+										}
 									]
 								}
 							]
@@ -85,7 +96,7 @@
 				"LicenseInfo": "MIT"
 			}
 		},
-		"${actionGroupFunctionName}": {
+		"actionGroupLambdaFuncion": {
 			"Type": "AWS::Lambda::Function",
 			"Properties": {
 				"Code": {
@@ -121,6 +132,56 @@
 				"RuntimeManagementConfig": {
 					"UpdateRuntimeOn": "Auto"
 				}
+			}
+		},
+		"bedrockAgent": {
+			"Type": "AWS::Bedrock::Agent",
+			"Properties": {
+				"ActionGroups": [
+					{
+						"ActionGroupExecutor": {
+							"CustomControl": "RETURN_CONTROL",
+							"Lambda": {
+								"Fn::GetAtt": [
+									"actionGroupLambdaFuncion",
+									"Arn"
+								]
+							}
+						},
+						"ActionGroupName": "discovery",
+						"ActionGroupState": "ENABLED",
+						"Description": "Use the functions in this action group to help the user discover new Entities within Synapse.",
+						"FunctionSchema": {
+							"Functions": [
+								{
+									"Description": "Use this function to help a user execute a search against Synapse by providing the function with a search term from the user. The results should be displayed in a table with the following columns.  The first column should a row counter starting with 1 and incrementing by 1 for each row.  The second column should contain the id (the syn number) of the result.  The third column should contain the name of the result.  The fourth column should contain a short summary of the description when avaiable.",
+									"Name": "search",
+									"Parameters": {
+										"term": {
+											"Description": "The search term from the user that will be used as the search input.",
+											"Required": true,
+											"Type": "string"
+										}
+									}
+								}
+							]
+						},
+						"SkipResourceInUseCheckOnDelete": false
+					}
+				],
+				"AgentName": "${agentName}",
+				"AgentResourceRoleArn": {
+					"Fn::GetAtt": [
+						"bedrockAgentRole",
+						"Arn"
+					]
+				},
+				"AutoPrepare": true,
+				"Description": "Test of the use of actions groups to allow the agent to make Synapse API calls.",
+				"FoundationModel": "anthropic.claude-v3",
+				"IdleSessionTTLInSeconds": 3600,
+				"Instruction": "You are a helpful agent that can assist the user in discovering new Entities within Synapse.",
+				"SkipResourceInUseCheckOnDelete": false
 			}
 		}
 	}
