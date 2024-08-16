@@ -17,7 +17,7 @@
 							"Condition": {
 								"StringEquals": {
 									"aws:SourceAccount": {
-										"Ref": "AWS::Region"
+										"Ref": "AWS::AccountId"
 									}
 								},
 								"ArnLike": {
@@ -169,7 +169,12 @@
 					}
 				],
 				"AgentName": "${agentName}",
-				"AgentResourceRoleArn": "arn:aws:iam::449435941126:role/service-role/AmazonBedrockExecutionRoleForAgents_BETPAYHJ1UF",
+				"AgentResourceRoleArn": {
+					"Fn::GetAtt": [
+						"bedrockAgentRole",
+						"Arn"
+					]
+				},
 				"AutoPrepare": true,
 				"Description": "Test of the use of actions groups to allow the agent to make Synapse API calls.",
 				"FoundationModel": "anthropic.claude-3-sonnet-20240229-v1:0",
