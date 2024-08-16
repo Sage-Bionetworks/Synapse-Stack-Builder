@@ -2,7 +2,7 @@
 	"AWSTemplateFormatVersion": "2010-09-09",
 	"Description": "...",
 	"Resources": {
-		"test": {
+		"${stack}${instance}AgentRole": {
 			"Type": "AWS::IAM::Role",
 			"Properties": {
 				"AssumeRolePolicyDocument": {
@@ -16,10 +16,15 @@
 							"Action": "sts:AssumeRole",
 							"Condition": {
 								"StringEquals": {
-									"aws:SourceAccount": { "Ref" : "${AWS::AccountId}"}
+									"aws:SourceAccount": {
+										"Ref": "#[[${AWS::AccountId}]]#"
+									}
 								},
 								"ArnLike": {
-									"aws:SourceArn": {"Fn::Sub": "arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:agent/*"}								}
+									"aws:SourceArn": {
+										"Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}]]#:#[[${AWS::AccountId}]]#:agent/*"
+									}
+								}
 							}
 						}
 					]
@@ -41,6 +46,80 @@
 						}
 					}
 				]
+			}
+		},
+		"baseLambdaLayer": {
+			"Type": "AWS::Lambda::LayerVersion",
+			"Properties": {
+				"CompatibleRuntimes": [
+					"java17"
+				],
+				"Content": {
+					"S3Bucket": "${bucketName}",
+					"S3Key": "${layerZipKey}"
+				},
+				"Description": "This layer contains all of the dependnecies for the agent function lambda.",
+				"LayerName": "${layerName}",
+				"LicenseInfo": "MIT"
+			}
+		},
+		"${actionGroupFunctionName}": {
+			"Type": "AWS::Serverless::Function",
+			"Properties": {
+				"Code": {
+					"S3Bucket": "${bucketName}",
+					"S3Key": "${lambdaJarKey}"
+				},
+				"Description": "This jar file contains the lambda function (without-dependencies} used for agent functions",
+				"MemorySize": 512,
+				"Timeout": 15,
+				"Handler": "org.sagebionetworks.agent.action.MainRequestHandler::handleRequest",
+				"Layers": [
+					{
+						"Ref": "baseLambdaLayer"
+					}
+				],
+				"Runtime": "java17",
+				"Architectures": [
+					"x86_64"
+				],
+				"EphemeralStorage": {
+					"Size": 512
+				},
+				"EventInvokeConfig": {
+					"MaximumEventAgeInSeconds": 21600,
+					"MaximumRetryAttempts": 2
+				},
+				"PackageType": "Zip",
+				"Policies": [
+					{
+						"Statement": [
+							{
+								"Effect": "Allow",
+								"Action": [
+									"logs:CreateLogGroup"
+								],
+								"Resource": "arn:aws:logs:us-east-1:#[[${AWS::AccountId}]]#:*"
+							},
+							{
+								"Effect": "Allow",
+								"Action": [
+									"logs:CreateLogStream",
+									"logs:PutLogEvents"
+								],
+								"Resource": [
+									"arn:aws:logs:us-east-1:#[[${AWS::AccountId}]]#:log-group:/aws/lambda/${actionGroupFunctionName}:*"
+								]
+							}
+						]
+					}
+				],
+				"SnapStart": {
+					"ApplyOn": "None"
+				},
+				"RuntimeManagementConfig": {
+					"UpdateRuntimeOn": "Auto"
+				}
 			}
 		}
 	}

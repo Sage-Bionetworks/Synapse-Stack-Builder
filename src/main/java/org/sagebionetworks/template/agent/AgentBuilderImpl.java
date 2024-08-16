@@ -1,5 +1,7 @@
 package org.sagebionetworks.template.agent;
 
+import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
+import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ARTIFACT_VERSION;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
@@ -9,13 +11,20 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.StringWriter;
+import java.util.StringJoiner;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.apache.logging.log4j.Logger;
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.json.JSONObject;
 import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
+import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 import org.sagebionetworks.util.ValidateArgument;
@@ -33,10 +42,12 @@ public class AgentBuilderImpl implements AgentBuilder {
 	private final Logger logger;
 	private final ArtifactDownload downloader;
 	private final AmazonS3 s3Client;
+	private final StackTagsProvider tagsProvider;
 
 	@Inject
 	public AgentBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
-			Configuration config, LoggerFactory loggerFactory, ArtifactDownload downloader, AmazonS3 s3Client) {
+			Configuration config, LoggerFactory loggerFactory, ArtifactDownload downloader, AmazonS3 s3Client,
+			StackTagsProvider tagsProvider) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.velocityEngine = velocityEngine;
@@ -44,6 +55,7 @@ public class AgentBuilderImpl implements AgentBuilder {
 		this.logger = loggerFactory.getLogger(AgentBuilderImpl.class);
 		this.downloader = downloader;
 		this.s3Client = s3Client;
+		this.tagsProvider = tagsProvider;
 	}
 
 	@Override
@@ -62,20 +74,60 @@ public class AgentBuilderImpl implements AgentBuilder {
 
 		// copy the lambda from github and save it to the S3 bucket.
 		File lambdaJar = downloader.downloadFile(lambdaURL);
+		String lambdaKey = path + "lambda-develop-SNAPSHOT.jar";
 		try {
-			String key = path + "lambda-develop-SNAPSHOT.jar";
-			s3Client.putObject(new PutObjectRequest(bucket, key, lambdaJar));
+			s3Client.putObject(new PutObjectRequest(bucket, lambdaKey, lambdaJar));
 		} finally {
 			lambdaJar.delete();
 		}
 
 		// copy the layer from github, package it into a zip and then save the zip S3.
 		String layerURL = String.format(GITHUB_URL_TEMPLATE, artifactVesion, "layer");
-		createAndUploadLayerZip(bucket, path, layerURL);
+		String layerKey = createAndUploadLayerZip(bucket, path, layerURL);
+		String layerName = stack + instance + "layer";
+		String actionGroupName = stack+instance+"actionGroupFunctions";
+		String stackName = new StringJoiner("-").add(stack).add(instance).add("bedrock-agent").toString();
 
+		VelocityContext context = new VelocityContext();
+		context.put("stack", stack);
+		context.put("instance", instance);
+		context.put("bucketName", bucket);
+		context.put("layerZipKey", layerKey);
+		context.put("layerName", layerName);
+		context.put("lambdaJarKey", lambdaKey);
+		context.put("actionGroupFunctionName", actionGroupName);
+		
+        // Merge the context with the template
+        Template template = this.velocityEngine.getTemplate("templates/repo/bedrock/bedrock-resources-template.json");
+        
+        StringWriter stringWriter = new StringWriter();
+        template.merge(context, stringWriter);
+        // Parse the resulting template
+        String resultJSON = stringWriter.toString();
+        JSONObject templateJson = new JSONObject(resultJSON);
+
+        // Format the JSON
+        resultJSON = templateJson.toString(JSON_INDENT);
+        this.logger.info(resultJSON);
+        System.out.println(resultJSON);
+        // create or update the template
+        this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
+                .withTemplateBody(resultJSON).withTags(tagsProvider.getStackTags())
+                .withCapabilities(CAPABILITY_NAMED_IAM));
 	}
 
-	void createAndUploadLayerZip(String bucket, String path, String layerURL)
+	/**
+	 * Create a layer zip by downloading the jar from githup, adding the jar to a
+	 * zip, and then uploading the zip to S3
+	 * 
+	 * @param bucket
+	 * @param path
+	 * @param layerURL
+	 * @return
+	 * @throws IOException
+	 * @throws FileNotFoundException
+	 */
+	String createAndUploadLayerZip(String bucket, String path, String layerURL)
 			throws IOException, FileNotFoundException {
 		File layerJar = downloader.downloadFile(layerURL);
 		try {
@@ -93,6 +145,7 @@ public class AgentBuilderImpl implements AgentBuilder {
 				}
 				String key = path + "layer-develop-SNAPSHOT.zip";
 				s3Client.putObject(new PutObjectRequest(bucket, key, zip));
+				return key;
 			} finally {
 				zip.delete();
 			}
