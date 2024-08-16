@@ -114,6 +114,12 @@ public class AgentBuilderImpl implements AgentBuilder {
         this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
                 .withTemplateBody(resultJSON).withTags(tagsProvider.getStackTags())
                 .withCapabilities(CAPABILITY_NAMED_IAM));
+        
+		try {
+			cloudFormationClient.waitForStackToComplete(stackName);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**
