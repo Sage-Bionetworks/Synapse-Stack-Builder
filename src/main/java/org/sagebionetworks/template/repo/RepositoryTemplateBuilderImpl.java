@@ -54,6 +54,7 @@ import static org.sagebionetworks.template.Constants.DATA_CDN_DOMAIN_NAME_FMT;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.DELETION_POLICY;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
+import static org.sagebionetworks.template.Constants.EC2_INSTANCE_MEMORY;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
 import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PREFIX;
@@ -73,6 +74,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERSION;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_KEYPAIR_ID;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_TYPE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_MEMORY;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT;
@@ -246,9 +248,10 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		// CloudwatchLogs
 		context.put(CLOUDWATCH_LOGS_DESCRIPTORS, cwlContextProvider.getLogDescriptors(EnvironmentType.valueOfPrefix(environment.getType())));
 
-		// EC2 instance type
+		// EC2 instance type and memory
 		String ec2InstanceType = config.getProperty(PROPERTY_KEY_EC2_INSTANCE_TYPE);
 		context.put(EC2_INSTANCE_TYPE, ec2InstanceType);
+		context.put(EC2_INSTANCE_MEMORY, config.getIntegerProperty(PROPERTY_KEY_EC2_INSTANCE_MEMORY));
 		
 		// Determine Beanstalk subnets for instances
 		List<String> vpcSubnets = getPrivateSubnets(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR));

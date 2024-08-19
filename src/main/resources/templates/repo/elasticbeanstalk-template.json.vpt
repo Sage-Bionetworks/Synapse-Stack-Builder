@@ -370,12 +370,12 @@
 					{
 						"Namespace": "aws:elasticbeanstalk:container:tomcat:jvmoptions",
 						"OptionName": "Xms",
-						"Value": "256m"
+						"Value": "2048m"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:container:tomcat:jvmoptions",
 						"OptionName": "Xmx",
-						"Value": "3328m"
+						"Value": "${Ec2InstanceMemory}m"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:container:tomcat:jvmoptions",
