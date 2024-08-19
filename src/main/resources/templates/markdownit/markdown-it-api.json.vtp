@@ -1,0 +1,41 @@
+{
+  "Resources": {
+    "mdlambdaServiceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+            { "Fn::Sub": "arn:${AWS::Partition}::iam::aws:policy/service-role/AWSLambdaBasicExecutionRole" }
+        ]
+      }
+    },
+    "mdlambda": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": ${lambdaArtifactBucket}",
+          "S3Key": ${lambdaArtifactKey}"
+          }
+        },
+        "Handler": "index.lambda_handler",
+        "Role": { "Fn::GetAtt": [ "mdlambdaServiceRole", "Arn" ] },
+        "Runtime": "nodejs20.x",
+        "Timeout": 10
+      },
+      "DependsOn": [
+        "mdlambdaServiceRole"
+      ]
+    }
+  }
+}
