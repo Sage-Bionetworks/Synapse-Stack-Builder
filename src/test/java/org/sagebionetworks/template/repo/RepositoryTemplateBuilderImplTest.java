@@ -22,6 +22,7 @@ import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.DELETION_POLICY;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
+import static org.sagebionetworks.template.Constants.EC2_INSTANCE_MEMORY;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.NOSNAPSHOT;
@@ -36,6 +37,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERSION;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_KEYPAIR_ID;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_TYPE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_MEMORY;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT;
@@ -1118,6 +1120,8 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty((PROPERTY_KEY_OAUTH_ENDPOINT))).thenReturn("https://oauthendpoint");
 
 		when(config.getProperty(PROPERTY_KEY_EC2_INSTANCE_TYPE)).thenReturn("t2.medium");
+		when(config.getIntegerProperty(PROPERTY_KEY_EC2_INSTANCE_MEMORY)).thenReturn(2048);
+		when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + EnvironmentType.REPOSITORY_SERVICES.getShortName())).thenReturn(0);
 
 		when(mockSecretBuilder.getCMKAlias()).thenReturn(keyAlias);
 
@@ -1157,6 +1161,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(keyAlias, context.get(STACK_CMK_ALIAS));
 		assertEquals(databaseEndpointSuffix, context.get(DB_ENDPOINT_SUFFIX));
 		assertEquals("t2.medium", context.get(EC2_INSTANCE_TYPE));
+		assertEquals(2048, context.get(EC2_INSTANCE_MEMORY));
 		assertEquals(String.join(",", EXPECTED_SUBNETS), context.get(BEANSTALK_INSTANCES_SUBNETS));
 		assertEquals("data.dev.sagebase.org", context.get(CTXT_KEY_DATA_CDN_DOMAIN_NAME));
 		assertEquals("dataCdnKeyPairId", context.get(CTXT_KEY_DATA_CDN_KEYPAIR_ID));
