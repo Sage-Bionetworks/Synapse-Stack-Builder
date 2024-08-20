@@ -197,6 +197,28 @@
 											"Type": "string"
 										}
 									}
+								},
+								{
+									"Description": "Use this function to get metadata about any entity in Synapse.  This metadata includes user provide annotations, the user's permission information about the entity, and the entity's access control list (ACL).  If the entity is a table or view this will include information about its schema.  It will also include path information that defines where this entity resides in its hierarchy.",
+									"Name": "get_entity_metadata",
+									"Parameters": {
+										"synId": {
+											"Description": "The 'syn' Id of the entity to get the metadata for.",
+											"Required": true,
+											"Type": "string"
+										}
+									}
+								},
+								{
+									"Description": "Use this function the list of children that belong to a container entity such as a project or folder.",
+									"Name": "get_entity_children",
+									"Parameters": {
+										"synId": {
+											"Description": "The 'syn' Id of the entity to get the children for.",
+											"Required": true,
+											"Type": "string"
+										}
+									}
 								}
 							]
 						},
