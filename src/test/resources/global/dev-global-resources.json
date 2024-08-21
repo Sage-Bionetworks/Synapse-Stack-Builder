@@ -1,0 +1,118 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Creates a VPC with public and private subnets for the Synapse stacks.",
+  "Resources": {
+    "devNotificationTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "DisplayName": "dev-Notification-Topic",
+        "Subscription": [{
+          "Endpoint": "synapse-ops@sagebase.org",
+          "Protocol": "email"
+        }]
+      }
+    },
+    "devNotificationTopicPolicy": {
+      "Type": "AWS::SNS::TopicPolicy",
+      "Properties": {
+        "PolicyDocument": {
+          "Id": "devNotificationTopicPolicy",
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "allow-owner-read-publish",
+              "Effect": "Allow",
+              "Principal": {"AWS": "*"},
+              "Action": [
+                "SNS:GetTopicAttributes",
+                "SNS:Subscribe",
+                "SNS:ListSubscriptionsByTopic",
+                "SNS:Publish",
+                "SNS:Receive"
+              ],
+              "Resource": {"Ref": "devNotificationTopic"},
+              "Condition": {"StringEquals": {"AWS:SourceOwner": {"Ref": "AWS::AccountId"}}}
+            },
+            {
+              "Sid": "allow-eventbridge-publish",
+              "Effect": "Allow",
+              "Principal": {"Service": "events.amazonaws.com"},
+              "Action": "sns:Publish",
+              "Resource": {"Ref": "devNotificationTopic"}
+            }
+          ]
+        },
+        "Topics": [{"Ref": "devNotificationTopic"}]
+      }
+    },
+    "SesSynapseOrgBounceTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {"DisplayName": "dev-SesSynapseOrgBounce-Topic"}
+    },
+    "SesSynapseOrgComplaintTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {"DisplayName": "dev-SesSynapseOrgComplaint-Topic"}
+    },
+    "devWebAclLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "LogGroupName": "aws-waf-logs-dev",
+        "RetentionInDays": 30
+      }
+    }
+  },
+  "Outputs": {
+    "NotificationTopic": {
+      "Description": "Notification topic for the dev stack",
+      "Value": {"Ref": "devNotificationTopic"},
+      "Export": {"Name": {"Fn::Join": [
+        "-",
+        [
+          {"Ref": "AWS::Region"},
+          {"Ref": "AWS::StackName"},
+          "NotificationTopic"
+        ]
+      ]}}
+    },
+    "SesSynapseOrgBounceTopic": {
+      "Description": "Topic for SES bounces from synapse.org for the dev stack",
+      "Value": {"Ref": "SesSynapseOrgBounceTopic"},
+      "Export": {"Name": {"Fn::Join": [
+        "-",
+        [
+          {"Ref": "AWS::Region"},
+          {"Ref": "AWS::StackName"},
+          "SesSynapseOrgBounceTopic"
+        ]
+      ]}}
+    },
+    "SesSynapseOrgComplaintTopic": {
+      "Description": "Topic for SES complaints from synapse.org for the dev stack",
+      "Value": {"Ref": "SesSynapseOrgComplaintTopic"},
+      "Export": {"Name": {"Fn::Join": [
+        "-",
+        [
+          {"Ref": "AWS::Region"},
+          {"Ref": "AWS::StackName"},
+          "SesSynapseOrgComplaintTopic"
+        ]
+      ]}}
+    },
+    "WebAclCloudwatchLogGroupArn": {
+      "Description": "Cloudwatch log group for the stack WebACL",
+      "Value": {"Fn::GetAtt": [
+        "devWebAclLogGroup",
+        "Arn"
+      ]},
+      "Export": {"Name": {"Fn::Join": [
+        "-",
+        [
+          {"Ref": "AWS::Region"},
+          {"Ref": "AWS::StackName"},
+          "WebAclCloudWatchLogGroupArn"
+        ]
+      ]}}
+    }
+  }
+}
