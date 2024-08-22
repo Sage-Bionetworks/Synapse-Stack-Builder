@@ -43,6 +43,15 @@
           "AllowMethods": ["GET", "POST"]
         }
       }
+    },
+    "mdlambdaFunctionUrlPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunctionUrl",
+        "FunctionName": { "Ref": "mdlambda" },
+        "Principal": "*",
+        "FunctionUrlAuthType": "NONE"
+      }
     }
   },
   "Outputs": {
