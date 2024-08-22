@@ -60,15 +60,17 @@
 			"Role": {"Fn::GetAtt" : [ "ApiGatewayToSqsRole" , "Arn"] },
 	        "Runtime": "python3.12",
 	        "Code": {
-	          	"Fn::Join": [
-	            	"\n",
-	              	[
-	                	"import json",
-	                	"",
-	                	"def handler(event, context):",
-	                	"    return { 'statusCode': 503, 'body': json.dumps({'message': 'Service Unavailable'}) }"
-	              	]
-	            ]
+	        	"ZipFile": {
+		          	"Fn::Join": [
+		            	"\n",
+		              	[
+		                	"import json",
+		                	"",
+		                	"def handler(event, context):",
+		                	"    return { 'statusCode': 503, 'body': json.dumps({'message': 'Service Unavailable'}) }"
+		              	]
+		            ]
+				}
 	        }
     	}
 	},
