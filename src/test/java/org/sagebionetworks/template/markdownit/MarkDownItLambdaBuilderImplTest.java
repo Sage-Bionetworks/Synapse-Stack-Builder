@@ -133,6 +133,7 @@ public class MarkDownItLambdaBuilderImplTest {
         JSONObject resources = templateJson.getJSONObject("Resources");
         assertTrue(resources.has("mdlambdaServiceRole"));
         assertTrue(resources.has("mdlambda"));
+        assertTrue(resources.has("mdlambdaFunctionUrl"));
 
         assertEquals("dev-markdown-it-function", argCaptorWaitForStack.getValue());
         assertEquals("dev-markdown-it-function", argCaptorDescribeStack.getValue());

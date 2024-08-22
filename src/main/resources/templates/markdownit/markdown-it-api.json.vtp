@@ -31,7 +31,25 @@
         "Role": { "Fn::GetAtt": [ "mdlambdaServiceRole", "Arn" ] },
         "Runtime": "nodejs20.x",
         "Timeout": 10
-      },
+      }
+    },
+    "mdlambdaFunctionUrl": {
+      "Type": "AWS::Lambda::Url",
+      "Properties": {
+        "AuthType": "NONE",
+        "TargetFunctionArn": { "Ref": "mdlambda" },
+        "Cors": {
+          "AllowOrigins": ["*"],
+          "AllowMethods": ["GET", "POST"]
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "LambdaFunctionUrl": {
+      "Value": { "Ref": "mdlambdaFunctionUrl" },
+      "Description": "The URL endpoint for the Lambda function"
     }
   }
+
 }
