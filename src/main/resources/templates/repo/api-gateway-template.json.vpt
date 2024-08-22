@@ -80,7 +80,7 @@
             "RequestParameters": {
             	"QueueUrl": { "Ref":"WebhookTestQueue" },
             	"MessageBody": "#[[$request.body]]#",
-            	"MessageAttributes": "{\"WebhookMessageType\":{\"DataType\":\"String\", \"StringValue\":\"#[[${request.header.X-Synapse-WebhookMessageType}]]#\"}, \"WebhookId\":{\"DataType\":\"String\", \"StringValue\":\"#[[${request.header.X-Synapse-WebhookId}]]#\"}}"
+            	"MessageAttributes": "{\"WebhookMessageType\":{\"DataType\":\"String\", \"StringValue\":\"#[[${request.header.X-Syn-Webhook-Message-Type}]]#\"}, \"WebhookId\":{\"DataType\":\"String\", \"StringValue\":\"#[[${request.header.X-Syn-Webhook-Id}]]#\"}}"
             },
             "CredentialsArn": { "Fn::GetAtt":[ "ApiGatewayToSqsRole", "Arn"] }
 		}
