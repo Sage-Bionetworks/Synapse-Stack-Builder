@@ -53,12 +53,77 @@
 			]
 		}
 	},
+	"WebhookTestApiFailingLambda": {
+	    "Type": "AWS::Lambda::Function",
+	    "Properties": {
+	    	"Handler": "index.handler",
+			"Role": {"Fn::GetAtt" : [ "ApiGatewayToSqsRole" , "Arn"] },
+	        "Runtime": "python3.12",
+	        "Code": {
+	          	"Fn::Join": [
+	            	"\n",
+	              	[
+	                	"import json",
+	                	"",
+	                	"def handler(event, context):",
+	                	"    return { 'statusCode': 503, 'body': json.dumps({'message': 'Service Unavailable'}) }"
+	              	]
+	            ]
+	        }
+    	}
+	},
+	"WebhookTestApiFailingLambdaRole":{
+         "Type":"AWS::IAM::Role",
+         "Properties":{
+            "AssumeRolePolicyDocument":{
+               "Version":"2012-10-17",
+               "Statement":[
+                  {
+                     "Effect":"Allow",
+                     "Principal":{
+                        "Service":"lambda.amazonaws.com"
+                     },
+                     "Action":"sts:AssumeRole"
+                  }
+               ]
+            },
+            "Path":"/",
+            "Policies":[
+               {
+                  "PolicyName":"lambda-log-policy",
+                  "PolicyDocument":{
+                     "Version":"2012-10-17",
+                     "Statement":[
+                        {
+                           "Effect":"Allow",
+                           "Action":[
+                              "logs:CreateLogGroup",
+                              "logs:CreateLogStream",
+                              "logs:PutLogEvents"
+                           ],
+                           "Resource":"*"
+                        }
+                     ]
+                  }
+               }
+			]
+		}
+	},
+	"WebhookTestApiFailingLambdaPermission": {
+		"Type": "AWS::Lambda::Permission",
+		"Properties": {
+			"FunctionName": { "Ref": "WebhookTestApiFailingLambda"},
+			"Action": "lambda:InvokeFunction",
+			"Principal": "apigateway.amazonaws.com"
+		}
+	},
 	"WebhookTestApi": {
   		"Type" : "AWS::ApiGatewayV2::Api",
   		"Properties" : {
 			"Description": "Api for testing webhooks, forwards events to a testing SQS queue",
 			"Name": "${stack}${instance}WebhookTestApi",
-			"ProtocolType": "HTTP"
+			"ProtocolType": "HTTP",
+			"DisableExecuteApiEndpoint": true
 		}
     },
     "WebhookTestApiStage": {
@@ -85,6 +150,39 @@
             "CredentialsArn": { "Fn::GetAtt":[ "ApiGatewayToSqsRole", "Arn"] }
 		}
     },
+    "WebHookTestApiLambdaIntegration": {
+		"Type": "AWS::ApiGatewayV2::Integration",
+		"Properties": {
+			"Description": "Integration that proxies the request body to the lambda function",
+			"ApiId": { "Ref": "WebhookTestApi" },
+            "IntegrationType": "AWS_PROXY",
+            "IntegrationUri": {
+                "Fn::Join": [
+                    "",
+                    [
+                        "arn:",
+                        {
+                            "Ref": "AWS::Partition"
+                        },
+                        ":apigateway:",
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        ":lambda:path/2015-03-31/functions/",
+                        {
+                            "Fn::GetAtt": [
+                                "WebhookTestApiFailingLambda",
+                                "Arn"
+                            ]
+                        },
+                        "/invocations"
+                    ]
+                ]
+            },
+            "IntegrationMethod": "POST",
+            "PayloadFormatVersion": "2.0"
+		}
+    },
     "WebhookTestEventsRoute": {
 		"Type": "AWS::ApiGatewayV2::Route",
 	    "Properties": {
@@ -92,6 +190,16 @@
 			"RouteKey": "POST /events",
 			"Target": {
                 "Fn::Join": [ "/", [ "integrations", { "Ref": "WebHookTestApiSqsIntegration" } ] ]
+            }
+		}
+	},
+	"WebhookTestFailingRoute": {
+		"Type": "AWS::ApiGatewayV2::Route",
+	    "Properties": {
+			"ApiId": { "Ref": "WebhookTestApi" },
+			"RouteKey": "POST /failing",
+			"Target": {
+                "Fn::Join": [ "/", [ "integrations", { "Ref": "WebHookTestApiLambdaIntegration" } ] ]
             }
 		}
 	}

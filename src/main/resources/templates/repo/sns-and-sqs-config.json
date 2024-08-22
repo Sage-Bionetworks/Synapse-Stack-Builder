@@ -385,7 +385,7 @@
 		{
 			"queueName": "WEBHOOK_MESSAGE",
 			"subscribedTopicNames":[],
-			"messageVisibilityTimeoutSec": 10,
+			"messageVisibilityTimeoutSec": 30,
 			"deadLetterQueueMaxFailureCount": 3
 		}
 	]
