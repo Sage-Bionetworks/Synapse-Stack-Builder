@@ -10,6 +10,47 @@
 				]
 			}
 		},
+		"${stack}NotificationTopicPolicy": {
+			"Type" : "AWS::SNS::TopicPolicy",
+		    "Properties" : {
+		    	"PolicyDocument" :  {
+		        	"Id" : "${stack}NotificationTopicPolicy",
+		         	"Version" : "2012-10-17",
+		         	"Statement" : [{
+				    	"Sid": "allow-owner-read-publish",
+				     	"Effect": "Allow",
+				      	"Principal": {
+				        	"AWS": "*"
+				      	},
+				      	"Action": [
+				        	"SNS:GetTopicAttributes",
+				        	"SNS:Subscribe",
+				        	"SNS:ListSubscriptionsByTopic",
+				        	"SNS:Publish",
+				        	"SNS:Receive"
+				      	],
+				      	"Resource": { "Ref" : "${stack}NotificationTopic" },
+				      	"Condition": {
+				    	    "StringEquals": {
+					          	"AWS:SourceOwner": { "Ref": "AWS::AccountId" }
+					        }
+				      	}
+					},
+				    {
+				      	"Sid": "allow-eventbridge-publish",
+				      	"Effect": "Allow",
+				      	"Principal": {
+				        	"Service": "events.amazonaws.com"
+				      	},
+				      	"Action": "sns:Publish",
+				      	"Resource": { "Ref" : "${stack}NotificationTopic" }
+				    }
+				  ]
+				},
+				"Topics" : [ { "Ref" : "${stack}NotificationTopic" } ]
+		   }
+		
+		},
 		"SesSynapseOrgBounceTopic": {
 			"Type": "AWS::SNS::Topic",
 			"Properties": {

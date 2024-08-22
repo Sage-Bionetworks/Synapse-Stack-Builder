@@ -1,0 +1,135 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Creates a VPC with public and private subnets for the Synapse stacks.",
+  "Resources": {
+    "prodNotificationTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "DisplayName": "prod-Notification-Topic",
+        "Subscription": [{
+          "Endpoint": "synapse-ops@sagebase.org",
+          "Protocol": "email"
+        }]
+      }
+    },
+    "prodNotificationTopicPolicy": {
+      "Type": "AWS::SNS::TopicPolicy",
+      "Properties": {
+        "PolicyDocument": {
+          "Id": "prodNotificationTopicPolicy",
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "allow-owner-read-publish",
+              "Effect": "Allow",
+              "Principal": {"AWS": "*"},
+              "Action": [
+                "SNS:GetTopicAttributes",
+                "SNS:Subscribe",
+                "SNS:ListSubscriptionsByTopic",
+                "SNS:Publish",
+                "SNS:Receive"
+              ],
+              "Resource": {"Ref": "prodNotificationTopic"},
+              "Condition": {"StringEquals": {"AWS:SourceOwner": {"Ref": "AWS::AccountId"}}}
+            },
+            {
+              "Sid": "allow-eventbridge-publish",
+              "Effect": "Allow",
+              "Principal": {"Service": "events.amazonaws.com"},
+              "Action": "sns:Publish",
+              "Resource": {"Ref": "prodNotificationTopic"}
+            }
+          ]
+        },
+        "Topics": [{"Ref": "prodNotificationTopic"}]
+      }
+    },
+    "SesSynapseOrgBounceTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {"DisplayName": "prod-SesSynapseOrgBounce-Topic"}
+    },
+    "SesSynapseOrgComplaintTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {"DisplayName": "prod-SesSynapseOrgComplaint-Topic"}
+    },
+    "SesHighBounceRateAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [{"Ref": "prodNotificationTopic"}],
+        "AlarmDescription": "Alert when SES bounce rate exceed 5%.",
+        "AlarmName": "SES-High-Bounce-Rate-2",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "EvaluationPeriods": 1,
+        "Period": 900,
+        "MetricName": "Reputation.BounceRate",
+        "Namespace": "AWS/SES",
+        "Statistic": "Maximum",
+        "Threshold": 0.05,
+        "TreatMissingData": "ignore"
+      }
+    },
+    "prodWebAclLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "LogGroupName": "aws-waf-logs-prod",
+        "RetentionInDays": 30
+      }
+    }
+  },
+  "Outputs": {
+    "NotificationTopic": {
+      "Description": "Notification topic for the prod stack",
+      "Value": {"Ref": "prodNotificationTopic"},
+      "Export": {"Name": {"Fn::Join": [
+        "-",
+        [
+          {"Ref": "AWS::Region"},
+          {"Ref": "AWS::StackName"},
+          "NotificationTopic"
+        ]
+      ]}}
+    },
+    "SesSynapseOrgBounceTopic": {
+      "Description": "Topic for SES bounces from synapse.org for the prod stack",
+      "Value": {"Ref": "SesSynapseOrgBounceTopic"},
+      "Export": {"Name": {"Fn::Join": [
+        "-",
+        [
+          {"Ref": "AWS::Region"},
+          {"Ref": "AWS::StackName"},
+          "SesSynapseOrgBounceTopic"
+        ]
+      ]}}
+    },
+    "SesSynapseOrgComplaintTopic": {
+      "Description": "Topic for SES complaints from synapse.org for the prod stack",
+      "Value": {"Ref": "SesSynapseOrgComplaintTopic"},
+      "Export": {"Name": {"Fn::Join": [
+        "-",
+        [
+          {"Ref": "AWS::Region"},
+          {"Ref": "AWS::StackName"},
+          "SesSynapseOrgComplaintTopic"
+        ]
+      ]}}
+    },
+    "WebAclCloudwatchLogGroupArn": {
+      "Description": "Cloudwatch log group for the stack WebACL",
+      "Value": {"Fn::GetAtt": [
+        "prodWebAclLogGroup",
+        "Arn"
+      ]},
+      "Export": {"Name": {"Fn::Join": [
+        "-",
+        [
+          {"Ref": "AWS::Region"},
+          {"Ref": "AWS::StackName"},
+          "WebAclCloudWatchLogGroupArn"
+        ]
+      ]}}
+    }
+  }
+}
