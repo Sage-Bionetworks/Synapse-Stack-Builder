@@ -90,7 +90,7 @@ public class MarkDownItLambdaBuilderImpl implements MarkDownItLambdaBuilder {
         StringWriter stringWriter = new StringWriter();
         template.merge(context, stringWriter);
         String resultJSON = stringWriter.toString();
-        LOGGER.debug(resultJSON);
+        LOGGER.info(resultJSON);
 
         // Create stack
         CreateOrUpdateStackRequest req = new CreateOrUpdateStackRequest()
