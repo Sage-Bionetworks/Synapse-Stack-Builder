@@ -57,7 +57,7 @@
 	    "Type": "AWS::Lambda::Function",
 	    "Properties": {
 	    	"Handler": "index.handler",
-			"Role": {"Fn::GetAtt" : [ "ApiGatewayToSqsRole" , "Arn"] },
+			"Role": {"Fn::GetAtt" : [ "WebhookTestApiFailingLambdaRole" , "Arn"] },
 	        "Runtime": "python3.12",
 	        "Code": {
 	        	"ZipFile": {
