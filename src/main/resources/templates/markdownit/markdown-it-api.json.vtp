@@ -32,10 +32,6 @@
         "Role": { "Fn::GetAtt": [ "mdlambdaServiceRole", "Arn" ] },
         "Runtime": "nodejs20.x",
         "Timeout": 10
-      },
-      "DependsOn": [
-        "mdlambdaServiceRole"
-      ]
     }
   }
 }
