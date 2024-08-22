@@ -129,7 +129,7 @@ public class MarkDownItLambdaBuilderImplTest {
         assertNotNull(request.getTemplateBody());
 
         JSONObject templateJson = new JSONObject(request.getTemplateBody());
-        //System.out.println(request.getTemplateBody());
+        System.out.println(request.getTemplateBody());
         JSONObject resources = templateJson.getJSONObject("Resources");
         assertTrue(resources.has("mdlambdaServiceRole"));
         assertTrue(resources.has("mdlambda"));

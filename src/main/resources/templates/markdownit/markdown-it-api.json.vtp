@@ -28,7 +28,7 @@
           "S3Key": "${lambdaArtifactKey}"
           }
         },
-        "Handler": "index.lambda_handler",
+        "Handler": "index.handler",
         "Role": { "Fn::GetAtt": [ "mdlambdaServiceRole", "Arn" ] },
         "Runtime": "nodejs20.x",
         "Timeout": 10
