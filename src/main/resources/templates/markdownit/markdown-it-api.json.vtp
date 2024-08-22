@@ -16,7 +16,7 @@
           "Version": "2012-10-17"
         },
         "ManagedPolicyArns": [
-            #[[{ "Fn::Sub": "arn:${AWS::Partition}::iam::aws:policy/service-role/AWSLambdaBasicExecutionRole" }]]#
+            #[[{ "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole" }]]#
         ]
       }
     },
