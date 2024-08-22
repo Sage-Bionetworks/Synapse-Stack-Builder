@@ -6,6 +6,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
+import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 
@@ -25,6 +27,7 @@ import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -32,6 +35,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
+import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_ARTIFACT_BUCKET;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_URL;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
@@ -55,6 +59,7 @@ public class MarkDownItLambdaBuilderImplTest {
 
     @Mock
     VelocityEngine mockVelocityEngine;
+    VelocityEngine velocityEngine;
 
     @Mock
     File mockFile;
@@ -78,22 +83,18 @@ public class MarkDownItLambdaBuilderImplTest {
     @Test
     public void testBuildMarkDownItLambda() throws Exception {
 
+        velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
+
         MarkDownItLambdaBuilder builder = new MarkDownItLambdaBuilderImpl(
                 mockConfig,
                 mockDownloader,
                 mockCloudFormationClient,
                 mockTagsProvider,
                 mockS3Client,
-                mockVelocityEngine);
+                velocityEngine);
 
 
         when(mockDownloader.downloadFile(any())).thenReturn(mockFile);
-        when(mockVelocityEngine.getTemplate(any())).thenReturn(mockTemplate);
-
-        doAnswer(invocation -> {
-            ((StringWriter) invocation.getArgument(1)).append("{}");
-            return null;
-        }).when(mockTemplate).merge(any(), any());
 
         when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 
@@ -112,11 +113,6 @@ public class MarkDownItLambdaBuilderImplTest {
 
         verify(mockFile).delete();
 
-        verify(mockTemplate, times(1)).merge(velocityContextCaptor.capture(), any());
-        VelocityContext context = velocityContextCaptor.getValue();
-        assertEquals(expectedBucket, context.get("lambdaArtifactBucket"));
-        assertEquals(expectedKey, context.get("lambdaArtifactKey"));
-
         ArgumentCaptor<CreateOrUpdateStackRequest> argCaptorCreateOrUpdateStack = ArgumentCaptor.forClass(CreateOrUpdateStackRequest.class);
         ArgumentCaptor<String> argCaptorWaitForStack = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> argCaptorDescribeStack = ArgumentCaptor.forClass(String.class);
@@ -130,14 +126,16 @@ public class MarkDownItLambdaBuilderImplTest {
         assertTrue(request.getTags().isEmpty());
         assertEquals(1, request.getCapabilities().length);
         assertEquals(CAPABILITY_NAMED_IAM, request.getCapabilities()[0]);
-        assertEquals("{}", request.getTemplateBody());
+        assertNotNull(request.getTemplateBody());
+
+        JSONObject templateJson = new JSONObject(request.getTemplateBody());
+        JSONObject resources = templateJson.getJSONObject("Resources");
+        assertTrue(resources.has("mdlambdaServiceRole"));
+        assertTrue(resources.has("mdlambda"));
 
         assertEquals("dev-markdown-it-function", argCaptorWaitForStack.getValue());
-
         assertEquals("dev-markdown-it-function", argCaptorDescribeStack.getValue());
 
     }
-
-
 
 }
