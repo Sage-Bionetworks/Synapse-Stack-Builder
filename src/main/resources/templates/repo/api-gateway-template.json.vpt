@@ -79,7 +79,8 @@
             "PayloadFormatVersion": "1.0",
             "RequestParameters": {
             	"QueueUrl": { "Ref":"WebhookTestQueue" },
-            	"MessageBody": "#[[$request.body]]#"
+            	"MessageBody": "#[[$request.body]]#",
+            	"MessageAttributes": "{\"WebhookMessageType\":{\"DataType\":\"String\", \"StringValue\":\"#[[${request.header.X-Synapse-WebhookMessageType}]]#\"}, \"WebhookId\":{\"DataType\":\"String\", \"StringValue\":\"#[[${request.header.X-Synapse-WebhookId}]]#\"}}"
             },
             "CredentialsArn": { "Fn::GetAtt":[ "ApiGatewayToSqsRole", "Arn"] }
 		}
