@@ -57,18 +57,11 @@ public class MarkDownItLambdaBuilderImplTest {
     @Mock
     AmazonS3 mockS3Client;
 
-    @Mock
-    VelocityEngine mockVelocityEngine;
     VelocityEngine velocityEngine;
 
     @Mock
     File mockFile;
 
-    @Mock
-    Template mockTemplate;
-
-    @Captor
-    private ArgumentCaptor<VelocityContext> velocityContextCaptor;
 
     private String stack;
 
