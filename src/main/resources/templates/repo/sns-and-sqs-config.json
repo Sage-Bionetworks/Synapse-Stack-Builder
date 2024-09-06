@@ -387,6 +387,12 @@
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec": 30,
 			"deadLetterQueueMaxFailureCount": 3
+		},
+		{
+			"queueName":"AGENT_CHAT",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":120,
+			"oldestMessageInQueueAlarmThresholdSec": 30
 		}
 	]
 }
