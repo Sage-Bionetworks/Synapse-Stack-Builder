@@ -738,6 +738,7 @@
 		#parse("templates/repo/web/acl/web-acl-template.json.vpt")
 		#parse("templates/repo/appconfig-template.json.vpt")
 		#parse("templates/repo/api-gateway-template.json.vpt")
+		${bedrock_agent_resouces}
 	},
 	"Outputs": {
 		#parse("templates/repo/time-to-live-out.vpt"),
