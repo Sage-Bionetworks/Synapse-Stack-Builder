@@ -65,6 +65,8 @@ import org.sagebionetworks.template.ip.address.IpAddressPoolBuilder;
 import org.sagebionetworks.template.ip.address.IpAddressPoolBuilderImpl;
 import org.sagebionetworks.template.jobs.AsynchAdminJobExecutor;
 import org.sagebionetworks.template.jobs.AsynchAdminJobExecutorImpl;
+import org.sagebionetworks.template.markdownit.MarkDownItLambdaBuilder;
+import org.sagebionetworks.template.markdownit.MarkDownItLambdaBuilderImpl;
 import org.sagebionetworks.template.nlb.BindNetworkLoadBalancerBuilder;
 import org.sagebionetworks.template.nlb.BindNetworkLoadBalancerBuilderImpl;
 import org.sagebionetworks.template.nlb.NetworkLoadBalancerBuilder;
@@ -179,6 +181,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(ExpiredStackTeardown.class).to(ExpiredStackTeardownImpl.class);
 		bind(DataWarehouseBuilder.class).to(DataWarehouseBuilderImpl.class);
 		bind(BackfillDataWarehouseBuilder.class).to(BackfillDataWarehouseBuilderImpl.class);
+		bind(MarkDownItLambdaBuilder.class).to(MarkDownItLambdaBuilderImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 
@@ -361,4 +364,5 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	public DataWarehouseConfig dataWarehouseConfigProvider() throws IOException {
 		return new DataWarehouseConfigValidator(loadFromJsonFile(DATAWAREHOUSE_CONFIG_FILE, DataWarehouseConfig.class)).validate();
 	}
+
 }
