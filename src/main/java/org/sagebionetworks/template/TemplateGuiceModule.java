@@ -78,6 +78,7 @@ import org.sagebionetworks.template.repo.IdGeneratorBuilderImpl;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilderImpl;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
+import org.sagebionetworks.template.repo.agent.BedrockAgentContextProvider;
 import org.sagebionetworks.template.repo.appconfig.AppConfigConfig;
 import org.sagebionetworks.template.repo.appconfig.AppConfigConfigValidator;
 import org.sagebionetworks.template.repo.appconfig.AppConfigVelocityContextProvider;
@@ -189,6 +190,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		velocityContextProviderMultibinder.addBinding().to(SnsAndSqsVelocityContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(KinesisFirehoseVelocityContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(RecurrentAthenaQueryContextProvider.class);
+		velocityContextProviderMultibinder.addBinding().to(BedrockAgentContextProvider.class);
 	}
 	
 	/**
