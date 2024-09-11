@@ -67,7 +67,6 @@ public class Constants {
 	public static final String PROPERTY_KEY_VPC_SUBNET_PREFIX = "org.sagebionetworks.vpc.subnet.prefix";
 	public static final String PROPERTY_KEY_COLORS = "org.sagebionetworks.vpc.colors.csv";
 	public static final String PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN = "org.sagebionetworks.vpc.peering.accept.role.arn";
-	public static final String PROPERTY_KEY_OLD_VPC_ID = "org.sagebionetworks.vpc.old.vpc.id";
 	public static final String PROPERTY_KEY_OLD_VPC_CIDR = "org.sagebionetworks.vpc.old.vpc.cidr";
 	// repo
 	public static final String PROPERTY_KEY_STACK = "org.sagebionetworks.stack";
@@ -120,6 +119,8 @@ public class Constants {
 	public static final String PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER = "org.sagebionetworks.repo.snapshot.identifier";
 	public static final String PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS = "org.sagebionetworks.tables.snapshot.identifiers";
 	public static final String PROPERTY_KEY_LAMBDA_VIRUS_SCANNER_ARTIFACT_URL = "org.sagebionetworks.lambda.virusscanner.artifactUrl";
+	public static final String PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_URL = "org.sagebionetworks.lambda.markdownit.artifactUrl";
+	public static final String PROPERTY_KEY_LAMBDA_ARTIFACT_BUCKET = "org.sagebionetworks.lambda.artifact.bucket";
 	public static final String NOSNAPSHOT = "NOSNAPSHOT"; // value to indicate a snapshot is not used to init a stack
 
 	public static final String PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING = "org.sagebionetworks.enable.rds.enhanced.monitoring";
@@ -167,6 +168,8 @@ public class Constants {
 	public static final String TEMPLATE_S3_VIRUS_SCANNER = "templates/s3/s3-virus-scanner-template.json.vpt";
 	public static final String TEMPLATE_DATAWAREHOUSE = "templates/datawarehouse/datawarehouse-template.json.vpt";
 	public static final String TEMPLATE_S3_BUCKET_POLICY = "templates/s3/s3-bucket-policy.json.vpt";
+
+	public static final String TEMPLATE_MARKDOWNIT_API_VTP = "templates/markdownit/markdown-it-api.json.vtp";
 
 	public static final int JSON_INDENT = 5;
 
@@ -273,6 +276,7 @@ public class Constants {
 	public static final String PROPERTY_KEY_DOCS_DESTINATION_BUCKET = "org.sagebionetworks.docs.destination";
 	public static final String MACHINE_TYPES = "machineTypes";
 	public static final String POOL_TYPES = "poolTypes";
+
 
 	/**
 	 * Create a camel case name from dash-separated-name. Given 'foo-bar' will

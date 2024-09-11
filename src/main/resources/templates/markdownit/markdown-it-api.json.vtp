@@ -1,0 +1,64 @@
+{
+  "Resources": {
+    "mdlambdaServiceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+            #[[{ "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole" }]]#
+        ]
+      }
+    },
+    "mdlambda": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": "${lambdaArtifactBucket}",
+          "S3Key": "${lambdaArtifactKey}"
+        },
+        "Handler": "index.handler",
+        "Role": { "Fn::GetAtt": [ "mdlambdaServiceRole", "Arn" ] },
+        "Runtime": "nodejs20.x",
+        "Timeout": 10
+      }
+    },
+    "mdlambdaFunctionUrl": {
+      "Type": "AWS::Lambda::Url",
+      "Properties": {
+        "AuthType": "NONE",
+        "TargetFunctionArn": { "Ref": "mdlambda" },
+        "Cors": {
+          "AllowOrigins": ["*"],
+          "AllowMethods": ["GET", "POST"]
+        }
+      }
+    },
+    "mdlambdaFunctionUrlPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunctionUrl",
+        "FunctionName": { "Ref": "mdlambda" },
+        "Principal": "*",
+        "FunctionUrlAuthType": "NONE"
+      }
+    }
+  },
+  "Outputs": {
+    "LambdaFunctionUrl": {
+      "Value": { "Ref": "mdlambdaFunctionUrl" },
+      "Description": "The URL endpoint for the Lambda function"
+    }
+  }
+
+}
