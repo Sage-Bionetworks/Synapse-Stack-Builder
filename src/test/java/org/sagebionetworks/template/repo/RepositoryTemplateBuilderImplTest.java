@@ -102,6 +102,7 @@ import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.config.TimeToLive;
+import org.sagebionetworks.template.repo.agent.BedrockAgentContextProvider;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.ElasticBeanstalkSolutionStackNameProvider;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
@@ -188,7 +189,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
-				mockArtifactCopy, mockSecretBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
+				mockArtifactCopy, mockSecretBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2, new BedrockAgentContextProvider(config)),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
 				mockEc2Client, mockBeanstalkClient, mockTimeToLive);
 		builderSpy = Mockito.spy(builder);
@@ -353,6 +354,10 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(15000, tDbProps.getInt("StorageThroughput"));
 		
 		assertFalse(resources.has("WebhookTestApi"));
+		
+		assertTrue(resources.has("bedrockAgentRole"));
+		assertTrue(resources.has("bedrockAgent"));
+		assertEquals("prod-101-agent", resources.getJSONObject("bedrockAgent").getJSONObject("Properties").get("AgentName"));
 	}
 
 	@Test
@@ -593,6 +598,10 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(15000, tDbProps.getInt("StorageThroughput"));
 
 		assertTrue(resources.has("WebhookTestApi"));
+		
+		assertTrue(resources.has("bedrockAgentRole"));
+		assertTrue(resources.has("bedrockAgent"));
+		assertEquals("dev-101-agent", resources.getJSONObject("bedrockAgent").getJSONObject("Properties").get("AgentName"));
 	}
 
 	@Test
