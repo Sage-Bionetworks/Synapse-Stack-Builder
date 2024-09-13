@@ -35,7 +35,7 @@
                     "Ref": "${stack}${instance}${configuration.appConfigName}AppConfigConfigProfile"
                 },
                 "Description": "${configuration.appConfigDescription}",
-                "Content": "${configuration.appConfigDefaultConfiguration}",
+                "Content": ${configuration.appConfigDefaultConfiguration},
                 "ContentType": "application/json"
             }
         },
