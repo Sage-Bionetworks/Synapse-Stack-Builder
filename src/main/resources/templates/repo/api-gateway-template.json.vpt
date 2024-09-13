@@ -147,7 +147,7 @@
             "RequestParameters": {
             	"QueueUrl": { "Ref":"WebhookTestQueue" },
             	"MessageBody": "#[[$request.body]]#",
-            	"MessageAttributes": "{\"WebhookMessageType\":{\"DataType\":\"String\", \"StringValue\":\"#[[${request.header.X-Syn-Webhook-Message-Type}]]#\"}, \"WebhookId\":{\"DataType\":\"String\", \"StringValue\":\"#[[${request.header.X-Syn-Webhook-Id}]]#\"}}"
+            	"MessageAttributes": "{\"WebhookMessageType\":{\"DataType\":\"String\", \"StringValue\":\"#[[${request.header.X-Syn-Webhook-Message-Type}]]#\"}, \"WebhookId\":{\"DataType\":\"String\", \"StringValue\":\"#[[${request.header.X-Syn-Webhook-Id}]]#\"}, \"AuthorizationHeader\":{\"DataType\":\"String\", \"StringValue\":\"#[[${request.header.Authorization}]]#\"}}"
             },
             "CredentialsArn": { "Fn::GetAtt":[ "ApiGatewayToSqsRole", "Arn"] }
 		}
