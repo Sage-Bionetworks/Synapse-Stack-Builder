@@ -484,7 +484,14 @@
                             "Effect": "Allow",
                             "Action": "elasticbeanstalk:*",
                             "Resource": "*"
-                        }
+                        },
+                        {
+                             "Effect": "Allow",
+                             "Action": [
+                                 "bedrock:*"
+                             ],
+                             "Resource": "*"
+                         }
                     ]
 		        }
 		    }
