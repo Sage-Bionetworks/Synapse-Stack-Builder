@@ -71,6 +71,14 @@
 											}
 										]
 									}
+								},
+								{
+									"ByteMatchStatement": {
+										"FieldToMatch": { "UriPath": { } },
+										"PositionalConstraint": "EXACTLY",
+										"SearchString": "/Portal/synapseclient",
+										"TextTransformations": [ { "Priority": 0, "Type": "NONE" } ]
+									}
 								}
 							]
 						}

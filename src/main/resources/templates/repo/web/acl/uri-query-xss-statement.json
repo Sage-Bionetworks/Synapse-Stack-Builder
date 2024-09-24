@@ -66,54 +66,44 @@
 			{
 				"NotStatement": {
 					"Statement": {
-						"OrStatement": {
+						"AndStatement": {
 							"Statements": [
 								{
-									"RegexMatchStatement": {
-										"RegexString": "regex_repo_v1_thread_unsignedlong_threadcount",
-										"FieldToMatch": {
-											"UriPath": {
-											}
-										},
-										"TextTransformations": [
-											{
-												"Priority": 0,
-												"Type": "NONE"
-											}
-										]
-									}
-								},
-								{
-									"RegexMatchStatement": {
-										"RegexString": "regex_repo_v1_thread_unsignedlong_replycount",
-										"FieldToMatch": {
-											"UriPath": {
-											}
-										},
-										"TextTransformations": [
-											{
-												"Priority": 0,
-												"Type": "NONE"
-											}
-										]
-									}
-								},
-								{
 									"ByteMatchStatement": {
-										"FieldToMatch": {
-											"UriPath": {
-											}
-										},
+										"FieldToMatch": { "Method": {} },
 										"PositionalConstraint": "EXACTLY",
-										"SearchString": "//repo/v1/projects",
-										"TextTransformations": [
+										"SearchString": "GET",
+										"TextTransformations": [ { "Priority": 0, "Type": "NONE"} ]
+									}
+								},
+								{
+									"OrStatement": {
+										"Statements": [
 											{
-												"Priority": 0,
-												"Type": "NONE"
+												"RegexMatchStatement": {
+													"RegexString": "${regex_repo_v1_forum_unsignedlong_threadcount}",
+													"FieldToMatch": { "UriPath": { } },
+													"TextTransformations": [ { "Priority": 0, "Type": "NONE"} ]
+												}
+											},
+											{
+												"RegexMatchStatement": {
+													"RegexString": "${regex_repo_v1_thread_unsignedlong_replycount}",
+													"FieldToMatch": { "UriPath": { } },
+													"TextTransformations": [ { "Priority": 0, "Type": "NONE"} ]
+												}
+											},
+											{
+												"ByteMatchStatement": {
+													"FieldToMatch": { "UriPath": { } },
+													"PositionalConstraint": "ENDS_WITH",
+													"SearchString": "/repo/v1/projects",
+													"TextTransformations": [ { "Priority": 0, "Type": "NONE"} ]
+												}
 											}
 										]
 									}
-								}
+								}		
 							]
 						}
 					}

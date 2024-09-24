@@ -77,100 +77,106 @@
 						"OrStatement": {
 							"Statements": [
 								{
-									"ByteMatchStatement": {
-										"FieldToMatch": {
-											"UriPath": {
-											}
-										},
-										"PositionalConstraint": "EXACTLY",
-										"SearchString": "/Portal/oauth2callback",
-										"TextTransformations": [
-											{
-												"Priority": 0,
-												"Type": "NONE"
-											}
-										]
+									"RegexMatchStatement": {
+										"RegexString": "${regex_repo_v1_account_unsignedlong_email_validation}",
+										"FieldToMatch": { "UriPath": { } },
+										"TextTransformations": [ { "Priority": 0, "Type": "NONE" } ]
 									}
 								},
 								{
 									"RegexMatchStatement": {
 										"RegexString": "${regex_repo_v1_team_unsignedlong_member_unsignedlong}",
-										"FieldToMatch": {
-											"UriPath": {
-											}
-										},
-										"TextTransformations": [
-											{
-												"Priority": 0,
-												"Type": "NONE"
-											}
-										]
+										"FieldToMatch": { "UriPath": { } },
+										"TextTransformations": [ { "Priority": 0, "Type": "NONE" } ]
+									}
+								},
+								{
+									"RegexMatchStatement": {
+										"RegexString": "${regex_repo_v1_verification_submission_unsignedlong_state}",
+										"FieldToMatch": { "UriPath": { } },
+										"TextTransformations": [ { "Priority": 0, "Type": "NONE" } ]
 									}
 								},
 								{
 									"ByteMatchStatement": {
-										"FieldToMatch": {
-											"UriPath": {
-											}
-										},
+										"FieldToMatch": { "UriPath": { } },
 										"PositionalConstraint": "EXACTLY",
 										"SearchString": "/repo/v1/account/emailValidation",
-										"TextTransformations": [
-											{
-												"Priority": 0,
-												"Type": "NONE"
-											}
-										]
+										"TextTransformations": [ { "Priority": 0, "Type": "NONE" } ]
 									}
 								},
 								{
 									"ByteMatchStatement": {
-										"FieldToMatch": {
-											"UriPath": {
-											}
-										},
+										"FieldToMatch": { "UriPath": { } },
 										"PositionalConstraint": "EXACTLY",
 										"SearchString": "/auth/v1/oauth2/token",
-										"TextTransformations": [
-											{
-												"Priority": 0,
-												"Type": "NONE"
-											}
-										]
+										"TextTransformations": [ { "Priority": 0, "Type": "NONE" } ]
 									}
 								},
 								{
 									"ByteMatchStatement": {
-										"FieldToMatch": {
-											"UriPath": {
-											}
-										},
+										"FieldToMatch": { "UriPath": { } },
 										"PositionalConstraint": "EXACTLY",
 										"SearchString": "/repo/v1/account/emailValidation",
-										"TextTransformations": [
-											{
-												"Priority": 0,
-												"Type": "NONE"
-											}
-										]
+										"TextTransformations": [ { "Priority": 0, "Type": "NONE" } ]
 									}
 								},
 								{
 									"ByteMatchStatement": {
-										"FieldToMatch": {
-											"UriPath": {
-											}
-										},
+										"FieldToMatch": { "UriPath": { } },
 										"PositionalConstraint": "EXACTLY",
 										"SearchString": "/auth/v1/user/password/reset",
-										"TextTransformations": [
-											{
-												"Priority": 0,
-												"Type": "NONE"
-											}
-										]
+										"TextTransformations": [ { "Priority": 0, "Type": "NONE" } ]
 									}
-								}
+								},
+								{
+									"ByteMatchStatement": {
+										"FieldToMatch": { "UriPath": { } },
+										"PositionalConstraint": "EXACTLY",
+										"SearchString": "/repo/v1/membershipInvitation",
+										"TextTransformations": [ { "Priority": 0, "Type": "NONE" } ]
+									}
+								},
+								{
+									"ByteMatchStatement": {
+										"FieldToMatch": { "UriPath": { } },
+										"PositionalConstraint": "EXACTLY",
+										"SearchString": "/repo/v1/membershipRequest",
+										"TextTransformations": [ { "Priority": 0, "Type": "NONE" } ]
+									}
+								},
+								{
+									"ByteMatchStatement": {
+										"FieldToMatch": { "UriPath": { } },
+										"PositionalConstraint": "EXACTLY",
+										"SearchString": "/repo/v1/teamMember",
+										"TextTransformations": [ { "Priority": 0, "Type": "NONE" } ]
+									}
+								},
+								{
+									"ByteMatchStatement": {
+										"FieldToMatch": { "UriPath": { } },
+										"PositionalConstraint": "EXACTLY",
+										"SearchString": "/repo/v1/evaluation/submission",
+										"TextTransformations": [ { "Priority": 0, "Type": "NONE" } ]
+									}
+								},
+								{
+									"ByteMatchStatement": {
+										"FieldToMatch": { "UriPath": { } },
+										"PositionalConstraint": "EXACTLY",
+										"SearchString": "/pdf.js/web/viewer.html",
+										"TextTransformations": [ { "Priority": 0, "Type": "NONE" } ]
+									}
+								},
+								{
+									"ByteMatchStatement": {
+										"FieldToMatch": { "UriPath": { } },
+										"PositionalConstraint": "EXACTLY",
+										"SearchString": "/Portal/oauth2callback",
+										"TextTransformations": [ { "Priority": 0, "Type": "NONE" } ]
+									}
+								}						
 							]
 						}
 					}

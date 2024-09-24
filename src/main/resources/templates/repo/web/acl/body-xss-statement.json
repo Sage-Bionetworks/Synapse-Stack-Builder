@@ -44,49 +44,25 @@
 							"Statements": [
 								{
 									"ByteMatchStatement": {
-										"FieldToMatch": {
-											"UriPath": {
-											}
-										},
+										"FieldToMatch": { "UriPath": { } },
 										"PositionalConstraint": "EXACTLY",
 										"SearchString": "/repo/v1/cloudMailInMessage",
-										"TextTransformations": [
-											{
-												"Priority": 0,
-												"Type": "NONE"
-											}
-										]
+										"TextTransformations": [ { "Priority": 0, "Type": "NONE" } ]
 									}
 								},
 								{
 									"ByteMatchStatement": {
-										"FieldToMatch": {
-											"UriPath": {
-											}
-										},
+										"FieldToMatch": { "UriPath": { } },
 										"PositionalConstraint": "EXACTLY",
 										"SearchString": "/Portal/synapseclient",
-										"TextTransformations": [
-											{
-												"Priority": 0,
-												"Type": "NONE"
-											}
-										]
+										"TextTransformations": [ { "Priority": 0, "Type": "NONE" } ]
 									}
 								},
 								{
 									"RegexMatchStatement": {
 										"RegexString": "${regex_repo_v1_entity_synid_wiki_unsignedlong}",
-										"FieldToMatch": {
-											"UriPath": {
-											}
-										},
-										"TextTransformations": [
-											{
-												"Priority": 0,
-												"Type": "NONE"
-											}
-										]
+										"FieldToMatch": { "UriPath": { } },
+										"TextTransformations": [ { "Priority": 0, "Type": "NONE" } ]
 									}
 								}
 							]

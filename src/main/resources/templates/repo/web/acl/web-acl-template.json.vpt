@@ -40,11 +40,7 @@
 						}
 					},
 					{
-						"Action": {
-							"Block": {
-								
-							}
-						},
+						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-size-restrictions-rule",
 						"Priority": 1,
 						"Statement": #parse("templates/repo/web/acl/size-restriction-statement.json"),
@@ -55,11 +51,7 @@
 						}
 					},
 					{
-						"Action": {
-							"Count": {
-								
-							}
-						},
+						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-URI-Query-SQL-Injection-Rule",
 						"Priority": 2,
 						"Statement": #parse("templates/repo/web/acl/uri-query-sql-injection-statement.json"),
@@ -70,11 +62,7 @@
 						}
 					},
 					{
-						"Action": {
-							"Count": {
-								
-							}
-						},
+						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-Body-SQL-Injection-Rule",
 						"Priority": 3,
 						"Statement": #parse("templates/repo/web/acl/body-sql-injection-statement.json"),
@@ -85,11 +73,7 @@
 						}
 					},
 					{
-						"Action": {
-							"Count": {
-								
-							}
-						},
+						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-Header-SQL-Injection-Rule",
 						"Priority": 4,
 						"Statement": #parse("templates/repo/web/acl/header-sql-injection-statement.json"),
@@ -100,11 +84,7 @@
 						}
 					},
 					{
-						"Action": {
-							"Count": {
-								
-							}
-						},
+						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-URI-Query-XSS-Rule",
 						"Priority": 5,
 						"Statement": #parse("templates/repo/web/acl/uri-query-xss-statement.json"),
@@ -115,11 +95,7 @@
 						}
 					},
 					{
-						"Action": {
-							"Count": {
-								
-							}
-						},
+						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-Body-XSS-Rule",
 						"Priority": 6,
 						"Statement": #parse("templates/repo/web/acl/body-xss-statement.json"),
@@ -130,11 +106,7 @@
 						}
 					},
 					{
-						"Action": {
-							"Count": {
-								
-							}
-						},
+						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-Header-XSS-Rule",
 						"Priority": 7,
 						"Statement": #parse("templates/repo/web/acl/header-xss-statement.json"),
@@ -145,11 +117,7 @@
 						}
 					},
 					{
-						"Action": {
-							"Count": {
-								
-							}
-						},
+						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-Path-Traversal-Local-Rule",
 						"Priority": 8,
 						"Statement": #parse("templates/repo/web/acl/path-traversal-local-statement.json"),
@@ -160,11 +128,7 @@
 						}
 					},
 					{
-						"Action": {
-							"Count": {
-								
-							}
-						},
+						"Action": { "Count": {} },
 						"Name": "${stack}-${instance}-Path-Traversal-Remote-Rule",
 						"Priority": 9,
 						"Statement": #parse("templates/repo/web/acl/path-traversal-remote-statement.json"),

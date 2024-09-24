@@ -33,7 +33,9 @@
 				"/repo/v1/entity/syn58643721/wiki/627584",
 				"/repo/v1/entity/58643721/wiki/627584",
 				"/repo/v1/entity/SYN58643721/wiki/627584",
-				"//repo/v1/entity/syn123/wiki/627584"
+				"//repo/v1/entity/syn123/wiki/627584",
+				"/repo/v1/entity/syn58643721/wiki",
+				"//repo/v1/entity/syn58643721/wiki"
 			],
 			"misses": [
 				"/repo/v1/entity/syn/wiki/627584",
@@ -43,17 +45,17 @@
 			]
 		},
 		{
-			"regexKey": "regex_repo_v1_thread_unsignedlong_threadcount",
+			"regexKey": "regex_repo_v1_forum_unsignedlong_threadcount",
 			"hits": [
-				"/repo/v1/thread/9223372036854775807/threadcount",
-				"/repo/v1/thread/123/threadcount",
-				"//repo/v1/thread/123/threadcount"
+				"/repo/v1/forum/9223372036854775807/threadcount",
+				"/repo/v1/forum/123/threadcount",
+				"//repo/v1/forum/123/threadcount"
 			],
 			"misses": [
-				"/repo/v1/thread/92233720368547758070/threadcount",
-				"/repo/v1/thread/foo/threadcount",
-				"/repo/v1/thread/1234/threadCount",
-				"/repo/v1/thread/123/threadcount/"
+				"/repo/v1/forum/92233720368547758070/threadcount",
+				"/repo/v1/forum/foo/threadcount",
+				"/repo/v1/forum/1234/threadCount",
+				"/repo/v1/forum/123/threadcount/"
 			]
 		},
 		{
@@ -108,6 +110,30 @@
 				"/repo/v1/entity/syn92233720368547758070/table/download/csv/async/start",
 				"/repo/v1/entity/bar/table/download/csv/async/start",
 				"/repo/v1/entity/syn123/table/download/csv/async/start/"
+			]
+		},
+		{
+			"regexKey": "regex_repo_v1_account_unsignedlong_email_validation",
+			"hits": [
+				"/repo/v1/account/9223372036854775807/emailValidation",
+				"//repo/v1/account/9223372036854775807/emailValidation"
+			],
+			"misses": [
+				"/repo/v1/account/92233720368547758070/emailValidation",
+				"/repo/v1/account/bar/emailValidation",
+				"/repo/v1/account/syn123/emailValidation"
+			]
+		},
+		{
+			"regexKey": "regex_repo_v1_verification_submission_unsignedlong_state",
+			"hits": [
+				"/repo/v1/verificationSubmission/9223372036854775807/state",
+				"//repo/v1/verificationSubmission/9223372036854775807/state"
+			],
+			"misses": [
+				"/repo/v1/verificationSubmission/92233720368547758070/state",
+				"/repo/v1/verificationSubmission/bar/state",
+				"/repo/v1/verificationSubmission/syn123/state"
 			]
 		}
 	]
