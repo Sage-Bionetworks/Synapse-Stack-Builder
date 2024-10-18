@@ -104,12 +104,17 @@
 									}
 								},
 								{
-									"Description": "Use this function to discover the list of children that belong to a container entity such as a project or folder.",
+									"Description": "Use this function to discover the entire list of children that belong to a container entity such as a project or folder. Loop until the response has nextPageToken parameter to retrieve all the results.",
 									"Name": "org_sage_zero_get_entity_children",
 									"Parameters": {
 										"synId": {
 											"Description": "The 'syn' Id of the entity to get the children for.",
 											"Required": true,
+											"Type": "string"
+										},
+										"nextPageToken": {
+											"Description": "There can be multiple pages of the result. If the nextPageToken is available in the result, set nextPageToken value from the result to get next page by invoking this function again.",
+											"Required": false,
 											"Type": "string"
 										}
 									}
