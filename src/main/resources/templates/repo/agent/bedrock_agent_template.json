@@ -116,6 +116,11 @@
 											"Description": "There can be multiple pages of the result. If the nextPageToken is available in the result, set nextPageToken value from the result to get next page by invoking this function again.",
 											"Required": false,
 											"Type": "string"
+										},
+										"entityType": {
+											"Description": "The valid entity types are project, folder, file, table, link, entityview, dockerrepo, submissionview, dataset, datasetcollection, materializedview, virtualtable. If entity type of children is specified in the request then add the valid entity type of children in the request otherwise do not add entity type in request.",
+											"Required": false,
+											"Type": "string"
 										}
 									}
 								}
