@@ -27,7 +27,8 @@
 		"DATA_ACCESS_SUBMISSION_EVENT",
 		"FILE_EVENT",
 		"QUERY_CACHE_HIT",
-		"ACCESS_REQUIREMENT"
+		"ACCESS_REQUIREMENT",
+		"PROJECT_STORAGE_EVENT"
 	],
 	"snsGlobalTopicNames": [
 		"SES_SYNAPSE_ORG_BOUNCE",
@@ -395,7 +396,9 @@
 		},
 		{
 			"queueName": "REFRESH_PROJECT_STORAGE_DATA",
-			"subscribedTopicNames":[],
+			"subscribedTopicNames":[
+				"PROJECT_STORAGE_EVENT"
+			],
 			"messageVisibilityTimeoutSec": 30,
 			"oldestMessageInQueueAlarmThresholdSec": 600
 		}
