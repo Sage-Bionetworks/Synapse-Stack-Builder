@@ -104,13 +104,23 @@
 									}
 								},
 								{
-									"Description": "Use this function to discover the list of children that belong to a container entity such as a project or folder.",
+									"Description": "Use this function to discover the list of children that belong to the container entity. The results are paginated.",
 									"Name": "org_sage_zero_get_entity_children",
 									"Parameters": {
 										"synId": {
 											"Description": "The 'syn' Id of the entity to get the children for.",
 											"Required": true,
 											"Type": "string"
+										},
+										"nextPageToken": {
+											"Description": "When the results of this function includes a nextPageToken, then there are more children available. This token can be forwarded to get the next page of results.",
+											"Required": false,
+											"Type": "string"
+										},
+										"entityType": {
+											"Description": "The entityTypes to get the children for. The valid entity types values are: project, folder, file, table, link, entityview, dockerrepo, submissionview, dataset, datasetcollection, materializedview, virtualtable. By default, it should include all entity types.",
+											"Required": false,
+											"Type": "array"
 										}
 									}
 								}
