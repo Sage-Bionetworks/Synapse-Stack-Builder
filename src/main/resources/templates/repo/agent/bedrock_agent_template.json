@@ -118,7 +118,7 @@
 											"Type": "string"
 										},
 										"entityType": {
-											"Description": "The entityTypes to get the children for. The valid entity types values are: project, folder, file, table, link, entityview, dockerrepo, submissionview, dataset, datasetcollection, materializedview, virtualtable. By default, it should include all entity types.",
+											"Description": "The json array of entity types to get the children for. The valid entity types values are: project, folder, file, table, link, entityview, dockerrepo, submissionview, dataset, datasetcollection, materializedview, virtualtable. By default, it will include all entity types. for <examples><example>[\"file\"]</example><example>[\"file\",\"folder\"]</example></examples>.",
 											"Required": false,
 											"Type": "array"
 										}
