@@ -30,12 +30,13 @@ public class StackTagsProviderTest {
 		expectedTags.add(new Tag().withKey(TAG_KEY_DEPARTMENT).withValue(TAG_VALUE_DEPARTMENT));
 		expectedTags.add(new Tag().withKey(TAG_KEY_PROJECT).withValue(TAG_VALUE_PROJECT));
 		expectedTags.add(new Tag().withKey(TAG_KEY_OWNER_EMAIL).withValue(TAG_VALUE_OWNER_EMAIL));
+		expectedTags.add(new Tag().withKey(TAG_KEY_EXECUTE_SCRIPT).withValue(TAG_VALUE_STACK_ARMOR));
 
 		StackTagsProvider provider = new StackTagsProviderImpl();
 		// call under test
 		List<Tag> tags = provider.getStackTags();
 		assertNotNull(tags);
-		assertEquals(3, tags.size());
+		assertEquals(expectedTags.size(), tags.size());
 		assertEquals(true, tags.containsAll(expectedTags));
 	}
 

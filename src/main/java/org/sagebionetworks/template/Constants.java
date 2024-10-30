@@ -152,10 +152,12 @@ public class Constants {
 
 	public static final String TAG_VALUE_PROJECT = "Synapse";
 	public static final String TAG_VALUE_OWNER_EMAIL = "platform@sagebase.org";
+	public static final String TAG_VALUE_STACK_ARMOR = "install-stack-armor-agent";
 	// tag keys
 	public static final String TAG_KEY_DEPARTMENT = "Department";
 	public static final String TAG_KEY_PROJECT = "Project";
 	public static final String TAG_KEY_OWNER_EMAIL = "OwnerEmail";
+	public static final String TAG_KEY_EXECUTE_SCRIPT = "execute-script";
 
 	// templates
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
