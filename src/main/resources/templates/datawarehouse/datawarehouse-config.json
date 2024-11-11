@@ -314,6 +314,11 @@
 				"name": "internal_annotations",
 				"type": "string",
 				"comment": "The json representation of the entity internal annotations that are used to store additional data about different types of entity (e.g. dataset checksum, size, count)."
+			},
+			{
+				"name": "version_history",
+				"type": "array<struct<id:string,versionNumber:bigint,versionLabel:string,versionComment:string,isLatestVersion:boolean,modifiedBy:string,contentSize:string,contentMd5:string,fileHandleId:string,modifiedByPrincipalId:string,modifiedOn:date>>",
+				"comment": "The list of the versions of the entity. Snapshots do not exist for the current version of tables/views. Therefore the current version is excluded in the version history."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
