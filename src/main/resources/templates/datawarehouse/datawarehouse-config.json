@@ -318,7 +318,7 @@
 			{
 				"name": "version_history",
 				"type": "array<struct<id:string,versionNumber:bigint,versionLabel:string,versionComment:string,isLatestVersion:boolean,modifiedBy:string,contentSize:string,contentMd5:string,fileHandleId:string,modifiedByPrincipalId:string,modifiedOn:date>>",
-				"comment": "The list of the versions of the entity. Snapshots do not exist for the current version of tables/views. Therefore the current version is excluded in the version history."
+				"comment": "The list of entity versions, at the time of the snapshot."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
