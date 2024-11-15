@@ -685,6 +685,11 @@
 				"name": "is_two_factor_auth_enabled",
 				"type": "boolean",
 				"comment": "Indicates if the user had two factor authentication enabled when the snapshot was captured."
+			},
+			{
+				"name": "tos_agreements",
+				"type": "array<struct<agreedOn:timestamp,version:string>>",
+				"comment": "Contains the list of all the term of service that the user agreed to, with their agreed on date and version."
 			}
 			],
 			"partitionKeys":[{
