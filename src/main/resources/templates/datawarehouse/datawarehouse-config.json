@@ -1,6 +1,6 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
-	"version": "1.63.0",
+	"version": "1.64.0",
 	"extraScripts": ["utils.py","glue_job.py"],
 	"tableDescriptors": [{
 			"name": "processedaccessrecord",
@@ -675,6 +675,11 @@
 				"name": "position",
 				"type" : "string",
 				"comment" : "The position of the user in the company."
+			},
+			{
+				"name": "industry",
+				"type" : "string",
+				"comment" : "The industry/discipline that this person is associated with."
 			},
 			{
 				"name": "created_on",
