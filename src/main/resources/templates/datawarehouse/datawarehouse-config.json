@@ -677,6 +677,11 @@
 				"comment" : "The position of the user in the company."
 			},
 			{
+				"name": "industry",
+				"type" : "string",
+				"comment" : "The industry/discipline that this person is associated with."
+			},
+			{
 				"name": "created_on",
 				"type" : "timestamp",
 				"comment" : "The creation time of the user profile."
