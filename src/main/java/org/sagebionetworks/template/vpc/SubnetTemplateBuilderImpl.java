@@ -14,6 +14,7 @@ import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.Configuration;
 
 import java.io.StringWriter;
+import java.util.List;
 
 import static org.sagebionetworks.template.Constants.*;
 import static org.sagebionetworks.template.Constants.VPC_CIDR;
@@ -25,6 +26,8 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
     Configuration config;
     Logger logger;
     StackTagsProvider stackTagsProvider;
+
+    final List<String> VPC_ENDPOINT_SERVICES = List.of("bedrock", "bedrock-agent");
 
     @Inject
     public SubnetTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
@@ -102,11 +105,13 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
         builder.withSubnetMask(VPC_SUBNET_NETWORK_MASK);
         builder.withColorGroupNetMaskSubnetMask(VPC_COLOR_GROUP_NETWORK_MASK);
         builder.withAvailabilityZones(availabilityZones);
+        builder.withVpcEndpointServices(VPC_ENDPOINT_SERVICES);
         Subnets subnets = builder.build();
 
         context.put(SUBNETS, subnets);
         context.put(STACK, config.getProperty(PROPERTY_KEY_STACK));
         context.put(VPC_STACKNAME, String.format(VPC_STACK_NAME_FORMAT, config.getProperty(PROPERTY_KEY_STACK))); // Change this!
+        context.put("vpcEndpointServices", VPC_ENDPOINT_SERVICES);
 
         return context;
     }

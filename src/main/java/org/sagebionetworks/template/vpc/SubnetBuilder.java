@@ -2,6 +2,8 @@ package org.sagebionetworks.template.vpc;
 
 import org.sagebionetworks.template.Constants;
 
+import java.util.List;
+
 /**
  * Helper to build sub-nets. Sub-nets are group by a color.
  *
@@ -13,6 +15,7 @@ public class SubnetBuilder {
 	int colorGroupNetMask;
 	int subnetMask;
 	String cidrPrefix;
+	List<String> serviceNames;
 
 	/**
 	 * The color groups to build.
@@ -75,6 +78,11 @@ public class SubnetBuilder {
 	public SubnetBuilder withColorGroupNetMaskSubnetMask(int networkMask) {
 		validateNetworkMask(networkMask);
 		this.colorGroupNetMask = networkMask;
+		return this;
+	}
+
+	public SubnetBuilder withVpcEndpointServices(List<String> serviceNames) {
+		this.serviceNames = serviceNames;
 		return this;
 	}
 
