@@ -131,7 +131,7 @@
         "Properties": {
           "GroupDescription": "Allow access to AWS Bedrock via PrivateLink",
           "VpcId": { "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-VPCId" } },
-          "SecurityGroupIngress": [{ "IpProtocol": "tcp", "FromPort": 443, "ToPort": 443, "CidrIp": !Ref CidrIp} ]
+          "SecurityGroupIngress": [{ "IpProtocol": "tcp", "FromPort": 443, "ToPort": 443, "CidrIp": "$vpcCidr" } ]
         }
     },
     #foreach ($vpcEndpointSvc in $vpcEndpointServices)
