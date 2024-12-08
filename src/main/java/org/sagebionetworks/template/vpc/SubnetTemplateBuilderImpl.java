@@ -27,7 +27,7 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
     Logger logger;
     StackTagsProvider stackTagsProvider;
 
-    final List<String> VPC_ENDPOINT_SERVICES = List.of("bedrock", "bedrock-agent");
+    final List<String> VPC_ENDPOINT_SERVICES = List.of("bedrock", "bedrock-agent", "bedrock-runtime", "bedrock-agent-runtime");
 
     @Inject
     public SubnetTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,

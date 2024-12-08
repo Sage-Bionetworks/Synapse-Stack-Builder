@@ -10,20 +10,7 @@
             "Type": "AWS::EC2::Subnet",
             "Properties": {
                 "MapPublicIpOnLaunch": false,
-                "VpcId": {
-                     "Fn::ImportValue": {
-                         "Fn::Join": [
-                             "-",
-                             [
-                                 {
-                                     "Ref": "AWS::Region"
-                                 },
-                                 "${vpcStackName}",
-                                 "VPCId"
-                             ]
-                         ]
-                     }
-                 },
+                "VpcId": { "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-VPCId" } },
                 "CidrBlock": "${privateSubnet.cidr}",
                 "AvailabilityZone": "${privateSubnet.availabilityZone}",
                 "Tags": [
@@ -43,20 +30,7 @@
         "${privateSubnet.name}RouteTable": {
             "Type": "AWS::EC2::RouteTable",
             "Properties": {
-                "VpcId": {
-                      "Fn::ImportValue": {
-                          "Fn::Join": [
-                              "-",
-                              [
-                                  {
-                                      "Ref": "AWS::Region"
-                                  },
-                                  "${vpcStackName}",
-                                  "VPCId"
-                              ]
-                          ]
-                      }
-                  },
+                "VpcId": { "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-VPCId" } },
                 "Tags": [
                     {
                         "Key": "Application",
@@ -148,82 +122,53 @@
                         	#if( $foreach.hasNext),#end
                         #end
                     ],
-         "ServiceName":{
-            "Fn::Join":[
-               "",
-               [
-                  "com.amazonaws.",
-                  {
-                     "Ref":"AWS::Region"
-                  },
-                  ".s3"
-               ]
-            ]
-         },
-         "VpcId":{
-            "Fn::ImportValue":{
-               "Fn::Join":[
-                  "-",
-                  [
-                     {
-                        "Ref":"AWS::Region"
-                     },
-                     "${vpcStackName}",
-                     "VPCId"
-                  ]
-               ]
-            }
-         }
+         "ServiceName": { "Fn::Sub": "com.amazonaws.#[[${AWS::Region}]]#.s3" },
+         "VpcId": { "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-VPCId" } },
       }
+    },
+    "VPCPrivateLinkSG": {
+        "Type": "AWS::EC2::SecurityGroup",
+        "Properties": {
+          "GroupDescription": "Allow access to AWS Bedrock via PrivateLink",
+          "VpcId": { "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-VPCId" } },
+          "SecurityGroupIngress": [{ "IpProtocol": "tcp", "FromPort": 443, "ToPort": 443, "CidrIp": !Ref CidrIp} ]
+        }
     },
     #foreach ($vpcEndpointSvc in $vpcEndpointServices)
     #set($capitalizedVpcEndpointSvc = $vpcEndpointSvc.substring(0, 1).toUpperCase() + $vpcEndpointSvc.substring(1))
     #set($sanitizedVpcEndpointSvc = $capitalizedVpcEndpointSvc.replaceAll("-", ""))
-    "${sanitizedVpcEndpointSvc}VPCEndpoint":{
-      "Type":"AWS::EC2::VPCEndpoint",
-      "Properties":{
-         "PolicyDocument":{
-            "Version":"2012-10-17",
-            "Statement":[
-               {
-                  "Effect":"Allow",
-                  "Principal":"*",
-                  "Action":[
-                     "*"
-                  ],
-                  "Resource":[
-                     "*"
-                  ]
-               }
-            ]
-         },
-         "PrivateDnsEnabled": true,
-         "ServiceName": { "Fn::Sub": "com.amazonaws.#[[${AWS::Region}]]#.${vpcEndpointSvc}" },
-         "SubnetIds": [
-                        #foreach( $privateSubnet in $subnetGroup.subnets )
-                        	{"Ref": "${privateSubnet.name}"}
-                        	#if( $foreach.hasNext),#end
-                        #end
-         ],
-         "VpcEndpointType": "interface",
-         "VpcId":{
-            "Fn::ImportValue":{
-               "Fn::Join":[
-                  "-",
-                  [
-                     {
-                        "Ref":"AWS::Region"
-                     },
-                     "${vpcStackName}",
-                     "VPCId"
-                  ]
-               ]
-            }
-         }
-      }
-    }
-    },
+    "${sanitizedVpcEndpointSvc}VPCEndpoint": {
+        "Type":"AWS::EC2::VPCEndpoint",
+        "Properties":{
+           "PolicyDocument":{
+              "Version":"2012-10-17",
+              "Statement":[
+                 {
+                    "Effect":"Allow",
+                    "Principal":"*",
+                    "Action":[
+                       "*"
+                    ],
+                    "Resource":[
+                       "*"
+                    ]
+                 }
+              ]
+           },
+           "PrivateDnsEnabled": true,
+           "ServiceName": { "Fn::Sub": "com.amazonaws.#[[${AWS::Region}]]#.${vpcEndpointSvc}" },
+           "SubnetIds": [
+                          #foreach( $privateSubnet in $subnetGroup.subnets )
+                            {"Ref": "${privateSubnet.name}"}
+                            #if( $foreach.hasNext),#end
+                          #end
+           ],
+           "VpcEndpointType": "interface",
+           "VpcId": { "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-VPCId" } }
+        }
+    }#if( $foreach.hasNext),#end
     #end
+    },
     "Outputs": {
         "PrivateSubnets": {
             "Description": "Comma separated list of all private sub-nets",
