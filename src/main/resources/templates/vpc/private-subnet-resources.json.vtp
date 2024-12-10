@@ -13,36 +13,12 @@
                 "VpcId": { "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-VPCId" } },
                 "CidrBlock": "${privateSubnet.cidr}",
                 "AvailabilityZone": "${privateSubnet.availabilityZone}",
-                "Tags": [
-                    {
-                        "Key": "Application",
-                        "Value": {
-                            "Ref": "AWS::StackName"
-                        }
-                    },
-                    {
-                        "Key": "Name",
-                        "Value": "${privateSubnet.name}"
-                    }
-                ]
             }
         },
         "${privateSubnet.name}RouteTable": {
             "Type": "AWS::EC2::RouteTable",
             "Properties": {
                 "VpcId": { "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-VPCId" } },
-                "Tags": [
-                    {
-                        "Key": "Application",
-                        "Value": {
-                            "Ref": "AWS::StackName"
-                        }
-                    },
-                    {
-                        "Key": "Name",
-                        "Value": "${privateSubnet.name}"
-                    }
-                ]
             }
         },
         "${privateSubnet.name}PrivateRoute": {
@@ -52,18 +28,7 @@
                     "Ref": "${privateSubnet.name}RouteTable"
                 },
                 "DestinationCidrBlock": "0.0.0.0/0",
-                "NatGatewayId": {
-                    "Fn::ImportValue": {
-                        "Fn::Join": [
-                          "-",
-                          [
-                              { "Ref": "AWS::Region" },
-                              "${vpcStackName}-public-subnets",
-                              "Public${privateSubnet.getAvailabilityZoneRef()}NATGatway"
-                          ]
-                        ]
-                    }
-                }
+                "NatGatewayId": { "Fn::ImportValue": { "Fn::Sub": "#[[{AWS::Region}]]#-${vpcStackName}-public-subnets-Public${privateSubnet.getAvailabilityZoneRef()}NATGatway" } }
             }
         },
         "${privateSubnet.name}RouteTableAssociation": {
@@ -84,17 +49,7 @@
                     "Ref": "${privateSubnet.name}"
                 },
                 "NetworkAclId": {
-                    "Fn::ImportValue": {
-                        "Fn::Join": [
-                          "-",
-                          [
-                              { "Ref": "AWS::Region" },
-                              "${vpcStackName}",
-                              "NetworkAclId"
-                          ]
-                        ]
-                    }
-                }
+                    "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-NetworkAclId" } }
             }
         },
     #end
@@ -176,31 +131,14 @@
                 "Fn::Join": [
                     ", ",
                     [
-                        #set($i = 0)
                         #foreach( $privateSubnet in $subnetGroup.subnets )
-                        #if( $i > 0 ) , #end
-                        {"Ref": "${privateSubnet.name}"}
-                        #set($i = $i+1)
+                            {"Ref": "${privateSubnet.name}"}
+                            #if( $foreach.hasNext),#end
                         #end
                     ]
                 ]
             },
-            "Export": {
-                "Name": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::Region"
-                            },
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "Private-Subnets"
-                        ]
-                    ]
-                }
-            }
+            "Export": { "Name": { "Fn::Sub": "#[[${AWS::Region}-${AWS::StackName}]]#-Private-Subnets" } }
         },
         "PrivateSubnetRouteTableIds": {
             "Description": "Comma separated list of all private sub-net route table IDs",
@@ -208,51 +146,19 @@
                 "Fn::Join": [
                     ", ",
                     [
-                        #set($i = 0)
                         #foreach( $privateSubnet in $subnetGroup.subnets )
-                        #if( $i > 0 ) , #end
-                        {"Ref": "${privateSubnet.name}RouteTable"}
-                        #set($i = $i+1)
+                            {"Ref": "${privateSubnet.name}RouteTable"}
+                            #if( $foreach.hasNext),#end
                         #end
                     ]
                 ]
             },
-            "Export": {
-                "Name": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::Region"
-                            },
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "Private-Subnets-RouteTableIds"
-                        ]
-                    ]
-                }
-            }
+            "Export": { "Name": { "Fn::Sub": "#[[${AWS::Region}-${AWS::StackName}]]#-Private-Subnets-RouteTableIds" } }
         },
         "SubnetGroupCIDR": {
             "Description": "CIDR for this subnetgroup",
             "Value": "$subnetGroup.cidr",
-            "Export": {
-                "Name": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::Region"
-                            },
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "CIDR"
-                        ]
-                    ]
-                }
-            }
+            "Export": { "Name": { "Fn::Sub": "#[[${AWS::Region}-${AWS::StackName}]]#-CIDR" } }}
         }
     }
 }

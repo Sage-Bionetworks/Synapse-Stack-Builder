@@ -19,8 +19,10 @@ import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.config.Configuration;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -152,6 +154,38 @@ public class SubnetTemplateBuilderImplTest {
 
         JSONObject templateJson = new JSONObject(requests.get(0).getTemplateBody());
         System.out.println(templateJson.toString(JSON_INDENT));
+
+        assertTrue(templateJson.has("Resources"));
+        JSONObject resources = templateJson.getJSONObject("Resources");
+        Map<String, Integer> resTypeCounts = countByResourceTypes(resources);
+        validateResourceTypeCounts(resTypeCounts);
+
+    }
+
+    public static Map<String, Integer> countByResourceTypes(JSONObject resources) {
+        Map<String, Integer> resourceTypeCounts = new HashMap<>();
+        for (String k: resources.keySet()) {
+            JSONObject resource = resources.getJSONObject(k);
+            String resType = resource.getString("Type");
+            resourceTypeCounts.put(resType, resourceTypeCounts.getOrDefault(resType, 0) + 1);
+        }
+        return resourceTypeCounts;
+    }
+
+    public static void validateResourceTypeCounts(Map<String, Integer> actualCounts) {
+        Map<String, Integer> expectedCounts = new HashMap<>();
+        expectedCounts.put("AWS::EC2::RouteTable", 2);
+        expectedCounts.put("AWS::EC2::SubnetRouteTableAssociation", 2);
+        expectedCounts.put("AWS::EC2::SubnetNetworkAclAssociation", 2);
+        expectedCounts.put("AWS::EC2::Route", 2);
+        expectedCounts.put("AWS::EC2::VPCEndpoint", 5);
+        expectedCounts.put("AWS::EC2::SecurityGroup", 1);
+        expectedCounts.put("AWS::EC2::Subnet", 2);
+
+        for (String k: expectedCounts.keySet()) {
+            assertEquals(expectedCounts.get(k), actualCounts.get(k));
+        }
+
     }
 
 }
