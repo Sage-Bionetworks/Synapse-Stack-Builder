@@ -187,7 +187,7 @@
 	"OpenSearchVpcEndpoint": {
 		"Type": "AWS::OpenSearchServerless::VpcEndpoint",
 		"Properties": {
-			"Name": "os-vpce-${subnetGroupColor}",
+			"Name": "os-vpce-${subnetGroupColor.toLowerCase()}",
 			"VpcId": { "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-VPCId" } },
 			"SubnetIds": [ #foreach( $privateSubnet in $subnetGroup.subnets ) {"Ref": "${privateSubnet.name}"} #if( $foreach.hasNext),#end#end ],
 			"SecurityGroupIds": [{ "Ref": "VPCEndpointSecurityGroup" }]
