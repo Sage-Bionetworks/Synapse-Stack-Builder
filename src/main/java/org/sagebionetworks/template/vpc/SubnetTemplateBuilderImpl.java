@@ -68,6 +68,7 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
             SubnetGroup sg = subnets.getPrivateSubnetGroups()[i];
             String stackName = createPrivateSubnetStackName(sg.getColor().toString());
 
+            context.put("subnetGroupColor", sg.getColor());
             context.put(PRIVATE_SUBNET_IDX, i);
             Template privateSubnetsTemplate = this.velocityEngine.getTemplate(TEMPLATES_VPC_PRIVATE_SUBNET_JSON_VTP);
             StringWriter stringWriter = new StringWriter();
