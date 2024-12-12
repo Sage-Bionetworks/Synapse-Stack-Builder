@@ -177,6 +177,22 @@
       }
     }
     },
+	"VPCEndpointSecurityGroup": {
+        "Type": "AWS::EC2::SecurityGroup",
+        "Properties": {
+          "GroupDescription": "Allow access from the VPC cidr",
+          "VpcId": { "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-VPCId" } },
+          "SecurityGroupIngress": [{ "IpProtocol": "tcp", "FromPort": 443, "ToPort": 443, "CidrIp": "$vpcCidr" } ]
+        }
+    },
+	"OpenSearchVpcEndpoint": {
+		"Type": "AWS::OpenSearchServerless::VpcEndpoint",
+		"Properties": {
+			"VpcId": { "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-VPCId" } },
+			"SubnetIds": [ #foreach( $privateSubnet in $subnetGroup.subnets ) {"Ref": "${privateSubnet.name}"} #if( $foreach.hasNext),#end#end ],
+			"SecurityGroupIds": [{ "Ref": "VPCEndpointSecurityGroup" }]
+		}
+	},
     "Outputs": {
         "PrivateSubnets": {
             "Description": "Comma separated list of all private sub-nets",
@@ -261,6 +277,28 @@
                     ]
                 }
             }
+        },
+        "OpenSearchVpcEndpoint": {
+        	"Description": "The Id of the VPC endpoint that can be used by to access serverless open search from the VPC.",
+        	"Value": {
+		        "Ref": "OpenSearchVpcEndpoint"
+		    },
+		    "Export": {
+		    	"Name": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "OpenSearchVpcEndpoint"
+                        ]
+                    ]
+                }
+		    }
         }
     }
 }
