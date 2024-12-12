@@ -175,9 +175,8 @@
             }
          }
       }
-    }
     },
-	"VPCEndpointSecurityGroup": {
+    "VPCEndpointSecurityGroup": {
         "Type": "AWS::EC2::SecurityGroup",
         "Properties": {
           "GroupDescription": "Allow access from the VPC cidr",
@@ -192,7 +191,8 @@
 			"SubnetIds": [ #foreach( $privateSubnet in $subnetGroup.subnets ) {"Ref": "${privateSubnet.name}"} #if( $foreach.hasNext),#end#end ],
 			"SecurityGroupIds": [{ "Ref": "VPCEndpointSecurityGroup" }]
 		}
-	},
+	}
+    },
     "Outputs": {
         "PrivateSubnets": {
             "Description": "Comma separated list of all private sub-nets",
