@@ -373,7 +373,7 @@
           "OpenSearchVpcEndpoint": {
                "Description": "The Id of the VPC endpoint that can be used by to access serverless open search from the VPC.",
                "Value": {"Ref": "OpenSearchVpcEndpoint"},
-               "Export": {"Name": {"Fn::Sub": "${AWS::Region}-Open-Search-Vpc-Endpoint"}}
+               "Export": {"Name": {"Fn::Sub": "${AWS::Region}-synapse-dev-vpc-2-open-search-vpce"}}
           }
      }
 }

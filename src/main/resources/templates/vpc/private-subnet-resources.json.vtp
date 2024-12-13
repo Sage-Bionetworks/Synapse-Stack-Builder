@@ -289,7 +289,7 @@
 		    },
 		    "Export": {
 		    	"Name": {
-		    		"Fn::Sub": "#[[${AWS::Region}]]#-Open-Search-Vpc-Endpoint"
+		    		"Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-open-search-vpce"
                 }
 		    }
         }
