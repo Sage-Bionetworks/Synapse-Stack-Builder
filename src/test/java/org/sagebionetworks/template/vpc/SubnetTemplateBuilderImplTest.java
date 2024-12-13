@@ -17,6 +17,7 @@ import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
+import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.Configuration;
 
 import java.util.LinkedList;
@@ -77,7 +78,7 @@ public class SubnetTemplateBuilderImplTest {
 
         colors = new String[] {"Red", "Green"};
         subnetPrefix = "10.24";
-        avialabilityZones = new String[] {"us-east-1a","us-east-1b"};
+        avialabilityZones = new String[] {"us-east-1a","us-east-1b", "us-east-1c"};
         vpnCider = "10.1.0.0/16";
         stack = "dev";
         peeringRoleARN = PEERING_ROLE_ARN_PREFIX+"/someKey";
@@ -85,10 +86,12 @@ public class SubnetTemplateBuilderImplTest {
         oldVpcId = "vpc-123def";
 
         when(mockConfig.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX)).thenReturn(subnetPrefix);
-        when(mockConfig.getProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn("us-east-1a,us-east-1b");
+        when(mockConfig.getProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn("us-east-1a,us-east-1b,us-east-1c");
         when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn(avialabilityZones);
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
-        when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_COLORS)).thenReturn(colors);
+        when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_VPC_COLORS)).thenReturn(colors);
+        when(mockConfig.getProperty(PROPERTY_KEY_VPC_ENDPOINTS_COLOR)).thenReturn("Green");
+        when(mockConfig.getProperty(PROPERTY_KEY_VPC_ENDPOINTS_AZ)).thenReturn("us-east-1a,us-east-1c");
 
     }
 
@@ -112,10 +115,12 @@ public class SubnetTemplateBuilderImplTest {
         assertNotNull(context);
         assertEquals("10.24.0.0/16", context.get(VPC_CIDR));
         String avZonesStr = (String)context.get(AVAILABILITY_ZONES);
-        assertEquals("us-east-1a,us-east-1b", avZonesStr);
+        assertEquals("us-east-1a,us-east-1b,us-east-1c", avZonesStr);
         assertEquals("dev", context.get(STACK));
         assertEquals("synapse-dev-vpc-2", context.get(VPC_STACKNAME));
         assertNotNull(context.get(SUBNETS));
+        assertEquals("Green", context.get(VPC_ENDPOINTS_COLOR));
+        assertEquals("us-east-1a,us-east-1c", context.get(VPC_ENDPOINTS_AZ));
 
     }
 
@@ -149,9 +154,17 @@ public class SubnetTemplateBuilderImplTest {
         assertEquals("synapse-dev-vpc-2-private-subnets-Green", requests.get(1).getStackName());
         assertNull(requests.get(1).getParameters());
         assertEquals(expectedTags, requests.get(1).getTags());
-
-        JSONObject templateJson = new JSONObject(requests.get(0).getTemplateBody());
-        System.out.println(templateJson.toString(JSON_INDENT));
+        
+        for (CreateOrUpdateStackRequest request : requests) {
+        	String[] stackNameParts = request.getStackName().split("-");
+        	String color = stackNameParts[stackNameParts.length - 1].toLowerCase();
+        	
+        	JSONObject templateBody = new JSONObject(request.getTemplateBody());
+        	        	
+        	assertEquals(new JSONObject(TemplateUtils.loadContentFromFile("vpc/private-subnet-" + color + "-test.json")).toString(JSON_INDENT), templateBody.toString(JSON_INDENT));
+        	
+        	System.out.println(templateBody.toString(JSON_INDENT));
+        }
     }
 
 }
