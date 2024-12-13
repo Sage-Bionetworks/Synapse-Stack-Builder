@@ -182,7 +182,7 @@
 	        "Properties": {
 	          "GroupDescription": "Allow access from the VPC cidr",
 	          "VpcId": { "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-VPCId" } },
-	          "SecurityGroupIngress": [{ "IpProtocol": "https", "FromPort": 443, "ToPort": 443, "CidrIp": "$vpcCidr" } ]
+	          "SecurityGroupIngress": [{ "IpProtocol": "tcp", "FromPort": 443, "ToPort": 443, "CidrIp": "$vpcCidr" } ]
 	        }
     },
 	"OpenSearchVpcEndpoint": {
