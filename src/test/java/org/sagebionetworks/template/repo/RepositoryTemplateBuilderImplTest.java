@@ -354,7 +354,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(15000, tDbProps.getInt("StorageThroughput"));
 		
 		assertFalse(resources.has("WebhookTestApi"));
-		
+		assertTrue(resources.has("SynapseHelpCollection"));
+		assertTrue(resources.has("SynapseHelpKnowledgeBaseExecutionRole"));
 		assertTrue(resources.has("bedrockAgentRole"));
 		assertTrue(resources.has("bedrockAgent"));
 		assertEquals("prod-101-agent", resources.getJSONObject("bedrockAgent").getJSONObject("Properties").get("AgentName"));
@@ -598,7 +599,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(15000, tDbProps.getInt("StorageThroughput"));
 
 		assertTrue(resources.has("WebhookTestApi"));
-		
+		assertTrue(resources.has("SynapseHelpCollection"));
+		assertTrue(resources.has("SynapseHelpKnowledgeBaseExecutionRole"));
 		assertTrue(resources.has("bedrockAgentRole"));
 		assertTrue(resources.has("bedrockAgent"));
 		assertEquals("dev-101-agent", resources.getJSONObject("bedrockAgent").getJSONObject("Properties").get("AgentName"));

@@ -1,0 +1,84 @@
+	,
+	"SynapseHelpKnowledgeBaseExecutionRole": {
+		"Type": "AWS::IAM::Role",
+		"Properties": {
+			"AssumeRolePolicyDocument": {
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Principal": {
+							"Service": "bedrock.amazonaws.com"
+						},
+						"Action": "sts:AssumeRole",
+						"Condition": {
+							"StringEquals": {
+								"aws:SourceAccount": {
+									"Ref": "AWS::AccountId"
+								}
+							},
+							"ArnLike": {
+								"aws:SourceArn": {
+									"Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:knowledge-base/*"
+								}
+							}
+						}
+					}
+				]
+			},
+			"Policies": [
+				{
+					"PolicyName": "BedrockInvokeModelStatement",
+					"PolicyDocument": {
+						"Version": "2012-10-17",
+						"Statement": [
+							{
+								"Effect": "Allow",
+								"Action": "bedrock:InvokeModel",
+								"Resource": [
+									{
+										"Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}]]#::foundation-model/*"
+									}
+								]
+							}
+						]
+					}
+				},
+				{
+					"PolicyName": "OpenSearchApiAccessStatement",
+					"PolicyDocument": {
+						"Version": "2012-10-17",
+						"Statement": [
+							{
+								"Effect": "Allow",
+								"Action": "aoss:APIAccessAll",
+								"Resource": [
+									{
+										"Fn::GetAtt": [
+											"SynapseHelpCollection",
+											"Arn"
+										]
+									}
+								]
+							}
+						]
+					}
+				}
+			]				
+		}
+	},		
+	"SynapseHelpCollectionBedrockAccessPolicy": {
+		"Type":"AWS::OpenSearchServerless::AccessPolicy",
+		"Properties": {
+            "Name":"${stack}-${instance}-synhelp-br",
+            "Type":"data",
+            "Description":"Access policy for bedrock to access the synapse help collection",
+            "Policy": {
+               "Fn::Sub": ["[{\"Rules\":[{\"ResourceType\":\"index\",\"Resource\":[\"index/${stack}-${instance}-synhelp-idx/*\"],\"Permission\":[\"aoss:*\"]},{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synhelp\"],\"Permission\":[\"aoss:*\"]}],\"Principal\":[\"#[[${executionRole}]]#\"]}]",
+                	{
+                		"executionRole": { "Fn::GetAtt": ["SynapseHelpKnowledgeBaseExecutionRole", "Arn"] }
+					}
+                ]
+            }
+		}
+ 	}

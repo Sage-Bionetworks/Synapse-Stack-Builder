@@ -1,0 +1,36 @@
+	,
+	"SynapseHelpCollectionEncryptionPolicy": {
+        "Type":"AWS::OpenSearchServerless::SecurityPolicy",
+        "Properties": {
+            "Name":"${stack}-${instance}-synhelp",
+            "Type":"encryption",
+            "Description":"Encryption policy for the synapse help collection",
+            "Policy":"{\"Rules\":[{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synhelp\"]}],\"AWSOwnedKey\":true}"
+        }
+  	},
+	"SynapseHelpCollection": {
+	    "Type":"AWS::OpenSearchServerless::Collection",
+	    "Properties": {
+	        "Name":"${stack}-${instance}-synhelp",
+	        "Type":"VECTORSEARCH",
+	        "Description":"Vector store collection for synpase help documentation",
+	        "StandbyReplicas": "DISABLED"
+	     },
+	     "DependsOn":"SynapseHelpCollectionEncryptionPolicy"
+	},
+ 	"SynapseHelpCollectionNetworkPolicy": {
+     	"Type":"AWS::OpenSearchServerless::SecurityPolicy",
+	        "Properties": {
+	            "Name":"${stack}-${instance}-synhelp",
+	            "Type":"network",
+	            "Description":"Encryption policy for the synapse help collection",
+	            "Policy": {
+	            	"Fn::Sub": [
+	            		"[{\"Rules\":[{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synhelp\"]}],\"AllowFromPublic\":false,\"SourceServices\":[\"bedrock.amazonaws.com\"],\"SourceVPCEs\":[\"#[[${vpcEndpointId}]]#\"]}]",
+	            		{
+	            			"vpcEndpointId": { "Fn::ImportValue": "${vpcExportPrefix}-open-search-vpce" }
+	            		}
+	            	]
+	            }
+	        }
+	}
