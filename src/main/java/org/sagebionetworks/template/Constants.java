@@ -65,7 +65,8 @@ public class Constants {
 	public static final String PROPERTY_KEY_VPC_VPN_CIDR_NEW = "org.sagebionetworks.vpc.vpn.cidr.new";
 	public static final String PROPERTY_KEY_VPC_AVAILABILITY_ZONES = "org.sagebionetworks.vpc.availability.zones";
 	public static final String PROPERTY_KEY_VPC_SUBNET_PREFIX = "org.sagebionetworks.vpc.subnet.prefix";
-	public static final String PROPERTY_KEY_COLORS = "org.sagebionetworks.vpc.colors.csv";
+	public static final String PROPERTY_KEY_VPC_COLORS = "org.sagebionetworks.vpc.colors.csv";
+	public static final String PROPERTY_KEY_VPC_ENDPOINTS_COLOR = "org.sagebionetworks.vpc.endpoints.color";
 	public static final String PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN = "org.sagebionetworks.vpc.peering.accept.role.arn";
 	public static final String PROPERTY_KEY_OLD_VPC_CIDR = "org.sagebionetworks.vpc.old.vpc.cidr";
 	// repo
@@ -217,6 +218,7 @@ public class Constants {
 	public static final String VPC_STACKNAME = "vpcStackName";
 	public static final String PRIVATE_SUBNET_IDX = "privateSubnetIdx";
 	public static final String HOSTED_ZONE = "hostedZone";
+	public static final String VPC_ENDPOINTS_COLOR = "vpcEndpointsColor";
 
 	public static final String CAPABILITY_NAMED_IAM = "CAPABILITY_NAMED_IAM";
 	public static final String OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT = "RepositoryDBEndpoint";
