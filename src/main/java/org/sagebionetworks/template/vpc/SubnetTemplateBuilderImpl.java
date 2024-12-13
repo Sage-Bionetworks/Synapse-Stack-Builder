@@ -6,6 +6,7 @@ import static org.sagebionetworks.template.Constants.PRIVATE_SUBNET_IDX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_AVAILABILITY_ZONES;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_COLORS;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_ENDPOINTS_AZ;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_ENDPOINTS_COLOR;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_PREFIX;
 import static org.sagebionetworks.template.Constants.STACK;
@@ -15,6 +16,7 @@ import static org.sagebionetworks.template.Constants.TEMPLATES_VPC_PUBLIC_SUBNET
 import static org.sagebionetworks.template.Constants.VPC_CIDR;
 import static org.sagebionetworks.template.Constants.VPC_CIDR_SUFFIX;
 import static org.sagebionetworks.template.Constants.VPC_COLOR_GROUP_NETWORK_MASK;
+import static org.sagebionetworks.template.Constants.VPC_ENDPOINTS_AZ;
 import static org.sagebionetworks.template.Constants.VPC_ENDPOINTS_COLOR;
 import static org.sagebionetworks.template.Constants.VPC_PRIVATE_SUBNET_STACKNAME_FORMAT;
 import static org.sagebionetworks.template.Constants.VPC_PUBLIC_SUBNETS_STACKNAME_FORMAT;
@@ -132,6 +134,8 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
         context.put(STACK, config.getProperty(PROPERTY_KEY_STACK));
         context.put(VPC_STACKNAME, String.format(VPC_STACK_NAME_FORMAT, config.getProperty(PROPERTY_KEY_STACK))); // Change this!
         context.put(VPC_ENDPOINTS_COLOR, config.getProperty(PROPERTY_KEY_VPC_ENDPOINTS_COLOR));
+        context.put(VPC_ENDPOINTS_AZ, config.getProperty(PROPERTY_KEY_VPC_ENDPOINTS_AZ));
+                
         return context;
     }
 

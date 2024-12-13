@@ -190,7 +190,14 @@
 		"Properties": {
 			"Name": "open-search-vpce",
 			"VpcId": { "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-VPCId" } },
-			"SubnetIds": [ #foreach( $privateSubnet in $subnetGroup.subnets ) {"Ref": "${privateSubnet.name}"} #if( $foreach.hasNext),#end#end ],
+			"SubnetIds": [ 
+			#foreach( $privateSubnet in $subnetGroup.subnets )
+				#if ($vpcEndpointsAz.contains(${privateSubnet.availabilityZone}))
+				 {"Ref": "${privateSubnet.name}"}
+				#if( $foreach.hasNext),#end 
+				#end 
+			#end 
+			],
 			"SecurityGroupIds": [{ "Ref": "VPCEndpointSecurityGroup" }]
 		}
 	}

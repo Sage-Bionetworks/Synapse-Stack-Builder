@@ -86,11 +86,12 @@ public class SubnetTemplateBuilderImplTest {
         oldVpcId = "vpc-123def";
 
         when(mockConfig.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX)).thenReturn(subnetPrefix);
-        when(mockConfig.getProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn("us-east-1a,us-east-1b");
+        when(mockConfig.getProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn("us-east-1a,us-east-1b,us-east-1c");
         when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn(avialabilityZones);
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
         when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_VPC_COLORS)).thenReturn(colors);
         when(mockConfig.getProperty(PROPERTY_KEY_VPC_ENDPOINTS_COLOR)).thenReturn("Green");
+        when(mockConfig.getProperty(PROPERTY_KEY_VPC_ENDPOINTS_AZ)).thenReturn("us-east-1a,us-east-1c");
 
     }
 
@@ -114,11 +115,12 @@ public class SubnetTemplateBuilderImplTest {
         assertNotNull(context);
         assertEquals("10.24.0.0/16", context.get(VPC_CIDR));
         String avZonesStr = (String)context.get(AVAILABILITY_ZONES);
-        assertEquals("us-east-1a,us-east-1b", avZonesStr);
+        assertEquals("us-east-1a,us-east-1b,us-east-1c", avZonesStr);
         assertEquals("dev", context.get(STACK));
         assertEquals("synapse-dev-vpc-2", context.get(VPC_STACKNAME));
         assertNotNull(context.get(SUBNETS));
         assertEquals("Green", context.get(VPC_ENDPOINTS_COLOR));
+        assertEquals("us-east-1a,us-east-1c", context.get(VPC_ENDPOINTS_AZ));
 
     }
 

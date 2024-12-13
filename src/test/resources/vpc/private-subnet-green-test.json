@@ -312,7 +312,6 @@
                     "VpcId": {"Fn::ImportValue": {"Fn::Sub": "${AWS::Region}-synapse-dev-vpc-2-VPCId"}},
                     "SubnetIds": [
                          {"Ref": "GreenPrivateUsEast1a"},
-                         {"Ref": "GreenPrivateUsEast1b"},
                          {"Ref": "GreenPrivateUsEast1c"}
                     ],
                     "SecurityGroupIds": [{"Ref": "VPCEndpointSecurityGroup"}]
