@@ -26,6 +26,18 @@
                  },
                 "CidrBlock": "${privateSubnet.cidr}",
                 "AvailabilityZone": "${privateSubnet.availabilityZone}",
+                 "Tags": [
+                    {
+                        "Key": "Application",
+                         "Value": {
+                            "Ref": "AWS::StackName"
+                        }
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": "${privateSubnet.name}"
+                    }
+                ]
             }
         },
         "${privateSubnet.name}RouteTable": {
