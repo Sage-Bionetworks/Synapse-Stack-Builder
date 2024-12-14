@@ -222,6 +222,7 @@ public class Constants {
 	public static final String HOSTED_ZONE = "hostedZone";
 	public static final String VPC_ENDPOINTS_COLOR = "vpcEndpointsColor";
 	public static final String VPC_ENDPOINTS_AZ = "vpcEndpointsAz";
+	public static final String IDENTITY_ARN = "identityArn";
 
 	public static final String CAPABILITY_NAMED_IAM = "CAPABILITY_NAMED_IAM";
 	public static final String OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT = "RepositoryDBEndpoint";

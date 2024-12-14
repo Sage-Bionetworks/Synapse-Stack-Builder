@@ -13,6 +13,7 @@ import static org.sagebionetworks.template.Constants.DATA_CDN_DOMAIN_NAME_FMT;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.DELETION_POLICY;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_MEMORY;
+import static org.sagebionetworks.template.Constants.IDENTITY_ARN;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
@@ -118,6 +119,8 @@ import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
+import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.google.inject.Inject;
 
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
@@ -138,6 +141,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	private final AWSElasticBeanstalk beanstalkClient;
 	private final TimeToLive timeToLive;
 	private final OpenSearchClientProvider openSearchClientProvider;
+	private final AWSSecurityTokenService stsClient;
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
@@ -145,7 +149,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 										 SecretBuilder secretBuilder, Set<VelocityContextProvider> contextProviders,
 										 ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkDefaultAMIEncrypter,
 										 StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
-										 Ec2Client ec2Client, AWSElasticBeanstalk beanstalkClient, TimeToLive ttl, OpenSearchClientProvider openSearchClientProvider) {
+										 Ec2Client ec2Client, AWSElasticBeanstalk beanstalkClient, TimeToLive ttl, 
+										 AWSSecurityTokenService stsClient, OpenSearchClientProvider openSearchClientProvider) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.ec2Client = ec2Client;
@@ -160,6 +165,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.cwlContextProvider = cloudwatchLogsVelocityContextProvider;
 		this.beanstalkClient = beanstalkClient;
 		this.timeToLive = ttl;
+		this.stsClient = stsClient;
 		this.openSearchClientProvider = openSearchClientProvider;
 	}
 
@@ -243,36 +249,27 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 					
 		try {
 			
-			boolean indexExists = client.exists(new ExistsRequest.Builder().index(indexName).build()).value();
+			boolean indexExists = client.exists(req -> req.index(indexName)).value();
 			
 			if (indexExists) {
+				logger.info("Index " + indexName + " already exists.");
 				return;
 			}
 			
 			logger.info("Index " + indexName + " does not exist, creating...");
 			
-			client.create(new CreateIndexRequest.Builder()
+			client.create(req -> req
 				.index(indexName)
-				.settings(new IndexSettings.Builder()
-					.knn(true)
-					.knnAlgoParamEfSearch(512)
-					.build())
+				.settings(settings -> settings.knn(true))
 				.mappings(mappings -> mappings
-					.properties("embeddings", p -> p
-						.knnVector(vector -> vector
-							.dimension(1024)
-							.method(method -> method
-								.name("hnsw")
-								.engine("faiss")
-								.spaceType("l2")
-							)
-						)
-					)
-					.properties("raw_text", p -> p.text(text -> text.index(true)))
-					.properties("bedrock_metadata", p -> p.text(text -> text.index(false)))
-				).build());
+					.properties("text_vector", p -> p.knnVector(vector -> vector.dimension(1024)))
+					.properties("text_raw", p -> p.text(text -> text.index(true)))
+					.properties("text_metadata", p -> p.text(text -> text.index(false)))
+				)
+			);
 			
 			logger.info("Index " + indexName + " creation initiated...");
+			
 			
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
@@ -395,7 +392,9 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 */
 	VelocityContext createSharedContext() {
 		VelocityContext context = new VelocityContext();
+		
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
+		
 		context.put(STACK, stack);
 		context.put(INSTANCE, config.getProperty(PROPERTY_KEY_INSTANCE));
 		context.put(MACHINE_TYPES, MACHINE_TYPE_LIST);
@@ -409,8 +408,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		context.put(CTXT_ENABLE_ENHANCED_RDS_MONITORING, config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING));
 		
 		context.put(ADMIN_RULE_ACTION, Constants.isProd(stack) ? "Block:{}" : "Count:{}");
-		context.put(DELETION_POLICY,
-				Constants.isProd(stack) ? DeletionPolicy.Retain.name() : DeletionPolicy.Delete.name());
+		context.put(DELETION_POLICY, Constants.isProd(stack) ? DeletionPolicy.Retain.name() : DeletionPolicy.Delete.name());
 		
 		// Create the descriptors for all of the database.
 		context.put(DATABASE_DESCRIPTORS, createDatabaseDescriptors());
@@ -418,6 +416,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		for(VelocityContextProvider provider : contextProviders){
 			provider.addToContext(context);
 		}
+		
+		context.put(IDENTITY_ARN, stsClient.getCallerIdentity(new GetCallerIdentityRequest()).getArn());
 		
 		RegularExpressions.bindRegexToContext(context);
 
