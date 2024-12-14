@@ -71,6 +71,7 @@ import static org.sagebionetworks.template.Constants.TEMPALTE_SHARED_RESOUCES_MA
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
+import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -85,12 +86,20 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
+import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.opensearch._types.OpenSearchException;
+import org.opensearch.client.opensearch.indices.ExistsRequest;
+import org.opensearch.client.opensearch.indices.GetIndexRequest;
+import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
+import org.opensearch.client.transport.aws.AwsSdk2Transport;
+import org.opensearch.client.transport.aws.AwsSdk2TransportOptions;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.Ec2Client;
 import org.sagebionetworks.template.LoggerFactory;
+import org.sagebionetworks.template.OpenSearchClientProvider;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.RepoConfiguration;
@@ -114,6 +123,10 @@ import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import com.google.inject.Inject;
 
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.regions.Region;
+
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
 	public static final List<String> MACHINE_TYPE_LIST = List.of("Workers", "Repository");
 	public static final List<String> POOL_TYPE_LIST = List.of("Idgen", "Main", "Migration", "Tables");
@@ -131,6 +144,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	private final CloudwatchLogsVelocityContextProvider cwlContextProvider;
 	private final AWSElasticBeanstalk beanstalkClient;
 	private final TimeToLive timeToLive;
+	private final OpenSearchClientProvider openSearchClientProvider;
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
@@ -138,7 +152,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 										 SecretBuilder secretBuilder, Set<VelocityContextProvider> contextProviders,
 										 ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkDefaultAMIEncrypter,
 										 StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
-										 Ec2Client ec2Client, AWSElasticBeanstalk beanstalkClient, TimeToLive ttl) {
+										 Ec2Client ec2Client, AWSElasticBeanstalk beanstalkClient, TimeToLive ttl, OpenSearchClientProvider openSearchClientProvider) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.ec2Client = ec2Client;
@@ -153,6 +167,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.cwlContextProvider = cloudwatchLogsVelocityContextProvider;
 		this.beanstalkClient = beanstalkClient;
 		this.timeToLive = ttl;
+		this.openSearchClientProvider = openSearchClientProvider;
 	}
 
 	public String getActualBeanstalkAmazonLinuxPlatform() {
@@ -192,15 +207,25 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		// Wait for the shared resources to complete
 		Stack sharedStackResults = cloudFormationClient.waitForStackToComplete(sharedResourceStackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+sharedResourceStackName));
 		
-		buildBedrockAgentStack(context);
+		buildBedrockAgentStack(sharedStackResults);
 		
 		// Build each bean stalk environment.
 		List<String> environmentNames = buildEnvironments(sharedStackResults);
 	}
 	
-	void buildBedrockAgentStack(VelocityContext context) throws InterruptedException {
+	void buildBedrockAgentStack(Stack sharedStack) throws InterruptedException {
+		
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
 		String stackPrefix = new StringJoiner("-").add(stack).add(config.getProperty(PROPERTY_KEY_INSTANCE)).toString();
+
+		String osSynHelpEndpoint = sharedStack.getOutputs().stream()
+			.filter( output -> output.getOutputKey().equals("SynapseHelpCollectionEndpoint"))
+			.findFirst()
+			.orElseThrow()
+			.getOutputValue();
+		
+		createSynapseHelpOpenSearchIndex(stackPrefix, osSynHelpEndpoint);
+		
 		String agentName = new StringJoiner("-").add(stackPrefix).add("agent").toString();
 		
 		String templateBody = new JSONObject(TemplateUtils.loadContentFromFile(TEMPALTE_BEDROCK_AGENT_JSON_VTP)).toString();
@@ -217,7 +242,20 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		
 		cloudFormationClient.waitForStackToComplete(stackName).orElseThrow(()->new IllegalStateException("Stack does not exist: " + stackName));
 	}
-
+	
+	void createSynapseHelpOpenSearchIndex(String stackPrefix, String openSearchEndpoint) {
+		String indexName = stackPrefix + "-synhelp-idx";
+		
+		OpenSearchIndicesClient client = openSearchClientProvider.getOpenSearchClient(openSearchEndpoint).indices();
+					
+		try {
+			boolean indexExists = client.exists(new ExistsRequest.Builder().index(indexName).build()).value();
+			System.out.println("Index " + indexName +": " + indexExists);
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+ 
 	/**
 	 * Build all of the environments
 	 * @param sharedStackResults

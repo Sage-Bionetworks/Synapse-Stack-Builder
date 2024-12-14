@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -72,6 +73,7 @@ import static org.sagebionetworks.template.Constants.TEMPALTE_BEAN_STALK_ENVIRON
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -92,12 +94,18 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.opensearch._types.OpenSearchException;
+import org.opensearch.client.opensearch.indices.ExistsRequest;
+import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
+import org.opensearch.client.transport.endpoints.BooleanResponse;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.Ec2Client;
 import org.sagebionetworks.template.LoggerFactory;
+import org.sagebionetworks.template.OpenSearchClientProvider;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.config.RepoConfiguration;
@@ -156,6 +164,10 @@ public class RepositoryTemplateBuilderImplTest {
 	private CloudwatchLogsVelocityContextProvider mockCwlContextProvider;
 	@Mock
 	private TimeToLive mockTimeToLive;
+	@Mock
+	private OpenSearchClientProvider mockOpenSearchClientProvider;
+	@Mock
+	private OpenSearchIndicesClient mockOpenSearchIndicesClient;
 	@Captor
 	private ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
 
@@ -190,7 +202,7 @@ public class RepositoryTemplateBuilderImplTest {
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
-				mockEc2Client, mockBeanstalkClient, mockTimeToLive);
+				mockEc2Client, mockBeanstalkClient, mockTimeToLive, mockOpenSearchClientProvider);
 		builderSpy = Mockito.spy(builder);
 
 		stack = "dev";
@@ -209,7 +221,7 @@ public class RepositoryTemplateBuilderImplTest {
 		Output tableDBOutput2 = new Output();
 		tableDBOutput2.withOutputKey(stack + instance + "Table1" + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
 		tableDBOutput2.withOutputValue(stack + "-" + instance + "-table-1." + databaseEndpointSuffix);
-
+		
 		sharedResouces.withOutputs(dbOut, tableDBOutput1, tableDBOutput2);
 
 		secretsSouce = new SourceBundle("secretBucket", "secretKey");
@@ -223,14 +235,30 @@ public class RepositoryTemplateBuilderImplTest {
 		stack = inputStack;
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		sharedResouces = new Stack();
-		Output dbOut = new Output();
-		dbOut.withOutputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
+		
 		databaseEndpointSuffix = "something.amazon.com";
-		dbOut.withOutputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix);
-		sharedResouces.withOutputs(dbOut);
+		
+		sharedResouces.withOutputs(
+			new Output()
+				.withOutputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
+				.withOutputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix), 
+			new Output()
+				.withOutputKey("SynapseHelpCollectionEndpoint")
+				.withOutputValue("synhelp-endpoint")
+		);
 
 		when(mockCloudFormationClient.waitForStackToComplete(any(String.class)))
 				.thenReturn(Optional.of(sharedResouces));
+		
+		OpenSearchClient osClientMock = mock(OpenSearchClient.class);
+		when(osClientMock.indices()).thenReturn(mockOpenSearchIndicesClient);
+		
+		when(mockOpenSearchClientProvider.getOpenSearchClient(any())).thenReturn(osClientMock);
+		try {
+			when(mockOpenSearchIndicesClient.exists(any(ExistsRequest.class))).thenReturn(new BooleanResponse(true));
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	@Test

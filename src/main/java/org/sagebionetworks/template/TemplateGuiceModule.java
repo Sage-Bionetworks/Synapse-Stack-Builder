@@ -135,6 +135,9 @@ import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+
 public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
 	private static final String RUNTIME_REFERENCES_STRICT = "runtime.references.strict";
@@ -364,6 +367,11 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public DataWarehouseConfig dataWarehouseConfigProvider() throws IOException {
 		return new DataWarehouseConfigValidator(loadFromJsonFile(DATAWAREHOUSE_CONFIG_FILE, DataWarehouseConfig.class)).validate();
+	}
+		
+	@Provides
+	public OpenSearchClientProvider openSearchClientProvider() {
+		return new OpenSearchClientProvider();
 	}
 
 }
