@@ -1,7 +1,32 @@
 package org.sagebionetworks.template.vpc;
 
-import com.amazonaws.services.cloudformation.model.Parameter;
-import com.google.inject.Inject;
+import static org.sagebionetworks.template.Constants.AVAILABILITY_ZONES;
+import static org.sagebionetworks.template.Constants.JSON_INDENT;
+import static org.sagebionetworks.template.Constants.PRIVATE_SUBNET_IDX;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_AVAILABILITY_ZONES;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_COLORS;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_ENDPOINTS_AZ;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_ENDPOINTS_COLOR;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_PREFIX;
+import static org.sagebionetworks.template.Constants.STACK;
+import static org.sagebionetworks.template.Constants.SUBNETS;
+import static org.sagebionetworks.template.Constants.TEMPLATES_VPC_PRIVATE_SUBNET_JSON_VTP;
+import static org.sagebionetworks.template.Constants.TEMPLATES_VPC_PUBLIC_SUBNETS_JSON_VTP;
+import static org.sagebionetworks.template.Constants.VPC_CIDR;
+import static org.sagebionetworks.template.Constants.VPC_CIDR_SUFFIX;
+import static org.sagebionetworks.template.Constants.VPC_COLOR_GROUP_NETWORK_MASK;
+import static org.sagebionetworks.template.Constants.VPC_ENDPOINTS_AZ;
+import static org.sagebionetworks.template.Constants.VPC_ENDPOINTS_COLOR;
+import static org.sagebionetworks.template.Constants.VPC_PRIVATE_SUBNET_STACKNAME_FORMAT;
+import static org.sagebionetworks.template.Constants.VPC_PUBLIC_SUBNETS_STACKNAME_FORMAT;
+import static org.sagebionetworks.template.Constants.VPC_STACKNAME;
+import static org.sagebionetworks.template.Constants.VPC_STACK_NAME_FORMAT;
+import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
+import static org.sagebionetworks.template.Constants.VPC_SUBNET_NETWORK_MASK;
+
+import java.io.StringWriter;
+
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -13,11 +38,9 @@ import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.Configuration;
 
-import java.io.StringWriter;
 import java.util.List;
-
-import static org.sagebionetworks.template.Constants.*;
-import static org.sagebionetworks.template.Constants.VPC_CIDR;
+import com.amazonaws.services.cloudformation.model.Parameter;
+import com.google.inject.Inject;
 
 public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
 
@@ -67,10 +90,12 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
         VelocityContext context = createContext();
 
         Subnets subnets = (Subnets)context.get(SUBNETS);
+        
         for (int i=0; i<subnets.getPrivateSubnetGroups().length; i++) {
             SubnetGroup sg = subnets.getPrivateSubnetGroups()[i];
             String stackName = createPrivateSubnetStackName(sg.getColor().toString());
 
+            context.put(VPC_SUBNET_COLOR, sg.getColor());
             context.put(PRIVATE_SUBNET_IDX, i);
             Template privateSubnetsTemplate = this.velocityEngine.getTemplate(TEMPLATES_VPC_PRIVATE_SUBNET_JSON_VTP);
             StringWriter stringWriter = new StringWriter();
@@ -88,6 +113,7 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
 
             this.cloudFormationClient.waitForStackToComplete(stackName);
         }
+        
     }
 
     VelocityContext createContext() {
@@ -112,11 +138,11 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
         context.put(STACK, config.getProperty(PROPERTY_KEY_STACK));
         context.put(VPC_STACKNAME, String.format(VPC_STACK_NAME_FORMAT, config.getProperty(PROPERTY_KEY_STACK))); // Change this!
         context.put("vpcEndpointServices", VPC_ENDPOINT_SERVICES);
-
+        context.put(VPC_ENDPOINTS_COLOR, config.getProperty(PROPERTY_KEY_VPC_ENDPOINTS_COLOR));
+        context.put(VPC_ENDPOINTS_AZ, config.getProperty(PROPERTY_KEY_VPC_ENDPOINTS_AZ));
+                
         return context;
     }
-
-
 
     String createPublicSubnetsStackName() {
         return String.format(VPC_PUBLIC_SUBNETS_STACKNAME_FORMAT, config.getProperty(PROPERTY_KEY_STACK));
@@ -136,7 +162,7 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
      * @return
      */
     Color[] getColorsFromProperty() {
-        String[] colorString = config.getComaSeparatedProperty(PROPERTY_KEY_COLORS);
+        String[] colorString = config.getComaSeparatedProperty(PROPERTY_KEY_VPC_COLORS);
         Color[] colors = new Color[colorString.length];
         for (int i = 0; i < colorString.length; i++) {
             colors[i] = Color.valueOf(colorString[i]);

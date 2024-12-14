@@ -80,19 +80,34 @@
          "ServiceName": { "Fn::Sub": "com.amazonaws.#[[${AWS::Region}]]#.s3" },
          "VpcId": { "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-VPCId" } },
       }
+    }
+    #if ($subnetGroupColor == $vpcEndpointsColor)
+    ,"VPCEndpointSecurityGroup": {
+	        "Type": "AWS::EC2::SecurityGroup",
+	        "Properties": {
+	          "GroupDescription": "Allow access from the VPC cidr",
+	          "VpcId": { "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-VPCId" } },
+	          "SecurityGroupIngress": [{ "IpProtocol": "tcp", "FromPort": 443, "ToPort": 443, "CidrIp": "$vpcCidr" } ]
+	        }
     },
-    "VPCPrivateLinkSG": {
-        "Type": "AWS::EC2::SecurityGroup",
-        "Properties": {
-          "GroupDescription": "Allow access to AWS Bedrock via PrivateLink",
-          "VpcId": { "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-VPCId" } },
-          "SecurityGroupIngress": [{ "IpProtocol": "tcp", "FromPort": 443, "ToPort": 443, "CidrIp": "$vpcCidr" } ]
-        }
-    },
+	"OpenSearchVpcEndpoint": {
+		"Type": "AWS::OpenSearchServerless::VpcEndpoint",
+		"Properties": {
+			"Name": "open-search-vpce",
+			"VpcId": { "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-VPCId" } },
+			"SubnetIds": [ 
+			#foreach( $privateSubnet in $subnetGroup.subnets )
+				#if ($vpcEndpointsAz.contains(${privateSubnet.availabilityZone}))
+				 {"Ref": "${privateSubnet.name}"}
+				#if( $foreach.hasNext),#end 
+				#end 
+			#end 
+			],
+			"SecurityGroupIds": [{ "Ref": "VPCEndpointSecurityGroup" }]
+		}
+	},
     #foreach ($vpcEndpointSvc in $vpcEndpointServices)
-    #set($capitalizedVpcEndpointSvc = $vpcEndpointSvc.substring(0, 1).toUpperCase() + $vpcEndpointSvc.substring(1))
-    #set($sanitizedVpcEndpointSvc = $capitalizedVpcEndpointSvc.replaceAll("-", ""))
-    "${sanitizedVpcEndpointSvc}VPCEndpoint": {
+    "${vpcEndpointSvc.replaceAll("-", "")}VPCEndpoint": {
         "Type":"AWS::EC2::VPCEndpoint",
         "Properties":{
            "PolicyDocument":{
@@ -100,13 +115,9 @@
               "Statement":[
                  {
                     "Effect":"Allow",
-                    "Principal":"*",
-                    "Action":[
-                       "*"
-                    ],
-                    "Resource":[
-                       "*"
-                    ]
+                    "Principal": "*",
+                    "Action": "*",
+                    "Resource": "*"
                  }
               ]
            },
@@ -114,15 +125,17 @@
            "ServiceName": { "Fn::Sub": "com.amazonaws.#[[${AWS::Region}]]#.${vpcEndpointSvc}" },
            "SubnetIds": [
                           #foreach( $privateSubnet in $subnetGroup.subnets )
+                            #if ($vpcEndpointsAz.contains(${privateSubnet.availabilityZone}))
                             {"Ref": "${privateSubnet.name}"}
                             #if( $foreach.hasNext),#end
+                            #end
                           #end
            ],
            "VpcEndpointType": "interface",
            "VpcId": { "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-VPCId" } }
         }
     }#if( $foreach.hasNext),#end
-    #end
+	#end
     },
     "Outputs": {
         "PrivateSubnets": {
@@ -160,5 +173,18 @@
             "Value": "$subnetGroup.cidr",
             "Export": { "Name": { "Fn::Sub": "#[[${AWS::Region}-${AWS::StackName}]]#-CIDR" } }}
         }
+        #if ($subnetGroupColor == $vpcEndpointsColor)
+        ,"OpenSearchVpcEndpoint": {
+        	"Description": "The Id of the VPC endpoint that can be used by to access serverless open search from the VPC.",
+        	"Value": {
+		        "Ref": "OpenSearchVpcEndpoint"
+		    },
+		    "Export": {
+		    	"Name": {
+		    		"Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-open-search-vpce"
+                }
+		    }
+        }
+        #end
     }
 }
