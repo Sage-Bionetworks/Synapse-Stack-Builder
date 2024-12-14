@@ -21,8 +21,8 @@ import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_KEYPAIR_I
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.DELETION_POLICY;
-import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_MEMORY;
+import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.NOSNAPSHOT;
@@ -36,8 +36,8 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_NUMB
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERSION;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_KEYPAIR_ID;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_MEMORY;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT;
@@ -49,19 +49,19 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_RDS_TABLES_SNA
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_IOPS;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_THROUGHPUT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MULTI_AZ;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_STORAGE_TYPE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_THROUGHPUT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ROUTE_53_HOSTED_ZONE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_INSTANCE_COUNT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_IOPS;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_THROUGHPUT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_THROUGHPUT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_COLOR;
 import static org.sagebionetworks.template.Constants.REPO_BEANSTALK_NUMBER;
 import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
@@ -102,7 +102,6 @@ import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.config.TimeToLive;
-import org.sagebionetworks.template.repo.agent.BedrockAgentContextProvider;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.ElasticBeanstalkSolutionStackNameProvider;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
@@ -189,7 +188,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
-				mockArtifactCopy, mockSecretBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2, new BedrockAgentContextProvider(config)),
+				mockArtifactCopy, mockSecretBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
 				mockEc2Client, mockBeanstalkClient, mockTimeToLive);
 		builderSpy = Mockito.spy(builder);
@@ -299,7 +298,7 @@ public class RepositoryTemplateBuilderImplTest {
 		// call under test
 		builder.buildAndDeploy();
 
-		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClient, times(5)).createOrUpdateStack(requestCaptor.capture());
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
 		assertEquals("prod-101-shared-resources", request.getStackName());
@@ -355,10 +354,18 @@ public class RepositoryTemplateBuilderImplTest {
 		
 		assertFalse(resources.has("WebhookTestApi"));
 		assertTrue(resources.has("SynapseHelpCollection"));
-		assertTrue(resources.has("SynapseHelpKnowledgeBaseExecutionRole"));
-		assertTrue(resources.has("bedrockAgentRole"));
-		assertTrue(resources.has("bedrockAgent"));
-		assertEquals("prod-101-agent", resources.getJSONObject("bedrockAgent").getJSONObject("Properties").get("AgentName"));
+		
+		CreateOrUpdateStackRequest agentStackRequest = list.get(1);
+		
+		assertEquals("prod-101-agent", agentStackRequest.getStackName());
+		assertEquals(expectedTags, request.getTags());
+		assertEquals(true, request.getEnableTerminationProtection());
+		assertNotNull(request.getParameters());
+		
+		JSONObject agentStackTemplate = new JSONObject(agentStackRequest.getTemplateBody());
+		
+		assertTrue(agentStackTemplate.getJSONObject("Resources").has("bedrockAgentRole"));
+		assertTrue(agentStackTemplate.getJSONObject("Resources").has("bedrockAgent"));
 	}
 
 	@Test
@@ -426,7 +433,7 @@ public class RepositoryTemplateBuilderImplTest {
 		// call under test
 		builder.buildAndDeploy();
 
-		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClient, times(5)).createOrUpdateStack(requestCaptor.capture());
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
 		assertEquals("prod-101-shared-resources", request.getStackName());
@@ -546,7 +553,7 @@ public class RepositoryTemplateBuilderImplTest {
 		// call under test
 		builder.buildAndDeploy();
 
-		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClient, times(5)).createOrUpdateStack(requestCaptor.capture());
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
 		assertEquals("dev-101-shared-resources", request.getStackName());
@@ -600,10 +607,18 @@ public class RepositoryTemplateBuilderImplTest {
 
 		assertTrue(resources.has("WebhookTestApi"));
 		assertTrue(resources.has("SynapseHelpCollection"));
-		assertTrue(resources.has("SynapseHelpKnowledgeBaseExecutionRole"));
-		assertTrue(resources.has("bedrockAgentRole"));
-		assertTrue(resources.has("bedrockAgent"));
-		assertEquals("dev-101-agent", resources.getJSONObject("bedrockAgent").getJSONObject("Properties").get("AgentName"));
+
+		CreateOrUpdateStackRequest agentStackRequest = list.get(1);
+		
+		assertEquals("dev-101-agent", agentStackRequest.getStackName());
+		assertEquals(expectedTags, request.getTags());
+		assertEquals(false, request.getEnableTerminationProtection());
+		assertNotNull(request.getParameters());
+		
+		JSONObject agentStackTemplate = new JSONObject(agentStackRequest.getTemplateBody());
+		
+		assertTrue(agentStackTemplate.getJSONObject("Resources").has("bedrockAgentRole"));
+		assertTrue(agentStackTemplate.getJSONObject("Resources").has("bedrockAgent"));
 	}
 
 	@Test
@@ -671,7 +686,7 @@ public class RepositoryTemplateBuilderImplTest {
 		// call under test
 		builder.buildAndDeploy();
 
-		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClient, times(5)).createOrUpdateStack(requestCaptor.capture());
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
 		assertEquals("dev-101-shared-resources", request.getStackName());
