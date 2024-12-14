@@ -86,13 +86,10 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
-import org.opensearch.client.opensearch.OpenSearchClient;
-import org.opensearch.client.opensearch._types.OpenSearchException;
+import org.opensearch.client.opensearch.indices.CreateIndexRequest;
 import org.opensearch.client.opensearch.indices.ExistsRequest;
-import org.opensearch.client.opensearch.indices.GetIndexRequest;
+import org.opensearch.client.opensearch.indices.IndexSettings;
 import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
-import org.opensearch.client.transport.aws.AwsSdk2Transport;
-import org.opensearch.client.transport.aws.AwsSdk2TransportOptions;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.Constants;
@@ -122,10 +119,6 @@ import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest
 import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import com.google.inject.Inject;
-
-import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
-import software.amazon.awssdk.regions.Region;
 
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
 	public static final List<String> MACHINE_TYPE_LIST = List.of("Workers", "Repository");
@@ -224,7 +217,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 			.orElseThrow()
 			.getOutputValue();
 		
-		createSynapseHelpOpenSearchIndex(stackPrefix, osSynHelpEndpoint);
+		createSynapseHelpOpenSearchIndex(osSynHelpEndpoint);
 		
 		String agentName = new StringJoiner("-").add(stackPrefix).add("agent").toString();
 		
@@ -243,14 +236,44 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		cloudFormationClient.waitForStackToComplete(stackName).orElseThrow(()->new IllegalStateException("Stack does not exist: " + stackName));
 	}
 	
-	void createSynapseHelpOpenSearchIndex(String stackPrefix, String openSearchEndpoint) {
-		String indexName = stackPrefix + "-synhelp-idx";
+	void createSynapseHelpOpenSearchIndex(String openSearchEndpoint) {
+		String indexName = "synhelp-idx";
 		
 		OpenSearchIndicesClient client = openSearchClientProvider.getOpenSearchClient(openSearchEndpoint).indices();
 					
 		try {
+			
 			boolean indexExists = client.exists(new ExistsRequest.Builder().index(indexName).build()).value();
-			System.out.println("Index " + indexName +": " + indexExists);
+			
+			if (indexExists) {
+				return;
+			}
+			
+			logger.info("Index " + indexName + " does not exist, creating...");
+			
+			client.create(new CreateIndexRequest.Builder()
+				.index(indexName)
+				.settings(new IndexSettings.Builder()
+					.knn(true)
+					.knnAlgoParamEfSearch(512)
+					.build())
+				.mappings(mappings -> mappings
+					.properties("embeddings", p -> p
+						.knnVector(vector -> vector
+							.dimension(1024)
+							.method(method -> method
+								.name("hnsw")
+								.engine("faiss")
+								.spaceType("l2")
+							)
+						)
+					)
+					.properties("raw_text", p -> p.text(text -> text.index(true)))
+					.properties("bedrock_metadata", p -> p.text(text -> text.index(false)))
+				).build());
+			
+			logger.info("Index " + indexName + " creation initiated...");
+			
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		}
