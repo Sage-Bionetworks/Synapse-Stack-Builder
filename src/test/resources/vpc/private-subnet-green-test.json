@@ -316,6 +316,94 @@
                     ],
                     "SecurityGroupIds": [{"Ref": "VPCEndpointSecurityGroup"}]
                }
+          },
+          "bedrockVPCEndpoint": {
+               "Type": "AWS::EC2::VPCEndpoint",
+               "Properties": {
+                    "PolicyDocument": {
+                         "Version": "2012-10-17",
+                         "Statement": [{
+                              "Effect": "Allow",
+                              "Principal": "*",
+                              "Action": "*",
+                              "Resource": "*"
+                         }]
+                    },
+                    "PrivateDnsEnabled": true,
+                    "ServiceName": {"Fn::Sub": "com.amazonaws.${AWS::Region}.bedrock"},
+                    "SubnetIds": [
+                         {"Ref": "GreenPrivateUsEast1a"},
+                         {"Ref": "GreenPrivateUsEast1c"}
+                    ],
+                    "VpcEndpointType": "interface",
+                    "VpcId": {"Fn::ImportValue": {"Fn::Sub": "${AWS::Region}-synapse-dev-vpc-2-VPCId"}}
+               }
+          },
+          "bedrockagentVPCEndpoint": {
+               "Type": "AWS::EC2::VPCEndpoint",
+               "Properties": {
+                    "PolicyDocument": {
+                         "Version": "2012-10-17",
+                         "Statement": [{
+                              "Effect": "Allow",
+                              "Principal": "*",
+                              "Action": "*",
+                              "Resource": "*"
+                         }]
+                    },
+                    "PrivateDnsEnabled": true,
+                    "ServiceName": {"Fn::Sub": "com.amazonaws.${AWS::Region}.bedrock-agent"},
+                    "SubnetIds": [
+                         {"Ref": "GreenPrivateUsEast1a"},
+                         {"Ref": "GreenPrivateUsEast1c"}
+                    ],
+                    "VpcEndpointType": "interface",
+                    "VpcId": {"Fn::ImportValue": {"Fn::Sub": "${AWS::Region}-synapse-dev-vpc-2-VPCId"}}
+               }
+          },
+          "bedrockruntimeVPCEndpoint": {
+               "Type": "AWS::EC2::VPCEndpoint",
+               "Properties": {
+                    "PolicyDocument": {
+                         "Version": "2012-10-17",
+                         "Statement": [{
+                              "Effect": "Allow",
+                              "Principal": "*",
+                              "Action": "*",
+                              "Resource": "*"
+                         }]
+                    },
+                    "PrivateDnsEnabled": true,
+                    "ServiceName": {"Fn::Sub": "com.amazonaws.${AWS::Region}.bedrock-runtime"},
+                    "SubnetIds": [
+                         {"Ref": "GreenPrivateUsEast1a"},
+                         {"Ref": "GreenPrivateUsEast1c"}
+                    ],
+                    "VpcEndpointType": "interface",
+                    "VpcId": {"Fn::ImportValue": {"Fn::Sub": "${AWS::Region}-synapse-dev-vpc-2-VPCId"}}
+               }
+          },
+          "bedrockagentruntimeVPCEndpoint": {
+               "Type": "AWS::EC2::VPCEndpoint",
+               "Properties": {
+                    "PolicyDocument": {
+                         "Version": "2012-10-17",
+                         "Statement": [{
+                              "Effect": "Allow",
+                              "Principal": "*",
+                              "Action": "*",
+                              "Resource": "*"
+                         }]
+                    },
+                    "PrivateDnsEnabled": true,
+                    "ServiceName": {"Fn::Sub": "com.amazonaws.${AWS::Region}.bedrock-agent-runtime"},
+                    "SubnetIds": [
+                         {"Ref": "GreenPrivateUsEast1a"},
+                         {"Ref": "GreenPrivateUsEast1c"}
+                    ],
+                    "VpcEndpointType": "interface",
+                    "VpcId": {"Fn::ImportValue": {"Fn::Sub": "${AWS::Region}-synapse-dev-vpc-2-VPCId"}}
+               }
           }
      },
      "Outputs": {

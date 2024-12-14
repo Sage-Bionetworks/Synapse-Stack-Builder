@@ -157,7 +157,9 @@ public class SubnetTemplateBuilderImplTest {
         assertNull(requests.get(1).getParameters());
         assertEquals(expectedTags, requests.get(1).getTags());
 
-        JSONObject templateJson = new JSONObject(requests.get(1).getTemplateBody());
+        JSONObject templateJson = new JSONObject(requests.get(0).getTemplateBody());
+        System.out.println(templateJson.toString(JSON_INDENT));
+        templateJson = new JSONObject(requests.get(1).getTemplateBody());
         System.out.println(templateJson.toString(JSON_INDENT));
 
         assertTrue(templateJson.has("Resources"));
