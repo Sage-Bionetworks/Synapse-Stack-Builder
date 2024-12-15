@@ -461,6 +461,26 @@
                "Description": "The Id of the VPC endpoint that can be used by to access serverless open search from the VPC.",
                "Value": {"Ref": "OpenSearchVpcEndpoint"},
                "Export": {"Name": {"Fn::Sub": "${AWS::Region}-synapse-dev-vpc-2-open-search-vpce"}}
+          },
+          "bedrockVPCEndpoint": {
+               "Description": "The Id of the VPC endpoint used to access Bedrock from the VPC",
+               "Value": {"Ref": "bedrockVPCEndpoint"},
+               "Export": {"Name": {"Fn::Sub": "${AWS::Region}-synapse-dev-vpc-2-bedrock-vpce"}}
+          },
+          "bedrockagentVPCEndpoint": {
+               "Description": "The Id of the VPC endpoint used to access Bedrock from the VPC",
+               "Value": {"Ref": "bedrockagentVPCEndpoint"},
+               "Export": {"Name": {"Fn::Sub": "${AWS::Region}-synapse-dev-vpc-2-bedrockagent-vpce"}}
+          },
+          "bedrockruntimeVPCEndpoint": {
+               "Description": "The Id of the VPC endpoint used to access Bedrock from the VPC",
+               "Value": {"Ref": "bedrockruntimeVPCEndpoint"},
+               "Export": {"Name": {"Fn::Sub": "${AWS::Region}-synapse-dev-vpc-2-bedrockruntime-vpce"}}
+          },
+          "bedrockagentruntimeVPCEndpoint": {
+               "Description": "The Id of the VPC endpoint used to access Bedrock from the VPC",
+               "Value": {"Ref": "bedrockagentruntimeVPCEndpoint"},
+               "Export": {"Name": {"Fn::Sub": "${AWS::Region}-synapse-dev-vpc-2-bedrockagentruntime-vpce"}}
           }
      }
 }
