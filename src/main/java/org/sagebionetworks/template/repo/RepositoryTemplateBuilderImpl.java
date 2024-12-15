@@ -13,11 +13,11 @@ import static org.sagebionetworks.template.Constants.DATA_CDN_DOMAIN_NAME_FMT;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.DELETION_POLICY;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_MEMORY;
-import static org.sagebionetworks.template.Constants.IDENTITY_ARN;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
 import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PREFIX;
+import static org.sagebionetworks.template.Constants.IDENTITY_ARN;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.MACHINE_TYPES;
@@ -72,7 +72,6 @@ import static org.sagebionetworks.template.Constants.TEMPALTE_SHARED_RESOUCES_MA
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
-import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -87,19 +86,15 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
-import org.opensearch.client.opensearch.indices.CreateIndexRequest;
-import org.opensearch.client.opensearch.indices.ExistsRequest;
-import org.opensearch.client.opensearch.indices.IndexSettings;
-import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.Ec2Client;
 import org.sagebionetworks.template.LoggerFactory;
-import org.sagebionetworks.template.OpenSearchClientProvider;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateUtils;
+import org.sagebionetworks.template.WaitConditionHandler;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.config.TimeToLive;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
@@ -140,8 +135,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	private final CloudwatchLogsVelocityContextProvider cwlContextProvider;
 	private final AWSElasticBeanstalk beanstalkClient;
 	private final TimeToLive timeToLive;
-	private final OpenSearchClientProvider openSearchClientProvider;
 	private final AWSSecurityTokenService stsClient;
+	private final Set<WaitConditionHandler> waitConditionHandlers;
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
@@ -150,7 +145,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 										 ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkDefaultAMIEncrypter,
 										 StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
 										 Ec2Client ec2Client, AWSElasticBeanstalk beanstalkClient, TimeToLive ttl, 
-										 AWSSecurityTokenService stsClient, OpenSearchClientProvider openSearchClientProvider) {
+										 AWSSecurityTokenService stsClient, Set<WaitConditionHandler> waitConditionHandlers) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.ec2Client = ec2Client;
@@ -166,7 +161,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.beanstalkClient = beanstalkClient;
 		this.timeToLive = ttl;
 		this.stsClient = stsClient;
-		this.openSearchClientProvider = openSearchClientProvider;
+		this.waitConditionHandlers = waitConditionHandlers;
 	}
 
 	public String getActualBeanstalkAmazonLinuxPlatform() {
@@ -204,7 +199,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		buildAndDeployStack(context, sharedResourceStackName, TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP, sharedParameters);
 		
 		// Wait for the shared resources to complete
-		Stack sharedStackResults = cloudFormationClient.waitForStackToComplete(sharedResourceStackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+sharedResourceStackName));
+		Stack sharedStackResults = cloudFormationClient.waitForStackToComplete(sharedResourceStackName, waitConditionHandlers).orElseThrow(()->new IllegalStateException("Stack does not exist: "+sharedResourceStackName));
 		
 		buildBedrockAgentStack(sharedStackResults);
 		
@@ -216,14 +211,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
 		String stackPrefix = new StringJoiner("-").add(stack).add(config.getProperty(PROPERTY_KEY_INSTANCE)).toString();
-
-		String osSynHelpEndpoint = sharedStack.getOutputs().stream()
-			.filter( output -> output.getOutputKey().equals("SynapseHelpCollectionEndpoint"))
-			.findFirst()
-			.orElseThrow()
-			.getOutputValue();
-		
-		createSynapseHelpOpenSearchIndex(osSynHelpEndpoint);
 		
 		String agentName = new StringJoiner("-").add(stackPrefix).add("agent").toString();
 		
@@ -239,41 +226,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 			.withTags(stackTagsProvider.getStackTags())
 			.withEnableTerminationProtection("prod".equals(stack)));
 		
-		cloudFormationClient.waitForStackToComplete(stackName).orElseThrow(()->new IllegalStateException("Stack does not exist: " + stackName));
-	}
-	
-	void createSynapseHelpOpenSearchIndex(String openSearchEndpoint) {
-		String indexName = "synhelp-idx";
-		
-		OpenSearchIndicesClient client = openSearchClientProvider.getOpenSearchClient(openSearchEndpoint).indices();
-					
-		try {
-			
-			boolean indexExists = client.exists(req -> req.index(indexName)).value();
-			
-			if (indexExists) {
-				logger.info("Index " + indexName + " already exists.");
-				return;
-			}
-			
-			logger.info("Index " + indexName + " does not exist, creating...");
-			
-			client.create(req -> req
-				.index(indexName)
-				.settings(settings -> settings.knn(true))
-				.mappings(mappings -> mappings
-					.properties("text_vector", p -> p.knnVector(vector -> vector.dimension(1024)))
-					.properties("text_raw", p -> p.text(text -> text.index(true)))
-					.properties("text_metadata", p -> p.text(text -> text.index(false)))
-				)
-			);
-			
-			logger.info("Index " + indexName + " creation initiated...");
-			
-			
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
+		cloudFormationClient.waitForStackToComplete(stackName, waitConditionHandlers).orElseThrow(()->new IllegalStateException("Stack does not exist: " + stackName));
 	}
  
 	/**

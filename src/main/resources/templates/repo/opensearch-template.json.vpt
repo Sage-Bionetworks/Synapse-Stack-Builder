@@ -8,17 +8,7 @@
             "Policy":"{\"Rules\":[{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synhelp\"]}],\"AWSOwnedKey\":true}"
         }
   	},
-	"SynapseHelpCollection": {
-	    "Type":"AWS::OpenSearchServerless::Collection",
-	    "Properties": {
-	        "Name":"${stack}-${instance}-synhelp",
-	        "Type":"VECTORSEARCH",
-	        "Description":"Vector store collection for synpase help documentation",
-	        "StandbyReplicas": "DISABLED"
-	     },
-	     "DependsOn":"SynapseHelpCollectionEncryptionPolicy"
-	},
- 	"SynapseHelpCollectionNetworkPolicy": {
+  	"SynapseHelpCollectionNetworkPolicy": {
      	"Type":"AWS::OpenSearchServerless::SecurityPolicy",
 	        "Properties": {
 	            "Name":"${stack}-${instance}-synhelp",
@@ -33,4 +23,34 @@
 	            	]
 	            }
 	        }
+	},
+	"SynapseHelpCollectionDeployerAccessPolicy": {
+		"Type":"AWS::OpenSearchServerless::AccessPolicy",
+		"Properties": {
+            "Name":"${stack}-${instance}-synhelp-deployer",
+            "Type":"data",
+            "Description":"Access policy for the stack to allow the creation of the index",
+            "Policy": "[{\"Rules\":[{\"ResourceType\":\"index\",\"Resource\":[\"index/${stack}-${instance}-synhelp/*\"],\"Permission\":[\"aoss:*\"]},{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synhelp\"],\"Permission\":[\"aoss:*\"]}],\"Principal\":[\"${identityArn}\"]}]"
+		}
+ 	},
+	"SynapseHelpCollection": {
+	    "Type":"AWS::OpenSearchServerless::Collection",
+	    "Properties": {
+	        "Name":"${stack}-${instance}-synhelp",
+	        "Type":"VECTORSEARCH",
+	        "Description":"Vector store collection for synpase help documentation",
+	        "StandbyReplicas": "DISABLED"
+	     },
+	     "DependsOn":"SynapseHelpCollectionEncryptionPolicy"
+	},
+	"SynapseHelpCollectionCreateIndexCondition": {
+		"Type": "AWS::CloudFormation::WaitCondition",
+		"DependsOn": "SynapseHelpCollection",
+		"CreationPolicy" : {
+	        "ResourceSignal" : {
+	            "Timeout" : "PT5M",
+	            "Count" : "1"
+	        }
+	    }
 	}
+ 	

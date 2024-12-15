@@ -10,7 +10,6 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -74,7 +73,6 @@ import static org.sagebionetworks.template.Constants.TEMPALTE_BEAN_STALK_ENVIRON
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -95,17 +93,12 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.opensearch.client.opensearch.OpenSearchClient;
-import org.opensearch.client.opensearch.indices.ExistsRequest;
-import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
-import org.opensearch.client.transport.endpoints.BooleanResponse;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.Ec2Client;
 import org.sagebionetworks.template.LoggerFactory;
-import org.sagebionetworks.template.OpenSearchClientProvider;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.config.RepoConfiguration;
@@ -119,6 +112,7 @@ import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogDescriptor;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
+import org.sagebionetworks.template.repo.oss.SynapseHelpCollectionIndexCreation;
 import org.sagebionetworks.template.vpc.Color;
 
 import com.amazonaws.services.cloudformation.model.Output;
@@ -169,9 +163,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Mock
 	private AWSSecurityTokenService mockStsClient;
 	@Mock
-	private OpenSearchClientProvider mockOpenSearchClientProvider;
-	@Mock
-	private OpenSearchIndicesClient mockOpenSearchIndicesClient;
+	private SynapseHelpCollectionIndexCreation mockWaitConditionHandler;
 	@Captor
 	private ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
 
@@ -203,10 +195,12 @@ public class RepositoryTemplateBuilderImplTest {
 		expectedTags.add(t);
 
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
+		
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
-				mockEc2Client, mockBeanstalkClient, mockTimeToLive, mockStsClient, mockOpenSearchClientProvider);
+				mockEc2Client, mockBeanstalkClient, mockTimeToLive, mockStsClient, Set.of(mockWaitConditionHandler));
+		
 		builderSpy = Mockito.spy(builder);
 
 		stack = "dev";
@@ -255,19 +249,8 @@ public class RepositoryTemplateBuilderImplTest {
 				.withOutputValue("synhelp-endpoint")
 		);
 
-		when(mockCloudFormationClient.waitForStackToComplete(any(String.class)))
-				.thenReturn(Optional.of(sharedResouces));
+		when(mockCloudFormationClient.waitForStackToComplete(any(String.class), any())).thenReturn(Optional.of(sharedResouces));
 		
-		OpenSearchClient osClientMock = mock(OpenSearchClient.class);
-		when(osClientMock.indices()).thenReturn(mockOpenSearchIndicesClient);
-		
-		when(mockOpenSearchClientProvider.getOpenSearchClient(any())).thenReturn(osClientMock);
-		
-		try {
-			when(mockOpenSearchIndicesClient.exists(any(ExistsRequest.class))).thenReturn(new BooleanResponse(true));
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
 	}
 
 	@Test

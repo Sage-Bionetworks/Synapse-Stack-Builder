@@ -4,11 +4,14 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -21,11 +24,15 @@ import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException
 import com.amazonaws.services.cloudformation.model.CreateStackRequest;
 import com.amazonaws.services.cloudformation.model.CreateStackResult;
 import com.amazonaws.services.cloudformation.model.DeleteStackRequest;
-import com.amazonaws.services.cloudformation.model.DeleteStackResult;
+import com.amazonaws.services.cloudformation.model.DescribeStackEventsRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Output;
+import com.amazonaws.services.cloudformation.model.ResourceSignalStatus;
+import com.amazonaws.services.cloudformation.model.ResourceStatus;
+import com.amazonaws.services.cloudformation.model.SignalResourceRequest;
 import com.amazonaws.services.cloudformation.model.Stack;
+import com.amazonaws.services.cloudformation.model.StackEvent;
 import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.amazonaws.services.cloudformation.model.UpdateStackRequest;
 import com.amazonaws.services.cloudformation.model.UpdateStackResult;
@@ -225,7 +232,16 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 
 	@Override
 	public Optional<Stack> waitForStackToComplete(String stackName) throws InterruptedException {
+		return waitForStackToComplete(stackName, Collections.emptySet());
+	}
+	
+	@Override
+	public Optional<Stack> waitForStackToComplete(String stackName, Set<WaitConditionHandler> waitConditionHandlers) throws InterruptedException {
 		boolean startedInUpdateRollbackComplete = isStartedInUpdateRollbackComplete(stackName); // Initial state
+		
+		Map<String, WaitConditionHandler> waitConditionHandlerMap = waitConditionHandlers.stream()
+			.collect(Collectors.toMap(WaitConditionHandler::getWaitConditionId, Function.identity()));
+		
 		long start = threadProvider.currentTimeMillis();
 		while (true) {
 			long elapse = threadProvider.currentTimeMillis() - start;
@@ -248,8 +264,10 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 			case UPDATE_IN_PROGRESS:
 			case DELETE_IN_PROGRESS:
 			case UPDATE_COMPLETE_CLEANUP_IN_PROGRESS:
-				logger.info("Waiting for stack: '" + stackName + "' to complete.  Current status: " + status.name()
-						+ "...");
+				logger.info("Waiting for stack: '" + stackName + "' to complete.  Current status: " + status.name() + "...");
+				
+				handleWaitConditions(stack, waitConditionHandlerMap);
+				
 				threadProvider.sleep(SLEEP_TIME);
 				break;
 			case UPDATE_ROLLBACK_COMPLETE:
@@ -261,6 +279,53 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 						+ " with reason: " + stack.getStackStatusReason());
 			}
 		}
+	}
+	
+	void handleWaitConditions(Stack stack, Map<String, WaitConditionHandler> waitConditionHandlers) {
+		if (waitConditionHandlers.isEmpty()) {
+			return;
+		}
+			
+		List<StackEvent> events = cloudFormationClient.describeStackEvents(new DescribeStackEventsRequest().withStackName(stack.getStackName())).getStackEvents();
+		
+		if (events.isEmpty()) {
+			return;
+		}
+			
+		List<StackEvent> waitConditionsEvents = events.stream()
+			.filter(event ->  "AWS::CloudFormation::WaitCondition".equals(event.getResourceType()))
+			.filter(event -> ResourceStatus.CREATE_IN_PROGRESS.equals(ResourceStatus.valueOf(event.getResourceStatus())))
+			.collect(Collectors.toList());
+		
+		for (StackEvent waitConditionEvent : waitConditionsEvents) {
+			String waitConditionId = waitConditionEvent.getLogicalResourceId();
+			WaitConditionHandler waitConditionConsumer = waitConditionHandlers.get(waitConditionId);
+			
+			if (waitConditionConsumer != null) {
+				logger.info("Processing condition " + waitConditionId + "...");
+				try {
+					
+					waitConditionConsumer.handle(stack, waitConditionEvent);
+
+					cloudFormationClient.signalResource(new SignalResourceRequest()
+						.withStackName(stack.getStackName())
+						.withLogicalResourceId(waitConditionId)
+						.withStatus(ResourceSignalStatus.SUCCESS)
+						.withUniqueId(waitConditionConsumer.getSignalId())
+					);
+					
+				} catch (Exception e) {
+					logger.error(e);
+					cloudFormationClient.signalResource(new SignalResourceRequest()
+						.withStackName(stack.getStackName())
+						.withLogicalResourceId(waitConditionId)
+						.withStatus(ResourceSignalStatus.FAILURE)
+						.withUniqueId(waitConditionConsumer.getSignalId())
+					);
+				}
+			}
+		}
+		
 	}
 
 	@Override
