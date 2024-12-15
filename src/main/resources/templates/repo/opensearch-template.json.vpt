@@ -41,7 +41,7 @@
 	        "Description":"Vector store collection for synpase help documentation",
 	        "StandbyReplicas": "DISABLED"
 	     },
-	     "DependsOn":"SynapseHelpCollectionEncryptionPolicy"
+	     "DependsOn": ["SynapseHelpCollectionEncryptionPolicy", "SynapseHelpCollectionDeployerAccessPolicy", "SynapseHelpCollectionNetworkPolicy"]
 	},
 	"SynapseHelpCollectionCreateIndexCondition": {
 		"Type": "AWS::CloudFormation::WaitCondition",
