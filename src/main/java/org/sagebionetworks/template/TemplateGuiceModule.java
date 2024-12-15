@@ -137,6 +137,9 @@ import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
+
 public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
 	private static final String RUNTIME_REFERENCES_STRICT = "runtime.references.strict";
@@ -374,8 +377,8 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 		
 	@Provides
-	public OpenSearchClientProvider openSearchClientProvider() {
-		return new OpenSearchClientProvider();
+	public OpenSearchServerlessClient ossClientProvider() {
+		return OpenSearchServerlessClient.builder().region(Region.US_EAST_1).build();
 	}
 
 }

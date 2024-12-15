@@ -6,8 +6,10 @@ import org.apache.logging.log4j.Logger;
 import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
 import org.opensearch.client.transport.aws.AwsSdk2Transport;
 import org.opensearch.client.transport.aws.AwsSdk2TransportOptions;
+import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.WaitConditionHandler;
+import org.sagebionetworks.template.config.RepoConfiguration;
 
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackEvent;
@@ -16,6 +18,7 @@ import com.google.inject.Inject;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
 
 public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler {
 	
@@ -23,9 +26,15 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 	
 	private Logger logger;
 	
+	private OpenSearchServerlessClient ossClient;
+	
+	private RepoConfiguration config;
+	
 	@Inject
-	public SynapseHelpCollectionIndexCreation(LoggerFactory loggerFactory) {
+	public SynapseHelpCollectionIndexCreation(LoggerFactory loggerFactory, OpenSearchServerlessClient ossClient, RepoConfiguration configuration) {
 		this.logger = loggerFactory.getLogger(SynapseHelpCollectionIndexCreation.class);
+		this.ossClient = ossClient;
+		this.config = config;
 	}
 	
 	@Override
@@ -40,13 +49,10 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 
 	@Override
 	public void handle(Stack stack, StackEvent stackEvent) {
-
-		String collectionEndpoint = stack.getOutputs().stream()
-			.filter( output -> output.getOutputKey().equals("SynapseHelpCollectionEndpoint"))
-			.findFirst()
-			.orElseThrow()
-			.getOutputValue();
 		
+		String collectionEndpoint = ossClient.batchGetCollection(req -> req
+			.names(config.getProperty(Constants.STACK) + "-" + config.getProperty(Constants.INSTANCE) + "-synhelp")
+		).collectionDetails().stream().findFirst().orElseThrow().collectionEndpoint();
 		
 		try (SdkHttpClient httpClient = ApacheHttpClient.builder().build()) {
 			OpenSearchIndicesClient client = new OpenSearchIndicesClient(
