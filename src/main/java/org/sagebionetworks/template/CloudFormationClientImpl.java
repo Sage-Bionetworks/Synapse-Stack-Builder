@@ -315,7 +315,7 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 					);
 					
 				} catch (Exception e) {
-					logger.error(e);
+					logger.error("Processing condition " + waitConditionId +" failed: ", e);
 					cloudFormationClient.signalResource(new SignalResourceRequest()
 						.withStackName(stack.getStackName())
 						.withLogicalResourceId(waitConditionId)

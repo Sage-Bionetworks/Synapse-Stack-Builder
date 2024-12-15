@@ -19,6 +19,8 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
+import software.amazon.awssdk.services.opensearchserverless.model.CollectionDetail;
+import software.amazon.awssdk.services.opensearchserverless.model.CollectionStatus;
 
 public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler {
 	
@@ -31,7 +33,7 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 	private RepoConfiguration config;
 	
 	@Inject
-	public SynapseHelpCollectionIndexCreation(LoggerFactory loggerFactory, OpenSearchServerlessClient ossClient, RepoConfiguration configuration) {
+	public SynapseHelpCollectionIndexCreation(LoggerFactory loggerFactory, OpenSearchServerlessClient ossClient, RepoConfiguration config) {
 		this.logger = loggerFactory.getLogger(SynapseHelpCollectionIndexCreation.class);
 		this.ossClient = ossClient;
 		this.config = config;
@@ -49,16 +51,22 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 
 	@Override
 	public void handle(Stack stack, StackEvent stackEvent) {
+		String collectionName = config.getProperty(Constants.STACK) + "-" + config.getProperty(Constants.INSTANCE) + "-synhelp";
 		
-		String collectionEndpoint = ossClient.batchGetCollection(req -> req
-			.names(config.getProperty(Constants.STACK) + "-" + config.getProperty(Constants.INSTANCE) + "-synhelp")
-		).collectionDetails().stream().findFirst().orElseThrow().collectionEndpoint();
+		CollectionDetail collection = ossClient.batchGetCollection(req -> req
+			.names(collectionName)
+		).collectionDetails().stream().findFirst().orElseThrow();
 		
+		if (!CollectionStatus.ACTIVE.equals(collection.status())) {
+			logger.warn("Collection " + collectionName + " not ready, status: " + collection.status());
+			return;
+		}
+				
 		try (SdkHttpClient httpClient = ApacheHttpClient.builder().build()) {
 			OpenSearchIndicesClient client = new OpenSearchIndicesClient(
 			    new AwsSdk2Transport(
 			        httpClient,
-			        collectionEndpoint.replace("https://", ""), 
+			        collection.collectionEndpoint().replace("https://", ""), 
 			        "aoss",
 			        Region.US_EAST_1,
 			        AwsSdk2TransportOptions.builder().build()
