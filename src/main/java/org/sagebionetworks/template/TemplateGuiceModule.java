@@ -60,6 +60,7 @@ import org.sagebionetworks.template.repo.IdGeneratorBuilderImpl;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilderImpl;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
+import org.sagebionetworks.template.repo.agent.BedrockAgentContextProvider;
 import org.sagebionetworks.template.repo.appconfig.AppConfigConfig;
 import org.sagebionetworks.template.repo.appconfig.AppConfigConfigValidator;
 import org.sagebionetworks.template.repo.appconfig.AppConfigVelocityContextProvider;
@@ -136,9 +137,6 @@ import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 
-import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
-
 public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
 	private static final String RUNTIME_REFERENCES_STRICT = "runtime.references.strict";
@@ -194,6 +192,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		velocityContextProviderMultibinder.addBinding().to(SnsAndSqsVelocityContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(KinesisFirehoseVelocityContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(RecurrentAthenaQueryContextProvider.class);
+		velocityContextProviderMultibinder.addBinding().to(BedrockAgentContextProvider.class);
 		
 		Multibinder<WaitConditionHandler> waitConditionHandlerBinder = Multibinder.newSetBinder(binder(), WaitConditionHandler.class);
 		

@@ -747,6 +747,7 @@
 		#parse("templates/repo/api-gateway-template.json.vpt")
 		#parse("templates/repo/opensearch-template.json.vpt")
 		#parse("templates/repo/bedrock-kb-template.json.vpt")
+		${bedrock_agent_resouces}
 	},
 	"Outputs": {
 		#parse("templates/repo/time-to-live-out.vpt"),

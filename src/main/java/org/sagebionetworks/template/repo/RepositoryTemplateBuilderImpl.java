@@ -67,7 +67,6 @@ import static org.sagebionetworks.template.Constants.SOLUTION_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
 import static org.sagebionetworks.template.Constants.TEMPALTE_BEAN_STALK_ENVIRONMENT;
-import static org.sagebionetworks.template.Constants.TEMPALTE_BEDROCK_AGENT_JSON_VTP;
 import static org.sagebionetworks.template.Constants.TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
@@ -93,7 +92,6 @@ import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.Ec2Client;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
-import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.WaitConditionHandler;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.config.TimeToLive;
@@ -192,43 +190,17 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		VelocityContext context = createSharedContext();
 
 		Parameter[] sharedParameters = createSharedParameters();
-		
 		// Create the shared-resource stack
 		String sharedResourceStackName = createSharedResourcesStackName();
 
 		buildAndDeployStack(context, sharedResourceStackName, TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP, sharedParameters);
-		
 		// Wait for the shared resources to complete
 		Stack sharedStackResults = cloudFormationClient.waitForStackToComplete(sharedResourceStackName, waitConditionHandlers).orElseThrow(()->new IllegalStateException("Stack does not exist: "+sharedResourceStackName));
-		
-		buildBedrockAgentStack(sharedStackResults);
-		
+				
 		// Build each bean stalk environment.
 		List<String> environmentNames = buildEnvironments(sharedStackResults);
 	}
 	
-	void buildBedrockAgentStack(Stack sharedStack) throws InterruptedException {
-		
-		String stack = config.getProperty(PROPERTY_KEY_STACK);
-		String stackPrefix = new StringJoiner("-").add(stack).add(config.getProperty(PROPERTY_KEY_INSTANCE)).toString();
-		
-		String agentName = new StringJoiner("-").add(stackPrefix).add("agent").toString();
-		
-		String templateBody = new JSONObject(TemplateUtils.loadContentFromFile(TEMPALTE_BEDROCK_AGENT_JSON_VTP)).toString();
-		
-		String stackName = agentName;
-				
-		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest()
-			.withStackName(stackName)
-			.withTemplateBody(templateBody)
-			.withParameters(new Parameter().withParameterKey("agentName").withParameterValue(agentName))
-			.withCapabilities(CAPABILITY_NAMED_IAM)
-			.withTags(stackTagsProvider.getStackTags())
-			.withEnableTerminationProtection("prod".equals(stack)));
-		
-		cloudFormationClient.waitForStackToComplete(stackName, waitConditionHandlers).orElseThrow(()->new IllegalStateException("Stack does not exist: " + stackName));
-	}
- 
 	/**
 	 * Build all of the environments
 	 * @param sharedStackResults
