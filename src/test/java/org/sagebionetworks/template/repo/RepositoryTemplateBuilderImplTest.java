@@ -110,10 +110,10 @@ import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
+import org.sagebionetworks.template.repo.bedrock.SynapseHelpCollectionIndexCreation;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogDescriptor;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
-import org.sagebionetworks.template.repo.oss.SynapseHelpCollectionIndexCreation;
 import org.sagebionetworks.template.vpc.Color;
 
 import com.amazonaws.services.cloudformation.model.Output;

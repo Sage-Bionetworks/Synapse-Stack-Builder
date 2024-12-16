@@ -23,6 +23,18 @@
 			</url>
 		</repository>
 	</repositories>
+	
+	<dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom</artifactId>
+                <version>${amazon.sdk.v2.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
 	<dependencies>
 		<dependency>
@@ -233,12 +245,14 @@
 		<dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>opensearchserverless</artifactId>
-            <version>2.27.21</version>
         </dependency>
 		<dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>apache-client</artifactId>
-            <version>2.27.21</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>bedrockagent</artifactId>
         </dependency>
 	</dependencies>
 	<build>
@@ -290,6 +304,7 @@
 	<properties>
 		<bouncycastle.version>1.78.1</bouncycastle.version>
 		<amazon.sdk.version>1.12.296</amazon.sdk.version>
+		<amazon.sdk.v2.version>2.29.34</amazon.sdk.v2.version>
 		<log4j.version>2.17.1</log4j.version>
 		<junit.jupiter.version>5.4.1</junit.jupiter.version>
 		<junit.vintage.version>5.4.1</junit.vintage.version>

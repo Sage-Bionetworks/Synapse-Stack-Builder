@@ -79,6 +79,8 @@ import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateBuilder;
 import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateBuilderImpl;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilder;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilderImpl;
+import org.sagebionetworks.template.repo.bedrock.SynapseHelpCollectionIndexCreation;
+import org.sagebionetworks.template.repo.bedrock.SynapseHelpDataSourceSync;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsConfig;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsConfigValidator;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
@@ -86,7 +88,6 @@ import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityCo
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfig;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfigValidator;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseVelocityContextProvider;
-import org.sagebionetworks.template.repo.oss.SynapseHelpCollectionIndexCreation;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsConfig;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsVelocityContextProvider;
 import org.sagebionetworks.template.s3.S3BucketBuilder;
@@ -138,6 +139,7 @@ import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
 
 public class TemplateGuiceModule extends com.google.inject.AbstractModule {
@@ -200,6 +202,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		Multibinder<WaitConditionHandler> waitConditionHandlerBinder = Multibinder.newSetBinder(binder(), WaitConditionHandler.class);
 		
 		waitConditionHandlerBinder.addBinding().to(SynapseHelpCollectionIndexCreation.class);
+		waitConditionHandlerBinder.addBinding().to(SynapseHelpDataSourceSync.class);
 	}
 	
 	/**
@@ -379,6 +382,11 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public OpenSearchServerlessClient ossClientProvider() {
 		return OpenSearchServerlessClient.builder().region(Region.US_EAST_1).build();
+	}
+	
+	@Provides
+	public BedrockAgentClient bedrockAgentClientProvider() {
+		return BedrockAgentClient.builder().region(Region.US_EAST_1).build();
 	}
 
 }

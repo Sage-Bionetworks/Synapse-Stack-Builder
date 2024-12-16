@@ -1,6 +1,7 @@
-package org.sagebionetworks.template.repo.oss;
+package org.sagebionetworks.template.repo.bedrock;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import org.apache.logging.log4j.Logger;
 import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
@@ -45,12 +46,7 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 	}
 	
 	@Override
-	public String getSignalId() {
-		return "vector-index-created";
-	}
-
-	@Override
-	public void handle(Stack stack, StackEvent stackEvent) {
+	public Optional<String> handle(Stack stack, StackEvent stackEvent) {
 		String collectionName = config.getProperty(Constants.PROPERTY_KEY_STACK) + "-" + config.getProperty(Constants.PROPERTY_KEY_INSTANCE) + "-synhelp";
 		
 		CollectionDetail collection = ossClient.batchGetCollection(req -> req
@@ -59,7 +55,7 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 		
 		if (!CollectionStatus.ACTIVE.equals(collection.status())) {
 			logger.warn("Collection {} not ready, status: {}", collectionName, collection.status());
-			return;
+			return Optional.empty();
 		}
 				
 		try (SdkHttpClient httpClient = ApacheHttpClient.builder().build()) {
@@ -73,11 +69,9 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 			    )
 			);
 			
-			boolean indexExists = client.exists(req -> req.index(IDX_NAME)).value();
-			
-			if (indexExists) {
+			if (client.exists(req -> req.index(IDX_NAME)).value()) {
 				logger.info("Index {} already exists.", IDX_NAME);
-				return;
+				return Optional.of("index-already-exists");
 			}
 			
 			logger.info("Index {} does not exist, creating...", IDX_NAME);
@@ -100,7 +94,9 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 				)
 			);
 			
-			logger.info("Index {} creation initiated...", IDX_NAME);
+			logger.info("Index {} creation completed.", IDX_NAME);
+			
+			return Optional.of("index-creation-complete");
 			
 		} catch (IOException e) {
 			throw new IllegalStateException(e);

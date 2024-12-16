@@ -1,0 +1,113 @@
+package org.sagebionetworks.template.repo.bedrock;
+
+import java.util.Optional;
+
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.logging.log4j.Logger;
+import org.sagebionetworks.template.Constants;
+import org.sagebionetworks.template.LoggerFactory;
+import org.sagebionetworks.template.WaitConditionHandler;
+import org.sagebionetworks.template.config.RepoConfiguration;
+
+import com.amazonaws.services.cloudformation.model.Stack;
+import com.amazonaws.services.cloudformation.model.StackEvent;
+import com.google.inject.Inject;
+
+import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
+import software.amazon.awssdk.services.bedrockagent.model.DataSourceSummary;
+import software.amazon.awssdk.services.bedrockagent.model.IngestionJob;
+import software.amazon.awssdk.services.bedrockagent.model.IngestionJobStatistics;
+import software.amazon.awssdk.services.bedrockagent.model.KnowledgeBaseSummary;
+
+public class SynapseHelpDataSourceSync implements WaitConditionHandler {
+
+	private static final long SLEEP_MS = 10_000;
+	private BedrockAgentClient bedrockAgentClient;
+	private Logger logger;
+	private RepoConfiguration config;
+	
+	@Inject
+	public SynapseHelpDataSourceSync(LoggerFactory loggerFactory, BedrockAgentClient bedrockAgentClient, RepoConfiguration config) {
+		this.logger = loggerFactory.getLogger(SynapseHelpDataSourceSync.class);
+		this.bedrockAgentClient = bedrockAgentClient;
+		this.config = config;
+	}
+
+	@Override
+	public String getWaitConditionId() {
+		return "SynapseHelpKnowledgeBaseDataSourceSyncWaitCondition";
+	}
+
+	@Override
+	public Optional<String> handle(Stack stack, StackEvent stackEvent) {
+		String stackPrefix = config.getProperty(Constants.PROPERTY_KEY_STACK) + "-" + config.getProperty(Constants.PROPERTY_KEY_INSTANCE);
+		
+		String knowledgeBaseName =  stackPrefix + "-synhelp-kb";
+		String knowledgeBaseId = bedrockAgentClient.listKnowledgeBasesPaginator(req -> {}).knowledgeBaseSummaries().stream()
+			.filter(kb -> kb.name().equals(knowledgeBaseName))
+			.findFirst()
+			.map(KnowledgeBaseSummary::knowledgeBaseId)
+			.orElseThrow();
+		
+		String dataSourceName = stackPrefix + "-synhelp-datasource";
+		String dataSourceId = bedrockAgentClient.listDataSourcesPaginator(req -> req
+			.knowledgeBaseId(knowledgeBaseId)
+		).dataSourceSummaries().stream()
+			.filter(dataSource -> dataSource.name().equals(dataSourceName))
+			.findFirst()
+			.map(DataSourceSummary::dataSourceId)
+			.orElseThrow();
+		
+		String clientToken = DigestUtils.sha256Hex(knowledgeBaseId + " - " + dataSourceId);
+			
+		IngestionJob job = bedrockAgentClient.startIngestionJob(req -> req
+			.clientToken(clientToken)
+			.dataSourceId(dataSourceId)
+			.knowledgeBaseId(knowledgeBaseId)
+		).ingestionJob();
+		
+		String jobId = job.ingestionJobId();
+		boolean done = false;
+		
+		do {
+			logger.info("Waiting for sync job {} to complete, status: {}.", job.ingestionJobId(), job.statusAsString());
+			
+			try {
+				Thread.sleep(SLEEP_MS);
+			} catch (InterruptedException e) {
+				throw new IllegalStateException(e);
+			}
+			
+			job = bedrockAgentClient.getIngestionJob(req -> req
+				.ingestionJobId(jobId)
+				.knowledgeBaseId(knowledgeBaseId)
+				.dataSourceId(dataSourceId)
+			).ingestionJob();
+			
+			switch (job.status()) {
+			case COMPLETE:
+				IngestionJobStatistics stats = job.statistics();
+				
+				logger.info("Sync job {} completed (Documents Scanned: {}, Documents Indexed: {}, Documents Failed: {}).",
+					job.ingestionJobId(),
+					stats.numberOfDocumentsScanned(),
+					stats.numberOfNewDocumentsIndexed(),
+					stats.numberOfDocumentsFailed()
+				);
+				
+				done = true;
+				break;
+			case FAILED:
+			case STOPPED:
+			case UNKNOWN_TO_SDK_VERSION:
+				throw new IllegalStateException("Job " + jobId + " failed with status " + job.statusAsString() + ", failure reasons: " + job.failureReasons().toString());
+			default:
+				break;
+			}
+			
+		} while (!done);
+		
+		return Optional.of("sync-completed");
+	}
+
+}

@@ -315,14 +315,14 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 				logger.info("Processing condition {}...", waitConditionId);
 				
 				try {
-					waitConditionHandler.handle(stack, waitConditionEvent);
-
-					cloudFormationClient.signalResource(new SignalResourceRequest()
-						.withStackName(stack.getStackName())
-						.withLogicalResourceId(waitConditionId)
-						.withStatus(ResourceSignalStatus.SUCCESS)
-						.withUniqueId(waitConditionHandler.getSignalId())
-					);
+					waitConditionHandler.handle(stack, waitConditionEvent).ifPresent(signalId -> {						
+						cloudFormationClient.signalResource(new SignalResourceRequest()
+							.withStackName(stack.getStackName())
+							.withLogicalResourceId(waitConditionId)
+							.withStatus(ResourceSignalStatus.SUCCESS)
+							.withUniqueId(signalId)
+							);
+					});
 					
 				} catch (Exception e) {
 					logger.error("Processing condition {} failed: ", waitConditionId, e);
@@ -331,7 +331,7 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 						.withStackName(stack.getStackName())
 						.withLogicalResourceId(waitConditionId)
 						.withStatus(ResourceSignalStatus.FAILURE)
-						.withUniqueId(waitConditionHandler.getSignalId())
+						.withUniqueId("handler-failed")
 					);
 				}
 			}
