@@ -41,7 +41,7 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 	
 	@Override
 	public String getWaitConditionId() {
-		return "SynapseHelpCollectionCreateIndexCondition";
+		return "SynapseHelpCollectionCreateIndexWaitCondition";
 	}
 	
 	@Override
