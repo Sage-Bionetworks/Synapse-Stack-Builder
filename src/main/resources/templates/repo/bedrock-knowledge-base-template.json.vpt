@@ -25,35 +25,7 @@
 						}
 					}
 				]
-			},
-			"Policies": [
-				{
-					"PolicyName": "SynapseHelpKnowledgeBaseExecutionRolePolicy",
-					"PolicyDocument": {
-						"Version": "2012-10-17",
-						"Statement": [
-							{
-								"Effect": "Allow",
-								"Action": "bedrock:InvokeModel",
-								"Resource": [
-									{
-										"Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}]]#::foundation-model/*"
-									}
-								]
-							},
-							{
-								"Effect": "Allow",
-								"Action": "aoss:APIAccessAll",
-								"Resource": [
-									{
-										"Fn::Sub": "arn:aws:aoss:#[[${AWS::Region}:${AWS::AccountId}]]#:collection/*"
-									}
-								]
-							}
-						]
-					}
-				}
-			]				
+			}			
 		}
 	},
 	"SynapseHelpCollectionEncryptionPolicy": {
@@ -107,6 +79,38 @@
 	     },
 	     "DependsOn": ["SynapseHelpCollectionEncryptionPolicy", "SynapseHelpCollectionNetworkPolicy", "SynapseHelpCollectionDataAccessPolicy"]
 	},
+	"SynapseHelpKnoweldgeBaseExecutionRolePolicy": {
+		"Type":"AWS::IAM::RolePolicy",
+		"Properties": {
+			"PolicyName": "SynapseHelpKnoweldgeBaseExecutionRolePolicy",
+			"PolicyDocument": {
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Action": "bedrock:InvokeModel",
+						"Resource": [
+							{
+								"Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}]]#::foundation-model/*"
+							}
+						]
+					},
+					{
+						"Effect": "Allow",
+						"Action": "aoss:APIAccessAll",
+						"Resource": [
+							{ 
+								"Fn::GetAtt" : ["SynapseHelpCollection", "Arn"] 
+							}
+						]
+					}
+				]
+			},
+			"RoleName": {
+				"Ref": "SynapseHelpKnowledgeBaseExecutionRole"
+			}
+		}
+	},
 	"SynapseHelpCollectionCreateIndexWaitCondition": {
 		"Type": "AWS::CloudFormation::WaitCondition",
 		"DependsOn": [ "SynapseHelpCollection" ],
@@ -119,7 +123,7 @@
 	},
  	"SynapseHelpKnowledgeBase": {
  		"Type": "AWS::Bedrock::KnowledgeBase",
- 		"DependsOn": [ "SynapseHelpCollectionCreateIndexWaitCondition" ],
+ 		"DependsOn": [ "SynapseHelpCollectionCreateIndexWaitCondition", "SynapseHelpKnoweldgeBaseExecutionRolePolicy"],
  		"Properties": {
  			"Name": "${stack}-${instance}-synhelp-knowledge-base",
  			"Description": "Knowledge base for the synpase help documentation",
