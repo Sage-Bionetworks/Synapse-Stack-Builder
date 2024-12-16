@@ -74,27 +74,27 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 				return Optional.of("index-already-exists");
 			}
 			
-			logger.info("Index {} does not exist, creating...", IDX_NAME);
-			
-			client.create(req -> req
-				.index(IDX_NAME)
-				.settings(settings -> settings.knn(true))
-				.mappings(mappings -> mappings
-					.properties("text_vector", p -> p
-						.knnVector(vector -> vector
-							.dimension(1024)
-							.method(method -> method
-								.name("hnsw")
-								.engine("faiss")
-							)
-						)
-					)
-					.properties("text_raw", p -> p.text(text -> text.index(true)))
-					.properties("text_metadata", p -> p.text(text -> text.index(false)))
-				)
-			);
-			
-			logger.info("Index {} creation completed.", IDX_NAME);
+//			logger.info("Index {} does not exist, creating...", IDX_NAME);
+//			
+//			client.create(req -> req
+//				.index(IDX_NAME)
+//				.settings(settings -> settings.knn(true))
+//				.mappings(mappings -> mappings
+//					.properties("text_vector", p -> p
+//						.knnVector(vector -> vector
+//							.dimension(1024)
+//							.method(method -> method
+//								.name("hnsw")
+//								.engine("faiss")
+//							)
+//						)
+//					)
+//					.properties("text_raw", p -> p.text(text -> text.index(true)))
+//					.properties("text_metadata", p -> p.text(text -> text.index(false)))
+//				)
+//			);
+//			
+//			logger.info("Index {} creation completed.", IDX_NAME);
 			
 			return Optional.of("index-creation-complete");
 			

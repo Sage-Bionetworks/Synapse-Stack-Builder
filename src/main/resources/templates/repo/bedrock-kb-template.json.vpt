@@ -1,4 +1,58 @@
 	,
+	"SynapseHelpCollectionEncryptionPolicy": {
+        "Type":"AWS::OpenSearchServerless::SecurityPolicy",
+        "Properties": {
+            "Name":"${stack}-${instance}-synhelp",
+            "Type":"encryption",
+            "Description":"Encryption policy for the synapse help collection",
+            "Policy":"{\"Rules\":[{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synhelp\"]}],\"AWSOwnedKey\":true}"
+        }
+  	},
+  	"SynapseHelpCollectionNetworkPolicy": {
+     	"Type":"AWS::OpenSearchServerless::SecurityPolicy",
+	        "Properties": {
+	            "Name":"${stack}-${instance}-synhelp",
+	            "Type":"network",
+	            "Description":"Encryption policy for the synapse help collection",
+	            "Policy": {
+	            	"Fn::Sub": [
+	            		"[{\"Rules\":[{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synhelp\"]}],\"AllowFromPublic\":false,\"SourceServices\":[\"bedrock.amazonaws.com\"],\"SourceVPCEs\":[\"#[[${vpcEndpointId}]]#\"]}]",
+	            		{
+	            			"vpcEndpointId": { "Fn::ImportValue": "${vpcExportPrefix}-open-search-vpce" }
+	            		}
+	            	]
+	            }
+	        }
+	},
+	"SynapseHelpCollectionDeployerAccessPolicy": {
+		"Type":"AWS::OpenSearchServerless::AccessPolicy",
+		"Properties": {
+            "Name":"${stack}-${instance}-synhelp-deployer",
+            "Type":"data",
+            "Description":"Access policy for the stack to allow the creation of the index",
+            "Policy": "[{\"Rules\":[{\"ResourceType\":\"index\",\"Resource\":[\"index/${stack}-${instance}-synhelp/*\"],\"Permission\":[\"aoss:*\"]},{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synhelp\"],\"Permission\":[\"aoss:*\"]}],\"Principal\":[\"${identityArn}\"]}]"
+		}
+ 	},
+	"SynapseHelpCollection": {
+	    "Type":"AWS::OpenSearchServerless::Collection",
+	    "Properties": {
+	        "Name":"${stack}-${instance}-synhelp",
+	        "Type":"VECTORSEARCH",
+	        "Description":"Vector store collection for synpase help documentation",
+	        "StandbyReplicas": "DISABLED"
+	     },
+	     "DependsOn": ["SynapseHelpCollectionEncryptionPolicy", "SynapseHelpCollectionDeployerAccessPolicy", "SynapseHelpCollectionNetworkPolicy"]
+	},
+	"SynapseHelpCollectionCreateIndexWaitCondition": {
+		"Type": "AWS::CloudFormation::WaitCondition",
+		"DependsOn": "SynapseHelpCollection",
+		"CreationPolicy" : {
+	        "ResourceSignal" : {
+	            "Timeout" : "PT3M",
+	            "Count" : "1"
+	        }
+	    }
+	},
 	"SynapseHelpKnowledgeBaseExecutionRole": {
 		"Type": "AWS::IAM::Role",
 		"Properties": {
@@ -28,11 +82,12 @@
 			},
 			"Policies": [
 				{
-					"PolicyName": "BedrockInvokeModelStatement",
+					"PolicyName": "SynapseHelpKnowledgeBasePolicy",
 					"PolicyDocument": {
 						"Version": "2012-10-17",
 						"Statement": [
 							{
+								"Sid": "BedrockInvokeModelStatement",
 								"Effect": "Allow",
 								"Action": "bedrock:InvokeModel",
 								"Resource": [
@@ -40,16 +95,9 @@
 										"Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}]]#::foundation-model/*"
 									}
 								]
-							}
-						]
-					}
-				},
-				{
-					"PolicyName": "OpenSearchApiAccessStatement",
-					"PolicyDocument": {
-						"Version": "2012-10-17",
-						"Statement": [
+							},
 							{
+								"Sid": "OpenSearchApiAccessStatement",
 								"Effect": "Allow",
 								"Action": "aoss:APIAccessAll",
 								"Resource": [
@@ -120,7 +168,7 @@
                 "WebConfiguration": {
                     "SourceConfiguration": {
                     	"UrlConfiguration": {
-                    		"SeedUrls": [ { "Url": "https://help.synapse.org/"} ]
+                    		"SeedUrls": [ { "Url": "https://help.synapse.org"} ]
                     	}
                     }
                 }
