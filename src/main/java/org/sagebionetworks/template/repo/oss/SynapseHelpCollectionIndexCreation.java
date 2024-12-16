@@ -86,7 +86,15 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 				.index(IDX_NAME)
 				.settings(settings -> settings.knn(true))
 				.mappings(mappings -> mappings
-					.properties("text_vector", p -> p.knnVector(vector -> vector.dimension(1024)))
+					.properties("text_vector", p -> p
+						.knnVector(vector -> vector
+							.dimension(1024)
+							.method(method -> method
+								.name("hnsw")
+								.engine("faiss")
+							)
+						)
+					)
 					.properties("text_raw", p -> p.text(text -> text.index(true)))
 					.properties("text_metadata", p -> p.text(text -> text.index(false)))
 				)
