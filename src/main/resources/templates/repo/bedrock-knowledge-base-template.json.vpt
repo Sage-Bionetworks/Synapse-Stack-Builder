@@ -28,7 +28,37 @@
 			}			
 		}
 	},
-	"SynapseHelpCollectionEncryptionPolicy": {
+	"SynapseHelpCollectionDeployerDataAccessPolicy": {
+		"Type":"AWS::OpenSearchServerless::AccessPolicy",
+		"Properties": {
+            "Name":"${stack}-${instance}-synhelp-deployer",
+            "Type":"data",
+            "Description":"Access policy for the deployer to create the index for the synapse help collection",
+            "Policy": {
+               "Fn::Sub": ["[{\"Rules\":[{\"ResourceType\":\"index\",\"Resource\":[\"index/${stack}-${instance}-synhelp/*\"],\"Permission\":[\"aoss:CreateIndex\",\"aoss:DescribeIndex\"]}],\"Principal\":[\"#[[${deployerRoleArn}]]#\"]}]",
+                	{
+                		"deployerRoleArn" : "${identityArn}"
+					}
+                ]
+            }
+		}
+ 	},
+ 	"SynapseHelpCollectionKnowledgeBaseDataAccessPolicy": {
+		"Type":"AWS::OpenSearchServerless::AccessPolicy",
+		"Properties": {
+            "Name":"${stack}-${instance}-synhelp-bedrock",
+            "Type":"data",
+            "Description":"Access policy for the knowledge base to sync and query the synapse help collection",
+            "Policy": {
+               "Fn::Sub": ["[{\"Rules\":[{\"ResourceType\":\"index\",\"Resource\":[\"index/${stack}-${instance}-synhelp/*\"],\"Permission\":[\"aoss:DescribeIndex\",\"aoss:ReadDocument\",\"aoss:WriteDocument\"]}],\"Principal\":[\"#[[${executionRoleArn}]]#\"]}]",
+                	{
+                		"executionRoleArn": { "Fn::GetAtt": ["SynapseHelpKnowledgeBaseExecutionRole", "Arn"] }
+					}
+                ]
+            }
+		}
+ 	},
+ 	"SynapseHelpCollectionEncryptionPolicy": {
         "Type":"AWS::OpenSearchServerless::SecurityPolicy",
         "Properties": {
             "Name":"${stack}-${instance}-synhelp",
@@ -53,22 +83,6 @@
 	            }
 	        }
 	},
-	"SynapseHelpCollectionDataAccessPolicy": {
-		"Type":"AWS::OpenSearchServerless::AccessPolicy",
-		"Properties": {
-            "Name":"${stack}-${instance}-synhelp",
-            "Type":"data",
-            "Description":"Access policy for the deployer and bedrock to access the synapse help collection",
-            "Policy": {
-               "Fn::Sub": ["[{\"Rules\":[{\"ResourceType\":\"index\",\"Resource\":[\"index/${stack}-${instance}-synhelp/*\"],\"Permission\":[\"aoss:*\"]},{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synhelp\"],\"Permission\":[\"aoss:*\"]}],\"Principal\":[\"#[[${deployerRoleArn}]]#\",\"#[[${executionRoleArn}]]#\"]}]",
-                	{
-                		"deployerRoleArn" : "${identityArn}",
-                		"executionRoleArn": { "Fn::GetAtt": ["SynapseHelpKnowledgeBaseExecutionRole", "Arn"] }
-					}
-                ]
-            }
-		}
- 	},
 	"SynapseHelpCollection": {
 	    "Type":"AWS::OpenSearchServerless::Collection",
 	    "Properties": {
@@ -77,7 +91,7 @@
 	        "Description":"Vector store collection for synapse help documentation",
 	        "StandbyReplicas": "DISABLED"
 	     },
-	     "DependsOn": ["SynapseHelpCollectionEncryptionPolicy", "SynapseHelpCollectionNetworkPolicy", "SynapseHelpCollectionDataAccessPolicy"]
+	     "DependsOn": ["SynapseHelpCollectionEncryptionPolicy", "SynapseHelpCollectionNetworkPolicy", "SynapseHelpCollectionDeployerDataAccessPolicy", "SynapseHelpCollectionKnowledgeBaseDataAccessPolicy"]
 	},
 	"SynapseHelpKnoweldgeBaseExecutionRolePolicy": {
 		"Type":"AWS::IAM::RolePolicy",
@@ -159,7 +173,7 @@
                 "WebConfiguration": {
                     "SourceConfiguration": {
                     	"UrlConfiguration": {
-                    		"SeedUrls": [ { "Url": "https://help.synapse.org"} ]
+                    		"SeedUrls": [ { "Url": "https://help.synapse.org" } ]
                     	}
                     }
                 }
