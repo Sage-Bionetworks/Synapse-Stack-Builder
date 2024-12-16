@@ -37,6 +37,7 @@ import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.amazonaws.services.cloudformation.model.UpdateStackRequest;
 import com.amazonaws.services.cloudformation.model.UpdateStackResult;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.event.S3EventNotification.GlacierEventDataEntity;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.google.inject.Inject;
@@ -262,12 +263,10 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 				return optional;
 			case CREATE_IN_PROGRESS:
 			case UPDATE_IN_PROGRESS:
+				handleWaitConditions(stack, waitConditionHandlerMap);
 			case DELETE_IN_PROGRESS:
 			case UPDATE_COMPLETE_CLEANUP_IN_PROGRESS:
 				logger.info("Waiting for stack: '" + stackName + "' to complete.  Current status: " + status.name() + "...");
-				
-				handleWaitConditions(stack, waitConditionHandlerMap);
-				
 				threadProvider.sleep(SLEEP_TIME);
 				break;
 			case UPDATE_ROLLBACK_COMPLETE:
@@ -286,7 +285,9 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 			return;
 		}
 			
-		List<StackEvent> events = cloudFormationClient.describeStackEvents(new DescribeStackEventsRequest().withStackName(stack.getStackName())).getStackEvents();
+		List<StackEvent> events = cloudFormationClient.describeStackEvents(new DescribeStackEventsRequest()
+			.withStackName(stack.getStackName())
+		).getStackEvents();
 		
 		if (events.isEmpty()) {
 			return;
@@ -294,7 +295,7 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 			
 		List<StackEvent> waitConditionsEvents = events.stream()
 			.filter(event ->  "AWS::CloudFormation::WaitCondition".equals(event.getResourceType()))
-			.filter(event -> ResourceStatus.CREATE_IN_PROGRESS.equals(ResourceStatus.valueOf(event.getResourceStatus())))
+			.filter(event -> ResourceStatus.CREATE_IN_PROGRESS.equals(ResourceStatus.fromValue(event.getResourceStatus())))
 			.collect(Collectors.toList());
 		
 		for (StackEvent waitConditionEvent : waitConditionsEvents) {

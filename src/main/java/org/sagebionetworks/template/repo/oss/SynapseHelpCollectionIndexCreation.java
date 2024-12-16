@@ -51,7 +51,7 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 
 	@Override
 	public void handle(Stack stack, StackEvent stackEvent) {
-		String collectionName = config.getProperty(Constants.STACK) + "-" + config.getProperty(Constants.INSTANCE) + "-synhelp";
+		String collectionName = config.getProperty(Constants.PROPERTY_KEY_STACK) + "-" + config.getProperty(Constants.PROPERTY_KEY_INSTANCE) + "-synhelp";
 		
 		CollectionDetail collection = ossClient.batchGetCollection(req -> req
 			.names(collectionName)
