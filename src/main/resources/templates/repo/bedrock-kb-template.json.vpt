@@ -70,7 +70,7 @@
 	"SynapseHelpCollectionBedrockAccessPolicy": {
 		"Type":"AWS::OpenSearchServerless::AccessPolicy",
 		"Properties": {
-            "Name":"${stack}-${instance}-synhelp-br",
+            "Name":"${stack}-${instance}-synhelp-bedrock",
             "Type":"data",
             "Description":"Access policy for bedrock to access the synapse help collection",
             "Policy": {
@@ -81,4 +81,49 @@
                 ]
             }
 		}
- 	}
+ 	},
+ 	"SynapseHelpKnowledgeBase": {
+ 		"Type": "AWS::Bedrock::KnowledgeBase",
+ 		"DependsOn": ["SynapseHelpCollection", "SynapseHelpCollectionCreateIndexWaitCondition", "SynapseHelpKnowledgeBaseExecutionRole", "SynapseHelpCollectionBedrockAccessPolicy"],
+ 		"Properties": {
+ 			"Name": "${stack}-${instance}-synhelp-kb",
+ 			"Description": "Knowledge base for the synpase help documentation",
+ 			"RoleArn": { "Fn::GetAtt" : ["SynapseHelpKnowledgeBaseExecutionRole", "Arn"] },
+ 			"KnowledgeBaseConfiguration": {
+ 				"Type": "VECTOR",
+ 				"VectorKnowledgeBaseConfiguration": {
+ 					"EmbeddingModelArn": { "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}]]#::foundation-model/amazon.titan-embed-text-v2:0" }
+ 				}
+ 			},
+ 			"StorageConfiguration": {
+                "Type": "OPENSEARCH_SERVERLESS",
+                "OpensearchServerlessConfiguration": {
+                    "CollectionArn": { "Fn::GetAtt" : ["SynapseHelpCollection", "Arn"] },
+                    "VectorIndexName": "vector-idx",
+                    "FieldMapping": {
+                        "VectorField": "text_vector",
+                        "TextField": "text_raw",
+                        "MetadataField": "text_metadata"
+                    }
+                }
+            } 			
+ 		} 	
+ 	},
+ 	"SynapseHelpKnowledgeBaseDataSource": {
+        "Type": "AWS::Bedrock::DataSource",
+        "Properties": {
+            "KnowledgeBaseId": { "Ref": "SynapseHelpKnowledgeBase" },
+            "Name": "${stack}-${instance}-synhelp-datasource",
+            "Description": "The datasource for the synapse help document, the data is crawled from the synapse help website",
+            "DataSourceConfiguration": {
+                "Type": "WEB",
+                "WebConfiguration": {
+                    "SourceConfiguration": {
+                    	"UrlConfiguration": {
+                    		"SeedUrls": [ { "Url": "https://help.synapse.org/"} ]
+                    	}
+                    }
+                }
+            }
+        }
+    }
