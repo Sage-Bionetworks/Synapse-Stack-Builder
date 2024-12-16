@@ -12,7 +12,6 @@ import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.WaitConditionHandler;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
-import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackEvent;
 import com.google.inject.Inject;
 
@@ -23,6 +22,12 @@ import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerless
 import software.amazon.awssdk.services.opensearchserverless.model.CollectionDetail;
 import software.amazon.awssdk.services.opensearchserverless.model.CollectionStatus;
 
+/**
+ * A bedrock knowledge base that uses an open search collection requires the index to exists before its creation, since
+ * the index creation is part of the opensearch API operations and there is no cloudformation resource for it we need to
+ * invoke the opensearch API as part of a wait condition in the stack. Note that a wait condition is only processed during
+ * the stack creation, so the index cannot be updated. 
+ */
 public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler {
 	
 	private static final String IDX_NAME = "vector-idx";
@@ -46,7 +51,7 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 	}
 	
 	@Override
-	public Optional<String> handle(Stack stack, StackEvent stackEvent) {
+	public Optional<String> handle(StackEvent stackEvent) {
 		String collectionName = config.getProperty(Constants.PROPERTY_KEY_STACK) + "-" + config.getProperty(Constants.PROPERTY_KEY_INSTANCE) + "-synhelp";
 		
 		CollectionDetail collection = ossClient.batchGetCollection(req -> req
@@ -78,7 +83,7 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 			
 			client.create(req -> req
 				.index(IDX_NAME)
-				.settings(settings -> settings.knn(true))
+				.settings(settings -> settings.knn(true).knnAlgoParamEfSearch(512))
 				.mappings(mappings -> mappings
 					.properties("text_vector", p -> p
 						.knnVector(vector -> vector
@@ -86,6 +91,7 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 							.method(method -> method
 								.name("hnsw")
 								.engine("faiss")
+								.spaceType("l2")
 							)
 						)
 					)

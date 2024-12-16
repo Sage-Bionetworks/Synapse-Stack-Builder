@@ -242,7 +242,7 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 		
 		Map<String, WaitConditionHandler> waitConditionHandlerMap = waitConditionHandlers.stream()
 			.collect(Collectors.toMap(WaitConditionHandler::getWaitConditionId, Function.identity()));
-		
+				
 		long start = threadProvider.currentTimeMillis();
 		while (true) {
 			long elapse = threadProvider.currentTimeMillis() - start;
@@ -287,7 +287,9 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 		
 		Set<String> waitConditionEventIds = new HashSet<>();
 		
-		List<StackEvent> waitConditionEvents = cloudFormationClient.describeStackEvents(new DescribeStackEventsRequest().withStackName(stack.getStackName()))
+		List<StackEvent> waitConditionEvents = cloudFormationClient.describeStackEvents(
+				new DescribeStackEventsRequest().withStackName(stack.getStackName())
+			)
 			.getStackEvents()
 			.stream()
 			.filter(event ->  "AWS::CloudFormation::WaitCondition".equals(event.getResourceType()))
@@ -298,11 +300,13 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 		
 		for (StackEvent waitConditionEvent : waitConditionEvents) {
 			String waitConditionId = waitConditionEvent.getLogicalResourceId();
-						
+				
+			logger.info("Processing wait condition {} (Status: {}, Reason: {})...", waitConditionId, waitConditionEvent.getResourceStatus(), waitConditionEvent.getResourceStatusReason());
+			
 			WaitConditionHandler waitConditionHandler = waitConditionHandlers.get(waitConditionId);
 			
 			if (waitConditionHandler == null) {
-				logger.warn("Could not find an handler for condition {}", waitConditionId);
+				logger.warn("Processing wait condition {} failed: could not find an handler.", waitConditionId);
 				
 				cloudFormationClient.signalResource(new SignalResourceRequest()
 					.withStackName(stack.getStackName())
@@ -312,23 +316,25 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 				);
 				
 			} else {
-				logger.info("Processing condition {}...", waitConditionId);
+				logger.info("Processing wait condition {} started...", waitConditionId);
 				
 				try {
-					waitConditionHandler.handle(stack, waitConditionEvent).ifPresentOrElse(signalId -> {
-						logger.info("Processing condition {} completed with signal {}.", waitConditionId, signalId);
+					waitConditionHandler.handle(waitConditionEvent).ifPresentOrElse(signalId -> {
+						logger.info("Processing wait condition {} completed with signal {}.", waitConditionId, signalId);
+						
 						cloudFormationClient.signalResource(new SignalResourceRequest()
 							.withStackName(stack.getStackName())
 							.withLogicalResourceId(waitConditionId)
 							.withStatus(ResourceSignalStatus.SUCCESS)
 							.withUniqueId(signalId)
 						);
+						
 					}, () -> {
-						logger.info("Processing condition {} didn't return a signal, will process later.", waitConditionId);
+						logger.info("Processing wait condition {} didn't return a signal, will process later.", waitConditionId);
 					});
 					
 				} catch (Exception e) {
-					logger.error("Processing condition {} failed: ", waitConditionId, e);
+					logger.error("Processing wait condition {} failed exceptionally: ", waitConditionId, e);
 					
 					cloudFormationClient.signalResource(new SignalResourceRequest()
 						.withStackName(stack.getStackName())

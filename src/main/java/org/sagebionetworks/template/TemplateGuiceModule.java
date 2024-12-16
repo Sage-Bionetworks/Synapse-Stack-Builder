@@ -80,7 +80,7 @@ import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateBuilderImpl;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilder;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilderImpl;
 import org.sagebionetworks.template.repo.bedrock.SynapseHelpCollectionIndexCreation;
-import org.sagebionetworks.template.repo.bedrock.SynapseHelpDataSourceSync;
+import org.sagebionetworks.template.repo.bedrock.SynapseHelpKnowledgeBaseDataSourceSync;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsConfig;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsConfigValidator;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
@@ -202,7 +202,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		Multibinder<WaitConditionHandler> waitConditionHandlerBinder = Multibinder.newSetBinder(binder(), WaitConditionHandler.class);
 		
 		waitConditionHandlerBinder.addBinding().to(SynapseHelpCollectionIndexCreation.class);
-		waitConditionHandlerBinder.addBinding().to(SynapseHelpDataSourceSync.class);
+		waitConditionHandlerBinder.addBinding().to(SynapseHelpKnowledgeBaseDataSourceSync.class);
 	}
 	
 	/**
@@ -388,5 +388,5 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	public BedrockAgentClient bedrockAgentClientProvider() {
 		return BedrockAgentClient.builder().region(Region.US_EAST_1).build();
 	}
-
+	
 }

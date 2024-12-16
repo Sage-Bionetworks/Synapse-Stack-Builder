@@ -121,7 +121,7 @@
  		"Type": "AWS::Bedrock::KnowledgeBase",
  		"DependsOn": [ "SynapseHelpCollectionCreateIndexWaitCondition" ],
  		"Properties": {
- 			"Name": "${stack}-${instance}-synhelp-kb",
+ 			"Name": "${stack}-${instance}-synhelp-knowledge-base",
  			"Description": "Knowledge base for the synpase help documentation",
  			"RoleArn": { "Fn::GetAtt" : ["SynapseHelpKnowledgeBaseExecutionRole", "Arn"] },
  			"KnowledgeBaseConfiguration": {

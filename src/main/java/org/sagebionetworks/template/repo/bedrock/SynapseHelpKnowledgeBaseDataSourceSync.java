@@ -9,7 +9,6 @@ import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.WaitConditionHandler;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
-import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackEvent;
 import com.google.inject.Inject;
 
@@ -19,7 +18,11 @@ import software.amazon.awssdk.services.bedrockagent.model.IngestionJob;
 import software.amazon.awssdk.services.bedrockagent.model.IngestionJobStatistics;
 import software.amazon.awssdk.services.bedrockagent.model.KnowledgeBaseSummary;
 
-public class SynapseHelpDataSourceSync implements WaitConditionHandler {
+/**
+ * When a bedrock knowledge base is created its data source needs to be synchronized, we do this after the datasource is created through a 
+ * wait condition using the bedrock APIs.
+ */
+public class SynapseHelpKnowledgeBaseDataSourceSync implements WaitConditionHandler {
 
 	private static final long SLEEP_MS = 10_000;
 	private BedrockAgentClient bedrockAgentClient;
@@ -27,8 +30,8 @@ public class SynapseHelpDataSourceSync implements WaitConditionHandler {
 	private RepoConfiguration config;
 	
 	@Inject
-	public SynapseHelpDataSourceSync(LoggerFactory loggerFactory, BedrockAgentClient bedrockAgentClient, RepoConfiguration config) {
-		this.logger = loggerFactory.getLogger(SynapseHelpDataSourceSync.class);
+	public SynapseHelpKnowledgeBaseDataSourceSync(LoggerFactory loggerFactory, BedrockAgentClient bedrockAgentClient, RepoConfiguration config) {
+		this.logger = loggerFactory.getLogger(SynapseHelpKnowledgeBaseDataSourceSync.class);
 		this.bedrockAgentClient = bedrockAgentClient;
 		this.config = config;
 	}
@@ -39,20 +42,20 @@ public class SynapseHelpDataSourceSync implements WaitConditionHandler {
 	}
 
 	@Override
-	public Optional<String> handle(Stack stack, StackEvent stackEvent) {
+	public Optional<String> handle(StackEvent stackEvent) {
 		String stackPrefix = config.getProperty(Constants.PROPERTY_KEY_STACK) + "-" + config.getProperty(Constants.PROPERTY_KEY_INSTANCE);
 		
-		String knowledgeBaseName =  stackPrefix + "-synhelp-kb";
-		String knowledgeBaseId = bedrockAgentClient.listKnowledgeBasesPaginator(req -> {}).knowledgeBaseSummaries().stream()
+		String knowledgeBaseName =  stackPrefix + "-synhelp-knowledge-base";
+		String knowledgeBaseId = bedrockAgentClient.listKnowledgeBasesPaginator(req -> {})
+			.knowledgeBaseSummaries().stream()
 			.filter(kb -> kb.name().equals(knowledgeBaseName))
 			.findFirst()
 			.map(KnowledgeBaseSummary::knowledgeBaseId)
 			.orElseThrow();
 		
 		String dataSourceName = stackPrefix + "-synhelp-datasource";
-		String dataSourceId = bedrockAgentClient.listDataSourcesPaginator(req -> req
-			.knowledgeBaseId(knowledgeBaseId)
-		).dataSourceSummaries().stream()
+		String dataSourceId = bedrockAgentClient.listDataSourcesPaginator(req -> req.knowledgeBaseId(knowledgeBaseId))
+			.dataSourceSummaries().stream()
 			.filter(dataSource -> dataSource.name().equals(dataSourceName))
 			.findFirst()
 			.map(DataSourceSummary::dataSourceId)
