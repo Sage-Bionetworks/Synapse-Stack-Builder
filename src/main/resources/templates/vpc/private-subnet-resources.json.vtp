@@ -26,10 +26,10 @@
                  },
                 "CidrBlock": "${privateSubnet.cidr}",
                 "AvailabilityZone": "${privateSubnet.availabilityZone}",
-                 "Tags": [
+                "Tags": [
                     {
                         "Key": "Application",
-                         "Value": {
+                        "Value": {
                             "Ref": "AWS::StackName"
                         }
                     },
