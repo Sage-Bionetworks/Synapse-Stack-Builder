@@ -50,7 +50,7 @@
             "Type":"data",
             "Description":"Access policy for the knowledge base to sync and query the synapse help collection",
             "Policy": {
-               "Fn::Sub": ["[{\"Rules\":[{\"ResourceType\":\"index\",\"Resource\":[\"index/${stack}-${instance}-synhelp/*\"],\"Permission\":[\"aoss:DescribeIndex\",\"aoss:ReadDocument\",\"aoss:WriteDocument\"]}],\"Principal\":[\"#[[${executionRoleArn}]]#\"]}]",
+               "Fn::Sub": ["[{\"Rules\":[{\"ResourceType\":\"index\",\"Resource\":[\"index/${stack}-${instance}-synhelp/*\"],\"Permission\":[\"aoss:CreateIndex\",\"aoss:UpdateIndex\",\"aoss:DescribeIndex\",\"aoss:ReadDocument\",\"aoss:WriteDocument\"]},{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synhelp\"],\"Permission\":[\"aoss:DescribeCollectionItems\",\"aoss:CreateCollectionItems\",\"aoss:UpdateCollectionItems\"]}],\"Principal\":[\"#[[${executionRoleArn}]]#\"]}]",
                 	{
                 		"executionRoleArn": { "Fn::GetAtt": ["SynapseHelpKnowledgeBaseExecutionRole", "Arn"] }
 					}
@@ -137,7 +137,7 @@
 	},
  	"SynapseHelpKnowledgeBase": {
  		"Type": "AWS::Bedrock::KnowledgeBase",
- 		"DependsOn": [ "SynapseHelpCollectionCreateIndexWaitCondition", "SynapseHelpKnoweldgeBaseExecutionRolePolicy"],
+ 		"DependsOn": [ "SynapseHelpCollectionCreateIndexWaitCondition", "SynapseHelpKnoweldgeBaseExecutionRolePolicy" ],
  		"Properties": {
  			"Name": "${stack}-${instance}-synhelp-knowledge-base",
  			"Description": "Knowledge base for the synpase help documentation",
