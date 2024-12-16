@@ -302,7 +302,7 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 			WaitConditionHandler waitConditionHandler = waitConditionHandlers.get(waitConditionId);
 			
 			if (waitConditionHandler == null) {
-				logger.warn("Could not find an handler for condition %s", waitConditionId);
+				logger.warn("Could not find an handler for condition {}", waitConditionId);
 				
 				cloudFormationClient.signalResource(new SignalResourceRequest()
 					.withStackName(stack.getStackName())
@@ -312,7 +312,7 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 				);
 				
 			} else {
-				logger.info("Processing condition %s...", waitConditionId);
+				logger.info("Processing condition {}...", waitConditionId);
 				
 				try {
 					waitConditionHandler.handle(stack, waitConditionEvent);
@@ -325,7 +325,7 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 					);
 					
 				} catch (Exception e) {
-					logger.error("Processing condition %s failed: ", waitConditionId, e);
+					logger.error("Processing condition {} failed: ", waitConditionId, e);
 					
 					cloudFormationClient.signalResource(new SignalResourceRequest()
 						.withStackName(stack.getStackName())
