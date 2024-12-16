@@ -3,6 +3,7 @@ package org.sagebionetworks.template;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,7 +38,6 @@ import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.amazonaws.services.cloudformation.model.UpdateStackRequest;
 import com.amazonaws.services.cloudformation.model.UpdateStackResult;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.event.S3EventNotification.GlacierEventDataEntity;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.google.inject.Inject;
@@ -284,47 +284,58 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 		if (waitConditionHandlers.isEmpty()) {
 			return;
 		}
-			
-		List<StackEvent> events = cloudFormationClient.describeStackEvents(new DescribeStackEventsRequest()
-			.withStackName(stack.getStackName())
-		).getStackEvents();
 		
-		if (events.isEmpty()) {
-			return;
-		}
-			
-		List<StackEvent> waitConditionsEvents = events.stream()
+		Set<String> waitConditionEventIds = new HashSet<>();
+		
+		List<StackEvent> waitConditionEvents = cloudFormationClient.describeStackEvents(new DescribeStackEventsRequest().withStackName(stack.getStackName()))
+			.getStackEvents()
+			.stream()
 			.filter(event ->  "AWS::CloudFormation::WaitCondition".equals(event.getResourceType()))
+			// We only need the latest event for each wait condition
+			.filter(event -> waitConditionEventIds.add(event.getLogicalResourceId()))
 			.filter(event -> ResourceStatus.CREATE_IN_PROGRESS.equals(ResourceStatus.fromValue(event.getResourceStatus())))
 			.collect(Collectors.toList());
 		
-		for (StackEvent waitConditionEvent : waitConditionsEvents) {
+		for (StackEvent waitConditionEvent : waitConditionEvents) {
 			String waitConditionId = waitConditionEvent.getLogicalResourceId();
-			WaitConditionHandler waitConditionConsumer = waitConditionHandlers.get(waitConditionId);
+						
+			WaitConditionHandler waitConditionHandler = waitConditionHandlers.get(waitConditionId);
 			
-			if (waitConditionConsumer != null) {
-				logger.info("Processing condition " + waitConditionId + "...");
+			if (waitConditionHandler == null) {
+				logger.warn("Could not find an handler for condition %s", waitConditionId);
+				
+				cloudFormationClient.signalResource(new SignalResourceRequest()
+					.withStackName(stack.getStackName())
+					.withLogicalResourceId(waitConditionId)
+					.withStatus(ResourceSignalStatus.FAILURE)
+					.withUniqueId("no-handler-found")
+				);
+				
+			} else {
+				logger.info("Processing condition %s...", waitConditionId);
+				
 				try {
-					
-					waitConditionConsumer.handle(stack, waitConditionEvent);
+					waitConditionHandler.handle(stack, waitConditionEvent);
 
 					cloudFormationClient.signalResource(new SignalResourceRequest()
 						.withStackName(stack.getStackName())
 						.withLogicalResourceId(waitConditionId)
 						.withStatus(ResourceSignalStatus.SUCCESS)
-						.withUniqueId(waitConditionConsumer.getSignalId())
+						.withUniqueId(waitConditionHandler.getSignalId())
 					);
 					
 				} catch (Exception e) {
-					logger.error("Processing condition " + waitConditionId +" failed: ", e);
+					logger.error("Processing condition %s failed: ", waitConditionId, e);
+					
 					cloudFormationClient.signalResource(new SignalResourceRequest()
 						.withStackName(stack.getStackName())
 						.withLogicalResourceId(waitConditionId)
 						.withStatus(ResourceSignalStatus.FAILURE)
-						.withUniqueId(waitConditionConsumer.getSignalId())
+						.withUniqueId(waitConditionHandler.getSignalId())
 					);
 				}
 			}
+			
 		}
 		
 	}

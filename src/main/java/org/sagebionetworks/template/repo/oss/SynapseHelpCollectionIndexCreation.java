@@ -58,7 +58,7 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 		).collectionDetails().stream().findFirst().orElseThrow();
 		
 		if (!CollectionStatus.ACTIVE.equals(collection.status())) {
-			logger.warn("Collection " + collectionName + " not ready, status: " + collection.status());
+			logger.warn("Collection %s not ready, status: %s", collectionName, collection.status());
 			return;
 		}
 				
@@ -76,11 +76,11 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 			boolean indexExists = client.exists(req -> req.index(IDX_NAME)).value();
 			
 			if (indexExists) {
-				logger.info("Index " + IDX_NAME + " already exists.");
+				logger.info("Index %s already exists.", IDX_NAME);
 				return;
 			}
 			
-			logger.info("Index " + IDX_NAME + " does not exist, creating...");
+			logger.info("Index %s does not exist, creating...", IDX_NAME);
 			
 			client.create(req -> req
 				.index(IDX_NAME)
@@ -92,7 +92,7 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 				)
 			);
 			
-			logger.info("Index " + IDX_NAME + " creation initiated...");
+			logger.info("Index %s creation initiated...", IDX_NAME);
 			
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
