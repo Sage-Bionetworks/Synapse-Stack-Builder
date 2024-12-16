@@ -315,13 +315,16 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 				logger.info("Processing condition {}...", waitConditionId);
 				
 				try {
-					waitConditionHandler.handle(stack, waitConditionEvent).ifPresent(signalId -> {						
+					waitConditionHandler.handle(stack, waitConditionEvent).ifPresentOrElse(signalId -> {
+						logger.info("Processing condition {} completed with signal {}.", waitConditionId, signalId);
 						cloudFormationClient.signalResource(new SignalResourceRequest()
 							.withStackName(stack.getStackName())
 							.withLogicalResourceId(waitConditionId)
 							.withStatus(ResourceSignalStatus.SUCCESS)
 							.withUniqueId(signalId)
-							);
+						);
+					}, () -> {
+						logger.info("Processing condition {} didn't return a signal, will process later.", waitConditionId);
 					});
 					
 				} catch (Exception e) {

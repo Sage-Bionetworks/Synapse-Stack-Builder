@@ -24,15 +24,6 @@
 	            }
 	        }
 	},
-	"SynapseHelpCollectionDeployerAccessPolicy": {
-		"Type":"AWS::OpenSearchServerless::AccessPolicy",
-		"Properties": {
-            "Name":"${stack}-${instance}-synhelp-deployer",
-            "Type":"data",
-            "Description":"Access policy for the stack to allow the creation of the index",
-            "Policy": "[{\"Rules\":[{\"ResourceType\":\"index\",\"Resource\":[\"index/${stack}-${instance}-synhelp/*\"],\"Permission\":[\"aoss:*\"]},{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synhelp\"],\"Permission\":[\"aoss:*\"]}],\"Principal\":[\"${identityArn}\"]}]"
-		}
- 	},
 	"SynapseHelpCollection": {
 	    "Type":"AWS::OpenSearchServerless::Collection",
 	    "Properties": {
@@ -41,17 +32,7 @@
 	        "Description":"Vector store collection for synpase help documentation",
 	        "StandbyReplicas": "DISABLED"
 	     },
-	     "DependsOn": ["SynapseHelpCollectionEncryptionPolicy", "SynapseHelpCollectionDeployerAccessPolicy", "SynapseHelpCollectionNetworkPolicy"]
-	},
-	"SynapseHelpCollectionCreateIndexWaitCondition": {
-		"Type": "AWS::CloudFormation::WaitCondition",
-		"DependsOn": "SynapseHelpCollection",
-		"CreationPolicy" : {
-	        "ResourceSignal" : {
-	            "Timeout" : "PT3M",
-	            "Count" : "1"
-	        }
-	    }
+	     "DependsOn": ["SynapseHelpCollectionEncryptionPolicy", "SynapseHelpCollectionNetworkPolicy"]
 	},
 	"SynapseHelpKnowledgeBaseExecutionRole": {
 		"Type": "AWS::IAM::Role",
@@ -82,12 +63,11 @@
 			},
 			"Policies": [
 				{
-					"PolicyName": "SynapseHelpKnowledgeBasePolicy",
+					"PolicyName": "SynapseHelpKnowledgeBaseExecutionRolePolicy",
 					"PolicyDocument": {
 						"Version": "2012-10-17",
 						"Statement": [
 							{
-								"Sid": "BedrockInvokeModelStatement",
 								"Effect": "Allow",
 								"Action": "bedrock:InvokeModel",
 								"Resource": [
@@ -97,15 +77,11 @@
 								]
 							},
 							{
-								"Sid": "OpenSearchApiAccessStatement",
 								"Effect": "Allow",
 								"Action": "aoss:APIAccessAll",
 								"Resource": [
 									{
-										"Fn::GetAtt": [
-											"SynapseHelpCollection",
-											"Arn"
-										]
+										"Fn::GetAtt": [ "SynapseHelpCollection", "Arn" ]
 									}
 								]
 							}
@@ -114,25 +90,36 @@
 				}
 			]				
 		}
-	},		
-	"SynapseHelpCollectionBedrockAccessPolicy": {
+	},
+	"SynapseHelpCollectionDataAccessPolicy": {
 		"Type":"AWS::OpenSearchServerless::AccessPolicy",
 		"Properties": {
-            "Name":"${stack}-${instance}-synhelp-bedrock",
+            "Name":"${stack}-${instance}-synhelp",
             "Type":"data",
             "Description":"Access policy for bedrock to access the synapse help collection",
             "Policy": {
-               "Fn::Sub": ["[{\"Rules\":[{\"ResourceType\":\"index\",\"Resource\":[\"index/${stack}-${instance}-synhelp/*\"],\"Permission\":[\"aoss:*\"]},{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synhelp\"],\"Permission\":[\"aoss:*\"]}],\"Principal\":[\"#[[${executionRole}]]#\"]}]",
+               "Fn::Sub": ["[{\"Rules\":[{\"ResourceType\":\"index\",\"Resource\":[\"index/${stack}-${instance}-synhelp/*\"],\"Permission\":[\"aoss:*\"]},{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synhelp\"],\"Permission\":[\"aoss:*\"]}],\"Principal\":[\"#[[${kbRoleArn}\",\"${deployerRoleArn}]]#\"]}]",
                 	{
-                		"executionRole": { "Fn::GetAtt": ["SynapseHelpKnowledgeBaseExecutionRole", "Arn"] }
+                		"kbRoleArn": { "Fn::GetAtt": ["SynapseHelpKnowledgeBaseExecutionRole", "Arn"] },
+                		"deployerRoleArn" : "${identityArn}"
 					}
                 ]
             }
 		}
  	},
+	"SynapseHelpCollectionCreateIndexWaitCondition": {
+		"Type": "AWS::CloudFormation::WaitCondition",
+		"DependsOn": [ "SynapseHelpCollection", "SynapseHelpCollectionDataAccessPolicy" ],
+		"CreationPolicy" : {
+	        "ResourceSignal" : {
+	            "Timeout" : "PT3M",
+	            "Count" : "1"
+	        }
+	    }
+	},	
  	"SynapseHelpKnowledgeBase": {
  		"Type": "AWS::Bedrock::KnowledgeBase",
- 		"DependsOn": ["SynapseHelpCollection", "SynapseHelpCollectionCreateIndexWaitCondition", "SynapseHelpKnowledgeBaseExecutionRole", "SynapseHelpCollectionBedrockAccessPolicy"],
+ 		"DependsOn": [ "SynapseHelpCollectionCreateIndexWaitCondition" ],
  		"Properties": {
  			"Name": "${stack}-${instance}-synhelp-kb",
  			"Description": "Knowledge base for the synpase help documentation",
