@@ -75,7 +75,7 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 			);
 			
 			if (client.exists(req -> req.index(IDX_NAME)).value()) {
-				logger.info("Index {} already exists.", IDX_NAME);
+				logger.warn("Index {} already exists.", IDX_NAME);
 				return Optional.of("index-already-exists");
 			}
 			

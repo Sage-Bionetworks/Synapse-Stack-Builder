@@ -16,6 +16,7 @@ import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
 import software.amazon.awssdk.services.bedrockagent.model.DataSourceSummary;
 import software.amazon.awssdk.services.bedrockagent.model.IngestionJob;
 import software.amazon.awssdk.services.bedrockagent.model.IngestionJobStatistics;
+import software.amazon.awssdk.services.bedrockagent.model.IngestionJobSummary;
 import software.amazon.awssdk.services.bedrockagent.model.KnowledgeBaseSummary;
 
 /**
@@ -61,6 +62,16 @@ public class SynapseHelpKnowledgeBaseDataSourceSync implements WaitConditionHand
 			.map(DataSourceSummary::dataSourceId)
 			.orElseThrow();
 		
+		Optional<IngestionJobSummary> existingJob = bedrockAgentClient.listIngestionJobs(req -> req.knowledgeBaseId(knowledgeBaseId).dataSourceId(dataSourceId).maxResults(1))
+			.ingestionJobSummaries()
+			.stream()
+			.findFirst();
+		
+		if (existingJob.isPresent()) {
+			logger.warn("Sync job {} already exists (Status: {}).", existingJob.get().ingestionJobId(), existingJob.get().statusAsString());
+			return Optional.of("sync-started");
+		}
+		
 		String clientToken = DigestUtils.sha256Hex(knowledgeBaseId + " - " + dataSourceId);
 			
 		IngestionJob job = bedrockAgentClient.startIngestionJob(req -> req
@@ -73,7 +84,7 @@ public class SynapseHelpKnowledgeBaseDataSourceSync implements WaitConditionHand
 		boolean done = false;
 		
 		do {
-			logger.info("Waiting for sync job {} to complete, status: {}.", job.ingestionJobId(), job.statusAsString());
+			logger.info("Waiting for sync job {} to complete (Status: {}).", job.ingestionJobId(), job.statusAsString());
 			
 			try {
 				Thread.sleep(SLEEP_MS);
@@ -103,7 +114,7 @@ public class SynapseHelpKnowledgeBaseDataSourceSync implements WaitConditionHand
 			case FAILED:
 			case STOPPED:
 			case UNKNOWN_TO_SDK_VERSION:
-				throw new IllegalStateException("Job " + jobId + " failed with status " + job.statusAsString() + ", failure reasons: " + job.failureReasons().toString());
+				throw new IllegalStateException("Sync job " + jobId + " failed with status " + job.statusAsString() + ", failure reasons: " + job.failureReasons().toString());
 			default:
 				break;
 			}

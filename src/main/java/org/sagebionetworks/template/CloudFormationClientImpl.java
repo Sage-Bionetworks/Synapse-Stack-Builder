@@ -243,6 +243,9 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 		Map<String, WaitConditionHandler> waitConditionHandlerMap = waitConditionHandlers.stream()
 			.collect(Collectors.toMap(WaitConditionHandler::getWaitConditionId, Function.identity()));
 		
+		// To avoid re-processing the same wait condition multiple times we need to keep track of them
+		Set<String> processedWaitConditionSet = new HashSet<>();
+		
 		long start = threadProvider.currentTimeMillis();
 		while (true) {
 			long elapse = threadProvider.currentTimeMillis() - start;
@@ -263,7 +266,7 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 				return optional;
 			case CREATE_IN_PROGRESS:
 			case UPDATE_IN_PROGRESS:
-				handleWaitConditions(stackName, waitConditionHandlerMap);
+				handleWaitConditions(stackName, waitConditionHandlerMap, processedWaitConditionSet);
 			case DELETE_IN_PROGRESS:
 			case UPDATE_COMPLETE_CLEANUP_IN_PROGRESS:
 				logger.info("Waiting for stack: '" + stackName + "' to complete.  Current status: " + status.name() + "...");
@@ -280,7 +283,7 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 		}
 	}
 	
-	void handleWaitConditions(String stackName, Map<String, WaitConditionHandler> waitConditionHandlers) {
+	void handleWaitConditions(String stackName, Map<String, WaitConditionHandler> waitConditionHandlers, Set<String> processedWaitConditionSet) {
 		if (waitConditionHandlers.isEmpty()) {
 			return;
 		}
@@ -300,6 +303,11 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 		
 		for (StackEvent waitConditionEvent : waitConditionEvents) {
 			String waitConditionId = waitConditionEvent.getLogicalResourceId();
+			
+			if (processedWaitConditionSet.contains(waitConditionId)) {
+				logger.warn("Wait condition {} already processed, skipping.", waitConditionId);
+				continue;
+			}
 				
 			logger.info("Processing wait condition {} (Status: {}, Reason: {})...", waitConditionId, waitConditionEvent.getResourceStatus(), waitConditionEvent.getResourceStatusReason());
 			
@@ -330,6 +338,7 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 							.withUniqueId(signalId)
 						);
 						
+						processedWaitConditionSet.add(waitConditionId);
 					}, () -> {
 						logger.info("Processing wait condition {} didn't return a signal, will process later.", waitConditionId);
 					});

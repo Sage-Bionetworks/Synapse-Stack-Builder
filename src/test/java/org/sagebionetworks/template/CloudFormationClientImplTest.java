@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -563,6 +564,46 @@ public class CloudFormationClientImplTest {
 	}
 	
 	@Test
+	public void testWaitForStackToCompleteWithWaitConditionHandlersAndAlreadyProcessed() throws InterruptedException {
+		initStack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
+		stack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
+		
+		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(
+			initDescribeResult, 
+			describeResult,
+			describeResult,
+			new DescribeStacksResult().withStacks(new Stack().withStackStatus(StackStatus.CREATE_COMPLETE))
+		);
+		
+		String waitConditionId = "waitConditionId";
+		
+		StackEvent waitConditionEvent = new StackEvent()
+			.withResourceType("AWS::CloudFormation::WaitCondition")
+			.withLogicalResourceId(waitConditionId)
+			.withResourceStatus(ResourceStatus.CREATE_IN_PROGRESS);
+		
+		when(mockWaitConditionHandler.getWaitConditionId()).thenReturn(waitConditionId);
+		when(mockWaitConditionHandler.handle(waitConditionEvent)).thenReturn(Optional.of("done"));
+		when(mockCloudFormationClient.describeStackEvents(new DescribeStackEventsRequest().withStackName(stackName))).thenReturn(
+			new DescribeStackEventsResult().withStackEvents(waitConditionEvent)
+		);		
+		
+		// call under test
+		Stack resultStack = client.waitForStackToComplete(stackName, Set.of(mockWaitConditionHandler)).get();
+		
+		verify(mockCloudFormationClient, times(2)).describeStackEvents(any());
+		
+		// Should be invoked only once
+		verify(mockWaitConditionHandler).handle(waitConditionEvent);
+		verify(mockCloudFormationClient).signalResource(new SignalResourceRequest()
+			.withLogicalResourceId(waitConditionId)
+			.withStackName(stackName)
+			.withStatus(ResourceSignalStatus.SUCCESS)
+			.withUniqueId("done")			
+		);
+	}
+	
+	@Test
 	public void testWaitForStackToCompleteWithWaitConditionHandlersAndNoMatchingHandler() throws InterruptedException {
 		initStack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
 		stack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
@@ -654,7 +695,7 @@ public class CloudFormationClientImplTest {
 	}
 	
 	@Test
-	public void testWaitForStackToCompleteWithWaitConditionHandlersAndNotProcessed() throws InterruptedException {
+	public void testWaitForStackToCompleteWithWaitConditionHandlersAndNoSignal() throws InterruptedException {
 		initStack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
 		stack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
 		
@@ -682,6 +723,23 @@ public class CloudFormationClientImplTest {
 		
 		// call under test
 		Stack resultStack = client.waitForStackToComplete(stackName, Set.of(mockWaitConditionHandler)).get();
+		
+		verifyNoMoreInteractions(mockCloudFormationClient, mockWaitConditionHandler);
+	}
+	
+	@Test
+	public void testWaitForStackToCompleteWithEmptyWaitConditionHandlers() throws InterruptedException {
+		initStack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
+		stack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
+		
+		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(
+			initDescribeResult, 
+			describeResult,
+			new DescribeStacksResult().withStacks(new Stack().withStackStatus(StackStatus.CREATE_COMPLETE))
+		);
+		
+		// call under test
+		Stack resultStack = client.waitForStackToComplete(stackName, Collections.emptySet()).get();
 		
 		verifyNoMoreInteractions(mockCloudFormationClient, mockWaitConditionHandler);
 	}
