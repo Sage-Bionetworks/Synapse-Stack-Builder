@@ -9,6 +9,9 @@
 		},
 		#parse("templates/repo/time-to-live-parameter.vpt")
 	},
+	"Conditions": {
+    	"AttachKnowledgeBase": {"Fn::Equals": ["", ""]}
+  	},
 	"Resources": {
 		"${stack}${instance}DBSubnetGroup": {
 			"Type": "AWS::RDS::DBSubnetGroup",

@@ -1,6 +1,6 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
-	"Description": "This tempalte contains all of the resources needed to create the base Synapse Bedrock Agent",
+	"Description": "This template contains all of the resources needed to create the base Synapse Bedrock Agent",
 	"Parameters": {
 		"agentName": {
 			"Description": "Provide a unique name for this bedrock agent.",
