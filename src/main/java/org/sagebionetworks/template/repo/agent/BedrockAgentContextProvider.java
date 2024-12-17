@@ -49,7 +49,7 @@ public class BedrockAgentContextProvider implements VelocityContextProvider {
 			.getJSONObject(1)
 			.getJSONArray("Resource");
 		
-		bedrockAgentRoleKbResource.put(0, new JSONObject("{ \"Fn::GetAtt\": [\"SynapseHelpKnowledgeBase\", \"Arn\"] }"));
+		bedrockAgentRoleKbResource.put(0, new JSONObject("{ \"Fn::GetAtt\": [\"SynapseHelpKnowledgeBase\", \"KnowledgeBaseArn\"] }"));
 		
 		JSONObject bedrockAgentProps = resources.getJSONObject("bedrockAgent").getJSONObject("Properties");
 		
