@@ -1,6 +1,6 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
-	"Description": "This template contains all of the resources needed to create the base Synapse Bedrock Agent",
+	"Description": "This template contains all of the resources needed to create the base Synapse Bedrock Agent.",
 	"Parameters": {
 		"agentName": {
 			"Description": "Provide a unique name for this bedrock agent.",
@@ -8,15 +8,15 @@
 			"AllowedPattern": "^([0-9a-zA-Z][_-]?){1,100}$"
 		},
 		"knowledgeBaseId": {
-			"Description": "Provide the id of a knowledge base to associated to this bedrock agent.",
+			"Description": "Provide the id of a knowledge base that will be associated to this bedrock agent.",
 			"Type": "String",
 			"Default": "",
 			"AllowedPattern": "^([0-9a-zA-Z]{10})?$"
 		},
 		"knowledgeBaseDescription": {
-			"Description": "Provide the description of the knowledge base to associated to this bedrock agent.",
+			"Description": "Provide the description for the knowledge base that will be associated to this bedrock agent.",
 			"Type": "String",
-			"Default": "This knowledge base contains the synapse help documentation. You can use it to answer questions around synapse usage and features.",
+			"Default": "This knowledge base contains the Synapse help documentation. You can use it to answer questions around Synapse usage and its features.",
 			"MaxLength": 200
 		}
 	},
