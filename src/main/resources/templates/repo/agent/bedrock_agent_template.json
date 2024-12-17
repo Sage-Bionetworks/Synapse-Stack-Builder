@@ -59,7 +59,10 @@
 							"Statement": [
 								{
 									"Effect": "Allow",
-									"Action": "bedrock:InvokeModel",
+									"Action": [ 
+										"bedrock:InvokeModel",
+										"bedrock:InvokeModelWithResponseStream"
+									],
 									"Resource": [
 										{
 											"Fn::Sub": "arn:aws:bedrock:${AWS::Region}::foundation-model/*"
