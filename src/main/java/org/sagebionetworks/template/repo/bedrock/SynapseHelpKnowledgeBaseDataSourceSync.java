@@ -6,6 +6,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.LoggerFactory;
+import org.sagebionetworks.template.ThreadProvider;
 import org.sagebionetworks.template.WaitConditionHandler;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
@@ -26,15 +27,18 @@ import software.amazon.awssdk.services.bedrockagent.model.KnowledgeBaseSummary;
 public class SynapseHelpKnowledgeBaseDataSourceSync implements WaitConditionHandler {
 
 	private static final long SLEEP_MS = 10_000;
-	private BedrockAgentClient bedrockAgentClient;
+	
 	private Logger logger;
 	private RepoConfiguration config;
+	private ThreadProvider threadProvider;
+	private BedrockAgentClient bedrockAgentClient;
 	
 	@Inject
-	public SynapseHelpKnowledgeBaseDataSourceSync(LoggerFactory loggerFactory, BedrockAgentClient bedrockAgentClient, RepoConfiguration config) {
+	public SynapseHelpKnowledgeBaseDataSourceSync(LoggerFactory loggerFactory, RepoConfiguration config, ThreadProvider threadProvider, BedrockAgentClient bedrockAgentClient) {
 		this.logger = loggerFactory.getLogger(SynapseHelpKnowledgeBaseDataSourceSync.class);
-		this.bedrockAgentClient = bedrockAgentClient;
 		this.config = config;
+		this.threadProvider = threadProvider;
+		this.bedrockAgentClient = bedrockAgentClient;
 	}
 
 	@Override
@@ -43,7 +47,7 @@ public class SynapseHelpKnowledgeBaseDataSourceSync implements WaitConditionHand
 	}
 
 	@Override
-	public Optional<String> handle(StackEvent stackEvent) {
+	public Optional<String> handle(StackEvent stackEvent) throws InterruptedException {
 		String stackPrefix = config.getProperty(Constants.PROPERTY_KEY_STACK) + "-" + config.getProperty(Constants.PROPERTY_KEY_INSTANCE);
 		
 		String knowledgeBaseName =  stackPrefix + "-synhelp-knowledge-base";
@@ -86,11 +90,7 @@ public class SynapseHelpKnowledgeBaseDataSourceSync implements WaitConditionHand
 		do {
 			logger.info("Waiting for sync job {} to complete (Status: {}).", job.ingestionJobId(), job.statusAsString());
 			
-			try {
-				Thread.sleep(SLEEP_MS);
-			} catch (InterruptedException e) {
-				throw new IllegalStateException(e);
-			}
+			threadProvider.sleep(SLEEP_MS);
 			
 			job = bedrockAgentClient.getIngestionJob(req -> req
 				.ingestionJobId(jobId)
@@ -114,7 +114,7 @@ public class SynapseHelpKnowledgeBaseDataSourceSync implements WaitConditionHand
 			case FAILED:
 			case STOPPED:
 			case UNKNOWN_TO_SDK_VERSION:
-				throw new IllegalStateException("Sync job " + jobId + " failed with status " + job.statusAsString() + ", failure reasons: " + job.failureReasons().toString());
+				throw new IllegalStateException("Sync job " + jobId + " failed (Status: " + job.statusAsString() + ", Failures: " + job.failureReasons().toString() +")");
 			default:
 				break;
 			}

@@ -5,19 +5,15 @@ import java.util.Optional;
 
 import org.apache.logging.log4j.Logger;
 import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
-import org.opensearch.client.transport.aws.AwsSdk2Transport;
-import org.opensearch.client.transport.aws.AwsSdk2TransportOptions;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.LoggerFactory;
+import org.sagebionetworks.template.OpenSearchClientFactory;
 import org.sagebionetworks.template.WaitConditionHandler;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
 import com.amazonaws.services.cloudformation.model.StackEvent;
 import com.google.inject.Inject;
 
-import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
 import software.amazon.awssdk.services.opensearchserverless.model.CollectionDetail;
 import software.amazon.awssdk.services.opensearchserverless.model.CollectionStatus;
@@ -34,15 +30,19 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 	
 	private Logger logger;
 	
-	private OpenSearchServerlessClient ossClient;
-	
 	private RepoConfiguration config;
 	
+	private OpenSearchServerlessClient ossManagementClient;
+	
+	private OpenSearchClientFactory openSearchClientFactory;
+	
+	
 	@Inject
-	public SynapseHelpCollectionIndexCreation(LoggerFactory loggerFactory, OpenSearchServerlessClient ossClient, RepoConfiguration config) {
+	public SynapseHelpCollectionIndexCreation(LoggerFactory loggerFactory, RepoConfiguration config, OpenSearchServerlessClient ossClient, OpenSearchClientFactory openSearchClientFactory) {
 		this.logger = loggerFactory.getLogger(SynapseHelpCollectionIndexCreation.class);
-		this.ossClient = ossClient;
 		this.config = config;
+		this.ossManagementClient = ossClient;
+		this.openSearchClientFactory = openSearchClientFactory;
 	}
 	
 	@Override
@@ -54,7 +54,7 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 	public Optional<String> handle(StackEvent stackEvent) {
 		String collectionName = config.getProperty(Constants.PROPERTY_KEY_STACK) + "-" + config.getProperty(Constants.PROPERTY_KEY_INSTANCE) + "-synhelp";
 		
-		CollectionDetail collection = ossClient.batchGetCollection(req -> req
+		CollectionDetail collection = ossManagementClient.batchGetCollection(req -> req
 			.names(collectionName)
 		).collectionDetails().stream().findFirst().orElseThrow();
 		
@@ -62,18 +62,10 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 			logger.warn("Collection {} not ready, status: {}", collectionName, collection.status());
 			return Optional.empty();
 		}
-				
-		try (SdkHttpClient httpClient = ApacheHttpClient.builder().build()) {
-			OpenSearchIndicesClient client = new OpenSearchIndicesClient(
-			    new AwsSdk2Transport(
-			        httpClient,
-			        collection.collectionEndpoint().replace("https://", ""), 
-			        "aoss",
-			        Region.US_EAST_1,
-			        AwsSdk2TransportOptions.builder().build()
-			    )
-			);
-			
+		
+		OpenSearchIndicesClient client = openSearchClientFactory.getIndicesClient(collection.collectionEndpoint());
+		
+		try {	
 			if (client.exists(req -> req.index(IDX_NAME)).value()) {
 				logger.warn("Index {} already exists.", IDX_NAME);
 				return Optional.of("index-already-exists");

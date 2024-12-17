@@ -138,6 +138,7 @@ import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
@@ -380,13 +381,18 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 		
 	@Provides
-	public OpenSearchServerlessClient ossClientProvider() {
+	public OpenSearchServerlessClient ossManagementClientProvider() {
 		return OpenSearchServerlessClient.builder().region(Region.US_EAST_1).build();
 	}
 	
 	@Provides
 	public BedrockAgentClient bedrockAgentClientProvider() {
 		return BedrockAgentClient.builder().region(Region.US_EAST_1).build();
+	}
+	
+	@Provides
+	public OpenSearchClientFactory openSearchClientFactoryProvider() {
+		return new OpenSearchClientFactoryImpl(ApacheHttpClient.builder().build());
 	}
 	
 }

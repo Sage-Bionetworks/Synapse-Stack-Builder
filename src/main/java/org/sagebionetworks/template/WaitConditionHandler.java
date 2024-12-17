@@ -21,6 +21,6 @@ public interface WaitConditionHandler {
 	 * @param stackEvent
 	 * @return An optional signal id to send back to cloud formation if the condition could be processed
 	 */
-	Optional<String> handle(StackEvent stackEvent);
+	Optional<String> handle(StackEvent stackEvent) throws InterruptedException;
 	
 }
