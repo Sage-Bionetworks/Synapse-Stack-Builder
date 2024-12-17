@@ -16,8 +16,6 @@ import com.google.inject.Inject;
 
 public class BedrockAgentContextProvider implements VelocityContextProvider {
 	
-	private static final String SYNHELP_KNOWLEDGE_BASE_DESCRIPTION = "You can use this knowlegde base to answer questions on how to use synapse.";
-
 	private final RepoConfiguration repoConfig;
 
 	@Inject
@@ -60,7 +58,7 @@ public class BedrockAgentContextProvider implements VelocityContextProvider {
 			.getJSONObject(0);
 			
 		kbProperty.getJSONObject("KnowledgeBaseId").put("Ref", "SynapseHelpKnowledgeBase");
-		kbProperty.put("Description", SYNHELP_KNOWLEDGE_BASE_DESCRIPTION);
+		kbProperty.put("Description", baseTemplate.getJSONObject("Parameters").getJSONObject("knowledgeBaseDescription").getString("Default"));
 		
 		bedrockAgentProps.put("AgentName", agentName);
 		String json = resources.toString();

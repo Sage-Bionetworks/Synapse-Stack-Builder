@@ -16,7 +16,7 @@
 		"knowledgeBaseDescription": {
 			"Description": "Provide the description of the knowledge base to associated to this bedrock agent.",
 			"Type": "String",
-			"Default": "You can use this knowlegde base to answer questions on how to use synapse.",
+			"Default": "This knowledge base contains the synapse help documentation. You can use it to answer questions around synapse usage and features.",
 			"MaxLength": 200
 		}
 	},

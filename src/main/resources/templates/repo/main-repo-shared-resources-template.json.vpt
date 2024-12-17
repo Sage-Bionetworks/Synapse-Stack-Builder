@@ -10,7 +10,7 @@
 		#parse("templates/repo/time-to-live-parameter.vpt")
 	},
 	"Conditions": {
-    	"AttachKnowledgeBase": {"Fn::Equals": ["true", "false"]}
+    	"AttachKnowledgeBase": {"Fn::Equals": ["true", "true"]}
   	},
 	"Resources": {
 		"${stack}${instance}DBSubnetGroup": {
