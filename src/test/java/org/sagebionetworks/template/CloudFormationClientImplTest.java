@@ -1,6 +1,7 @@
 package org.sagebionetworks.template;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -13,8 +14,10 @@ import static org.mockito.Mockito.when;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -35,11 +38,17 @@ import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException
 import com.amazonaws.services.cloudformation.model.CreateStackRequest;
 import com.amazonaws.services.cloudformation.model.CreateStackResult;
 import com.amazonaws.services.cloudformation.model.DeleteStackRequest;
+import com.amazonaws.services.cloudformation.model.DescribeStackEventsRequest;
+import com.amazonaws.services.cloudformation.model.DescribeStackEventsResult;
 import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
+import com.amazonaws.services.cloudformation.model.ResourceSignalStatus;
+import com.amazonaws.services.cloudformation.model.ResourceStatus;
+import com.amazonaws.services.cloudformation.model.SignalResourceRequest;
 import com.amazonaws.services.cloudformation.model.Stack;
+import com.amazonaws.services.cloudformation.model.StackEvent;
 import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.amazonaws.services.cloudformation.model.UpdateStackRequest;
 import com.amazonaws.services.cloudformation.model.UpdateStackResult;
@@ -68,6 +77,8 @@ public class CloudFormationClientImplTest {
 	Logger mockLogger;
 	@Mock
 	ThreadProvider mockThreadProvider;
+	@Mock
+	WaitConditionHandler mockWaitConditionHandler;
 
 	@Captor
 	ArgumentCaptor<DescribeStacksRequest> describeStackRequestCapture;
@@ -474,6 +485,263 @@ public class CloudFormationClientImplTest {
 		Assertions.assertNotNull(resultStack);
 		Assertions.assertNotNull(resultStack.getStackStatus());
 		Assertions.assertEquals(StackStatus.UPDATE_ROLLBACK_COMPLETE, StackStatus.fromValue(resultStack.getStackStatus()));
+	}
+	
+	@Test
+	public void testWaitForStackToCompleteWithWaitConditionHandlers() throws InterruptedException {
+		initStack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
+		stack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
+		
+		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(
+			initDescribeResult, 
+			describeResult,
+			new DescribeStacksResult().withStacks(new Stack().withStackStatus(StackStatus.CREATE_COMPLETE))
+		);
+		
+		String waitConditionId = "waitConditionId";
+		StackEvent waitConditionEvent = new StackEvent()
+			.withResourceType("AWS::CloudFormation::WaitCondition")
+			.withLogicalResourceId(waitConditionId)
+			.withResourceStatus(ResourceStatus.CREATE_IN_PROGRESS);
+		
+		when(mockWaitConditionHandler.getWaitConditionId()).thenReturn(waitConditionId);
+		when(mockWaitConditionHandler.handle(waitConditionEvent)).thenReturn(Optional.of("done"));
+		when(mockCloudFormationClient.describeStackEvents(new DescribeStackEventsRequest().withStackName(stackName))).thenReturn(
+			new DescribeStackEventsResult().withStackEvents(waitConditionEvent)
+		);		
+		
+		// call under test
+		Stack resultStack = client.waitForStackToComplete(stackName, Set.of(mockWaitConditionHandler)).get();
+		
+		verify(mockCloudFormationClient).signalResource(new SignalResourceRequest()
+			.withLogicalResourceId(waitConditionId)
+			.withStackName(stackName)
+			.withStatus(ResourceSignalStatus.SUCCESS)
+			.withUniqueId("done")			
+		);
+	}
+	
+	@Test
+	public void testWaitForStackToCompleteWithWaitConditionHandlersAndMultipleEvents() throws InterruptedException {
+		initStack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
+		stack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
+		
+		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(
+			initDescribeResult, 
+			describeResult,
+			new DescribeStacksResult().withStacks(new Stack().withStackStatus(StackStatus.CREATE_COMPLETE))
+		);
+		
+		String waitConditionId = "waitConditionId";
+		
+		StackEvent waitConditionEvent = new StackEvent()
+			.withResourceType("AWS::CloudFormation::WaitCondition")
+			.withLogicalResourceId(waitConditionId)
+			.withResourceStatus(ResourceStatus.CREATE_IN_PROGRESS)
+			.withEventId("last");
+		
+		when(mockWaitConditionHandler.getWaitConditionId()).thenReturn(waitConditionId);
+		when(mockWaitConditionHandler.handle(waitConditionEvent)).thenReturn(Optional.of("done"));
+		when(mockCloudFormationClient.describeStackEvents(new DescribeStackEventsRequest().withStackName(stackName))).thenReturn(
+			new DescribeStackEventsResult().withStackEvents(
+				waitConditionEvent,
+				new StackEvent().withResourceType("AWS::CloudFormation::WaitCondition").withLogicalResourceId("anotherWaitConditionId").withResourceStatus(ResourceStatus.CREATE_COMPLETE),
+				new StackEvent().withResourceType("anotherType").withLogicalResourceId("anotherResourceId").withResourceStatus(ResourceStatus.CREATE_IN_PROGRESS),
+				// Another event for the same condition id, should be discarded
+				new StackEvent().withResourceType("AWS::CloudFormation::WaitCondition").withLogicalResourceId(waitConditionId).withResourceStatus(ResourceStatus.CREATE_IN_PROGRESS).withEventId("previous")
+			)
+		);		
+		
+		// call under test
+		Stack resultStack = client.waitForStackToComplete(stackName, Set.of(mockWaitConditionHandler)).get();
+		
+		verify(mockCloudFormationClient).signalResource(new SignalResourceRequest()
+			.withLogicalResourceId(waitConditionId)
+			.withStackName(stackName)
+			.withStatus(ResourceSignalStatus.SUCCESS)
+			.withUniqueId("done")			
+		);
+	}
+	
+	@Test
+	public void testWaitForStackToCompleteWithWaitConditionHandlersAndAlreadyProcessed() throws InterruptedException {
+		initStack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
+		stack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
+		
+		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(
+			initDescribeResult, 
+			describeResult,
+			describeResult,
+			new DescribeStacksResult().withStacks(new Stack().withStackStatus(StackStatus.CREATE_COMPLETE))
+		);
+		
+		String waitConditionId = "waitConditionId";
+		
+		StackEvent waitConditionEvent = new StackEvent()
+			.withResourceType("AWS::CloudFormation::WaitCondition")
+			.withLogicalResourceId(waitConditionId)
+			.withResourceStatus(ResourceStatus.CREATE_IN_PROGRESS);
+		
+		when(mockWaitConditionHandler.getWaitConditionId()).thenReturn(waitConditionId);
+		when(mockWaitConditionHandler.handle(waitConditionEvent)).thenReturn(Optional.of("done"));
+		when(mockCloudFormationClient.describeStackEvents(new DescribeStackEventsRequest().withStackName(stackName))).thenReturn(
+			new DescribeStackEventsResult().withStackEvents(waitConditionEvent)
+		);		
+		
+		// call under test
+		Stack resultStack = client.waitForStackToComplete(stackName, Set.of(mockWaitConditionHandler)).get();
+		
+		verify(mockCloudFormationClient, times(2)).describeStackEvents(any());
+		
+		// Should be invoked only once
+		verify(mockWaitConditionHandler).handle(waitConditionEvent);
+		verify(mockCloudFormationClient).signalResource(new SignalResourceRequest()
+			.withLogicalResourceId(waitConditionId)
+			.withStackName(stackName)
+			.withStatus(ResourceSignalStatus.SUCCESS)
+			.withUniqueId("done")			
+		);
+	}
+	
+	@Test
+	public void testWaitForStackToCompleteWithWaitConditionHandlersAndNoMatchingHandler() throws InterruptedException {
+		initStack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
+		stack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
+		
+		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(
+			initDescribeResult, 
+			describeResult,
+			new DescribeStacksResult().withStacks(new Stack().withStackStatus(StackStatus.CREATE_COMPLETE))
+		);
+		
+		String waitConditionId = "waitConditionId";
+		
+		StackEvent waitConditionEvent = new StackEvent()
+			.withResourceType("AWS::CloudFormation::WaitCondition")
+			.withLogicalResourceId(waitConditionId)
+			.withResourceStatus(ResourceStatus.CREATE_IN_PROGRESS)
+			.withEventId("last");
+		
+		when(mockWaitConditionHandler.getWaitConditionId()).thenReturn(waitConditionId + "-mistmatching");
+		when(mockCloudFormationClient.describeStackEvents(new DescribeStackEventsRequest().withStackName(stackName))).thenReturn(
+			new DescribeStackEventsResult().withStackEvents(
+				waitConditionEvent
+			)
+		);		
+		
+		IllegalStateException result = assertThrows(IllegalStateException.class, () -> {
+			// call under test
+			Stack resultStack = client.waitForStackToComplete(stackName, Set.of(mockWaitConditionHandler)).get();
+		});
+		
+		assertEquals("Processing wait condition waitConditionId failed: could not find an handler.", result.getMessage());
+		
+		verify(mockCloudFormationClient).signalResource(new SignalResourceRequest()
+			.withLogicalResourceId(waitConditionId)
+			.withStackName(stackName)
+			.withStatus(ResourceSignalStatus.FAILURE)
+			.withUniqueId("handler-not-found")
+		);
+		
+		verifyNoMoreInteractions(mockWaitConditionHandler);
+	}
+	
+	@Test
+	public void testWaitForStackToCompleteWithWaitConditionHandlersAndException() throws InterruptedException {
+		initStack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
+		stack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
+		
+		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(
+			initDescribeResult, 
+			describeResult,
+			new DescribeStacksResult().withStacks(new Stack().withStackStatus(StackStatus.CREATE_COMPLETE))
+		);
+		
+		String waitConditionId = "waitConditionId";
+		
+		StackEvent waitConditionEvent = new StackEvent()
+			.withResourceType("AWS::CloudFormation::WaitCondition")
+			.withLogicalResourceId(waitConditionId)
+			.withResourceStatus(ResourceStatus.CREATE_IN_PROGRESS)
+			.withEventId("last");
+		
+		when(mockWaitConditionHandler.getWaitConditionId()).thenReturn(waitConditionId);
+		
+		RuntimeException cause = new RuntimeException("processing error");
+		
+		when(mockWaitConditionHandler.handle(waitConditionEvent)).thenThrow(cause);
+		when(mockCloudFormationClient.describeStackEvents(new DescribeStackEventsRequest().withStackName(stackName))).thenReturn(
+			new DescribeStackEventsResult().withStackEvents(
+				waitConditionEvent
+			)
+		);		
+		
+		IllegalStateException result = assertThrows(IllegalStateException.class, () -> {	
+			// call under test
+			client.waitForStackToComplete(stackName, Set.of(mockWaitConditionHandler)).get();
+		});
+		
+		assertEquals("Processing wait condition waitConditionId failed.", result.getMessage());
+		assertEquals(cause, result.getCause());
+		
+		verify(mockCloudFormationClient).signalResource(new SignalResourceRequest()
+			.withLogicalResourceId(waitConditionId)
+			.withStackName(stackName)
+			.withStatus(ResourceSignalStatus.FAILURE)
+			.withUniqueId("handler-failed")
+		);
+		
+		verifyNoMoreInteractions(mockWaitConditionHandler);
+	}
+	
+	@Test
+	public void testWaitForStackToCompleteWithWaitConditionHandlersAndNoSignal() throws InterruptedException {
+		initStack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
+		stack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
+		
+		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(
+			initDescribeResult, 
+			describeResult,
+			new DescribeStacksResult().withStacks(new Stack().withStackStatus(StackStatus.CREATE_COMPLETE))
+		);
+		
+		String waitConditionId = "waitConditionId";
+		
+		StackEvent waitConditionEvent = new StackEvent()
+			.withResourceType("AWS::CloudFormation::WaitCondition")
+			.withLogicalResourceId(waitConditionId)
+			.withResourceStatus(ResourceStatus.CREATE_IN_PROGRESS)
+			.withEventId("last");
+		
+		when(mockWaitConditionHandler.getWaitConditionId()).thenReturn(waitConditionId);
+		when(mockWaitConditionHandler.handle(waitConditionEvent)).thenReturn(Optional.empty());
+		when(mockCloudFormationClient.describeStackEvents(new DescribeStackEventsRequest().withStackName(stackName))).thenReturn(
+			new DescribeStackEventsResult().withStackEvents(
+				waitConditionEvent
+			)
+		);		
+		
+		// call under test
+		Stack resultStack = client.waitForStackToComplete(stackName, Set.of(mockWaitConditionHandler)).get();
+		
+		verifyNoMoreInteractions(mockCloudFormationClient, mockWaitConditionHandler);
+	}
+	
+	@Test
+	public void testWaitForStackToCompleteWithEmptyWaitConditionHandlers() throws InterruptedException {
+		initStack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
+		stack.setStackStatus(StackStatus.CREATE_IN_PROGRESS);
+		
+		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(
+			initDescribeResult, 
+			describeResult,
+			new DescribeStacksResult().withStacks(new Stack().withStackStatus(StackStatus.CREATE_COMPLETE))
+		);
+		
+		// call under test
+		Stack resultStack = client.waitForStackToComplete(stackName, Collections.emptySet()).get();
+		
+		verifyNoMoreInteractions(mockCloudFormationClient, mockWaitConditionHandler);
 	}
 
 	@Test

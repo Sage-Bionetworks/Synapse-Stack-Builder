@@ -3,12 +3,16 @@ package org.sagebionetworks.template;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -21,11 +25,15 @@ import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException
 import com.amazonaws.services.cloudformation.model.CreateStackRequest;
 import com.amazonaws.services.cloudformation.model.CreateStackResult;
 import com.amazonaws.services.cloudformation.model.DeleteStackRequest;
-import com.amazonaws.services.cloudformation.model.DeleteStackResult;
+import com.amazonaws.services.cloudformation.model.DescribeStackEventsRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Output;
+import com.amazonaws.services.cloudformation.model.ResourceSignalStatus;
+import com.amazonaws.services.cloudformation.model.ResourceStatus;
+import com.amazonaws.services.cloudformation.model.SignalResourceRequest;
 import com.amazonaws.services.cloudformation.model.Stack;
+import com.amazonaws.services.cloudformation.model.StackEvent;
 import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.amazonaws.services.cloudformation.model.UpdateStackRequest;
 import com.amazonaws.services.cloudformation.model.UpdateStackResult;
@@ -225,7 +233,19 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 
 	@Override
 	public Optional<Stack> waitForStackToComplete(String stackName) throws InterruptedException {
+		return waitForStackToComplete(stackName, Collections.emptySet());
+	}
+	
+	@Override
+	public Optional<Stack> waitForStackToComplete(String stackName, Set<WaitConditionHandler> waitConditionHandlers) throws InterruptedException {
 		boolean startedInUpdateRollbackComplete = isStartedInUpdateRollbackComplete(stackName); // Initial state
+		
+		Map<String, WaitConditionHandler> waitConditionHandlerMap = waitConditionHandlers.stream()
+			.collect(Collectors.toMap(WaitConditionHandler::getWaitConditionId, Function.identity()));
+		
+		// To avoid re-processing the same wait condition multiple times we need to keep track of them
+		Set<String> processedWaitConditionSet = new HashSet<>();
+		
 		long start = threadProvider.currentTimeMillis();
 		while (true) {
 			long elapse = threadProvider.currentTimeMillis() - start;
@@ -246,10 +266,10 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 				return optional;
 			case CREATE_IN_PROGRESS:
 			case UPDATE_IN_PROGRESS:
+				handleWaitConditions(stackName, waitConditionHandlerMap, processedWaitConditionSet);
 			case DELETE_IN_PROGRESS:
 			case UPDATE_COMPLETE_CLEANUP_IN_PROGRESS:
-				logger.info("Waiting for stack: '" + stackName + "' to complete.  Current status: " + status.name()
-						+ "...");
+				logger.info("Waiting for stack: '" + stackName + "' to complete.  Current status: " + status.name() + "...");
 				threadProvider.sleep(SLEEP_TIME);
 				break;
 			case UPDATE_ROLLBACK_COMPLETE:
@@ -261,6 +281,84 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 						+ " with reason: " + stack.getStackStatusReason());
 			}
 		}
+	}
+	
+	void handleWaitConditions(String stackName, Map<String, WaitConditionHandler> waitConditionHandlers, Set<String> processedWaitConditionSet) {
+		if (waitConditionHandlers.isEmpty()) {
+			return;
+		}
+		
+		Set<String> waitConditionEventIds = new HashSet<>();
+		
+		List<StackEvent> waitConditionEvents = cloudFormationClient.describeStackEvents(
+				new DescribeStackEventsRequest().withStackName(stackName)
+			)
+			.getStackEvents()
+			.stream()
+			.filter(event ->  "AWS::CloudFormation::WaitCondition".equals(event.getResourceType()))
+			// We only need the latest event for each wait condition
+			.filter(event -> waitConditionEventIds.add(event.getLogicalResourceId()))
+			.filter(event -> ResourceStatus.CREATE_IN_PROGRESS.equals(ResourceStatus.fromValue(event.getResourceStatus())))
+			.collect(Collectors.toList());
+		
+		for (StackEvent waitConditionEvent : waitConditionEvents) {
+			String waitConditionId = waitConditionEvent.getLogicalResourceId();
+			
+			if (processedWaitConditionSet.contains(waitConditionId)) {
+				logger.warn("Wait condition {} already processed, skipping.", waitConditionId);
+				continue;
+			}
+				
+			logger.info("Processing wait condition {} (Status: {}, Reason: {})...", waitConditionId, waitConditionEvent.getResourceStatus(), waitConditionEvent.getResourceStatusReason());
+			
+			WaitConditionHandler waitConditionHandler = waitConditionHandlers.get(waitConditionId);
+			
+			if (waitConditionHandler == null) {
+				
+				cloudFormationClient.signalResource(new SignalResourceRequest()
+					.withStackName(stackName)
+					.withLogicalResourceId(waitConditionId)
+					.withStatus(ResourceSignalStatus.FAILURE)
+					.withUniqueId("handler-not-found")
+				);
+				
+				throw new IllegalStateException("Processing wait condition " + waitConditionId + " failed: could not find an handler.");
+				
+			} else {
+				logger.info("Processing wait condition {} started...", waitConditionId);
+				
+				try {
+					waitConditionHandler.handle(waitConditionEvent).ifPresentOrElse(signalId -> {
+						logger.info("Processing wait condition {} completed with signal {}.", waitConditionId, signalId);
+						
+						cloudFormationClient.signalResource(new SignalResourceRequest()
+							.withStackName(stackName)
+							.withLogicalResourceId(waitConditionId)
+							.withStatus(ResourceSignalStatus.SUCCESS)
+							.withUniqueId(signalId)
+						);
+						
+						processedWaitConditionSet.add(waitConditionId);
+					}, () -> {
+						logger.info("Processing wait condition {} didn't return a signal, will process later.", waitConditionId);
+					});
+					
+				} catch (Exception e) {
+					logger.error("Processing wait condition {} failed exceptionally: ", waitConditionId, e);
+					
+					cloudFormationClient.signalResource(new SignalResourceRequest()
+						.withStackName(stackName)
+						.withLogicalResourceId(waitConditionId)
+						.withStatus(ResourceSignalStatus.FAILURE)
+						.withUniqueId("handler-failed")
+					);
+					
+					throw new IllegalStateException("Processing wait condition " + waitConditionId + " failed.", e);
+				}
+			}
+			
+		}
+		
 	}
 
 	@Override

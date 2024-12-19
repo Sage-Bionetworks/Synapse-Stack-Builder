@@ -1,6 +1,7 @@
 package org.sagebionetworks.template;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException;
@@ -20,7 +21,7 @@ public interface CloudFormationClient {
 	 * @param stackName
 	 * @return
 	 */
-	public boolean doesStackNameExist(String stackName);
+	boolean doesStackNameExist(String stackName);
 	
 	/**
 	 * Describe a stack given its name.
@@ -29,7 +30,7 @@ public interface CloudFormationClient {
 	 * @return
 	 * @throws AmazonCloudFormationException When the stack does not exist.
 	 */
-	public Optional<Stack> describeStack(String stackName);
+	Optional<Stack> describeStack(String stackName);
 
 	/**
 	 * Update a stack with the given name using the provided template body.
@@ -38,7 +39,7 @@ public interface CloudFormationClient {
 	 * @param templateBody
 	 * @return StackId
 	 */
-	public void updateStack(CreateOrUpdateStackRequest request);
+	void updateStack(CreateOrUpdateStackRequest request);
 
 	/**
 	 * Create a stack with the given name using the provided template body.
@@ -47,7 +48,7 @@ public interface CloudFormationClient {
 	 * @param templateBody
 	 * @return StackId
 	 */
-	public void createStack(CreateOrUpdateStackRequest request);
+	void createStack(CreateOrUpdateStackRequest request);
 
 	/**
 	 * If a stack does not exist the stack will be created else the stack will be
@@ -57,7 +58,7 @@ public interface CloudFormationClient {
 	 * @param templateBody
 	 * @return StackId
 	 */
-	public void createOrUpdateStack(CreateOrUpdateStackRequest request);
+	void createOrUpdateStack(CreateOrUpdateStackRequest request);
 	
 	/**
 	 * Wait for the given stack to complete.
@@ -65,25 +66,34 @@ public interface CloudFormationClient {
 	 * @return
 	 * @throws InterruptedException 
 	 */
-	public Optional<Stack> waitForStackToComplete(String stackName) throws InterruptedException;
+	Optional<Stack> waitForStackToComplete(String stackName) throws InterruptedException;
+	
+	/**
+	 * Wait for the given stack to complete and handles any wait condition that is provided in the map (where the key is the logical id of the wait condition)
+	 * @param stackName
+	 * @param waitConditionHandlers
+	 * @return
+	 * @throws InterruptedException
+	 */
+	Optional<Stack> waitForStackToComplete(String stackName, Set<WaitConditionHandler> waitConditionHandlers) throws InterruptedException;
 
 	/**
 	 *
 	 * @param stackName
 	 * @return
 	 */
-	public String getOutput(String stackName, String outputKey);
+	String getOutput(String stackName, String outputKey);
 
 	/**
 	 * Stream over all stacks.
 	 * @return
 	 */
-	public Stream<Stack> streamOverAllStacks();
+	Stream<Stack> streamOverAllStacks();
 
 	/**
 	 * Delete a stack by name
 	 * @param stackName
 	 */
-	public void deleteStack(String stackName);
+	void deleteStack(String stackName);
 
 }
