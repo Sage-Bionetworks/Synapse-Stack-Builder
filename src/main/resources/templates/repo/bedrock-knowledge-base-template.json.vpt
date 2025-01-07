@@ -72,12 +72,13 @@
 	        "Properties": {
 	            "Name":"${stack}-${instance}-synhelp",
 	            "Type":"network",
-	            "Description":"Encryption policy for the synapse help collection",
+	            "Description":"Network policy for the synapse help collection that allows access from the stack and ops VPCs",
 	            "Policy": {
 	            	"Fn::Sub": [
-	            		"[{\"Rules\":[{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synhelp\"]}],\"AllowFromPublic\":false,\"SourceServices\":[\"bedrock.amazonaws.com\"],\"SourceVPCEs\":[\"#[[${vpcEndpointId}]]#\"]}]",
+	            		"[{\"Rules\":[{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synhelp\"]}],\"AllowFromPublic\":false,\"SourceServices\":[\"bedrock.amazonaws.com\"],\"SourceVPCEs\":[\"#[[${stackVpcEndpointId}]]#\",\"#[[${opsVpcEndpointId}]]#\"]}]",
 	            		{
-	            			"vpcEndpointId": { "Fn::ImportValue": "${vpcExportPrefix}-open-search-vpce" }
+	            			"stackVpcEndpointId": { "Fn::ImportValue": "${vpcExportPrefix}-open-search-vpce" },
+	            			"opsVpcEndpointId": { "Fn::ImportValue": "${opsVpcExportPrefix}-OSSVpcEndpointId" }
 	            		}
 	            	]
 	            }
