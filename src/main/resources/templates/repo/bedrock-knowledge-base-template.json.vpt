@@ -75,9 +75,10 @@
 	            "Description":"Encryption policy for the synapse help collection",
 	            "Policy": {
 	            	"Fn::Sub": [
-	            		"[{\"Rules\":[{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synhelp\"]}],\"AllowFromPublic\":false,\"SourceServices\":[\"bedrock.amazonaws.com\"],\"SourceVPCEs\":[\"#[[${vpcEndpointId}]]#\"]}]",
+	            		"[{\"Rules\":[{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synhelp\"]}],\"AllowFromPublic\":false,\"SourceServices\":[\"bedrock.amazonaws.com\"],\"SourceVPCEs\":[\"#[[${stackVpcEndpointId}]]#\",\"#[[${opsVpcEndpointId}]]#\"]}]",
 	            		{
-	            			"vpcEndpointId": { "Fn::ImportValue": "${vpcExportPrefix}-open-search-vpce" }
+	            			"stackVpcEndpointId": { "Fn::ImportValue": "${vpcExportPrefix}-open-search-vpce" },
+	            			"opsVpcEndpointId": { "Fn::ImportValue": "${opsVpcExportPrefix}-OSSVpcEndpointId" }
 	            		}
 	            	]
 	            }
