@@ -72,7 +72,7 @@
 	        "Properties": {
 	            "Name":"${stack}-${instance}-synhelp",
 	            "Type":"network",
-	            "Description":"Encryption policy for the synapse help collection",
+	            "Description":"Network policy for the synapse help collection that allows access from the stack and ops VPCs",
 	            "Policy": {
 	            	"Fn::Sub": [
 	            		"[{\"Rules\":[{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synhelp\"]}],\"AllowFromPublic\":false,\"SourceServices\":[\"bedrock.amazonaws.com\"],\"SourceVPCEs\":[\"#[[${stackVpcEndpointId}]]#\",\"#[[${opsVpcEndpointId}]]#\"]}]",
