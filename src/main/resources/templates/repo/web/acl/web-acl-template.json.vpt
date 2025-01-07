@@ -161,7 +161,7 @@
 			"Type": "AWS::WAFv2::IPSet",
 			"Properties": {
 				"Addresses": [
-					"34.195.10.214/32",
+					"34.192.53.22/32",
 					"10.50.0.0/16"
 				],
 				"IPAddressVersion": "IPV4",
