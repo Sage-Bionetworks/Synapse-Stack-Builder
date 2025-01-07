@@ -69,11 +69,25 @@
 						"AndStatement": {
 							"Statements": [
 								{
-									"ByteMatchStatement": {
-										"FieldToMatch": { "Method": {} },
-										"PositionalConstraint": "EXACTLY",
-										"SearchString": "GET",
-										"TextTransformations": [ { "Priority": 0, "Type": "NONE"} ]
+									"OrStatement": {
+										"Statements": [
+											{
+												"ByteMatchStatement": {
+													"FieldToMatch": { "Method": {} },
+													"PositionalConstraint": "EXACTLY",
+													"SearchString": "GET",
+													"TextTransformations": [ { "Priority": 0, "Type": "NONE"} ]
+												}
+											},
+											{
+												"ByteMatchStatement": {
+													"FieldToMatch": { "Method": {} },
+													"PositionalConstraint": "EXACTLY",
+													"SearchString": "OPTIONS",
+													"TextTransformations": [ { "Priority": 0, "Type": "NONE"} ]
+												}
+											}
+										]
 									}
 								},
 								{
