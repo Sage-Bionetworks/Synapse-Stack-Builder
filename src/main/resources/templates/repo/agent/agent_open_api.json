@@ -1,0 +1,46 @@
+{
+	"openapi": "3.0.0",
+	"paths": {
+		"/get/entity/type/{entityId}": {
+			"method": {
+				"description": "Get the type of an entity",
+				"operationId": "org_sage_one_get_entity_type",
+				"parameters": [
+					{
+						"name": "entityId",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"201": {
+						"description": "Auto-generated description",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/org.sagebionetworks.entity.type"
+								}
+							}
+						}
+					}
+				},
+				"x-requireConfirmation": "DISABLED"
+			}
+		}
+	},
+	"components": {
+		"schema": {
+			"org.sagebionetworks.entity.type": {
+				"type": "string",
+				"enum": [
+					"project",
+					"folder",
+					"file"
+				]
+			}
+		}
+	}
+}
