@@ -183,17 +183,6 @@
 											"Type": "string"
 										}
 									}
-								},
-								{
-									"Description": "",
-									"Name": "org_sage_zero_get_annotations_json",
-									"Parameters": {
-										"synId": {
-											"Description": "The 'syn' Id of the entity to get JSON representation for.",
-											"Required": true,
-											"Type": "string"
-										}
-									}
 								}
 							]
 						},
@@ -209,7 +198,7 @@
 						"ApiSchema": {
 							"S3": {
 								"S3BucketName": "dev-configuration.sagebase.org",
-								"S3ObjectKey": "/templates/agent_open_api.json"
+								"S3ObjectKey": "templates/agent_open_api.json"
 							}
 						}
 					}
