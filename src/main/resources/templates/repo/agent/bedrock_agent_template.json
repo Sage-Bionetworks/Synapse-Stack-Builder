@@ -21,8 +21,19 @@
 		}
 	},
 	"Conditions": {
-    	"AttachKnowledgeBase": {"Fn::Not": [{"Fn::Equals" : [{"Ref" : "knowledgeBaseId"}, ""]}]}
-  	},
+		"AttachKnowledgeBase": {
+			"Fn::Not": [
+				{
+					"Fn::Equals": [
+						{
+							"Ref": "knowledgeBaseId"
+						},
+						""
+					]
+				}
+			]
+		}
+	},
 	"Resources": {
 		"bedrockAgentRole": {
 			"Type": "AWS::IAM::Role",
@@ -59,7 +70,7 @@
 							"Statement": [
 								{
 									"Effect": "Allow",
-									"Action": [ 
+									"Action": [
 										"bedrock:InvokeModel",
 										"bedrock:InvokeModelWithResponseStream"
 									],
@@ -70,21 +81,22 @@
 									]
 								},
 								{
-									"Fn::If" : [ "AttachKnowledgeBase",
+									"Fn::If": [
+										"AttachKnowledgeBase",
 										{
-								            "Effect": "Allow",
-								            "Action": [
-								                "bedrock:Retrieve",
-								                "bedrock:RetrieveAndGenerate"
-								            ],
-								            "Resource": [
+											"Effect": "Allow",
+											"Action": [
+												"bedrock:Retrieve",
+												"bedrock:RetrieveAndGenerate"
+											],
+											"Resource": [
 												{
 													"Fn::Sub": "arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:knowledge-base/${knowledgeBaseId}"
 												}
-								            ]
-								        },
+											]
+										},
 										{
-											"Ref" : "AWS::NoValue"
+											"Ref": "AWS::NoValue"
 										}
 									]
 								}
@@ -160,13 +172,95 @@
 											"Type": "array"
 										}
 									}
+								},
+								{
+									"Description": "Use this function to get the JSON representation of an Entity.  In order to change the anntations of an Entity, first get the current JSON representation of Entity.  Modify the fields of the JSON as needed to add, remove, or update annotations, then push the modified JSON back using the annotation update function.",
+									"Name": "org_sage_zero_get_annotations_json",
+									"Parameters": {
+										"synId": {
+											"Description": "The 'syn' Id of the entity to get JSON representation for.",
+											"Required": true,
+											"Type": "string"
+										}
+									}
+								},
+								{
+									"Description": "",
+									"Name": "org_sage_zero_get_annotations_json",
+									"Parameters": {
+										"synId": {
+											"Description": "The 'syn' Id of the entity to get JSON representation for.",
+											"Required": true,
+											"Type": "string"
+										}
+									}
 								}
 							]
 						},
 						"SkipResourceInUseCheckOnDelete": false
+					},
+					{
+						"ActionGroupExecutor": {
+							"CustomControl": "RETURN_CONTROL"
+						},
+						"ActionGroupName": "org_sage_one",
+						"ActionGroupState": "ENABLED",
+						"Description": "Use the functions in this action group to creatt, update, and delete data in Synapse.",
+						"ApiSchema": {
+							"Payload": {
+								"openapi": "3.0.0",
+								"paths": {
+									"/get/entity/type/{entityId}": {
+										"method": {
+											"description": "Get the type of an entity",
+											"operationId": "org_sage_one_get_entity_type",
+											"parameters": [
+												{
+													"name": "entityId",
+													"in": "path",
+													"required": true,
+													"schema": {
+														"type": "string"
+													}
+												}
+											],
+											"requestBody": {
+											},
+											"responses": {
+												"201": {
+													"description": "Auto-generated description",
+													"content": {
+														"application/json": {
+															"schema": {
+																"$ref": "#/components/schemas/org.sagebionetworks.entity.type"
+															}
+														}
+													}
+												}
+											},
+											"x-requireConfirmation": "DISABLED"
+										}
+									}
+								},
+								"components": {
+									"schema": {
+										"org.sagebionetworks.entity.type": {
+											"type": "string",
+											"enum": [
+												"project",
+												"folder",
+												"file"
+											]
+										}
+									}
+								}
+							}
+						}
 					}
 				],
-				"AgentName": { "Ref" : "agentName" },
+				"AgentName": {
+					"Ref": "agentName"
+				},
 				"AgentResourceRoleArn": {
 					"Fn::GetAtt": [
 						"bedrockAgentRole",
@@ -174,15 +268,22 @@
 					]
 				},
 				"KnowledgeBases": {
-					"Fn::If" : [ "AttachKnowledgeBase",	
-						[{
-							  "KnowledgeBaseId" : { "Ref" : "knowledgeBaseId" },
-							  "Description" : { "Ref" : "knowledgeBaseDescription" }
-						}],
+					"Fn::If": [
+						"AttachKnowledgeBase",
+						[
+							{
+								"KnowledgeBaseId": {
+									"Ref": "knowledgeBaseId"
+								},
+								"Description": {
+									"Ref": "knowledgeBaseDescription"
+								}
+							}
+						],
 						{
-							"Ref" : "AWS::NoValue"
-					    }
-					]				
+							"Ref": "AWS::NoValue"
+						}
+					]
 				},
 				"AutoPrepare": true,
 				"Description": "Test of the use of actions groups to allow the agent to make Synapse API calls.",
