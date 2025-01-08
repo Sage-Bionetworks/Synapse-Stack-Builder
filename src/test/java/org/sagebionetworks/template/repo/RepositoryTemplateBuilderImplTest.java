@@ -21,11 +21,13 @@ import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_KEYPAIR_I
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.DELETION_POLICY;
-import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_MEMORY;
+import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
+import static org.sagebionetworks.template.Constants.IDENTITY_ARN;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.NOSNAPSHOT;
+import static org.sagebionetworks.template.Constants.OPS_VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
 import static org.sagebionetworks.template.Constants.PARAM_KEY_TIME_TO_LIVE;
@@ -36,32 +38,33 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_NUMB
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERSION;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_KEYPAIR_ID;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_MEMORY;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OAUTH_ENDPOINT;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_IOPS;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_THROUGHPUT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_MULTI_AZ;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_STORAGE_TYPE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_THROUGHPUT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ROUTE_53_HOSTED_ZONE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_INSTANCE_COUNT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_IOPS;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_THROUGHPUT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_THROUGHPUT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_COLOR;
 import static org.sagebionetworks.template.Constants.REPO_BEANSTALK_NUMBER;
 import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
@@ -100,6 +103,7 @@ import org.sagebionetworks.template.Ec2Client;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
+import org.sagebionetworks.template.WaitConditionHandler;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.config.TimeToLive;
 import org.sagebionetworks.template.repo.agent.BedrockAgentContextProvider;
@@ -123,6 +127,8 @@ import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest
 import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformFilter;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
+import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -157,6 +163,10 @@ public class RepositoryTemplateBuilderImplTest {
 	private CloudwatchLogsVelocityContextProvider mockCwlContextProvider;
 	@Mock
 	private TimeToLive mockTimeToLive;
+	@Mock
+	private AWSSecurityTokenService mockStsClient;
+	@Mock
+	private WaitConditionHandler mockWaitConditionHandler;
 	@Captor
 	private ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
 
@@ -165,6 +175,7 @@ public class RepositoryTemplateBuilderImplTest {
 	private RepositoryTemplateBuilderImpl builderSpy;
 
 	private String stack;
+	private String opsStackPrefix;
 	private String instance;
 	private String vpcSubnetColor;
 	
@@ -188,15 +199,18 @@ public class RepositoryTemplateBuilderImplTest {
 		expectedTags.add(t);
 
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
+		
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2, new BedrockAgentContextProvider(config)),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
-				mockEc2Client, mockBeanstalkClient, mockTimeToLive);
+				mockEc2Client, mockBeanstalkClient, mockTimeToLive, mockStsClient, Set.of(mockWaitConditionHandler));
+		
 		builderSpy = Mockito.spy(builder);
 
 		stack = "dev";
 		instance = "101";
 		vpcSubnetColor = Color.Green.name();
+		opsStackPrefix = "ops-vpc";
 
 		sharedResouces = new Stack();
 		Output dbOut = new Output();
@@ -210,7 +224,7 @@ public class RepositoryTemplateBuilderImplTest {
 		Output tableDBOutput2 = new Output();
 		tableDBOutput2.withOutputKey(stack + instance + "Table1" + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
 		tableDBOutput2.withOutputValue(stack + "-" + instance + "-table-1." + databaseEndpointSuffix);
-
+		
 		sharedResouces.withOutputs(dbOut, tableDBOutput1, tableDBOutput2);
 
 		secretsSouce = new SourceBundle("secretBucket", "secretKey");
@@ -221,17 +235,27 @@ public class RepositoryTemplateBuilderImplTest {
 	}
 
 	private void configureStack(String inputStack) throws InterruptedException {
+		when(mockStsClient.getCallerIdentity(any())).thenReturn(new GetCallerIdentityResult().withArn("currentIdentityArn"));
 		stack = inputStack;
+		
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		
+		
 		sharedResouces = new Stack();
-		Output dbOut = new Output();
-		dbOut.withOutputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
+		
 		databaseEndpointSuffix = "something.amazon.com";
-		dbOut.withOutputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix);
-		sharedResouces.withOutputs(dbOut);
+		
+		sharedResouces.withOutputs(
+			new Output()
+				.withOutputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
+				.withOutputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix), 
+			new Output()
+				.withOutputKey("SynapseHelpCollectionEndpoint")
+				.withOutputValue("synhelp-endpoint")
+		);
 
-		when(mockCloudFormationClient.waitForStackToComplete(any(String.class)))
-				.thenReturn(Optional.of(sharedResouces));
+		when(mockCloudFormationClient.waitForStackToComplete(any(String.class), any())).thenReturn(Optional.of(sharedResouces));
+		
 	}
 
 	@Test
@@ -258,7 +282,8 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(15000);
-
+		when(config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn(opsStackPrefix);
+		
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
 			when(config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName())).thenReturn(version);
@@ -300,6 +325,8 @@ public class RepositoryTemplateBuilderImplTest {
 		builder.buildAndDeploy();
 
 		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClient).waitForStackToComplete("prod-101-shared-resources", Set.of(mockWaitConditionHandler));
+		
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
 		assertEquals("prod-101-shared-resources", request.getStackName());
@@ -309,7 +336,7 @@ public class RepositoryTemplateBuilderImplTest {
 		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);
 		JSONObject templateJson = new JSONObject(bodyJSONString);
-		
+				
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		assertNotNull(resources);
 		// database group
@@ -354,7 +381,9 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(15000, tDbProps.getInt("StorageThroughput"));
 		
 		assertFalse(resources.has("WebhookTestApi"));
-		
+		assertTrue(resources.has("SynapseHelpCollection"));
+		assertTrue(resources.has("SynapseHelpKnowledgeBaseExecutionRole"));
+		assertTrue(resources.has("SynapseHelpKnowledgeBase"));
 		assertTrue(resources.has("bedrockAgentRole"));
 		assertTrue(resources.has("bedrockAgent"));
 		assertEquals("prod-101-agent", resources.getJSONObject("bedrockAgent").getJSONObject("Properties").get("AgentName"));
@@ -384,7 +413,8 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(-1);
-
+		when(config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn(opsStackPrefix);
+		
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
 			when(config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName())).thenReturn(version);
@@ -505,7 +535,8 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(15000);
-
+		when(config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn(opsStackPrefix);
+			
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
 			when(config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName())).thenReturn(version);
@@ -546,6 +577,8 @@ public class RepositoryTemplateBuilderImplTest {
 		builder.buildAndDeploy();
 
 		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClient).waitForStackToComplete("dev-101-shared-resources", Set.of(mockWaitConditionHandler));
+		
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
 		assertEquals("dev-101-shared-resources", request.getStackName());
@@ -598,7 +631,9 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(15000, tDbProps.getInt("StorageThroughput"));
 
 		assertTrue(resources.has("WebhookTestApi"));
-		
+		assertTrue(resources.has("SynapseHelpCollection"));
+		assertTrue(resources.has("SynapseHelpKnowledgeBaseExecutionRole"));
+		assertTrue(resources.has("SynapseHelpKnowledgeBase"));
 		assertTrue(resources.has("bedrockAgentRole"));
 		assertTrue(resources.has("bedrockAgent"));
 		assertEquals("dev-101-agent", resources.getJSONObject("bedrockAgent").getJSONObject("Properties").get("AgentName"));
@@ -628,7 +663,8 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(1000);
-
+		when(config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn(opsStackPrefix);
+		
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
 			when(config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName())).thenReturn(version);
@@ -900,12 +936,13 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(1000);
 		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("true");
-
 //		
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
 		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
-
+		when(mockStsClient.getCallerIdentity(any())).thenReturn(new GetCallerIdentityResult().withArn("currentIdentityArn"));
+		when(config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn(opsStackPrefix);
+		
 		// call under test
 		VelocityContext context = builder.createSharedContext();
 
@@ -915,6 +952,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("Green", context.get(VPC_SUBNET_COLOR));
 		assertEquals("dev-101-shared-resources", context.get(SHARED_RESOUCES_STACK_NAME));
 		assertEquals("us-east-1-synapse-dev-vpc-2", context.get(VPC_EXPORT_PREFIX));
+		assertEquals(opsStackPrefix, context.get(OPS_VPC_EXPORT_PREFIX));
 		
 		assertEquals("Count:{}", context.get(ADMIN_RULE_ACTION));
 		assertEquals("Delete", context.get(DELETION_POLICY));
@@ -988,7 +1026,8 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
 		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
-
+		when(mockStsClient.getCallerIdentity(any())).thenReturn(new GetCallerIdentityResult().withArn("currentIdentityArn"));
+		
 		// call under test
 		VelocityContext context = builder.createSharedContext();
 
@@ -1001,6 +1040,7 @@ public class RepositoryTemplateBuilderImplTest {
 		
 		assertEquals("Block:{}", context.get(ADMIN_RULE_ACTION));
 		assertEquals("Retain", context.get(DELETION_POLICY));
+		assertEquals("currentIdentityArn", context.get(IDENTITY_ARN));
 	}
 
 

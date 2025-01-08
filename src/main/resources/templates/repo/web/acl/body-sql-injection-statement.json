@@ -79,6 +79,14 @@
 										"SearchString": "/Portal/synapseclient",
 										"TextTransformations": [ { "Priority": 0, "Type": "NONE" } ]
 									}
+								},
+								{
+									"ByteMatchStatement": {
+										"FieldToMatch": { "UriPath": { } },
+										"PositionalConstraint": "EXACTLY",
+										"SearchString": "/Portal/discussionforumclient",
+										"TextTransformations": [ { "Priority": 0, "Type": "NONE" } ]
+									}
 								}
 							]
 						}

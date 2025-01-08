@@ -1,13 +1,28 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
-	"Description": "This tempalte contains all of the resources needed to create the base Synapse Bedrock Agent",
+	"Description": "This template contains all of the resources needed to create the base Synapse Bedrock Agent.",
 	"Parameters": {
 		"agentName": {
 			"Description": "Provide a unique name for this bedrock agent.",
 			"Type": "String",
 			"AllowedPattern": "^([0-9a-zA-Z][_-]?){1,100}$"
+		},
+		"knowledgeBaseId": {
+			"Description": "Provide the id of a knowledge base that will be associated to this bedrock agent.",
+			"Type": "String",
+			"Default": "",
+			"AllowedPattern": "^([0-9a-zA-Z]{10})?$"
+		},
+		"knowledgeBaseDescription": {
+			"Description": "Provide the description for the knowledge base that will be associated to this bedrock agent.",
+			"Type": "String",
+			"Default": "This knowledge base contains the Synapse help documentation. You can use it to answer questions around Synapse usage and its features.",
+			"MaxLength": 200
 		}
 	},
+	"Conditions": {
+    	"AttachKnowledgeBase": {"Fn::Not": [{"Fn::Equals" : [{"Ref" : "knowledgeBaseId"}, ""]}]}
+  	},
 	"Resources": {
 		"bedrockAgentRole": {
 			"Type": "AWS::IAM::Role",
@@ -44,10 +59,32 @@
 							"Statement": [
 								{
 									"Effect": "Allow",
-									"Action": "bedrock:InvokeModel",
+									"Action": [ 
+										"bedrock:InvokeModel",
+										"bedrock:InvokeModelWithResponseStream"
+									],
 									"Resource": [
 										{
 											"Fn::Sub": "arn:aws:bedrock:${AWS::Region}::foundation-model/*"
+										}
+									]
+								},
+								{
+									"Fn::If" : [ "AttachKnowledgeBase",
+										{
+								            "Effect": "Allow",
+								            "Action": [
+								                "bedrock:Retrieve",
+								                "bedrock:RetrieveAndGenerate"
+								            ],
+								            "Resource": [
+												{
+													"Fn::Sub": "arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:knowledge-base/${knowledgeBaseId}"
+												}
+								            ]
+								        },
+										{
+											"Ref" : "AWS::NoValue"
 										}
 									]
 								}
@@ -135,6 +172,17 @@
 						"bedrockAgentRole",
 						"Arn"
 					]
+				},
+				"KnowledgeBases": {
+					"Fn::If" : [ "AttachKnowledgeBase",	
+						[{
+							  "KnowledgeBaseId" : { "Ref" : "knowledgeBaseId" },
+							  "Description" : { "Ref" : "knowledgeBaseDescription" }
+						}],
+						{
+							"Ref" : "AWS::NoValue"
+					    }
+					]				
 				},
 				"AutoPrepare": true,
 				"Description": "Test of the use of actions groups to allow the agent to make Synapse API calls.",

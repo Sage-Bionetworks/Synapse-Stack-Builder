@@ -70,6 +70,7 @@ public class Constants {
 	public static final String PROPERTY_KEY_VPC_ENDPOINTS_AZ = "org.sagebionetworks.vpc.endpoints.availability.zones";
 	public static final String PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN = "org.sagebionetworks.vpc.peering.accept.role.arn";
 	public static final String PROPERTY_KEY_OLD_VPC_CIDR = "org.sagebionetworks.vpc.old.vpc.cidr";
+	public static final String PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX = "org.sagebionetworks.vpc.ops.export.prefix";
 	// repo
 	public static final String PROPERTY_KEY_STACK = "org.sagebionetworks.stack";
 	public static final String PROPERTY_KEY_INSTANCE = "org.sagebionetworks.instance";
@@ -221,6 +222,8 @@ public class Constants {
 	public static final String HOSTED_ZONE = "hostedZone";
 	public static final String VPC_ENDPOINTS_COLOR = "vpcEndpointsColor";
 	public static final String VPC_ENDPOINTS_AZ = "vpcEndpointsAz";
+	public static final String IDENTITY_ARN = "identityArn";
+	public static final String OPS_VPC_EXPORT_PREFIX = "opsVpcExportPrefix";
 
 	public static final String CAPABILITY_NAMED_IAM = "CAPABILITY_NAMED_IAM";
 	public static final String OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT = "RepositoryDBEndpoint";
