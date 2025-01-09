@@ -1,13 +1,18 @@
 {
 	"openapi": "3.0.0",
+	"info": {
+		"title": "CRUD Opperations Schema",
+		"version": "v1"
+	},
 	"paths": {
-		"/get/entity/type/{entityId}": {
-			"method": {
-				"description": "Get the type of an entity",
-				"operationId": "org_sage_one_get_entity_type",
+		"/entity/{entityId}/annotations": {
+			"get": {
+				"description": "Get the annotations of an entity.",
+				"operationId": "orgSageOneEntityAnnotationsGet",
 				"parameters": [
 					{
 						"name": "entityId",
+						"description": "The 'syn' Id of the entity to get the annotations for.",
 						"in": "path",
 						"required": true,
 						"schema": {
@@ -21,24 +26,110 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/org.sagebionetworks.entity.type"
+									"$ref": "#/components/schemas/org.sagebionetworks.repo.model.annotation.v2.Annotations"
 								}
 							}
 						}
 					}
 				},
 				"x-requireConfirmation": "DISABLED"
+			},
+			"put": {
+				"description": "Set the annotations of an entity.",
+				"operationId": "orgSageOneEntityAnnotationsPut",
+				"parameters": [
+					{
+						"name": "entityId",
+						"description": "The 'syn' of the target Entity.",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/org.sagebionetworks.repo.model.annotation.v2.Annotations"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "the updated annotations",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/org.sagebionetworks.repo.model.annotation.v2.Annotations"
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 	},
 	"components": {
-		"schema": {
-			"org.sagebionetworks.entity.type": {
+		"schemas": {
+			"org.sagebionetworks.repo.model.annotation.v2.Annotations": {
+				"type": "object",
+				"description": "Each annotation is a key-value pair of metadata for an Entity.",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "The 'syn' ID of the Entity"
+					},
+					"etag": {
+						"type": "string",
+						"description": "The current etag of the Entity. The etag of an Entity will change each time an Entity is updated. An annotations update request will be rejected if provided etag does not match the current etag of the Entity."
+					},
+					"annotations": {
+						"type": "object",
+						"description": "Annotations are a map of key-value pairs. The key is the name of the annotation. The value is an object.",
+						"additionalProperties": {
+							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.annotation.v2.AnnotationsValue"
+						}
+					}
+				},
+				"required": [
+					"id",
+					"etag",
+					"annotations"
+				]
+			},
+			"org.sagebionetworks.repo.model.annotation.v2.AnnotationsValue": {
+				"type": "object",
+				"description": "This object defines the value of an annotation.",
+				"properties": {
+					"type": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.annotation.v2.AnnotationsValueType"
+					},
+					"value": {
+						"type": "array",
+						"description": "The annotation's value must include one or more strings.  See the 'type' to determine how each string should be parsed. An empty array is not allowed.",
+						"items": {
+							"type": "string"
+						}
+					}
+				},
+				"required": [
+					"type",
+					"value"
+				]
+			},
+			"org.sagebionetworks.repo.model.annotation.v2.AnnotationsValueType": {
 				"type": "string",
+				"description": "The annotation's type defines how each string value should be parsed.",
 				"enum": [
-					"project",
-					"folder",
-					"file"
+					"STRING",
+					"DOUBLE",
+					"LONG",
+					"TIMESTAMP_MS",
+					"BOOLEAN"
 				]
 			}
 		}
