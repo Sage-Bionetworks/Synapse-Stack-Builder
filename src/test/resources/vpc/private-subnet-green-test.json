@@ -335,6 +335,7 @@
                          {"Ref": "GreenPrivateUsEast1a"},
                          {"Ref": "GreenPrivateUsEast1c"}
                     ],
+                    "SecurityGroupIds": [{"Ref": "VPCEndpointSecurityGroup"}],
                     "Tags": [{
                          "Key": "Name",
                          "Value": "bedrock-vpce"
@@ -361,6 +362,7 @@
                          {"Ref": "GreenPrivateUsEast1a"},
                          {"Ref": "GreenPrivateUsEast1c"}
                     ],
+                    "SecurityGroupIds": [{"Ref": "VPCEndpointSecurityGroup"}],
                     "Tags": [{
                          "Key": "Name",
                          "Value": "bedrock-agent-vpce"
@@ -387,6 +389,7 @@
                          {"Ref": "GreenPrivateUsEast1a"},
                          {"Ref": "GreenPrivateUsEast1c"}
                     ],
+                    "SecurityGroupIds": [{"Ref": "VPCEndpointSecurityGroup"}],
                     "Tags": [{
                          "Key": "Name",
                          "Value": "bedrock-runtime-vpce"
@@ -413,6 +416,7 @@
                          {"Ref": "GreenPrivateUsEast1a"},
                          {"Ref": "GreenPrivateUsEast1c"}
                     ],
+                    "SecurityGroupIds": [{"Ref": "VPCEndpointSecurityGroup"}],
                     "Tags": [{
                          "Key": "Name",
                          "Value": "bedrock-agent-runtime-vpce"
