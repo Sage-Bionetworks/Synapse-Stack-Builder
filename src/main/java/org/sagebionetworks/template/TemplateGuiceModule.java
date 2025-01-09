@@ -11,6 +11,7 @@ import static org.sagebionetworks.template.Constants.SNS_AND_SQS_CONFIG_FILE;
 import static org.sagebionetworks.template.TemplateUtils.loadFromJsonFile;
 
 import java.io.IOException;
+import java.time.Duration;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -138,7 +139,9 @@ import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 
+import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
@@ -387,7 +390,8 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	
 	@Provides
 	public BedrockAgentClient bedrockAgentClientProvider() {
-		return BedrockAgentClient.builder().region(Region.US_EAST_1).build();
+		return BedrockAgentClient.builder().region(Region.US_EAST_1)
+				.httpClientBuilder(ApacheHttpClient.builder().connectionTimeout(Duration.ofMinutes(2))).build();
 	}
 	
 	@Provides
