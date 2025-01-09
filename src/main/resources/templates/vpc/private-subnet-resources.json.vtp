@@ -226,7 +226,7 @@
                 #end
               #end
            ],
-           "VpcEndpointType": "interface",
+           "VpcEndpointType": "Interface",
            "VpcId": { "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-VPCId" } }
         }
     }

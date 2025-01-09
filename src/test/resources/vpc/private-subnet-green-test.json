@@ -335,7 +335,7 @@
                          {"Ref": "GreenPrivateUsEast1a"},
                          {"Ref": "GreenPrivateUsEast1c"}
                     ],
-                    "VpcEndpointType": "interface",
+                    "VpcEndpointType": "Interface",
                     "VpcId": {"Fn::ImportValue": {"Fn::Sub": "${AWS::Region}-synapse-dev-vpc-2-VPCId"}}
                }
           },
@@ -357,7 +357,7 @@
                          {"Ref": "GreenPrivateUsEast1a"},
                          {"Ref": "GreenPrivateUsEast1c"}
                     ],
-                    "VpcEndpointType": "interface",
+                    "VpcEndpointType": "Interface",
                     "VpcId": {"Fn::ImportValue": {"Fn::Sub": "${AWS::Region}-synapse-dev-vpc-2-VPCId"}}
                }
           },
@@ -379,7 +379,7 @@
                          {"Ref": "GreenPrivateUsEast1a"},
                          {"Ref": "GreenPrivateUsEast1c"}
                     ],
-                    "VpcEndpointType": "interface",
+                    "VpcEndpointType": "Interface",
                     "VpcId": {"Fn::ImportValue": {"Fn::Sub": "${AWS::Region}-synapse-dev-vpc-2-VPCId"}}
                }
           },
@@ -401,7 +401,7 @@
                          {"Ref": "GreenPrivateUsEast1a"},
                          {"Ref": "GreenPrivateUsEast1c"}
                     ],
-                    "VpcEndpointType": "interface",
+                    "VpcEndpointType": "Interface",
                     "VpcId": {"Fn::ImportValue": {"Fn::Sub": "${AWS::Region}-synapse-dev-vpc-2-VPCId"}}
                }
           }
