@@ -226,6 +226,7 @@
                 #end
               #end
            ],
+           "Tags": [ {"Key": "Name", "Value": "${vpcEndpointSvc}-vpce" } ],
            "VpcEndpointType": "Interface",
            "VpcId": { "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-VPCId" } }
         }

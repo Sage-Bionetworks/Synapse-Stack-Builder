@@ -335,6 +335,10 @@
                          {"Ref": "GreenPrivateUsEast1a"},
                          {"Ref": "GreenPrivateUsEast1c"}
                     ],
+                    "Tags": [{
+                         "Key": "Name",
+                         "Value": "bedrock-vpce"
+                    }],
                     "VpcEndpointType": "Interface",
                     "VpcId": {"Fn::ImportValue": {"Fn::Sub": "${AWS::Region}-synapse-dev-vpc-2-VPCId"}}
                }
@@ -357,6 +361,10 @@
                          {"Ref": "GreenPrivateUsEast1a"},
                          {"Ref": "GreenPrivateUsEast1c"}
                     ],
+                    "Tags": [{
+                         "Key": "Name",
+                         "Value": "bedrock-agent-vpce"
+                    }],
                     "VpcEndpointType": "Interface",
                     "VpcId": {"Fn::ImportValue": {"Fn::Sub": "${AWS::Region}-synapse-dev-vpc-2-VPCId"}}
                }
@@ -379,6 +387,10 @@
                          {"Ref": "GreenPrivateUsEast1a"},
                          {"Ref": "GreenPrivateUsEast1c"}
                     ],
+                    "Tags": [{
+                         "Key": "Name",
+                         "Value": "bedrock-runtime-vpce"
+                    }],
                     "VpcEndpointType": "Interface",
                     "VpcId": {"Fn::ImportValue": {"Fn::Sub": "${AWS::Region}-synapse-dev-vpc-2-VPCId"}}
                }
@@ -401,6 +413,10 @@
                          {"Ref": "GreenPrivateUsEast1a"},
                          {"Ref": "GreenPrivateUsEast1c"}
                     ],
+                    "Tags": [{
+                         "Key": "Name",
+                         "Value": "bedrock-agent-runtime-vpce"
+                    }],
                     "VpcEndpointType": "Interface",
                     "VpcId": {"Fn::ImportValue": {"Fn::Sub": "${AWS::Region}-synapse-dev-vpc-2-VPCId"}}
                }
