@@ -38,6 +38,7 @@ import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.Configuration;
 
+import java.util.List;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.google.inject.Inject;
 
@@ -48,6 +49,8 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
     Configuration config;
     Logger logger;
     StackTagsProvider stackTagsProvider;
+
+    final List<String> VPC_ENDPOINT_SERVICES = List.of("bedrock", "bedrock-agent", "bedrock-runtime", "bedrock-agent-runtime");
 
     @Inject
     public SubnetTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
@@ -128,18 +131,18 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
         builder.withSubnetMask(VPC_SUBNET_NETWORK_MASK);
         builder.withColorGroupNetMaskSubnetMask(VPC_COLOR_GROUP_NETWORK_MASK);
         builder.withAvailabilityZones(availabilityZones);
+        builder.withVpcEndpointServices(VPC_ENDPOINT_SERVICES);
         Subnets subnets = builder.build();
 
         context.put(SUBNETS, subnets);
         context.put(STACK, config.getProperty(PROPERTY_KEY_STACK));
         context.put(VPC_STACKNAME, String.format(VPC_STACK_NAME_FORMAT, config.getProperty(PROPERTY_KEY_STACK))); // Change this!
+        context.put("vpcEndpointServices", VPC_ENDPOINT_SERVICES);
         context.put(VPC_ENDPOINTS_COLOR, config.getProperty(PROPERTY_KEY_VPC_ENDPOINTS_COLOR));
         context.put(VPC_ENDPOINTS_AZ, config.getProperty(PROPERTY_KEY_VPC_ENDPOINTS_AZ));
                 
         return context;
     }
-
-
 
     String createPublicSubnetsStackName() {
         return String.format(VPC_PUBLIC_SUBNETS_STACKNAME_FORMAT, config.getProperty(PROPERTY_KEY_STACK));

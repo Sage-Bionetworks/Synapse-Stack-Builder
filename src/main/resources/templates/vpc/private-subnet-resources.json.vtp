@@ -200,8 +200,41 @@
 			],
 			"SecurityGroupIds": [{ "Ref": "VPCEndpointSecurityGroup" }]
 		}
-	}
+	},
+    #foreach( $vpcEndpointSvc in $vpcEndpointServices )
+    "${vpcEndpointSvc.replaceAll("-", "")}VPCEndpoint": {
+        "Type":"AWS::EC2::VPCEndpoint",
+        "Properties": {
+           "PolicyDocument":{
+              "Version":"2012-10-17",
+              "Statement":[
+                 {
+                    "Effect":"Allow",
+                    "Principal": "*",
+                    "Action": "*",
+                    "Resource": "*"
+                 }
+              ]
+           },
+           "PrivateDnsEnabled": true,
+           "ServiceName": { "Fn::Sub": "com.amazonaws.#[[${AWS::Region}]]#.${vpcEndpointSvc}" },
+           "SubnetIds": [
+              #foreach( $privateSubnet in $subnetGroup.subnets )
+                #if ($vpcEndpointsAz.contains(${privateSubnet.availabilityZone}))
+                {"Ref": "${privateSubnet.name}"}
+                #if( $foreach.hasNext),#end
+                #end
+              #end
+           ],
+           "SecurityGroupIds": [{ "Ref": "VPCEndpointSecurityGroup" }],
+           "Tags": [ {"Key": "Name", "Value": "${vpcEndpointSvc}-vpce" } ],
+           "VpcEndpointType": "Interface",
+           "VpcId": { "Fn::ImportValue": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-VPCId" } }
+        }
+    }
+    #if( $foreach.hasNext),#end
     #end
+	#end
     },
     "Outputs": {
         "PrivateSubnets": {
@@ -210,11 +243,9 @@
                 "Fn::Join": [
                     ", ",
                     [
-                        #set($i = 0)
                         #foreach( $privateSubnet in $subnetGroup.subnets )
-                        #if( $i > 0 ) , #end
-                        {"Ref": "${privateSubnet.name}"}
-                        #set($i = $i+1)
+                            {"Ref": "${privateSubnet.name}"}
+                            #if( $foreach.hasNext),#end
                         #end
                     ]
                 ]
@@ -242,11 +273,9 @@
                 "Fn::Join": [
                     ", ",
                     [
-                        #set($i = 0)
                         #foreach( $privateSubnet in $subnetGroup.subnets )
-                        #if( $i > 0 ) , #end
-                        {"Ref": "${privateSubnet.name}RouteTable"}
-                        #set($i = $i+1)
+                            {"Ref": "${privateSubnet.name}RouteTable"}
+                            #if( $foreach.hasNext),#end
                         #end
                     ]
                 ]
@@ -299,7 +328,17 @@
 		    		"Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-open-search-vpce"
                 }
 		    }
+        },
+        #foreach( $vpcEndpointSvc in $vpcEndpointServices )
+        "${vpcEndpointSvc.replaceAll("-", "")}VPCEndpoint": {
+            "Description": "The Id of the VPC endpoint used to access Bedrock from the VPC",
+            "Value": { "Ref": "${vpcEndpointSvc.replaceAll("-", "")}VPCEndpoint" },
+            "Export": {
+                "Name": { "Fn::Sub": "#[[${AWS::Region}]]#-${vpcStackName}-${vpcEndpointSvc.replaceAll("-", "")}-vpce" }
+            }
         }
+        #if( $foreach.hasNext),#end
+        #end
         #end
     }
 }

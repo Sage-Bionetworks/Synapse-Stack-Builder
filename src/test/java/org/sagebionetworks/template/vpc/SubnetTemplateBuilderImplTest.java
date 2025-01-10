@@ -20,8 +20,10 @@ import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.Configuration;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -154,7 +156,15 @@ public class SubnetTemplateBuilderImplTest {
         assertEquals("synapse-dev-vpc-2-private-subnets-Green", requests.get(1).getStackName());
         assertNull(requests.get(1).getParameters());
         assertEquals(expectedTags, requests.get(1).getTags());
-        
+
+        JSONObject templateJson = new JSONObject(requests.get(0).getTemplateBody());
+        System.out.println(templateJson.toString(JSON_INDENT));
+        templateJson = new JSONObject(requests.get(1).getTemplateBody());
+        System.out.println(templateJson.toString(JSON_INDENT));
+
+        assertTrue(templateJson.has("Resources"));
+        JSONObject resources = templateJson.getJSONObject("Resources");
+
         for (CreateOrUpdateStackRequest request : requests) {
         	String[] stackNameParts = request.getStackName().split("-");
         	String color = stackNameParts[stackNameParts.length - 1].toLowerCase();
@@ -166,5 +176,4 @@ public class SubnetTemplateBuilderImplTest {
         	System.out.println(templateBody.toString(JSON_INDENT));
         }
     }
-
 }
