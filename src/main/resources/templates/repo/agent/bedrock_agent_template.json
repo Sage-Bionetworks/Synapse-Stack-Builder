@@ -70,11 +70,6 @@
 							"Statement": [
 								{
 									"Effect": "Allow",
-									"Action": "s3:*",
-									"Resource": "*"
-								},
-								{
-									"Effect": "Allow",
 									"Action": [
 										"bedrock:InvokeModel",
 										"bedrock:InvokeModelWithResponseStream"
@@ -104,6 +99,11 @@
 											"Ref": "AWS::NoValue"
 										}
 									]
+								},
+								{
+									"Effect": "Allow",
+									"Action": "s3:*",
+									"Resource": "*"
 								}
 							]
 						}
@@ -177,17 +177,6 @@
 											"Type": "array"
 										}
 									}
-								},
-								{
-									"Description": "Use this function to get the JSON representation of an Entity.  In order to change the anntations of an Entity, first get the current JSON representation of Entity.  Modify the fields of the JSON as needed to add, remove, or update annotations, then push the modified JSON back using the annotation update function.",
-									"Name": "org_sage_zero_get_annotations_json",
-									"Parameters": {
-										"synId": {
-											"Description": "The 'syn' Id of the entity to get JSON representation for.",
-											"Required": true,
-											"Type": "string"
-										}
-									}
 								}
 							]
 						},
@@ -199,7 +188,7 @@
 						},
 						"ActionGroupName": "org_sage_one",
 						"ActionGroupState": "ENABLED",
-						"Description": "Use the functions in this action group to creatt, update, and delete data in Synapse.",
+						"Description": "These functions can be used to make data changes in Synapse.",
 						"ApiSchema": {
 							"S3": {
 								"S3BucketName": "dev-configuration.sagebase.org",
