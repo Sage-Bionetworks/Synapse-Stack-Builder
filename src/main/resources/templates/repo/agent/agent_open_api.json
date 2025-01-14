@@ -31,12 +31,12 @@
 							}
 						}
 					}
-				},
-				"x-requireConfirmation": "DISABLED"
+				}
 			},
 			"put": {
 				"description": "Set the annotations of an entity.",
 				"operationId": "orgSageOneEntityAnnotationsPut",
+				"x-requireConfirmation": "ENABLED",
 				"parameters": [
 					{
 						"name": "entityId",
