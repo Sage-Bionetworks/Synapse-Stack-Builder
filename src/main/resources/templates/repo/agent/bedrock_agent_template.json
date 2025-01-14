@@ -18,6 +18,16 @@
 			"Type": "String",
 			"Default": "This knowledge base contains the Synapse help documentation. You can use it to answer questions around Synapse usage and its features.",
 			"MaxLength": 200
+		},
+		"openApiSchemaS3Bucket": {
+			"Description": "The name of the S3 bucket containing the Open API Schema definition JSON file.",
+			"Type": "String",
+			"AllowedPattern": "^([0-9a-zA-Z][_-]?){1,100}$"
+		},
+		"openApiSchemaS3Key": {
+			"Description": "The S3 key of the Open API Schema definition JSON file.",
+			"Type": "String",
+			"AllowedPattern": "^([0-9a-zA-Z][_-]?){1,100}$"
 		}
 	},
 	"Conditions": {
@@ -191,8 +201,12 @@
 						"Description": "These functions can be used to make data changes in Synapse.",
 						"ApiSchema": {
 							"S3": {
-								"S3BucketName": "dev-configuration.sagebase.org",
-								"S3ObjectKey": "templates/agent_open_api.json"
+								"S3BucketName": {
+									"Ref": "openApiSchemaS3Bucket"
+								},
+								"S3ObjectKey": {
+									"Ref": "openApiSchemaS3Key"
+								}
 							}
 						}
 					}

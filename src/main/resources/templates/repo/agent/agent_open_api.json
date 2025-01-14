@@ -21,7 +21,7 @@
 					}
 				],
 				"responses": {
-					"201": {
+					"200": {
 						"description": "Auto-generated description",
 						"content": {
 							"application/json": {
@@ -59,7 +59,7 @@
 					"required": true
 				},
 				"responses": {
-					"200": {
+					"201": {
 						"description": "the updated annotations",
 						"content": {
 							"application/json": {
