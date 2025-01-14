@@ -388,7 +388,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	
 	@Provides
 	public BedrockAgentClient bedrockAgentClientProvider() {
-		return BedrockAgentClient.builder().region(Region.US_EAST_1).build();;
+		return BedrockAgentClient.builder().region(Region.US_EAST_1).build();
 	}
 	
 	@Provides
