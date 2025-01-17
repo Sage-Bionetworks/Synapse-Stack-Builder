@@ -18,11 +18,32 @@
 			"Type": "String",
 			"Default": "This knowledge base contains the Synapse help documentation. You can use it to answer questions around Synapse usage and its features.",
 			"MaxLength": 200
+		},
+		"openApiSchemaS3Bucket": {
+			"Description": "The name of the S3 bucket containing the Open API Schema definition JSON file.",
+			"Type": "String",
+			"AllowedPattern": "^([0-9a-zA-Z][_-]?){1,100}$"
+		},
+		"openApiSchemaS3Key": {
+			"Description": "The S3 key of the Open API Schema definition JSON file.",
+			"Type": "String",
+			"AllowedPattern": "^([0-9a-zA-Z][_-]?){1,100}$"
 		}
 	},
 	"Conditions": {
-    	"AttachKnowledgeBase": {"Fn::Not": [{"Fn::Equals" : [{"Ref" : "knowledgeBaseId"}, ""]}]}
-  	},
+		"AttachKnowledgeBase": {
+			"Fn::Not": [
+				{
+					"Fn::Equals": [
+						{
+							"Ref": "knowledgeBaseId"
+						},
+						""
+					]
+				}
+			]
+		}
+	},
 	"Resources": {
 		"bedrockAgentRole": {
 			"Type": "AWS::IAM::Role",
@@ -59,7 +80,7 @@
 							"Statement": [
 								{
 									"Effect": "Allow",
-									"Action": [ 
+									"Action": [
 										"bedrock:InvokeModel",
 										"bedrock:InvokeModelWithResponseStream"
 									],
@@ -70,23 +91,29 @@
 									]
 								},
 								{
-									"Fn::If" : [ "AttachKnowledgeBase",
+									"Fn::If": [
+										"AttachKnowledgeBase",
 										{
-								            "Effect": "Allow",
-								            "Action": [
-								                "bedrock:Retrieve",
-								                "bedrock:RetrieveAndGenerate"
-								            ],
-								            "Resource": [
+											"Effect": "Allow",
+											"Action": [
+												"bedrock:Retrieve",
+												"bedrock:RetrieveAndGenerate"
+											],
+											"Resource": [
 												{
 													"Fn::Sub": "arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:knowledge-base/${knowledgeBaseId}"
 												}
-								            ]
-								        },
+											]
+										},
 										{
-											"Ref" : "AWS::NoValue"
+											"Ref": "AWS::NoValue"
 										}
 									]
+								},
+								{
+									"Effect": "Allow",
+									"Action": "s3:*",
+									"Resource": "*"
 								}
 							]
 						}
@@ -164,9 +191,29 @@
 							]
 						},
 						"SkipResourceInUseCheckOnDelete": false
+					},
+					{
+						"ActionGroupExecutor": {
+							"CustomControl": "RETURN_CONTROL"
+						},
+						"ActionGroupName": "org_sage_one",
+						"ActionGroupState": "ENABLED",
+						"Description": "These functions can be used to make data changes in Synapse.",
+						"ApiSchema": {
+							"S3": {
+								"S3BucketName": {
+									"Ref": "openApiSchemaS3Bucket"
+								},
+								"S3ObjectKey": {
+									"Ref": "openApiSchemaS3Key"
+								}
+							}
+						}
 					}
 				],
-				"AgentName": { "Ref" : "agentName" },
+				"AgentName": {
+					"Ref": "agentName"
+				},
 				"AgentResourceRoleArn": {
 					"Fn::GetAtt": [
 						"bedrockAgentRole",
@@ -174,15 +221,22 @@
 					]
 				},
 				"KnowledgeBases": {
-					"Fn::If" : [ "AttachKnowledgeBase",	
-						[{
-							  "KnowledgeBaseId" : { "Ref" : "knowledgeBaseId" },
-							  "Description" : { "Ref" : "knowledgeBaseDescription" }
-						}],
+					"Fn::If": [
+						"AttachKnowledgeBase",
+						[
+							{
+								"KnowledgeBaseId": {
+									"Ref": "knowledgeBaseId"
+								},
+								"Description": {
+									"Ref": "knowledgeBaseDescription"
+								}
+							}
+						],
 						{
-							"Ref" : "AWS::NoValue"
-					    }
-					]				
+							"Ref": "AWS::NoValue"
+						}
+					]
 				},
 				"AutoPrepare": true,
 				"Description": "Test of the use of actions groups to allow the agent to make Synapse API calls.",

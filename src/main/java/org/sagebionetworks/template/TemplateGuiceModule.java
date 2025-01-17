@@ -11,6 +11,7 @@ import static org.sagebionetworks.template.Constants.SNS_AND_SQS_CONFIG_FILE;
 import static org.sagebionetworks.template.TemplateUtils.loadFromJsonFile;
 
 import java.io.IOException;
+import java.time.Duration;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;

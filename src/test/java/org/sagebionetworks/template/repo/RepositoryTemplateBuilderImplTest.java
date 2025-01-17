@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
@@ -127,6 +128,7 @@ import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest
 import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformFilter;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
 import com.google.common.collect.Lists;
@@ -167,8 +169,14 @@ public class RepositoryTemplateBuilderImplTest {
 	private AWSSecurityTokenService mockStsClient;
 	@Mock
 	private WaitConditionHandler mockWaitConditionHandler;
+	@Mock
+	private AmazonS3Client mockS3Client;
+	
 	@Captor
 	private ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
+	
+	@Captor
+	private ArgumentCaptor<String> jsonStringCaptor;
 
 	private VelocityEngine velocityEngine;
 	private RepositoryTemplateBuilderImpl builder;
@@ -201,7 +209,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 		
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
-				mockArtifactCopy, mockSecretBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2, new BedrockAgentContextProvider(config)),
+				mockArtifactCopy, mockSecretBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2, new BedrockAgentContextProvider(config, mockS3Client)),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
 				mockEc2Client, mockBeanstalkClient, mockTimeToLive, mockStsClient, Set.of(mockWaitConditionHandler));
 		
@@ -386,7 +394,27 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.has("SynapseHelpKnowledgeBase"));
 		assertTrue(resources.has("bedrockAgentRole"));
 		assertTrue(resources.has("bedrockAgent"));
-		assertEquals("prod-101-agent", resources.getJSONObject("bedrockAgent").getJSONObject("Properties").get("AgentName"));
+		JSONObject bedrockAgentProps = resources.getJSONObject("bedrockAgent").getJSONObject("Properties");
+		
+		assertEquals("prod-101-agent", bedrockAgentProps.get("AgentName"));
+		
+		validateOpenApiSchema(bedrockAgentProps);
+		
+	}
+
+	void validateOpenApiSchema(JSONObject bedrockAgentProps) {
+		JSONObject s3 = bedrockAgentProps.getJSONArray("ActionGroups").getJSONObject(1).getJSONObject("ApiSchema")
+				.getJSONObject("S3");
+		String openApiBucket = s3.getString("S3BucketName");
+		assertEquals("prod-configuration.sagebase.org", openApiBucket);
+		String openApiKey = s3.getString("S3ObjectKey");
+		assertTrue(openApiKey.startsWith("chat/openapi/101/"));
+		verify(mockS3Client).putObject(eq(openApiBucket), eq(openApiKey), jsonStringCaptor.capture());
+		
+		JSONObject openApiSchema = new JSONObject(jsonStringCaptor.getValue());
+		assertTrue(openApiSchema.has("openapi"));
+		assertTrue(openApiSchema.has("info"));
+		assertTrue(openApiSchema.has("paths"));
 	}
 
 	@Test

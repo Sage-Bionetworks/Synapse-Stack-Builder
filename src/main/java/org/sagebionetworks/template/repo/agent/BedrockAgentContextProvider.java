@@ -4,6 +4,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import java.util.StringJoiner;
+import java.util.UUID;
 
 import org.apache.velocity.VelocityContext;
 import org.json.JSONArray;
@@ -12,16 +13,19 @@ import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
 
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.google.inject.Inject;
 
 public class BedrockAgentContextProvider implements VelocityContextProvider {
 	
 	private final RepoConfiguration repoConfig;
+	private final AmazonS3Client s3Cient;
 
 	@Inject
-	public BedrockAgentContextProvider(RepoConfiguration repoConfig) {
+	public BedrockAgentContextProvider(RepoConfiguration repoConfig, AmazonS3Client s3Client) {
 		super();
 		this.repoConfig = repoConfig;
+		this.s3Cient = s3Client;
 	}
 
 	@Override
@@ -29,6 +33,13 @@ public class BedrockAgentContextProvider implements VelocityContextProvider {
 		String stack = repoConfig.getProperty(PROPERTY_KEY_STACK);
 		String instance = repoConfig.getProperty(PROPERTY_KEY_INSTANCE);
 		String agentName = new StringJoiner("-").add(stack).add(instance).add("agent").toString();
+		
+		String openApiSchemaBucket = String.format("%s-configuration.sagebase.org", stack);
+		String openApiSchemakey = String.format("chat/openapi/%s/%s.json", instance, UUID.randomUUID().toString());
+		
+		String openApiSchemJsonString = TemplateUtils.loadContentFromFile("templates/repo/agent/agent_open_api.json");
+		s3Cient.putObject(openApiSchemaBucket, openApiSchemakey, openApiSchemJsonString);
+
 
 		JSONObject baseTemplate = new JSONObject(TemplateUtils.loadContentFromFile("templates/repo/agent/bedrock_agent_template.json"));
 
@@ -59,6 +70,11 @@ public class BedrockAgentContextProvider implements VelocityContextProvider {
 			
 		kbProperty.getJSONObject("KnowledgeBaseId").put("Ref", "SynapseHelpKnowledgeBase");
 		kbProperty.put("Description", baseTemplate.getJSONObject("Parameters").getJSONObject("knowledgeBaseDescription").getString("Default"));
+		
+		JSONObject s3 = bedrockAgentProps.getJSONArray("ActionGroups").getJSONObject(1).getJSONObject("ApiSchema")
+				.getJSONObject("S3");
+		s3.put("S3BucketName", openApiSchemaBucket);
+		s3.put("S3ObjectKey", openApiSchemakey);
 		
 		bedrockAgentProps.put("AgentName", agentName);
 		String json = resources.toString();
