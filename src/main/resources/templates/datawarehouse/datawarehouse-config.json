@@ -1,6 +1,6 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
-	"version": "1.65.0",
+	"version": "1.66.0",
 	"extraScripts": ["utils.py","glue_job.py"],
 	"tableDescriptors": [{
 			"name": "processedaccessrecord",
@@ -319,6 +319,11 @@
 				"name": "version_history",
 				"type": "array<struct<id:string,versionNumber:bigint,versionLabel:string,versionComment:string,isLatestVersion:boolean,modifiedBy:string,contentSize:string,contentMd5:string,fileHandleId:string,modifiedByPrincipalId:string,modifiedOn:timestamp>>",
 				"comment": "The list of entity versions, at the time of the snapshot."
+			},
+			{
+				"name": "project_storage_usage",
+				"type": "struct<projectId:string,locations:array<struct<storageLocationId:bigint,maxAllowedFileBytes:bigint,sumFileBytes:bigint,isOverLimit:boolean>>>",
+				"comment": "For nodes of type project includes the project storage usage data for each storage location in the project."
 			}],
 			"partitionKeys":[{
 				"name": "snapshot_date",
