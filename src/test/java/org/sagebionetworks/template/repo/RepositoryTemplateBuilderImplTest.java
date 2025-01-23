@@ -394,6 +394,9 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.has("SynapseHelpKnowledgeBase"));
 		assertTrue(resources.has("bedrockAgentRole"));
 		assertTrue(resources.has("bedrockAgent"));
+		
+		assertTrue(resources.getJSONObject("bedrockAgentRole").toString().contains("arn:aws:s3:::prod-configuration.sagebase.org/chat/openapi/101.json"));
+		
 		JSONObject bedrockAgentProps = resources.getJSONObject("bedrockAgent").getJSONObject("Properties");
 		
 		assertEquals("prod-101-agent", bedrockAgentProps.get("AgentName"));
@@ -403,12 +406,13 @@ public class RepositoryTemplateBuilderImplTest {
 	}
 
 	void validateOpenApiSchema(JSONObject bedrockAgentProps) {
+
 		JSONObject s3 = bedrockAgentProps.getJSONArray("ActionGroups").getJSONObject(1).getJSONObject("ApiSchema")
 				.getJSONObject("S3");
 		String openApiBucket = s3.getString("S3BucketName");
 		assertEquals("prod-configuration.sagebase.org", openApiBucket);
 		String openApiKey = s3.getString("S3ObjectKey");
-		assertTrue(openApiKey.startsWith("chat/openapi/101/"));
+		assertEquals("chat/openapi/101.json",s3.getString("S3ObjectKey"));
 		verify(mockS3Client).putObject(eq(openApiBucket), eq(openApiKey), jsonStringCaptor.capture());
 		
 		JSONObject openApiSchema = new JSONObject(jsonStringCaptor.getValue());

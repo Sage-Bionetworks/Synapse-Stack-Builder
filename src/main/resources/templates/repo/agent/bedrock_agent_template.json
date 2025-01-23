@@ -112,7 +112,10 @@
 								},
 								{
 									"Effect": "Allow",
-									"Action": "s3:*",
+									"Action": [
+										"s3:ListObject",
+										"s3:GetObject"
+									],
 									"Resource": "*"
 								}
 							]
