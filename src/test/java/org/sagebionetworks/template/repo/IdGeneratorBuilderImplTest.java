@@ -1,35 +1,37 @@
 package org.sagebionetworks.template.repo;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.sagebionetworks.template.Constants.*;
+import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ID_GENERATOR_HOSTED_ZONE_ID;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_COLOR;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.CloudFormationClient;
-import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.TemplateGuiceModule;
+import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 
 import com.amazonaws.services.cloudformation.model.Parameter;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class IdGeneratorBuilderImplTest {
 
 	@Mock
@@ -49,7 +51,7 @@ public class IdGeneratorBuilderImplTest {
 	@Captor
 	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
 
-	@Before
+	@BeforeEach
 	public void before() {
 		// use a real velocity engine
 		velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
@@ -75,7 +77,7 @@ public class IdGeneratorBuilderImplTest {
 		builder.buildAndDeploy();
 		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
 		CreateOrUpdateStackRequest request = requestCaptor.getValue();
-		assertEquals("prod-id-generator-2-green", request.getStackName());
+		assertEquals("prod-id-generator-3-green", request.getStackName());
 		JSONObject template = new JSONObject(request.getTemplateBody());
 		JSONObject resources = template.getJSONObject("Resources");
 		assertTrue(resources.has("prodIdGeneratorDBSubnetGroup"));
@@ -103,7 +105,7 @@ public class IdGeneratorBuilderImplTest {
 		builder.buildAndDeploy();
 		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
 		CreateOrUpdateStackRequest request = requestCaptor.getValue();
-		assertEquals("dev-id-generator-2-green", request.getStackName());
+		assertEquals("dev-id-generator-3-green", request.getStackName());
 		JSONObject template = new JSONObject(request.getTemplateBody());
 		JSONObject resources = template.getJSONObject("Resources");
 		assertTrue(resources.has("devIdGeneratorDBSubnetGroup"));
