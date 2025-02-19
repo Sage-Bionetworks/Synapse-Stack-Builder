@@ -403,7 +403,7 @@
 			"oldestMessageInQueueAlarmThresholdSec": 600
 		},
 		{
-			"queueName":"DOWNLOAD_PFB_QUERY",
+			"queueName":"QUERY_AS_PFB",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":60
 		}
