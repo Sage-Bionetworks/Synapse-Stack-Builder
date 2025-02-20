@@ -81,6 +81,7 @@
 			"Type": "AWS::RDS::DBInstance",
 			"Properties": {
 				"AllocatedStorage": "20",
+				"StorageEncrypted": true,
 				"AllowMajorVersionUpgrade": false,
 				"AutoMinorVersionUpgrade": true,
 				"BackupRetentionPeriod": "7",
@@ -94,7 +95,7 @@
 					"Ref": "${stack}IdGeneratorDBSubnetGroup"
 				},
 				"Engine": "MySQL",
-				"EngineVersion": "8.0.35",
+				"EngineVersion": "8.0.40",
 				"LicenseModel": "general-public-license",
 				"MasterUsername": "${stack}idgenuser",
 				"MasterUserPassword": {
