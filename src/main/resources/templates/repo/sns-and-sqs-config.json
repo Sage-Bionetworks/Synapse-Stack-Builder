@@ -401,6 +401,11 @@
 			],
 			"messageVisibilityTimeoutSec": 30,
 			"oldestMessageInQueueAlarmThresholdSec": 600
+		},
+		{
+			"queueName":"QUERY_AS_PFB",
+			"subscribedTopicNames":[],
+			"messageVisibilityTimeoutSec":60
 		}
 	]
 }
