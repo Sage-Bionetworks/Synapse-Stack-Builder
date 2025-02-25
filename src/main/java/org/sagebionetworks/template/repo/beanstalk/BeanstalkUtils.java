@@ -12,7 +12,7 @@ import java.util.List;
 
 public class BeanstalkUtils {
 
-	static final String PLATFORM_NAME_TEMPLATE =  "Tomcat %s with Corretto %s running on 64bit Amazon Linux 2";
+	static final String PLATFORM_NAME_TEMPLATE =  "Tomcat %s with Corretto %s running on 64bit Amazon Linux 2023";
 
 	public static ListPlatformVersionsRequest buildListPlatformVersionsRequest(String javaVersion, String tomcatVersion, String amazonLinuxVersion) {
 		if(javaVersion == null){
