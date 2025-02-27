@@ -28,11 +28,11 @@
   "dev101portalAppConfigHostedConfiguration": {
     "Type": "AWS::AppConfig::HostedConfigurationVersion",
     "Properties": {
-        "ApplicationId": {"Ref": "dev101portalAppConfigApp"},
-        "ConfigurationProfileId": {"Ref": "dev101portalAppConfigConfigProfile"},
-        "Description": "Freeform config for toggling experimental mode features",
-        "Content": "{\"GOOGLE_MAP\": false, \"VIEW_ASSOCIATED_PROJECTS\": false, \"PROVENANCE_DOCKER_IMAGES\": false, \"JSONSCHEMA_VALIDATION_STATUS\": true, \"DESCRIPTION_FIELD\": false, \"ADD_WIKI_WIDGETS\": false, \"WIKI_DIFF_TOOL\": false, \"CUSTOM_STORAGE_LOCATION_SETTINGS\": false, \"CHALLENGE_SUBMISSION_SETTINGS\": false, \"PROVENANCE_V2_VISUALIZATION\": true, \"VIRTUALTABLE_SUPPORT\": false, \"SRC_BASED_AR_MODAL_WIZARD\": true, \"REACT_ENTITY_ACL_EDITOR\": true,\"HOMEPAGE_CHATBOT\": false,\"PORTALS_DROPDOWN\": false,\"UPLOADER_V2\": true}",
-        "ContentType": "application/json"
+      "ApplicationId": { "Ref": "dev101portalAppConfigApp" },
+      "ConfigurationProfileId": { "Ref": "dev101portalAppConfigConfigProfile" },
+      "Description": "Freeform config for toggling experimental mode features",
+      "Content": "{\"GOOGLE_MAP\": false, \"VIEW_ASSOCIATED_PROJECTS\": false, \"PROVENANCE_DOCKER_IMAGES\": false, \"JSONSCHEMA_VALIDATION_STATUS\": true, \"DESCRIPTION_FIELD\": false, \"ADD_WIKI_WIDGETS\": false, \"WIKI_DIFF_TOOL\": false, \"CUSTOM_STORAGE_LOCATION_SETTINGS\": false, \"CHALLENGE_SUBMISSION_SETTINGS\": false, \"PROVENANCE_V2_VISUALIZATION\": true, \"VIRTUALTABLE_SUPPORT\": false, \"SRC_BASED_AR_MODAL_WIZARD\": true, \"REACT_ENTITY_ACL_EDITOR\": true,\"HOMEPAGE_CHATBOT\": false,\"PORTALS_DROPDOWN\": false,\"PORTAL_SEARCH_HEADER\": false,\"UPLOADER_V2\": true}",
+      "ContentType": "application/json"
     }
   },
   "dev101portalAppConfigDeploymentStrategy": {
@@ -48,14 +48,18 @@
   "dev101portalAppConfigDeployment": {
     "Type": "AWS::AppConfig::Deployment",
     "Properties": {
-      "ApplicationId": {"Ref": "dev101portalAppConfigApp"},
-      "ConfigurationProfileId": {"Ref": "dev101portalAppConfigConfigProfile"},
-      "ConfigurationVersion": {"Fn::GetAtt": [
-        "dev101portalAppConfigHostedConfiguration",
-        "VersionNumber"
-      ]},
-      "DeploymentStrategyId": {"Ref": "dev101portalAppConfigDeploymentStrategy"},
-      "EnvironmentId": {"Ref": "dev101portalAppConfigEnvironment"}
+      "ApplicationId": { "Ref": "dev101portalAppConfigApp" },
+      "ConfigurationProfileId": { "Ref": "dev101portalAppConfigConfigProfile" },
+      "ConfigurationVersion": {
+        "Fn::GetAtt": [
+          "dev101portalAppConfigHostedConfiguration",
+          "VersionNumber"
+        ]
+      },
+      "DeploymentStrategyId": {
+        "Ref": "dev101portalAppConfigDeploymentStrategy"
+      },
+      "EnvironmentId": { "Ref": "dev101portalAppConfigEnvironment" }
     }
   }
 }
