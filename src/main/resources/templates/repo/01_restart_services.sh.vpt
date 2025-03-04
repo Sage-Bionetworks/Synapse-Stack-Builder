@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-systemctl enable awslogsd.service
-systemctl restart awslogsd
+# From https://stackoverflow.com/questions/77390043/how-to-stream-custom-logs-to-cloudwatch-from-al2023-instances
+systemctl enable amazon-cloudwatch-agent.service
+systemctl restart amazon-cloudwatch-agent
 systemctl enable httpd.service
 systemctl restart httpd
