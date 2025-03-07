@@ -1,6 +1,6 @@
 #! /bin/bash
 TO_INSERT="<Valve className=\"org.apache.catalina.valves.ErrorReportValve\" showReport=\"false\" showServerInfo=\"false\" />"
-SERVER_XML="/etc/tomcat/server.xml" 
+SERVER_XML="/etc/tomcat9/server.xml" 
 END_HOST="</Host>"
 COUNT="$(grep -c  "$TO_INSERT"  $SERVER_XML)"
 echo $COUNT
