@@ -155,7 +155,7 @@ public class Constants {
 
 	public static final String TAG_VALUE_PROJECT = "Synapse";
 	public static final String TAG_VALUE_OWNER_EMAIL = "platform@sagebase.org";
-	public static final String TAG_VALUE_STACK_ARMOR = "install-stack-armor-agent";
+	public static final String TAG_VALUE_STACK_ARMOR = "install-stack-armor-agent-AL2023";
 	// tag keys
 	public static final String TAG_KEY_DEPARTMENT = "Department";
 	public static final String TAG_KEY_PROJECT = "Project";
