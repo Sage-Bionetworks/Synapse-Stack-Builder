@@ -28,7 +28,8 @@
 		"FILE_EVENT",
 		"QUERY_CACHE_HIT",
 		"ACCESS_REQUIREMENT",
-		"PROJECT_STORAGE_EVENT"
+		"PROJECT_STORAGE_EVENT",
+		"REPLICATED_EVENT"
 	],
 	"snsGlobalTopicNames": [
 		"SES_SYNAPSE_ORG_BOUNCE",
@@ -406,6 +407,12 @@
 			"queueName":"QUERY_AS_PFB",
 			"subscribedTopicNames":[],
 			"messageVisibilityTimeoutSec":60
-		}
-	]
+		},
+		{
+			"queueName": "REPLICATED_EVENT_VIEW_SCOPE",
+			"subscribedTopicNames": [
+				"REPLICATED_EVENT"
+			],
+			"messageVisibilityTimeoutSec": 60
+		}	]
 }
