@@ -1,13 +1,11 @@
 package org.sagebionetworks.template.repo.beanstalk;
 
-import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformFilter;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;

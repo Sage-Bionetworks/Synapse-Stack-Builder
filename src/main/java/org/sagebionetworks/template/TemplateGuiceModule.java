@@ -113,8 +113,6 @@ import com.amazonaws.services.athena.AmazonAthena;
 import com.amazonaws.services.athena.AmazonAthenaClientBuilder;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClientBuilder;
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
@@ -138,10 +136,12 @@ import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
+import software.amazon.awssdk.services.ec2.Ec2Client;
 
 public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
@@ -174,7 +174,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(SesClient.class).to(SesClientImpl.class);
 		bind(GlobalResourcesBuilder.class).to(GlobalResourcesBuilderImpl.class);
 		bind(CloudwatchLogsVelocityContextProvider.class).to(CloudwatchLogsVelocityContextProviderImpl.class);
-		bind(Ec2Client.class).to(Ec2ClientImpl.class);
+		bind(org.sagebionetworks.template.Ec2Client.class).to(org.sagebionetworks.template.Ec2ClientImpl.class);
 		bind(SynapseAdminClientFactory.class).to(SynapseAdminClientFactoryImpl.class);
 		bind(AsynchAdminJobExecutor.class).to(AsynchAdminJobExecutorImpl.class);
 		bind(SynapseDocsBuilder.class).to(SynapseDocsBuilderImpl.class);
@@ -289,11 +289,11 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 
 	@Provides
-	public AmazonEC2 provideAmazonEc2(){
-		AmazonEC2ClientBuilder builder = AmazonEC2ClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
+	public software.amazon.awssdk.services.ec2.Ec2Client provideAmazonEc2(){
+		software.amazon.awssdk.services.ec2.Ec2Client client = software.amazon.awssdk.services.ec2.Ec2Client.builder()
+				.credentialsProvider(DefaultCredentialsProvider.create())
+				.region(Region.US_EAST_1).build();
+		return client;
 	}
 
 	@Provides

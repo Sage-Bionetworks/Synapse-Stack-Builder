@@ -5,6 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -14,6 +18,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +27,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.opensearch.client.opensearch._types.mapping.Property;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
@@ -29,6 +35,7 @@ import org.opensearch.client.opensearch.indices.CreateIndexResponse;
 import org.opensearch.client.opensearch.indices.ExistsRequest;
 import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
 import org.opensearch.client.transport.endpoints.BooleanResponse;
+import org.opensearch.client.util.ObjectBuilder;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.OpenSearchClientFactory;
@@ -189,9 +196,9 @@ public class SynapseHelpCollectionIndexCreationTest {
 		);
 		
 		when(mockOpenSearchClientFactory.getIndicesClient(COLLECTION_ENDPOINT)).thenReturn(mockOpenSearchIndicesClient);
-		
+
 		when(mockOpenSearchIndicesClient.exists(existRequestCaptor.capture())).thenReturn(new BooleanResponse(true));
-				
+
 		// Call under test
 		assertEquals(Optional.of("index-already-exists"), handler.handle(mockStackEvent));
 		
@@ -199,9 +206,9 @@ public class SynapseHelpCollectionIndexCreationTest {
 			BatchGetCollectionRequest.builder().names("dev-101-synhelp").build(), 
 			BatchGetCollectionRequest.builder().applyMutation(getCollectionRequestCaptor.getValue()).build()
 		);
-		
+
 		ExistsRequest existRequest = existRequestCaptor.getValue();
-		
+
 		assertEquals(List.of("vector-idx"), existRequest.index());
 		
 		verifyNoMoreInteractions(mockOpenSearchIndicesClient);

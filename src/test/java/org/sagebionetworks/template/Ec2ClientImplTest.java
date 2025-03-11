@@ -1,13 +1,5 @@
 package org.sagebionetworks.template;
 
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.DescribeInstanceTypeOfferingsRequest;
-import com.amazonaws.services.ec2.model.DescribeInstanceTypeOfferingsResult;
-import com.amazonaws.services.ec2.model.DescribeSubnetsRequest;
-import com.amazonaws.services.ec2.model.DescribeSubnetsResult;
-import com.amazonaws.services.ec2.model.Filter;
-import com.amazonaws.services.ec2.model.InstanceTypeOffering;
-import com.amazonaws.services.ec2.model.Subnet;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,17 +10,22 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.config.Configuration;
 
+import software.amazon.awssdk.services.ec2.model.DescribeInstanceTypeOfferingsRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeInstanceTypeOfferingsResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeSubnetsRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeSubnetsResponse;
+import software.amazon.awssdk.services.ec2.model.Filter;
+import software.amazon.awssdk.services.ec2.model.InstanceTypeOffering;
+import software.amazon.awssdk.services.ec2.model.Subnet;
+
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,7 +33,7 @@ class Ec2ClientImplTest {
 
 	public static final String INSTANCE_TYPE = "c6.xlarge";
 	@Mock
-	AmazonEC2 mockEC2;
+	software.amazon.awssdk.services.ec2.Ec2Client mockEC2;
 	@Mock
 	Configuration mockConfig;
 	@Mock
@@ -44,9 +41,9 @@ class Ec2ClientImplTest {
 	@Mock
 	Logger mockLogger;
 	@Mock
-	DescribeSubnetsResult mockDescribeSubnetsResult;
+	DescribeSubnetsResponse mockDescribeSubnetsResult;
 	@Mock
-	DescribeInstanceTypeOfferingsResult mockDescribeInstanceTyepOfferingsResult;
+	DescribeInstanceTypeOfferingsResponse mockDescribeInstanceTyepOfferingsResult;
 	@Captor
 	ArgumentCaptor<DescribeSubnetsRequest> describeSubnetRequestCaptor;
 	@Captor
@@ -64,32 +61,32 @@ class Ec2ClientImplTest {
 		when(mockEC2.describeSubnets(describeSubnetRequestCaptor.capture())).thenReturn(mockDescribeSubnetsResult);
 		// Expect 6 subnets mapped to 6 zones
 		List<Subnet> expectedSubnets = generateSubnets(6);
-		when(mockDescribeSubnetsResult.getSubnets()).thenReturn(expectedSubnets);
+		when(mockDescribeSubnetsResult.subnets()).thenReturn(expectedSubnets);
 		// Call under test
 		Map<String, String> azToSubnetMap = ec2Client.getAvailabityZoneToSubnetMap(Arrays.asList("subnet1", "subnet2", "subnet3", "subnet4", "subnet5", "subnet6"));
 		assertNotNull(azToSubnetMap);
 		assertEquals(expectedSubnets.size(), azToSubnetMap.size());
-		assertEquals(1, describeSubnetRequestCaptor.getValue().getFilters().size());
-		Filter f = describeSubnetRequestCaptor.getValue().getFilters().get(0);
-		assertEquals("subnet-id", f.getName());
-		assertEquals(Arrays.asList("subnet1", "subnet2", "subnet3", "subnet4", "subnet5", "subnet6"), f.getValues());
+		assertEquals(1, describeSubnetRequestCaptor.getValue().filters().size());
+		Filter f = describeSubnetRequestCaptor.getValue().filters().get(0);
+		assertEquals("subnet-id", f.name());
+		assertEquals(Arrays.asList("subnet1", "subnet2", "subnet3", "subnet4", "subnet5", "subnet6"), f.values());
 	}
 
 	@Test
 	void getAvailabilityZonesForInstanceType() {
 		when(mockEC2.describeInstanceTypeOfferings(describeInstanceOfferingsRequestCaptor.capture())).thenReturn(mockDescribeInstanceTyepOfferingsResult);
 		List<InstanceTypeOffering> expectedOfferings = generateInstanceOfferings(INSTANCE_TYPE);
-		when(mockDescribeInstanceTyepOfferingsResult.getInstanceTypeOfferings()).thenReturn(expectedOfferings);
+		when(mockDescribeInstanceTyepOfferingsResult.instanceTypeOfferings()).thenReturn(expectedOfferings);
 		// Call under test
 		List<String> azsForInstanceType = ec2Client.getAvailabilityZonesForInstanceType(INSTANCE_TYPE);
 		assertNotNull(azsForInstanceType);
 		assertEquals(4, azsForInstanceType.size());
 		DescribeInstanceTypeOfferingsRequest r = describeInstanceOfferingsRequestCaptor.getValue();
-		assertEquals(1, r.getFilters().size());
-		Filter f = r.getFilters().get(0);
-		assertEquals("instance-type", f.getName());
-		assertEquals(1, f.getValues().size());
-		assertEquals(INSTANCE_TYPE, f.getValues().get(0));
+		assertEquals(1, r.filters().size());
+		Filter f = r.filters().get(0);
+		assertEquals("instance-type", f.name());
+		assertEquals(1, f.values().size());
+		assertEquals(INSTANCE_TYPE, f.values().get(0));
 	}
 
 	@Test
@@ -97,9 +94,9 @@ class Ec2ClientImplTest {
 		when(mockEC2.describeSubnets(any(DescribeSubnetsRequest.class))).thenReturn(mockDescribeSubnetsResult);
 		when(mockEC2.describeInstanceTypeOfferings(any(DescribeInstanceTypeOfferingsRequest.class))).thenReturn(mockDescribeInstanceTyepOfferingsResult);
 		List<Subnet> expectedSubnets = generateSubnets(6);
-		when(mockDescribeSubnetsResult.getSubnets()).thenReturn(expectedSubnets);
+		when(mockDescribeSubnetsResult.subnets()).thenReturn(expectedSubnets);
 		List<InstanceTypeOffering> expectedOfferings = generateInstanceOfferings(INSTANCE_TYPE);
-		when(mockDescribeInstanceTyepOfferingsResult.getInstanceTypeOfferings()).thenReturn(expectedOfferings);
+		when(mockDescribeInstanceTyepOfferingsResult.instanceTypeOfferings()).thenReturn(expectedOfferings);
 		List<String> subnets = Arrays.asList("subnet1", "subnet2", "subnet3", "subnet4", "subnet5", "subnet6");
 		// Call under test
 		List<String> availableSubnets = ec2Client.getAvailableSubnetsForInstanceType(INSTANCE_TYPE, subnets);
@@ -115,9 +112,9 @@ class Ec2ClientImplTest {
 		when(mockEC2.describeSubnets(any(DescribeSubnetsRequest.class))).thenReturn(mockDescribeSubnetsResult);
 		when(mockEC2.describeInstanceTypeOfferings(any(DescribeInstanceTypeOfferingsRequest.class))).thenReturn(mockDescribeInstanceTyepOfferingsResult);
 		List<Subnet> expectedSubnets = generateSubnets(6);
-		when(mockDescribeSubnetsResult.getSubnets()).thenReturn(expectedSubnets);
+		when(mockDescribeSubnetsResult.subnets()).thenReturn(expectedSubnets);
 		List<InstanceTypeOffering> expectedOfferings = generateInstanceOfferingsTooSmall(INSTANCE_TYPE);
-		when(mockDescribeInstanceTyepOfferingsResult.getInstanceTypeOfferings()).thenReturn(expectedOfferings);
+		when(mockDescribeInstanceTyepOfferingsResult.instanceTypeOfferings()).thenReturn(expectedOfferings);
 		List<String> subnets = Arrays.asList("subnet1", "subnet2", "subnet3", "subnet4", "subnet5", "subnet6");
 		// Call under test
 		IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> {ec2Client.getAvailableSubnetsForInstanceType(INSTANCE_TYPE, subnets);});
@@ -133,7 +130,10 @@ class Ec2ClientImplTest {
 	private List<Subnet> generateSubnets(int numSubnets) {
 		List<Subnet> l = new ArrayList<>(numSubnets);
 		for (int i = 0; i < numSubnets; i++) {
-			Subnet s = new Subnet().withSubnetId(String.format("subnet%d", i+1)).withAvailabilityZone(String.format("us-east-1%s", String.valueOf((char)(i + 'a'))));
+			Subnet s = Subnet.builder()
+					.subnetId(String.format("subnet%d", i+1))
+					.availabilityZone(String.format("us-east-1%s", String.valueOf((char)(i + 'a'))))
+					.build();
 			l.add(s);
 		}
 		return l;
@@ -148,7 +148,7 @@ class Ec2ClientImplTest {
 		String[] offeredAzs = {"us-east-1b", "us-east-1a", "us-east-1d", "us-east-1e"};
 		List<InstanceTypeOffering> l = new ArrayList<>(4);
 		for (int i = 0; i < 4; i++) {
-			InstanceTypeOffering io = new InstanceTypeOffering().withInstanceType(instanceType).withLocation(offeredAzs[i]);
+			InstanceTypeOffering io = InstanceTypeOffering.builder().instanceType(instanceType).location(offeredAzs[i]).build();
 			l.add(io);
 		}
 		return l;
@@ -162,7 +162,7 @@ class Ec2ClientImplTest {
 	private List<InstanceTypeOffering> generateInstanceOfferingsTooSmall(String instanceType) {
 		String[] offeredAzs = {"us-east-1b"};
 		List<InstanceTypeOffering> l = new ArrayList<>(1);
-		InstanceTypeOffering io = new InstanceTypeOffering().withInstanceType(instanceType).withLocation(offeredAzs[0]);
+		InstanceTypeOffering io = InstanceTypeOffering.builder().instanceType(instanceType).location(offeredAzs[0]).build();
 		l.add(io);
 		return l;
 	}
