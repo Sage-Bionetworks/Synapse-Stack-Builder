@@ -2,7 +2,7 @@ package org.sagebionetworks.template.repo.athena;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.repo.athena.RecurrentAthenaQueryConfigTest.query;
 import static org.sagebionetworks.template.repo.athena.RecurrentAthenaQueryConfigTest.queue;
@@ -41,7 +41,7 @@ public class RecurrentAthenaQueryConfigValidatorTest {
 		
 		assertEquals(mockConfig, result);
 		
-		verifyZeroInteractions(mockSqsConfig);
+		verifyNoInteractions(mockSqsConfig);
 		
 	}
 	
@@ -56,7 +56,7 @@ public class RecurrentAthenaQueryConfigValidatorTest {
 		
 		assertEquals(mockConfig, result);
 		
-		verifyZeroInteractions(mockSqsConfig);
+		verifyNoInteractions(mockSqsConfig);
 	}
 	
 	@Test
