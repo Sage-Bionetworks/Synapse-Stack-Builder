@@ -1,18 +1,16 @@
 package org.sagebionetworks.template;
 
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
-import com.amazonaws.services.simpleemail.model.SetIdentityNotificationTopicRequest;
+import software.amazon.awssdk.services.ses.model.SetIdentityNotificationTopicRequest;
 import com.google.inject.Inject;
-import org.sagebionetworks.template.config.Configuration;
 
 public class SesClientImpl implements SesClient {
 
     public static final String BOUNCE = "Bounce";
     public static final String COMPLAINT = "Complaint";
-    AmazonSimpleEmailService sesClient;
+    software.amazon.awssdk.services.ses.SesClient sesClient;
 
     @Inject
-    public SesClientImpl(AmazonSimpleEmailService sesClient) {
+    public SesClientImpl(software.amazon.awssdk.services.ses.SesClient sesClient) {
         super();
         this.sesClient = sesClient;
     }
@@ -28,10 +26,11 @@ public class SesClientImpl implements SesClient {
     }
 
     public void setSesNotificationTopic(String domain, String notificationType, String notificationTopicArn) {
-        SetIdentityNotificationTopicRequest req = new SetIdentityNotificationTopicRequest()
-                .withIdentity(domain)
-                .withNotificationType(notificationType)
-                .withSnsTopic(notificationTopicArn);
+        SetIdentityNotificationTopicRequest req = SetIdentityNotificationTopicRequest.builder()
+                .identity(domain)
+                .notificationType(notificationType)
+                .snsTopic(notificationTopicArn)
+                .build();
         this.sesClient.setIdentityNotificationTopic(req);
     }
 }
