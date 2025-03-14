@@ -77,8 +77,9 @@ import com.amazonaws.services.s3.model.inventory.InventoryConfiguration;
 import com.amazonaws.services.s3.model.inventory.InventoryFrequency;
 import com.amazonaws.services.s3.model.inventory.InventoryS3BucketDestination;
 import com.amazonaws.services.s3.model.lifecycle.LifecycleFilter;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
+import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
 
 @ExtendWith(MockitoExtension.class)
 public class S3BucketBuilderImplTest {
@@ -93,7 +94,7 @@ public class S3BucketBuilderImplTest {
 	private AmazonS3 mockS3Client;
 
 	@Mock
-	private AWSSecurityTokenService mockStsClient;
+	private StsClient mockStsClient;
 	
 	@Mock
 	private AWSLambda mockLambdaClient;
@@ -114,7 +115,7 @@ public class S3BucketBuilderImplTest {
 	private S3BucketBuilderImpl builder;
 
 	@Mock
-	private GetCallerIdentityResult mockGetCallerIdentityResult;
+	private GetCallerIdentityResponse mockGetCallerIdentityResult;
 	
 	@Mock
 	private Template mockTemplate;
@@ -146,8 +147,8 @@ public class S3BucketBuilderImplTest {
 		accountId = "12345";
 		
 		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
-		when(mockStsClient.getCallerIdentity(any())).thenReturn(mockGetCallerIdentityResult);
-		when(mockGetCallerIdentityResult.getAccount()).thenReturn(accountId);
+		when(mockStsClient.getCallerIdentity((GetCallerIdentityRequest) any())).thenReturn(mockGetCallerIdentityResult);
+		when(mockGetCallerIdentityResult.account()).thenReturn(accountId);
 	}
 
 	@Test
