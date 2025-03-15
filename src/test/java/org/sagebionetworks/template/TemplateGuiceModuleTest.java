@@ -1,8 +1,8 @@
 package org.sagebionetworks.template;
 
-import static org.junit.Assert.assertNotNull;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import org.junit.Test;
 import org.sagebionetworks.template.vpc.VpcTemplateBuilder;
 
 import com.google.inject.Guice;
