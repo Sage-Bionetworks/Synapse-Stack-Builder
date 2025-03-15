@@ -113,8 +113,6 @@ import com.amazonaws.services.athena.AmazonAthena;
 import com.amazonaws.services.athena.AmazonAthenaClientBuilder;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClientBuilder;
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClientBuilder;
 import com.amazonaws.services.glue.AWSGlue;
@@ -132,12 +130,12 @@ import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
 import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkClient;
 
 public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
@@ -291,11 +289,10 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 
 	@Provides
-	public AWSElasticBeanstalk provideAmazonElasticBeanstalk(){
-		AWSElasticBeanstalkClientBuilder builder = AWSElasticBeanstalkClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
+	public ElasticBeanstalkClient provideAmazonElasticBeanstalk(){
+		ElasticBeanstalkClient client = ElasticBeanstalkClient.builder()
+				.region(Region.US_EAST_1).build();
+		return client;
 	}
 	
 	@Provides

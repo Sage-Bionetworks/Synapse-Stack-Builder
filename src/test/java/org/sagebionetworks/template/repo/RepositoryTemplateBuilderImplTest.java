@@ -125,15 +125,15 @@ import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.Tag;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
-import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
-import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
-import com.amazonaws.services.elasticbeanstalk.model.PlatformFilter;
-import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkClient;
+import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
+import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsResponse;
+import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformFilter;
+import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformSummary;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
@@ -146,7 +146,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Mock
 	private Ec2Client mockEc2Client;
 	@Mock
-	private AWSElasticBeanstalk mockBeanstalkClient;
+	private ElasticBeanstalkClient mockBeanstalkClient;
 	@Mock
 	private RepoConfiguration config;
 	@Mock
@@ -1226,11 +1226,10 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("latest");
 		// This will make the call to getActualBeanstalkLinuxPlatform() return 3.4.7
-		PlatformSummary expectedSummary = new PlatformSummary().withPlatformVersion("3.4.7");
+		PlatformSummary expectedSummary = PlatformSummary.builder().platformVersion("3.4.7").build();
 		List<PlatformSummary> expectedSummaries = Arrays.asList(expectedSummary);
-		ListPlatformVersionsResult expectedLpvr = new ListPlatformVersionsResult()
-				.withPlatformSummaryList(expectedSummaries);
-		when(mockBeanstalkClient.listPlatformVersions(any())).thenReturn(expectedLpvr);
+		ListPlatformVersionsResponse expectedLpvr = ListPlatformVersionsResponse.builder().platformSummaryList(expectedSummaries).build();
+		when(mockBeanstalkClient.listPlatformVersions(any(ListPlatformVersionsRequest.class))).thenReturn(expectedLpvr);
 		when(config.getProperty("org.sagebionetworks.cloudfront.keypair")).thenReturn("dataCdnKeyPairId");
 
 		EnvironmentDescriptor environment = new EnvironmentDescriptor().withType(EnvironmentType.REPOSITORY_SERVICES);
@@ -1285,13 +1284,11 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("4.5.6");
 		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2023";
-		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=")
-				.withValues(expectedPlatformName);
-		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
+		PlatformFilter expectedFilter = PlatformFilter.builder().type("PlatformName").operator("=").values(expectedPlatformName).build();
+		ListPlatformVersionsRequest expectedRequest = ListPlatformVersionsRequest.builder().filters(expectedFilter).build();
 		// No plaform found with that name
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
-		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult()
-				.withPlatformSummaryList(expectedSummaries);
+		ListPlatformVersionsResponse expectedResult = ListPlatformVersionsResponse.builder().platformSummaryList(expectedSummaries).build();
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 
 		assertThrows(IllegalArgumentException.class, ()->{
@@ -1309,16 +1306,14 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("3.4.6");
 		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2023";
-		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=")
-				.withValues(expectedPlatformName);
-		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
+		PlatformFilter expectedFilter = PlatformFilter.builder().type("PlatformName").operator("=").values(expectedPlatformName).build();
+		ListPlatformVersionsRequest expectedRequest = ListPlatformVersionsRequest.builder().filters(expectedFilter).build();
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
-		PlatformSummary summary = new PlatformSummary().withPlatformVersion("3.4.6");
+		PlatformSummary summary = PlatformSummary.builder().platformVersion("3.4.6").build();
 		expectedSummaries.add(summary);
-		summary = new PlatformSummary().withPlatformVersion("3.4.7");
+		summary = PlatformSummary.builder().platformVersion("3.4.7").build();;
 		expectedSummaries.add(summary);
-		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult()
-				.withPlatformSummaryList(expectedSummaries);
+		ListPlatformVersionsResponse expectedResult = ListPlatformVersionsResponse.builder().platformSummaryList(expectedSummaries).build();
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 
 		// call under test
@@ -1329,22 +1324,26 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testGetActualBeanstalkBeanstalkPlatformOverrideLatest() {
-		// we explicitely request 3.4.6, which is the latest version, expected is 3.4.6
+		// we explicitly request 3.4.6, which is the latest version, expected is 3.4.6
 		// and do not log msg
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("3.4.6");
 		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2023";
-		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=")
-				.withValues(expectedPlatformName);
-		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
+		PlatformFilter expectedFilter = PlatformFilter.builder()
+				.type("PlatformName")
+				.operator("=")
+				.values(expectedPlatformName)
+				.build();
+		ListPlatformVersionsRequest expectedRequest = ListPlatformVersionsRequest.builder()
+				.filters(expectedFilter)
+				.build();
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
-		PlatformSummary summary = new PlatformSummary().withPlatformVersion("3.4.5");
-		expectedSummaries.add(summary);
-		summary = new PlatformSummary().withPlatformVersion("3.4.6");
-		expectedSummaries.add(summary);
-		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult()
-				.withPlatformSummaryList(expectedSummaries);
+		expectedSummaries.add(PlatformSummary.builder().platformVersion("3.4.5").build());
+		expectedSummaries.add(PlatformSummary.builder().platformVersion("3.4.6").build());
+		ListPlatformVersionsResponse expectedResult = ListPlatformVersionsResponse.builder()
+				.platformSummaryList(expectedSummaries)
+				.build();
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 
 		// call under test
@@ -1360,16 +1359,20 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("latest");
 		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2023";
-		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=")
-				.withValues(expectedPlatformName);
-		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
+		PlatformFilter expectedFilter = PlatformFilter.builder()
+				.type("PlatformName")
+				.operator("=")
+				.values(expectedPlatformName)
+				.build();
+		ListPlatformVersionsRequest expectedRequest = ListPlatformVersionsRequest.builder()
+				.filters(expectedFilter)
+				.build();
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
-		PlatformSummary summary = new PlatformSummary().withPlatformVersion("3.4.5");
-		expectedSummaries.add(summary);
-		summary = new PlatformSummary().withPlatformVersion("3.4.6");
-		expectedSummaries.add(summary);
-		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult()
-				.withPlatformSummaryList(expectedSummaries);
+		expectedSummaries.add(PlatformSummary.builder().platformVersion("3.4.5").build());
+		expectedSummaries.add(PlatformSummary.builder().platformVersion("3.4.6").build());
+		ListPlatformVersionsResponse expectedResult = ListPlatformVersionsResponse.builder()
+				.platformSummaryList(expectedSummaries)
+				.build();
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 
 		// call under test
@@ -1532,21 +1535,29 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(builderSpy).buildAndDeployStack(mockContext, e1.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, ttl);
 		verify(builderSpy).buildAndDeployStack(mockContext, e2.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, ttl);
 	}
-	
+
 
 	private void setupValidBeanstalkConfig() {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("3.4.7");
 		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2023";
-		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=")
-				.withValues(expectedPlatformName);
-		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
+		PlatformFilter expectedFilter = PlatformFilter.builder()
+				.type("PlatformName")
+				.operator("=")
+				.values(expectedPlatformName)
+				.build();
+		ListPlatformVersionsRequest expectedRequest = ListPlatformVersionsRequest.builder()
+				.filters(expectedFilter)
+				.build();
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
-		PlatformSummary summary = new PlatformSummary().withPlatformVersion("3.4.7");
+		PlatformSummary summary = PlatformSummary.builder()
+				.platformVersion("3.4.7")
+				.build();
 		expectedSummaries.add(summary);
-		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult()
-				.withPlatformSummaryList(expectedSummaries);
+		ListPlatformVersionsResponse expectedResult = ListPlatformVersionsResponse.builder()
+				.platformSummaryList(expectedSummaries)
+				.build();
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 	}
 

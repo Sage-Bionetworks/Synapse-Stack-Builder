@@ -1,9 +1,8 @@
 package org.sagebionetworks.template.repo.beanstalk;
 
-import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
-import com.amazonaws.services.elasticbeanstalk.model.PlatformFilter;
-import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
-import org.sagebionetworks.template.Constants;
+import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
+import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformFilter;
+import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformSummary;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -25,21 +24,23 @@ public class BeanstalkUtils {
 		//filters to be used for finding platform arn
 		Collection<PlatformFilter> filters = new LinkedList<>();
 
-		PlatformFilter filter = new PlatformFilter()
-				.withType("PlatformName")
-				.withOperator("=")
-				.withValues(String.format(PLATFORM_NAME_TEMPLATE, tomcatVersion, javaVersion));
+		PlatformFilter filter = PlatformFilter.builder()
+				.type("PlatformName")
+				.operator("=")
+				.values(String.format(PLATFORM_NAME_TEMPLATE, tomcatVersion, javaVersion))
+				.build();
 		filters.add(filter);
 
 		if (amazonLinuxVersion != null) {
-			filter = new PlatformFilter()
-					.withType("PlatformVersion")
-					.withOperator("=")
-					.withValues(amazonLinuxVersion);
+			filter = PlatformFilter.builder()
+					.type("PlatformVersion")
+					.operator("=")
+					.values(amazonLinuxVersion)
+					.build();
 			filters.add(filter);
 		}
 
-		ListPlatformVersionsRequest request = new ListPlatformVersionsRequest().withFilters(filters);
+		ListPlatformVersionsRequest request = ListPlatformVersionsRequest.builder().filters(filters).build();
 
 		return request;
 
@@ -49,8 +50,8 @@ public class BeanstalkUtils {
 		if (summaries == null || summaries.size() == 0) {
 			throw new IllegalArgumentException("Argument 'summaries' cannot be null or empty");
 		}
-		Comparator<PlatformSummary> comparator = Comparator.comparing(PlatformSummary::getPlatformVersion);
-		String maxPlatformVersion = summaries.stream().max(comparator).get().getPlatformVersion();
+		Comparator<PlatformSummary> comparator = Comparator.comparing(PlatformSummary::platformVersion);
+		String maxPlatformVersion = summaries.stream().max(comparator).get().platformVersion();
 		return maxPlatformVersion;
 	}
 
