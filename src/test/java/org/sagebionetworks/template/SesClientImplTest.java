@@ -11,9 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SesClientImplTest {
@@ -24,14 +22,13 @@ public class SesClientImplTest {
     software.amazon.awssdk.services.ses.SesClient mockAwsSesClient;
 
     @Captor
-    ArgumentCaptor<SetIdentityNotificationTopicRequest> setIdentityNotificationTopicRequestArgumentCaptor;
+    ArgumentCaptor<SetIdentityNotificationTopicRequest> requestCaptor;
 
     @Before
     public void setUp() throws Exception {
 
         client = new SesClientImpl(mockAwsSesClient);
 
-        when(mockAwsSesClient.setIdentityNotificationTopic(any(SetIdentityNotificationTopicRequest.class))).thenReturn(null);
     }
 
     @Test
@@ -40,10 +37,10 @@ public class SesClientImplTest {
         // call under test
         client.setBounceNotificationTopic("myDomain", "myTopicArn");
 
-        verify(mockAwsSesClient).setIdentityNotificationTopic(setIdentityNotificationTopicRequestArgumentCaptor.capture());
-        assertEquals("myTopicArn", String.valueOf(setIdentityNotificationTopicRequestArgumentCaptor.getValue().snsTopic()));
-        assertEquals("myDomain", String.valueOf(setIdentityNotificationTopicRequestArgumentCaptor.getValue().identity()));
-        assertEquals("Bounce", String.valueOf(setIdentityNotificationTopicRequestArgumentCaptor.getValue().notificationType()));
+        verify(mockAwsSesClient).setIdentityNotificationTopic(requestCaptor.capture());
+        assertEquals("myTopicArn", requestCaptor.getValue().snsTopic());
+        assertEquals("myDomain", requestCaptor.getValue().identity());
+        assertEquals("Bounce", String.valueOf(requestCaptor.getValue().notificationType()));
 
     }
 
@@ -53,10 +50,10 @@ public class SesClientImplTest {
         // call under test
         client.setComplaintNotificationTopic("myDomain", "myTopicArn");
 
-        verify(mockAwsSesClient).setIdentityNotificationTopic(setIdentityNotificationTopicRequestArgumentCaptor.capture());
-        assertEquals("myTopicArn", String.valueOf(setIdentityNotificationTopicRequestArgumentCaptor.getValue().snsTopic()));
-        assertEquals("myDomain", String.valueOf(setIdentityNotificationTopicRequestArgumentCaptor.getValue().identity()));
-        assertEquals("Complaint", String.valueOf(setIdentityNotificationTopicRequestArgumentCaptor.getValue().notificationType()));
+        verify(mockAwsSesClient).setIdentityNotificationTopic(requestCaptor.capture());
+        assertEquals("myTopicArn", requestCaptor.getValue().snsTopic());
+        assertEquals("myDomain",requestCaptor.getValue().identity());
+        assertEquals("Complaint", String.valueOf(requestCaptor.getValue().notificationType()));
 
     }
 
