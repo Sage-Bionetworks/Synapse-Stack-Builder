@@ -5,10 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -28,7 +25,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.opensearch.client.opensearch._types.mapping.Property;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
@@ -83,10 +79,10 @@ public class SynapseHelpCollectionIndexCreationTest {
 	private ArgumentCaptor<Consumer<BatchGetCollectionRequest.Builder>> getCollectionRequestCaptor;
 	
 	@Captor
-	private ArgumentCaptor<Function<ExistsRequest.Builder, ObjectBuilder<ExistsRequest>>> existsFunctionCaptor;
+	private ArgumentCaptor<Function<ExistsRequest.Builder, ObjectBuilder<ExistsRequest>>> existsCaptor;
 	
 	@Captor
-	private ArgumentCaptor<Function<CreateIndexRequest.Builder, ObjectBuilder<CreateIndexRequest>>> createIdxFunctionCaptor;
+	private ArgumentCaptor<Function<CreateIndexRequest.Builder, ObjectBuilder<CreateIndexRequest>>> createIdxCaptor;
 	
 	@BeforeEach
 	public void before() {
@@ -112,8 +108,8 @@ public class SynapseHelpCollectionIndexCreationTest {
 		
 		when(mockOpenSearchClientFactory.getIndicesClient(COLLECTION_ENDPOINT)).thenReturn(mockOpenSearchIndicesClient);
 		
-		existsFunctionCaptor = ArgumentCaptor.forClass(Function.class);
-		when(mockOpenSearchIndicesClient.exists(existsFunctionCaptor.capture())).thenReturn(new BooleanResponse(false));
+		existsCaptor = ArgumentCaptor.forClass(Function.class);
+		when(mockOpenSearchIndicesClient.exists(existsCaptor.capture())).thenReturn(new BooleanResponse(false));
 
 		CreateIndexResponse expectedResponse = CreateIndexResponse.of(
 				resp -> resp
@@ -121,8 +117,8 @@ public class SynapseHelpCollectionIndexCreationTest {
 				.acknowledged(true)
 				.shardsAcknowledged(true)
 			);
-		createIdxFunctionCaptor = ArgumentCaptor.forClass(Function.class);
-		when(mockOpenSearchIndicesClient.create(createIdxFunctionCaptor.capture())).thenReturn(expectedResponse);
+		createIdxCaptor = ArgumentCaptor.forClass(Function.class);
+		when(mockOpenSearchIndicesClient.create(createIdxCaptor.capture())).thenReturn(expectedResponse);
 
 		// Call under test
 		assertEquals(Optional.of("index-creation-complete"), handler.handle(mockStackEvent));
@@ -132,12 +128,12 @@ public class SynapseHelpCollectionIndexCreationTest {
 			BatchGetCollectionRequest.builder().applyMutation(getCollectionRequestCaptor.getValue()).build()
 		);
 		
-		Function<ExistsRequest.Builder, ObjectBuilder<ExistsRequest>> capturedFunction = existsFunctionCaptor.getValue();
+		Function<ExistsRequest.Builder, ObjectBuilder<ExistsRequest>> capturedFunction = existsCaptor.getValue();
 		ExistsRequest request = capturedFunction.apply(new ExistsRequest.Builder()).build();
 		assertEquals(List.of("vector-idx"), request.index());
 
 
-		Function<CreateIndexRequest.Builder, ObjectBuilder<CreateIndexRequest>> creatIdxCapturedFunction = createIdxFunctionCaptor.getValue();
+		Function<CreateIndexRequest.Builder, ObjectBuilder<CreateIndexRequest>> creatIdxCapturedFunction = createIdxCaptor.getValue();
 		CreateIndexRequest createIdxReq = creatIdxCapturedFunction.apply(new CreateIndexRequest.Builder()).build();
 		assertEquals("vector-idx", createIdxReq.index());
 		assertTrue(createIdxReq.settings().knn());
@@ -201,8 +197,8 @@ public class SynapseHelpCollectionIndexCreationTest {
 		
 		when(mockOpenSearchClientFactory.getIndicesClient(COLLECTION_ENDPOINT)).thenReturn(mockOpenSearchIndicesClient);
 
-		existsFunctionCaptor = ArgumentCaptor.forClass(Function.class);
-		when(mockOpenSearchIndicesClient.exists(existsFunctionCaptor.capture())).thenReturn(new BooleanResponse(true));
+		existsCaptor = ArgumentCaptor.forClass(Function.class);
+		when(mockOpenSearchIndicesClient.exists(existsCaptor.capture())).thenReturn(new BooleanResponse(true));
 
 		// Call under test
 		assertEquals(Optional.of("index-already-exists"), handler.handle(mockStackEvent));
@@ -212,7 +208,7 @@ public class SynapseHelpCollectionIndexCreationTest {
 			BatchGetCollectionRequest.builder().applyMutation(getCollectionRequestCaptor.getValue()).build()
 		);
 
-		Function<ExistsRequest.Builder, ObjectBuilder<ExistsRequest>> capturedFunction = existsFunctionCaptor.getValue();
+		Function<ExistsRequest.Builder, ObjectBuilder<ExistsRequest>> capturedFunction = existsCaptor.getValue();
 		ExistsRequest request = capturedFunction.apply(new ExistsRequest.Builder()).build();
 		assertEquals(List.of("vector-idx"), request.index());
 		
@@ -234,8 +230,8 @@ public class SynapseHelpCollectionIndexCreationTest {
 		
 		IOException ex = new IOException("nope");
 		
-		existsFunctionCaptor = ArgumentCaptor.forClass(Function.class);
-		when(mockOpenSearchIndicesClient.exists(existsFunctionCaptor.capture())).thenThrow(ex);
+		existsCaptor = ArgumentCaptor.forClass(Function.class);
+		when(mockOpenSearchIndicesClient.exists(existsCaptor.capture())).thenThrow(ex);
 
 
 		IllegalStateException result = assertThrows(IllegalStateException.class, () -> {			
@@ -250,7 +246,7 @@ public class SynapseHelpCollectionIndexCreationTest {
 			BatchGetCollectionRequest.builder().applyMutation(getCollectionRequestCaptor.getValue()).build()
 		);
 
-		Function<ExistsRequest.Builder, ObjectBuilder<ExistsRequest>> capturedFct  = existsFunctionCaptor.getValue();
+		Function<ExistsRequest.Builder, ObjectBuilder<ExistsRequest>> capturedFct  = existsCaptor.getValue();
 		ExistsRequest request = capturedFct.apply(new ExistsRequest.Builder()).build();
 		assertEquals(List.of("vector-idx"), request.index());
 
