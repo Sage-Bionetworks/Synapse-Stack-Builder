@@ -1,18 +1,6 @@
 package org.sagebionetworks.template.datawarehouse.backfill;
 
 import com.amazonaws.internal.ReleasableInputStream;
-import com.amazonaws.services.athena.AmazonAthena;
-import com.amazonaws.services.athena.model.Datum;
-import com.amazonaws.services.athena.model.GetQueryExecutionRequest;
-import com.amazonaws.services.athena.model.GetQueryExecutionResult;
-import com.amazonaws.services.athena.model.GetQueryResultsRequest;
-import com.amazonaws.services.athena.model.GetQueryResultsResult;
-import com.amazonaws.services.athena.model.QueryExecutionContext;
-import com.amazonaws.services.athena.model.QueryExecutionStatus;
-import com.amazonaws.services.athena.model.ResultConfiguration;
-import com.amazonaws.services.athena.model.Row;
-import com.amazonaws.services.athena.model.StartQueryExecutionRequest;
-import com.amazonaws.services.athena.model.StartQueryExecutionResult;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
@@ -32,6 +20,18 @@ import org.sagebionetworks.template.datawarehouse.DataWarehouseBuilderImpl;
 import org.sagebionetworks.template.repo.VelocityExceptionThrower;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 import org.sagebionetworks.util.ValidateArgument;
+import software.amazon.awssdk.services.athena.AthenaClient;
+import software.amazon.awssdk.services.athena.model.Datum;
+import software.amazon.awssdk.services.athena.model.GetQueryExecutionRequest;
+import software.amazon.awssdk.services.athena.model.GetQueryExecutionResponse;
+import software.amazon.awssdk.services.athena.model.GetQueryResultsRequest;
+import software.amazon.awssdk.services.athena.model.GetQueryResultsResponse;
+import software.amazon.awssdk.services.athena.model.QueryExecutionContext;
+import software.amazon.awssdk.services.athena.model.QueryExecutionState;
+import software.amazon.awssdk.services.athena.model.ResultConfiguration;
+import software.amazon.awssdk.services.athena.model.Row;
+import software.amazon.awssdk.services.athena.model.StartQueryExecutionRequest;
+import software.amazon.awssdk.services.athena.model.StartQueryExecutionResponse;
 import software.amazon.awssdk.services.glue.GlueClient;
 import software.amazon.awssdk.services.glue.model.BatchCreatePartitionRequest;
 import software.amazon.awssdk.services.glue.model.GetTableRequest;
@@ -91,13 +91,13 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
     private CloudFormationClient cloudFormationClient;
     private StackTagsProvider tagsProvider;
     private GlueClient awsGlue;
-    private AmazonAthena athena;
+    private AthenaClient athena;
 
     @Inject
     public BackfillDataWarehouseBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
                                             Configuration config, LoggerFactory loggerFactory,
                                             StackTagsProvider tagsProvider, ArtifactDownload downloader,
-                                            AmazonS3 s3Client, GlueClient awsGlue, AmazonAthena athena) {
+                                            AmazonS3 s3Client, GlueClient awsGlue, AthenaClient athena) {
         this.cloudFormationClient = cloudFormationClient;
         this.velocityEngine = velocityEngine;
         this.config = config;
@@ -272,63 +272,66 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
 
     private List<String> getAthenaQueryResult(String year, String database, String table, String location) {
         String query = "select distinct instance from " + table + " where year='" + year + "' order by instance desc ";
-        QueryExecutionContext queryExecutionContext = new QueryExecutionContext().withDatabase(database);
+        QueryExecutionContext queryExecutionContext = QueryExecutionContext.builder().database(database).build();
 
         // Create a ResultConfiguration
-        ResultConfiguration resultConfiguration = new ResultConfiguration().withOutputLocation(location);
+        ResultConfiguration resultConfiguration = ResultConfiguration.builder().outputLocation(location).build();
 
         // Create a StartQueryExecutionRequest
-        StartQueryExecutionRequest startQueryExecutionRequest = new StartQueryExecutionRequest()
-                .withQueryString(query)
-                .withQueryExecutionContext(queryExecutionContext)
-                .withResultConfiguration(resultConfiguration);
+        StartQueryExecutionRequest startQueryExecutionRequest = StartQueryExecutionRequest.builder()
+                .queryString(query)
+                .queryExecutionContext(queryExecutionContext)
+                .resultConfiguration(resultConfiguration).build();
 
         // Start the query execution
-        StartQueryExecutionResult startQueryExecutionResult = athena.startQueryExecution(startQueryExecutionRequest);
+        StartQueryExecutionResponse startQueryExecutionResult = athena.startQueryExecution(startQueryExecutionRequest);
 
         // Get the query execution ID
-        String queryExecutionId = startQueryExecutionResult.getQueryExecutionId();
+        String queryExecutionId = startQueryExecutionResult.queryExecutionId();
         // Wait for the query to complete (optional)
         waitForQueryCompletion(athena, queryExecutionId);
         return getQueryResults(athena, queryExecutionId);
     }
 
-    private static void waitForQueryCompletion(AmazonAthena athenaClient, String queryExecutionId) {
-        GetQueryExecutionRequest getQueryExecutionRequest = new GetQueryExecutionRequest()
-                .withQueryExecutionId(queryExecutionId);
+    private static void waitForQueryCompletion(AthenaClient athenaClient, String queryExecutionId) {
+        GetQueryExecutionRequest getQueryExecutionRequest = GetQueryExecutionRequest.builder()
+                .queryExecutionId(queryExecutionId)
+                .build();
 
-        GetQueryExecutionResult queryExecution;
-        QueryExecutionStatus status;
-
+        GetQueryExecutionResponse queryExecution;
+        QueryExecutionState status;
         do {
             queryExecution = athenaClient.getQueryExecution(getQueryExecutionRequest);
-            status = queryExecution.getQueryExecution().getStatus();
+            status = queryExecution.queryExecution().status().state();
             // Sleep for a few seconds before checking the status again
             try {
                 Thread.sleep(5000);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Thread interrupted while waiting for query completion", e);
             }
-        } while (!(status.getState().equals("SUCCEEDED") || status.getState().equals("FAILED")));
+        } while (!(status == QueryExecutionState.SUCCEEDED || status == QueryExecutionState.FAILED));
     }
+    
     private String getS3PartitionLocation(String s3Localtion, String releaseNumber, String recordDate, String midPath) {
         return String.join("/", s3Localtion, releaseNumber, midPath, recordDate);
     }
 
-    private static List<String> getQueryResults(AmazonAthena athenaClient, String queryExecutionId) {
-        GetQueryResultsRequest getQueryResultsRequest = new GetQueryResultsRequest()
-                .withQueryExecutionId(queryExecutionId);
+    private static List<String> getQueryResults(AthenaClient athenaClient, String queryExecutionId) {
+        GetQueryResultsRequest getQueryResultsRequest = GetQueryResultsRequest.builder()
+                .queryExecutionId(queryExecutionId)
+                .build();
 
-        GetQueryResultsResult queryResultsResponse = athenaClient.getQueryResults(getQueryResultsRequest);
+        GetQueryResultsResponse queryResultsResponse = athenaClient.getQueryResults(getQueryResultsRequest);
 
         List<String> glueJobInputList = new ArrayList<>();
         boolean firstRow = false;
-        for (Row row : queryResultsResponse.getResultSet().getRows()) {
-            if(!firstRow){
+        for (Row row : queryResultsResponse.resultSet().rows()) {
+            if (!firstRow) {
                 firstRow = true;
                 continue;
             }
-            String instance = getColumnValue(row.getData().get(0));
+            String instance = row.data().get(0).varCharValue();
             glueJobInputList.add(instance);
         }
 
@@ -336,8 +339,8 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
     }
 
     private static String getColumnValue(Datum datum) {
-        if (datum != null && datum.getVarCharValue() != null) {
-            return datum.getVarCharValue();
+        if (datum != null && datum.varCharValue() != null) {
+            return datum.varCharValue();
         }
         return "";
     }

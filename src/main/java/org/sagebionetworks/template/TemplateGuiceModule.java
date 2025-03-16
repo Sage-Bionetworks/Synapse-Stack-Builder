@@ -109,8 +109,6 @@ import org.sagebionetworks.war.WarAppenderImpl;
 
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
-import com.amazonaws.services.athena.AmazonAthena;
-import com.amazonaws.services.athena.AmazonAthenaClientBuilder;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
 import com.amazonaws.services.route53.AmazonRoute53;
@@ -122,6 +120,7 @@ import com.google.inject.multibindings.Multibinder;
 
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.athena.AthenaClient;
 import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
 import software.amazon.awssdk.services.glue.GlueClient;
 import software.amazon.awssdk.services.kms.KmsClient;
@@ -228,11 +227,9 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 
 	@Provides
-	public AmazonAthena provideAmazonAmazonAthenaClient() {
-		AmazonAthenaClientBuilder builder = AmazonAthenaClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
+	public AthenaClient provideAmazonAmazonAthenaClient() {
+		AthenaClient client = AthenaClient.builder().region(Region.US_EAST_1).build();
+		return client;
 	}
 
 	@Provides
