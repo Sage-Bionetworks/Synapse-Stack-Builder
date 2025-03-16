@@ -13,13 +13,6 @@ import com.amazonaws.services.athena.model.ResultConfiguration;
 import com.amazonaws.services.athena.model.Row;
 import com.amazonaws.services.athena.model.StartQueryExecutionRequest;
 import com.amazonaws.services.athena.model.StartQueryExecutionResult;
-import com.amazonaws.services.glue.AWSGlue;
-import com.amazonaws.services.glue.model.BatchCreatePartitionRequest;
-import com.amazonaws.services.glue.model.GetTableRequest;
-import com.amazonaws.services.glue.model.GetTableResult;
-import com.amazonaws.services.glue.model.PartitionInput;
-import com.amazonaws.services.glue.model.StartJobRunRequest;
-import com.amazonaws.services.glue.model.StorageDescriptor;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
@@ -39,6 +32,13 @@ import org.sagebionetworks.template.datawarehouse.DataWarehouseBuilderImpl;
 import org.sagebionetworks.template.repo.VelocityExceptionThrower;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 import org.sagebionetworks.util.ValidateArgument;
+import software.amazon.awssdk.services.glue.GlueClient;
+import software.amazon.awssdk.services.glue.model.BatchCreatePartitionRequest;
+import software.amazon.awssdk.services.glue.model.GetTableRequest;
+import software.amazon.awssdk.services.glue.model.GetTableResponse;
+import software.amazon.awssdk.services.glue.model.PartitionInput;
+import software.amazon.awssdk.services.glue.model.StartJobRunRequest;
+import software.amazon.awssdk.services.glue.model.StorageDescriptor;
 
 import java.io.File;
 import java.io.IOException;
@@ -90,14 +90,14 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
     private AmazonS3 s3Client;
     private CloudFormationClient cloudFormationClient;
     private StackTagsProvider tagsProvider;
-    private AWSGlue awsGlue;
+    private GlueClient awsGlue;
     private AmazonAthena athena;
 
     @Inject
     public BackfillDataWarehouseBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
                                             Configuration config, LoggerFactory loggerFactory,
                                             StackTagsProvider tagsProvider, ArtifactDownload downloader,
-                                            AmazonS3 s3Client, AWSGlue awsGlue, AmazonAthena athena) {
+                                            AmazonS3 s3Client, GlueClient awsGlue, AmazonAthena athena) {
         this.cloudFormationClient = cloudFormationClient;
         this.velocityEngine = velocityEngine;
         this.config = config;
@@ -239,31 +239,34 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
                                       String recordDate, String midPath, String s3Location) {
         StorageDescriptor storageDescriptor = createStorageDescriptor(databaseName, tableName, releaseNumber,
                 recordDate, midPath, s3Location);
-        PartitionInput partitionInput = new PartitionInput()
-                .withValues(releaseNumber, recordDate)
-                .withStorageDescriptor(storageDescriptor);
-        BatchCreatePartitionRequest batchCreatePartitionRequest = new BatchCreatePartitionRequest()
-                .withDatabaseName(databaseName)
-                .withTableName(tableName)
-                .withPartitionInputList(partitionInput);
+        PartitionInput partitionInput = PartitionInput.builder()
+                .values(releaseNumber, recordDate)
+                .storageDescriptor(storageDescriptor)
+                .build();
+        BatchCreatePartitionRequest batchCreatePartitionRequest = BatchCreatePartitionRequest.builder()
+                .databaseName(databaseName)
+                .tableName(tableName)
+                .partitionInputList(partitionInput)
+                .build();
         awsGlue.batchCreatePartition(batchCreatePartitionRequest);
     }
 
     private StorageDescriptor createStorageDescriptor(String databaseName, String tableName,
                                                       String releaseNumber, String recordDate,
                                                       String midPath, String s3Location) {
-        GetTableResult getTableResult = getCurrentSchema(databaseName, tableName);
-        StorageDescriptor currentTableStorageDescriptor = getTableResult.getTable().getStorageDescriptor();
-        return new StorageDescriptor()
-                .withLocation(getS3PartitionLocation(s3Location, releaseNumber, recordDate, midPath))
-                .withInputFormat(currentTableStorageDescriptor.getInputFormat())
-                .withOutputFormat(currentTableStorageDescriptor.getOutputFormat())
-                .withSerdeInfo(currentTableStorageDescriptor.getSerdeInfo());
+        GetTableResponse getTableResult = getCurrentSchema(databaseName, tableName);
+        StorageDescriptor currentTableStorageDescriptor = getTableResult.table().storageDescriptor();
+        return StorageDescriptor.builder()
+                .location(getS3PartitionLocation(s3Location, releaseNumber, recordDate, midPath))
+                .inputFormat(currentTableStorageDescriptor.inputFormat())
+                .outputFormat(currentTableStorageDescriptor.outputFormat())
+                .serdeInfo(currentTableStorageDescriptor.serdeInfo())
+                .build();
 
     }
 
-    private GetTableResult getCurrentSchema(String databaseName, String tableName) {
-        GetTableRequest getTableRequest = new GetTableRequest().withDatabaseName(databaseName).withName(tableName);
+    private GetTableResponse getCurrentSchema(String databaseName, String tableName) {
+        GetTableRequest getTableRequest = GetTableRequest.builder().databaseName(databaseName).name(tableName).build();
         return awsGlue.getTable(getTableRequest);
     }
 
@@ -352,7 +355,7 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
                 entry("--END_DATE", endDate),
                 entry("--RELEASE_NUMBER", releaseNumber),
                 entry("--STACK", stack));
-        StartJobRunRequest startJobRunRequest = new StartJobRunRequest().withArguments(argumentMap).withJobName(jobName);
+        StartJobRunRequest startJobRunRequest = StartJobRunRequest.builder().arguments(argumentMap).jobName(jobName).build();
         awsGlue.startJobRun(startJobRunRequest);
         try {
             Thread.sleep(2000);
@@ -370,7 +373,7 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
                 entry("--SOURCE_TABLE_NAME", sourceTableName),
                 entry("--YEAR", year),
                 entry("--STACK", stack));
-        StartJobRunRequest startJobRunRequest = new StartJobRunRequest().withArguments(argumentMap).withJobName(jobName);
+        StartJobRunRequest startJobRunRequest = StartJobRunRequest.builder().arguments(argumentMap).jobName(jobName).build();
         awsGlue.startJobRun(startJobRunRequest);
     }
 

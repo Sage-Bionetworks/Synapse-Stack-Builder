@@ -91,11 +91,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.amazonaws</groupId>
-			<artifactId>aws-java-sdk-glue</artifactId>
-			<version>${amazon.sdk.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk-athena</artifactId>
 			<version>${amazon.sdk.version}</version>
 		</dependency>
@@ -245,6 +240,10 @@
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>cloudwatch</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>glue</artifactId>
 		</dependency>
 	</dependencies>
 	<build>

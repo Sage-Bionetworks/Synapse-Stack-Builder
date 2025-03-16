@@ -127,6 +127,7 @@ import com.google.inject.multibindings.Multibinder;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
+import software.amazon.awssdk.services.glue.GlueClient;
 import software.amazon.awssdk.services.kms.KmsClient;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
@@ -226,11 +227,9 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 
 	@Provides
-	public AWSGlue provideAmazonAWSGlueClient() {
-		AWSGlueClientBuilder builder = AWSGlueClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
+	public GlueClient provideAmazonAWSGlueClient() {
+		GlueClient client = GlueClient.builder().region(Region.US_EAST_1).build();
+		return client;
 	}
 
 	@Provides
