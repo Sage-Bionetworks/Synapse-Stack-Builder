@@ -131,6 +131,8 @@ import com.google.inject.multibindings.Multibinder;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
+import software.amazon.awssdk.services.kms.KmsAsyncClient;
+import software.amazon.awssdk.services.kms.KmsClient;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkClient;
@@ -266,11 +268,9 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 	
 	@Provides
-	public AWSKMS provideAWSKMSClient() {
-		AWSKMSAsyncClientBuilder builder = AWSKMSAsyncClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
+	public KmsClient provideAWSKMSClient() {
+		KmsClient client = KmsClient.builder().region(Region.US_EAST_1).build();
+		return client;
 	}
 	
 	@Provides

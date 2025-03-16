@@ -249,6 +249,10 @@
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>elasticloadbalancingv2</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>kms</artifactId>
+		</dependency>
 	</dependencies>
 	<build>
 		<resources>

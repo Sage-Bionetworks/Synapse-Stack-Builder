@@ -10,15 +10,15 @@ import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Properties;
 import java.util.StringJoiner;
 
 import org.sagebionetworks.template.config.Configuration;
 
-import com.amazonaws.services.kms.AWSKMS;
-import com.amazonaws.services.kms.model.EncryptRequest;
-import com.amazonaws.services.kms.model.EncryptResult;
+import software.amazon.awssdk.services.kms.model.EncryptRequest;
+import software.amazon.awssdk.services.kms.model.EncryptResponse;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -27,6 +27,8 @@ import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
 import com.google.inject.Inject;
 import org.sagebionetworks.template.config.RepoConfiguration;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.kms.KmsClient;
 
 public class SecretBuilderImpl implements SecretBuilder {
 	
@@ -38,11 +40,11 @@ public class SecretBuilderImpl implements SecretBuilder {
 	
 	Configuration config;
 	AWSSecretsManager secretManager;
-	AWSKMS keyManager;
+	KmsClient keyManager;
 	AmazonS3 s3Client;
 	
 	@Inject
-	public SecretBuilderImpl(RepoConfiguration config, AWSSecretsManager secretManager, AWSKMS keyManager, AmazonS3 s3Client) {
+	public SecretBuilderImpl(RepoConfiguration config, AWSSecretsManager secretManager, KmsClient keyManager, AmazonS3 s3Client) {
 		super();
 		this.config = config;
 		this.secretManager = secretManager;
@@ -109,15 +111,19 @@ public class SecretBuilderImpl implements SecretBuilder {
 	 * A secret is created by getting the plaintext value from the SecretManager and
 	 * then encrypting the value using the stack's CMK.
 	 * 
-	 * @param string
+	 * @param key to get value from secrets manager
 	 * @return
 	 */
 	String createSecret(String key) {
 		String plaintextValue = getSecretValue(key);
+		byte[] plaintextBytes = plaintextValue.getBytes(StandardCharsets.UTF_8);
 		// Encrypt the value using the stack's key
-		EncryptResult encryptResult = keyManager.encrypt(new EncryptRequest()
-				.withPlaintext(stringToByteBuffer(plaintextValue)).withKeyId(getCMKAlias()));
-		String encryptedValue = base64Encode(encryptResult.getCiphertextBlob());
+		EncryptResponse encryptResult = keyManager.encrypt(
+				EncryptRequest.builder()
+					.plaintext(SdkBytes.fromByteArray(plaintextBytes))
+					.keyId(getCMKAlias())
+					.build());
+		String encryptedValue = base64Encode(encryptResult.ciphertextBlob().asByteBuffer());
 		return encryptedValue;
 	}
 
