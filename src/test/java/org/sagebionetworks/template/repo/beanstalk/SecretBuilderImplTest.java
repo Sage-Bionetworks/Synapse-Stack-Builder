@@ -25,14 +25,14 @@ import org.sagebionetworks.template.config.Configuration;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
-import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.kms.KmsClient;
 import software.amazon.awssdk.services.kms.model.EncryptRequest;
 import software.amazon.awssdk.services.kms.model.EncryptResponse;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SecretBuilderImplTest {
@@ -40,7 +40,7 @@ public class SecretBuilderImplTest {
 	@Mock
 	RepoConfiguration mockConfig;
 	@Mock
-	AWSSecretsManager mockSecretManager;
+	SecretsManagerClient mockSecretManager;
 	@Mock
 	KmsClient mockKeyManager;
 	@Mock
@@ -79,7 +79,7 @@ public class SecretBuilderImplTest {
 		builder = new SecretBuilderImpl(mockConfig, mockSecretManager, mockKeyManager, mockS3Client);
 		
 		secretString = "super secret";
-		when(mockSecretManager.getSecretValue(any(GetSecretValueRequest.class))).thenReturn(new GetSecretValueResult().withSecretString(secretString));
+		when(mockSecretManager.getSecretValue(any(GetSecretValueRequest.class))).thenReturn(GetSecretValueResponse.builder().secretString(secretString).build());
 		encryptedSecretValue = "pretend this is encrypted";
 		secretBuffer = SecretBuilderImpl.stringToByteBuffer(encryptedSecretValue);
 		when(mockKeyManager.encrypt(any(EncryptRequest.class))).thenReturn(EncryptResponse.builder().ciphertextBlob(SdkBytes.fromByteBuffer(secretBuffer)).build());
@@ -127,7 +127,7 @@ public class SecretBuilderImplTest {
 		String result = builder.getSecretValue(key);
 		assertEquals(secretString, result);
 		verify(mockSecretManager).getSecretValue(secretRequestCaptor.capture());
-		assertEquals("dev.org.sagebionetworks.some.key", secretRequestCaptor.getValue().getSecretId());
+		assertEquals("dev.org.sagebionetworks.some.key", secretRequestCaptor.getValue().secretId());
 	}
 	
 	@Test

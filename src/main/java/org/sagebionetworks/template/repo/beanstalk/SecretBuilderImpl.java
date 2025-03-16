@@ -22,13 +22,13 @@ import software.amazon.awssdk.services.kms.model.EncryptResponse;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
-import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
 import com.google.inject.Inject;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 
 public class SecretBuilderImpl implements SecretBuilder {
 	
@@ -39,12 +39,12 @@ public class SecretBuilderImpl implements SecretBuilder {
 	public static final String UTF_8 = "UTF-8";
 	
 	Configuration config;
-	AWSSecretsManager secretManager;
+	SecretsManagerClient secretManager;
 	KmsClient keyManager;
 	AmazonS3 s3Client;
 	
 	@Inject
-	public SecretBuilderImpl(RepoConfiguration config, AWSSecretsManager secretManager, KmsClient keyManager, AmazonS3 s3Client) {
+	public SecretBuilderImpl(RepoConfiguration config, SecretsManagerClient secretManager, KmsClient keyManager, AmazonS3 s3Client) {
 		super();
 		this.config = config;
 		this.secretManager = secretManager;
@@ -136,8 +136,8 @@ public class SecretBuilderImpl implements SecretBuilder {
 	String getSecretValue(String key) {
 		String masterKey = getMasterSecretKey(key);
 		// Fetch the master plaintext value for this keys
-		GetSecretValueResult secretResult = secretManager.getSecretValue(new GetSecretValueRequest().withSecretId(masterKey));
-		String plaintextValue = secretResult.getSecretString();
+		GetSecretValueResponse secretResult = secretManager.getSecretValue(GetSecretValueRequest.builder().secretId(masterKey).build());
+		String plaintextValue = secretResult.secretString();
 		if(plaintextValue == null) {
 			throw new IllegalArgumentException("Secret string is null for: "+masterKey);
 		}
