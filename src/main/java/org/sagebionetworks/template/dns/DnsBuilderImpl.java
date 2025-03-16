@@ -1,9 +1,9 @@
 package org.sagebionetworks.template.dns;
 
-import com.amazonaws.services.route53.model.ResourceRecordSet;
 import com.google.inject.Inject;
 import org.sagebionetworks.template.Route53Client;
 import org.sagebionetworks.template.TemplateUtils;
+import software.amazon.awssdk.services.route53.model.ResourceRecordSet;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ public class DnsBuilderImpl implements DnsBuilder {
 		List<RecordSetDescriptor> recordSetDescriptors = new ArrayList<>();
 		List<ResourceRecordSet> resourceRecordSets = route53Client.listResourceRecordSets(hostedZoneId);
 		for (ResourceRecordSet rrs: resourceRecordSets) {
-			if (! Arrays.asList("A", "CNAME").contains(rrs.getType())) {
+			if (! Arrays.asList("A", "CNAME").contains(rrs.type().toString())) {
 				continue;
 			}
 			RecordSetDescriptor descriptor = new RecordSetDescriptor(rrs);

@@ -1,13 +1,13 @@
 package org.sagebionetworks.template.dns;
 
-import com.amazonaws.services.route53.model.AliasTarget;
-import com.amazonaws.services.route53.model.ResourceRecord;
-import com.amazonaws.services.route53.model.ResourceRecordSet;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import software.amazon.awssdk.services.route53.model.AliasTarget;
+import software.amazon.awssdk.services.route53.model.ResourceRecord;
+import software.amazon.awssdk.services.route53.model.ResourceRecordSet;
 
 public class RecordSetDescriptor {
 
@@ -30,15 +30,15 @@ public class RecordSetDescriptor {
 	}
 
 	public RecordSetDescriptor(ResourceRecordSet resourceRecordSet) {
-		this.name = resourceRecordSet.getName();
-		this.type = resourceRecordSet.getType();
-		this.ttl = resourceRecordSet.getTTL() != null ? resourceRecordSet.getTTL().toString() : null;
-		if (resourceRecordSet.getResourceRecords() != null && resourceRecordSet.getResourceRecords().size() > 0) {
-			this.resourceRecords = resourceRecordSet.getResourceRecords().stream().map(r -> r.getValue()).collect(Collectors.toList());
+		this.name = resourceRecordSet.name();
+		this.type = resourceRecordSet.type().toString();
+		this.ttl = resourceRecordSet.ttl() != null ? resourceRecordSet.ttl().toString() : null;
+		if (resourceRecordSet.resourceRecords() != null && resourceRecordSet.resourceRecords().size() > 0) {
+			this.resourceRecords = resourceRecordSet.resourceRecords().stream().map(r -> r.value()).collect(Collectors.toList());
 		} else {
 			this.resourceRecords = null;
 		}
-		this.aliasTargetDescriptor = resourceRecordSet.getAliasTarget() != null ? new AliasTargetDescriptor(resourceRecordSet.getAliasTarget()) : null;
+		this.aliasTargetDescriptor = resourceRecordSet.aliasTarget() != null ? new AliasTargetDescriptor(resourceRecordSet.aliasTarget()) : null;
 	}
 
 	public String getName() {
@@ -97,26 +97,29 @@ public class RecordSetDescriptor {
 	}
 
 	public ResourceRecordSet toResourceRecordSet() {
-		ResourceRecordSet resourceRecordSet = new ResourceRecordSet();
-		resourceRecordSet.setName(this.getName());
-		resourceRecordSet.setType(this.getType());
+		ResourceRecordSet.Builder builder = ResourceRecordSet.builder().name(this.getName()).type(this.getType());
 		if (this.getTTL() != null) {
-			resourceRecordSet.setTTL(Long.parseLong(this.getTTL()));
+			builder.ttl(Long.parseLong(this.getTTL()));
 		}
 		if (this.getResourceRecords() != null && this.getResourceRecords().size() > 0) {
 			List<ResourceRecord> records = new ArrayList<>();
 			for (String s: this.getResourceRecords()) {
-				ResourceRecord rec = new ResourceRecord().withValue(s);
+				ResourceRecord rec = ResourceRecord.builder().value(s).build();;
 				records.add(rec);
 			}
-			resourceRecordSet.setResourceRecords(records);
+			builder.resourceRecords(records);
 		}
 		if (this.getAliasTargetDescriptor() != null) {
 			AliasTargetDescriptor desc = this.getAliasTargetDescriptor();
-			AliasTarget aliasTarget = new AliasTarget().withDNSName(desc.getDnsName()).withHostedZoneId(desc.getHostedZoneId()).withEvaluateTargetHealth(desc.getEvaluateTargetHealth());
-			resourceRecordSet.setAliasTarget(aliasTarget);
+			AliasTarget aliasTarget = AliasTarget.builder()
+					.dnsName(desc.getDnsName())
+					.hostedZoneId(desc.getHostedZoneId())
+					.evaluateTargetHealth(desc.getEvaluateTargetHealth())
+					.build();
+			;
+			builder.aliasTarget(aliasTarget);
 		}
-		return resourceRecordSet;
+		return builder.build();
 	}
 }
 

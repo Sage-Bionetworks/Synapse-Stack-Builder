@@ -1,9 +1,7 @@
 package org.sagebionetworks.template;
 
-import com.amazonaws.services.route53.model.ChangeResourceRecordSetsRequest;
-import com.amazonaws.services.route53.model.ChangeResourceRecordSetsResult;
-import com.amazonaws.services.route53.model.ResourceRecordSet;
 import org.sagebionetworks.template.dns.RecordSetDescriptor;
+import software.amazon.awssdk.services.route53.model.ResourceRecordSet;
 
 import java.util.List;
 

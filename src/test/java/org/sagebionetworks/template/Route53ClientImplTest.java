@@ -1,11 +1,5 @@
 package org.sagebionetworks.template;
 
-import com.amazonaws.services.route53.AmazonRoute53;
-import com.amazonaws.services.route53.model.AliasTarget;
-import com.amazonaws.services.route53.model.Change;
-import com.amazonaws.services.route53.model.ChangeAction;
-import com.amazonaws.services.route53.model.ChangeResourceRecordSetsRequest;
-import com.amazonaws.services.route53.model.ResourceRecordSet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +11,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.dns.AliasTargetDescriptor;
 import org.sagebionetworks.template.dns.RecordSetDescriptor;
+import software.amazon.awssdk.services.route53.model.AliasTarget;
+import software.amazon.awssdk.services.route53.model.Change;
+import software.amazon.awssdk.services.route53.model.ChangeAction;
+import software.amazon.awssdk.services.route53.model.ChangeResourceRecordSetsRequest;
+import software.amazon.awssdk.services.route53.model.ResourceRecordSet;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,7 +31,7 @@ import static org.mockito.Mockito.when;
 class Route53ClientImplTest {
 
 	@Mock
-	private AmazonRoute53 mockR53Client;
+	private software.amazon.awssdk.services.route53.Route53Client mockR53Client;
 
 	@Mock
 	private  LoggerFactory mockLoggerFactory;
@@ -70,17 +69,17 @@ class Route53ClientImplTest {
 		verify(mockR53Client, times(1)).changeResourceRecordSets(changeResourceRecordSetsRequestArgumentCaptor.capture());
 		assertEquals(1, changeResourceRecordSetsRequestArgumentCaptor.getAllValues().size());
 		ChangeResourceRecordSetsRequest req = changeResourceRecordSetsRequestArgumentCaptor.getAllValues().get(0);
-		assertEquals(1, req.getChangeBatch().getChanges().size());
-		Change change = req.getChangeBatch().getChanges().get(0);
-		assertEquals(ChangeAction.UPSERT.name(), change.getAction());
-		ResourceRecordSet rrs = change.getResourceRecordSet();
+		assertEquals(1, req.changeBatch().changes().size());
+		Change change = req.changeBatch().changes().get(0);
+		assertEquals(ChangeAction.UPSERT, change.action());
+		ResourceRecordSet rrs = change.resourceRecordSet();
 		assertNotNull(rrs);
-		assertEquals("targetName", rrs.getResourceRecords().get(0).getValue());
+		assertEquals("targetName", rrs.resourceRecords().get(0).value());
 	}
 	@Test
 	void testBatchingMoreThanBatchSizeChangeResourceRecordSets() {
-		when(mockAliasTarget.getDNSName()).thenReturn("target1");
-		when(mockResourceRecordSet.getAliasTarget()).thenReturn(mockAliasTarget);
+		when(mockAliasTarget.dnsName()).thenReturn("target1");
+		when(mockResourceRecordSet.aliasTarget()).thenReturn(mockAliasTarget);
 		when(mockRecordSetDescriptor.toResourceRecordSet()).thenReturn(mockResourceRecordSet);
 		// 2 records, batches of 1
 		List<RecordSetDescriptor> descriptors = new ArrayList<>();
@@ -93,19 +92,19 @@ class Route53ClientImplTest {
 		assertEquals(2, changeResourceRecordSetsRequestArgumentCaptor.getAllValues().size());
 		ChangeResourceRecordSetsRequest req1 = changeResourceRecordSetsRequestArgumentCaptor.getAllValues().get(0);
 		ChangeResourceRecordSetsRequest req2 = changeResourceRecordSetsRequestArgumentCaptor.getAllValues().get(1);
-		assertEquals(1, req1.getChangeBatch().getChanges().size());
-		assertEquals(1, req2.getChangeBatch().getChanges().size());
-		Change change1 = req1.getChangeBatch().getChanges().get(0);
+		assertEquals(1, req1.changeBatch().changes().size());
+		assertEquals(1, req2.changeBatch().changes().size());
+		Change change1 = req1.changeBatch().changes().get(0);
 		validateChange(change1);
-		Change change2 = req2.getChangeBatch().getChanges().get(0);
+		Change change2 = req2.changeBatch().changes().get(0);
 		validateChange(change2);
 	}
 
 	private static void validateChange(Change change) {
-		assertEquals(ChangeAction.UPSERT.name(), change.getAction());
-		ResourceRecordSet rrs = change.getResourceRecordSet();
+		assertEquals(ChangeAction.UPSERT, change.action());
+		ResourceRecordSet rrs = change.resourceRecordSet();
 		assertNotNull(rrs);
-		assertEquals("target1", rrs.getAliasTarget().getDNSName());
+		assertEquals("target1", rrs.aliasTarget().dnsName());
 	}
 
 	@Test
@@ -121,7 +120,7 @@ class Route53ClientImplTest {
 		verify(mockR53Client, times(1)).changeResourceRecordSets(changeResourceRecordSetsRequestArgumentCaptor.capture());
 		assertEquals(1, changeResourceRecordSetsRequestArgumentCaptor.getAllValues().size());
 		ChangeResourceRecordSetsRequest req = changeResourceRecordSetsRequestArgumentCaptor.getValue();
-		assertEquals(2, req.getChangeBatch().getChanges().size());
+		assertEquals(2, req.changeBatch().changes().size());
 	}
 
 	@Test
@@ -135,7 +134,7 @@ class Route53ClientImplTest {
 		verify(mockR53Client, times(1)).changeResourceRecordSets(changeResourceRecordSetsRequestArgumentCaptor.capture());
 		assertEquals(1, changeResourceRecordSetsRequestArgumentCaptor.getAllValues().size());
 		ChangeResourceRecordSetsRequest req = changeResourceRecordSetsRequestArgumentCaptor.getValue();
-		assertEquals(1, req.getChangeBatch().getChanges().size());
+		assertEquals(1, req.changeBatch().changes().size());
 	}
 
 }

@@ -111,8 +111,6 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
-import com.amazonaws.services.route53.AmazonRoute53;
-import com.amazonaws.services.route53.AmazonRoute53ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.google.inject.Provides;
@@ -286,11 +284,9 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 
 	@Provides
-	public AmazonRoute53 provideAmazonRoute53() {
-		AmazonRoute53ClientBuilder builder = AmazonRoute53ClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
+	public software.amazon.awssdk.services.route53.Route53Client provideAmazonRoute53() {
+		software.amazon.awssdk.services.route53.Route53Client client = software.amazon.awssdk.services.route53.Route53Client.builder().region(Region.US_EAST_1).build();
+		return client;
 	}
 	
 	@Provides

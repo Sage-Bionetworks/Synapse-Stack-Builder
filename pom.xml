@@ -80,11 +80,6 @@
 			<version>${amazon.sdk.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.amazonaws</groupId>
-			<artifactId>aws-java-sdk-route53</artifactId>
-			<version>${amazon.sdk.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>com.google.inject</groupId>
 			<artifactId>guice</artifactId>
 			<version>5.1.0</version>
@@ -242,6 +237,10 @@
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>athena</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>route53</artifactId>
 		</dependency>
 	</dependencies>
 	<build>
