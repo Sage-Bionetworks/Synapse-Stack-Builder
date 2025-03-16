@@ -81,11 +81,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.amazonaws</groupId>
-			<artifactId>aws-java-sdk-lambda</artifactId>
-			<version>${amazon.sdk.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk-route53</artifactId>
 			<version>${amazon.sdk.version}</version>
 		</dependency>
@@ -244,6 +239,10 @@
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>glue</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>lambda</artifactId>
 		</dependency>
 	</dependencies>
 	<build>

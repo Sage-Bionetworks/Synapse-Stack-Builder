@@ -25,10 +25,10 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 
-import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.s3.AmazonS3;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
@@ -46,7 +46,7 @@ public class S3BucketBuilderIntegrationTest {
     private AmazonS3 mockS3Client;
 
     @Mock
-    private AWSLambda mockLambdaClient;
+    private LambdaClient mockLambdaClient;
 
     @Mock
     private StsClient mockStsClient;

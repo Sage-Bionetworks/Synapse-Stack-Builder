@@ -49,9 +49,6 @@ import org.sagebionetworks.template.utils.ArtifactDownload;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Stack;
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.InvocationType;
-import com.amazonaws.services.lambda.model.InvokeRequest;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AbortIncompleteMultipartUpload;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -77,6 +74,9 @@ import com.amazonaws.services.s3.model.inventory.InventoryConfiguration;
 import com.amazonaws.services.s3.model.inventory.InventoryFrequency;
 import com.amazonaws.services.s3.model.inventory.InventoryS3BucketDestination;
 import com.amazonaws.services.s3.model.lifecycle.LifecycleFilter;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.InvocationType;
+import software.amazon.awssdk.services.lambda.model.InvokeRequest;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
@@ -97,7 +97,7 @@ public class S3BucketBuilderImplTest {
 	private StsClient mockStsClient;
 	
 	@Mock
-	private AWSLambda mockLambdaClient;
+	private LambdaClient mockLambdaClient;
 
 	@Mock
 	private VelocityEngine mockVelocity;
@@ -2285,12 +2285,13 @@ public class S3BucketBuilderImplTest {
 		assertEquals("snsTopicArn", snsConfig.getTopicARN());
 		assertEquals(Collections.singleton(S3Event.ObjectCreatedByCompleteMultipartUpload.toString()), snsConfig.getEvents());
 		
-		verify(mockLambdaClient).invoke(new InvokeRequest()
-			.withFunctionName("updaterLambdaArn")
-			.withInvocationType(InvocationType.Event)
+		verify(mockLambdaClient).invoke(InvokeRequest.builder()
+				.functionName("updaterLambdaArn")
+				.invocationType(InvocationType.EVENT)
+				.build()
 		);
 	}
-		
+
 	@Test
 	public void testBuildAllBucketsWithVirusScannerConfigurationAndBucketNotificationRemoval() throws InterruptedException {
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
