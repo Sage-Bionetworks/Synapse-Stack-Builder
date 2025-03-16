@@ -39,8 +39,8 @@ import org.sagebionetworks.template.repo.cloudwatchlogs.LogDescriptor;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
 import org.sagebionetworks.war.WarAppender;
 
-import com.amazonaws.services.cloudwatch.model.ComparisonOperator;
-import com.amazonaws.services.cloudwatch.model.Statistic;
+import software.amazon.awssdk.services.cloudwatch.model.ComparisonOperator;
+import software.amazon.awssdk.services.cloudwatch.model.Statistic;
 
 @ExtendWith(MockitoExtension.class)
 public class ElasticBeanstalkExtentionBuilderImplTest {
@@ -200,9 +200,9 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		alarm.setName("Some-Alarm");
 		alarm.setDescription("Description");
 		alarm.setMetric("HTTPCode_ELB_5XX_Count");
-		alarm.setComparisonOperator(ComparisonOperator.GreaterThanOrEqualToThreshold);
+		alarm.setComparisonOperator(ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD);
 		alarm.setEvaluationPeriods(1);
-		alarm.setStatistic(Statistic.Sum);
+		alarm.setStatistic(Statistic.SUM);
 		alarm.setPeriod(60);
 		alarm.setThreshold(20D);
 		return Arrays.asList(alarm);

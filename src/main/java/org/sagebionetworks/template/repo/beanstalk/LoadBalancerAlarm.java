@@ -3,9 +3,8 @@ package org.sagebionetworks.template.repo.beanstalk;
 import java.util.Objects;
 
 import org.sagebionetworks.template.Constants;
-
-import com.amazonaws.services.cloudwatch.model.ComparisonOperator;
-import com.amazonaws.services.cloudwatch.model.Statistic;
+import software.amazon.awssdk.services.cloudwatch.model.Statistic;
+import software.amazon.awssdk.services.cloudwatch.model.ComparisonOperator;
 
 /**
  * Simple DTO that describe an alarm on the load balancer for the EB environment
