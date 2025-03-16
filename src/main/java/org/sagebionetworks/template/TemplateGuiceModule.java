@@ -113,8 +113,6 @@ import com.amazonaws.services.athena.AmazonAthena;
 import com.amazonaws.services.athena.AmazonAthenaClientBuilder;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClientBuilder;
 import com.amazonaws.services.glue.AWSGlue;
 import com.amazonaws.services.glue.AWSGlueClientBuilder;
 import com.amazonaws.services.kms.AWSKMS;
@@ -136,6 +134,8 @@ import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkClient;
+import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
+import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2ClientBuilder;
 
 public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
@@ -274,11 +274,10 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 	
 	@Provides
-	public AmazonElasticLoadBalancing provideAmazonElasticLoadBalancing() {
-		AmazonElasticLoadBalancingClientBuilder builder = AmazonElasticLoadBalancingClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
+	public ElasticLoadBalancingV2Client provideAmazonElasticLoadBalancing() {
+		ElasticLoadBalancingV2Client client = ElasticLoadBalancingV2Client.builder()
+				.region(Region.US_EAST_1).build();
+		return client;
 	}
 
 	@Provides
