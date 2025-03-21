@@ -109,8 +109,6 @@ import org.sagebionetworks.war.WarAppenderImpl;
 
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
-import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.google.inject.Provides;
@@ -197,11 +195,10 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	 * @return
 	 */
 	@Provides
-	public AmazonCloudFormation provideAmazonCloudFormationClient() {
-		AmazonCloudFormationClientBuilder builder = AmazonCloudFormationClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
+	public software.amazon.awssdk.services.cloudformation.CloudFormationClient provideAmazonCloudFormationClient() {
+		software.amazon.awssdk.services.cloudformation.CloudFormationClient client = software.amazon.awssdk.services.cloudformation.CloudFormationClient.builder()
+		.region(Region.US_EAST_1).build();
+		return client;
 	}
 	
 	@Provides

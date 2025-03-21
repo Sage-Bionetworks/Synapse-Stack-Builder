@@ -14,7 +14,7 @@ import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 
-import com.amazonaws.services.cloudformation.model.Parameter;
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
 import com.google.inject.Inject;
 
 import static org.sagebionetworks.template.Constants.*;
@@ -52,10 +52,10 @@ public class IdGeneratorBuilderImpl implements IdGeneratorBuilder {
 		context.put(DATABASE_IDENTIFIER, databaseIdentifier);
 		context.put(HOSTED_ZONE, hostedZoneId);
 
-		Parameter parameter = new Parameter();
-		parameter.withParameterKey(Constants.PARAMETER_MYSQL_PASSWORD);
-		String password = secretBuilder.getIdGeneratorPassword();
-		parameter.withParameterValue(password);
+		Parameter parameter = Parameter.builder()
+				.parameterKey(Constants.PARAMETER_MYSQL_PASSWORD)
+				.parameterValue(secretBuilder.getIdGeneratorPassword())
+				.build();
 
 		// Merge the context with the template
 		Template template = this.velocityEngine.getTemplate(TEMPLATE_ID_GENERATOR);

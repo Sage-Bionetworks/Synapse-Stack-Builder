@@ -11,9 +11,9 @@ import org.sagebionetworks.template.OpenSearchClientFactory;
 import org.sagebionetworks.template.WaitConditionHandler;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
-import com.amazonaws.services.cloudformation.model.StackEvent;
 import com.google.inject.Inject;
 
+import software.amazon.awssdk.services.cloudformation.model.StackEvent;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
 import software.amazon.awssdk.services.opensearchserverless.model.CollectionDetail;
 import software.amazon.awssdk.services.opensearchserverless.model.CollectionStatus;

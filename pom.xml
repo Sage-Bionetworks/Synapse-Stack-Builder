@@ -242,6 +242,10 @@
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>route53</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>cloudformation</artifactId>
+		</dependency>
 	</dependencies>
 	<build>
 		<resources>

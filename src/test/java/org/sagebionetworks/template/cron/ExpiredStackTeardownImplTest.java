@@ -22,9 +22,9 @@ import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.config.TimeToLive;
 
-import com.amazonaws.services.cloudformation.model.Parameter;
-import com.amazonaws.services.cloudformation.model.Stack;
-import com.amazonaws.services.cloudformation.model.StackStatus;
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 
 @ExtendWith(MockitoExtension.class)
 public class ExpiredStackTeardownImplTest {
@@ -49,8 +49,10 @@ public class ExpiredStackTeardownImplTest {
 	@Test
 	public void testFindAndDeleteExpiredStacksWithCreateComplete() {
 
-		Stack stack = new Stack().withStackName("deleteMe").withStackStatus(StackStatus.CREATE_COMPLETE)
-				.withParameters(new Parameter().withParameterKey("key")).withEnableTerminationProtection(false);
+		Stack stack = Stack.builder().stackName("deleteMe").stackStatus(StackStatus.CREATE_COMPLETE)
+				.parameters(Parameter.builder().parameterKey("key").build())
+				.enableTerminationProtection(false)
+				.build();
 
 		when(mockCloudFormationClient.streamOverAllStacks()).thenReturn(List.of(stack).stream());
 		when(mockTimeToLive.isTimeToLiveExpired(any())).thenReturn(true);
@@ -58,8 +60,8 @@ public class ExpiredStackTeardownImplTest {
 		// call under test
 		down.findAndDeleteExpiredStacks();
 
-		verify(mockCloudFormationClient).deleteStack(stack.getStackName());
-		verify(mockTimeToLive).isTimeToLiveExpired(stack.getParameters());
+		verify(mockCloudFormationClient).deleteStack(stack.stackName());
+		verify(mockTimeToLive).isTimeToLiveExpired(stack.parameters());
 		verify(mockLogger).info("Deleting stack: 'deleteMe'...");
 		
 		verifyNoMoreInteractions(mockCloudFormationClient);
@@ -71,8 +73,8 @@ public class ExpiredStackTeardownImplTest {
 	@Test
 	public void testFindAndDeleteExpiredStacksWithUpdateComplete() {
 
-		Stack stack = new Stack().withStackName("deleteMe").withStackStatus(StackStatus.UPDATE_COMPLETE)
-				.withParameters(new Parameter().withParameterKey("key")).withEnableTerminationProtection(false);
+		Stack stack = Stack.builder().stackName("deleteMe").stackStatus(StackStatus.UPDATE_COMPLETE)
+				.parameters(Parameter.builder().parameterKey("key").build()).enableTerminationProtection(false).build();
 
 		when(mockCloudFormationClient.streamOverAllStacks()).thenReturn(List.of(stack).stream());
 		when(mockTimeToLive.isTimeToLiveExpired(any())).thenReturn(true);
@@ -80,8 +82,8 @@ public class ExpiredStackTeardownImplTest {
 		// call under test
 		down.findAndDeleteExpiredStacks();
 
-		verify(mockCloudFormationClient).deleteStack(stack.getStackName());
-		verify(mockTimeToLive).isTimeToLiveExpired(stack.getParameters());
+		verify(mockCloudFormationClient).deleteStack(stack.stackName());
+		verify(mockTimeToLive).isTimeToLiveExpired(stack.parameters());
 		verify(mockLogger).info("Deleting stack: 'deleteMe'...");
 		
 		verifyNoMoreInteractions(mockCloudFormationClient);
@@ -93,8 +95,12 @@ public class ExpiredStackTeardownImplTest {
 	@Test
 	public void testFindAndDeleteExpiredStacksWithUpdateRollback() {
 
-		Stack stack = new Stack().withStackName("deleteMe").withStackStatus(StackStatus.UPDATE_ROLLBACK_COMPLETE)
-				.withParameters(new Parameter().withParameterKey("key")).withEnableTerminationProtection(false);
+		Stack stack = Stack.builder()
+				.stackName("deleteMe")
+				.stackStatus(StackStatus.UPDATE_ROLLBACK_COMPLETE)
+				.parameters(Parameter.builder().parameterKey("key").build())
+				.enableTerminationProtection(false)
+				.build();
 
 		when(mockCloudFormationClient.streamOverAllStacks()).thenReturn(List.of(stack).stream());
 		when(mockTimeToLive.isTimeToLiveExpired(any())).thenReturn(true);
@@ -102,8 +108,8 @@ public class ExpiredStackTeardownImplTest {
 		// call under test
 		down.findAndDeleteExpiredStacks();
 
-		verify(mockCloudFormationClient).deleteStack(stack.getStackName());
-		verify(mockTimeToLive).isTimeToLiveExpired(stack.getParameters());
+		verify(mockCloudFormationClient).deleteStack(stack.stackName());
+		verify(mockTimeToLive).isTimeToLiveExpired(stack.parameters());
 		verify(mockLogger).info("Deleting stack: 'deleteMe'...");
 		
 		verifyNoMoreInteractions(mockCloudFormationClient);
@@ -115,8 +121,8 @@ public class ExpiredStackTeardownImplTest {
 	@Test
 	public void testFindAndDeleteExpiredStacksWithDeleteFailed() {
 
-		Stack stack = new Stack().withStackName("deleteMe").withStackStatus(StackStatus.DELETE_FAILED)
-				.withParameters(new Parameter().withParameterKey("key")).withEnableTerminationProtection(false);
+		Stack stack = Stack.builder().stackName("deleteMe").stackStatus(StackStatus.DELETE_FAILED)
+				.parameters(Parameter.builder().parameterKey("key").build()).enableTerminationProtection(false).build();
 
 		when(mockCloudFormationClient.streamOverAllStacks()).thenReturn(List.of(stack).stream());
 		when(mockTimeToLive.isTimeToLiveExpired(any())).thenReturn(true);
@@ -124,8 +130,8 @@ public class ExpiredStackTeardownImplTest {
 		// call under test
 		down.findAndDeleteExpiredStacks();
 
-		verify(mockCloudFormationClient).deleteStack(stack.getStackName());
-		verify(mockTimeToLive).isTimeToLiveExpired(stack.getParameters());
+		verify(mockCloudFormationClient).deleteStack(stack.stackName());
+		verify(mockTimeToLive).isTimeToLiveExpired(stack.parameters());
 		verify(mockLogger).info("Deleting stack: 'deleteMe'...");
 		
 		verifyNoMoreInteractions(mockCloudFormationClient);
@@ -137,8 +143,8 @@ public class ExpiredStackTeardownImplTest {
 	@Test
 	public void testFindAndDeleteExpiredStacksWithNotExpired() {
 
-		Stack stack = new Stack().withStackName("deleteMe").withStackStatus(StackStatus.CREATE_COMPLETE)
-				.withParameters(new Parameter().withParameterKey("key")).withEnableTerminationProtection(false);
+		Stack stack = Stack.builder().stackName("deleteMe").stackStatus(StackStatus.CREATE_COMPLETE)
+				.parameters(Parameter.builder().parameterKey("key").build()).enableTerminationProtection(false).build();
 
 		when(mockCloudFormationClient.streamOverAllStacks()).thenReturn(List.of(stack).stream());
 		when(mockTimeToLive.isTimeToLiveExpired(any())).thenReturn(false);
@@ -146,7 +152,7 @@ public class ExpiredStackTeardownImplTest {
 		// call under test
 		down.findAndDeleteExpiredStacks();
 
-		verify(mockTimeToLive).isTimeToLiveExpired(stack.getParameters());
+		verify(mockTimeToLive).isTimeToLiveExpired(stack.parameters());
 		
 		verifyNoMoreInteractions(mockCloudFormationClient);
 		verifyNoMoreInteractions(mockTimeToLive);
@@ -157,8 +163,12 @@ public class ExpiredStackTeardownImplTest {
 	@Test
 	public void testFindAndDeleteExpiredStacksWithTerminationProtection() {
 
-		Stack stack = new Stack().withStackName("deleteMe").withStackStatus(StackStatus.CREATE_COMPLETE)
-				.withParameters(new Parameter().withParameterKey("key")).withEnableTerminationProtection(true);
+		Stack stack = Stack.builder()
+				.stackName("deleteMe")
+				.stackStatus(StackStatus.CREATE_COMPLETE)
+				.parameters(Parameter.builder().parameterKey("key").build())
+				.enableTerminationProtection(true)
+				.build();
 
 		when(mockCloudFormationClient.streamOverAllStacks()).thenReturn(List.of(stack).stream());
 		when(mockTimeToLive.isTimeToLiveExpired(any())).thenReturn(true);
@@ -166,7 +176,7 @@ public class ExpiredStackTeardownImplTest {
 		// call under test
 		down.findAndDeleteExpiredStacks();
 
-		verify(mockTimeToLive).isTimeToLiveExpired(stack.getParameters());
+		verify(mockTimeToLive).isTimeToLiveExpired(stack.parameters());
 		
 		verifyNoMoreInteractions(mockCloudFormationClient);
 		verifyNoMoreInteractions(mockTimeToLive);
@@ -177,8 +187,10 @@ public class ExpiredStackTeardownImplTest {
 	@Test
 	public void testFindAndDeleteExpiredStacksWithNullTerminationProtection() {
 
-		Stack stack = new Stack().withStackName("deleteMe").withStackStatus(StackStatus.CREATE_COMPLETE)
-				.withParameters(new Parameter().withParameterKey("key")).withEnableTerminationProtection(null);
+		Stack stack = Stack.builder().stackName("deleteMe").stackStatus(StackStatus.CREATE_COMPLETE)
+				.parameters(Parameter.builder().parameterKey("key").build())
+				.enableTerminationProtection(null)
+				.build();
 
 		when(mockCloudFormationClient.streamOverAllStacks()).thenReturn(List.of(stack).stream());
 		when(mockTimeToLive.isTimeToLiveExpired(any())).thenReturn(true);
@@ -186,8 +198,8 @@ public class ExpiredStackTeardownImplTest {
 		// call under test
 		down.findAndDeleteExpiredStacks();
 
-		verify(mockCloudFormationClient).deleteStack(stack.getStackName());
-		verify(mockTimeToLive).isTimeToLiveExpired(stack.getParameters());
+		verify(mockCloudFormationClient).deleteStack(stack.stackName());
+		verify(mockTimeToLive).isTimeToLiveExpired(stack.parameters());
 		verify(mockLogger).info("Deleting stack: 'deleteMe'...");
 		
 		verifyNoMoreInteractions(mockCloudFormationClient);
@@ -212,10 +224,10 @@ public class ExpiredStackTeardownImplTest {
 	@Test
 	public void testFindAndDeleteExpiredStacksWithOneFailure() {
 
-		Stack one = new Stack().withStackName("one").withStackStatus(StackStatus.CREATE_COMPLETE)
-				.withParameters(new Parameter().withParameterKey("key")).withEnableTerminationProtection(false);
-		Stack two = new Stack().withStackName("two").withStackStatus(StackStatus.CREATE_COMPLETE)
-				.withParameters(new Parameter().withParameterKey("key")).withEnableTerminationProtection(false);
+		Stack one = Stack.builder().stackName("one").stackStatus(StackStatus.CREATE_COMPLETE)
+				.parameters(Parameter.builder().parameterKey("key").build()).enableTerminationProtection(false).build();
+		Stack two = Stack.builder().stackName("two").stackStatus(StackStatus.CREATE_COMPLETE)
+				.parameters(Parameter.builder().parameterKey("key").build()).enableTerminationProtection(false).build();
 
 		when(mockCloudFormationClient.streamOverAllStacks()).thenReturn(List.of(one, two).stream());
 		when(mockTimeToLive.isTimeToLiveExpired(any())).thenReturn(true);
@@ -226,8 +238,8 @@ public class ExpiredStackTeardownImplTest {
 		// call under test
 		down.findAndDeleteExpiredStacks();
 
-		verify(mockCloudFormationClient).deleteStack(one.getStackName());
-		verify(mockCloudFormationClient).deleteStack(two.getStackName());
+		verify(mockCloudFormationClient).deleteStack(one.stackName());
+		verify(mockCloudFormationClient).deleteStack(two.stackName());
 		verify(mockTimeToLive, times(2)).isTimeToLiveExpired(any());
 		verify(mockLogger, times(2)).info(any(String.class));
 		verify(mockLogger, times(1)).error(any(String.class), any(Throwable.class));

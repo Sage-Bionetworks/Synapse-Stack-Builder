@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
-import com.amazonaws.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -92,7 +92,7 @@ public class S3BucketBuilderIntegrationTest {
 
         when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
 
-        Stack bucketPolicyStack = new Stack();
+        Stack bucketPolicyStack = Stack.builder().build();
 
         when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
         when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());

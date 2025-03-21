@@ -17,7 +17,9 @@ import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.*;
 import static org.sagebionetworks.template.Constants.VPC_CIDR;
 
-import com.amazonaws.services.cloudformation.model.Tag;
+import software.amazon.awssdk.services.cloudformation.model.Tag;
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
+
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -32,7 +34,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.sagebionetworks.template.*;
 import org.sagebionetworks.template.config.Configuration;
 
-import com.amazonaws.services.cloudformation.model.Parameter;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -81,7 +82,7 @@ public class VpcTemplateBuilderImplTest {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 
 		expectedTags = new LinkedList<>();
-		Tag t = new Tag().withKey("aKey").withValue("aValue");
+		Tag t = Tag.builder().key("aKey").value("aValue").build();
 		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
 
 		builder = new VpcTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, mockConfig, mockLoggerFactory, mockStackTagsProvider);
@@ -166,9 +167,9 @@ public class VpcTemplateBuilderImplTest {
 		assertNotNull(parameters);
 		assertEquals(1, parameters.length);
 		// keys
-		assertEquals(PARAMETER_VPN_CIDR_NEW, parameters[0].getParameterKey());
+		assertEquals(PARAMETER_VPN_CIDR_NEW, parameters[0].parameterKey());
 		// values
-		assertEquals(vpnCiderNew, parameters[0].getParameterValue());
+		assertEquals(vpnCiderNew, parameters[0].parameterValue());
 	}
 	
 	@Test

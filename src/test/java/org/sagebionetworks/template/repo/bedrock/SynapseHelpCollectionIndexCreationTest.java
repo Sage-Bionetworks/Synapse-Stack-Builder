@@ -37,7 +37,7 @@ import org.sagebionetworks.template.OpenSearchClientFactory;
 import org.sagebionetworks.template.WaitConditionHandler;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
-import com.amazonaws.services.cloudformation.model.StackEvent;
+import software.amazon.awssdk.services.cloudformation.model.StackEvent;
 
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
 import software.amazon.awssdk.services.opensearchserverless.model.BatchGetCollectionRequest;

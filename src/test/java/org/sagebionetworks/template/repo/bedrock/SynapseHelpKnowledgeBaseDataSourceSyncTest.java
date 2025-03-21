@@ -28,8 +28,6 @@ import org.sagebionetworks.template.ThreadProvider;
 import org.sagebionetworks.template.WaitConditionHandler;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
-import com.amazonaws.services.cloudformation.model.StackEvent;
-
 import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
 import software.amazon.awssdk.services.bedrockagent.model.DataSourceSummary;
 import software.amazon.awssdk.services.bedrockagent.model.GetIngestionJobRequest;
@@ -48,6 +46,7 @@ import software.amazon.awssdk.services.bedrockagent.model.StartIngestionJobReque
 import software.amazon.awssdk.services.bedrockagent.model.StartIngestionJobResponse;
 import software.amazon.awssdk.services.bedrockagent.paginators.ListDataSourcesIterable;
 import software.amazon.awssdk.services.bedrockagent.paginators.ListKnowledgeBasesIterable;
+import software.amazon.awssdk.services.cloudformation.model.StackEvent;
 
 @ExtendWith(MockitoExtension.class)
 public class SynapseHelpKnowledgeBaseDataSourceSyncTest {

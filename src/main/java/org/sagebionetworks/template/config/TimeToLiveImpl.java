@@ -17,7 +17,7 @@ import java.util.Optional;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.util.Clock;
 
-import com.amazonaws.services.cloudformation.model.Parameter;
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
 import com.google.inject.Inject;
 
 public class TimeToLiveImpl implements TimeToLive {
@@ -40,7 +40,7 @@ public class TimeToLiveImpl implements TimeToLive {
 						ZoneId.of("America/Los_Angeles"));
 				String expiration = now.plus(Duration.ofHours(ttlHours)).format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
 				return Optional
-						.of(new Parameter().withParameterKey(PARAM_KEY_TIME_TO_LIVE).withParameterValue(expiration));
+						.of(Parameter.builder().parameterKey(PARAM_KEY_TIME_TO_LIVE).parameterValue(expiration).build());
 			}
 		}
 		return Optional.empty();
@@ -51,9 +51,9 @@ public class TimeToLiveImpl implements TimeToLive {
 		if (parameters == null) {
 			return false;
 		}
-		return parameters.stream().filter(p -> PARAM_KEY_TIME_TO_LIVE.equals(p.getParameterKey())).map((p) -> {
+		return parameters.stream().filter(p -> PARAM_KEY_TIME_TO_LIVE.equals(p.parameterKey())).map((p) -> {
 			try {
-				ZonedDateTime deleteOn = ZonedDateTime.parse(p.getParameterValue(),
+				ZonedDateTime deleteOn = ZonedDateTime.parse(p.parameterValue(),
 						DateTimeFormatter.ISO_ZONED_DATE_TIME);
 				ZonedDateTime now = ZonedDateTime.ofInstant(Instant.ofEpochMilli(clock.currentTimeMillis()),
 						ZoneOffset.UTC);

@@ -4,8 +4,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import com.amazonaws.services.cloudformation.model.Parameter;
-import com.amazonaws.services.cloudformation.model.Tag;
+import org.checkerframework.checker.units.qual.C;
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
+import software.amazon.awssdk.services.cloudformation.model.Tag;
+import software.amazon.awssdk.services.cloudformation.model.Capability;
 
 /**
  * Request to create or update a stack.
@@ -16,7 +18,7 @@ public class CreateOrUpdateStackRequest {
 	String stackName;
 	String templateBody;
 	Parameter[] parameters;
-	String[] capabilities;
+	Capability[] capabilities;
 	private List<Tag> tags;
 	private Boolean enableTerminationProtection;
 
@@ -86,7 +88,7 @@ public class CreateOrUpdateStackRequest {
 	 * @param capabilities
 	 * @return
 	 */
-	public CreateOrUpdateStackRequest withCapabilities(String...capabilities) {
+	public CreateOrUpdateStackRequest withCapabilities(Capability...capabilities) {
 		this.capabilities = capabilities;
 		return this;
 	}
@@ -95,7 +97,7 @@ public class CreateOrUpdateStackRequest {
 	 * Capabilities required to make IAM changes in cloud formation.
 	 * @return
 	 */
-	public String[] getCapabilities() {
+	public Capability[] getCapabilities() {
 		return capabilities;
 	}
 

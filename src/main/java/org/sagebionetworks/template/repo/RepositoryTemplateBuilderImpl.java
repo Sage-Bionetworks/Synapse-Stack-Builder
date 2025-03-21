@@ -106,10 +106,11 @@ import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
 
-import com.amazonaws.services.cloudformation.model.Output;
-import com.amazonaws.services.cloudformation.model.Parameter;
-import com.amazonaws.services.cloudformation.model.Stack;
-import com.amazonaws.services.cloudformation.model.Tag;
+import software.amazon.awssdk.services.cloudformation.model.Capability;
+import software.amazon.awssdk.services.cloudformation.model.Output;
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.Tag;
 import com.google.inject.Inject;
 import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformSummary;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -307,7 +308,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				.withStackName(stackName)
 				.withTemplateBody(resultJSON)
 				.withParameters(parameters)
-				.withCapabilities(CAPABILITY_NAMED_IAM)
+				.withCapabilities(Capability.CAPABILITY_NAMED_IAM)
 				.withTags(stackTags)
 				.withEnableTerminationProtection(enableTerminationProtection));
 	}
@@ -471,8 +472,10 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	Parameter[] createSharedParameters() {
 		List<Parameter> params = new ArrayList<>(2);
 		String passwordValue = secretBuilder.getRepositoryDatabasePassword();
-		Parameter databasePassword = new Parameter().withParameterKey(PARAMETER_MYSQL_PASSWORD)
-				.withParameterValue(passwordValue);
+		Parameter databasePassword = Parameter.builder()
+				.parameterKey(PARAMETER_MYSQL_PASSWORD)
+				.parameterValue(passwordValue)
+				.build();
 		params.add(databasePassword);
 		timeToLive.createTimeToLiveParameter().ifPresent(ttl -> {
 			params.add(ttl);
@@ -515,9 +518,9 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		String instance = config.getProperty(PROPERTY_KEY_INSTANCE);
 		String outputName = stack+instance+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
 		// find the database end point suffix
-		for(Output output: sharedResouces.getOutputs()) {
-			if(outputName.equals(output.getOutputKey())){
-				String[] split = output.getOutputValue().split(stack+"-"+instance+"-db.");
+		for(Output output: sharedResouces.outputs()) {
+			if(outputName.equals(output.outputKey())){
+				String[] split = output.outputValue().split(stack+"-"+instance+"-db.");
 				return split[1];
 			}
 		}

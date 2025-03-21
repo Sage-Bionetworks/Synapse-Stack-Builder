@@ -1,6 +1,5 @@
 package org.sagebionetworks.template;
 
-import com.amazonaws.services.cloudformation.model.Tag;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,6 +9,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.LinkedList;
 import java.util.List;
+
+import software.amazon.awssdk.services.cloudformation.model.Tag;
 
 import static org.junit.Assert.*;
 import static org.sagebionetworks.template.Constants.*;
@@ -28,10 +29,10 @@ public class StackTagsProviderTest {
 	@Test
 	public void testCreateStackTags() {
 		List<Tag> expectedTags = new LinkedList<>();
-		expectedTags.add(new Tag().withKey(TAG_KEY_DEPARTMENT).withValue(TAG_VALUE_DEPARTMENT));
-		expectedTags.add(new Tag().withKey(TAG_KEY_PROJECT).withValue(TAG_VALUE_PROJECT));
-		expectedTags.add(new Tag().withKey(TAG_KEY_OWNER_EMAIL).withValue(TAG_VALUE_OWNER_EMAIL));
-		expectedTags.add(new Tag().withKey(TAG_KEY_EXECUTE_SCRIPT).withValue(TAG_VALUE_STACK_ARMOR));
+		expectedTags.add(Tag.builder().key(TAG_KEY_DEPARTMENT).value(TAG_VALUE_DEPARTMENT).build());
+		expectedTags.add(Tag.builder().key(TAG_KEY_PROJECT).value(TAG_VALUE_PROJECT).build());
+		expectedTags.add(Tag.builder().key(TAG_KEY_OWNER_EMAIL).value(TAG_VALUE_OWNER_EMAIL).build());
+		expectedTags.add(Tag.builder().key(TAG_KEY_EXECUTE_SCRIPT).value(TAG_VALUE_STACK_ARMOR).build());
 
 		StackTagsProvider provider = new StackTagsProviderImpl();
 		// call under test

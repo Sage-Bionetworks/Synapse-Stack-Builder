@@ -17,6 +17,7 @@ import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.repo.VelocityExceptionThrower;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 import org.sagebionetworks.util.ValidateArgument;
+import software.amazon.awssdk.services.cloudformation.model.Capability;
 
 import java.io.File;
 import java.io.IOException;
@@ -121,7 +122,7 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
         // create or update the template
         this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
                 .withTemplateBody(resultJSON).withTags(tagsProvider.getStackTags())
-                .withCapabilities(CAPABILITY_NAMED_IAM));
+                .withCapabilities(Capability.CAPABILITY_NAMED_IAM));
     }
     
     String copyArtifactFromGithub(String bucket) {

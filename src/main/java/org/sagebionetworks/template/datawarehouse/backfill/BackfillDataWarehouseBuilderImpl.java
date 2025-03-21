@@ -32,6 +32,7 @@ import software.amazon.awssdk.services.athena.model.ResultConfiguration;
 import software.amazon.awssdk.services.athena.model.Row;
 import software.amazon.awssdk.services.athena.model.StartQueryExecutionRequest;
 import software.amazon.awssdk.services.athena.model.StartQueryExecutionResponse;
+import software.amazon.awssdk.services.cloudformation.model.Capability;
 import software.amazon.awssdk.services.glue.GlueClient;
 import software.amazon.awssdk.services.glue.model.BatchCreatePartitionRequest;
 import software.amazon.awssdk.services.glue.model.GetTableRequest;
@@ -151,7 +152,7 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
         String stackName = new StringJoiner("-").add(stack).add(databaseName).add("backfill-etl-jobs").toString();
         this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
                 .withTemplateBody(resultJSON).withTags(tagsProvider.getStackTags())
-                .withCapabilities(CAPABILITY_NAMED_IAM));
+                .withCapabilities(Capability.CAPABILITY_NAMED_IAM));
         try {
             cloudFormationClient.waitForStackToComplete(stackName);
         } catch (InterruptedException e) {

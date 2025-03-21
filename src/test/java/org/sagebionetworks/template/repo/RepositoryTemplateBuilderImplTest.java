@@ -121,14 +121,11 @@ import org.sagebionetworks.template.repo.cloudwatchlogs.LogDescriptor;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
 import org.sagebionetworks.template.vpc.Color;
 
-import com.amazonaws.services.cloudformation.model.Output;
-import com.amazonaws.services.cloudformation.model.Parameter;
-import com.amazonaws.services.cloudformation.model.Stack;
-import com.amazonaws.services.cloudformation.model.Tag;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
 import software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkClient;
 import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
 import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsResponse;
@@ -137,6 +134,9 @@ import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformSummary;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.Tag;
+import software.amazon.awssdk.services.cloudformation.model.Output;
 
 @ExtendWith(MockitoExtension.class)
 public class RepositoryTemplateBuilderImplTest {
@@ -207,7 +207,7 @@ public class RepositoryTemplateBuilderImplTest {
 		velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
 
 		expectedTags = new LinkedList<>();
-		Tag t = new Tag().withKey("aKey").withValue("aValue");
+		Tag t = Tag.builder().key("aKey").value("aValue").build();
 		expectedTags.add(t);
 
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
@@ -224,20 +224,22 @@ public class RepositoryTemplateBuilderImplTest {
 		vpcSubnetColor = Color.Green.name();
 		opsStackPrefix = "ops-vpc";
 
-		sharedResouces = new Stack();
-		Output dbOut = new Output();
-		dbOut.withOutputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
 		databaseEndpointSuffix = "something.amazon.com";
-		dbOut.withOutputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix);
+		Output dbOut = Output.builder()
+				.outputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
+				.outputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix)
+				.build();		
 		// TableDB output
-		Output tableDBOutput1 = new Output();
-		tableDBOutput1.withOutputKey(stack + instance + "Table0" + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
-		tableDBOutput1.withOutputValue(stack + "-" + instance + "-table-0." + databaseEndpointSuffix);
-		Output tableDBOutput2 = new Output();
-		tableDBOutput2.withOutputKey(stack + instance + "Table1" + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
-		tableDBOutput2.withOutputValue(stack + "-" + instance + "-table-1." + databaseEndpointSuffix);
+		Output tableDBOutput1 = Output.builder()
+				.outputKey(stack + instance + "Table0" + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
+				.outputValue(stack + "-" + instance + "-table-0." + databaseEndpointSuffix)
+				.build();
+		Output tableDBOutput2 = Output.builder()
+				.outputKey(stack + instance + "Table1" + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
+				.outputValue(stack + "-" + instance + "-table-1." + databaseEndpointSuffix)
+				.build();
 		
-		sharedResouces.withOutputs(dbOut, tableDBOutput1, tableDBOutput2);
+		sharedResouces = Stack.builder().outputs(dbOut, tableDBOutput1, tableDBOutput2).build();
 
 		secretsSouce = new SourceBundle("secretBucket", "secretKey");
 		keyAlias = "alias/some/alias";
@@ -253,19 +255,18 @@ public class RepositoryTemplateBuilderImplTest {
 		
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		
-		
-		sharedResouces = new Stack();
-		
 		databaseEndpointSuffix = "something.amazon.com";
 		
-		sharedResouces.withOutputs(
-			new Output()
-				.withOutputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
-				.withOutputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix), 
-			new Output()
-				.withOutputKey("SynapseHelpCollectionEndpoint")
-				.withOutputValue("synhelp-endpoint")
-		);
+		sharedResouces = Stack.builder().outputs(
+				Output.builder()
+						.outputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
+						.outputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix)
+						.build(),
+				Output.builder()
+						.outputKey("SynapseHelpCollectionEndpoint")
+						.outputValue("synhelp-endpoint")
+						.build()
+			).build();
 
 		when(mockCloudFormationClient.waitForStackToComplete(any(String.class), any())).thenReturn(Optional.of(sharedResouces));
 		
@@ -549,7 +550,7 @@ public class RepositoryTemplateBuilderImplTest {
 	public void testBuildAndDeployDev() throws InterruptedException {
 		
 		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(
-				Optional.of(new Parameter().withParameterKey(PARAM_KEY_TIME_TO_LIVE).withParameterValue("NONE")));
+				Optional.of(Parameter.builder().parameterKey(PARAM_KEY_TIME_TO_LIVE).parameterValue("NONE").build()));
 		
 		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
@@ -623,7 +624,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(false, request.getEnableTerminationProtection());
 		assertNotNull(request.getParameters());
 		assertEquals(2, request.getParameters().length);
-		assertEquals("NONE", request.getParameters()[1].getParameterValue());
+		assertEquals("NONE", request.getParameters()[1].parameterValue());
 		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);
 		JSONObject templateJson = new JSONObject(bodyJSONString);
@@ -896,8 +897,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(params);
 		assertEquals(1, params.length);
 		Parameter param = params[0];
-		assertEquals(PARAMETER_MYSQL_PASSWORD, param.getParameterKey());
-		assertEquals("somePassword", param.getParameterValue());
+		assertEquals(PARAMETER_MYSQL_PASSWORD, param.parameterKey());
+		assertEquals("somePassword", param.parameterValue());
 
 		verify(mockTimeToLive).createTimeToLiveParameter();
 	}
@@ -907,19 +908,19 @@ public class RepositoryTemplateBuilderImplTest {
 
 		when(mockSecretBuilder.getRepositoryDatabasePassword()).thenReturn("somePassword");
 		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(
-				Optional.of(new Parameter().withParameterKey(PARAM_KEY_TIME_TO_LIVE).withParameterValue("NONE")));
+				Optional.of(Parameter.builder().parameterKey(PARAM_KEY_TIME_TO_LIVE).parameterValue("NONE").build()));
 
 		// call under test
 		Parameter[] params = builder.createSharedParameters();
 		assertNotNull(params);
 		assertEquals(2, params.length);
 		Parameter param = params[0];
-		assertEquals(PARAMETER_MYSQL_PASSWORD, param.getParameterKey());
-		assertEquals("somePassword", param.getParameterValue());
+		assertEquals(PARAMETER_MYSQL_PASSWORD, param.parameterKey());
+		assertEquals("somePassword", param.parameterValue());
 
 		param = params[1];
-		assertEquals(PARAM_KEY_TIME_TO_LIVE, param.getParameterKey());
-		assertEquals("NONE", param.getParameterValue());
+		assertEquals(PARAM_KEY_TIME_TO_LIVE, param.parameterKey());
+		assertEquals("NONE", param.parameterValue());
 
 		verify(mockTimeToLive).createTimeToLiveParameter();
 	}
@@ -1513,7 +1514,7 @@ public class RepositoryTemplateBuilderImplTest {
 	public void testBuildEnvironmentsWithTTL() {
 
 		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
-		Parameter ttl = new Parameter().withParameterKey("ttl").withParameterValue("value");
+		Parameter ttl = Parameter.builder().parameterKey("ttl").parameterValue("value").build();
 		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(Optional.of(ttl));
 
 		EnvironmentDescriptor e1 = new EnvironmentDescriptor().withName("repo");

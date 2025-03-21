@@ -1,17 +1,14 @@
 package org.sagebionetworks.template.markdownit;
 
-import com.amazonaws.services.cloudformation.model.Output;
-import com.amazonaws.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.Capability;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
 import com.amazonaws.services.s3.AmazonS3;
-import org.apache.velocity.Template;
-import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.CloudFormationClient;
@@ -22,7 +19,6 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 
 import java.io.File;
-import java.io.StringWriter;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -30,12 +26,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
-import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_ARTIFACT_BUCKET;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_URL;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
@@ -91,7 +85,7 @@ public class MarkDownItLambdaBuilderImplTest {
 
         when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
 
-        Stack markdownItLambdaStack = new Stack();
+        Stack markdownItLambdaStack = Stack.builder().build();
 
         when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(markdownItLambdaStack));
 
@@ -118,7 +112,7 @@ public class MarkDownItLambdaBuilderImplTest {
         assertEquals("dev-markdown-it-function", request.getStackName());
         assertTrue(request.getTags().isEmpty());
         assertEquals(1, request.getCapabilities().length);
-        assertEquals(CAPABILITY_NAMED_IAM, request.getCapabilities()[0]);
+        assertEquals(Capability.CAPABILITY_NAMED_IAM, request.getCapabilities()[0]);
         assertNotNull(request.getTemplateBody());
 
         JSONObject templateJson = new JSONObject(request.getTemplateBody());

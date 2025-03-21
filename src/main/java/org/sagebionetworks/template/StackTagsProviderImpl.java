@@ -11,8 +11,8 @@ import static org.sagebionetworks.template.Constants.TAG_VALUE_STACK_ARMOR;
 
 import java.util.LinkedList;
 import java.util.List;
+import software.amazon.awssdk.services.cloudformation.model.Tag;
 
-import com.amazonaws.services.cloudformation.model.Tag;
 import com.google.inject.Inject;
 
 public class StackTagsProviderImpl implements StackTagsProvider {
@@ -23,10 +23,10 @@ public class StackTagsProviderImpl implements StackTagsProvider {
 	@Override
 	public List<Tag> getStackTags() {
 		List<Tag> tags = new LinkedList<>();
-		tags.add(new Tag().withKey(TAG_KEY_DEPARTMENT).withValue(TAG_VALUE_DEPARTMENT));
-		tags.add(new Tag().withKey(TAG_KEY_PROJECT).withValue(TAG_VALUE_PROJECT));
-		tags.add(new Tag().withKey(TAG_KEY_OWNER_EMAIL).withValue(TAG_VALUE_OWNER_EMAIL));
-		tags.add(new Tag().withKey(TAG_KEY_EXECUTE_SCRIPT).withValue(TAG_VALUE_STACK_ARMOR));
+		tags.add(Tag.builder().key(TAG_KEY_DEPARTMENT).value(TAG_VALUE_DEPARTMENT).build());
+		tags.add(Tag.builder().key(TAG_KEY_PROJECT).value(TAG_VALUE_PROJECT).build());
+		tags.add(Tag.builder().key(TAG_KEY_OWNER_EMAIL).value(TAG_VALUE_OWNER_EMAIL).build());
+		tags.add(Tag.builder().key(TAG_KEY_EXECUTE_SCRIPT).value(TAG_VALUE_STACK_ARMOR).build());
 		return tags;
 	}
 }

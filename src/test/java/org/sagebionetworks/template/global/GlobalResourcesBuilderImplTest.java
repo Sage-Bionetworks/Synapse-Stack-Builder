@@ -37,7 +37,7 @@ import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.Configuration;
 
-import com.amazonaws.services.cloudformation.model.Tag;
+import software.amazon.awssdk.services.cloudformation.model.Tag;
 
 @ExtendWith(MockitoExtension.class)
 public class GlobalResourcesBuilderImplTest {
@@ -71,7 +71,7 @@ public class GlobalResourcesBuilderImplTest {
         when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 
         expectedTags = new LinkedList<>();
-        Tag t = new Tag().withKey("aKey").withValue("aValue");
+        Tag t = Tag.builder().key("aKey").value("aValue").build();
         expectedTags.add(t);
 
         builder = new GlobalResourcesBuilderImpl(mockCloudFormationClient, velocityEngine, mockConfig, mockLoggerFactory, mockStackTagsProvider, mockSesClient);

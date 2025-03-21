@@ -28,8 +28,7 @@ import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
-
-import com.amazonaws.services.cloudformation.model.Parameter;
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
 
 @ExtendWith(MockitoExtension.class)
 public class IdGeneratorBuilderImplTest {
@@ -91,8 +90,8 @@ public class IdGeneratorBuilderImplTest {
 		Parameter[] params = request.getParameters();
 		assertNotNull(params);
 		Parameter param = params[0];
-		assertEquals(PARAMETER_MYSQL_PASSWORD, param.getParameterKey());
-		assertEquals("somePassword", param.getParameterValue());
+		assertEquals(PARAMETER_MYSQL_PASSWORD, param.parameterKey());
+		assertEquals("somePassword", param.parameterValue());
 		assertEquals(1, params.length);
 	}
 	
@@ -119,8 +118,8 @@ public class IdGeneratorBuilderImplTest {
 		Parameter[] params = request.getParameters();
 		assertNotNull(params);
 		Parameter param = params[0];
-		assertEquals(PARAMETER_MYSQL_PASSWORD, param.getParameterKey());
-		assertEquals("somePassword", param.getParameterValue());
+		assertEquals(PARAMETER_MYSQL_PASSWORD, param.parameterKey());
+		assertEquals("somePassword", param.parameterValue());
 		assertEquals(1, params.length);
 	}
 

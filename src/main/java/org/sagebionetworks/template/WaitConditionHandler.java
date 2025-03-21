@@ -1,8 +1,8 @@
 package org.sagebionetworks.template;
 
-import java.util.Optional;
+import software.amazon.awssdk.services.cloudformation.model.StackEvent;
 
-import com.amazonaws.services.cloudformation.model.StackEvent;
+import java.util.Optional;
 
 /**
  * Interface for an handler of a wait condition defined in a cloud formation template. Note that wait conditions updates are not supported and will be invoked only when the stack is created.

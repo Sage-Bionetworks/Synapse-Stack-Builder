@@ -1,6 +1,7 @@
 package org.sagebionetworks.template.markdownit;
 
-import com.amazonaws.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.Capability;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.google.inject.Inject;
@@ -97,7 +98,7 @@ public class MarkDownItLambdaBuilderImpl implements MarkDownItLambdaBuilder {
                 .withStackName(stackName)
                 .withTemplateBody(resultJSON)
                 .withTags(tagsProvider.getStackTags())
-                .withCapabilities(CAPABILITY_NAMED_IAM);
+                .withCapabilities(Capability.CAPABILITY_NAMED_IAM);
         cloudFormationClient.createOrUpdateStack(req);
 
         try {

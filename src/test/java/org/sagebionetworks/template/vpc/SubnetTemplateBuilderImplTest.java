@@ -1,6 +1,6 @@
 package org.sagebionetworks.template.vpc;
 
-import com.amazonaws.services.cloudformation.model.Tag;
+import software.amazon.awssdk.services.cloudformation.model.Tag;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -70,7 +70,7 @@ public class SubnetTemplateBuilderImplTest {
         when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 
         expectedTags = new LinkedList<>();
-        Tag t = new Tag().withKey("aKey").withValue("aValue");
+        Tag t = Tag.builder().key("aKey").value("aValue").build();
         when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
 
         builder = new SubnetTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, mockConfig, mockLoggerFactory, mockStackTagsProvider);

@@ -39,7 +39,7 @@ import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.Configuration;
 
 import java.util.List;
-import com.amazonaws.services.cloudformation.model.Parameter;
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
 import com.google.inject.Inject;
 
 public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {

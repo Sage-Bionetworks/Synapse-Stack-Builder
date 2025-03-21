@@ -1,7 +1,8 @@
 package org.sagebionetworks.template.cdn;
 
-import com.amazonaws.services.cloudformation.model.Stack;
-import com.amazonaws.services.cloudformation.model.Tag;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.Tag;
+
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
@@ -62,9 +63,9 @@ public class CdnBuilderImplTemplateTest {
 	@Test
 	void testBuildCdnStack() throws Exception {
 		List<Tag> expectedTags = new ArrayList<>();
-		Tag tag = new Tag().withKey("aKey").withValue("aValue");
+		Tag tag = Tag.builder().key("aKey").value("aValue").build();
 		expectedTags.add(tag);
-		Stack expectedStack = new Stack().withStackName("cdn-dev-synapse").withTags(expectedTags);
+		Stack expectedStack = Stack.builder().stackName("cdn-dev-synapse").tags(expectedTags).build();
 		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
 
 		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
@@ -77,18 +78,18 @@ public class CdnBuilderImplTemplateTest {
 		Optional<Stack> optStack = builder.buildCdnStack(CdnBuilder.Type.PORTAL);
 
 		assertTrue(optStack.isPresent());
-		assertEquals("cdn-dev-synapse", optStack.get().getStackName());
-		assertEquals(1, optStack.get().getTags().size());
-		assertEquals(tag, optStack.get().getTags().get(0));
+		assertEquals("cdn-dev-synapse", optStack.get().stackName());
+		assertEquals(1, optStack.get().tags().size());
+		assertEquals(tag, optStack.get().tags().get(0));
 
 	}
 
 	@Test
 	void testBuildDataCdnStackTemplate() throws Exception{
 		List<Tag> expectedTags = new ArrayList<>();
-		Tag tag = new Tag().withKey("aKey").withValue("aValue");
+		Tag tag = Tag.builder().key("aKey").value("aValue").build();
 		expectedTags.add(tag);
-		Stack expectedStack = new Stack().withStackName("cdn-tst-data-synapse").withTags(expectedTags);
+		Stack expectedStack = Stack.builder().stackName("cdn-tst-data-synapse").tags(expectedTags).build();
 		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
 
 		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
@@ -110,8 +111,8 @@ public class CdnBuilderImplTemplateTest {
 		assertEquals(expectedTags, req.getTags());
 
 		assertTrue(optStack.isPresent());
-		assertEquals("cdn-tst-data-synapse", optStack.get().getStackName());
-		assertEquals(1, optStack.get().getTags().size());
-		assertEquals(tag, optStack.get().getTags().get(0));
+		assertEquals("cdn-tst-data-synapse", optStack.get().stackName());
+		assertEquals(1, optStack.get().tags().size());
+		assertEquals(tag, optStack.get().tags().get(0));
 	}
 }

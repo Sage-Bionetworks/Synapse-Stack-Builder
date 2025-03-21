@@ -20,27 +20,26 @@ import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 
-import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException;
-import com.amazonaws.services.cloudformation.model.CreateStackRequest;
-import com.amazonaws.services.cloudformation.model.CreateStackResult;
-import com.amazonaws.services.cloudformation.model.DeleteStackRequest;
-import com.amazonaws.services.cloudformation.model.DescribeStackEventsRequest;
-import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
-import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
-import com.amazonaws.services.cloudformation.model.Output;
-import com.amazonaws.services.cloudformation.model.ResourceSignalStatus;
-import com.amazonaws.services.cloudformation.model.ResourceStatus;
-import com.amazonaws.services.cloudformation.model.SignalResourceRequest;
-import com.amazonaws.services.cloudformation.model.Stack;
-import com.amazonaws.services.cloudformation.model.StackEvent;
-import com.amazonaws.services.cloudformation.model.StackStatus;
-import com.amazonaws.services.cloudformation.model.UpdateStackRequest;
-import com.amazonaws.services.cloudformation.model.UpdateStackResult;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.google.inject.Inject;
+import software.amazon.awssdk.services.cloudformation.model.CloudFormationException;
+import software.amazon.awssdk.services.cloudformation.model.CreateStackRequest;
+import software.amazon.awssdk.services.cloudformation.model.CreateStackResponse;
+import software.amazon.awssdk.services.cloudformation.model.DeleteStackRequest;
+import software.amazon.awssdk.services.cloudformation.model.DescribeStacksRequest;
+import software.amazon.awssdk.services.cloudformation.model.DescribeStacksResponse;
+import software.amazon.awssdk.services.cloudformation.model.Output;
+import software.amazon.awssdk.services.cloudformation.model.ResourceSignalStatus;
+import software.amazon.awssdk.services.cloudformation.model.ResourceStatus;
+import software.amazon.awssdk.services.cloudformation.model.SignalResourceRequest;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.StackEvent;
+import software.amazon.awssdk.services.cloudformation.model.StackStatus;
+import software.amazon.awssdk.services.cloudformation.model.UpdateStackRequest;
+import software.amazon.awssdk.services.cloudformation.model.UpdateStackResponse;
+import software.amazon.awssdk.services.cloudformation.model.DescribeStackEventsRequest;
 
 /**
  * Basic implementation CloudFormationClient
@@ -54,15 +53,16 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 
 	public static final int SLEEP_TIME = 10 * 1000;
 	public static final String NO_UPDATES_ARE_TO_BE_PERFORMED = "No updates are to be performed";
-	AmazonCloudFormation cloudFormationClient;
+	software.amazon.awssdk.services.cloudformation.CloudFormationClient cloudFormationClient;
 	AmazonS3 s3Client;
 	Configuration configuration;
 	Logger logger;
 	ThreadProvider threadProvider;
 
 	@Inject
-	public CloudFormationClientImpl(AmazonCloudFormation cloudFormationClient, AmazonS3 s3Client,
-			Configuration configuration, LoggerFactory loggerFactory, ThreadProvider threadProvider) {
+	public CloudFormationClientImpl(software.amazon.awssdk.services.cloudformation.CloudFormationClient cloudFormationClient,
+									AmazonS3 s3Client, Configuration configuration, LoggerFactory loggerFactory,
+									ThreadProvider threadProvider) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.s3Client = s3Client;
@@ -83,20 +83,21 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 
 			@Override
 			public String apply(String templateUrl) {
-				UpdateStackRequest request = new UpdateStackRequest();
-				request.setStackName(requestInput.getStackName());
-				request.setTemplateURL(templateUrl);
+				UpdateStackRequest.Builder builder = UpdateStackRequest.builder()
+						.stackName(requestInput.getStackName())
+						.templateURL(templateUrl);
 				if (requestInput.getParameters() != null) {
-					request.withParameters(requestInput.getParameters());
+					builder.parameters(requestInput.getParameters());
 				}
 				if (requestInput.getCapabilities() != null) {
-					request.withCapabilities(requestInput.getCapabilities());
+					builder.capabilities(requestInput.getCapabilities());
 				}
 				if (requestInput.getTags() != null) {
-					request.withTags(requestInput.getTags());
+					builder.tags(requestInput.getTags());
 				}
-				UpdateStackResult results = cloudFormationClient.updateStack(request);
-				return results.getStackId();
+				UpdateStackRequest request = builder.build();
+				UpdateStackResponse results = cloudFormationClient.updateStack(request);
+				return results.stackId();
 			}
 		});
 	}
@@ -108,23 +109,24 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 
 			@Override
 			public String apply(String templateUrl) {
-				CreateStackRequest request = new CreateStackRequest();
-				request.setStackName(requestInput.getStackName());
-				request.setTemplateURL(templateUrl);
+				CreateStackRequest.Builder builder = CreateStackRequest.builder()
+						.stackName(requestInput.getStackName())
+						.templateURL(templateUrl);
 				if (requestInput.getParameters() != null) {
-					request.withParameters(requestInput.getParameters());
+					builder.parameters(requestInput.getParameters());
 				}
 				if (requestInput.getCapabilities() != null) {
-					request.withCapabilities(requestInput.getCapabilities());
+					builder.capabilities(requestInput.getCapabilities());
 				}
 				if (requestInput.getTags() != null) {
-					request.withTags(requestInput.getTags());
+					builder.tags(requestInput.getTags());
 				}
 				if (requestInput.getEnableTerminationProtection() != null) {
-					request.withEnableTerminationProtection(requestInput.getEnableTerminationProtection());
+					builder.enableTerminationProtection(requestInput.getEnableTerminationProtection());
 				}
-				CreateStackResult result = cloudFormationClient.createStack(request);
-				return result.getStackId();
+				CreateStackRequest request = builder.build();
+				CreateStackResponse result = cloudFormationClient.createStack(request);
+				return result.stackId();
 			}
 		});
 	}
@@ -145,7 +147,7 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 			// the function executes the create or update.
 			try {
 				function.apply(templateUrl);
-			} catch (AmazonCloudFormationException e) {
+			} catch (CloudFormationException e) {
 				if (e.getMessage().contains(NO_UPDATES_ARE_TO_BE_PERFORMED)) {
 					logger.info("There were no updates for stack: " + requestInput.getStackName());
 				} else {
@@ -171,16 +173,17 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 	 * Describe the stack with the given name
 	 */
 	@Override
-	public Optional<Stack> describeStack(String stackName) throws AmazonCloudFormationException {
-		DescribeStacksRequest request = new DescribeStacksRequest().withStackName(stackName);
+	public Optional<Stack> describeStack(String stackName) throws CloudFormationException {
+		DescribeStacksRequest request = DescribeStacksRequest.builder().stackName(stackName).build();
 		try {
 			// throws an exception if it does not exist
-			DescribeStacksResult results = cloudFormationClient.describeStacks(request);
-			if (results.getStacks().size() > 1) {
+			DescribeStacksResponse results = cloudFormationClient.describeStacks(request);
+			// TODO: can this case happen?
+			if (results.stacks().size() > 1) {
 				throw new IllegalStateException("More than one stack found for name: " + stackName);
 			}
-			return Optional.of(results.getStacks().get(0));
-		} catch (AmazonCloudFormationException e) {
+			return Optional.of(results.stacks().get(0));
+		} catch (CloudFormationException e) {
 			return Optional.empty();
 		}
 	}
@@ -227,7 +230,7 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 
 	public boolean isStartedInUpdateRollbackComplete(String stackName) {
 		return describeStack(stackName)
-				.map(s -> StackStatus.UPDATE_ROLLBACK_COMPLETE.equals(StackStatus.fromValue(s.getStackStatus())))
+				.map(s -> StackStatus.UPDATE_ROLLBACK_COMPLETE.equals(s.stackStatus()))
 				.orElse(false);
 	}
 
@@ -257,7 +260,7 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 				return Optional.empty();
 			}
 			Stack stack = optional.get();
-			StackStatus status = StackStatus.fromValue(stack.getStackStatus());
+			StackStatus status = stack.stackStatus();
 			switch (status) {
 			case CREATE_COMPLETE:
 			case UPDATE_COMPLETE:
@@ -278,7 +281,7 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 				}
 			default:
 				throw new RuntimeException("Stack '" + stackName + "' did not complete.  Status: " + status.name()
-						+ " with reason: " + stack.getStackStatusReason());
+						+ " with reason: " + stack.stackStatusReason());
 			}
 		}
 	}
@@ -291,37 +294,38 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 		Set<String> waitConditionEventIds = new HashSet<>();
 		
 		List<StackEvent> waitConditionEvents = cloudFormationClient.describeStackEvents(
-				new DescribeStackEventsRequest().withStackName(stackName)
+				DescribeStackEventsRequest.builder().stackName(stackName).build()
 			)
-			.getStackEvents()
+			.stackEvents()
 			.stream()
-			.filter(event ->  "AWS::CloudFormation::WaitCondition".equals(event.getResourceType()))
+			.filter(event ->  "AWS::CloudFormation::WaitCondition".equals(event.resourceType()))
 			// We only need the latest event for each wait condition
-			.filter(event -> waitConditionEventIds.add(event.getLogicalResourceId()))
-			.filter(event -> ResourceStatus.CREATE_IN_PROGRESS.equals(ResourceStatus.fromValue(event.getResourceStatus())))
+			.filter(event -> waitConditionEventIds.add(event.logicalResourceId()))
+			.filter(event -> ResourceStatus.CREATE_IN_PROGRESS.equals(event.resourceStatus()))
 			.collect(Collectors.toList());
 		
 		for (StackEvent waitConditionEvent : waitConditionEvents) {
-			String waitConditionId = waitConditionEvent.getLogicalResourceId();
+			String waitConditionId = waitConditionEvent.logicalResourceId();
 			
 			if (processedWaitConditionSet.contains(waitConditionId)) {
 				logger.warn("Wait condition {} already processed, skipping.", waitConditionId);
 				continue;
 			}
 				
-			logger.info("Processing wait condition {} (Status: {}, Reason: {})...", waitConditionId, waitConditionEvent.getResourceStatus(), waitConditionEvent.getResourceStatusReason());
+			logger.info("Processing wait condition {} (Status: {}, Reason: {})...", waitConditionId, waitConditionEvent.resourceStatus(), waitConditionEvent.resourceStatusReason());
 			
 			WaitConditionHandler waitConditionHandler = waitConditionHandlers.get(waitConditionId);
 			
 			if (waitConditionHandler == null) {
 				
-				cloudFormationClient.signalResource(new SignalResourceRequest()
-					.withStackName(stackName)
-					.withLogicalResourceId(waitConditionId)
-					.withStatus(ResourceSignalStatus.FAILURE)
-					.withUniqueId("handler-not-found")
+				cloudFormationClient.signalResource(SignalResourceRequest.builder()
+						.stackName(stackName)
+						.logicalResourceId(waitConditionId)
+						.status(ResourceSignalStatus.FAILURE)
+						.uniqueId("handler-not-found")
+						.build()
 				);
-				
+
 				throw new IllegalStateException("Processing wait condition " + waitConditionId + " failed: could not find an handler.");
 				
 			} else {
@@ -331,13 +335,14 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 					waitConditionHandler.handle(waitConditionEvent).ifPresentOrElse(signalId -> {
 						logger.info("Processing wait condition {} completed with signal {}.", waitConditionId, signalId);
 						
-						cloudFormationClient.signalResource(new SignalResourceRequest()
-							.withStackName(stackName)
-							.withLogicalResourceId(waitConditionId)
-							.withStatus(ResourceSignalStatus.SUCCESS)
-							.withUniqueId(signalId)
+						cloudFormationClient.signalResource(SignalResourceRequest.builder()
+								.stackName(stackName)
+								.logicalResourceId(waitConditionId)
+								.status(ResourceSignalStatus.SUCCESS)
+								.uniqueId(signalId)
+								.build()
 						);
-						
+
 						processedWaitConditionSet.add(waitConditionId);
 					}, () -> {
 						logger.info("Processing wait condition {} didn't return a signal, will process later.", waitConditionId);
@@ -346,13 +351,14 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 				} catch (Exception e) {
 					logger.error("Processing wait condition {} failed exceptionally: ", waitConditionId, e);
 					
-					cloudFormationClient.signalResource(new SignalResourceRequest()
-						.withStackName(stackName)
-						.withLogicalResourceId(waitConditionId)
-						.withStatus(ResourceSignalStatus.FAILURE)
-						.withUniqueId("handler-failed")
+					cloudFormationClient.signalResource(SignalResourceRequest.builder()
+							.stackName(stackName)
+							.logicalResourceId(waitConditionId)
+							.status(ResourceSignalStatus.FAILURE)
+							.uniqueId("handler-failed")
+							.build()
 					);
-					
+
 					throw new IllegalStateException("Processing wait condition " + waitConditionId + " failed.", e);
 				}
 			}
@@ -366,10 +372,10 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 		String res = null;
 		Stack stack = describeStack(stackName)
 				.orElseThrow(() -> new IllegalStateException("Stack does not exist: " + stackName));
-		List<Output> outputs = stack.getOutputs();
+		List<Output> outputs = stack.outputs();
 		for (Output output : outputs) {
-			if (output.getOutputKey().equals(outputKey)) {
-				res = output.getOutputValue();
+			if (output.outputKey().equals(outputKey)) {
+				res = output.outputValue();
 				break;
 			}
 		}
@@ -399,18 +405,18 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 			if(isDone) {
 				return Collections.emptyList();
 			}
-			DescribeStacksResult r = cloudFormationClient.describeStacks(new DescribeStacksRequest().withNextToken(nextPageToken));
-			nextPageToken = r.getNextToken();
+			DescribeStacksResponse r = cloudFormationClient.describeStacks(DescribeStacksRequest.builder().nextToken(nextPageToken).build());
+			nextPageToken = r.nextToken();
 			if(nextPageToken == null) {
 				isDone = true;
 			}
-			return r.getStacks();
+			return r.stacks();
 		}
 	}
 
 	@Override
 	public void deleteStack(String stackName) {
-		cloudFormationClient.deleteStack(new DeleteStackRequest().withStackName(stackName));
+		cloudFormationClient.deleteStack(DeleteStackRequest.builder().stackName(stackName).build());
 	}
 
 }

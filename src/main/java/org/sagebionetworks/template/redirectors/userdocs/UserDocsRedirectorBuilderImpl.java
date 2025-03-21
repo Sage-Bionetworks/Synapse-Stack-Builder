@@ -1,6 +1,6 @@
 package org.sagebionetworks.template.redirectors.userdocs;
 
-import com.amazonaws.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
 import com.google.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

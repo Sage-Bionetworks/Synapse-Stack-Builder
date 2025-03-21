@@ -23,7 +23,7 @@ import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.nlb.RecordName;
 
-import com.amazonaws.services.cloudformation.model.Parameter;
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
 import com.google.inject.Inject;
 
 public class IpAddressPoolBuilderImpl implements IpAddressPoolBuilder {
@@ -65,7 +65,7 @@ public class IpAddressPoolBuilderImpl implements IpAddressPoolBuilder {
 		context.put("stack", stack);
 		context.put("names", names);
 
-		Parameter parameter = new Parameter();
+		Parameter parameter = Parameter.builder().build();
 
 		// Merge the context with the template
 		Template template = this.velocityEngine.getTemplate("templates/global/ip-address-pool.json.vpt");

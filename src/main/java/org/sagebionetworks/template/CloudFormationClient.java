@@ -4,8 +4,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException;
-import com.amazonaws.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
 
 /**
  * Abstraction for CloudFormation Client operations
@@ -24,13 +23,13 @@ public interface CloudFormationClient {
 	boolean doesStackNameExist(String stackName);
 	
 	/**
-	 * Describe a stack given its name.
-	 * 
-	 * @param stackName
-	 * @return
-	 * @throws AmazonCloudFormationException When the stack does not exist.
-	 */
-	Optional<Stack> describeStack(String stackName);
+     * Describe a stack given its name.
+     *
+     * @param stackName
+     * @return
+     * @throws CloudFormationException When the stack does not exist.
+     */
+	Optional<software.amazon.awssdk.services.cloudformation.model.Stack> describeStack(String stackName);
 
 	/**
 	 * Update a stack with the given name using the provided template body.
@@ -62,20 +61,22 @@ public interface CloudFormationClient {
 	
 	/**
 	 * Wait for the given stack to complete.
+	 *
 	 * @param stackName
 	 * @return
-	 * @throws InterruptedException 
+	 * @throws InterruptedException
 	 */
-	Optional<Stack> waitForStackToComplete(String stackName) throws InterruptedException;
+	Optional<software.amazon.awssdk.services.cloudformation.model.Stack> waitForStackToComplete(String stackName) throws InterruptedException;
 	
 	/**
 	 * Wait for the given stack to complete and handles any wait condition that is provided in the map (where the key is the logical id of the wait condition)
+	 *
 	 * @param stackName
 	 * @param waitConditionHandlers
 	 * @return
 	 * @throws InterruptedException
 	 */
-	Optional<Stack> waitForStackToComplete(String stackName, Set<WaitConditionHandler> waitConditionHandlers) throws InterruptedException;
+	Optional<software.amazon.awssdk.services.cloudformation.model.Stack> waitForStackToComplete(String stackName, Set<WaitConditionHandler> waitConditionHandlers) throws InterruptedException;
 
 	/**
 	 *
@@ -86,6 +87,7 @@ public interface CloudFormationClient {
 
 	/**
 	 * Stream over all stacks.
+	 *
 	 * @return
 	 */
 	Stream<Stack> streamOverAllStacks();
