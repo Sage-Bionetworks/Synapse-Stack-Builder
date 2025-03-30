@@ -69,8 +69,8 @@ import static org.sagebionetworks.template.Constants.SHARED_RESOUCES_STACK_NAME;
 import static org.sagebionetworks.template.Constants.SOLUTION_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
-import static org.sagebionetworks.template.Constants.TEMPALTE_BEAN_STALK_ENVIRONMENT;
-import static org.sagebionetworks.template.Constants.TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP;
+import static org.sagebionetworks.template.Constants.TEMPLATE_BEAN_STALK_ENVIRONMENT;
+import static org.sagebionetworks.template.Constants.TEMPLATE_SHARED_RESOUCES_MAIN_JSON_VTP;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
@@ -196,7 +196,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		// Create the shared-resource stack
 		String sharedResourceStackName = createSharedResourcesStackName();
 
-		buildAndDeployStack(context, sharedResourceStackName, TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP, sharedParameters);
+		buildAndDeployStack(context, sharedResourceStackName, TEMPLATE_SHARED_RESOUCES_MAIN_JSON_VTP, sharedParameters);
 		// Wait for the shared resources to complete
 		Stack sharedStackResults = cloudFormationClient.waitForStackToComplete(sharedResourceStackName, waitConditionHandlers).orElseThrow(()->new IllegalStateException("Stack does not exist: "+sharedResourceStackName));
 				
@@ -220,7 +220,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 			VelocityContext context = createEnvironmentContext(sharedStackResults, environment);
 			environmentNames.add(environment.getName());
 			// build this type.
-			buildAndDeployStack(context, environment.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, ttl);
+			buildAndDeployStack(context, environment.getName(), TEMPLATE_BEAN_STALK_ENVIRONMENT, ttl);
 		}
 		return environmentNames;
 	}

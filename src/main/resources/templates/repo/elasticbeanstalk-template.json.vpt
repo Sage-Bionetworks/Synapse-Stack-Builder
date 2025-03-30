@@ -18,13 +18,14 @@
 				}
 			}
 		},
-		"${environment.refName}Tempalte": {
+		"${environment.refName}Template": {
 			"Type": "AWS::ElasticBeanstalk::ConfigurationTemplate",
 			"Properties": {
 				"ApplicationName": {
 					"Fn::ImportValue": "${sharedExportPrefix}-Beanstalk-Application-Name"
 				},
 				"Description": "ConfigurationTemplate for ${environment.name}",
+				"SolutionStackName": ${solutionStackName},
 				"OptionSettings": [
 					{
 						"Namespace": "aws:autoscaling:asg",
@@ -569,7 +570,7 @@
 				"Description": "Environment for ${environment.name}",
 				"EnvironmentName": "${environment.name}",
 				"TemplateName": {
-					"Ref": "${environment.refName}Tempalte"
+					"Ref": "${environment.refName}Template"
 				},
 				"VersionLabel": {
 					"Ref": "${environment.refName}Version"
