@@ -72,7 +72,7 @@ public class SecretBuilderImplTest {
 		 
 		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(mockConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
-		when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_SECRET_KEYS_CSV)).thenReturn(new String[] {key});
+		when(mockConfig.getCommaSeparatedProperty(PROPERTY_KEY_SECRET_KEYS_CSV)).thenReturn(new String[] {key});
 		
 		
 		builder = new SecretBuilderImpl(mockConfig, mockSecretManager, mockKeyManager, mockS3Client);

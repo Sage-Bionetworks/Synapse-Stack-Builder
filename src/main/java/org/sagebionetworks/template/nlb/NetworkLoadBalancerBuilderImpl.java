@@ -48,7 +48,7 @@ public class NetworkLoadBalancerBuilderImpl implements NetworkLoadBalancerBuilde
 	@Override
 	public void buildAndDeploy() {
 		VelocityContext context = new VelocityContext();
-		List<RecordName> records = Arrays.stream(config.getComaSeparatedProperty(PROPERTY_KEY_NLB_RECORDS_CSV))
+		List<RecordName> records = Arrays.stream(config.getCommaSeparatedProperty(PROPERTY_KEY_NLB_RECORDS_CSV))
 				.map(RecordName::new).collect(Collectors.toList());
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
 		int numberAzPerNlb = config.getIntegerProperty(PROPERTY_KEY_IP_ADDRESS_POOL_NUMBER_AZ_PER_NLB);

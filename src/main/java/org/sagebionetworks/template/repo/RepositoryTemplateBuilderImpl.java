@@ -27,6 +27,7 @@ import static org.sagebionetworks.template.Constants.OPS_VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
 import static org.sagebionetworks.template.Constants.POOL_TYPES;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IMAGE_ID;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MAX_INSTANCES;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MIN_INSTANCES;
@@ -388,7 +389,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		}
 		results[0] = repoDbDescriptor;
 
-		String[] repoTableSnapshotIdentifiers = config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS);
+		String[] repoTableSnapshotIdentifiers = config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS);
 		boolean useSnapshotsForTablesDbs = !(repoTableSnapshotIdentifiers.length == 1 && NOSNAPSHOT.equals(repoTableSnapshotIdentifiers[0]));
 		if (useSnapshotForRepoDB != useSnapshotsForTablesDbs) {
 			throw new IllegalStateException("The repo database is set to use a snapshot but the tables database are not set to use snapshots, or vice-versa");
@@ -441,6 +442,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				String sslCertificateARN = config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN + type.getShortName());
 				String hostedZone = config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE + type.getShortName());
 				String cnamePrefix = name + "-" + hostedZone.replaceAll("\\.", "-");
+				String imageId = config.getProperty(PROPERTY_KEY_IMAGE_ID);
 
 				// Environment secrets
 				SourceBundle environmentSecrets = type.shouldIncludeSecrets() ? secrets : null;
@@ -454,7 +456,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 						.withSslCertificateARN(sslCertificateARN)
 						.withHostedZone(hostedZone)
 						.withCnamePrefix(cnamePrefix)
-						.withSecretsSource(environmentSecrets));
+						.withSecretsSource(environmentSecrets)
+						.withImageId(imageId));
 			} catch (ConfigurationPropertyNotFound e){
 				//The necessary properties to build up the Environment was not fully defined so we choose not to create a stack for it.
 				logger.warn("The Environment " + type + " was not created because " + e.getMissingKey() + " was not found");

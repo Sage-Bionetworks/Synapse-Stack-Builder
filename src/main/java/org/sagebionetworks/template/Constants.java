@@ -74,6 +74,7 @@ public class Constants {
 	// repo
 	public static final String PROPERTY_KEY_STACK = "org.sagebionetworks.stack";
 	public static final String PROPERTY_KEY_INSTANCE = "org.sagebionetworks.instance";
+	public static final String PROPERTY_KEY_IMAGE_ID = "org.sagebionetworks.imageid";
 
 	// CDNs
 	//	aliases for a stack are: prod, staging, tst (i.e. used to identify corresponding instances of a stack)
@@ -236,7 +237,6 @@ public class Constants {
 	public static final String APPCONFIG_CONFIGURATIONS = "appConfigConfigurations";
 
 	public static final String SOLUTION_STACK_NAME = "solutionStackName";
-	public static final String ENCRYPTED_AMI_IMAGE_ID = "encryptedImageId";
 
 	public static final String GLUE_DATABASE_NAME = "glueDatabaseName";
 	public static final String KINESIS_FIREHOSE_STREAM_DESCRIPTORS = "kinesisFirehoseStreams";

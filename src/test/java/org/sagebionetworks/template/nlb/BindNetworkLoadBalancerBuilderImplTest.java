@@ -61,7 +61,7 @@ public class BindNetworkLoadBalancerBuilderImplTest {
 	@Test
 	public void testBuildAndDeploy() throws InterruptedException {
 
-		when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_BIND_RECORD_TO_STACK))
+		when(mockConfig.getCommaSeparatedProperty(PROPERTY_KEY_BIND_RECORD_TO_STACK))
 				.thenReturn(new String[] { "www.sagebase.org->portal-dev-123-4", "dev.sagebase.org->repo-dev-123-5",
 						"staging.synapse.org->none" });
 		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("dev");

@@ -89,9 +89,9 @@ public class SubnetTemplateBuilderImplTest {
 
         when(mockConfig.getProperty(PROPERTY_KEY_VPC_SUBNET_PREFIX)).thenReturn(subnetPrefix);
         when(mockConfig.getProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn("us-east-1a,us-east-1b,us-east-1c");
-        when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn(avialabilityZones);
+        when(mockConfig.getCommaSeparatedProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES)).thenReturn(avialabilityZones);
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
-        when(mockConfig.getComaSeparatedProperty(PROPERTY_KEY_VPC_COLORS)).thenReturn(colors);
+        when(mockConfig.getCommaSeparatedProperty(PROPERTY_KEY_VPC_COLORS)).thenReturn(colors);
         when(mockConfig.getProperty(PROPERTY_KEY_VPC_ENDPOINTS_COLOR)).thenReturn("Green");
         when(mockConfig.getProperty(PROPERTY_KEY_VPC_ENDPOINTS_AZ)).thenReturn("us-east-1a,us-east-1c");
 

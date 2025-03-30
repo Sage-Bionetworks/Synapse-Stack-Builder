@@ -25,7 +25,6 @@
 					"Fn::ImportValue": "${sharedExportPrefix}-Beanstalk-Application-Name"
 				},
 				"Description": "ConfigurationTemplate for ${environment.name}",
-				"SolutionStackName": ${solutionStackName},
 				"OptionSettings": [
 					{
 						"Namespace": "aws:autoscaling:asg",
@@ -41,6 +40,11 @@
 						"Namespace": "aws:autoscaling:asg",
 						"OptionName": "MaxSize",
 						"Value": "${environment.maxInstances}"
+					},
+					{
+						"Namespace": "aws:autoscaling:launchconfiguration",
+						"OptionName": "ImageId",
+						"Value": "${environment.imageId}"
 					},
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
