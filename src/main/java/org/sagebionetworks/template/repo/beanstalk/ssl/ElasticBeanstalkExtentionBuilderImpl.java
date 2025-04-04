@@ -36,6 +36,8 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 
 	public static final String TEMPLATES_REPO_EBEXTENSIONS_UPDATE_TOMCAT_SERVER_XML_SH = "templates/repo/ebextensions/update_tomcat_server_xml.sh";
 
+	public static final String TEMPLATES_REPO_EBEXTENSIONS_UPDATE_XRAY_GROUP_SH = "templates/repo/ebextensions/update_xray_group.sh";
+
 	public static final String SSL_CONF = "ssl.conf";
 
 	public static final String SECURITY_CONF = "security.conf";
@@ -114,6 +116,8 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 		context.put("targetGroup", new TargetGroup(envType, stack, instance, number));
 		context.put("updateTomcatServerXmlSh", JSONObject
 				.quote(TemplateUtils.loadContentFromFile(TEMPLATES_REPO_EBEXTENSIONS_UPDATE_TOMCAT_SERVER_XML_SH)));
+		context.put("updateXrayGroupSh", JSONObject
+				.quote(TemplateUtils.loadContentFromFile(TEMPLATES_REPO_EBEXTENSIONS_UPDATE_XRAY_GROUP_SH)));
 		
 		// Exported resources prefix
 		context.put(GLOBAL_RESOURCES_EXPORT_PREFIX, Constants.createGlobalResourcesExportPrefix(stack));

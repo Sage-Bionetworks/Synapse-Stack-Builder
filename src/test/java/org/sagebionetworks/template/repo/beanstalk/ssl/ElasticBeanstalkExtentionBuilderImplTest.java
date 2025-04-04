@@ -146,7 +146,7 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 				configJson.getJSONObject("files").getJSONObject("/tmp/update_tomcat_server_xml.sh")
 						.getString("content"));
 		assertEquals("{\"command\":\"sh /tmp/update_tomcat_server_xml.sh\"}",
-				configJson.getJSONObject("container_commands").getJSONObject("00").toString());
+				configJson.getJSONObject("container_commands").getJSONObject("01").toString());
 
 		assertTrue(httpConfigJson.contains(x509CertificatePem));
 		assertTrue(httpConfigJson.contains(privateKeyPem));
