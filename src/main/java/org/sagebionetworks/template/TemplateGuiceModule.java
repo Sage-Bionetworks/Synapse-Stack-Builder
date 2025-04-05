@@ -4,6 +4,7 @@ import static org.sagebionetworks.template.Constants.APPCONFIG_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.ATHENA_QUERIES_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.DATAWAREHOUSE_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.IMAGE_CENTRAL_ROLE_ARN;
 import static org.sagebionetworks.template.Constants.KINESIS_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARM_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.S3_CONFIG_FILE;
@@ -108,6 +109,7 @@ import org.sagebionetworks.war.WarAppender;
 import org.sagebionetworks.war.WarAppenderImpl;
 
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.athena.AmazonAthena;
 import com.amazonaws.services.athena.AmazonAthenaClientBuilder;
@@ -306,11 +308,17 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		return builder.build();
 	}
 	
-
+	/*
+	 * Requests to image builder in the image central AWS account
+	 * must be made using a role in that account
+	 */
 	@Provides
-	public AWSimagebuilder provideAmazonImageBuilder(){
+	public AWSimagebuilder provideAmazonImageBuilder() {
+		STSAssumeRoleSessionCredentialsProvider credentialsProvider = 
+				new STSAssumeRoleSessionCredentialsProvider.Builder(IMAGE_CENTRAL_ROLE_ARN, "session").build();
+		
 		AWSimagebuilderClientBuilder builder = AWSimagebuilderClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
+		builder.withCredentials(credentialsProvider);
 		builder.withRegion(Regions.US_EAST_1);
 		return builder.build();
 	}

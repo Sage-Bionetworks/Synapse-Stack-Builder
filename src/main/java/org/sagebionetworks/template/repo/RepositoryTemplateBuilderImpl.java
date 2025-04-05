@@ -193,13 +193,12 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	}
 	
 	public String getImageIdForImageBuilderImageArn(String imageBuilderImageArn) {
-		// This can be null in buildListPlatformVersionsRequest so check here
 		if(imageBuilderImageArn == null) {
 			return null;
 		}
 		
 		GetImageRequest getImageRequest = new GetImageRequest().withImageBuildVersionArn(imageBuilderImageArn);
-		GetImageResult result = this.imageBuilder.getImage(getImageRequest);
+		GetImageResult result = imageBuilder.getImage(getImageRequest);
 		List<Ami> amis = result.getImage().getOutputResources().getAmis();
 		Ami ami = amis.get(amis.size()-1); // get the latest AMI
 		return ami.getImage();
