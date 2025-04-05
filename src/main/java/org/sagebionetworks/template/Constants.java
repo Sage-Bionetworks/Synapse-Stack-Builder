@@ -59,8 +59,6 @@ public class Constants {
 	public static final String PARAMETER_AWS_SECRET = "AwsSecret";
 	public static final String PARAMETER_AWS_KEY = "AwsKey";
 	
-	public static final String IMAGE_CENTRAL_ROLE_ARN = "arn:aws:iam::867686887310:role/image-access-role-ImageAccessRole-RhtcbS3ZLek5";
-
 	// input property keys
 	// vpc
 	public static final String PROPERTY_KEY_VPC_VPN_CIDR = "org.sagebionetworks.vpc.vpn.cidr";
@@ -77,6 +75,7 @@ public class Constants {
 	public static final String PROPERTY_KEY_STACK = "org.sagebionetworks.stack";
 	public static final String PROPERTY_KEY_INSTANCE = "org.sagebionetworks.instance";
 	public static final String PROPERTY_KEY_IMAGEBUIILDER_IMAGE_ARN = "org.sagebionetworks.imagebuilder.image.arn";
+	public static final String PROPERTY_KEY_IMAGE_CENTRAL_ROLE_ARN = "org.sagebionetworks.iam.imagecentral.role.arn";
 
 	// CDNs
 	//	aliases for a stack are: prod, staging, tst (i.e. used to identify corresponding instances of a stack)

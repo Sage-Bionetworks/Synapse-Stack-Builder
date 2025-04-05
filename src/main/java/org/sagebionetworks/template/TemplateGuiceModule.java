@@ -4,9 +4,9 @@ import static org.sagebionetworks.template.Constants.APPCONFIG_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.ATHENA_QUERIES_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.DATAWAREHOUSE_CONFIG_FILE;
-import static org.sagebionetworks.template.Constants.IMAGE_CENTRAL_ROLE_ARN;
 import static org.sagebionetworks.template.Constants.KINESIS_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARM_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IMAGE_CENTRAL_ROLE_ARN;
 import static org.sagebionetworks.template.Constants.S3_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.SNS_AND_SQS_CONFIG_FILE;
 import static org.sagebionetworks.template.TemplateUtils.loadFromJsonFile;
@@ -153,6 +153,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	private static final String CLASSPATH_AND_FILE = "classpath,file";
 	private static final String CLASSPATH_RESOURCE_LOADER_CLASS = "classpath.resource.loader.class";
 	private static final String FILE_RESOURCE_LOADER_CLASS = "file.resource.loader.class";
+	private static final String IMAGE_CENTRAL_SESSION_NAME = "image-central-session";
 
 	@Override
 	protected void configure() {
@@ -310,12 +311,15 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	
 	/*
 	 * Requests to image builder in the image central AWS account
-	 * must be made using a role in that account
+	 * must be made using a role in that account.  The role 
+	 * is shared with the entire organization, so any role running
+	 * the stack builder can assume it.
 	 */
 	@Provides
-	public AWSimagebuilder provideAmazonImageBuilder() {
+	public AWSimagebuilder provideAmazonImageBuilder(Configuration props) {
+		String imageCentralRoleArn=props.getProperty(PROPERTY_KEY_IMAGE_CENTRAL_ROLE_ARN);
 		STSAssumeRoleSessionCredentialsProvider credentialsProvider = 
-				new STSAssumeRoleSessionCredentialsProvider.Builder(IMAGE_CENTRAL_ROLE_ARN, "session").build();
+				new STSAssumeRoleSessionCredentialsProvider.Builder(imageCentralRoleArn, IMAGE_CENTRAL_SESSION_NAME).build();
 		
 		AWSimagebuilderClientBuilder builder = AWSimagebuilderClientBuilder.standard();
 		builder.withCredentials(credentialsProvider);
