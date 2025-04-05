@@ -59,8 +59,7 @@ public class Constants {
 	public static final String PARAMETER_AWS_SECRET = "AwsSecret";
 	public static final String PARAMETER_AWS_KEY = "AwsKey";
 	
-	public static final String IMAGE_CENTRAL_ROLE_ARN = "arn:aws:imagebuilder:us-east-1:867686887310:image/cis-for-eb-test/0.0.0/1";
-
+	public static final String IMAGE_CENTRAL_ROLE_ARN = "arn:aws:iam::867686887310:role/image-access-role-ImageAccessRole-RhtcbS3ZLek5";
 
 	// input property keys
 	// vpc
