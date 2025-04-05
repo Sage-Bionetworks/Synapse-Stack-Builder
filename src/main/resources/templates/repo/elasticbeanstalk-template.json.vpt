@@ -42,11 +42,13 @@
 						"OptionName": "MaxSize",
 						"Value": "${environment.maxInstances}"
 					},
+					#if (${environment.imageId})
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
 						"OptionName": "ImageId",
 						"Value": "${environment.imageId}"
 					},
+					#end
 					{
 						"Namespace": "aws:autoscaling:launchconfiguration",
 						"OptionName": "RootVolumeType",

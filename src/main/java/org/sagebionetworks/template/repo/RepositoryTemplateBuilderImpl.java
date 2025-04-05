@@ -27,7 +27,6 @@ import static org.sagebionetworks.template.Constants.OPS_VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
 import static org.sagebionetworks.template.Constants.POOL_TYPES;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IMAGE_ID;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MAX_INSTANCES;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MIN_INSTANCES;
@@ -41,6 +40,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTA
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IMAGEBUIILDER_IMAGE_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OAUTH_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX;
@@ -115,6 +115,10 @@ import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
+import com.amazonaws.services.imagebuilder.AWSimagebuilder;
+import com.amazonaws.services.imagebuilder.model.Ami;
+import com.amazonaws.services.imagebuilder.model.GetImageRequest;
+import com.amazonaws.services.imagebuilder.model.GetImageResult;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.google.inject.Inject;
@@ -135,6 +139,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	private final StackTagsProvider stackTagsProvider;
 	private final CloudwatchLogsVelocityContextProvider cwlContextProvider;
 	private final AWSElasticBeanstalk beanstalkClient;
+	private final AWSimagebuilder imageBuilder;
 	private final TimeToLive timeToLive;
 	private final AWSSecurityTokenService stsClient;
 	private final Set<WaitConditionHandler> waitConditionHandlers;
@@ -145,7 +150,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 										 SecretBuilder secretBuilder, Set<VelocityContextProvider> contextProviders,
 										 ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkDefaultAMIEncrypter,
 										 StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
-										 Ec2Client ec2Client, AWSElasticBeanstalk beanstalkClient, TimeToLive ttl, 
+										 Ec2Client ec2Client, AWSElasticBeanstalk beanstalkClient, AWSimagebuilder imageBuilder, TimeToLive ttl, 
 										 AWSSecurityTokenService stsClient, Set<WaitConditionHandler> waitConditionHandlers) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
@@ -160,6 +165,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.stackTagsProvider = stackTagsProvider;
 		this.cwlContextProvider = cloudwatchLogsVelocityContextProvider;
 		this.beanstalkClient = beanstalkClient;
+		this.imageBuilder = imageBuilder;
 		this.timeToLive = ttl;
 		this.stsClient = stsClient;
 		this.waitConditionHandlers = waitConditionHandlers;
@@ -185,6 +191,20 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		}
 		return actualVersion;
 	}
+	
+	public String getImageIdForImageBuilderImageArn(String imageBuilderImageArn) {
+		// This can be null in buildListPlatformVersionsRequest so check here
+		if(imageBuilderImageArn == null) {
+			return null;
+		}
+		
+		GetImageRequest getImageRequest = new GetImageRequest().withImageBuildVersionArn(imageBuilderImageArn);
+		GetImageResult result = this.imageBuilder.getImage(getImageRequest);
+		List<Ami> amis = result.getImage().getOutputResources().getAmis();
+		Ami ami = amis.get(amis.size()-1); // get the latest AMI
+		return ami.getImage();
+	}
+
 
 	@Override
 	public void buildAndDeploy() throws InterruptedException {
@@ -442,7 +462,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				String sslCertificateARN = config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN + type.getShortName());
 				String hostedZone = config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE + type.getShortName());
 				String cnamePrefix = name + "-" + hostedZone.replaceAll("\\.", "-");
-				String imageId = config.getProperty(PROPERTY_KEY_IMAGE_ID);
+				String imageArn = config.getProperty(PROPERTY_KEY_IMAGEBUIILDER_IMAGE_ARN);
+				String imageId = getImageIdForImageBuilderImageArn(imageArn);
 
 				// Environment secrets
 				SourceBundle environmentSecrets = type.shouldIncludeSecrets() ? secrets : null;

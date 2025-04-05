@@ -121,6 +121,8 @@ import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClientBuilder;
 import com.amazonaws.services.glue.AWSGlue;
 import com.amazonaws.services.glue.AWSGlueClientBuilder;
+import com.amazonaws.services.imagebuilder.AWSimagebuilder;
+import com.amazonaws.services.imagebuilder.AWSimagebuilderClientBuilder;
 import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.AWSKMSAsyncClientBuilder;
 import com.amazonaws.services.lambda.AWSLambda;
@@ -299,6 +301,15 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public AWSElasticBeanstalk provideAmazonElasticBeanstalk(){
 		AWSElasticBeanstalkClientBuilder builder = AWSElasticBeanstalkClientBuilder.standard();
+		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
+		builder.withRegion(Regions.US_EAST_1);
+		return builder.build();
+	}
+	
+
+	@Provides
+	public AWSimagebuilder provideAmazonImageBuilder(){
+		AWSimagebuilderClientBuilder builder = AWSimagebuilderClientBuilder.standard();
 		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
 		builder.withRegion(Regions.US_EAST_1);
 		return builder.build();

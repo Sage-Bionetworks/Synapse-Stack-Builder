@@ -74,7 +74,7 @@ public class Constants {
 	// repo
 	public static final String PROPERTY_KEY_STACK = "org.sagebionetworks.stack";
 	public static final String PROPERTY_KEY_INSTANCE = "org.sagebionetworks.instance";
-	public static final String PROPERTY_KEY_IMAGE_ID = "org.sagebionetworks.imageid";
+	public static final String PROPERTY_KEY_IMAGEBUIILDER_IMAGE_ARN = "org.sagebionetworks.imagebuilder.image.arn";
 
 	// CDNs
 	//	aliases for a stack are: prod, staging, tst (i.e. used to identify corresponding instances of a stack)

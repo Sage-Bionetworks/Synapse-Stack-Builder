@@ -1,14 +1,13 @@
 package org.sagebionetworks.template.repo.beanstalk;
 
-import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
-import com.amazonaws.services.elasticbeanstalk.model.PlatformFilter;
-import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
-import org.sagebionetworks.template.Constants;
-
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+
+import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
+import com.amazonaws.services.elasticbeanstalk.model.PlatformFilter;
+import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 
 public class BeanstalkUtils {
 
@@ -53,5 +52,4 @@ public class BeanstalkUtils {
 		String maxPlatformVersion = summaries.stream().max(comparator).get().getPlatformVersion();
 		return maxPlatformVersion;
 	}
-
 }
