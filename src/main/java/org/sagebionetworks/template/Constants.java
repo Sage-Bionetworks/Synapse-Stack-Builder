@@ -74,7 +74,7 @@ public class Constants {
 	// repo
 	public static final String PROPERTY_KEY_STACK = "org.sagebionetworks.stack";
 	public static final String PROPERTY_KEY_INSTANCE = "org.sagebionetworks.instance";
-	public static final String PROPERTY_KEY_IMAGEBUIILDER_IMAGE_ARN = "org.sagebionetworks.imagebuilder.image.arn";
+	public static final String PROPERTY_KEY_IMAGE_PIPELINE_ARN = "org.sagebionetworks.imagebuilder.pipeline.arn";
 	public static final String PROPERTY_KEY_IMAGE_CENTRAL_ROLE_ARN = "org.sagebionetworks.iam.imagecentral.role.arn";
 
 	// CDNs

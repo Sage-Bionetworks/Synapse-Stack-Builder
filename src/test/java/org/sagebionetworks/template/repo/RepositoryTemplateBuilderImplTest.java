@@ -45,7 +45,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTA
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IMAGEBUIILDER_IMAGE_ARN;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IMAGE_PIPELINE_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OAUTH_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX;
@@ -131,9 +131,10 @@ import com.amazonaws.services.elasticbeanstalk.model.PlatformFilter;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import com.amazonaws.services.imagebuilder.AWSimagebuilder;
 import com.amazonaws.services.imagebuilder.model.Ami;
-import com.amazonaws.services.imagebuilder.model.GetImageRequest;
-import com.amazonaws.services.imagebuilder.model.GetImageResult;
-import com.amazonaws.services.imagebuilder.model.Image;
+import com.amazonaws.services.imagebuilder.model.ImageState;
+import com.amazonaws.services.imagebuilder.model.ImageSummary;
+import com.amazonaws.services.imagebuilder.model.ListImagePipelineImagesRequest;
+import com.amazonaws.services.imagebuilder.model.ListImagePipelineImagesResult;
 import com.amazonaws.services.imagebuilder.model.OutputResources;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
@@ -195,7 +196,7 @@ public class RepositoryTemplateBuilderImplTest {
 	private String opsStackPrefix;
 	private String instance;
 	private String vpcSubnetColor;
-	private String imageBuilderImageArn;
+	private String imagePipelineArn;
 	private String imageId;
 	
 	private List<LogDescriptor> logDescriptors;
@@ -208,8 +209,8 @@ public class RepositoryTemplateBuilderImplTest {
 
 	private List<Tag> expectedTags;
 	
-	private GetImageRequest getImageRequest;
-	private GetImageResult getImageResult;
+	private ListImagePipelineImagesRequest listImagesRequest;
+	private ListImagePipelineImagesResult listImagesResult;
 
 	@BeforeEach
 	public void before() throws InterruptedException {
@@ -233,7 +234,7 @@ public class RepositoryTemplateBuilderImplTest {
 		instance = "101";
 		vpcSubnetColor = Color.Green.name();
 		opsStackPrefix = "ops-vpc";
-		imageBuilderImageArn="arn:aws:imagebuilder:us-east-1:867686887310:image/cis-for-eb-test/0.0.0/1";
+		imagePipelineArn="arn:aws:imagebuilder:us-east-1:867686887310:image/cis-for-eb";
 		imageId = "ami-0123456789";
 		
 		sharedResouces = new Stack();
@@ -255,13 +256,18 @@ public class RepositoryTemplateBuilderImplTest {
 		keyAlias = "alias/some/alias";
 
 		// CloudwatchLogs
-		logDescriptors = this.generateLogDescriptors();
+		logDescriptors = this.generateLogDescriptors();		
 		
-		getImageRequest = new GetImageRequest().withImageBuildVersionArn(imageBuilderImageArn);
-		getImageResult = (new GetImageResult()).
-				withImage((new Image()).
+		listImagesRequest = new ListImagePipelineImagesRequest().withImagePipelineArn(imagePipelineArn);
+		listImagesResult = new ListImagePipelineImagesResult().
+				withImageSummaryList(new ImageSummary().
+						withDateCreated("20250405").
+						withState(new ImageState().
+						withStatus("Available")).
 						withOutputResources((new OutputResources()).
-					    withAmis(new Ami[] {(new Ami()).withImage(imageId)})));
+								withAmis(new Ami[] {(new Ami()).
+										withImage(imageId)})));
+
 	}
 
 	private void configureStack(String inputStack) throws InterruptedException {
@@ -313,7 +319,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(15000);
 		when(config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn(opsStackPrefix);
-		when(config.getProperty(PROPERTY_KEY_IMAGEBUIILDER_IMAGE_ARN)).thenReturn(imageBuilderImageArn);
+		when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(imagePipelineArn);
 		
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
@@ -351,7 +357,8 @@ public class RepositoryTemplateBuilderImplTest {
 		stack = "prod";
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
-		when(mockImageBuilderClient.getImage(getImageRequest)).thenReturn(getImageResult);
+		when(mockImageBuilderClient.listImagePipelineImages(listImagesRequest)).thenReturn(listImagesResult);
+
 		
 		// call under test
 		builder.buildAndDeploy();
@@ -470,7 +477,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(-1);
 		when(config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn(opsStackPrefix);
-		when(config.getProperty(PROPERTY_KEY_IMAGEBUIILDER_IMAGE_ARN)).thenReturn(imageBuilderImageArn);
+		when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(imagePipelineArn);
 		
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
@@ -507,7 +514,7 @@ public class RepositoryTemplateBuilderImplTest {
 		stack = "prod";
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
-		when(mockImageBuilderClient.getImage(getImageRequest)).thenReturn(getImageResult);
+		when(mockImageBuilderClient.listImagePipelineImages(listImagesRequest)).thenReturn(listImagesResult);
 
 		// call under test
 		builder.buildAndDeploy();
@@ -593,7 +600,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(15000);
 		when(config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn(opsStackPrefix);
-		when(config.getProperty(PROPERTY_KEY_IMAGEBUIILDER_IMAGE_ARN)).thenReturn(imageBuilderImageArn);
+		when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(imagePipelineArn);
 		
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
@@ -630,7 +637,7 @@ public class RepositoryTemplateBuilderImplTest {
 		stack = "dev";
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
-		when(mockImageBuilderClient.getImage(getImageRequest)).thenReturn(getImageResult);
+		when(mockImageBuilderClient.listImagePipelineImages(listImagesRequest)).thenReturn(listImagesResult);
 		
 		// call under test
 		builder.buildAndDeploy();
@@ -723,7 +730,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(1000);
 		when(config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn(opsStackPrefix);
-		when(config.getProperty(PROPERTY_KEY_IMAGEBUIILDER_IMAGE_ARN)).thenReturn(imageBuilderImageArn);
+		when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(imagePipelineArn);
 		
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
@@ -761,7 +768,7 @@ public class RepositoryTemplateBuilderImplTest {
 		stack = "dev";
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
-		when(mockImageBuilderClient.getImage(getImageRequest)).thenReturn(getImageResult);
+		when(mockImageBuilderClient.listImagePipelineImages(listImagesRequest)).thenReturn(listImagesResult);
 		
 		// call under test
 		builder.buildAndDeploy();
@@ -1110,7 +1117,7 @@ public class RepositoryTemplateBuilderImplTest {
 		
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
-		when(config.getProperty(PROPERTY_KEY_IMAGEBUIILDER_IMAGE_ARN)).thenReturn(imageBuilderImageArn);
+		when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(imagePipelineArn);
 		
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
@@ -1126,7 +1133,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		when(mockArtifactCopy.copyArtifactIfNeeded(any(), any(), anyInt()))
 				.thenReturn(new SourceBundle("bucket", "key-one"));
-		when(mockImageBuilderClient.getImage(getImageRequest)).thenReturn(getImageResult);
+		when(mockImageBuilderClient.listImagePipelineImages(listImagesRequest)).thenReturn(listImagesResult);
 		
 		// call under test
 		List<EnvironmentDescriptor> descriptors = builder.createEnvironments(secretsSouce);
@@ -1196,7 +1203,7 @@ public class RepositoryTemplateBuilderImplTest {
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
 			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + type.getShortName())).thenReturn(0);
-			when(config.getProperty(PROPERTY_KEY_IMAGEBUIILDER_IMAGE_ARN)).thenReturn(null);
+			when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(null);
 			
 			if (EnvironmentType.REPOSITORY_WORKERS.equals(type)) {
 				// do not include the "workers" environment by making the config throw an

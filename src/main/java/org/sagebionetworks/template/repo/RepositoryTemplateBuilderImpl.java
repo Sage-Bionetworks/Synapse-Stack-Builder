@@ -40,7 +40,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTA
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IMAGEBUIILDER_IMAGE_ARN;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IMAGE_PIPELINE_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OAUTH_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX;
@@ -77,12 +77,14 @@ import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
+import org.apache.http.client.utils.DateUtils;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -119,6 +121,9 @@ import com.amazonaws.services.imagebuilder.AWSimagebuilder;
 import com.amazonaws.services.imagebuilder.model.Ami;
 import com.amazonaws.services.imagebuilder.model.GetImageRequest;
 import com.amazonaws.services.imagebuilder.model.GetImageResult;
+import com.amazonaws.services.imagebuilder.model.ImageSummary;
+import com.amazonaws.services.imagebuilder.model.ListImagePipelineImagesRequest;
+import com.amazonaws.services.imagebuilder.model.ListImagePipelineImagesResult;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.google.inject.Inject;
@@ -126,7 +131,8 @@ import com.google.inject.Inject;
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
 	public static final List<String> MACHINE_TYPE_LIST = List.of("Workers", "Repository");
 	public static final List<String> POOL_TYPE_LIST = List.of("Idgen", "Main", "Migration", "Tables");
-
+	private static final String IMAGE_AVAILABLE_STATE = "Available";
+	
 	private final CloudFormationClient cloudFormationClient;
 	private final Ec2Client ec2Client;
 	private final VelocityEngine velocityEngine;
@@ -192,18 +198,38 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		return actualVersion;
 	}
 	
-	public String getImageIdForImageBuilderImageArn(String imageBuilderImageArn) {
-		if(imageBuilderImageArn == null) {
+	public String getLatestImageIdForImagePipelineArn(String imagePipelineArn) {
+		if(imagePipelineArn == null) {
 			return null;
 		}
-		
-		GetImageRequest getImageRequest = new GetImageRequest().withImageBuildVersionArn(imageBuilderImageArn);
-		GetImageResult result = imageBuilder.getImage(getImageRequest);
-		List<Ami> amis = result.getImage().getOutputResources().getAmis();
-		Ami ami = amis.get(amis.size()-1); // get the latest AMI
-		return ami.getImage();
-	}
+		Date latestDate = null;
+		String latestImage = null;
+		String nextPageToken = null;
+		while (true) {
+			ListImagePipelineImagesRequest listImagePipelineImagesRequest = new ListImagePipelineImagesRequest().
+					withImagePipelineArn(imagePipelineArn).
+					withNextToken(nextPageToken);
+			ListImagePipelineImagesResult result = imageBuilder.listImagePipelineImages(listImagePipelineImagesRequest);
 
+			for (ImageSummary imageSummary : result.getImageSummaryList()) {
+				if (!IMAGE_AVAILABLE_STATE.equalsIgnoreCase(imageSummary.getState().getStatus())) {
+					continue;
+				}
+				Date dateCreated = DateUtils.parseDate(imageSummary.getDateCreated());
+				if (latestDate == null || latestDate.compareTo(dateCreated)<0) {
+					List<Ami> amis = imageSummary.getOutputResources().getAmis();
+					// we know the build pipeline creates just one AMI
+					if (amis.size()!=1) throw new IllegalStateException("Expected one AMI but found "+amis.size());
+					latestImage = amis.get(0).getImage();
+				}
+			}
+			nextPageToken = result.getNextToken();
+			if (nextPageToken==null) {
+				break;
+			}
+		}
+		return latestImage;
+	}
 
 	@Override
 	public void buildAndDeploy() throws InterruptedException {
@@ -461,8 +487,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				String sslCertificateARN = config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN + type.getShortName());
 				String hostedZone = config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE + type.getShortName());
 				String cnamePrefix = name + "-" + hostedZone.replaceAll("\\.", "-");
-				String imageArn = config.getProperty(PROPERTY_KEY_IMAGEBUIILDER_IMAGE_ARN);
-				String imageId = getImageIdForImageBuilderImageArn(imageArn);
+				String imagePipelineArn = config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN);
+				String imageId = getLatestImageIdForImagePipelineArn(imagePipelineArn);
 
 				// Environment secrets
 				SourceBundle environmentSecrets = type.shouldIncludeSecrets() ? secrets : null;
