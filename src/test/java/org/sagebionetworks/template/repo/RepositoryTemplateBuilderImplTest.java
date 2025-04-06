@@ -261,7 +261,7 @@ public class RepositoryTemplateBuilderImplTest {
 		listImagesRequest = new ListImagePipelineImagesRequest().withImagePipelineArn(imagePipelineArn);
 		listImagesResult = new ListImagePipelineImagesResult().
 				withImageSummaryList(new ImageSummary().
-						withDateCreated("20250405").
+						withDateCreated("2025-04-05T23:39:43.900Z").
 						withState(new ImageState().
 						withStatus("Available")).
 						withOutputResources((new OutputResources()).
@@ -1585,6 +1585,71 @@ public class RepositoryTemplateBuilderImplTest {
 		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult()
 				.withPlatformSummaryList(expectedSummaries);
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
+	}
+	
+	@Test
+	public void testGetLatestImageIdForImagePipelineArn() {
+		// happy case: just one page of results, one image, image is Available
+		when(mockImageBuilderClient.listImagePipelineImages(listImagesRequest)).thenReturn(listImagesResult);
+		
+		// method under test
+		String actualImageId = builder.getLatestImageIdForImagePipelineArn(imagePipelineArn);
+		
+		assertEquals(imageId, actualImageId);
+	}
+
+	@Test
+	public void testGetLatestImageIdForImagePipelineArn_complex() {
+		// two pages
+		// first page has an available image
+		// first page has a broken image with a later date
+		// second page has an available image with an earlier date
+		
+		listImagesRequest = new ListImagePipelineImagesRequest().withImagePipelineArn(imagePipelineArn);
+		
+		String nextPageToken = "nextPage";
+		
+		ImageSummary image1 = new ImageSummary().
+				withDateCreated("2025-04-05T23:39:43.900Z").
+				withState(new ImageState().
+				withStatus("AVAILABLE")).
+				withOutputResources((new OutputResources()).
+						withAmis(new Ami[] {(new Ami()).
+								withImage(imageId)}));
+		
+		ImageSummary image2 = new ImageSummary().
+				withDateCreated("2025-04-06T23:39:43.900Z").
+				withState(new ImageState().
+				withStatus("Not Available")).
+				withOutputResources((new OutputResources()).
+						withAmis(new Ami[] {(new Ami()).
+								withImage("ami-unavailable")}));
+		
+		listImagesResult = new ListImagePipelineImagesResult().
+				withNextToken(nextPageToken).
+				withImageSummaryList(image1, image2);
+		
+		ListImagePipelineImagesRequest listImagesRequestPage2 = 
+				new ListImagePipelineImagesRequest().withImagePipelineArn(imagePipelineArn).withNextToken(nextPageToken);
+		
+		ListImagePipelineImagesResult listImagesResultPage2 =  new ListImagePipelineImagesResult().
+				withImageSummaryList(new ImageSummary().
+						withDateCreated("2025-04-01T23:39:43.900Z").
+						withState(new ImageState().
+						withStatus("AVAILABLE")).
+						withOutputResources((new OutputResources()).
+								withAmis(new Ami[] {(new Ami()).
+										withImage("ami-old-image")})));
+
+
+		when(mockImageBuilderClient.listImagePipelineImages(listImagesRequest)).thenReturn(listImagesResult);
+		when(mockImageBuilderClient.listImagePipelineImages(listImagesRequestPage2)).thenReturn(listImagesResultPage2);
+		
+		// method under test
+		String actualImageId = builder.getLatestImageIdForImagePipelineArn(imagePipelineArn);
+		
+		// method should return the first image, since it's the latest Available image
+		assertEquals(imageId, actualImageId);
 	}
 
 }

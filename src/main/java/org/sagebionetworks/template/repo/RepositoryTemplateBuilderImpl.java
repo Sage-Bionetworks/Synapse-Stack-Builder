@@ -77,14 +77,12 @@ import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
-import org.apache.http.client.utils.DateUtils;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -119,8 +117,6 @@ import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import com.amazonaws.services.imagebuilder.AWSimagebuilder;
 import com.amazonaws.services.imagebuilder.model.Ami;
-import com.amazonaws.services.imagebuilder.model.GetImageRequest;
-import com.amazonaws.services.imagebuilder.model.GetImageResult;
 import com.amazonaws.services.imagebuilder.model.ImageSummary;
 import com.amazonaws.services.imagebuilder.model.ListImagePipelineImagesRequest;
 import com.amazonaws.services.imagebuilder.model.ListImagePipelineImagesResult;
@@ -202,7 +198,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		if(imagePipelineArn == null) {
 			return null;
 		}
-		Date latestDate = null;
+		String latestDate = null;
 		String latestImage = null;
 		String nextPageToken = null;
 		while (true) {
@@ -215,12 +211,12 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				if (!IMAGE_AVAILABLE_STATE.equalsIgnoreCase(imageSummary.getState().getStatus())) {
 					continue;
 				}
-				Date dateCreated = DateUtils.parseDate(imageSummary.getDateCreated());
-				if (latestDate == null || latestDate.compareTo(dateCreated)<0) {
+				if (latestDate == null || latestDate.compareTo(imageSummary.getDateCreated())<0) {
 					List<Ami> amis = imageSummary.getOutputResources().getAmis();
 					// we know the build pipeline creates just one AMI
 					if (amis.size()!=1) throw new IllegalStateException("Expected one AMI but found "+amis.size());
 					latestImage = amis.get(0).getImage();
+					latestDate = imageSummary.getDateCreated();
 				}
 			}
 			nextPageToken = result.getNextToken();
