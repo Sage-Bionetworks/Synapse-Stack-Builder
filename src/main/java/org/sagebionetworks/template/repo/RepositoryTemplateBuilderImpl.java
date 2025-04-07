@@ -483,8 +483,13 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				String sslCertificateARN = config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN + type.getShortName());
 				String hostedZone = config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE + type.getShortName());
 				String cnamePrefix = name + "-" + hostedZone.replaceAll("\\.", "-");
-				String imagePipelineArn = config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN);
-				String imageId = getLatestImageIdForImagePipelineArn(imagePipelineArn);
+				String imageId=null;
+				try {
+					String imagePipelineArn = config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN);
+					imageId = getLatestImageIdForImagePipelineArn(imagePipelineArn);
+				} catch (ConfigurationPropertyNotFound e)  {
+					imageId=null; // if no image pipeline is specified, just use the default image
+				}
 
 				// Environment secrets
 				SourceBundle environmentSecrets = type.shouldIncludeSecrets() ? secrets : null;
