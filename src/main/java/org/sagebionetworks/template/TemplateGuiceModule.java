@@ -109,7 +109,6 @@ import org.sagebionetworks.war.WarAppender;
 import org.sagebionetworks.war.WarAppenderImpl;
 
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.athena.AmazonAthena;
 import com.amazonaws.services.athena.AmazonAthenaClientBuilder;
@@ -123,8 +122,6 @@ import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClientBuilder;
 import com.amazonaws.services.glue.AWSGlue;
 import com.amazonaws.services.glue.AWSGlueClientBuilder;
-import com.amazonaws.services.imagebuilder.AWSimagebuilder;
-import com.amazonaws.services.imagebuilder.AWSimagebuilderClientBuilder;
 import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.AWSKMSAsyncClientBuilder;
 import com.amazonaws.services.lambda.AWSLambda;
@@ -145,7 +142,12 @@ import com.google.inject.multibindings.Multibinder;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
+import software.amazon.awssdk.services.imagebuilder.ImagebuilderClient;
+import software.amazon.awssdk.services.imagebuilder.ImagebuilderClientBuilder;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
+import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
+import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
+
 
 public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
@@ -196,6 +198,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(DataWarehouseBuilder.class).to(DataWarehouseBuilderImpl.class);
 		bind(BackfillDataWarehouseBuilder.class).to(BackfillDataWarehouseBuilderImpl.class);
 		bind(MarkDownItLambdaBuilder.class).to(MarkDownItLambdaBuilderImpl.class);
+		bind(ImageBuilderClient.class).to(ImageBuilderClientImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 
@@ -308,24 +311,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		builder.withRegion(Regions.US_EAST_1);
 		return builder.build();
 	}
-	
-	/*
-	 * Requests to image builder in the image central AWS account
-	 * must be made using a role in that account.  The role 
-	 * is shared with the entire organization, so any role running
-	 * the stack builder can assume it.
-	 */
-	@Provides
-	public AWSimagebuilder provideAmazonImageBuilder(Configuration props) {
-		String imageCentralRoleArn=props.getProperty(PROPERTY_KEY_IMAGE_CENTRAL_ROLE_ARN);
-		STSAssumeRoleSessionCredentialsProvider credentialsProvider = 
-				new STSAssumeRoleSessionCredentialsProvider.Builder(imageCentralRoleArn, IMAGE_CENTRAL_SESSION_NAME).build();
-		
-		AWSimagebuilderClientBuilder builder = AWSimagebuilderClientBuilder.standard();
-		builder.withCredentials(credentialsProvider);
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
-	}
+
 	
 	@Provides
 	public AWSSecurityTokenService provideAmazonSts() {
@@ -416,6 +402,33 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public OpenSearchClientFactory openSearchClientFactoryProvider() {
 		return new OpenSearchClientFactoryImpl(ApacheHttpClient.builder().build());
+	}
+	
+	
+	/*
+	 * Requests to image builder in the image central AWS account
+	 * must be made using a role in that account.  The role 
+	 * is shared with the entire organization, so any role running
+	 * the stack builder can assume it.
+	 */
+	@Provides
+	public ImagebuilderClient imageBuilderClientProvider(Configuration props) {
+		String imageCentralRoleArn=props.getProperty(PROPERTY_KEY_IMAGE_CENTRAL_ROLE_ARN);
+		
+		AssumeRoleRequest assumeRoleRequest = AssumeRoleRequest.builder().
+				roleArn(imageCentralRoleArn).
+				roleSessionName(IMAGE_CENTRAL_SESSION_NAME).
+				build();
+		
+		StsAssumeRoleCredentialsProvider credentialsProvider = 
+				StsAssumeRoleCredentialsProvider.builder().
+				refreshRequest(assumeRoleRequest)
+				.build();
+
+		ImagebuilderClientBuilder imageBuilderClientBuilder = ImagebuilderClient.builder();
+		imageBuilderClientBuilder.credentialsProvider(credentialsProvider);
+		imageBuilderClientBuilder.region(Region.US_EAST_1);
+		return imageBuilderClientBuilder.build();
 	}
 	
 }

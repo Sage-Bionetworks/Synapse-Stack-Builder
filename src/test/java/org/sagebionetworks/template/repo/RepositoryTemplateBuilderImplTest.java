@@ -102,6 +102,7 @@ import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.Ec2Client;
+import org.sagebionetworks.template.ImageBuilderClient;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
@@ -129,18 +130,13 @@ import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest
 import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformFilter;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
-import com.amazonaws.services.imagebuilder.AWSimagebuilder;
-import com.amazonaws.services.imagebuilder.model.Ami;
-import com.amazonaws.services.imagebuilder.model.ImageState;
-import com.amazonaws.services.imagebuilder.model.ImageSummary;
-import com.amazonaws.services.imagebuilder.model.ListImagePipelineImagesRequest;
-import com.amazonaws.services.imagebuilder.model.ListImagePipelineImagesResult;
-import com.amazonaws.services.imagebuilder.model.OutputResources;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+
 
 @ExtendWith(MockitoExtension.class)
 public class RepositoryTemplateBuilderImplTest {
@@ -152,7 +148,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Mock
 	private AWSElasticBeanstalk mockBeanstalkClient;
 	@Mock
-	private AWSimagebuilder mockImageBuilderClient;
+	private ImageBuilderClient mockImageBuilderClient;
 	@Mock
 	private RepoConfiguration config;
 	@Mock
@@ -208,9 +204,7 @@ public class RepositoryTemplateBuilderImplTest {
 	private String keyAlias;
 
 	private List<Tag> expectedTags;
-	
-	private ListImagePipelineImagesRequest listImagesRequest;
-	private ListImagePipelineImagesResult listImagesResult;
+
 
 	@BeforeEach
 	public void before() throws InterruptedException {
@@ -256,18 +250,7 @@ public class RepositoryTemplateBuilderImplTest {
 		keyAlias = "alias/some/alias";
 
 		// CloudwatchLogs
-		logDescriptors = this.generateLogDescriptors();		
-		
-		listImagesRequest = new ListImagePipelineImagesRequest().withImagePipelineArn(imagePipelineArn);
-		listImagesResult = new ListImagePipelineImagesResult().
-				withImageSummaryList(new ImageSummary().
-						withDateCreated("2025-04-05T23:39:43.900Z").
-						withState(new ImageState().
-						withStatus("Available")).
-						withOutputResources((new OutputResources()).
-								withAmis(new Ami[] {(new Ami()).
-										withImage(imageId)})));
-
+		logDescriptors = this.generateLogDescriptors();
 	}
 
 	private void configureStack(String inputStack) throws InterruptedException {
@@ -357,8 +340,7 @@ public class RepositoryTemplateBuilderImplTest {
 		stack = "prod";
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
-		when(mockImageBuilderClient.listImagePipelineImages(listImagesRequest)).thenReturn(listImagesResult);
-
+		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
 		
 		// call under test
 		builder.buildAndDeploy();
@@ -514,7 +496,8 @@ public class RepositoryTemplateBuilderImplTest {
 		stack = "prod";
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
-		when(mockImageBuilderClient.listImagePipelineImages(listImagesRequest)).thenReturn(listImagesResult);
+		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
+
 
 		// call under test
 		builder.buildAndDeploy();
@@ -637,7 +620,8 @@ public class RepositoryTemplateBuilderImplTest {
 		stack = "dev";
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
-		when(mockImageBuilderClient.listImagePipelineImages(listImagesRequest)).thenReturn(listImagesResult);
+		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
+
 		
 		// call under test
 		builder.buildAndDeploy();
@@ -768,7 +752,8 @@ public class RepositoryTemplateBuilderImplTest {
 		stack = "dev";
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
-		when(mockImageBuilderClient.listImagePipelineImages(listImagesRequest)).thenReturn(listImagesResult);
+		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
+
 		
 		// call under test
 		builder.buildAndDeploy();
@@ -1133,7 +1118,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		when(mockArtifactCopy.copyArtifactIfNeeded(any(), any(), anyInt()))
 				.thenReturn(new SourceBundle("bucket", "key-one"));
-		when(mockImageBuilderClient.listImagePipelineImages(listImagesRequest)).thenReturn(listImagesResult);
+		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
 		
 		// call under test
 		List<EnvironmentDescriptor> descriptors = builder.createEnvironments(secretsSouce);
@@ -1570,7 +1555,6 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(builderSpy).buildAndDeployStack(mockContext, e2.getName(), TEMPLATE_BEAN_STALK_ENVIRONMENT, ttl);
 	}
 	
-
 	private void setupValidBeanstalkConfig() {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
@@ -1586,70 +1570,4 @@ public class RepositoryTemplateBuilderImplTest {
 				.withPlatformSummaryList(expectedSummaries);
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 	}
-	
-	@Test
-	public void testGetLatestImageIdForImagePipelineArn() {
-		// happy case: just one page of results, one image, image is Available
-		when(mockImageBuilderClient.listImagePipelineImages(listImagesRequest)).thenReturn(listImagesResult);
-		
-		// method under test
-		String actualImageId = builder.getLatestImageIdForImagePipelineArn(imagePipelineArn);
-		
-		assertEquals(imageId, actualImageId);
-	}
-
-	@Test
-	public void testGetLatestImageIdForImagePipelineArn_complex() {
-		// two pages
-		// first page has an available image
-		// first page has a broken image with a later date
-		// second page has an available image with an earlier date
-		
-		listImagesRequest = new ListImagePipelineImagesRequest().withImagePipelineArn(imagePipelineArn);
-		
-		String nextPageToken = "nextPage";
-		
-		ImageSummary image1 = new ImageSummary().
-				withDateCreated("2025-04-05T23:39:43.900Z").
-				withState(new ImageState().
-				withStatus("AVAILABLE")).
-				withOutputResources((new OutputResources()).
-						withAmis(new Ami[] {(new Ami()).
-								withImage(imageId)}));
-		
-		ImageSummary image2 = new ImageSummary().
-				withDateCreated("2025-04-06T23:39:43.900Z").
-				withState(new ImageState().
-				withStatus("Not Available")).
-				withOutputResources((new OutputResources()).
-						withAmis(new Ami[] {(new Ami()).
-								withImage("ami-unavailable")}));
-		
-		listImagesResult = new ListImagePipelineImagesResult().
-				withNextToken(nextPageToken).
-				withImageSummaryList(image1, image2);
-		
-		ListImagePipelineImagesRequest listImagesRequestPage2 = 
-				new ListImagePipelineImagesRequest().withImagePipelineArn(imagePipelineArn).withNextToken(nextPageToken);
-		
-		ListImagePipelineImagesResult listImagesResultPage2 =  new ListImagePipelineImagesResult().
-				withImageSummaryList(new ImageSummary().
-						withDateCreated("2025-04-01T23:39:43.900Z").
-						withState(new ImageState().
-						withStatus("AVAILABLE")).
-						withOutputResources((new OutputResources()).
-								withAmis(new Ami[] {(new Ami()).
-										withImage("ami-old-image")})));
-
-
-		when(mockImageBuilderClient.listImagePipelineImages(listImagesRequest)).thenReturn(listImagesResult);
-		when(mockImageBuilderClient.listImagePipelineImages(listImagesRequestPage2)).thenReturn(listImagesResultPage2);
-		
-		// method under test
-		String actualImageId = builder.getLatestImageIdForImagePipelineArn(imagePipelineArn);
-		
-		// method should return the first image, since it's the latest Available image
-		assertEquals(imageId, actualImageId);
-	}
-
 }

@@ -93,6 +93,7 @@ import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.Ec2Client;
+import org.sagebionetworks.template.ImageBuilderClient;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.WaitConditionHandler;
@@ -115,19 +116,19 @@ import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
-import com.amazonaws.services.imagebuilder.AWSimagebuilder;
-import com.amazonaws.services.imagebuilder.model.Ami;
-import com.amazonaws.services.imagebuilder.model.ImageSummary;
-import com.amazonaws.services.imagebuilder.model.ListImagePipelineImagesRequest;
-import com.amazonaws.services.imagebuilder.model.ListImagePipelineImagesResult;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.google.inject.Inject;
+import software.amazon.awssdk.services.imagebuilder.model.Ami;
+import software.amazon.awssdk.services.imagebuilder.model.ImageStatus;
+import software.amazon.awssdk.services.imagebuilder.model.ImageSummary;
+import software.amazon.awssdk.services.imagebuilder.model.ListImagePipelineImagesRequest;
+import software.amazon.awssdk.services.imagebuilder.model.ListImagePipelineImagesResponse;
 
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
 	public static final List<String> MACHINE_TYPE_LIST = List.of("Workers", "Repository");
 	public static final List<String> POOL_TYPE_LIST = List.of("Idgen", "Main", "Migration", "Tables");
-	private static final String IMAGE_AVAILABLE_STATE = "Available";
+
 	
 	private final CloudFormationClient cloudFormationClient;
 	private final Ec2Client ec2Client;
@@ -141,7 +142,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	private final StackTagsProvider stackTagsProvider;
 	private final CloudwatchLogsVelocityContextProvider cwlContextProvider;
 	private final AWSElasticBeanstalk beanstalkClient;
-	private final AWSimagebuilder imageBuilder;
+	private final ImageBuilderClient imageBuilderClient;
 	private final TimeToLive timeToLive;
 	private final AWSSecurityTokenService stsClient;
 	private final Set<WaitConditionHandler> waitConditionHandlers;
@@ -152,7 +153,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 										 SecretBuilder secretBuilder, Set<VelocityContextProvider> contextProviders,
 										 ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkDefaultAMIEncrypter,
 										 StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
-										 Ec2Client ec2Client, AWSElasticBeanstalk beanstalkClient, AWSimagebuilder imageBuilder, TimeToLive ttl, 
+										 Ec2Client ec2Client, AWSElasticBeanstalk beanstalkClient, ImageBuilderClient imageBuilderClient, TimeToLive ttl, 
 										 AWSSecurityTokenService stsClient, Set<WaitConditionHandler> waitConditionHandlers) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
@@ -167,7 +168,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.stackTagsProvider = stackTagsProvider;
 		this.cwlContextProvider = cloudwatchLogsVelocityContextProvider;
 		this.beanstalkClient = beanstalkClient;
-		this.imageBuilder = imageBuilder;
+		this.imageBuilderClient = imageBuilderClient;
 		this.timeToLive = ttl;
 		this.stsClient = stsClient;
 		this.waitConditionHandlers = waitConditionHandlers;
@@ -192,39 +193,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 			}
 		}
 		return actualVersion;
-	}
-	
-	public String getLatestImageIdForImagePipelineArn(String imagePipelineArn) {
-		if(imagePipelineArn == null) {
-			return null;
-		}
-		String latestDate = null;
-		String latestImage = null;
-		String nextPageToken = null;
-		while (true) {
-			ListImagePipelineImagesRequest listImagePipelineImagesRequest = new ListImagePipelineImagesRequest().
-					withImagePipelineArn(imagePipelineArn).
-					withNextToken(nextPageToken);
-			ListImagePipelineImagesResult result = imageBuilder.listImagePipelineImages(listImagePipelineImagesRequest);
-
-			for (ImageSummary imageSummary : result.getImageSummaryList()) {
-				if (!IMAGE_AVAILABLE_STATE.equalsIgnoreCase(imageSummary.getState().getStatus())) {
-					continue;
-				}
-				if (latestDate == null || latestDate.compareTo(imageSummary.getDateCreated())<0) {
-					List<Ami> amis = imageSummary.getOutputResources().getAmis();
-					// we know the build pipeline creates just one AMI
-					if (amis.size()!=1) throw new IllegalStateException("Expected one AMI but found "+amis.size());
-					latestImage = amis.get(0).getImage();
-					latestDate = imageSummary.getDateCreated();
-				}
-			}
-			nextPageToken = result.getNextToken();
-			if (nextPageToken==null) {
-				break;
-			}
-		}
-		return latestImage;
 	}
 
 	@Override
@@ -486,7 +454,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				String imageId=null;
 				try {
 					String imagePipelineArn = config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN);
-					imageId = getLatestImageIdForImagePipelineArn(imagePipelineArn);
+					imageId = imageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn);
 				} catch (ConfigurationPropertyNotFound e)  {
 					imageId=null; // if no image pipeline is specified, just use the default image
 				}
