@@ -24,7 +24,7 @@ public interface Configuration {
 	 * @param key
 	 * @return
 	 */
-	String[] getComaSeparatedProperty(String key);
+	String[] getCommaSeparatedProperty(String key);
 
 	/**
 	 * Get a value as an integer.

@@ -6,6 +6,7 @@ import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_CONFIG_FILE
 import static org.sagebionetworks.template.Constants.DATAWAREHOUSE_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.KINESIS_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARM_CONFIG_FILE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IMAGE_CENTRAL_ROLE_ARN;
 import static org.sagebionetworks.template.Constants.S3_CONFIG_FILE;
 import static org.sagebionetworks.template.Constants.SNS_AND_SQS_CONFIG_FILE;
 import static org.sagebionetworks.template.TemplateUtils.loadFromJsonFile;
@@ -141,7 +142,12 @@ import com.google.inject.multibindings.Multibinder;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
+import software.amazon.awssdk.services.imagebuilder.ImagebuilderClient;
+import software.amazon.awssdk.services.imagebuilder.ImagebuilderClientBuilder;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
+import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
+import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
+
 
 public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
@@ -149,6 +155,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	private static final String CLASSPATH_AND_FILE = "classpath,file";
 	private static final String CLASSPATH_RESOURCE_LOADER_CLASS = "classpath.resource.loader.class";
 	private static final String FILE_RESOURCE_LOADER_CLASS = "file.resource.loader.class";
+	private static final String IMAGE_CENTRAL_SESSION_NAME = "image-central-session";
 
 	@Override
 	protected void configure() {
@@ -191,6 +198,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(DataWarehouseBuilder.class).to(DataWarehouseBuilderImpl.class);
 		bind(BackfillDataWarehouseBuilder.class).to(BackfillDataWarehouseBuilderImpl.class);
 		bind(MarkDownItLambdaBuilder.class).to(MarkDownItLambdaBuilderImpl.class);
+		bind(ImageBuilderClient.class).to(ImageBuilderClientImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 
@@ -303,6 +311,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		builder.withRegion(Regions.US_EAST_1);
 		return builder.build();
 	}
+
 	
 	@Provides
 	public AWSSecurityTokenService provideAmazonSts() {
@@ -393,6 +402,33 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public OpenSearchClientFactory openSearchClientFactoryProvider() {
 		return new OpenSearchClientFactoryImpl(ApacheHttpClient.builder().build());
+	}
+	
+	
+	/*
+	 * Requests to image builder in the image central AWS account
+	 * must be made using a role in that account.  The role 
+	 * is shared with the entire organization, so any role running
+	 * the stack builder can assume it.
+	 */
+	@Provides
+	public ImagebuilderClient imageBuilderClientProvider(Configuration props) {
+		String imageCentralRoleArn=props.getProperty(PROPERTY_KEY_IMAGE_CENTRAL_ROLE_ARN);
+		
+		AssumeRoleRequest assumeRoleRequest = AssumeRoleRequest.builder().
+				roleArn(imageCentralRoleArn).
+				roleSessionName(IMAGE_CENTRAL_SESSION_NAME).
+				build();
+		
+		StsAssumeRoleCredentialsProvider credentialsProvider = 
+				StsAssumeRoleCredentialsProvider.builder().
+				refreshRequest(assumeRoleRequest)
+				.build();
+
+		ImagebuilderClientBuilder imageBuilderClientBuilder = ImagebuilderClient.builder();
+		imageBuilderClientBuilder.credentialsProvider(credentialsProvider);
+		imageBuilderClientBuilder.region(Region.US_EAST_1);
+		return imageBuilderClientBuilder.build();
 	}
 	
 }

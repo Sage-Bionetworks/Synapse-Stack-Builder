@@ -45,6 +45,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTA
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IMAGE_PIPELINE_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OAUTH_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX;
@@ -72,7 +73,7 @@ import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.SHARED_RESOUCES_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
-import static org.sagebionetworks.template.Constants.TEMPALTE_BEAN_STALK_ENVIRONMENT;
+import static org.sagebionetworks.template.Constants.TEMPLATE_BEAN_STALK_ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
@@ -101,6 +102,7 @@ import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.Ec2Client;
+import org.sagebionetworks.template.ImageBuilderClient;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
@@ -134,6 +136,8 @@ import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+
+
 @ExtendWith(MockitoExtension.class)
 public class RepositoryTemplateBuilderImplTest {
 
@@ -143,6 +147,8 @@ public class RepositoryTemplateBuilderImplTest {
 	private Ec2Client mockEc2Client;
 	@Mock
 	private AWSElasticBeanstalk mockBeanstalkClient;
+	@Mock
+	private ImageBuilderClient mockImageBuilderClient;
 	@Mock
 	private RepoConfiguration config;
 	@Mock
@@ -186,6 +192,8 @@ public class RepositoryTemplateBuilderImplTest {
 	private String opsStackPrefix;
 	private String instance;
 	private String vpcSubnetColor;
+	private String imagePipelineArn;
+	private String imageId;
 	
 	private List<LogDescriptor> logDescriptors;
 
@@ -196,6 +204,7 @@ public class RepositoryTemplateBuilderImplTest {
 	private String keyAlias;
 
 	private List<Tag> expectedTags;
+
 
 	@BeforeEach
 	public void before() throws InterruptedException {
@@ -211,7 +220,7 @@ public class RepositoryTemplateBuilderImplTest {
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2, new BedrockAgentContextProvider(config, mockS3Client)),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
-				mockEc2Client, mockBeanstalkClient, mockTimeToLive, mockStsClient, Set.of(mockWaitConditionHandler));
+				mockEc2Client, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive, mockStsClient, Set.of(mockWaitConditionHandler));
 		
 		builderSpy = Mockito.spy(builder);
 
@@ -219,7 +228,9 @@ public class RepositoryTemplateBuilderImplTest {
 		instance = "101";
 		vpcSubnetColor = Color.Green.name();
 		opsStackPrefix = "ops-vpc";
-
+		imagePipelineArn="arn:aws:imagebuilder:us-east-1:867686887310:image/cis-for-eb";
+		imageId = "ami-0123456789";
+		
 		sharedResouces = new Stack();
 		Output dbOut = new Output();
 		dbOut.withOutputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
@@ -291,6 +302,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(15000);
 		when(config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn(opsStackPrefix);
+		when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(imagePipelineArn);
 		
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
@@ -319,7 +331,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("true");
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
-		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
+		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 		setupValidBeanstalkConfig();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
 		when(mockCloudFormationClient.getOutput(anyString(), anyString()))
@@ -328,7 +340,8 @@ public class RepositoryTemplateBuilderImplTest {
 		stack = "prod";
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
-
+		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
+		
 		// call under test
 		builder.buildAndDeploy();
 
@@ -446,6 +459,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(-1);
 		when(config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn(opsStackPrefix);
+		when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(imagePipelineArn);
 		
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
@@ -473,7 +487,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("false");
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
-		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
+		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 		setupValidBeanstalkConfig();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
 		when(mockCloudFormationClient.getOutput(anyString(), anyString()))
@@ -482,6 +496,7 @@ public class RepositoryTemplateBuilderImplTest {
 		stack = "prod";
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
+		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
 
 
 		// call under test
@@ -568,7 +583,8 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(15000);
 		when(config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn(opsStackPrefix);
-			
+		when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(imagePipelineArn);
+		
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
 			when(config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName())).thenReturn(version);
@@ -595,7 +611,7 @@ public class RepositoryTemplateBuilderImplTest {
 																									// dev
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
-		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
+		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 		setupValidBeanstalkConfig();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
 		when(mockCloudFormationClient.getOutput(anyString(), anyString()))
@@ -604,7 +620,9 @@ public class RepositoryTemplateBuilderImplTest {
 		stack = "dev";
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
+		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
 
+		
 		// call under test
 		builder.buildAndDeploy();
 
@@ -696,6 +714,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(1000);
 		when(config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn(opsStackPrefix);
+		when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(imagePipelineArn);
 		
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
@@ -727,13 +746,15 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockEc2Client.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn("repoSnapshotIdentifier");
 		String[] tableSnaphotIdentifiers = { "table0SnapshotIdentifier", "table1SnapshotIdentifier" };
-		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS))
+		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS))
 				.thenReturn(tableSnaphotIdentifiers);
 		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("false");
 		stack = "dev";
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
+		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
 
+		
 		// call under test
 		builder.buildAndDeploy();
 
@@ -971,7 +992,7 @@ public class RepositoryTemplateBuilderImplTest {
 //		
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
-		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
+		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 		when(mockStsClient.getCallerIdentity(any())).thenReturn(new GetCallerIdentityResult().withArn("currentIdentityArn"));
 		when(config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn(opsStackPrefix);
 		
@@ -1057,7 +1078,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
-		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
+		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 		when(mockStsClient.getCallerIdentity(any())).thenReturn(new GetCallerIdentityResult().withArn("currentIdentityArn"));
 		
 		// call under test
@@ -1081,7 +1102,8 @@ public class RepositoryTemplateBuilderImplTest {
 		
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
-
+		when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(imagePipelineArn);
+		
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
 			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + type.getShortName())).thenReturn(0);
@@ -1096,7 +1118,8 @@ public class RepositoryTemplateBuilderImplTest {
 
 		when(mockArtifactCopy.copyArtifactIfNeeded(any(), any(), anyInt()))
 				.thenReturn(new SourceBundle("bucket", "key-one"));
-
+		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
+		
 		// call under test
 		List<EnvironmentDescriptor> descriptors = builder.createEnvironments(secretsSouce);
 		assertNotNull(descriptors);
@@ -1120,6 +1143,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("SynapesRepoWorkersInstanceProfile", desc.getInstanceProfileSuffix());
 		// secrets should be passed to reop
 		assertEquals(secretsSouce, desc.getSecretsSource());
+		assertEquals(imageId, desc.getImageId());
 
 		// workers
 		desc = descriptors.get(1);
@@ -1136,7 +1160,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("SynapesRepoWorkersInstanceProfile", desc.getInstanceProfileSuffix());
 		// secrets should be passed to workers
 		assertEquals(secretsSouce, desc.getSecretsSource());
-
+		assertEquals(imageId, desc.getImageId());
+		
 		// portal
 		desc = descriptors.get(2);
 		assertEquals("portal", desc.getType());
@@ -1152,16 +1177,19 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("SynapesPortalInstanceProfile", desc.getInstanceProfileSuffix());
 		// empty secrets should be passed to portal
 		assertEquals(null, desc.getSecretsSource());
+		assertEquals(imageId, desc.getImageId());
 	}
 
 	@Test
 	public void testCreateEnvironments__missingPropertiesForEnvironment() {
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
-
+		
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
 			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + type.getShortName())).thenReturn(0);
+			when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(null);
+			
 			if (EnvironmentType.REPOSITORY_WORKERS.equals(type)) {
 				// do not include the "workers" environment by making the config throw an
 				// exception
@@ -1182,6 +1210,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockArtifactCopy.copyArtifactIfNeeded(any(), any(), anyInt()))
 				.thenReturn(new SourceBundle("bucket", "key-one"));	
 
+		// method under test
 		List<EnvironmentDescriptor> descriptors = builder.createEnvironments(secretsSouce);
 
 		verify(mockLogger).warn(anyString());
@@ -1401,7 +1430,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
-		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
+		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 
 		// call under test
 		DatabaseDescriptor[] results = builder.createDatabaseDescriptors();
@@ -1449,7 +1478,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
-		when(config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
+		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 
 		// call under test
 		DatabaseDescriptor[] results = builder.createDatabaseDescriptors();
@@ -1495,8 +1524,8 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(mockTimeToLive).createTimeToLiveParameter();
 		verify(builderSpy).createEnvironments(secretsSouce);
 		verify(builderSpy, times(2)).buildAndDeployStack(any(), any(), any(), any());
-		verify(builderSpy).buildAndDeployStack(mockContext, e1.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, null);
-		verify(builderSpy).buildAndDeployStack(mockContext, e2.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, null);
+		verify(builderSpy).buildAndDeployStack(mockContext, e1.getName(), TEMPLATE_BEAN_STALK_ENVIRONMENT, null);
+		verify(builderSpy).buildAndDeployStack(mockContext, e2.getName(), TEMPLATE_BEAN_STALK_ENVIRONMENT, null);
 	}
 	
 	@Test
@@ -1522,11 +1551,10 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(mockTimeToLive).createTimeToLiveParameter();
 		verify(builderSpy).createEnvironments(secretsSouce);
 		verify(builderSpy, times(2)).buildAndDeployStack(any(), any(), any(), any());
-		verify(builderSpy).buildAndDeployStack(mockContext, e1.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, ttl);
-		verify(builderSpy).buildAndDeployStack(mockContext, e2.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, ttl);
+		verify(builderSpy).buildAndDeployStack(mockContext, e1.getName(), TEMPLATE_BEAN_STALK_ENVIRONMENT, ttl);
+		verify(builderSpy).buildAndDeployStack(mockContext, e2.getName(), TEMPLATE_BEAN_STALK_ENVIRONMENT, ttl);
 	}
 	
-
 	private void setupValidBeanstalkConfig() {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
@@ -1542,5 +1570,4 @@ public class RepositoryTemplateBuilderImplTest {
 				.withPlatformSummaryList(expectedSummaries);
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 	}
-
 }

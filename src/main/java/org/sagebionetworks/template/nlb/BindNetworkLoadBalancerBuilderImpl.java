@@ -51,7 +51,7 @@ public class BindNetworkLoadBalancerBuilderImpl implements BindNetworkLoadBalanc
 	public void buildAndDeploy() {
 		VelocityContext context = new VelocityContext();
 		List<RecordToStackMapping> mappings = Arrays
-				.stream(config.getComaSeparatedProperty(PROPERTY_KEY_BIND_RECORD_TO_STACK))
+				.stream(config.getCommaSeparatedProperty(PROPERTY_KEY_BIND_RECORD_TO_STACK))
 				.map(s -> RecordToStackMapping.builder().withMapping(s).build()).collect(Collectors.toList());
 		
 		StringJoiner joiner = new StringJoiner(",");

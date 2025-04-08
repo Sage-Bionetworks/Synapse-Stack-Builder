@@ -93,7 +93,7 @@ public class ConfigurationImplTest {
 		System.setProperty(key, value);
 		config = new ConfigurationImpl();
 		// call under test
-		String[] result = config.getComaSeparatedProperty(key);
+		String[] result = config.getCommaSeparatedProperty(key);
 		assertNotNull(result);
 		assertEquals(3, result.length);
 		assertEquals("foo", result[0]);
@@ -108,7 +108,7 @@ public class ConfigurationImplTest {
 		System.setProperty(key, value);
 		config = new ConfigurationImpl();
 		// call under test
-		String[] result = config.getComaSeparatedProperty(key);
+		String[] result = config.getCommaSeparatedProperty(key);
 		assertNotNull(result);
 		assertEquals(1, result.length);
 		assertEquals("foo", result[0]);

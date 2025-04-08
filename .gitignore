@@ -7,3 +7,5 @@
 /velocity.log
 *.iml
 /.idea
+
+**/.DS_Store

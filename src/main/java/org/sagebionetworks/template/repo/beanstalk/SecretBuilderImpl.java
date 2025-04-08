@@ -53,7 +53,7 @@ public class SecretBuilderImpl implements SecretBuilder {
 	@Override
 	public SourceBundle createSecrets() {
 		// Load the secret names
-		String[] secretNames = config.getComaSeparatedProperty(PROPERTY_KEY_SECRET_KEYS_CSV);
+		String[] secretNames = config.getCommaSeparatedProperty(PROPERTY_KEY_SECRET_KEYS_CSV);
 		Properties secrets = new Properties();
 		for (int i = 0; i < secretNames.length; i++) {
 			String secretKey = secretNames[i];

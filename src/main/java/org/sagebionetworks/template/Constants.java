@@ -58,7 +58,7 @@ public class Constants {
 	public static final String PARAMETER_ENCRYPTION_KEY = "EncryptionKey";
 	public static final String PARAMETER_AWS_SECRET = "AwsSecret";
 	public static final String PARAMETER_AWS_KEY = "AwsKey";
-
+	
 	// input property keys
 	// vpc
 	public static final String PROPERTY_KEY_VPC_VPN_CIDR = "org.sagebionetworks.vpc.vpn.cidr";
@@ -74,6 +74,8 @@ public class Constants {
 	// repo
 	public static final String PROPERTY_KEY_STACK = "org.sagebionetworks.stack";
 	public static final String PROPERTY_KEY_INSTANCE = "org.sagebionetworks.instance";
+	public static final String PROPERTY_KEY_IMAGE_PIPELINE_ARN = "org.sagebionetworks.imagebuilder.pipeline.arn";
+	public static final String PROPERTY_KEY_IMAGE_CENTRAL_ROLE_ARN = "org.sagebionetworks.iam.imagecentral.role.arn";
 
 	// CDNs
 	//	aliases for a stack are: prod, staging, tst (i.e. used to identify corresponding instances of a stack)
@@ -166,8 +168,8 @@ public class Constants {
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
 	public static final String TEMPLATES_VPC_PUBLIC_SUBNETS_JSON_VTP = "templates/vpc/public-subnets-resources.json.vtp";
 	public static final String TEMPLATES_VPC_PRIVATE_SUBNET_JSON_VTP = "templates/vpc/private-subnet-resources.json.vtp";
-	public static final String TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";
-	public static final String TEMPALTE_BEAN_STALK_ENVIRONMENT = "templates/repo/elasticbeanstalk-template.json.vpt";
+	public static final String TEMPLATE_SHARED_RESOUCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";
+	public static final String TEMPLATE_BEAN_STALK_ENVIRONMENT = "templates/repo/elasticbeanstalk-template.json.vpt";
 	public static final String TEMPLATE_ID_GENERATOR = "templates/repo/id-generator-template.json.vpt";
 	public static final String TEMPLATE_GLOBAL_RESOURCES = "templates/global/global-template.json.vpt";
 	public static final String TEMPLATE_S3_VIRUS_SCANNER = "templates/s3/s3-virus-scanner-template.json.vpt";
@@ -236,7 +238,6 @@ public class Constants {
 	public static final String APPCONFIG_CONFIGURATIONS = "appConfigConfigurations";
 
 	public static final String SOLUTION_STACK_NAME = "solutionStackName";
-	public static final String ENCRYPTED_AMI_IMAGE_ID = "encryptedImageId";
 
 	public static final String GLUE_DATABASE_NAME = "glueDatabaseName";
 	public static final String KINESIS_FIREHOSE_STREAM_DESCRIPTORS = "kinesisFirehoseStreams";
