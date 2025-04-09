@@ -62,7 +62,7 @@ public class ConfigurationImpl implements Configuration {
 
 
 	@Override
-	public String[] getComaSeparatedProperty(String key) {
+	public String[] getCommaSeparatedProperty(String key) {
 		String csv = getProperty(key);
 		String[] split = csv.split(",");
 		// trim

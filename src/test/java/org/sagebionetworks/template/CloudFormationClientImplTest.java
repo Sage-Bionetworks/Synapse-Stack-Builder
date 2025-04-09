@@ -90,7 +90,7 @@ public class CloudFormationClientImplTest {
 	CloudFormationClientImpl client;
 
 	String stackName;
-	String tempalteBody;
+	String templateBody;
 	Parameter parameter;
 	Parameter[] parameters;
 
@@ -132,12 +132,12 @@ public class CloudFormationClientImplTest {
 		capabilities = new String[] {"capOne", "capTwo"};
 		
 		stackName = "someStackName";
-		tempalteBody = "body";
+		templateBody = "body";
 		parameter = new Parameter().withParameterKey("paramKey").withParameterValue("paramValue");
 		parameters = new Parameter[] { parameter };
 		inputReqequest = new CreateOrUpdateStackRequest()
 				.withStackName(stackName)
-				.withTemplateBody(tempalteBody)
+				.withTemplateBody(templateBody)
 				.withParameters(parameters)
 				.withCapabilities(capabilities);
 		
@@ -272,10 +272,10 @@ public class CloudFormationClientImplTest {
 	}
 	
 	@Test
-	public void testSaveTempalteToS3() {
+	public void testSaveTemplateToS3() {
 		when(mockConfig.getConfigurationBucket()).thenReturn(bucket);
 		// call under test
-		SourceBundle bundle = client.saveTempalteToS3(stackName, tempalteBody);
+		SourceBundle bundle = client.saveTemplateToS3(stackName, templateBody);
 		Assertions.assertNotNull(bundle);
 		Assertions.assertEquals(bucket, bundle.getBucket());
 		Assertions.assertNotNull(bundle.getKey());

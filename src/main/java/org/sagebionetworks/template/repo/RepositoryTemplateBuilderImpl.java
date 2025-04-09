@@ -40,6 +40,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTA
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IMAGE_PIPELINE_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OAUTH_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX;
@@ -68,8 +69,8 @@ import static org.sagebionetworks.template.Constants.SHARED_RESOUCES_STACK_NAME;
 import static org.sagebionetworks.template.Constants.SOLUTION_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
-import static org.sagebionetworks.template.Constants.TEMPALTE_BEAN_STALK_ENVIRONMENT;
-import static org.sagebionetworks.template.Constants.TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP;
+import static org.sagebionetworks.template.Constants.TEMPLATE_BEAN_STALK_ENVIRONMENT;
+import static org.sagebionetworks.template.Constants.TEMPLATE_SHARED_RESOUCES_MAIN_JSON_VTP;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
@@ -92,6 +93,7 @@ import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.Ec2Client;
+import org.sagebionetworks.template.ImageBuilderClient;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.WaitConditionHandler;
@@ -117,11 +119,17 @@ import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.google.inject.Inject;
+import software.amazon.awssdk.services.imagebuilder.model.Ami;
+import software.amazon.awssdk.services.imagebuilder.model.ImageStatus;
+import software.amazon.awssdk.services.imagebuilder.model.ImageSummary;
+import software.amazon.awssdk.services.imagebuilder.model.ListImagePipelineImagesRequest;
+import software.amazon.awssdk.services.imagebuilder.model.ListImagePipelineImagesResponse;
 
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
 	public static final List<String> MACHINE_TYPE_LIST = List.of("Workers", "Repository");
 	public static final List<String> POOL_TYPE_LIST = List.of("Idgen", "Main", "Migration", "Tables");
 
+	
 	private final CloudFormationClient cloudFormationClient;
 	private final Ec2Client ec2Client;
 	private final VelocityEngine velocityEngine;
@@ -134,6 +142,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	private final StackTagsProvider stackTagsProvider;
 	private final CloudwatchLogsVelocityContextProvider cwlContextProvider;
 	private final AWSElasticBeanstalk beanstalkClient;
+	private final ImageBuilderClient imageBuilderClient;
 	private final TimeToLive timeToLive;
 	private final AWSSecurityTokenService stsClient;
 	private final Set<WaitConditionHandler> waitConditionHandlers;
@@ -144,7 +153,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 										 SecretBuilder secretBuilder, Set<VelocityContextProvider> contextProviders,
 										 ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkDefaultAMIEncrypter,
 										 StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
-										 Ec2Client ec2Client, AWSElasticBeanstalk beanstalkClient, TimeToLive ttl, 
+										 Ec2Client ec2Client, AWSElasticBeanstalk beanstalkClient, ImageBuilderClient imageBuilderClient, TimeToLive ttl, 
 										 AWSSecurityTokenService stsClient, Set<WaitConditionHandler> waitConditionHandlers) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
@@ -159,6 +168,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.stackTagsProvider = stackTagsProvider;
 		this.cwlContextProvider = cloudwatchLogsVelocityContextProvider;
 		this.beanstalkClient = beanstalkClient;
+		this.imageBuilderClient = imageBuilderClient;
 		this.timeToLive = ttl;
 		this.stsClient = stsClient;
 		this.waitConditionHandlers = waitConditionHandlers;
@@ -195,7 +205,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		// Create the shared-resource stack
 		String sharedResourceStackName = createSharedResourcesStackName();
 
-		buildAndDeployStack(context, sharedResourceStackName, TEMPALTE_SHARED_RESOUCES_MAIN_JSON_VTP, sharedParameters);
+		buildAndDeployStack(context, sharedResourceStackName, TEMPLATE_SHARED_RESOUCES_MAIN_JSON_VTP, sharedParameters);
 		// Wait for the shared resources to complete
 		Stack sharedStackResults = cloudFormationClient.waitForStackToComplete(sharedResourceStackName, waitConditionHandlers).orElseThrow(()->new IllegalStateException("Stack does not exist: "+sharedResourceStackName));
 				
@@ -219,7 +229,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 			VelocityContext context = createEnvironmentContext(sharedStackResults, environment);
 			environmentNames.add(environment.getName());
 			// build this type.
-			buildAndDeployStack(context, environment.getName(), TEMPALTE_BEAN_STALK_ENVIRONMENT, ttl);
+			buildAndDeployStack(context, environment.getName(), TEMPLATE_BEAN_STALK_ENVIRONMENT, ttl);
 		}
 		return environmentNames;
 	}
@@ -388,7 +398,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		}
 		results[0] = repoDbDescriptor;
 
-		String[] repoTableSnapshotIdentifiers = config.getComaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS);
+		String[] repoTableSnapshotIdentifiers = config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS);
 		boolean useSnapshotsForTablesDbs = !(repoTableSnapshotIdentifiers.length == 1 && NOSNAPSHOT.equals(repoTableSnapshotIdentifiers[0]));
 		if (useSnapshotForRepoDB != useSnapshotsForTablesDbs) {
 			throw new IllegalStateException("The repo database is set to use a snapshot but the tables database are not set to use snapshots, or vice-versa");
@@ -441,6 +451,13 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				String sslCertificateARN = config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN + type.getShortName());
 				String hostedZone = config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE + type.getShortName());
 				String cnamePrefix = name + "-" + hostedZone.replaceAll("\\.", "-");
+				String imageId=null;
+				try {
+					String imagePipelineArn = config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN);
+					imageId = imageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn);
+				} catch (ConfigurationPropertyNotFound e)  {
+					imageId=null; // if no image pipeline is specified, just use the default image
+				}
 
 				// Environment secrets
 				SourceBundle environmentSecrets = type.shouldIncludeSecrets() ? secrets : null;
@@ -454,7 +471,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 						.withSslCertificateARN(sslCertificateARN)
 						.withHostedZone(hostedZone)
 						.withCnamePrefix(cnamePrefix)
-						.withSecretsSource(environmentSecrets));
+						.withSecretsSource(environmentSecrets)
+						.withImageId(imageId));
 			} catch (ConfigurationPropertyNotFound e){
 				//The necessary properties to build up the Environment was not fully defined so we choose not to create a stack for it.
 				logger.warn("The Environment " + type + " was not created because " + e.getMissingKey() + " was not found");

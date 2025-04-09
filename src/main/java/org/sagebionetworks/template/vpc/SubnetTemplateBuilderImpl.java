@@ -123,7 +123,7 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
         context.put(VPC_CIDR, vpcCidr);
         String availabilityZonesRaw = config.getProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES);
         context.put(AVAILABILITY_ZONES, availabilityZonesRaw);
-        String[] availabilityZones = config.getComaSeparatedProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES);
+        String[] availabilityZones = config.getCommaSeparatedProperty(PROPERTY_KEY_VPC_AVAILABILITY_ZONES);
 
         SubnetBuilder builder = new SubnetBuilder();
         builder.withCidrPrefix(vpcSubnetPrefix);
@@ -162,7 +162,7 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
      * @return
      */
     Color[] getColorsFromProperty() {
-        String[] colorString = config.getComaSeparatedProperty(PROPERTY_KEY_VPC_COLORS);
+        String[] colorString = config.getCommaSeparatedProperty(PROPERTY_KEY_VPC_COLORS);
         Color[] colors = new Color[colorString.length];
         for (int i = 0; i < colorString.length; i++) {
             colors[i] = Color.valueOf(colorString[i]);

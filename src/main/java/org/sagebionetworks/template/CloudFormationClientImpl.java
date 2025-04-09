@@ -138,7 +138,7 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 	 */
 	void executeWithS3Template(final CreateOrUpdateStackRequest requestInput, Function<String, String> function) {
 		// save the template file to S3
-		SourceBundle bundle = saveTempalteToS3(requestInput.getStackName(), requestInput.getTemplateBody());
+		SourceBundle bundle = saveTemplateToS3(requestInput.getStackName(), requestInput.getTemplateBody());
 		try {
 			// provide an pre-signed URL to the template in S3
 			String templateUrl = createS3Url(bundle);
@@ -188,14 +188,14 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 	/**
 	 * Save the given template to to S3.
 	 * 
-	 * @param tempalte
+	 * @param template
 	 * @return
 	 */
-	SourceBundle saveTempalteToS3(String stackName, String tempalte) {
+	SourceBundle saveTemplateToS3(String stackName, String template) {
 		try {
 			String bucket = configuration.getConfigurationBucket();
 			String key = "templates/" + stackName + "-" + UUID.randomUUID() + ".json";
-			byte[] bytes = tempalte.getBytes("UTF-8");
+			byte[] bytes = template.getBytes("UTF-8");
 			ByteArrayInputStream input = new ByteArrayInputStream(bytes);
 			ObjectMetadata metadata = new ObjectMetadata();
 			metadata.setContentLength(bytes.length);

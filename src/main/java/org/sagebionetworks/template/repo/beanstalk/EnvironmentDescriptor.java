@@ -19,6 +19,7 @@ public class EnvironmentDescriptor {
 	String hostedZone;
 	String cnamePrefix;
 	SourceBundle secretsSource;
+	String imageId;
 
 	public String getVersionLabel() {
 		return versionLabel;
@@ -38,6 +39,14 @@ public class EnvironmentDescriptor {
 
 	public int getNumber() {
 		return number;
+	}
+
+	public String getImageId() {
+		return imageId;
+	}
+
+	public void setImageId(String imageId) {
+		this.imageId = imageId;
 	}
 
 	public String getType() {
@@ -141,6 +150,11 @@ public class EnvironmentDescriptor {
 		return this;
 	}
 
+	public EnvironmentDescriptor withImageId(String imageId) {
+		this.imageId = imageId;
+		return this;
+	}
+
 	/**
 	 * Is the type repository or workers?
 	 * @return
@@ -156,6 +170,7 @@ public class EnvironmentDescriptor {
 		result = prime * result + ((cnamePrefix == null) ? 0 : cnamePrefix.hashCode());
 		result = prime * result + ((healthCheckUrl == null) ? 0 : healthCheckUrl.hashCode());
 		result = prime * result + ((hostedZone == null) ? 0 : hostedZone.hashCode());
+		result = prime * result + ((imageId == null) ? 0 : imageId.hashCode());
 		result = prime * result + maxInstances;
 		result = prime * result + minInstances;
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
@@ -192,6 +207,11 @@ public class EnvironmentDescriptor {
 			if (other.hostedZone != null)
 				return false;
 		} else if (!hostedZone.equals(other.hostedZone))
+			return false;
+		if (imageId == null) {
+			if (other.imageId != null)
+				return false;
+		} else if (!imageId.equals(other.imageId))
 			return false;
 		if (maxInstances != other.maxInstances)
 			return false;
@@ -240,7 +260,7 @@ public class EnvironmentDescriptor {
 				+ ", sourceBundle=" + sourceBundle + ", healthCheckUrl=" + healthCheckUrl + ", minInstances="
 				+ minInstances + ", maxInstances=" + maxInstances + ", versionLabel=" + versionLabel
 				+ ", sslCertificateARN=" + sslCertificateARN + ", hostedZone=" + hostedZone + ", cnamePrefix="
-				+ cnamePrefix + ", secretsSource=" + secretsSource + "]";
+				+ cnamePrefix + ", secretsSource=" + secretsSource + ", imageId=" + imageId + "]";
 	}
 		
 }
