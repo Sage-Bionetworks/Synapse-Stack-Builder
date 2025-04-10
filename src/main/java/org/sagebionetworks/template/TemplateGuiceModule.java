@@ -417,7 +417,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	 * the stack builder can assume it.
 	 */
 	@Provides
-	public ImagebuilderClient imageBuilderClientProvider(StsClient stsClient, Configuration props) {
+	public ImagebuilderClient imageBuilderClientProvider(StsClient stsClient, RepoConfiguration props) {
 		String imageCentralRoleArn=props.getProperty(PROPERTY_KEY_IMAGE_CENTRAL_ROLE_ARN);
 		
 		AssumeRoleRequest assumeRoleRequest = AssumeRoleRequest.builder().
