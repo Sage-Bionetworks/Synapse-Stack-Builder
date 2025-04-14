@@ -22,7 +22,7 @@
 			    },
 				"Rules": [
 					{
-						"Action": { "Count": {} },
+						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-geo-restriction-rule",
 						"Priority": 0,
 						"Statement": #parse("templates/repo/web/acl/geo-restriction-statement.json"),
