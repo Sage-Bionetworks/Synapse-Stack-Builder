@@ -18,11 +18,22 @@
 			      "throttle-response-body": {
 			        "ContentType": "APPLICATION_JSON",
 			        "Content": "{\"reason\":\"limit of 10,000 calls per 5 minutes\"}"
-			      }
+			      },
+			      "geo-restriction-response-body": {
+                    "ContentType": "APPLICATION_JSON",
+                    "Content": "{\"errorCode\": \"GEO_RESTRICTION\", \"reason\":\"Requests originating from this region are blocked. For more information see: https://grants.nih.gov/grants/guide/notice-files/NOT-OD-25-083.html. If you think you see this error message by mistake, please submit a request at https://sagebionetworks.jira.com/servicedesk/customer/portal/9/group/16/create/84.\"}"
+                  }
 			    },
 				"Rules": [
 					{
-						"Action": { "Block": {} },
+						"Action": { 
+							"Block": {
+								"CustomResponse": {
+                                    "ResponseCode": 403,
+                                    "CustomResponseBodyKey": "geo-restriction-response-body"
+                                }
+							} 
+						},
 						"Name": "${stack}-${instance}-geo-restriction-rule",
 						"Priority": 0,
 						"Statement": #parse("templates/repo/web/acl/geo-restriction-statement.json"),
