@@ -107,6 +107,8 @@ import org.sagebionetworks.util.Clock;
 import org.sagebionetworks.util.DefaultClock;
 import org.sagebionetworks.war.WarAppender;
 import org.sagebionetworks.war.WarAppenderImpl;
+import org.sagebionetworks.template.SesClient;
+import org.sagebionetworks.template.SesClientImpl;
 
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
@@ -132,11 +134,10 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
@@ -258,11 +259,8 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 
 	@Provides
-	public AmazonSimpleEmailService provideAmazonSimpleEmalService() {
-		AmazonSimpleEmailServiceClientBuilder builder = AmazonSimpleEmailServiceClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
+	public software.amazon.awssdk.services.ses.SesClient provideAmazonSimpleEmalService() {
+		return software.amazon.awssdk.services.ses.SesClient.builder().region(Region.US_EAST_1).credentialsProvider(DefaultCredentialsProvider.create()).build();
 	}
 
  	@Provides
