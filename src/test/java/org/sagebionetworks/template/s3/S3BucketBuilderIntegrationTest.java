@@ -31,6 +31,9 @@ import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
+import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
 
 @ExtendWith(MockitoExtension.class)
 public class S3BucketBuilderIntegrationTest {
@@ -48,13 +51,10 @@ public class S3BucketBuilderIntegrationTest {
     private AWSLambda mockLambdaClient;
 
     @Mock
-    private AWSSecurityTokenService mockStsClient;
+    private StsClient mockStsClient;
 
     @Mock
     private CloudFormationClient mockCloudFormationClient;
-
-    @Mock
-    private GetCallerIdentityResult mockGetCallerIdentityResult;
 
     @Mock
     private StackTagsProvider mockTagsProvider;
@@ -80,8 +80,8 @@ public class S3BucketBuilderIntegrationTest {
         accountId = "12345";
 
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
-        when(mockStsClient.getCallerIdentity(any())).thenReturn(mockGetCallerIdentityResult);
-        when(mockGetCallerIdentityResult.getAccount()).thenReturn(accountId);
+        GetCallerIdentityResponse expectedGetCallerIdentityResp = GetCallerIdentityResponse.builder().account(accountId).build();
+        when(mockStsClient.getCallerIdentity(any(GetCallerIdentityRequest.class))).thenReturn(expectedGetCallerIdentityResp);
     }
 
     @Test
