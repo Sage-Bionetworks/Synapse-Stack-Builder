@@ -8,7 +8,7 @@ public class SesClientWrapperImpl implements SesClientWrapper {
 
     public static final String BOUNCE = "Bounce";
     public static final String COMPLAINT = "Complaint";
-    software.amazon.awssdk.services.ses.SesClient sesClient;
+    SesClient sesClient;
 
     @Inject
     public SesClientWrapperImpl(SesClient sesClient) {
