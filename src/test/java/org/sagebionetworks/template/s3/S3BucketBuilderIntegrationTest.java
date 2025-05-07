@@ -27,8 +27,6 @@ import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import software.amazon.awssdk.services.sts.StsClient;
