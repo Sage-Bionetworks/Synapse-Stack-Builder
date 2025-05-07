@@ -1,16 +1,17 @@
 package org.sagebionetworks.template;
 
 import com.google.inject.Inject;
+import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.ses.model.SetIdentityNotificationTopicRequest;
 
-public class SesClientImpl implements SesClient {
+public class SesClientWrapperImpl implements SesClientWrapper {
 
     public static final String BOUNCE = "Bounce";
     public static final String COMPLAINT = "Complaint";
     software.amazon.awssdk.services.ses.SesClient sesClient;
 
     @Inject
-    public SesClientImpl(software.amazon.awssdk.services.ses.SesClient sesClient) {
+    public SesClientWrapperImpl(SesClient sesClient) {
         super();
         this.sesClient = sesClient;
     }

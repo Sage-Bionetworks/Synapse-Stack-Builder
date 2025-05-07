@@ -107,8 +107,6 @@ import org.sagebionetworks.util.Clock;
 import org.sagebionetworks.util.DefaultClock;
 import org.sagebionetworks.war.WarAppender;
 import org.sagebionetworks.war.WarAppenderImpl;
-import org.sagebionetworks.template.SesClient;
-import org.sagebionetworks.template.SesClientImpl;
 
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
@@ -144,6 +142,7 @@ import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
 import software.amazon.awssdk.services.imagebuilder.ImagebuilderClient;
 import software.amazon.awssdk.services.imagebuilder.ImagebuilderClientBuilder;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
+import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
@@ -178,7 +177,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(ElasticBeanstalkSolutionStackNameProvider.class).to(ElasticBeanstalkSolutionStackNameProviderImpl.class);
 		bind(StackTagsProvider.class).to(StackTagsProviderImpl.class);
 		bind(S3BucketBuilder.class).to(S3BucketBuilderImpl.class);
-		bind(SesClient.class).to(SesClientImpl.class);
+		bind(SesClientWrapper.class).to(SesClientWrapperImpl.class);
 		bind(GlobalResourcesBuilder.class).to(GlobalResourcesBuilderImpl.class);
 		bind(CloudwatchLogsVelocityContextProvider.class).to(CloudwatchLogsVelocityContextProviderImpl.class);
 		bind(Ec2Client.class).to(Ec2ClientImpl.class);
@@ -259,8 +258,8 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 
 	@Provides
-	public software.amazon.awssdk.services.ses.SesClient provideAmazonSimpleEmalService() {
-		return software.amazon.awssdk.services.ses.SesClient.builder().region(Region.US_EAST_1).credentialsProvider(DefaultCredentialsProvider.create()).build();
+	public SesClient provideAmazonSimpleEmalService() {
+		return SesClient.builder().region(Region.US_EAST_1).credentialsProvider(DefaultCredentialsProvider.create()).build();
 	}
 
  	@Provides

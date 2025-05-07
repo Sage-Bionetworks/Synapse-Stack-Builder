@@ -7,6 +7,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.ses.model.NotificationType;
 import software.amazon.awssdk.services.ses.model.SetIdentityNotificationTopicRequest;
 import software.amazon.awssdk.services.ses.model.SetIdentityNotificationTopicResponse;
@@ -17,12 +18,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class SesClientImplTest {
+public class SesClientWrapperImplTest {
 
-    SesClientImpl client;
+    SesClientWrapperImpl client;
 
     @Mock
-    software.amazon.awssdk.services.ses.SesClient mockAwsSesClient;
+    SesClient mockAwsSesClient;
 
     @Captor
     ArgumentCaptor<SetIdentityNotificationTopicRequest> setIdentityNotificationTopicRequestArgumentCaptor;
@@ -32,7 +33,7 @@ public class SesClientImplTest {
     @Before
     public void setUp() throws Exception {
 
-        client = new SesClientImpl(mockAwsSesClient);
+        client = new SesClientWrapperImpl(mockAwsSesClient);
 
         expectedResponse = SetIdentityNotificationTopicResponse.builder().build();
         when(mockAwsSesClient.setIdentityNotificationTopic(any(SetIdentityNotificationTopicRequest.class))).thenReturn(expectedResponse);
