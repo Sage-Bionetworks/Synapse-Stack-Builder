@@ -40,6 +40,7 @@
             ],
             "ViewerProtocolPolicy": "https-only"
           },
+          "DefaultRootObject": "index.html",
           "Enabled": true,
           "HttpVersion": "http2and3",
           "IPV6Enabled": false,
