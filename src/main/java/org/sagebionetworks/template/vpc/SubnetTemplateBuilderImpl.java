@@ -78,7 +78,7 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
             new CreateOrUpdateStackRequest()
                 .withStackName(stackName)
                 .withTemplateBody(resultJSON)
-                .withTags(stackTagsProvider.getStackTags())
+                .withTags(stackTagsProvider.getStackTags(config))
         );
 
         this.cloudFormationClient.waitForStackToComplete(stackName);
@@ -108,7 +108,7 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
                     new CreateOrUpdateStackRequest()
                             .withStackName(stackName)
                             .withTemplateBody(resultJSON)
-                            .withTags(stackTagsProvider.getStackTags())
+                            .withTags(stackTagsProvider.getStackTags(config))
             );
 
             this.cloudFormationClient.waitForStackToComplete(stackName);

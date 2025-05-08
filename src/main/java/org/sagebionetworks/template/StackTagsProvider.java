@@ -1,10 +1,12 @@
 package org.sagebionetworks.template;
 
-import com.amazonaws.services.cloudformation.model.Tag;
-
 import java.util.List;
+
+import org.sagebionetworks.template.config.Configuration;
+
+import com.amazonaws.services.cloudformation.model.Tag;
 
 public interface StackTagsProvider {
 
-	public List<Tag> getStackTags();
+	public List<Tag> getStackTags(Configuration config);
 }

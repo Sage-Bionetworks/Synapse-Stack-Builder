@@ -69,7 +69,7 @@ public class UserDocsRedirectorBuilderImpl implements  UserDocsRedirectorBuilder
 		CreateOrUpdateStackRequest cfStackRequest = new CreateOrUpdateStackRequest()
 				.withStackName(cfStackName)
 				.withTemplateBody(cfTemplateYaml)
-				.withTags(tagsProvider.getStackTags());
+				.withTags(tagsProvider.getStackTags(config));
 		cloudFormationClient.createOrUpdateStack(cfStackRequest);
 		try {
 			cloudFormationClient.waitForStackToComplete(cfStackName);

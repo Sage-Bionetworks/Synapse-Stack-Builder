@@ -74,7 +74,7 @@ public class SubnetTemplateBuilderImplTest {
 
         expectedTags = new LinkedList<>();
         Tag t = new Tag().withKey("aKey").withValue("aValue");
-        when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
+        when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
         builder = new SubnetTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, mockConfig, mockLoggerFactory, mockStackTagsProvider);
 

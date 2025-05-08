@@ -299,7 +299,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	void buildAndDeployStack(VelocityContext context, String stackName, String templatePath, Parameter... parameters) {
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
 		boolean enableTerminationProtection = ("prod".equals(stack)); // enable on prod stack
-		List<Tag> stackTags = stackTagsProvider.getStackTags();
+		List<Tag> stackTags = stackTagsProvider.getStackTags(config);
 
 		// Merge the context with the template
 		Template template = this.velocityEngine.getTemplate(templatePath);

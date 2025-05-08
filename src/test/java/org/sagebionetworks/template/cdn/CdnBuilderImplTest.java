@@ -102,7 +102,7 @@ class CdnBuilderImplTest {
 		Tag tag = new Tag().withKey("aKey").withValue("aValue");
 		expectedTags.add(tag);
 		Stack expectedStack = new Stack().withStackName("cdn-dev-synapse").withTags(expectedTags);
-		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
+		when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
 		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
 		when(mockCloudFormationClient.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
@@ -142,7 +142,7 @@ class CdnBuilderImplTest {
 		Tag tag = new Tag().withKey("aKey").withValue("aValue");
 		expectedTags.add(tag);
 		Stack expectedStack = new Stack().withStackName("cdn-tst-data-synapse").withTags(expectedTags);
-		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
+		when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
 		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
 		when(mockCloudFormationClient.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));

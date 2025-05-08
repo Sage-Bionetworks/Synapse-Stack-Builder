@@ -74,7 +74,7 @@ public class NetworkLoadBalancerBuilderImpl implements NetworkLoadBalancerBuilde
 		this.logger.info(resultJSON);
 		// create or update the template
 		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
-				.withTemplateBody(resultJSON).withParameters(parameter).withTags(tagsProvider.getStackTags()));
+				.withTemplateBody(resultJSON).withParameters(parameter).withTags(tagsProvider.getStackTags(config)));
 
 	}
 

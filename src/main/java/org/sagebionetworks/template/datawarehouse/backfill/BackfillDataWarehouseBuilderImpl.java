@@ -150,7 +150,7 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
         // create or update the stack
         String stackName = new StringJoiner("-").add(stack).add(databaseName).add("backfill-etl-jobs").toString();
         this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
-                .withTemplateBody(resultJSON).withTags(tagsProvider.getStackTags())
+                .withTemplateBody(resultJSON).withTags(tagsProvider.getStackTags(config))
                 .withCapabilities(CAPABILITY_NAMED_IAM));
         try {
             cloudFormationClient.waitForStackToComplete(stackName);

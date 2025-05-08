@@ -62,7 +62,7 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(stackName)
 				.withTemplateBody(resultJSON)
-				.withTags(stackTagsProvider.getStackTags())
+				.withTags(stackTagsProvider.getStackTags(config))
 				.withParameters(params));
 		this.cloudFormationClient.waitForStackToComplete(stackName);
 	}

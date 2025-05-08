@@ -120,7 +120,7 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
         this.logger.info(resultJSON);
         // create or update the template
         this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
-                .withTemplateBody(resultJSON).withTags(tagsProvider.getStackTags())
+                .withTemplateBody(resultJSON).withTags(tagsProvider.getStackTags(config))
                 .withCapabilities(CAPABILITY_NAMED_IAM));
     }
     

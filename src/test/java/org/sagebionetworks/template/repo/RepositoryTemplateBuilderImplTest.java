@@ -280,7 +280,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Test
 	public void testBuildAndDeployProd() throws InterruptedException {
 		
-		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
+		when(mockStackTagsProvider.getStackTags(config)).thenReturn(expectedTags);
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
 		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
@@ -437,7 +437,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Test
 	public void testBuildAndDeployProdNoMonitoring() throws InterruptedException {
 		
-		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
+		when(mockStackTagsProvider.getStackTags(config)).thenReturn(expectedTags);
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
 		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
@@ -561,7 +561,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(
 				Optional.of(new Parameter().withParameterKey(PARAM_KEY_TIME_TO_LIVE).withParameterValue("NONE")));
 		
-		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
+		when(mockStackTagsProvider.getStackTags(config)).thenReturn(expectedTags);
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
 		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
@@ -692,7 +692,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Test
 	public void testBuildAndDeployDevFromSnapshot() throws InterruptedException {
 	
-		when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
+		when(mockStackTagsProvider.getStackTags(config)).thenReturn(expectedTags);
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
 		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);

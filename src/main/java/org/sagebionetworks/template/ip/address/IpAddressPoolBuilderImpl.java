@@ -81,7 +81,7 @@ public class IpAddressPoolBuilderImpl implements IpAddressPoolBuilder {
 		this.logger.info(resultJSON);
 		// create or update the template
 		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
-				.withTemplateBody(resultJSON).withParameters(parameter).withTags(tagsProvider.getStackTags()));
+				.withTemplateBody(resultJSON).withParameters(parameter).withTags(tagsProvider.getStackTags(config)));
 	}
 	
 	public static String ipAddressName(String domain, int azNumber) {
