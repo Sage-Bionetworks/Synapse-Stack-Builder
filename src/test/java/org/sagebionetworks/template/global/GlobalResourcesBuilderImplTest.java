@@ -107,7 +107,7 @@ public class GlobalResourcesBuilderImplTest {
     @Test
     public void testBuildGlobalResourcesDev() throws InterruptedException {
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("dev");
-        when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
+        when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
         builder.buildGlobalResources(); // call under test
 
@@ -134,7 +134,7 @@ public class GlobalResourcesBuilderImplTest {
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("prod");
         when(mockCloudFormationClient.getOutput("synapse-prod-global-resources", GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC)).thenReturn("complaintTopicArn");
         when(mockCloudFormationClient.getOutput("synapse-prod-global-resources", GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC)).thenReturn("bounceTopicArn");
-        when(mockStackTagsProvider.getStackTags()).thenReturn(expectedTags);
+        when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
         builder.buildGlobalResources(); // call under test
 

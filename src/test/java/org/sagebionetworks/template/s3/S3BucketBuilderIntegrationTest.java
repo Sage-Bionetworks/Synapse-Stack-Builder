@@ -94,7 +94,7 @@ public class S3BucketBuilderIntegrationTest {
         Stack bucketPolicyStack = new Stack();
 
         when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-        when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+        when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
         // Call under test
         builder.buildAllBuckets();

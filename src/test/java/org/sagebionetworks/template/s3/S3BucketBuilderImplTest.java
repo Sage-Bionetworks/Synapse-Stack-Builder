@@ -169,7 +169,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
@@ -233,7 +233,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Mimics an existing life cycle with the abort rule already present
 		when(mockS3Client.getBucketLifecycleConfiguration(anyString())).thenReturn(new BucketLifecycleConfiguration()
@@ -290,7 +290,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Mimics an existing life cycle with the abort rule already present
 		when(mockS3Client.getBucketLifecycleConfiguration(anyString())).thenReturn(new BucketLifecycleConfiguration()
@@ -358,7 +358,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		AmazonServiceException notFound = new AmazonServiceException("NotFound");
 		notFound.setStatusCode(404);
@@ -461,7 +461,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Call under test
 		builder.buildAllBuckets();
@@ -543,7 +543,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Call under test
 		builder.buildAllBuckets();
@@ -622,7 +622,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Call under test
 		builder.buildAllBuckets();
@@ -688,7 +688,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Call under test
 		builder.buildAllBuckets();
@@ -739,7 +739,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Call under test
 		builder.buildAllBuckets();
@@ -803,7 +803,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Mimics an existing life cycle with a retention rule already present
 		when(mockS3Client.getBucketLifecycleConfiguration(anyString())).thenReturn(new BucketLifecycleConfiguration()
@@ -863,7 +863,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Mimics an existing life cycle with a retention rule already present
 		when(mockS3Client.getBucketLifecycleConfiguration(anyString())).thenReturn(new BucketLifecycleConfiguration()
@@ -939,7 +939,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 				
 		// Call under test
 		builder.buildAllBuckets();
@@ -1010,7 +1010,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Mimics an existing life cycle with a transition rule already present
 		when(mockS3Client.getBucketLifecycleConfiguration(anyString())).thenReturn(new BucketLifecycleConfiguration()
@@ -1072,7 +1072,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Mimics an existing life cycle with a transition rule already present
 		when(mockS3Client.getBucketLifecycleConfiguration(anyString())).thenReturn(new BucketLifecycleConfiguration()
@@ -1154,7 +1154,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		when(mockS3Client.getBucketLifecycleConfiguration(anyString())).thenReturn(new BucketLifecycleConfiguration()
 			.withRules(
@@ -1256,7 +1256,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 				
 		// Call under test
 		builder.buildAllBuckets();
@@ -1335,7 +1335,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
@@ -1389,7 +1389,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
@@ -1444,7 +1444,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 				
 		// Call under test
 		builder.buildAllBuckets();
@@ -1575,7 +1575,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 				
 		// Call under test
 		builder.buildAllBuckets();
@@ -1637,7 +1637,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 				
 		// Call under test
 		builder.buildAllBuckets();
@@ -1697,7 +1697,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
@@ -1752,7 +1752,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
@@ -1824,7 +1824,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
@@ -1898,7 +1898,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
@@ -1972,7 +1972,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
@@ -2046,7 +2046,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
@@ -2120,7 +2120,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
@@ -2214,7 +2214,7 @@ public class S3BucketBuilderImplTest {
 		);
 		
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(virusScannerStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		String expectedBucket = stack + "-lambda-bucket";
 		String expectedKey = "artifacts/virus-scanner/lambda-name.zip";
@@ -2317,7 +2317,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		Stack virusScannerStack = new Stack().withOutputs(
 			new Output().withOutputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_TRIGGER_TOPIC).withOutputValue("snsTopicArn"),
@@ -2325,7 +2325,7 @@ public class S3BucketBuilderImplTest {
 		);
 		
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(virusScannerStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 				
 		// Fake an existing config for the scanner
 		BucketNotificationConfiguration bucketConfiguration = new BucketNotificationConfiguration();
@@ -2415,7 +2415,7 @@ public class S3BucketBuilderImplTest {
 		Stack bucketPolicyStack = new Stack();
 
 		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
-		when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Call under test
 		builder.buildAllBuckets();

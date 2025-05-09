@@ -96,7 +96,7 @@ public class MarkDownItLambdaBuilderImpl implements MarkDownItLambdaBuilder {
         CreateOrUpdateStackRequest req = new CreateOrUpdateStackRequest()
                 .withStackName(stackName)
                 .withTemplateBody(resultJSON)
-                .withTags(tagsProvider.getStackTags())
+                .withTags(tagsProvider.getStackTags(config))
                 .withCapabilities(CAPABILITY_NAMED_IAM);
         cloudFormationClient.createOrUpdateStack(req);
 

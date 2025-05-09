@@ -105,7 +105,7 @@ public class CdnBuilderImpl implements CdnBuilder {
 		CreateOrUpdateStackRequest cfStackRequest = new CreateOrUpdateStackRequest()
 				.withStackName(cfStackName)
 				.withTemplateBody(cfTemplate)
-				.withTags(tagsProvider.getStackTags());
+				.withTags(tagsProvider.getStackTags(config));
 		cloudFormationClient.createOrUpdateStack(cfStackRequest);
 		try {
 			cloudFormationClient.waitForStackToComplete(cfStackName);

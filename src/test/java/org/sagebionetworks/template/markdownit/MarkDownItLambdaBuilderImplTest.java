@@ -89,7 +89,7 @@ public class MarkDownItLambdaBuilderImplTest {
 
         when(mockDownloader.downloadFile(any())).thenReturn(mockFile);
 
-        when(mockTagsProvider.getStackTags()).thenReturn(Collections.emptyList());
+        when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
         Stack markdownItLambdaStack = new Stack();
 

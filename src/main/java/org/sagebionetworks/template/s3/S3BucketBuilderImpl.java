@@ -218,7 +218,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(stackName)
 				.withTemplateBody(resultJSON)
-				.withTags(tagsProvider.getStackTags()));
+				.withTags(tagsProvider.getStackTags(config)));
 
 		try {
 			cloudFormationClient.waitForStackToComplete(stackName);
@@ -273,7 +273,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(stackName)
 				.withTemplateBody(resultJSON)
-				.withTags(tagsProvider.getStackTags())
+				.withTags(tagsProvider.getStackTags(this.config))
 				.withCapabilities(CAPABILITY_NAMED_IAM));
 		
 		try {

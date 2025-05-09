@@ -67,7 +67,7 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
             .withStackName(stackName)
             .withTemplateBody(resultJSON)
             .withCapabilities(CAPABILITY_NAMED_IAM)
-            .withTags(stackTagsProvider.getStackTags())
+            .withTags(stackTagsProvider.getStackTags(config))
         );
         cloudFormationClient.waitForStackToComplete(stackName);
         // setup SES notifications on prod stack

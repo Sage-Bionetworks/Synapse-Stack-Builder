@@ -138,7 +138,7 @@ public class DataWarehouseBuilderImplTest {
 
 		List<Tag> tags = List.of(new Tag().withKey("aKey").withValue("aValue"));
 
-		when(tagsProvider.getStackTags()).thenReturn(tags);
+		when(tagsProvider.getStackTags(mockConfig)).thenReturn(tags);
 
 		String expectedStackName = new StringJoiner("-").add(STACK_NAME).add(DATABASE_NAME.toLowerCase()).add("etl-jobs").toString();
 
