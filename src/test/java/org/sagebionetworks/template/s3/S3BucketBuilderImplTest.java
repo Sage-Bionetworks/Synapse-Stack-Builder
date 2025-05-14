@@ -61,11 +61,15 @@ import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Transition;
 import com.amazonaws.services.s3.model.BucketNotificationConfiguration;
 import com.amazonaws.services.s3.model.GetBucketIntelligentTieringConfigurationResult;
 import com.amazonaws.services.s3.model.GetBucketInventoryConfigurationResult;
+import com.amazonaws.services.s3.model.GetPublicAccessBlockRequest;
+import com.amazonaws.services.s3.model.GetPublicAccessBlockResult;
+import com.amazonaws.services.s3.model.PublicAccessBlockConfiguration;
 import com.amazonaws.services.s3.model.QueueConfiguration;
 import com.amazonaws.services.s3.model.S3Event;
 import com.amazonaws.services.s3.model.SSEAlgorithm;
 import com.amazonaws.services.s3.model.ServerSideEncryptionRule;
 import com.amazonaws.services.s3.model.SetBucketEncryptionRequest;
+import com.amazonaws.services.s3.model.SetPublicAccessBlockRequest;
 import com.amazonaws.services.s3.model.StorageClass;
 import com.amazonaws.services.s3.model.Tag;
 import com.amazonaws.services.s3.model.TopicConfiguration;
@@ -175,6 +179,15 @@ public class S3BucketBuilderImplTest {
 		builder.buildAllBuckets();
 
 		verify(mockS3Client).createBucket(expectedBucketName);
+		verify(mockS3Client).getPublicAccessBlock(new GetPublicAccessBlockRequest().withBucketName(expectedBucketName));
+		verify(mockS3Client).setPublicAccessBlock(new SetPublicAccessBlockRequest().withBucketName(expectedBucketName)
+			.withPublicAccessBlockConfiguration(new PublicAccessBlockConfiguration()
+				.withBlockPublicAcls(true)
+				.withBlockPublicPolicy(true)
+				.withIgnorePublicAcls(true)
+				.withRestrictPublicBuckets(true)
+			)
+		);
 		verify(mockS3Client).getBucketEncryption(expectedBucketName);
 		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
 		verify(mockS3Client).setBucketLifecycleConfiguration(eq(expectedBucketName), bucketLifeCycleConfigurationCaptor.capture());
@@ -2436,6 +2449,84 @@ public class S3BucketBuilderImplTest {
 		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
 		verify(mockCloudFormationClient).describeStack(expectedStackName);
 
+
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithNonExistingPublicBlock() throws InterruptedException {
+
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		bucket.setName("${stack}.bucket");
+
+		String expectedBucketName = stack + ".bucket";
+		
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
+		
+		AmazonS3Exception exception = new AmazonS3Exception("Nope");
+		exception.setStatusCode(404);
+		
+		when(mockS3Client.getPublicAccessBlock(any())).thenThrow(exception);
+
+		// Call under test
+		builder.buildAllBuckets();
+
+		verify(mockS3Client).getPublicAccessBlock(new GetPublicAccessBlockRequest().withBucketName(expectedBucketName));
+		verify(mockS3Client).setPublicAccessBlock(new SetPublicAccessBlockRequest().withBucketName(expectedBucketName)
+			.withPublicAccessBlockConfiguration(new PublicAccessBlockConfiguration()
+				.withBlockPublicAcls(true)
+				.withBlockPublicPolicy(true)
+				.withIgnorePublicAcls(true)
+				.withRestrictPublicBuckets(true)
+			)
+		);
+
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithExistingPublicBlock() throws InterruptedException {
+
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		bucket.setName("${stack}.bucket");
+
+		String expectedBucketName = stack + ".bucket";
+		
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = new Stack();
+
+		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
+		when(mockS3Client.getPublicAccessBlock(any())).thenReturn(new GetPublicAccessBlockResult()
+			.withPublicAccessBlockConfiguration(new PublicAccessBlockConfiguration()
+				.withBlockPublicAcls(false)
+				.withBlockPublicPolicy(false)
+				.withIgnorePublicAcls(false)
+				.withRestrictPublicBuckets(false)
+			)
+		);
+
+		// Call under test
+		builder.buildAllBuckets();
+
+		verify(mockS3Client).getPublicAccessBlock(new GetPublicAccessBlockRequest().withBucketName(expectedBucketName));
+		verify(mockS3Client, never()).setPublicAccessBlock(any());
 
 	}
 	
