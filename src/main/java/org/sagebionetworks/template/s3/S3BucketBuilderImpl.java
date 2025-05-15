@@ -43,13 +43,17 @@ import com.amazonaws.services.s3.model.BucketLifecycleConfiguration;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Rule;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Transition;
 import com.amazonaws.services.s3.model.BucketNotificationConfiguration;
+import com.amazonaws.services.s3.model.GetPublicAccessBlockRequest;
+import com.amazonaws.services.s3.model.GetPublicAccessBlockResult;
 import com.amazonaws.services.s3.model.NotificationConfiguration;
+import com.amazonaws.services.s3.model.PublicAccessBlockConfiguration;
 import com.amazonaws.services.s3.model.S3Event;
 import com.amazonaws.services.s3.model.SSEAlgorithm;
 import com.amazonaws.services.s3.model.ServerSideEncryptionByDefault;
 import com.amazonaws.services.s3.model.ServerSideEncryptionConfiguration;
 import com.amazonaws.services.s3.model.ServerSideEncryptionRule;
 import com.amazonaws.services.s3.model.SetBucketEncryptionRequest;
+import com.amazonaws.services.s3.model.SetPublicAccessBlockRequest;
 import com.amazonaws.services.s3.model.Tag;
 import com.amazonaws.services.s3.model.TopicConfiguration;
 import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringAccessTier;
@@ -151,6 +155,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			}
 			
 			createBucket(bucket.getName());
+			configurePublicAccessBlock(bucket.getName());
 			configureEncryption(bucket.getName());	
 			configureInventory(stack, bucket.getName(), accountId, s3Config.getInventoryConfig(), bucket.isInventoryEnabled());
 			configureBucketLifeCycle(bucket);
@@ -290,6 +295,44 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		
 		// This is idempotent
 		s3Client.createBucket(bucketName);
+	}
+	
+	private void configurePublicAccessBlock(String bucketName) {
+		
+		PublicAccessBlockConfiguration config = null;
+		
+		try {
+			GetPublicAccessBlockResult result = s3Client.getPublicAccessBlock(new GetPublicAccessBlockRequest().withBucketName(bucketName));
+			
+			if (result != null) {
+				config = result.getPublicAccessBlockConfiguration();
+			}
+			
+		} catch (AmazonServiceException e) {
+			if (e.getStatusCode() == 404) {
+				LOG.info("No public access block configuration found for bucket {}.", bucketName);
+			} else {
+				throw e;
+			}
+		}
+		
+		if (config != null) {
+			LOG.info("Public access block configuration already exists for bucket {}, will not update.", bucketName);
+			return;
+		}
+		
+		config = new PublicAccessBlockConfiguration()
+			.withBlockPublicAcls(true)
+			.withIgnorePublicAcls(true)
+			.withBlockPublicPolicy(true)
+			.withRestrictPublicBuckets(true);
+		
+		s3Client.setPublicAccessBlock(new SetPublicAccessBlockRequest()
+			.withBucketName(bucketName)
+			.withPublicAccessBlockConfiguration(config)
+		);
+		
+		LOG.info("Public access block configured for bucket {}: {}", bucketName, config);
 	}
 	
 	private void configureEncryption(String bucketName) {
