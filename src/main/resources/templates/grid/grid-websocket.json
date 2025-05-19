@@ -1,3 +1,228 @@
 {
-
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Transform": "AWS::Serverless-2016-10-31",
+    "Description": "This template sets up a WebSocket API using Amazon API Gateway and integrates it with custom HTTP endpoints for $connect, $disconnect, and $default routes.",
+    "Parameters": {
+        "ConnectHTTPUrl": {
+            "Type": "String",
+            "Description": "The HTTP URL for the $connect route.",
+            "Default": "https://prod.example.org/connect"
+        },
+        "DisconnectHTTPUrl": {
+            "Type": "String",
+            "Description": "The HTTP URL for the $disconnect route.",
+            "Default": "https://prod.example.org/disconnect"
+        },
+        "DefaultHTTPUrl": {
+            "Type": "String",
+            "Description": "The HTTP URL for the $default route (WebSocket messages).",
+            "Default": "https://prod.example.org/default"
+        },
+        "WebSocketAPIName": {
+            "Type": "String",
+            "Description": "Name for the WebSocket API Gateway.",
+            "Default": "WebSocketToHTTPProxy"
+        },
+        "StageName": {
+            "Type": "String",
+            "Description": "Stage name for the API Gateway deployment.",
+            "Default": "prod"
+        },
+        "ConnectionTableName": {
+            "Type": "String",
+            "Description": "Name of the DynamoDB table to store connection IDs.",
+            "Default": "WebSocketConnections"
+        },
+        "AuthenticateHeaderName": {
+            "Type": "String",
+            "Description": "Name of the header used for authentication.",
+            "Default": "Authenticate"
+        }
+    },
+    "Resources": {
+        "WebSocketApi": {
+            "Type": "AWS::ApiGatewayV2::Api",
+            "Properties": {
+                "Name": {
+                    "Ref": "WebSocketAPIName"
+                },
+                "ProtocolType": "WEBSOCKET",
+                "RouteSelectionExpression": "$default"
+            }
+        },
+        "ApiGatewayServiceRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "apigateway.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "apigateway.amazonaws.com"
+                            },
+                            "Action": "execute-api:ManageConnections",
+                            "Resource": "arn:aws:execute-api:*:*:*"
+                        }
+                    ]
+                }
+            }
+        },
+        "ConnectRoute": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+                "ApiId": {
+                    "Ref": "WebSocketApi"
+                },
+                "RouteKey": "$connect",
+                "Target": {
+                    "Sub": "integrations/${ConnectIntegration}"
+                }
+            }
+        },
+        "DisconnectRoute": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+                "ApiId": {
+                    "Ref": "WebSocketApi"
+                },
+                "RouteKey": "$disconnect",
+                "Target": {
+                    "Sub": "integrations/${DisconnectIntegration}"
+                }
+            }
+        },
+        "DefaultRoute": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+                "ApiId": {
+                    "Ref": "WebSocketApi"
+                },
+                "RouteKey": "$default",
+                "Target": {
+                    "Sub": "integrations/${DefaultIntegration}"
+                }
+            }
+        },
+        "ConnectIntegration": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+                "ApiId": {
+                    "Ref": "WebSocketApi"
+                },
+                "IntegrationType": "HTTP_PROXY",
+                "IntegrationUri": {
+                    "Ref": "ConnectHTTPUrl"
+                },
+                "IntegrationMethod": "POST",
+                "RequestParameters": {
+                    "Overwrite:header.Authenticate": "routeResponse.headers.Authenticate"
+                }
+            }
+        },
+        "DisconnectIntegration": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+                "ApiId": {
+                    "Ref": "WebSocketApi"
+                },
+                "IntegrationType": "HTTP_PROXY",
+                "IntegrationUri": {
+                    "Ref": "DisconnectHTTPUrl"
+                },
+                "IntegrationMethod": "POST"
+            }
+        },
+        "DefaultIntegration": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+                "ApiId": {
+                    "Ref": "WebSocketApi"
+                },
+                "IntegrationType": "HTTP_PROXY",
+                "IntegrationUri": {
+                    "Ref": "DefaultHTTPUrl"
+                },
+                "IntegrationMethod": "POST",
+                "RequestParameters": {
+                    "Overwrite:path": "$request.path",
+                    "Overwrite:querystring": "$request.querystring"
+                }
+            }
+        },
+        "ApiDeployment": {
+            "Type": "AWS::ApiGatewayV2::Deployment",
+            "Properties": {
+                "ApiId": {
+                    "Ref": "WebSocketApi"
+                }
+            },
+            "DependsOn": [
+                "ConnectRoute",
+                "DisconnectRoute",
+                "DefaultRoute"
+            ]
+        },
+        "Stage": {
+            "Type": "AWS::ApiGatewayV2::Stage",
+            "Properties": {
+                "ApiId": {
+                    "Ref": "WebSocketApi"
+                },
+                "DeploymentId": {
+                    "Ref": "ApiDeployment"
+                },
+                "StageName": {
+                    "Ref": "StageName"
+                }
+            }
+        },
+        "ConnectionsTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+                "TableName": {
+                    "Ref": "ConnectionTableName"
+                },
+                "AttributeDefinitions": [
+                    {
+                        "AttributeName": "connectionId",
+                        "AttributeType": "S"
+                    }
+                ],
+                "KeySchema": [
+                    {
+                        "AttributeName": "connectionId",
+                        "KeyType": "HASH"
+                    }
+                ],
+                "ProvisionedThroughput": {
+                    "ReadCapacityUnits": 5,
+                    "WriteCapacityUnits": 5
+                }
+            }
+        }
+    },
+    "Outputs": {
+        "WebSocketApiId": {
+            "Description": "The ID of the WebSocket API.",
+            "Value": {
+                "Ref": "WebSocketApi"
+            }
+        },
+        "WebSocketApiEndpoint": {
+            "Description": "The endpoint URL of the WebSocket API.",
+            "Value": {
+                "Sub": "wss://${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}"
+            }
+        }
+    }
 }
+
+
