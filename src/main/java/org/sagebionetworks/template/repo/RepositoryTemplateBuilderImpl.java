@@ -116,14 +116,9 @@ import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.google.inject.Inject;
-import software.amazon.awssdk.services.imagebuilder.model.Ami;
-import software.amazon.awssdk.services.imagebuilder.model.ImageStatus;
-import software.amazon.awssdk.services.imagebuilder.model.ImageSummary;
-import software.amazon.awssdk.services.imagebuilder.model.ListImagePipelineImagesRequest;
-import software.amazon.awssdk.services.imagebuilder.model.ListImagePipelineImagesResponse;
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
 
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
 	public static final List<String> MACHINE_TYPE_LIST = List.of("Workers", "Repository");
@@ -144,7 +139,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	private final AWSElasticBeanstalk beanstalkClient;
 	private final ImageBuilderClient imageBuilderClient;
 	private final TimeToLive timeToLive;
-	private final AWSSecurityTokenService stsClient;
+	private final StsClient stsClient;
 	private final Set<WaitConditionHandler> waitConditionHandlers;
 
 	@Inject
@@ -154,7 +149,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 										 ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkDefaultAMIEncrypter,
 										 StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
 										 Ec2Client ec2Client, AWSElasticBeanstalk beanstalkClient, ImageBuilderClient imageBuilderClient, TimeToLive ttl, 
-										 AWSSecurityTokenService stsClient, Set<WaitConditionHandler> waitConditionHandlers) {
+										 StsClient stsClient, Set<WaitConditionHandler> waitConditionHandlers) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.ec2Client = ec2Client;
@@ -354,7 +349,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 			provider.addToContext(context);
 		}
 		
-		context.put(IDENTITY_ARN, stsClient.getCallerIdentity(new GetCallerIdentityRequest()).getArn());
+		context.put(IDENTITY_ARN, stsClient.getCallerIdentity(GetCallerIdentityRequest.builder().build()).arn());
 		
 		RegularExpressions.bindRegexToContext(context);
 		

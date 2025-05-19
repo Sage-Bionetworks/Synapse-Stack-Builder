@@ -31,7 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
-import org.sagebionetworks.template.SesClientImpl;
+import org.sagebionetworks.template.SesClientWrapperImpl;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.TemplateUtils;
@@ -54,7 +54,7 @@ public class GlobalResourcesBuilderImplTest {
     @Mock
     StackTagsProvider mockStackTagsProvider;
     @Mock
-    SesClientImpl mockSesClient;
+    SesClientWrapperImpl mockSesClient;
 
     List<Tag> expectedTags;
 
