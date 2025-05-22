@@ -99,10 +99,10 @@
 					"Ref": "WebSocketApi"
 				},
 				"IntegrationType": "HTTP_PROXY",
-				"IntegrationUri": "https://repo-staging.dev.sagebase.org/repo/v1/gridws/connect",
+				"IntegrationUri": "https://repo-dev-jmhill-0.dev.sagebase.org/repo/v1/gridws/connect",
 				"IntegrationMethod": "POST",
 				"RequestParameters": {
-					"integration.request.header.WsConnectionId": "context.connectionId"
+					"integration.request.header.wsconnectionid": "context.connectionId"
 				}
 			}
 		},
@@ -114,10 +114,10 @@
 					"Ref": "WebSocketApi"
 				},
 				"IntegrationType": "HTTP_PROXY",
-				"IntegrationUri": "https://repo-staging.dev.sagebase.org/repo/v1/gridws/disconnect",
+				"IntegrationUri": "https://repo-dev-jmhill-0.dev.sagebase.org/repo/v1/gridws/disconnect",
 				"IntegrationMethod": "POST",
 				"RequestParameters": {
-					"integration.request.header.WsConnectionId": "context.connectionId"
+					"integration.request.header.wsconnectionid": "context.connectionId"
 				}
 			}
 		},
@@ -129,10 +129,10 @@
 					"Ref": "WebSocketApi"
 				},
 				"IntegrationType": "HTTP_PROXY",
-				"IntegrationUri": "https://repo-staging.dev.sagebase.org/repo/v1/gridws/default",
+				"IntegrationUri": "https://repo-dev-jmhill-0.dev.sagebase.org/repo/v1/gridws/default",
 				"IntegrationMethod": "POST",
 				"RequestParameters": {
-					"integration.request.header.WsConnectionId": "context.connectionId"
+					"integration.request.header.wsconnectionid": "context.connectionId"
 				}
 			}
 		},
