@@ -205,6 +205,7 @@ public class RepositoryTemplateBuilderImplTest {
 	private String keyAlias;
 
 	private List<Tag> expectedTags;
+	private String gridQueueRef;
 
 
 	@BeforeEach
@@ -218,8 +219,10 @@ public class RepositoryTemplateBuilderImplTest {
 
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 		
+		gridQueueRef = "GridQueueRefQueue";
+		
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
-				mockArtifactCopy, mockSecretBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2, new BedrockAgentContextProvider(config, mockS3Client), new GridContextProvider("GridQueueRef")),
+				mockArtifactCopy, mockSecretBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2, new BedrockAgentContextProvider(config, mockS3Client), new GridContextProvider(gridQueueRef)),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
 				mockEc2Client, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive, mockStsClient, Set.of(mockWaitConditionHandler));
 		
@@ -416,6 +419,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("prod-101-agent", bedrockAgentProps.get("AgentName"));
 		
 		validateOpenApiSchema(bedrockAgentProps);
+		
+		assertTrue(resources.getJSONObject("ApiGatewaySQSRole").toString().contains(gridQueueRef));
 		
 	}
 

@@ -306,14 +306,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		template.merge(context, stringWriter);
 		// Parse the resulting template
 		String resultJSON = stringWriter.toString();
-		try {
-			File temp = File.createTempFile("template", ".json");
-			System.out.println(temp.getAbsolutePath());
-			FileUtils.writeStringToFile(temp, resultJSON, "UTF-8");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		JSONObject templateJson = new JSONObject(resultJSON);
 		// Format the JSON
 		resultJSON = templateJson.toString(JSON_INDENT);
