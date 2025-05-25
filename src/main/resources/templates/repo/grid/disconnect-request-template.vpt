@@ -1,0 +1,1 @@
+Action=SendMessage&MessageBody=$util.urlEncode(\"[ 8, \"\"disconnected\"\"]\")&MessageAttribute.1.Name=ConnectionId&MessageAttribute.1.Value.DataType=String&MessageAttribute.1.Value.StringValue=$context.connectionId

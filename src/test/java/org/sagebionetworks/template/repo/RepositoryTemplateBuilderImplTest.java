@@ -119,6 +119,7 @@ import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogDescriptor;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
+import org.sagebionetworks.template.repo.grid.GridContextProvider;
 import org.sagebionetworks.template.vpc.Color;
 
 import com.amazonaws.services.cloudformation.model.Output;
@@ -218,7 +219,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 		
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
-				mockArtifactCopy, mockSecretBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2, new BedrockAgentContextProvider(config, mockS3Client)),
+				mockArtifactCopy, mockSecretBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2, new BedrockAgentContextProvider(config, mockS3Client), new GridContextProvider("GridQueueRef")),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
 				mockEc2Client, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive, mockStsClient, Set.of(mockWaitConditionHandler));
 		

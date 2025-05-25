@@ -1,0 +1,418 @@
+	,
+	"ApiGatewaySQSRole": {
+		"Type": "AWS::IAM::Role",
+		"Properties": {
+			"RoleName": {
+				"Fn::Sub": "ApiGatewayToSQSRole-${D}{AWS::StackName}"
+			},
+			"AssumeRolePolicyDocument": {
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Principal": {
+							"Service": [
+								"apigateway.amazonaws.com"
+							]
+						},
+						"Action": "sts:AssumeRole"
+					}
+				]
+			},
+			"Policies": [
+				{
+					"PolicyName": "ApiGatewaySQSSendMessagePolicy",
+					"PolicyDocument": {
+						"Version": "2012-10-17",
+						"Statement": [
+							{
+								"Effect": "Allow",
+								"Action": "sqs:SendMessage",
+								"Resource": {
+									"Fn::GetAtt": [
+										"${gridWebsocketQueueRef}",
+										"Arn"
+									]
+								}
+							}
+						]
+					}
+				}
+			]
+		}
+	},
+	"WebSocketApi": {
+		"Type": "AWS::ApiGatewayV2::Api",
+		"Properties": {
+			"Name": "grid-websocket-sqs",
+			"ProtocolType": "WEBSOCKET",
+			"RouteSelectionExpression": "${D}request.body.action"
+		}
+	},
+	"ConnectRoute": {
+		"Type": "AWS::ApiGatewayV2::Route",
+		"Properties": {
+			"ApiId": {
+				"Ref": "WebSocketApi"
+			},
+			"RouteKey": "${D}connect",
+			"RouteResponseSelectionExpression": "${D}default",
+			"Target": {
+				"Fn::Join": [
+					"/",
+					[
+						"integrations",
+						{
+							"Ref": "ConnectIntegration"
+						}
+					]
+				]
+			},
+			"AuthorizationType": "AWS_IAM"
+		}
+	},
+	"ConnectRoutResponse": {
+		"Type": "AWS::ApiGatewayV2::RouteResponse",
+		"Properties": {
+			"RouteId": {
+				"Ref": "ConnectRoute"
+			},
+			"ApiId": {
+				"Ref": "WebSocketApi"
+			},
+			"RouteResponseKey": "${D}default"
+		}
+	},
+	"ConnectIntegration": {
+		"Type": "AWS::ApiGatewayV2::Integration",
+		"Properties": {
+			"ApiId": {
+				"Ref": "WebSocketApi"
+			},
+			"IntegrationType": "AWS",
+			"IntegrationUri": {
+				"Fn::Join": [
+					"",
+					[
+						"arn:",
+						{
+							"Ref": "AWS::Partition"
+						},
+						":apigateway:",
+						{
+							"Ref": "AWS::Region"
+						},
+						":sqs:path/",
+						{
+							"Ref": "AWS::AccountId"
+						},
+						"/",
+						{
+							"Fn::GetAtt": [
+								"${gridWebsocketQueueRef}",
+								"QueueName"
+							]
+						}
+					]
+				]
+			},
+			"IntegrationMethod": "POST",
+			"CredentialsArn": {
+				"Fn::GetAtt": [
+					"ApiGatewaySQSRole",
+					"Arn"
+				]
+			},
+			"RequestParameters": {
+				"integration.request.header.Content-Type": "'application/x-www-form-urlencoded'"
+			},
+			"RequestTemplates": {
+				"application/json": "${connectRequestTempalte}"
+			}
+		}
+	},
+	"ConnectIntegrationResponse": {
+		"Type": "AWS::ApiGatewayV2::IntegrationResponse",
+		"Properties": {
+			"ApiId": {
+				"Ref": "WebSocketApi"
+			},
+			"IntegrationId": {
+				"Ref": "ConnectIntegration"
+			},
+			"IntegrationResponseKey": "/200/",
+			"ResponseTemplates": {
+				"application/json": "[ 8, \"connected\"]"
+			}
+		}
+	},
+	"DefaultRoute": {
+		"Type": "AWS::ApiGatewayV2::Route",
+		"Properties": {
+			"ApiId": {
+				"Ref": "WebSocketApi"
+			},
+			"RouteKey": "${D}default",
+			"Target": {
+				"Fn::Join": [
+					"/",
+					[
+						"integrations",
+						{
+							"Ref": "DefaultIntegration"
+						}
+					]
+				]
+			}
+		}
+	},
+	"DefaultRoutResponse": {
+		"Type": "AWS::ApiGatewayV2::RouteResponse",
+		"Properties": {
+			"RouteId": {
+				"Ref": "DefaultRoute"
+			},
+			"ApiId": {
+				"Ref": "WebSocketApi"
+			},
+			"RouteResponseKey": "${D}default"
+		}
+	},
+	"DefaultIntegration": {
+		"Type": "AWS::ApiGatewayV2::Integration",
+		"Properties": {
+			"ApiId": {
+				"Ref": "WebSocketApi"
+			},
+			"IntegrationType": "AWS",
+			"IntegrationUri": {
+				"Fn::Join": [
+					"",
+					[
+						"arn:",
+						{
+							"Ref": "AWS::Partition"
+						},
+						":apigateway:",
+						{
+							"Ref": "AWS::Region"
+						},
+						":sqs:path/",
+						{
+							"Ref": "AWS::AccountId"
+						},
+						"/",
+						{
+							"Fn::GetAtt": [
+								"${gridWebsocketQueueRef}",
+								"QueueName"
+							]
+						}
+					]
+				]
+			},
+			"IntegrationMethod": "POST",
+			"CredentialsArn": {
+				"Fn::GetAtt": [
+					"ApiGatewaySQSRole",
+					"Arn"
+				]
+			},
+			"RequestParameters": {
+				"integration.request.header.Content-Type": "'application/x-www-form-urlencoded'"
+			},
+			"RequestTemplates": {
+				"application/json": "${defaultRequestTempalte}"
+			}
+		}
+	},
+	"DefaultIntegrationResponse": {
+		"Type": "AWS::ApiGatewayV2::IntegrationResponse",
+		"Properties": {
+			"ApiId": {
+				"Ref": "WebSocketApi"
+			},
+			"IntegrationId": {
+				"Ref": "DefaultIntegration"
+			},
+			"IntegrationResponseKey": "/200/",
+			"ResponseTemplates": {
+				"application/json": "[ 8, \"received\"]"
+			}
+		}
+	},
+	"DisconnectRoute": {
+		"Type": "AWS::ApiGatewayV2::Route",
+		"Properties": {
+			"ApiId": {
+				"Ref": "WebSocketApi"
+			},
+			"RouteKey": "${D}disconnect",
+			"Target": {
+				"Fn::Join": [
+					"/",
+					[
+						"integrations",
+						{
+							"Ref": "DisconnectIntegration"
+						}
+					]
+				]
+			}
+		}
+	},
+	"DisconnectRoutResponse": {
+		"Type": "AWS::ApiGatewayV2::RouteResponse",
+		"Properties": {
+			"RouteId": {
+				"Ref": "DisconnectRoute"
+			},
+			"ApiId": {
+				"Ref": "WebSocketApi"
+			},
+			"RouteResponseKey": "${D}default"
+		}
+	},
+	"DisconnectIntegration": {
+		"Type": "AWS::ApiGatewayV2::Integration",
+		"Properties": {
+			"ApiId": {
+				"Ref": "WebSocketApi"
+			},
+			"IntegrationType": "AWS",
+			"IntegrationUri": {
+				"Fn::Join": [
+					"",
+					[
+						"arn:",
+						{
+							"Ref": "AWS::Partition"
+						},
+						":apigateway:",
+						{
+							"Ref": "AWS::Region"
+						},
+						":sqs:path/",
+						{
+							"Ref": "AWS::AccountId"
+						},
+						"/",
+						{
+							"Fn::GetAtt": [
+								"${gridWebsocketQueueRef}",
+								"QueueName"
+							]
+						}
+					]
+				]
+			},
+			"IntegrationMethod": "POST",
+			"CredentialsArn": {
+				"Fn::GetAtt": [
+					"ApiGatewaySQSRole",
+					"Arn"
+				]
+			},
+			"RequestParameters": {
+				"integration.request.header.Content-Type": "'application/x-www-form-urlencoded'"
+			},
+			"RequestTemplates": {
+				"application/json": "${disconnectRequestTempalte}"
+			}
+		}
+	},
+	"DisconnectIntegrationResponse": {
+		"Type": "AWS::ApiGatewayV2::IntegrationResponse",
+		"Properties": {
+			"ApiId": {
+				"Ref": "WebSocketApi"
+			},
+			"IntegrationId": {
+				"Ref": "DisconnectIntegration"
+			},
+			"IntegrationResponseKey": "/200/",
+			"ResponseTemplates": {
+				"application/json": "[ 8, \"disconnected\"]"
+			}
+		}
+	},
+	"WebSocketDeployment": {
+		"Type": "AWS::ApiGatewayV2::Deployment",
+		"DependsOn": [
+			"DefaultRoute"
+		],
+		"Properties": {
+			"ApiId": {
+				"Ref": "WebSocketApi"
+			},
+			"Description": "Initial deployment"
+		}
+	},
+	"WebSocketStage": {
+		"Type": "AWS::ApiGatewayV2::Stage",
+		"Properties": {
+			"StageName": {
+				"Ref": "${stack}"
+			},
+			"ApiId": {
+				"Ref": "WebSocketApi"
+			},
+			"DeploymentId": {
+				"Ref": "WebSocketDeployment"
+			},
+			"AutoDeploy": true,
+			"AccessLogSettings": {
+				"DestinationArn": {
+					"Fn::GetAtt": [
+						"WebSocketLogGroup",
+						"Arn"
+					]
+				},
+				"Format": "${accessLogsSettingFormat}"
+			}
+		}
+	},
+	"WebSocketLogGroup": {
+		"Type": "AWS::Logs::LogGroup",
+		"Properties": {
+			"LogGroupName": {
+				"Fn::Sub": "/aws/apigateway/${D}{WebSocketApi}"
+			},
+			"RetentionInDays": 7
+		}
+	},
+	"ApiGatewayCloudWatchRole": {
+		"Type": "AWS::IAM::Role",
+		"Properties": {
+			"AssumeRolePolicyDocument": {
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Principal": {
+							"Service": [
+								"apigateway.amazonaws.com"
+							]
+						},
+						"Action": "sts:AssumeRole"
+					}
+				]
+			},
+			"Path": "/",
+			"ManagedPolicyArns": [
+				"arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+			]
+		}
+	},
+	"ApiGatewayAccount": {
+		"Type": "AWS::ApiGateway::Account",
+		"Properties": {
+			"CloudWatchRoleArn": {
+				"Fn::GetAtt": [
+					"ApiGatewayCloudWatchRole",
+					"Arn"
+				]
+			}
+		}
+	}
+

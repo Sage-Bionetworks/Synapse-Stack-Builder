@@ -74,6 +74,8 @@ import static org.sagebionetworks.template.Constants.TEMPLATE_SHARED_RESOUCES_MA
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -83,10 +85,12 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.texen.util.FileUtil;
 import org.json.JSONObject;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
@@ -119,11 +123,6 @@ import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.google.inject.Inject;
-import software.amazon.awssdk.services.imagebuilder.model.Ami;
-import software.amazon.awssdk.services.imagebuilder.model.ImageStatus;
-import software.amazon.awssdk.services.imagebuilder.model.ImageSummary;
-import software.amazon.awssdk.services.imagebuilder.model.ListImagePipelineImagesRequest;
-import software.amazon.awssdk.services.imagebuilder.model.ListImagePipelineImagesResponse;
 
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
 	public static final List<String> MACHINE_TYPE_LIST = List.of("Workers", "Repository");
@@ -307,6 +306,14 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		template.merge(context, stringWriter);
 		// Parse the resulting template
 		String resultJSON = stringWriter.toString();
+		try {
+			File temp = File.createTempFile("template", ".json");
+			System.out.println(temp.getAbsolutePath());
+			FileUtils.writeStringToFile(temp, resultJSON, "UTF-8");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		JSONObject templateJson = new JSONObject(resultJSON);
 		// Format the JSON
 		resultJSON = templateJson.toString(JSON_INDENT);

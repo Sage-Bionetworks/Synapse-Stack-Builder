@@ -1,0 +1,2 @@
+Action=SendMessage&MessageBody=$util.urlEncode($input.body)
+&MessageAttribute.1.Name=ConnectionId&MessageAttribute.1.Value.DataType=String&MessageAttribute.1.Value.StringValue=$context.connectionId
