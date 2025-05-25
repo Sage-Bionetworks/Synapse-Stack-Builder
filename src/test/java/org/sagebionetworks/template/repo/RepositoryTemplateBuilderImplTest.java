@@ -77,6 +77,8 @@ import static org.sagebionetworks.template.Constants.TEMPLATE_BEAN_STALK_ENVIRON
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -84,6 +86,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -360,6 +363,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(request.getParameters());
 		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);
+		
 		JSONObject templateJson = new JSONObject(bodyJSONString);
 				
 		JSONObject resources = templateJson.getJSONObject("Resources");
