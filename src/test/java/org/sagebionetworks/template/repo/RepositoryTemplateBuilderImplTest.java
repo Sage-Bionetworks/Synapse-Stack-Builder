@@ -225,9 +225,13 @@ public class RepositoryTemplateBuilderImplTest {
 		gridQueueRef = "GridQueueRefQueue";
 		
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
-				mockArtifactCopy, mockSecretBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2, new BedrockAgentContextProvider(config, mockS3Client), new GridContextProvider(gridQueueRef)),
+				mockArtifactCopy, mockSecretBuilder,
+				Sets.newHashSet(mockContextProvider1, mockContextProvider2,
+						new BedrockAgentContextProvider(config, mockS3Client),
+						new GridContextProvider(gridQueueRef, config)),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
-				mockEc2Client, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive, mockStsClient, Set.of(mockWaitConditionHandler));
+				mockEc2Client, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive, mockStsClient,
+				Set.of(mockWaitConditionHandler));
 		
 		builderSpy = Mockito.spy(builder);
 
@@ -424,7 +428,8 @@ public class RepositoryTemplateBuilderImplTest {
 		
 		validateOpenApiSchema(bedrockAgentProps);
 		
-		assertTrue(resources.getJSONObject("ApiGatewaySQSRole").toString().contains(gridQueueRef));
+		assertTrue(resources.getJSONObject("GridApiGatewaySQSRole").toString().contains(gridQueueRef));
+		assertTrue(resources.getJSONObject("GridWebsocketApi").toString().contains("prod-101-grid-websocket"));
 		
 	}
 
