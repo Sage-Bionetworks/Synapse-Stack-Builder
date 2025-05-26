@@ -448,6 +448,13 @@
 			"messageVisibilityTimeoutSec": 30,
 			"oldestMessageInQueueAlarmThresholdSec": 10,
 			"deadLetterQueueMaxFailureCount": 3
+		},
+		{
+			"queueName": "GRID_CREATE",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 120,
+			"oldestMessageInQueueAlarmThresholdSec": 30
 		}
 	]
 }
