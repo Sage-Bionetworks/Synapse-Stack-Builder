@@ -10,7 +10,7 @@ import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
-import org.sagebionetworks.template.SesClient;
+import org.sagebionetworks.template.SesClientWrapper;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.repo.DeletionPolicy;
@@ -35,7 +35,7 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
     Configuration config;
     Logger logger;
     StackTagsProvider stackTagsProvider;
-    SesClient sesClient;
+    SesClientWrapper sesClientWrapper;
 
     @Inject
     public GlobalResourcesBuilderImpl(CloudFormationClient cloudFormationClient,
@@ -43,13 +43,13 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
                                       Configuration config,
                                       LoggerFactory loggerFactory,
                                       StackTagsProvider stackTagsProvider,
-                                      SesClient sesClient) {
+                                      SesClientWrapper sesClientWrapper) {
         this.cloudFormationClient = cloudFormationClient;
         this.velocityEngine = velocityEngine;
         this.config = config;
         this.logger = loggerFactory.getLogger(GlobalResourcesBuilderImpl.class);
         this.stackTagsProvider = stackTagsProvider;
-        this.sesClient = sesClient;
+        this.sesClientWrapper = sesClientWrapper;
     }
 
     @Override
@@ -91,8 +91,8 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
     public void setupSesTopics(String stackName) {
         String sesComplaintSnsTopic = this.cloudFormationClient.getOutput(stackName, GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC);
         String sesBounceSnsTopic = this.cloudFormationClient.getOutput(stackName, GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC);
-        sesClient.setComplaintNotificationTopic(SES_SYNAPSE_DOMAIN, sesComplaintSnsTopic);
-        sesClient.setBounceNotificationTopic(SES_SYNAPSE_DOMAIN, sesBounceSnsTopic);
+        sesClientWrapper.setComplaintNotificationTopic(SES_SYNAPSE_DOMAIN, sesComplaintSnsTopic);
+        sesClientWrapper.setBounceNotificationTopic(SES_SYNAPSE_DOMAIN, sesBounceSnsTopic);
     }
 
 

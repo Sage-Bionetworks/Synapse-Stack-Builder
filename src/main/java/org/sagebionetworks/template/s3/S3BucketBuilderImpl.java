@@ -69,9 +69,9 @@ import com.amazonaws.services.s3.model.inventory.InventoryIncludedObjectVersions
 import com.amazonaws.services.s3.model.inventory.InventoryS3BucketDestination;
 import com.amazonaws.services.s3.model.inventory.InventorySchedule;
 import com.amazonaws.services.s3.model.lifecycle.LifecycleFilter;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.google.inject.Inject;
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
 
 public class S3BucketBuilderImpl implements S3BucketBuilder {
 
@@ -113,7 +113,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	}
 	
 	private AmazonS3 s3Client;
-	private AWSSecurityTokenService stsClient;
+	private StsClient stsClient;
 	private AWSLambda lambdaClient;
 	private RepoConfiguration config;
 	private S3Config s3Config;
@@ -123,7 +123,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	private ArtifactDownload downloader;
 	
 	@Inject
-	public S3BucketBuilderImpl(AmazonS3 s3Client, AWSSecurityTokenService stsClient, AWSLambda lambdaClient, RepoConfiguration config, S3Config s3Config, VelocityEngine velocity, CloudFormationClient cloudFormationClient, StackTagsProvider tagsProvider, ArtifactDownload downloader) {
+	public S3BucketBuilderImpl(AmazonS3 s3Client, StsClient stsClient, AWSLambda lambdaClient, RepoConfiguration config, S3Config s3Config, VelocityEngine velocity, CloudFormationClient cloudFormationClient, StackTagsProvider tagsProvider, ArtifactDownload downloader) {
 		this.s3Client = s3Client;
 		this.stsClient = stsClient;
 		this.lambdaClient = lambdaClient;
@@ -139,7 +139,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	public void buildAllBuckets() {
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
 		
-		String accountId = stsClient.getCallerIdentity(new GetCallerIdentityRequest()).getAccount();
+		String accountId = stsClient.getCallerIdentity(GetCallerIdentityRequest.builder().build()).account();
 		
 		List<String> virusScanEnabledBuckets = new ArrayList<>();
 		List<String> virusScanDisabledBuckets = new ArrayList<>();

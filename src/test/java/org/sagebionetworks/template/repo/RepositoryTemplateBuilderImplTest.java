@@ -135,11 +135,11 @@ import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformFilter;
 import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
+import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -176,7 +176,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Mock
 	private TimeToLive mockTimeToLive;
 	@Mock
-	private AWSSecurityTokenService mockStsClient;
+	private StsClient mockStsClient;
 	@Mock
 	private WaitConditionHandler mockWaitConditionHandler;
 	@Mock
@@ -265,7 +265,7 @@ public class RepositoryTemplateBuilderImplTest {
 	}
 
 	private void configureStack(String inputStack) throws InterruptedException {
-		when(mockStsClient.getCallerIdentity(any())).thenReturn(new GetCallerIdentityResult().withArn("currentIdentityArn"));
+		when(mockStsClient.getCallerIdentity(any(GetCallerIdentityRequest.class))).thenReturn(GetCallerIdentityResponse.builder().arn("currentIdentityArn").build());
 		stack = inputStack;
 		
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
@@ -1010,7 +1010,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
 		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
-		when(mockStsClient.getCallerIdentity(any())).thenReturn(new GetCallerIdentityResult().withArn("currentIdentityArn"));
+		when(mockStsClient.getCallerIdentity(any(GetCallerIdentityRequest.class))).thenReturn(GetCallerIdentityResponse.builder().arn("currentIdentityArn").build());
 		when(config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn(opsStackPrefix);
 		
 		// call under test
@@ -1096,7 +1096,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
 		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
-		when(mockStsClient.getCallerIdentity(any())).thenReturn(new GetCallerIdentityResult().withArn("currentIdentityArn"));
+		when(mockStsClient.getCallerIdentity(any(GetCallerIdentityRequest.class))).thenReturn(GetCallerIdentityResponse.builder().arn("currentIdentityArn").build());
 		
 		// call under test
 		VelocityContext context = builder.createSharedContext();
