@@ -60,6 +60,7 @@ public class GridTemplatesTest {
 	@Test
 	public void testConnect() throws IOException {
 		requestContext.setConnectionId("con3333");
+		requestContext.setEventType("CONNECT");
 		requestInput.addParams("gridSessionId", "session5555").addParams("replicaId", "222").addParams("userId", "987");
 
 		// call under test
@@ -69,7 +70,7 @@ public class GridTemplatesTest {
 		// Parse the resulting template
 		String rawResult = stringWriter.toString();
 		String[] resultSplit = rawResult.split("&");
-		assertEquals(5, resultSplit.length);
+		assertEquals(8, resultSplit.length);
 		assertEquals("Action=SendMessage", resultSplit[0]);
 		String[] message = resultSplit[1].split("=");
 		assertEquals(2, message.length);
@@ -79,14 +80,20 @@ public class GridTemplatesTest {
 		assertEquals(
 				"[8,\"connection\",{\"gridSessionId\":\"session5555\",\"replicaId\":222,\"userId\":987,\"type\":\"WEBSOCKET\"}]",
 				body.toString());
+		// ConnectionId
 		assertEquals("MessageAttribute.1.Name=ConnectionId", resultSplit[2]);
 		assertEquals("MessageAttribute.1.Value.DataType=String", resultSplit[3]);
 		assertEquals("MessageAttribute.1.Value.StringValue=con3333", resultSplit[4]);
+		// EventType
+		assertEquals("MessageAttribute.2.Name=EventType", resultSplit[5]);
+		assertEquals("MessageAttribute.2.Value.DataType=String", resultSplit[6]);
+		assertEquals("MessageAttribute.2.Value.StringValue=CONNECT", resultSplit[7]);
 	}
 
 	@Test
 	public void testDefault() throws IOException {
 		requestContext.setConnectionId("con3333");
+		requestContext.setEventType("MESSAGE");
 		requestInput.setBody("[1,2]");
 
 		// call under test
@@ -96,7 +103,7 @@ public class GridTemplatesTest {
 		// Parse the resulting template
 		String rawResult = stringWriter.toString();
 		String[] resultSplit = rawResult.split("&");
-		assertEquals(5, resultSplit.length);
+		assertEquals(8, resultSplit.length);
 		assertEquals("Action=SendMessage", resultSplit[0]);
 		String[] message = resultSplit[1].split("=");
 		assertEquals(2, message.length);
@@ -104,14 +111,21 @@ public class GridTemplatesTest {
 		// body must be URL encoded.
 		JSONArray body = new JSONArray(java.net.URLDecoder.decode(message[1], StandardCharsets.UTF_8));
 		assertEquals("[1,2]", body.toString());
+
+		// ConnectionId
 		assertEquals("MessageAttribute.1.Name=ConnectionId", resultSplit[2]);
 		assertEquals("MessageAttribute.1.Value.DataType=String", resultSplit[3]);
 		assertEquals("MessageAttribute.1.Value.StringValue=con3333", resultSplit[4]);
+		// EventType
+		assertEquals("MessageAttribute.2.Name=EventType", resultSplit[5]);
+		assertEquals("MessageAttribute.2.Value.DataType=String", resultSplit[6]);
+		assertEquals("MessageAttribute.2.Value.StringValue=MESSAGE", resultSplit[7]);
 	}
 
 	@Test
 	public void testDisconnect() throws IOException {
 		requestContext.setConnectionId("con3333");
+		requestContext.setEventType("DISCONNECT");
 		requestInput.setBody("[1,2]");
 
 		// call under test
@@ -121,7 +135,7 @@ public class GridTemplatesTest {
 		// Parse the resulting template
 		String rawResult = stringWriter.toString();
 		String[] resultSplit = rawResult.split("&");
-		assertEquals(5, resultSplit.length);
+		assertEquals(8, resultSplit.length);
 		assertEquals("Action=SendMessage", resultSplit[0]);
 		String[] message = resultSplit[1].split("=");
 		assertEquals(2, message.length);
@@ -129,9 +143,15 @@ public class GridTemplatesTest {
 		// body must be URL encoded.
 		JSONArray body = new JSONArray(java.net.URLDecoder.decode(message[1], StandardCharsets.UTF_8));
 		assertEquals("[8,\"disconnected\"]", body.toString());
+
+		// ConnectionId
 		assertEquals("MessageAttribute.1.Name=ConnectionId", resultSplit[2]);
 		assertEquals("MessageAttribute.1.Value.DataType=String", resultSplit[3]);
 		assertEquals("MessageAttribute.1.Value.StringValue=con3333", resultSplit[4]);
+		// EventType
+		assertEquals("MessageAttribute.2.Name=EventType", resultSplit[5]);
+		assertEquals("MessageAttribute.2.Value.DataType=String", resultSplit[6]);
+		assertEquals("MessageAttribute.2.Value.StringValue=DISCONNECT", resultSplit[7]);
 	}
 
 	@Test
@@ -204,6 +224,7 @@ public class GridTemplatesTest {
 		private String status;
 		private String protocol;
 		private Long responseLength;
+		private String eventType;
 
 		public String getConnectionId() {
 			return connectionId;
@@ -283,6 +304,15 @@ public class GridTemplatesTest {
 
 		public Context setResponseLength(Long responseLength) {
 			this.responseLength = responseLength;
+			return this;
+		}
+
+		public String getEventType() {
+			return eventType;
+		}
+
+		public Context setEventType(String eventType) {
+			this.eventType = eventType;
 			return this;
 		}
 
