@@ -353,7 +353,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Named("GridQueueReferenceName")
 	public String getGridQueueRef(SnsAndSqsConfig config) {
 		SqsQueueDescriptor des = config.getQueueDescriptors().stream()
-				.filter(d -> "GRID_WEBSOCKET_MESSAGE".equals(d.getQueueReferenceName())).findFirst().get();
+				.filter(d -> "GRID_WEBSOCKET_MESSAGE".equals(d.getQueueName())).findFirst().get();
 		return des.getQueueReferenceName() + "Queue";
 	}
 
