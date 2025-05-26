@@ -431,6 +431,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.getJSONObject("GridApiGatewaySQSRole").toString().contains(gridQueueRef));
 		assertTrue(resources.getJSONObject("GridWebsocketApi").toString().contains("prod-101-grid-websocket"));
 		
+		assertEquals("prod", resources.getJSONObject("GridWebsocketStage").getJSONObject("Properties").get("StageName"));
+		
 	}
 
 	void validateOpenApiSchema(JSONObject bedrockAgentProps) {

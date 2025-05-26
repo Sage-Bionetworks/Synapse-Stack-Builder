@@ -351,9 +351,7 @@
 	"GridWebsocketStage": {
 		"Type": "AWS::ApiGatewayV2::Stage",
 		"Properties": {
-			"StageName": {
-				"Ref": "${stack}"
-			},
+			"StageName": "${stack}",
 			"ApiId": {
 				"Ref": "GridWebsocketApi"
 			},
