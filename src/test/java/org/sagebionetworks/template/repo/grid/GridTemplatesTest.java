@@ -70,7 +70,7 @@ public class GridTemplatesTest {
 		// Parse the resulting template
 		String rawResult = stringWriter.toString();
 		String[] resultSplit = rawResult.split("&");
-		assertEquals(8, resultSplit.length);
+		assertEquals(11, resultSplit.length);
 		assertEquals("Action=SendMessage", resultSplit[0]);
 		String[] message = resultSplit[1].split("=");
 		assertEquals(2, message.length);
@@ -78,7 +78,7 @@ public class GridTemplatesTest {
 		// body must be URL encoded.
 		JSONArray body = new JSONArray(java.net.URLDecoder.decode(message[1], StandardCharsets.UTF_8));
 		assertEquals(
-				"[8,\"connection\",{\"gridSessionId\":\"session5555\",\"replicaId\":222,\"userId\":987,\"type\":\"WEBSOCKET\"}]",
+				"[8,\"connection\",{\"gridSessionId\":\"session5555\",\"replicaId\":222,\"userId\":987}]",
 				body.toString());
 		// ConnectionId
 		assertEquals("MessageAttribute.1.Name=ConnectionId", resultSplit[2]);
@@ -88,6 +88,10 @@ public class GridTemplatesTest {
 		assertEquals("MessageAttribute.2.Name=EventType", resultSplit[5]);
 		assertEquals("MessageAttribute.2.Value.DataType=String", resultSplit[6]);
 		assertEquals("MessageAttribute.2.Value.StringValue=CONNECT", resultSplit[7]);
+		// EventSource
+		assertEquals("MessageAttribute.3.Name=EventSource", resultSplit[8]);
+		assertEquals("MessageAttribute.3.Value.DataType=String", resultSplit[9]);
+		assertEquals("MessageAttribute.3.Value.StringValue=WEBSOCKET", resultSplit[10]);
 	}
 
 	@Test
@@ -103,7 +107,7 @@ public class GridTemplatesTest {
 		// Parse the resulting template
 		String rawResult = stringWriter.toString();
 		String[] resultSplit = rawResult.split("&");
-		assertEquals(8, resultSplit.length);
+		assertEquals(11, resultSplit.length);
 		assertEquals("Action=SendMessage", resultSplit[0]);
 		String[] message = resultSplit[1].split("=");
 		assertEquals(2, message.length);
@@ -120,6 +124,10 @@ public class GridTemplatesTest {
 		assertEquals("MessageAttribute.2.Name=EventType", resultSplit[5]);
 		assertEquals("MessageAttribute.2.Value.DataType=String", resultSplit[6]);
 		assertEquals("MessageAttribute.2.Value.StringValue=MESSAGE", resultSplit[7]);
+		// EventSource
+		assertEquals("MessageAttribute.3.Name=EventSource", resultSplit[8]);
+		assertEquals("MessageAttribute.3.Value.DataType=String", resultSplit[9]);
+		assertEquals("MessageAttribute.3.Value.StringValue=WEBSOCKET", resultSplit[10]);
 	}
 
 	@Test
@@ -135,7 +143,7 @@ public class GridTemplatesTest {
 		// Parse the resulting template
 		String rawResult = stringWriter.toString();
 		String[] resultSplit = rawResult.split("&");
-		assertEquals(8, resultSplit.length);
+		assertEquals(11, resultSplit.length);
 		assertEquals("Action=SendMessage", resultSplit[0]);
 		String[] message = resultSplit[1].split("=");
 		assertEquals(2, message.length);
@@ -152,6 +160,10 @@ public class GridTemplatesTest {
 		assertEquals("MessageAttribute.2.Name=EventType", resultSplit[5]);
 		assertEquals("MessageAttribute.2.Value.DataType=String", resultSplit[6]);
 		assertEquals("MessageAttribute.2.Value.StringValue=DISCONNECT", resultSplit[7]);
+		// EventSource
+		assertEquals("MessageAttribute.3.Name=EventSource", resultSplit[8]);
+		assertEquals("MessageAttribute.3.Value.DataType=String", resultSplit[9]);
+		assertEquals("MessageAttribute.3.Value.StringValue=WEBSOCKET", resultSplit[10]);
 	}
 
 	@Test
