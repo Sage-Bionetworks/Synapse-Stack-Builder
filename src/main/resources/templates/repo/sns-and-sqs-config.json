@@ -443,6 +443,8 @@
 		},
 		{
 			"queueName": "GRID_WEBSOCKET_MESSAGE",
+			"subscribedTopicNames": [
+			],
 			"messageVisibilityTimeoutSec": 30,
 			"oldestMessageInQueueAlarmThresholdSec": 10,
 			"deadLetterQueueMaxFailureCount": 3
