@@ -1,0 +1,10 @@
+Action=SendMessage&MessageBody=$util.urlEncode(\"[8,\"\"connection\"\",{\"\"gridSessionId\"\":\"\"$input.params('gridSessionId')\"\", \"\"replicaId\"\":$input.params('replicaId'), \"\"userId\"\":$input.params('userId')}]\")
+&MessageAttribute.1.Name=ConnectionId
+&MessageAttribute.1.Value.DataType=String
+&MessageAttribute.1.Value.StringValue=$context.connectionId
+&MessageAttribute.2.Name=EventType
+&MessageAttribute.2.Value.DataType=String
+&MessageAttribute.2.Value.StringValue=$context.eventType
+&MessageAttribute.3.Name=EventSource
+&MessageAttribute.3.Value.DataType=String
+&MessageAttribute.3.Value.StringValue=WEBSOCKET

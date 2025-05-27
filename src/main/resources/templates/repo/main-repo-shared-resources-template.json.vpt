@@ -494,6 +494,13 @@
                                  "bedrock:*"
                              ],
                              "Resource": "*"
+                         },
+                        {
+                             "Effect": "Allow",
+                             "Action": [
+                                 "apigateway:*"
+                             ],
+                             "Resource": "*"
                          }
                     ]
 		        }
@@ -750,6 +757,7 @@
 		#parse("templates/repo/api-gateway-template.json.vpt")
 		#parse("templates/repo/bedrock-knowledge-base-template.json.vpt")
 		${bedrock_agent_resouces}
+		#parse("templates/repo/grid/grid-websocket.json.vpt")
 	},
 	"Outputs": {
 		#parse("templates/repo/time-to-live-out.vpt"),

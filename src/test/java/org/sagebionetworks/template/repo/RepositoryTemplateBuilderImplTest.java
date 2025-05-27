@@ -77,6 +77,8 @@ import static org.sagebionetworks.template.Constants.TEMPLATE_BEAN_STALK_ENVIRON
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -84,6 +86,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -119,6 +122,7 @@ import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogDescriptor;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
+import org.sagebionetworks.template.repo.grid.GridContextProvider;
 import org.sagebionetworks.template.vpc.Color;
 
 import com.amazonaws.services.cloudformation.model.Output;
@@ -204,6 +208,7 @@ public class RepositoryTemplateBuilderImplTest {
 	private String keyAlias;
 
 	private List<Tag> expectedTags;
+	private String gridQueueRef;
 
 
 	@BeforeEach
@@ -217,10 +222,16 @@ public class RepositoryTemplateBuilderImplTest {
 
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 		
+		gridQueueRef = "GridQueueRefQueue";
+		
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
-				mockArtifactCopy, mockSecretBuilder, Sets.newHashSet(mockContextProvider1, mockContextProvider2, new BedrockAgentContextProvider(config, mockS3Client)),
+				mockArtifactCopy, mockSecretBuilder,
+				Sets.newHashSet(mockContextProvider1, mockContextProvider2,
+						new BedrockAgentContextProvider(config, mockS3Client),
+						new GridContextProvider(gridQueueRef, config)),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
-				mockEc2Client, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive, mockStsClient, Set.of(mockWaitConditionHandler));
+				mockEc2Client, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive, mockStsClient,
+				Set.of(mockWaitConditionHandler));
 		
 		builderSpy = Mockito.spy(builder);
 
@@ -356,6 +367,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(request.getParameters());
 		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);
+		
 		JSONObject templateJson = new JSONObject(bodyJSONString);
 				
 		JSONObject resources = templateJson.getJSONObject("Resources");
@@ -415,6 +427,11 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("prod-101-agent", bedrockAgentProps.get("AgentName"));
 		
 		validateOpenApiSchema(bedrockAgentProps);
+		
+		assertTrue(resources.getJSONObject("GridApiGatewaySQSRole").toString().contains(gridQueueRef));
+		assertTrue(resources.getJSONObject("GridWebsocketApi").toString().contains("prod-101-grid-websocket"));
+		
+		assertEquals("prod", resources.getJSONObject("GridWebsocketStage").getJSONObject("Properties").get("StageName"));
 		
 	}
 

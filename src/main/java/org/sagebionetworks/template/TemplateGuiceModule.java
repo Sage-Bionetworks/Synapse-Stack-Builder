@@ -86,11 +86,13 @@ import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsConfig;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsConfigValidator;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProviderImpl;
+import org.sagebionetworks.template.repo.grid.GridContextProvider;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfig;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfigValidator;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseVelocityContextProvider;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsConfig;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsVelocityContextProvider;
+import org.sagebionetworks.template.repo.queues.SqsQueueDescriptor;
 import org.sagebionetworks.template.s3.S3BucketBuilder;
 import org.sagebionetworks.template.s3.S3BucketBuilderImpl;
 import org.sagebionetworks.template.s3.S3Config;
@@ -134,6 +136,7 @@ import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
+import com.google.inject.name.Named;
 
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
@@ -206,6 +209,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		velocityContextProviderMultibinder.addBinding().to(KinesisFirehoseVelocityContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(RecurrentAthenaQueryContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(BedrockAgentContextProvider.class);
+		velocityContextProviderMultibinder.addBinding().to(GridContextProvider.class);
 		
 		Multibinder<WaitConditionHandler> waitConditionHandlerBinder = Multibinder.newSetBinder(binder(), WaitConditionHandler.class);
 		
@@ -329,6 +333,14 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public SnsAndSqsConfig snsAndSqsConfigProvider() throws IOException {
 		return loadFromJsonFile(SNS_AND_SQS_CONFIG_FILE, SnsAndSqsConfig.class);
+	}
+	
+	@Provides
+	@Named("GridQueueReferenceName")
+	public String getGridQueueRef(SnsAndSqsConfig config) {
+		SqsQueueDescriptor des = config.getQueueDescriptors().stream()
+				.filter(d -> "GRID_WEBSOCKET_MESSAGE".equals(d.getQueueName())).findFirst().get();
+		return des.getQueueReferenceName() + "Queue";
 	}
 
 	@Provides

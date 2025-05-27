@@ -90,7 +90,7 @@ public class ArtifactCopyImplTest {
 		verify(mockDownloader).downloadFile(artifactoryUrl);
 		verify(mockEbBuilder).copyWarWithExtensions(eq(mockFile), any(EnvironmentType.class));
 		verify(mockS3Client).putObject(bucket, s3Key, mockCopy);
-		verify(mockLogger, times(3)).info(any(String.class));
+		verify(mockLogger, times(4)).info(any(String.class));
 		// the temp file should get deleted.
 		verify(mockFile).delete();
 		verify(mockCopy).delete();
@@ -133,6 +133,6 @@ public class ArtifactCopyImplTest {
 		verify(mockEbBuilder, never()).copyWarWithExtensions(eq(mockFile), any(EnvironmentType.class));
 		verify(mockS3Client, never()).putObject(bucket, s3Key, mockFile);
 		verify(mockFile, never()).delete();
-		verify(mockLogger, never()).info(any(String.class));
+		verify(mockLogger, times(1)).info(any(String.class));
 	}
 }

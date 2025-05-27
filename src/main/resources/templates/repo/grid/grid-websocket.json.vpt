@@ -1,0 +1,416 @@
+	,
+	"GridApiGatewaySQSRole": {
+		"Type": "AWS::IAM::Role",
+		"Properties": {
+			"RoleName": {
+				"Fn::Sub": "ApiGatewayToSQSRole-${D}{AWS::StackName}"
+			},
+			"AssumeRolePolicyDocument": {
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Principal": {
+							"Service": [
+								"apigateway.amazonaws.com"
+							]
+						},
+						"Action": "sts:AssumeRole"
+					}
+				]
+			},
+			"Policies": [
+				{
+					"PolicyName": "ApiGatewaySQSSendMessagePolicy",
+					"PolicyDocument": {
+						"Version": "2012-10-17",
+						"Statement": [
+							{
+								"Effect": "Allow",
+								"Action": "sqs:SendMessage",
+								"Resource": {
+									"Fn::GetAtt": [
+										"${gridWebsocketQueueRef}",
+										"Arn"
+									]
+								}
+							}
+						]
+					}
+				}
+			]
+		}
+	},
+	"GridWebsocketApi": {
+		"Type": "AWS::ApiGatewayV2::Api",
+		"Properties": {
+			"Name": "${gridWebsocketApiName}",
+			"ProtocolType": "WEBSOCKET",
+			"RouteSelectionExpression": "${D}request.body.action"
+		}
+	},
+	"GridConnectRoute": {
+		"Type": "AWS::ApiGatewayV2::Route",
+		"Properties": {
+			"ApiId": {
+				"Ref": "GridWebsocketApi"
+			},
+			"RouteKey": "${D}connect",
+			"RouteResponseSelectionExpression": "${D}default",
+			"Target": {
+				"Fn::Join": [
+					"/",
+					[
+						"integrations",
+						{
+							"Ref": "GridConnectIntegration"
+						}
+					]
+				]
+			},
+			"AuthorizationType": "AWS_IAM"
+		}
+	},
+	"GridConnectRoutResponse": {
+		"Type": "AWS::ApiGatewayV2::RouteResponse",
+		"Properties": {
+			"RouteId": {
+				"Ref": "GridConnectRoute"
+			},
+			"ApiId": {
+				"Ref": "GridWebsocketApi"
+			},
+			"RouteResponseKey": "${D}default"
+		}
+	},
+	"GridConnectIntegration": {
+		"Type": "AWS::ApiGatewayV2::Integration",
+		"Properties": {
+			"ApiId": {
+				"Ref": "GridWebsocketApi"
+			},
+			"IntegrationType": "AWS",
+			"IntegrationUri": {
+				"Fn::Join": [
+					"",
+					[
+						"arn:",
+						{
+							"Ref": "AWS::Partition"
+						},
+						":apigateway:",
+						{
+							"Ref": "AWS::Region"
+						},
+						":sqs:path/",
+						{
+							"Ref": "AWS::AccountId"
+						},
+						"/",
+						{
+							"Fn::GetAtt": [
+								"${gridWebsocketQueueRef}",
+								"QueueName"
+							]
+						}
+					]
+				]
+			},
+			"IntegrationMethod": "POST",
+			"CredentialsArn": {
+				"Fn::GetAtt": [
+					"GridApiGatewaySQSRole",
+					"Arn"
+				]
+			},
+			"RequestParameters": {
+				"integration.request.header.Content-Type": "'application/x-www-form-urlencoded'"
+			},
+			"RequestTemplates": {
+				"application/json": "${connectRequestTempalte}"
+			}
+		}
+	},
+	"GridConnectIntegrationResponse": {
+		"Type": "AWS::ApiGatewayV2::IntegrationResponse",
+		"Properties": {
+			"ApiId": {
+				"Ref": "GridWebsocketApi"
+			},
+			"IntegrationId": {
+				"Ref": "GridConnectIntegration"
+			},
+			"IntegrationResponseKey": "/200/",
+			"ResponseTemplates": {
+				"application/json": "[ 8, \"connected\"]"
+			}
+		}
+	},
+	"GridDefaultRoute": {
+		"Type": "AWS::ApiGatewayV2::Route",
+		"Properties": {
+			"ApiId": {
+				"Ref": "GridWebsocketApi"
+			},
+			"RouteKey": "${D}default",
+			"Target": {
+				"Fn::Join": [
+					"/",
+					[
+						"integrations",
+						{
+							"Ref": "GridDefaultIntegration"
+						}
+					]
+				]
+			}
+		}
+	},
+	"GridDefaultRoutResponse": {
+		"Type": "AWS::ApiGatewayV2::RouteResponse",
+		"Properties": {
+			"RouteId": {
+				"Ref": "GridDefaultRoute"
+			},
+			"ApiId": {
+				"Ref": "GridWebsocketApi"
+			},
+			"RouteResponseKey": "${D}default"
+		}
+	},
+	"GridDefaultIntegration": {
+		"Type": "AWS::ApiGatewayV2::Integration",
+		"Properties": {
+			"ApiId": {
+				"Ref": "GridWebsocketApi"
+			},
+			"IntegrationType": "AWS",
+			"IntegrationUri": {
+				"Fn::Join": [
+					"",
+					[
+						"arn:",
+						{
+							"Ref": "AWS::Partition"
+						},
+						":apigateway:",
+						{
+							"Ref": "AWS::Region"
+						},
+						":sqs:path/",
+						{
+							"Ref": "AWS::AccountId"
+						},
+						"/",
+						{
+							"Fn::GetAtt": [
+								"${gridWebsocketQueueRef}",
+								"QueueName"
+							]
+						}
+					]
+				]
+			},
+			"IntegrationMethod": "POST",
+			"CredentialsArn": {
+				"Fn::GetAtt": [
+					"GridApiGatewaySQSRole",
+					"Arn"
+				]
+			},
+			"RequestParameters": {
+				"integration.request.header.Content-Type": "'application/x-www-form-urlencoded'"
+			},
+			"RequestTemplates": {
+				"application/json": "${defaultRequestTempalte}"
+			}
+		}
+	},
+	"GridDefaultIntegrationResponse": {
+		"Type": "AWS::ApiGatewayV2::IntegrationResponse",
+		"Properties": {
+			"ApiId": {
+				"Ref": "GridWebsocketApi"
+			},
+			"IntegrationId": {
+				"Ref": "GridDefaultIntegration"
+			},
+			"IntegrationResponseKey": "/200/",
+			"ResponseTemplates": {
+				"application/json": "[ 8, \"received\"]"
+			}
+		}
+	},
+	"GridDisconnectRoute": {
+		"Type": "AWS::ApiGatewayV2::Route",
+		"Properties": {
+			"ApiId": {
+				"Ref": "GridWebsocketApi"
+			},
+			"RouteKey": "${D}disconnect",
+			"Target": {
+				"Fn::Join": [
+					"/",
+					[
+						"integrations",
+						{
+							"Ref": "GridDisconnectIntegration"
+						}
+					]
+				]
+			}
+		}
+	},
+	"GridDisconnectRoutResponse": {
+		"Type": "AWS::ApiGatewayV2::RouteResponse",
+		"Properties": {
+			"RouteId": {
+				"Ref": "GridDisconnectRoute"
+			},
+			"ApiId": {
+				"Ref": "GridWebsocketApi"
+			},
+			"RouteResponseKey": "${D}default"
+		}
+	},
+	"GridDisconnectIntegration": {
+		"Type": "AWS::ApiGatewayV2::Integration",
+		"Properties": {
+			"ApiId": {
+				"Ref": "GridWebsocketApi"
+			},
+			"IntegrationType": "AWS",
+			"IntegrationUri": {
+				"Fn::Join": [
+					"",
+					[
+						"arn:",
+						{
+							"Ref": "AWS::Partition"
+						},
+						":apigateway:",
+						{
+							"Ref": "AWS::Region"
+						},
+						":sqs:path/",
+						{
+							"Ref": "AWS::AccountId"
+						},
+						"/",
+						{
+							"Fn::GetAtt": [
+								"${gridWebsocketQueueRef}",
+								"QueueName"
+							]
+						}
+					]
+				]
+			},
+			"IntegrationMethod": "POST",
+			"CredentialsArn": {
+				"Fn::GetAtt": [
+					"GridApiGatewaySQSRole",
+					"Arn"
+				]
+			},
+			"RequestParameters": {
+				"integration.request.header.Content-Type": "'application/x-www-form-urlencoded'"
+			},
+			"RequestTemplates": {
+				"application/json": "${disconnectRequestTempalte}"
+			}
+		}
+	},
+	"GridDisconnectIntegrationResponse": {
+		"Type": "AWS::ApiGatewayV2::IntegrationResponse",
+		"Properties": {
+			"ApiId": {
+				"Ref": "GridWebsocketApi"
+			},
+			"IntegrationId": {
+				"Ref": "GridDisconnectIntegration"
+			},
+			"IntegrationResponseKey": "/200/",
+			"ResponseTemplates": {
+				"application/json": "[ 8, \"disconnected\"]"
+			}
+		}
+	},
+	"GridWebsocketDeployment": {
+		"Type": "AWS::ApiGatewayV2::Deployment",
+		"DependsOn": [
+			"GridDefaultRoute"
+		],
+		"Properties": {
+			"ApiId": {
+				"Ref": "GridWebsocketApi"
+			},
+			"Description": "Initial deployment"
+		}
+	},
+	"GridWebsocketStage": {
+		"Type": "AWS::ApiGatewayV2::Stage",
+		"Properties": {
+			"StageName": "${stack}",
+			"ApiId": {
+				"Ref": "GridWebsocketApi"
+			},
+			"DeploymentId": {
+				"Ref": "GridWebsocketDeployment"
+			},
+			"AutoDeploy": true,
+			"AccessLogSettings": {
+				"DestinationArn": {
+					"Fn::GetAtt": [
+						"GridWebsocketLogGroup",
+						"Arn"
+					]
+				},
+				"Format": "${accessLogsSettingFormat}"
+			}
+		}
+	},
+	"GridWebsocketLogGroup": {
+		"Type": "AWS::Logs::LogGroup",
+		"Properties": {
+			"LogGroupName": {
+				"Fn::Sub": "/aws/apigateway/${D}{GridWebsocketApi}"
+			},
+			"RetentionInDays": 7
+		}
+	},
+	"GridApiGatewayCloudWatchRole": {
+		"Type": "AWS::IAM::Role",
+		"Properties": {
+			"AssumeRolePolicyDocument": {
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Principal": {
+							"Service": [
+								"apigateway.amazonaws.com"
+							]
+						},
+						"Action": "sts:AssumeRole"
+					}
+				]
+			},
+			"Path": "/",
+			"ManagedPolicyArns": [
+				"arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+			]
+		}
+	},
+	"GridApiGatewayAccount": {
+		"Type": "AWS::ApiGateway::Account",
+		"Properties": {
+			"CloudWatchRoleArn": {
+				"Fn::GetAtt": [
+					"GridApiGatewayCloudWatchRole",
+					"Arn"
+				]
+			}
+		}
+	}
+
