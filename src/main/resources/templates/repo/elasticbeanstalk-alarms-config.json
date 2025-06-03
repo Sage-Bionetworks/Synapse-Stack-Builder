@@ -3,101 +3,101 @@
 		"name": "5xx-High-Rate-Alarm",
 		"description": "Alarm when a high rate of 500 is returned by the load balancer",
 		"metric": "HTTPCode_ELB_5XX_Count",
-		"statistic": "Sum",
+		"statistic": "SUM",
 		"period": 60,
 		"evaluationPeriods": 1,
 		"threshold": 20,
-		"comparisonOperator": "GreaterThanOrEqualToThreshold"
+		"comparisonOperator": "GREATER_THAN_OR_EQUAL_TO_THRESHOLD"
 	},
 	{
 		"name": "Target-5xx-High-Rate-Alarm",
 		"description": "Alarm when an high rate of 500 is returned from the targets",
 		"metric": "HTTPCode_Target_5XX_Count",
-		"statistic": "Sum",
+		"statistic": "SUM",
 		"period": 60,
 		"evaluationPeriods": 1,
 		"threshold": 20,
-		"comparisonOperator": "GreaterThanOrEqualToThreshold"
+		"comparisonOperator": "GREATER_THAN_OR_EQUAL_TO_THRESHOLD"
 	},
 	{
 		"name": "Target-High-Average-Response-Time-Alarm",
 		"description": "Alarm when an high average response time is detected from the targets",
 		"metric": "TargetResponseTime",
-		"statistic": "Average",
+		"statistic": "AVERAGE",
 		"period": 300,
 		"evaluationPeriods": 1,
 		"threshold": 1,
-		"comparisonOperator": "GreaterThanOrEqualToThreshold"
+		"comparisonOperator": "GREATER_THAN_OR_EQUAL_TO_THRESHOLD"
 	},
 	{
 		"name": "Rejected-Connections-Alarm",
 		"description": "Alarm when the load balancer is rejecting connections after reaching its maximum capacity",
 		"metric": "RejectedConnectionCount",
-		"statistic": "Sum",
+		"statistic": "SUM",
 		"period": 60,
 		"evaluationPeriods": 1,
 		"threshold": 0,
-		"comparisonOperator": "GreaterThanThreshold"
+		"comparisonOperator": "GREATER_THAN_THRESHOLD"
 	},
 	{
 		"name": "Target-Connections-Error-Alarm",
 		"description": "Alarm when the load balancer cannot connect to the targets",
 		"metric": "TargetConnectionErrorCount",
-		"statistic": "Sum",
+		"statistic": "SUM",
 		"period": 60,
 		"evaluationPeriods": 1,
 		"threshold": 0,
-		"comparisonOperator": "GreaterThanThreshold"
+		"comparisonOperator": "GREATER_THAN_THRESHOLD"
 	}],
 	"PORTAL": [{
 		"name": "5xx-High-Rate-Alarm",
 		"description": "Alarm when an high rate of 500 is returned by the load balancer",
 		"metric": "HTTPCode_ELB_5XX_Count",
-		"statistic": "Sum",
+		"statistic": "SUM",
 		"period": 60,
 		"evaluationPeriods": 1,
 		"threshold": 20,
-		"comparisonOperator": "GreaterThanOrEqualToThreshold"
+		"comparisonOperator": "GREATER_THAN_OR_EQUAL_TO_THRESHOLD"
 	},
 	{
 		"name": "Target-5xx-High-Rate-Alarm",
 		"description": "Alarm when an high rate of 500 is returned from the targets",
 		"metric": "HTTPCode_Target_5XX_Count",
-		"statistic": "Sum",
+		"statistic": "SUM",
 		"period": 60,
 		"evaluationPeriods": 1,
 		"threshold": 20,
-		"comparisonOperator": "GreaterThanOrEqualToThreshold"
+		"comparisonOperator": "GREATER_THAN_OR_EQUAL_TO_THRESHOLD"
 	},
 	{
 		"name": "Target-High-Average-Response-Time-Alarm",
 		"description": "Alarm when an high average response time is detected from the targets",
 		"metric": "TargetResponseTime",
-		"statistic": "Average",
+		"statistic": "AVERAGE",
 		"period": 300,
 		"evaluationPeriods": 1,
 		"threshold": 1,
-		"comparisonOperator": "GreaterThanOrEqualToThreshold"
+		"comparisonOperator": "GREATER_THAN_OR_EQUAL_TO_THRESHOLD"
 	},
 	{
 		"name": "Rejected-Connections-Alarm",
 		"description": "Alarm when the load balancer is rejecting connections after reaching its maximum capacity",
 		"metric": "RejectedConnectionCount",
-		"statistic": "Sum",
+		"statistic": "SUM",
 		"period": 60,
 		"evaluationPeriods": 1,
 		"threshold": 0,
-		"comparisonOperator": "GreaterThanThreshold"
+		"comparisonOperator": "GREATER_THAN_THRESHOLD"
 	},
 	{
 		"name": "Target-Connections-Error-Alarm",
 		"description": "Alarm when the load balancer cannot connect to the targets",
 		"metric": "TargetConnectionErrorCount",
-		"statistic": "Sum",
+		"statistic": "SUM",
 		"period": 60,
 		"evaluationPeriods": 1,
 		"threshold": 0,
-		"comparisonOperator": "GreaterThanThreshold"
+		"comparisonOperator": "GREATER_THAN_THRESHOLD"
 	}]
 
 }
