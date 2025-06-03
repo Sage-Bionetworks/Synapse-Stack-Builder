@@ -23,15 +23,16 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sagebionetworks.template.config.Configuration;
 
-import com.amazonaws.services.kms.AWSKMS;
-import com.amazonaws.services.kms.model.EncryptRequest;
-import com.amazonaws.services.kms.model.EncryptResult;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
 import org.sagebionetworks.template.config.RepoConfiguration;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.model.EncryptRequest;
+import software.amazon.awssdk.services.kms.model.EncryptResponse;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SecretBuilderImplTest {
@@ -41,7 +42,7 @@ public class SecretBuilderImplTest {
 	@Mock
 	AWSSecretsManager mockSecretManager;
 	@Mock
-	AWSKMS mockKeyManager;
+	KmsClient mockKeyManager;
 	@Mock
 	AmazonS3 mockS3Client;
 	
@@ -81,7 +82,7 @@ public class SecretBuilderImplTest {
 		when(mockSecretManager.getSecretValue(any(GetSecretValueRequest.class))).thenReturn(new GetSecretValueResult().withSecretString(secretString));
 		encryptedSecretValue = "pretend this is encrypted";
 		secretBuffer = SecretBuilderImpl.stringToByteBuffer(encryptedSecretValue);
-		when(mockKeyManager.encrypt(any(EncryptRequest.class))).thenReturn(new EncryptResult().withCiphertextBlob(secretBuffer));
+		when(mockKeyManager.encrypt(any(EncryptRequest.class))).thenReturn(EncryptResponse.builder().ciphertextBlob(SdkBytes.fromByteBuffer(secretBuffer)).build());
 		
 		s3Bucket = "the-bucket";
 		when(mockConfig.getConfigurationBucket()).thenReturn(s3Bucket);
@@ -136,8 +137,8 @@ public class SecretBuilderImplTest {
 		assertNotNull(cipher);
 		assertEquals(encryptedSecretValue, base64Decode(cipher));
 		verify(mockKeyManager).encrypt(encryptRequestCaptor.capture());
-		assertEquals("alias/synapse/dev/299/cmk", encryptRequestCaptor.getValue().getKeyId());
-		assertEquals(secretString, byteBufferToString(encryptRequestCaptor.getValue().getPlaintext()));
+		assertEquals("alias/synapse/dev/299/cmk", encryptRequestCaptor.getValue().keyId());
+		assertEquals(secretString, encryptRequestCaptor.getValue().plaintext().asUtf8String());
 	}
 	
 	@Test

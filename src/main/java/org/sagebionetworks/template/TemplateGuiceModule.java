@@ -120,8 +120,6 @@ import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.glue.AWSGlue;
 import com.amazonaws.services.glue.AWSGlueClientBuilder;
-import com.amazonaws.services.kms.AWSKMS;
-import com.amazonaws.services.kms.AWSKMSAsyncClientBuilder;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
 import com.amazonaws.services.route53.AmazonRoute53;
@@ -141,6 +139,7 @@ import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
 import software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkClient;
 import software.amazon.awssdk.services.imagebuilder.ImagebuilderClient;
 import software.amazon.awssdk.services.imagebuilder.ImagebuilderClientBuilder;
+import software.amazon.awssdk.services.kms.KmsClient;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -278,13 +277,11 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 	
 	@Provides
-	public AWSKMS provideAWSKMSClient() {
-		AWSKMSAsyncClientBuilder builder = AWSKMSAsyncClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
+	public KmsClient provideAWSKMSClient() {
+		KmsClient client = KmsClient.builder().region(Region.US_EAST_1).build();
+		return client;
 	}
-	
+
 	@Provides
 	public AmazonEC2 provideAmazonEc2(){
 		AmazonEC2ClientBuilder builder = AmazonEC2ClientBuilder.standard();
