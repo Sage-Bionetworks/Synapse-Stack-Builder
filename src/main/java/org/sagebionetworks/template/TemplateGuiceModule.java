@@ -126,8 +126,6 @@ import com.amazonaws.services.route53.AmazonRoute53;
 import com.amazonaws.services.route53.AmazonRoute53ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Named;
@@ -141,6 +139,7 @@ import software.amazon.awssdk.services.imagebuilder.ImagebuilderClient;
 import software.amazon.awssdk.services.imagebuilder.ImagebuilderClientBuilder;
 import software.amazon.awssdk.services.kms.KmsClient;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
@@ -269,13 +268,11 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 	
 	@Provides
-	public AWSSecretsManager provideAWSSecretsManager() {
-	    AWSSecretsManagerClientBuilder builder = AWSSecretsManagerClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-	    return builder.build();
+	public SecretsManagerClient provideAWSSecretsManager() {
+		SecretsManagerClient client = SecretsManagerClient.builder().region(Region.US_EAST_1).build();
+		return client;
 	}
-	
+
 	@Provides
 	public KmsClient provideAWSKMSClient() {
 		KmsClient client = KmsClient.builder().region(Region.US_EAST_1).build();
