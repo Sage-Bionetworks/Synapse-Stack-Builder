@@ -495,10 +495,17 @@
                              ],
                              "Resource": "*"
                          },
-                        {
+                         {
                              "Effect": "Allow",
                              "Action": [
                                  "apigateway:*"
+                             ],
+                             "Resource": "*"
+                         },
+                         {
+                             "Effect": "Allow",
+                             "Action": [
+                                 "aoss:*"
                              ],
                              "Resource": "*"
                          }
@@ -755,6 +762,7 @@
 		#parse("templates/repo/web/acl/web-acl-template.json.vpt")
 		#parse("templates/repo/appconfig-template.json.vpt")
 		#parse("templates/repo/api-gateway-template.json.vpt")
+		#parse("templates/repo/opensearch-template.json.vpt")
 		#parse("templates/repo/bedrock-knowledge-base-template.json.vpt")
 		${bedrock_agent_resouces}
 		#parse("templates/repo/grid/grid-websocket.json.vpt")

@@ -369,6 +369,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(bodyJSONString);
 		
 		JSONObject templateJson = new JSONObject(bodyJSONString);
+		
+		System.out.println(templateJson.toString(2));
 				
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		assertNotNull(resources);
@@ -414,6 +416,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(15000, tDbProps.getInt("StorageThroughput"));
 		
 		assertFalse(resources.has("WebhookTestApi"));
+		assertTrue(resources.has("SynapseSearchCollection"));
 		assertTrue(resources.has("SynapseHelpCollection"));
 		assertTrue(resources.has("SynapseHelpKnowledgeBaseExecutionRole"));
 		assertTrue(resources.has("SynapseHelpKnowledgeBase"));
@@ -698,6 +701,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(15000, tDbProps.getInt("StorageThroughput"));
 
 		assertTrue(resources.has("WebhookTestApi"));
+		assertTrue(resources.has("SynapseSearchCollection"));
 		assertTrue(resources.has("SynapseHelpCollection"));
 		assertTrue(resources.has("SynapseHelpKnowledgeBaseExecutionRole"));
 		assertTrue(resources.has("SynapseHelpKnowledgeBase"));
