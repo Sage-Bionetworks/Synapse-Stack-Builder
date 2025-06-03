@@ -118,8 +118,6 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClientBuilder;
 import com.amazonaws.services.glue.AWSGlue;
 import com.amazonaws.services.glue.AWSGlueClientBuilder;
 import com.amazonaws.services.kms.AWSKMS;
@@ -287,14 +285,6 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		return builder.build();
 	}
 	
-	@Provides
-	public AmazonElasticLoadBalancing provideAmazonElasticLoadBalancing() {
-		AmazonElasticLoadBalancingClientBuilder builder = AmazonElasticLoadBalancingClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
-	}
-
 	@Provides
 	public AmazonEC2 provideAmazonEc2(){
 		AmazonEC2ClientBuilder builder = AmazonEC2ClientBuilder.standard();

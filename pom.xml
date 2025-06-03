@@ -86,11 +86,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.amazonaws</groupId>
-			<artifactId>aws-java-sdk-elasticloadbalancingv2</artifactId>
-			<version>${amazon.sdk.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk-kms</artifactId>
 			<version>${amazon.sdk.version}</version>
 		</dependency>
