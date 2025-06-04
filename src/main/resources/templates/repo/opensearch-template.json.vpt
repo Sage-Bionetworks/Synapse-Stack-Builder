@@ -31,9 +31,10 @@
 	            "Description":"Network policy for the synapse search collection that allows access from the stack VPC",
 	            "Policy": {
 	            	"Fn::Sub": [
-	            		"[{\"Rules\":[{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synsearch\"]},{\"ResourceType\":\"dashboard\",\"Resource\":[\"collection/${stack}-${instance}-synsearch\"]}],\"AllowFromPublic\":false,\"SourceVPCEs\":[\"#[[${stackVpcEndpointId}]]#\"]}]",
+	            		"[{\"Rules\":[{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synsearch\"]}],\"AllowFromPublic\":false,\"SourceVPCEs\":[\"#[[${stackVpcEndpointId}]]#\",\"#[[${opsVpcEndpointId}]]#\"]}]",
 	            		{
-	            			"stackVpcEndpointId": { "Fn::ImportValue": "${vpcExportPrefix}-open-search-vpce" }
+	            			"stackVpcEndpointId": { "Fn::ImportValue": "${vpcExportPrefix}-open-search-vpce" },
+	            			"opsVpcEndpointId": { "Fn::ImportValue": "${opsVpcExportPrefix}-OSSVpcEndpointId" }
 	            		}
 	            	]
 	            }
@@ -45,7 +46,7 @@
 	        "Name":"${stack}-${instance}-synsearch",
 	        "Type":"SEARCH",
 	        "Description":"Synapse Search Collection",
-	        "StandbyReplicas": "DISABLED"
+	        "StandbyReplicas": #if(${stack} == 'prod') "ENABLED" #else "DISABLED" #end
 	     },
 	     "DependsOn": ["SynapseSearchCollectionEncryptionPolicy", "SynapseSearchCollectionNetworkPolicy", "SynapseSearchCollectionDataAccessPolicy"]
 	}
