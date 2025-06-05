@@ -38,14 +38,4 @@ class TemplateLoaderImplTest {
         assertEquals("Template not found: " + nonExistentPath, exception.getMessage());
     }
 
-    @Test
-    void loadTemplate_IOError_ThrowsRuntimeException() throws IOException {
-        String templatePath = "invalid-template.txt";
-        
-        // Call under test
-        assertThrows(
-            RuntimeException.class,
-            () -> templateLoader.loadTemplate(templatePath)
-        );
-    }
 }
