@@ -266,7 +266,8 @@
                               "Effect": "Allow",
                               "Principal": "*",
                               "Action": ["*"],
-                              "Resource": ["*"]
+                              "Resource": ["*"],
+							  "Condition": {"StringEquals": {"aws:PrincipalAccount": {"Ref": "AWS::AccountId"}}}
                          }]
                     },
                     "RouteTableIds": [
@@ -324,7 +325,7 @@
                          "Version": "2012-10-17",
                          "Statement": [{
                               "Effect": "Allow",
-                              "Principal": "*",
+                              "Principal": { "AWS": { "Ref": "AWS::AccountId" }},
                               "Action": "*",
                               "Resource": "*"
                          }]
@@ -351,7 +352,7 @@
                          "Version": "2012-10-17",
                          "Statement": [{
                               "Effect": "Allow",
-                              "Principal": "*",
+                              "Principal": { "AWS": { "Ref": "AWS::AccountId" }},
                               "Action": "*",
                               "Resource": "*"
                          }]
@@ -378,7 +379,7 @@
                          "Version": "2012-10-17",
                          "Statement": [{
                               "Effect": "Allow",
-                              "Principal": "*",
+                              "Principal": { "AWS": { "Ref": "AWS::AccountId" }},
                               "Action": "*",
                               "Resource": "*"
                          }]
@@ -405,7 +406,7 @@
                          "Version": "2012-10-17",
                          "Statement": [{
                               "Effect": "Allow",
-                              "Principal": "*",
+                              "Principal": { "AWS": { "Ref": "AWS::AccountId" }},
                               "Action": "*",
                               "Resource": "*"
                          }]
