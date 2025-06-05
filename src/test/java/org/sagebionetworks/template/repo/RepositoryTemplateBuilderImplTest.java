@@ -367,7 +367,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(bodyJSONString);
 		
 		JSONObject templateJson = new JSONObject(bodyJSONString);
-				
+		
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		assertNotNull(resources);
 		// database group
@@ -419,11 +419,6 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.has("bedrockAgentRole"));
 		assertTrue(resources.has("bedrockAgent"));
 		
-		assertEquals("ENABLED", resources.getJSONObject("SynapseSearchCollection")
-			.getJSONObject("Properties")
-			.getString("StandbyReplicas")
-		);
-		
 		assertTrue(resources.getJSONObject("bedrockAgentRole").toString().contains("arn:aws:s3:::prod-configuration.sagebase.org/chat/openapi/101.json"));
 		
 		JSONObject bedrockAgentProps = resources.getJSONObject("bedrockAgent").getJSONObject("Properties");
@@ -437,6 +432,21 @@ public class RepositoryTemplateBuilderImplTest {
 		
 		assertEquals("prod", resources.getJSONObject("GridWebsocketStage").getJSONObject("Properties").get("StageName"));
 		
+		assertEquals("ENABLED", resources.getJSONObject("SynapseSearchCollection")
+			.getJSONObject("Properties")
+			.getString("StandbyReplicas")
+		);
+		
+		assertTrue(
+			resources.getJSONObject("SynapseSearchCollectionNetworkPolicy")
+				.getJSONObject("Properties").getJSONObject("Policy").toString(2).contains("\\\"AllowFromPublic\\\": false")
+		);
+		
+		assertTrue(
+			resources.getJSONObject("SynapseSearchCollectionDataAccessPolicy")
+				.getJSONObject("Properties").getJSONObject("Policy").toString(2).contains("prod101SynapesRepoWorkersServiceRole")
+		);
+	
 	}
 
 	void validateOpenApiSchema(JSONObject bedrockAgentProps) {
@@ -709,12 +719,23 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.has("bedrockAgentRole"));
 		assertTrue(resources.has("bedrockAgent"));
 		
+		assertEquals("dev-101-agent", resources.getJSONObject("bedrockAgent").getJSONObject("Properties").get("AgentName"));
+
 		assertEquals("DISABLED", resources.getJSONObject("SynapseSearchCollection")
 			.getJSONObject("Properties")
 			.getString("StandbyReplicas")
 		);
 		
-		assertEquals("dev-101-agent", resources.getJSONObject("bedrockAgent").getJSONObject("Properties").get("AgentName"));
+		assertTrue(
+			resources.getJSONObject("SynapseSearchCollectionNetworkPolicy")
+				.getJSONObject("Properties").getString("Policy").contains("\"AllowFromPublic\": true")
+		);
+		
+		assertTrue(
+			resources.getJSONObject("SynapseSearchCollectionDataAccessPolicy")
+				.getJSONObject("Properties").getJSONObject("Policy").toString(2).contains("arn:aws:iam::${AWS::AccountId}:root")
+		);
+		
 	}
 
 	@Test
