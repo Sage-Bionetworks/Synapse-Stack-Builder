@@ -526,9 +526,6 @@
 									"ec2.amazonaws.com",
 									"ssm.amazonaws.com"
 								]
-								#if(${stack} == 'dev')
-								    ,"AWS": {"Ref": "AWS::AccountId"}
-								#end
 							},
 							"Action": [
 								"sts:AssumeRole"

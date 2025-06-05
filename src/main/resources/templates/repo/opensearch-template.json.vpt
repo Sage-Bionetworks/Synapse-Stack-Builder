@@ -8,7 +8,12 @@
             "Policy": {
                "Fn::Sub": ["[{\"Rules\":[{\"ResourceType\":\"index\",\"Resource\":[\"index/${stack}-${instance}-synsearch/*\"],\"Permission\":[\"aoss:CreateIndex\",\"aoss:UpdateIndex\",\"aoss:DescribeIndex\",\"aoss:ReadDocument\",\"aoss:WriteDocument\"]},{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synsearch\"],\"Permission\":[\"aoss:DescribeCollectionItems\",\"aoss:CreateCollectionItems\",\"aoss:UpdateCollectionItems\"]}],\"Principal\":[\"#[[${executionRoleArn}]]#\"]}]",
                 	{
-                		"executionRoleArn": { "Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"] }
+                		"executionRoleArn": 
+                		#if (${stack} == 'prod')
+                			{"Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"]}
+                		#else
+                		    {"Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:root"}
+                		#end
 					}
                 ]
             }
@@ -29,15 +34,20 @@
 	            "Name":"${stack}-${instance}-synsearch",
 	            "Type":"network",
 	            "Description":"Network policy for the synapse search collection that allows access from the stack VPC",
-	            "Policy": {
-	            	"Fn::Sub": [
-	            		"[{\"Rules\":[{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synsearch\"]}],\"AllowFromPublic\":false,\"SourceVPCEs\":[\"#[[${stackVpcEndpointId}]]#\",\"#[[${opsVpcEndpointId}]]#\"]}]",
-	            		{
-	            			"stackVpcEndpointId": { "Fn::ImportValue": "${vpcExportPrefix}-open-search-vpce" },
-	            			"opsVpcEndpointId": { "Fn::ImportValue": "${opsVpcExportPrefix}-OSSVpcEndpointId" }
-	            		}
-	            	]
-	            }
+	            "Policy": 
+	            	#if (${stack} == 'prod')
+	            	{
+		            	"Fn::Sub": [
+		            		"[{\"Rules\":[{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synsearch\"]}],\"AllowFromPublic\": false,\"SourceVPCEs\":[\"#[[${stackVpcEndpointId}]]#\",\"#[[${opsVpcEndpointId}]]#\"]}]",
+		            		{
+		            			"stackVpcEndpointId": { "Fn::ImportValue": "${vpcExportPrefix}-open-search-vpce" },
+		            			"opsVpcEndpointId": { "Fn::ImportValue": "${opsVpcExportPrefix}-OSSVpcEndpointId" }
+		            		}
+		            	]
+	            	}
+	            	#else
+	            	"[{\"Rules\":[{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synsearch\"]}],\"AllowFromPublic\": true}]"
+	            	#end
 	        }
 	},
 	"SynapseSearchCollection": {
