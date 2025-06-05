@@ -24,12 +24,12 @@ public class TemplateLoaderImpl implements TemplateLoader {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             return reader.lines().collect(Collectors.joining("\n"));
         } catch (Exception e) {
-            throw new RuntimeException("Failed to load resource: " + templatePath, e);
+            throw new RuntimeException("Failed to load template: " + templatePath, e);
         } finally {
             try {
                 inputStream.close();
             } catch (IOException e) {
-                LOGGER.warn("Failed to close input stream for resource: {}", templatePath, e);
+                LOGGER.warn("Failed to close input stream for template: {}", templatePath, e);
             }
         }
     }
