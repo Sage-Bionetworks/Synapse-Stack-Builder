@@ -266,8 +266,7 @@
                               "Effect": "Allow",
                               "Principal": "*",
                               "Action": ["*"],
-                              "Resource": ["*"],
-							  "Condition": {"StringEquals": {"aws:PrincipalAccount": [{"Ref": "AWS::AccountId"}, "050451359079"]}}
+                              "Resource": ["*"]
                          }]
                     },
                     "RouteTableIds": [
