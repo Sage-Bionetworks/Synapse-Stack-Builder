@@ -77,8 +77,6 @@ import static org.sagebionetworks.template.Constants.TEMPLATE_BEAN_STALK_ENVIRON
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -86,7 +84,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -137,6 +134,7 @@ import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
@@ -369,7 +367,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(bodyJSONString);
 		
 		JSONObject templateJson = new JSONObject(bodyJSONString);
-				
+		
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		assertNotNull(resources);
 		// database group
@@ -414,6 +412,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(15000, tDbProps.getInt("StorageThroughput"));
 		
 		assertFalse(resources.has("WebhookTestApi"));
+		assertTrue(resources.has("SynapseSearchCollection"));
 		assertTrue(resources.has("SynapseHelpCollection"));
 		assertTrue(resources.has("SynapseHelpKnowledgeBaseExecutionRole"));
 		assertTrue(resources.has("SynapseHelpKnowledgeBase"));
@@ -433,6 +432,21 @@ public class RepositoryTemplateBuilderImplTest {
 		
 		assertEquals("prod", resources.getJSONObject("GridWebsocketStage").getJSONObject("Properties").get("StageName"));
 		
+		assertEquals("ENABLED", resources.getJSONObject("SynapseSearchCollection")
+			.getJSONObject("Properties")
+			.getString("StandbyReplicas")
+		);
+		
+		assertTrue(
+			resources.getJSONObject("SynapseSearchCollectionNetworkPolicy")
+				.getJSONObject("Properties").getJSONObject("Policy").toString(2).contains("\\\"AllowFromPublic\\\": false")
+		);
+		
+		assertTrue(
+			resources.getJSONObject("SynapseSearchCollectionDataAccessPolicy")
+				.getJSONObject("Properties").getJSONObject("Policy").toString(2).contains("prod101SynapesRepoWorkersServiceRole")
+		);
+	
 	}
 
 	void validateOpenApiSchema(JSONObject bedrockAgentProps) {
@@ -698,12 +712,30 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(15000, tDbProps.getInt("StorageThroughput"));
 
 		assertTrue(resources.has("WebhookTestApi"));
+		assertTrue(resources.has("SynapseSearchCollection"));
 		assertTrue(resources.has("SynapseHelpCollection"));
 		assertTrue(resources.has("SynapseHelpKnowledgeBaseExecutionRole"));
 		assertTrue(resources.has("SynapseHelpKnowledgeBase"));
 		assertTrue(resources.has("bedrockAgentRole"));
 		assertTrue(resources.has("bedrockAgent"));
+		
 		assertEquals("dev-101-agent", resources.getJSONObject("bedrockAgent").getJSONObject("Properties").get("AgentName"));
+
+		assertEquals("DISABLED", resources.getJSONObject("SynapseSearchCollection")
+			.getJSONObject("Properties")
+			.getString("StandbyReplicas")
+		);
+		
+		assertTrue(
+			resources.getJSONObject("SynapseSearchCollectionNetworkPolicy")
+				.getJSONObject("Properties").getString("Policy").contains("\"AllowFromPublic\": true")
+		);
+		
+		assertTrue(
+			resources.getJSONObject("SynapseSearchCollectionDataAccessPolicy")
+				.getJSONObject("Properties").getJSONObject("Policy").toString(2).contains("arn:aws:iam::${AWS::AccountId}:root")
+		);
+		
 	}
 
 	@Test
