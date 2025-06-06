@@ -329,7 +329,7 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
                 firstRow = true;
                 continue;
             }
-            String instance = row.data().get(0).varCharValue();
+            String instance = getColumnValue(row.data().get(0));
             glueJobInputList.add(instance);
         }
 
