@@ -501,6 +501,13 @@
                                  "apigateway:*"
                              ],
                              "Resource": "*"
+                         },
+                        {
+                             "Effect": "Allow",
+                             "Action": [
+                                 "execute-api:*"
+                             ],
+                             "Resource": "*"
                          }
                     ]
 		        }
