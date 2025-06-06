@@ -1,0 +1,61 @@
+	,
+	"SynapseSearchCollectionDataAccessPolicy": {
+		"Type":"AWS::OpenSearchServerless::AccessPolicy",
+		"Properties": {
+            "Name":"${stack}-${instance}-synsearch",
+            "Type":"data",
+            "Description":"Access policy for the stack role",
+            "Policy": {
+               "Fn::Sub": ["[{\"Rules\":[{\"ResourceType\":\"index\",\"Resource\":[\"index/${stack}-${instance}-synsearch/*\"],\"Permission\":[\"aoss:CreateIndex\",\"aoss:UpdateIndex\",\"aoss:DescribeIndex\",\"aoss:ReadDocument\",\"aoss:WriteDocument\"]},{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synsearch\"],\"Permission\":[\"aoss:DescribeCollectionItems\",\"aoss:CreateCollectionItems\",\"aoss:UpdateCollectionItems\"]}],\"Principal\":[\"#[[${executionRoleArn}]]#\"]}]",
+                	{
+                		"executionRoleArn": 
+                		#if (${stack} == 'dev')
+                			{"Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:root"}
+                		#else
+                			{"Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"]}
+                		#end
+					}
+                ]
+            }
+		}
+ 	},
+ 	"SynapseSearchCollectionEncryptionPolicy": {
+        "Type":"AWS::OpenSearchServerless::SecurityPolicy",
+        "Properties": {
+            "Name":"${stack}-${instance}-synsearch",
+            "Type":"encryption",
+            "Description":"Encryption policy for the synapse search collection",
+            "Policy":"{\"Rules\":[{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synsearch\"]}],\"AWSOwnedKey\":true}"
+        }
+  	},
+  	"SynapseSearchCollectionNetworkPolicy": {
+     	"Type":"AWS::OpenSearchServerless::SecurityPolicy",
+	        "Properties": {
+	            "Name":"${stack}-${instance}-synsearch",
+	            "Type":"network",
+	            "Description":"Network policy for the synapse search collection that allows access from the stack VPC",
+	            "Policy": 
+	            	#if (${stack} == 'dev')
+	            	"[{\"Rules\":[{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synsearch\"]}],\"AllowFromPublic\": true}]"
+	            	#else
+	            	{
+		            	"Fn::Sub": [
+		            		"[{\"Rules\":[{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synsearch\"]}],\"AllowFromPublic\": false,\"SourceVPCEs\":[\"#[[${stackVpcEndpointId}]]#\"]}]",
+		            		{
+		            			"stackVpcEndpointId": { "Fn::ImportValue": "${vpcExportPrefix}-open-search-vpce" }
+		            		}
+		            	]
+	            	}
+	            	#end
+	        }
+	},
+	"SynapseSearchCollection": {
+	    "Type":"AWS::OpenSearchServerless::Collection",
+	    "Properties": {
+	        "Name":"${stack}-${instance}-synsearch",
+	        "Type":"SEARCH",
+	        "Description":"Synapse Search Collection",
+	        "StandbyReplicas": #if(${stack} == 'prod') "ENABLED" #else "DISABLED" #end
+	     },
+	     "DependsOn": ["SynapseSearchCollectionEncryptionPolicy", "SynapseSearchCollectionNetworkPolicy", "SynapseSearchCollectionDataAccessPolicy"]
+	}

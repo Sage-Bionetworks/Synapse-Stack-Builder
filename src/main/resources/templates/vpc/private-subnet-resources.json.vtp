@@ -210,7 +210,9 @@
               "Statement":[
                  {
                     "Effect":"Allow",
-                    "Principal": "*",
+                    "Principal": {
+						"AWS": [{ "Ref": "AWS::AccountId" }, 050451359079]
+					},
                     "Action": "*",
                     "Resource": "*"
                  }

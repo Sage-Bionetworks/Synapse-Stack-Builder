@@ -59,9 +59,10 @@ public class GridTemplatesTest {
 
 	@Test
 	public void testConnect() throws IOException {
+		String sessionId = "987654321";
 		requestContext.setConnectionId("con3333");
 		requestContext.setEventType("CONNECT");
-		requestInput.addParams("gridSessionId", "session5555").addParams("replicaId", "222").addParams("userId", "987");
+		requestInput.addParams("gridSessionId", sessionId).addParams("replicaId", "222").addParams("userId", "987");
 
 		// call under test
 		Template template = loadEscapedTemplate("templates/repo/grid/connect-request-template.vpt");
@@ -78,7 +79,7 @@ public class GridTemplatesTest {
 		// body must be URL encoded.
 		JSONArray body = new JSONArray(java.net.URLDecoder.decode(message[1], StandardCharsets.UTF_8));
 		assertEquals(
-				"[8,\"connection\",{\"gridSessionId\":\"session5555\",\"replicaId\":222,\"userId\":987}]",
+				"[8,\"connection\",{\"gridSessionId\":987654321,\"replicaId\":222,\"userId\":987}]",
 				body.toString());
 		// ConnectionId
 		assertEquals("MessageAttribute.1.Name=ConnectionId", resultSplit[2]);
@@ -405,6 +406,10 @@ public class GridTemplatesTest {
 
 		public String urlEncode(String toEncode) {
 			return java.net.URLEncoder.encode(toEncode, StandardCharsets.UTF_8);
+		}
+		
+		public String urlDecode(String toDecode) {
+			return java.net.URLDecoder.decode(toDecode, StandardCharsets.UTF_8);
 		}
 	}
 
