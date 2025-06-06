@@ -1,4 +1,4 @@
-Action=SendMessage&MessageBody=$util.urlEncode(\"[8,\"\"connection\"\",{\"\"gridSessionId\"\":\"\"$input.params('gridSessionId')\"\", \"\"replicaId\"\":$input.params('replicaId'), \"\"userId\"\":$input.params('userId')}]\")
+Action=SendMessage&MessageBody=$util.urlEncode(\"[8,\"\"connection\"\",{\"\"gridSessionId\"\":$input.params('gridSessionId'), \"\"replicaId\"\":$input.params('replicaId'), \"\"userId\"\":$input.params('userId')}]\")
 &MessageAttribute.1.Name=ConnectionId
 &MessageAttribute.1.Value.DataType=String
 &MessageAttribute.1.Value.StringValue=$context.connectionId
