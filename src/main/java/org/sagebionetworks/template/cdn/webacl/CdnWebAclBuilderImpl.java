@@ -1,5 +1,6 @@
 package org.sagebionetworks.template.cdn.webacl;
 
+import com.google.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.template.CloudFormationClient;
@@ -22,6 +23,7 @@ public class CdnWebAclBuilderImpl implements CdnWebAclBuilder {
     private final StackTagsProvider tagsProvider;
     private final TemplateLoader templateLoader;
 
+    @Inject
     public CdnWebAclBuilderImpl(RepoConfiguration config, CloudFormationClient cloudFormationClient, StackTagsProvider tagsProvider, TemplateLoader templateLoader) {
         this.config = config;
         this.cloudFormationClient = cloudFormationClient;
@@ -43,10 +45,11 @@ public class CdnWebAclBuilderImpl implements CdnWebAclBuilder {
                 .withStackName(cfStackName)
                 .withTemplateBody(cfTemplate)
                 .withTags(tagsProvider.getStackTags(config));
+        LOGGER.info("Stack request: {}", cfStackRequest);
         cloudFormationClient.createOrUpdateStack(cfStackRequest);
         try {
             cloudFormationClient.waitForStackToComplete(cfStackName);
-            LOGGER.info("Stack {} successfully created/updated", cfStackName);
+            LOGGER.debug("Stack {} successfully created/updated", cfStackName);
         } catch (InterruptedException e) {
             throw new RuntimeException("Stack creation/update was interrupted", e);
         }
