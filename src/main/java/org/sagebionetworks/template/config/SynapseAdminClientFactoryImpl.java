@@ -6,9 +6,9 @@ import org.sagebionetworks.client.SynapseAdminClientImpl;
 import org.sagebionetworks.simpleHttpClient.SimpleHttpClientConfig;
 import org.sagebionetworks.template.Constants;
 
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
 import com.google.inject.Inject;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 
 public class SynapseAdminClientFactoryImpl implements SynapseAdminClientFactory {
 	
@@ -16,10 +16,10 @@ public class SynapseAdminClientFactoryImpl implements SynapseAdminClientFactory 
 	private static final int SOCKET_TIMEOUT_MS = CONNECT_TIMEOUT_MS * 10;
 	
 	private RepoConfiguration config;
-	private AWSSecretsManager secretsManager;
+	private SecretsManagerClient secretsManager;
 
 	@Inject
-	public SynapseAdminClientFactoryImpl(RepoConfiguration config, AWSSecretsManager secretsManager) {
+	public SynapseAdminClientFactoryImpl(RepoConfiguration config, SecretsManagerClient secretsManager) {
 		this.config = config;
 		this.secretsManager = secretsManager;
 	}
@@ -49,7 +49,7 @@ public class SynapseAdminClientFactoryImpl implements SynapseAdminClientFactory 
 	
 	String getSecret(String stack, String id) {
 		final String stackSecretId = String.format("%s.%s", stack, id);
-		return secretsManager.getSecretValue(new GetSecretValueRequest().withSecretId(stackSecretId)).getSecretString();
+		return secretsManager.getSecretValue(GetSecretValueRequest.builder().secretId(stackSecretId).build()).secretString();
 	}
 	
 	String getEndpoint(RestEndpointType type) {

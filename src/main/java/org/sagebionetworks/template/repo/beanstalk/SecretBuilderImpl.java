@@ -10,23 +10,25 @@ import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Properties;
 import java.util.StringJoiner;
 
 import org.sagebionetworks.template.config.Configuration;
 
-import com.amazonaws.services.kms.AWSKMS;
-import com.amazonaws.services.kms.model.EncryptRequest;
-import com.amazonaws.services.kms.model.EncryptResult;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
-import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
 import com.google.inject.Inject;
 import org.sagebionetworks.template.config.RepoConfiguration;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.model.EncryptRequest;
+import software.amazon.awssdk.services.kms.model.EncryptResponse;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 
 public class SecretBuilderImpl implements SecretBuilder {
 	
@@ -37,12 +39,12 @@ public class SecretBuilderImpl implements SecretBuilder {
 	public static final String UTF_8 = "UTF-8";
 	
 	Configuration config;
-	AWSSecretsManager secretManager;
-	AWSKMS keyManager;
+	SecretsManagerClient secretManager;
+	KmsClient keyManager;
 	AmazonS3 s3Client;
 	
 	@Inject
-	public SecretBuilderImpl(RepoConfiguration config, AWSSecretsManager secretManager, AWSKMS keyManager, AmazonS3 s3Client) {
+	public SecretBuilderImpl(RepoConfiguration config, SecretsManagerClient secretManager, KmsClient keyManager, AmazonS3 s3Client) {
 		super();
 		this.config = config;
 		this.secretManager = secretManager;
@@ -109,15 +111,19 @@ public class SecretBuilderImpl implements SecretBuilder {
 	 * A secret is created by getting the plaintext value from the SecretManager and
 	 * then encrypting the value using the stack's CMK.
 	 * 
-	 * @param string
+	 * @param key to get value from secrets manager
 	 * @return
 	 */
 	String createSecret(String key) {
 		String plaintextValue = getSecretValue(key);
+		byte[] plaintextBytes = plaintextValue.getBytes(StandardCharsets.UTF_8);
 		// Encrypt the value using the stack's key
-		EncryptResult encryptResult = keyManager.encrypt(new EncryptRequest()
-				.withPlaintext(stringToByteBuffer(plaintextValue)).withKeyId(getCMKAlias()));
-		String encryptedValue = base64Encode(encryptResult.getCiphertextBlob());
+		EncryptResponse encryptResult = keyManager.encrypt(
+				EncryptRequest.builder()
+						.plaintext(SdkBytes.fromByteArray(plaintextBytes))
+						.keyId(getCMKAlias())
+						.build());
+		String encryptedValue = base64Encode(encryptResult.ciphertextBlob().asByteBuffer());
 		return encryptedValue;
 	}
 
@@ -130,8 +136,8 @@ public class SecretBuilderImpl implements SecretBuilder {
 	String getSecretValue(String key) {
 		String masterKey = getMasterSecretKey(key);
 		// Fetch the master plaintext value for this keys
-		GetSecretValueResult secretResult = secretManager.getSecretValue(new GetSecretValueRequest().withSecretId(masterKey));
-		String plaintextValue = secretResult.getSecretString();
+		GetSecretValueResponse secretResult = secretManager.getSecretValue(GetSecretValueRequest.builder().secretId(masterKey).build());
+		String plaintextValue = secretResult.secretString();
 		if(plaintextValue == null) {
 			throw new IllegalArgumentException("Secret string is null for: "+masterKey);
 		}

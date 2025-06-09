@@ -112,12 +112,12 @@ import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.Tag;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
-import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
-import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
-import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import com.google.inject.Inject;
 
+import software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkClient;
+import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
+import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsResponse;
+import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformSummary;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
 
@@ -125,7 +125,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	public static final List<String> MACHINE_TYPE_LIST = List.of("Workers", "Repository");
 	public static final List<String> POOL_TYPE_LIST = List.of("Idgen", "Main", "Migration", "Tables");
 
-	
 	private final CloudFormationClient cloudFormationClient;
 	private final Ec2Client ec2Client;
 	private final VelocityEngine velocityEngine;
@@ -137,7 +136,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	private final ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkSolutionStackNameProvider;
 	private final StackTagsProvider stackTagsProvider;
 	private final CloudwatchLogsVelocityContextProvider cwlContextProvider;
-	private final AWSElasticBeanstalk beanstalkClient;
+	private final ElasticBeanstalkClient beanstalkClient;
 	private final ImageBuilderClient imageBuilderClient;
 	private final TimeToLive timeToLive;
 	private final StsClient stsClient;
@@ -149,7 +148,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 										 SecretBuilder secretBuilder, Set<VelocityContextProvider> contextProviders,
 										 ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkDefaultAMIEncrypter,
 										 StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
-										 Ec2Client ec2Client, AWSElasticBeanstalk beanstalkClient, ImageBuilderClient imageBuilderClient, TimeToLive ttl, 
+										 Ec2Client ec2Client, ElasticBeanstalkClient beanstalkClient, ImageBuilderClient imageBuilderClient, TimeToLive ttl,
 										 StsClient stsClient, Set<WaitConditionHandler> waitConditionHandlers) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
@@ -177,8 +176,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		String tomcatVersion = config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT);
 		String requestedPlatformVersion = config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX);
 		ListPlatformVersionsRequest lpvReq = BeanstalkUtils.buildListPlatformVersionsRequest(javaVersion, tomcatVersion, null);
-		ListPlatformVersionsResult lpvRes = this.beanstalkClient.listPlatformVersions(lpvReq);
-		List<PlatformSummary> summaries = lpvRes.getPlatformSummaryList();
+		ListPlatformVersionsResponse lpvRes = this.beanstalkClient.listPlatformVersions(lpvReq);
+		List<PlatformSummary> summaries = lpvRes.platformSummaryList();
 		String latestPlatformVersion = BeanstalkUtils.getLatestPlatformVersion(summaries);
 		String actualVersion = requestedPlatformVersion;
 		if (LATEST.equals(requestedPlatformVersion)) {

@@ -33,9 +33,6 @@ import org.sagebionetworks.template.utils.ArtifactDownload;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.cloudformation.model.Stack;
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.InvocationType;
-import com.amazonaws.services.lambda.model.InvokeRequest;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AbortIncompleteMultipartUpload;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -70,6 +67,9 @@ import com.amazonaws.services.s3.model.inventory.InventoryS3BucketDestination;
 import com.amazonaws.services.s3.model.inventory.InventorySchedule;
 import com.amazonaws.services.s3.model.lifecycle.LifecycleFilter;
 import com.google.inject.Inject;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.InvocationType;
+import software.amazon.awssdk.services.lambda.model.InvokeRequest;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
 
@@ -114,7 +114,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	
 	private AmazonS3 s3Client;
 	private StsClient stsClient;
-	private AWSLambda lambdaClient;
+	private LambdaClient lambdaClient;
 	private RepoConfiguration config;
 	private S3Config s3Config;
 	private VelocityEngine velocity;
@@ -123,7 +123,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	private ArtifactDownload downloader;
 	
 	@Inject
-	public S3BucketBuilderImpl(AmazonS3 s3Client, StsClient stsClient, AWSLambda lambdaClient, RepoConfiguration config, S3Config s3Config, VelocityEngine velocity, CloudFormationClient cloudFormationClient, StackTagsProvider tagsProvider, ArtifactDownload downloader) {
+	public S3BucketBuilderImpl(AmazonS3 s3Client, StsClient stsClient, LambdaClient lambdaClient, RepoConfiguration config, S3Config s3Config, VelocityEngine velocity, CloudFormationClient cloudFormationClient, StackTagsProvider tagsProvider, ArtifactDownload downloader) {
 		this.s3Client = s3Client;
 		this.stsClient = stsClient;
 		this.lambdaClient = lambdaClient;
@@ -190,10 +190,11 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			
 			// We also need to trigger the lambda that updates the clamav definitions to setup them up so that the scanner can download them
 			String virusScannerUpdatedLambda = getStackOutput(virusScannerStack, CF_OUTPUT_VIRUS_UPDATER_LAMBDA);
-			
-			lambdaClient.invoke(new InvokeRequest()
-				.withFunctionName(virusScannerUpdatedLambda)
-				.withInvocationType(InvocationType.Event)
+
+			lambdaClient.invoke(InvokeRequest.builder()
+					.functionName(virusScannerUpdatedLambda)
+					.invocationType(InvocationType.EVENT)
+					.build()
 			);
 		});
 
