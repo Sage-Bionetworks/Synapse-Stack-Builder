@@ -64,7 +64,7 @@
       "ScanResultSQS":{
          "Type":"AWS::SQS::Queue",
          "Properties":{
-
+         	"SqsManagedSseEnabled": true
          }
       },
       "ScanResultQueuePolicy":{
@@ -279,7 +279,7 @@
       "VirusScanDeadLetterQueue":{
          "Type":"AWS::SQS::Queue",
          "Properties":{
-
+             "SqsManagedSseEnabled": true
          }
       },
       "VirusDefinitionUpdateRole":{
