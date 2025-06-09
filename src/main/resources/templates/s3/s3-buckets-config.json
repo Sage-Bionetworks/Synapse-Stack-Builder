@@ -74,6 +74,10 @@
 		},
 		{
 			"name": "${stack}.aws-glue.sagebase.org"
+		},
+		{
+			"name": "${stack}.grid.patch.sagebase.org",
+			"retentionDays": 120
 		}
 	],
 	"inventoryConfig": {
