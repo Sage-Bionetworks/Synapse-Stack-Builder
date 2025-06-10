@@ -38,8 +38,6 @@ import org.sagebionetworks.template.datawarehouse.DataWarehouseConfig;
 import org.sagebionetworks.template.datawarehouse.DataWarehouseConfigValidator;
 import org.sagebionetworks.template.datawarehouse.backfill.BackfillDataWarehouseBuilder;
 import org.sagebionetworks.template.datawarehouse.backfill.BackfillDataWarehouseBuilderImpl;
-import org.sagebionetworks.template.dns.DnsBuilder;
-import org.sagebionetworks.template.dns.DnsBuilderImpl;
 import org.sagebionetworks.template.docs.SynapseDocsBuilder;
 import org.sagebionetworks.template.docs.SynapseDocsBuilderImpl;
 import org.sagebionetworks.template.global.GlobalResourcesBuilder;
@@ -114,8 +112,6 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
-import com.amazonaws.services.route53.AmazonRoute53;
-import com.amazonaws.services.route53.AmazonRoute53ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.google.inject.Provides;
@@ -180,8 +176,6 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(SynapseDocsBuilder.class).to(SynapseDocsBuilderImpl.class);
 		bind(UserDocsRedirectorBuilder.class).to(UserDocsRedirectorBuilderImpl.class);
 		bind(CdnBuilder.class).to(CdnBuilderImpl.class);
-		bind(Route53Client.class).to(Route53ClientImpl.class);
-		bind(DnsBuilder.class).to(DnsBuilderImpl.class);
 		bind(IpAddressPoolBuilder.class).to(IpAddressPoolBuilderImpl.class);
 		bind(NetworkLoadBalancerBuilder.class).to(NetworkLoadBalancerBuilderImpl.class);
 		bind(BindNetworkLoadBalancerBuilder.class).to(BindNetworkLoadBalancerBuilderImpl.class);
@@ -282,14 +276,6 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		return client;
 	}
 
-	@Provides
-	public AmazonRoute53 provideAmazonRoute53() {
-		AmazonRoute53ClientBuilder builder = AmazonRoute53ClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
-	}
-	
 	@Provides
 	public VelocityEngine velocityEngineProvider() {
 		VelocityEngine engine = new VelocityEngine();
