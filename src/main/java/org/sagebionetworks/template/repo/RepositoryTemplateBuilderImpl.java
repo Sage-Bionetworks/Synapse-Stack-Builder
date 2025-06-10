@@ -92,7 +92,7 @@ import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
-import org.sagebionetworks.template.Ec2Client;
+import org.sagebionetworks.template.Ec2ClientWrapper;
 import org.sagebionetworks.template.ImageBuilderClient;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
@@ -126,7 +126,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	public static final List<String> POOL_TYPE_LIST = List.of("Idgen", "Main", "Migration", "Tables");
 
 	private final CloudFormationClient cloudFormationClient;
-	private final Ec2Client ec2Client;
+	private final Ec2ClientWrapper ec2ClientWrapper;
 	private final VelocityEngine velocityEngine;
 	private final RepoConfiguration config;
 	private final Logger logger;
@@ -144,15 +144,15 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
-										 RepoConfiguration configuration, LoggerFactory loggerFactory, ArtifactCopy artifactCopy,
-										 SecretBuilder secretBuilder, Set<VelocityContextProvider> contextProviders,
-										 ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkDefaultAMIEncrypter,
-										 StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
-										 Ec2Client ec2Client, ElasticBeanstalkClient beanstalkClient, ImageBuilderClient imageBuilderClient, TimeToLive ttl,
-										 StsClient stsClient, Set<WaitConditionHandler> waitConditionHandlers) {
+                                         RepoConfiguration configuration, LoggerFactory loggerFactory, ArtifactCopy artifactCopy,
+                                         SecretBuilder secretBuilder, Set<VelocityContextProvider> contextProviders,
+                                         ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkDefaultAMIEncrypter,
+                                         StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
+                                         Ec2ClientWrapper ec2ClientWrapper, ElasticBeanstalkClient beanstalkClient, ImageBuilderClient imageBuilderClient, TimeToLive ttl,
+                                         StsClient stsClient, Set<WaitConditionHandler> waitConditionHandlers) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
-		this.ec2Client = ec2Client;
+		this.ec2ClientWrapper = ec2ClientWrapper;
 		this.velocityEngine = velocityEngine;
 		this.config = configuration;
 		this.logger = loggerFactory.getLogger(RepositoryTemplateBuilderImpl.class);
@@ -272,7 +272,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		
 		// Determine Beanstalk subnets for instances
 		List<String> vpcSubnets = getPrivateSubnets(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR));
-		List<String> beanstalkSubnets = ec2Client.getAvailableSubnetsForInstanceType(ec2InstanceType, vpcSubnets);
+		List<String> beanstalkSubnets = ec2ClientWrapper.getAvailableSubnetsForInstanceType(ec2InstanceType, vpcSubnets);
 		String beanstalkSubnetsAsString = String.join(",", beanstalkSubnets);
 		context.put(BEANSTALK_INSTANCES_SUBNETS, beanstalkSubnetsAsString);
 

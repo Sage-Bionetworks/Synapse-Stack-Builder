@@ -12,8 +12,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.sagebionetworks.template.repo.beanstalk.ElasticBeanstalkSolutionStackNameProviderImpl.AMI_VIRTUALIZATION_TYPE;
-import com.amazonaws.services.ec2.AmazonEC2Client;
 import org.sagebionetworks.template.config.RepoConfiguration;
+import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkClient;
 import software.amazon.awssdk.services.elasticbeanstalk.model.CustomAmi;
 import software.amazon.awssdk.services.elasticbeanstalk.model.DescribePlatformVersionRequest;
@@ -29,7 +29,7 @@ public class ElasticBeanstalkSolutionStackNameProviderImplTest {
 	ElasticBeanstalkClient mockElasticBeanstalkClient;
 
 	@Mock
-	AmazonEC2Client mockEc2Client;
+	Ec2Client mockEc2Client;
 
 	@Mock
 	RepoConfiguration mockConfig;
