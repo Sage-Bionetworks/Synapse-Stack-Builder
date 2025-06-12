@@ -1,11 +1,13 @@
 package org.sagebionetworks.template.cdn.webacl;
 
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.Tag;
+import org.apache.velocity.Template;
 import org.apache.velocity.app.VelocityEngine;
 
 import org.junit.jupiter.api.Test;
@@ -18,11 +20,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import org.mockito.stubbing.Answer;
 import org.sagebionetworks.template.CloudFormationClient;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
@@ -44,7 +49,7 @@ public class CdnWebAclBuilderImplTest {
     private VelocityEngine mockVelocityEngine;
 
     @Mock
-    private TemplateLoader mockTemplateLoader;
+    private Template mockTemplate;
 
     @Captor
     private ArgumentCaptor<CreateOrUpdateStackRequest> createOrUpdateStackRequestArgumentCaptor;
@@ -54,13 +59,21 @@ public class CdnWebAclBuilderImplTest {
 
     @Test
     public void testBuildCdnWebAclStack() throws Exception {
+        when(mockVelocityEngine.getTemplate(any(String.class))).thenReturn(mockTemplate);
+        doAnswer(new Answer<Void>() {
+            @Override
+            public Void answer(InvocationOnMock invocation) throws Throwable {
+                StringWriter writer = (StringWriter) invocation.getArgument(1);
+                writer.append("someYamlTemplate");
+                return null;
+            }
+        }).when(mockTemplate).merge(any(), any());
 
         List<Tag> expectedTags = new ArrayList<>();
         Tag tag = new Tag().withKey("aKey").withValue("aValue");
         expectedTags.add(tag);
         Stack expectedStack = new Stack().withStackName("tst-cloudfront-webacl-stack").withTags(expectedTags);
         when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
-        when(mockTemplateLoader.loadTemplate(any(String.class))).thenReturn("someTemplate");
         when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
         when(mockCloudFormationClient.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
 
@@ -74,12 +87,19 @@ public class CdnWebAclBuilderImplTest {
         assertEquals(1, optStack.get().getTags().size());
         assertEquals(tag, optStack.get().getTags().get(0));
 
+        verify(mockVelocityEngine).getTemplate("templates/cdn/synapse-cdn-webacl.json.vtp");
         verify(mockCloudFormationClient).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
         CreateOrUpdateStackRequest actualReq = createOrUpdateStackRequestArgumentCaptor.getValue();
         assertNotNull(actualReq);
         assertEquals("tst-cloudfront-webacl-stack", actualReq.getStackName());
-        assertEquals("someTemplate", actualReq.getTemplateBody());
+        assertEquals("someYamlTemplate", actualReq.getTemplateBody());
         assertEquals(tag, actualReq.getTags().get(0));
+
+        assertTrue(optStack.isPresent());
+        assertEquals("tst-cloudfront-webacl-stack", optStack.get().getStackName());
+        assertEquals(1, optStack.get().getTags().size());
+        assertEquals(tag, optStack.get().getTags().get(0));
+
     }
 
 }
