@@ -22,6 +22,8 @@ import org.apache.velocity.runtime.resource.loader.FileResourceLoader;
 import org.sagebionetworks.client.SynapseAdminClient;
 import org.sagebionetworks.template.cdn.CdnBuilder;
 import org.sagebionetworks.template.cdn.CdnBuilderImpl;
+import org.sagebionetworks.template.cdn.webacl.CdnWebAclBuilder;
+import org.sagebionetworks.template.cdn.webacl.CdnWebAclBuilderImpl;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.config.ConfigurationImpl;
 import org.sagebionetworks.template.config.RepoConfiguration;
@@ -193,6 +195,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(BackfillDataWarehouseBuilder.class).to(BackfillDataWarehouseBuilderImpl.class);
 		bind(MarkDownItLambdaBuilder.class).to(MarkDownItLambdaBuilderImpl.class);
 		bind(ImageBuilderClient.class).to(ImageBuilderClientImpl.class);
+		bind(CdnWebAclBuilder.class).to(CdnWebAclBuilderImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 
