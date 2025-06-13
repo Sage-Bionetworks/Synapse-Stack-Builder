@@ -169,8 +169,8 @@
 				"ENTITY",
 				"WIKI"
 			],
-			"messageVisibilityTimeoutSec": 600,
-			"deadLetterQueueMaxFailureCount": 250,
+			"messageVisibilityTimeoutSec": 60,
+			"deadLetterQueueMaxFailureCount": 5,
 			"messageRetentionPeriodSec": 1209600
 		},
 		{
