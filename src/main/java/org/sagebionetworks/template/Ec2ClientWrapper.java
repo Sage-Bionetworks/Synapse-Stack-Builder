@@ -3,7 +3,7 @@ package org.sagebionetworks.template;
 import java.util.List;
 import java.util.Map;
 
-public interface Ec2Client {
+public interface Ec2ClientWrapper {
 
 	public List<String> getAvailabilityZonesForInstanceType(String instanceType);
 	public Map<String, String> getAvailabityZoneToSubnetMap(List<String> subnetIds);

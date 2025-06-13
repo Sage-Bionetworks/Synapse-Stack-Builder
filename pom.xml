@@ -80,22 +80,12 @@
 			<version>${amazon.sdk.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.amazonaws</groupId>
-			<artifactId>aws-java-sdk-ec2</artifactId>
-			<version>${amazon.sdk.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>imagebuilder</artifactId>
 		</dependency>
 		<dependency>
     		<groupId>software.amazon.awssdk</groupId>
     		<artifactId>sts</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.amazonaws</groupId>
-			<artifactId>aws-java-sdk-route53</artifactId>
-			<version>${amazon.sdk.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.inject</groupId>
@@ -243,6 +233,10 @@
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>athena</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>ec2</artifactId>
 		</dependency>
 	</dependencies>
 	<build>

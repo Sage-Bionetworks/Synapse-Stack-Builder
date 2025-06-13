@@ -7,8 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.sagebionetworks.template.dns.DnsConfig;
-import org.sagebionetworks.template.dns.RecordSetDescriptor;
+import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
+import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,10 +51,17 @@ public class TemplateUtilsTest {
 
 	@Test
 	public void testPrettyPrint() throws Exception{
-		RecordSetDescriptor rsd = new RecordSetDescriptor("name", "CNAME", "900", Collections.singletonList("somename.org"), null);
-		DnsConfig dnsConfig = new DnsConfig("hostedZoneId", Collections.singletonList(rsd));
-		String s = TemplateUtils.prettyPrint(dnsConfig);
+		EnvironmentDescriptor descriptor = new EnvironmentDescriptor().withType(EnvironmentType.REPOSITORY_SERVICES).withName("aName").withImageId("imageId");
+		String s = TemplateUtils.prettyPrint(descriptor);
 		System.out.println(s);
 	}
-	
+
+	@Test
+	public void testPrettyPrintInvalid() throws Exception{
+		EnvironmentDescriptor descriptor = new EnvironmentDescriptor().withName("aName").withImageId("imageId");
+		String s = TemplateUtils.prettyPrint(descriptor);
+		System.out.println(s);
+	}
+
+
 }
