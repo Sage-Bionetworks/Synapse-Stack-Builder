@@ -81,13 +81,28 @@ public class S3BucketBuilderIntegrationTest {
         GetCallerIdentityResponse expectedGetCallerIdentityResp = GetCallerIdentityResponse.builder().account(accountId).build();
         when(mockStsClient.getCallerIdentity(any(GetCallerIdentityRequest.class))).thenReturn(expectedGetCallerIdentityResp);
     }
-
+    
     @Test
     public void testBuildS3BucketPolicyStack() throws InterruptedException {
+    	
+    	S3BucketDescriptor dataBucket = new S3BucketDescriptor();
+    	dataBucket.setName("${stack}data.sagebase.org");
+    	dataBucket.setVirusScanEnabled(true);
+    	
+    	S3BucketDescriptor inventoryBucket = new S3BucketDescriptor();
+    	inventoryBucket.setName("${stack}.datawarehouse.sagebase.org");
 
         S3BucketDescriptor bucket = new S3BucketDescriptor();
+        
+        bucket.setName("${stack}.bucket.sagebase.org");
+        bucket.setVirusScanEnabled(true);
+        
+        S3BucketDescriptor bucket2 = new S3BucketDescriptor();
+        
+        bucket2.setName("${stack}.bucket2.sagebase.org");
+        bucket2.setDevOnly(true);
 
-        when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+        when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(dataBucket, inventoryBucket, bucket, bucket2));
 
         Stack bucketPolicyStack = new Stack();
 

@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
@@ -205,6 +206,10 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		VelocityContext context = new VelocityContext();
 
 		context.put(Constants.STACK, stack);
+		context.put(CF_PROPERTY_BUCKETS, s3Config.getBuckets().stream()
+			.filter(bucket -> !bucket.isDevOnly() || !stack.equalsIgnoreCase(Constants.PROD_STACK_NAME))
+			.collect(Collectors.toList())
+		);
 
 		// Merge the context with the template
 		Template template = velocity.getTemplate(Constants.TEMPLATE_S3_BUCKET_POLICY);
@@ -218,7 +223,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		LOG.info(resultJSON);
 
 		resultJSON = new JSONObject(resultJSON).toString(5);
-
+		
 		String stackName = TemplateUtils.replaceStackVariable(BUCKET_POLICY_STACK_NAME, stack);
 
 		cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest()

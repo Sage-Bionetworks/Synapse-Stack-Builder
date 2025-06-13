@@ -2,7 +2,7 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "Provision bucket policies for Synapse S3 buckets",
   "Resources": {
-    "DataBucketPolicy": {
+    "devdatasagebaseorgBucketPolicy": {
       "Type": "AWS::S3::BucketPolicy",
       "Properties": {
         "Bucket": "devdata.sagebase.org",
@@ -36,12 +36,23 @@
                   "AWS:SourceArn": {"Fn::ImportValue": "devdata-sagebase-org-CDN-ARN"}
                 }
               }
+            },
+            {
+                 "Sid": "RestrictToTLSRequestsOnly",
+                 "Action": "s3:*",
+                 "Effect": "Deny",
+                 "Resource": [
+                      "arn:aws:s3:::devdata.sagebase.org",
+                      "arn:aws:s3:::devdata.sagebase.org/*"
+                 ],
+                 "Condition": {"Bool": {"aws:SecureTransport": "false"}},
+                 "Principal": "*"
             }
           ]
         }
       }
     },
-    "InventoryBucketPolicy": {
+    "devdatawarehousesagebaseorgBucketPolicy": {
       "Type": "AWS::S3::BucketPolicy",
       "Properties": {
         "Bucket": "dev.datawarehouse.sagebase.org",
@@ -63,10 +74,70 @@
                   "s3:x-amz-acl": "bucket-owner-full-control"
                 }
               }
-            }
+            },
+          	{
+               "Sid": "RestrictToTLSRequestsOnly",
+               "Action": "s3:*",
+               "Effect": "Deny",
+               "Resource": [
+                    "arn:aws:s3:::dev.datawarehouse.sagebase.org",
+                    "arn:aws:s3:::dev.datawarehouse.sagebase.org/*"
+               ],
+               "Condition": {"Bool": {"aws:SecureTransport": "false"}},
+               "Principal": "*"
+          	}
           ]
         }
       }
-    }
+    },
+  	"devbucketsagebaseorgBucketPolicy": {
+       "Type": "AWS::S3::BucketPolicy",
+       "Properties": {
+            "Bucket": "dev.bucket.sagebase.org",
+            "PolicyDocument": {
+                 "Version": "2012-10-17",
+                 "Statement": [
+					{
+                       "Sid": "VirusScannerPolicy",
+                       "Effect": "Deny",
+                       "Action": ["s3:GetObject"],
+                       "Principal": "*",
+                       "Resource": "arn:aws:s3:::dev.bucket.sagebase.org/*",
+                       "Condition": {"StringEquals": {"s3:ExistingObjectTag/av-status": "INFECTED"}}
+                    },
+					{
+                      "Sid": "RestrictToTLSRequestsOnly",
+                      "Action": "s3:*",
+                      "Effect": "Deny",
+                      "Resource": [
+                           "arn:aws:s3:::dev.bucket.sagebase.org",
+                           "arn:aws:s3:::dev.bucket.sagebase.org/*"
+                      ],
+                      "Condition": {"Bool": {"aws:SecureTransport": "false"}},
+                      "Principal": "*"
+                 }]
+            }
+       }
+  	},
+	"devbucket2sagebaseorgBucketPolicy": {
+       "Type": "AWS::S3::BucketPolicy",
+       "Properties": {
+            "Bucket": "dev.bucket2.sagebase.org",
+            "PolicyDocument": {
+                 "Version": "2012-10-17",
+                 "Statement": [{
+                      "Sid": "RestrictToTLSRequestsOnly",
+                      "Action": "s3:*",
+                      "Effect": "Deny",
+                      "Resource": [
+                           "arn:aws:s3:::dev.bucket2.sagebase.org",
+                           "arn:aws:s3:::dev.bucket2.sagebase.org/*"
+                      ],
+                      "Condition": {"Bool": {"aws:SecureTransport": "false"}},
+                      "Principal": "*"
+                 }]
+            }
+       }
+  	}
   }
 }
