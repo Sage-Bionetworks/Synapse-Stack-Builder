@@ -4,19 +4,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.sagebionetworks.template.Constants.PARAMETER_VPN_CIDR;
 import static org.sagebionetworks.template.Constants.PEERING_ROLE_ARN_PREFIX;
 import static org.sagebionetworks.template.Constants.PEER_ROLE_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_AVAILABILITY_ZONES;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_PREFIX;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_VPN_CIDR;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.*;
 import static org.sagebionetworks.template.Constants.VPC_CIDR;
@@ -45,7 +41,7 @@ import java.util.List;
 public class VpcTemplateBuilderImplTest {
 
 	@Mock
-	CloudFormationClient mockCloudFormationClient;
+    CloudFormationClientWrapper mockCloudFormationClientWrapper;
 	@Mock
 	Configuration mockConfig;
 	@Mock
@@ -88,7 +84,7 @@ public class VpcTemplateBuilderImplTest {
 		Tag t = new Tag().withKey("aKey").withValue("aValue");
 		when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
-		builder = new VpcTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, mockConfig, mockLoggerFactory, mockStackTagsProvider);
+		builder = new VpcTemplateBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, mockConfig, mockLoggerFactory, mockStackTagsProvider);
 		subnetPrefix = "10.21";
 		avialabilityZones = new String[] {"us-east-1a","us-east-1b"};
 		vpnCider = "10.1.0.0/16";
@@ -117,7 +113,7 @@ public class VpcTemplateBuilderImplTest {
 		// call under test
 		builder.buildAndDeploy();
 
-		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(requestCaptor.capture());
 		CreateOrUpdateStackRequest request = requestCaptor.getValue();
 		assertEquals("synapse-dev-vpc-2", request.getStackName());
 		assertNotNull(request.getParameters());

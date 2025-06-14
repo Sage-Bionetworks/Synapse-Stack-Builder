@@ -1,20 +1,16 @@
 package org.sagebionetworks.template.markdownit;
 
-import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.s3.AmazonS3;
-import org.apache.velocity.Template;
-import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
@@ -22,7 +18,6 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 
 import java.io.File;
-import java.io.StringWriter;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -30,12 +25,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
-import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_ARTIFACT_BUCKET;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_URL;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
@@ -49,7 +42,7 @@ public class MarkDownItLambdaBuilderImplTest {
     ArtifactDownload mockDownloader;
 
     @Mock
-    CloudFormationClient mockCloudFormationClient;
+    CloudFormationClientWrapper mockCloudFormationClientWrapper;
 
     @Mock
     StackTagsProvider mockTagsProvider;
@@ -81,7 +74,7 @@ public class MarkDownItLambdaBuilderImplTest {
         MarkDownItLambdaBuilder builder = new MarkDownItLambdaBuilderImpl(
                 mockConfig,
                 mockDownloader,
-                mockCloudFormationClient,
+                mockCloudFormationClientWrapper,
                 mockTagsProvider,
                 mockS3Client,
                 velocityEngine);
@@ -93,7 +86,7 @@ public class MarkDownItLambdaBuilderImplTest {
 
         Stack markdownItLambdaStack = new Stack();
 
-        when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(markdownItLambdaStack));
+        when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(markdownItLambdaStack));
 
         String expectedBucket = "lambda.sagebase.org";
         String expectedKey = "artifacts/markdown-it/markdownit.zip";
@@ -110,9 +103,9 @@ public class MarkDownItLambdaBuilderImplTest {
         ArgumentCaptor<String> argCaptorWaitForStack = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> argCaptorDescribeStack = ArgumentCaptor.forClass(String.class);
 
-        verify(mockCloudFormationClient, times(1)).createOrUpdateStack(argCaptorCreateOrUpdateStack.capture());
-        verify(mockCloudFormationClient, times(1)).waitForStackToComplete(argCaptorWaitForStack.capture());
-        verify(mockCloudFormationClient, times(1)).describeStack(argCaptorDescribeStack.capture());
+        verify(mockCloudFormationClientWrapper, times(1)).createOrUpdateStack(argCaptorCreateOrUpdateStack.capture());
+        verify(mockCloudFormationClientWrapper, times(1)).waitForStackToComplete(argCaptorWaitForStack.capture());
+        verify(mockCloudFormationClientWrapper, times(1)).describeStack(argCaptorDescribeStack.capture());
 
         CreateOrUpdateStackRequest request = argCaptorCreateOrUpdateStack.getValue();
         assertEquals("dev-markdown-it-function", request.getStackName());

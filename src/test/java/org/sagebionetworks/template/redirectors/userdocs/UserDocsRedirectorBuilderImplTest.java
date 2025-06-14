@@ -16,7 +16,7 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.RepoConfiguration;
@@ -40,7 +40,7 @@ class UserDocsRedirectorBuilderImplTest {
 	private RepoConfiguration mockConfig;
 
 	@Mock
-	private CloudFormationClient mockCloudFormationClient;
+	private CloudFormationClientWrapper mockCloudFormationClientWrapper;
 
 	@Mock
 	private StackTagsProvider mockStackTagsProvider;
@@ -97,16 +97,16 @@ class UserDocsRedirectorBuilderImplTest {
 		Stack expectedStack = new Stack().withStackName("tst-docs-synapse").withTags(expectedTags);
 		when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
-		when(mockCloudFormationClient.waitForStackToComplete(any())).thenReturn(Optional.of(expectedStack));
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(expectedStack));
+		when(mockCloudFormationClientWrapper.waitForStackToComplete(any())).thenReturn(Optional.of(expectedStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(expectedStack));
 
 		// call under test
 		Optional<Stack> optStack = builder.buildStack();
 
 		verify(mockVelocityEngine).getTemplate("templates/redirectors/user_docs_redirector.yaml.vtp");
-		verify(mockCloudFormationClient).waitForStackToComplete("tst-docs-synapse");
-		verify(mockCloudFormationClient).describeStack("tst-docs-synapse");
-		verify(mockCloudFormationClient).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete("tst-docs-synapse");
+		verify(mockCloudFormationClientWrapper).describeStack("tst-docs-synapse");
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
 		CreateOrUpdateStackRequest req = createOrUpdateStackRequestArgumentCaptor.getValue();
 		assertEquals("tst-docs-synapse", req.getStackName());
 		assertEquals("someYamlTemplate", req.getTemplateBody());

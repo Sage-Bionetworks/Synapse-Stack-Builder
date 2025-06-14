@@ -32,7 +32,7 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
@@ -44,7 +44,7 @@ import com.google.inject.Inject;
 
 public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
 
-    CloudFormationClient cloudFormationClient;
+    CloudFormationClientWrapper cloudFormationClientWrapper;
     VelocityEngine velocityEngine;
     Configuration config;
     Logger logger;
@@ -53,9 +53,9 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
     final List<String> VPC_ENDPOINT_SERVICES = List.of("bedrock", "bedrock-agent", "bedrock-runtime", "bedrock-agent-runtime");
 
     @Inject
-    public SubnetTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
-                                  Configuration configuration, LoggerFactory loggerFactory, StackTagsProvider stackTagsProvider) {
-        this.cloudFormationClient = cloudFormationClient;
+    public SubnetTemplateBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper, VelocityEngine velocityEngine,
+                                     Configuration configuration, LoggerFactory loggerFactory, StackTagsProvider stackTagsProvider) {
+        this.cloudFormationClientWrapper = cloudFormationClientWrapper;
         this.velocityEngine = velocityEngine;
         this.config = configuration;
         this.logger = loggerFactory.getLogger(VpcTemplateBuilderImpl.class);
@@ -74,14 +74,14 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
         JSONObject templateJson = new JSONObject(resultJSON);
         resultJSON = templateJson.toString(JSON_INDENT);
 
-        this.cloudFormationClient.createOrUpdateStack(
+        this.cloudFormationClientWrapper.createOrUpdateStack(
             new CreateOrUpdateStackRequest()
                 .withStackName(stackName)
                 .withTemplateBody(resultJSON)
                 .withTags(stackTagsProvider.getStackTags(config))
         );
 
-        this.cloudFormationClient.waitForStackToComplete(stackName);
+        this.cloudFormationClientWrapper.waitForStackToComplete(stackName);
     }
 
     @Override
@@ -104,14 +104,14 @@ public class SubnetTemplateBuilderImpl implements SubnetTemplateBuilder {
             JSONObject templateJson = new JSONObject(resultJSON);
             resultJSON = templateJson.toString(JSON_INDENT);
 
-            this.cloudFormationClient.createOrUpdateStack(
+            this.cloudFormationClientWrapper.createOrUpdateStack(
                     new CreateOrUpdateStackRequest()
                             .withStackName(stackName)
                             .withTemplateBody(resultJSON)
                             .withTags(stackTagsProvider.getStackTags(config))
             );
 
-            this.cloudFormationClient.waitForStackToComplete(stackName);
+            this.cloudFormationClientWrapper.waitForStackToComplete(stackName);
         }
         
     }

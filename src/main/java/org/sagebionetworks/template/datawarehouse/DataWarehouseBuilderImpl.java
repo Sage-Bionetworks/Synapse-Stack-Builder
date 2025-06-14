@@ -8,7 +8,7 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
@@ -47,7 +47,7 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
     private static final String GS_EXPLODE_SCRIPT = "s3://aws-glue-studio-transforms-510798373988-prod-us-east-1/gs_explode.py";
     private static final String GS_COMMON_SCRIPT = "s3://aws-glue-studio-transforms-510798373988-prod-us-east-1/gs_common.py";
 	
-    private CloudFormationClient cloudFormationClient;
+    private CloudFormationClientWrapper cloudFormationClientWrapper;
     private VelocityEngine velocityEngine;
     private Configuration config;
     private Logger logger;
@@ -57,10 +57,10 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
     private AmazonS3 s3Client;
 
     @Inject
-    public DataWarehouseBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
+    public DataWarehouseBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper, VelocityEngine velocityEngine,
                                     Configuration config, LoggerFactory loggerFactory,
                                     StackTagsProvider tagsProvider, DataWarehouseConfig dataWarehouseConfig, ArtifactDownload downloader, AmazonS3 s3Client) {
-        this.cloudFormationClient = cloudFormationClient;
+        this.cloudFormationClientWrapper = cloudFormationClientWrapper;
         this.velocityEngine = velocityEngine;
         this.config = config;
         this.logger = loggerFactory.getLogger(DataWarehouseBuilderImpl.class);
@@ -119,7 +119,7 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
         resultJSON = templateJson.toString(JSON_INDENT);
         this.logger.info(resultJSON);
         // create or update the template
-        this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
+        this.cloudFormationClientWrapper.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
                 .withTemplateBody(resultJSON).withTags(tagsProvider.getStackTags(config))
                 .withCapabilities(CAPABILITY_NAMED_IAM));
     }

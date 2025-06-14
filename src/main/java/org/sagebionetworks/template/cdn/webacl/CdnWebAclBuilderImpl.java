@@ -6,7 +6,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.RepoConfiguration;
@@ -23,14 +23,14 @@ public class CdnWebAclBuilderImpl implements CdnWebAclBuilder {
     private static final String TEMPLATE_WAF_CDN = "templates/cdn/synapse-cdn-webacl.json.vtp";
 
     private final RepoConfiguration config;
-    private final CloudFormationClient cloudFormationClient;
+    private final CloudFormationClientWrapper cloudFormationClientWrapper;
     private final StackTagsProvider tagsProvider;
     private final VelocityEngine velocityEngine;
 
     @Inject
-    public CdnWebAclBuilderImpl(RepoConfiguration config, CloudFormationClient cloudFormationClient, StackTagsProvider tagsProvider, VelocityEngine velocityEngine) {
+    public CdnWebAclBuilderImpl(RepoConfiguration config, CloudFormationClientWrapper cloudFormationClientWrapper, StackTagsProvider tagsProvider, VelocityEngine velocityEngine) {
         this.config = config;
-        this.cloudFormationClient = cloudFormationClient;
+        this.cloudFormationClientWrapper = cloudFormationClientWrapper;
         this.tagsProvider = tagsProvider;
         this.velocityEngine = velocityEngine;
     }
@@ -54,13 +54,13 @@ public class CdnWebAclBuilderImpl implements CdnWebAclBuilder {
                 .withTemplateBody(cfTemplateBody)
                 .withTags(tagsProvider.getStackTags(config));
         LOGGER.info("Stack request: {}", cfStackRequest);
-        cloudFormationClient.createOrUpdateStack(cfStackRequest);
+        cloudFormationClientWrapper.createOrUpdateStack(cfStackRequest);
         try {
-            cloudFormationClient.waitForStackToComplete(cfStackName);
+            cloudFormationClientWrapper.waitForStackToComplete(cfStackName);
             LOGGER.debug("Stack {} successfully created/updated", cfStackName);
         } catch (InterruptedException e) {
             throw new RuntimeException("Stack creation/update was interrupted", e);
         }
-        return cloudFormationClient.describeStack(cfStackName);
+        return cloudFormationClientWrapper.describeStack(cfStackName);
     }
 }

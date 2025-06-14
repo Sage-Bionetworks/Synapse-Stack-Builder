@@ -22,7 +22,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.TemplateGuiceModule;
@@ -35,7 +35,7 @@ import com.amazonaws.services.cloudformation.model.Parameter;
 public class IdGeneratorBuilderImplTest {
 
 	@Mock
-	CloudFormationClient mockCloudFormationClient;
+    CloudFormationClientWrapper mockCloudFormationClientWrapper;
 	@Mock
 	Configuration config;
 	@Mock
@@ -63,7 +63,7 @@ public class IdGeneratorBuilderImplTest {
 		when(mockSecretBuilder.getIdGeneratorPassword()).thenReturn("somePassword");
 		when(config.getProperty(PROPERTY_KEY_ID_GENERATOR_HOSTED_ZONE_ID)).thenReturn("hostedZoneId");
 
-		builder = new IdGeneratorBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory, mockSecretBuilder);
+		builder = new IdGeneratorBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, config, mockLoggerFactory, mockSecretBuilder);
 	}
 
 	@Test
@@ -71,11 +71,11 @@ public class IdGeneratorBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn("prod");
 		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn("Green");
 		when(mockSecretBuilder.getIdGeneratorPassword()).thenReturn("somePassword");
-		builder = new IdGeneratorBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory, mockSecretBuilder);
+		builder = new IdGeneratorBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, config, mockLoggerFactory, mockSecretBuilder);
 
 		// call under test
 		builder.buildAndDeploy();
-		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(requestCaptor.capture());
 		CreateOrUpdateStackRequest request = requestCaptor.getValue();
 		assertEquals("prod-id-generator-3-green", request.getStackName());
 		JSONObject template = new JSONObject(request.getTemplateBody());
@@ -103,7 +103,7 @@ public class IdGeneratorBuilderImplTest {
 	public void testBuildDev() {
 		// call under test
 		builder.buildAndDeploy();
-		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(requestCaptor.capture());
 		CreateOrUpdateStackRequest request = requestCaptor.getValue();
 		assertEquals("dev-id-generator-3-green", request.getStackName());
 		JSONObject template = new JSONObject(request.getTemplateBody());

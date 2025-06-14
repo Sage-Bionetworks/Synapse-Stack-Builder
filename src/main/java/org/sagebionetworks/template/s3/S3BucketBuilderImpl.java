@@ -24,7 +24,7 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
@@ -119,19 +119,19 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	private RepoConfiguration config;
 	private S3Config s3Config;
 	private VelocityEngine velocity;
-	private CloudFormationClient cloudFormationClient;
+	private CloudFormationClientWrapper cloudFormationClientWrapper;
 	private StackTagsProvider tagsProvider;
 	private ArtifactDownload downloader;
 	
 	@Inject
-	public S3BucketBuilderImpl(AmazonS3 s3Client, StsClient stsClient, LambdaClient lambdaClient, RepoConfiguration config, S3Config s3Config, VelocityEngine velocity, CloudFormationClient cloudFormationClient, StackTagsProvider tagsProvider, ArtifactDownload downloader) {
+	public S3BucketBuilderImpl(AmazonS3 s3Client, StsClient stsClient, LambdaClient lambdaClient, RepoConfiguration config, S3Config s3Config, VelocityEngine velocity, CloudFormationClientWrapper cloudFormationClientWrapper, StackTagsProvider tagsProvider, ArtifactDownload downloader) {
 		this.s3Client = s3Client;
 		this.stsClient = stsClient;
 		this.lambdaClient = lambdaClient;
 		this.config = config;
 		this.s3Config = s3Config;
 		this.velocity = velocity;
-		this.cloudFormationClient = cloudFormationClient;
+		this.cloudFormationClientWrapper = cloudFormationClientWrapper;
 		this.tagsProvider = tagsProvider;
 		this.downloader = downloader;
 	}
@@ -226,18 +226,18 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		
 		String stackName = TemplateUtils.replaceStackVariable(BUCKET_POLICY_STACK_NAME, stack);
 
-		cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest()
+		cloudFormationClientWrapper.createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(stackName)
 				.withTemplateBody(resultJSON)
 				.withTags(tagsProvider.getStackTags(config)));
 
 		try {
-			cloudFormationClient.waitForStackToComplete(stackName);
+			cloudFormationClientWrapper.waitForStackToComplete(stackName);
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
 
-		return Optional.of(cloudFormationClient.describeStack(stackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+stackName)));
+		return Optional.of(cloudFormationClientWrapper.describeStack(stackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+stackName)));
 	}
 	
 	private Optional<Stack>buildVirusScannerStack(String stack, S3VirusScannerConfig config, List<String> buckets) {
@@ -281,19 +281,19 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		
 		String stackName = TemplateUtils.replaceStackVariable(VIRUS_SCANNER_STACK_NAME, stack);
 		
-		cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest()
+		cloudFormationClientWrapper.createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(stackName)
 				.withTemplateBody(resultJSON)
 				.withTags(tagsProvider.getStackTags(this.config))
 				.withCapabilities(CAPABILITY_NAMED_IAM));
 		
 		try {
-			cloudFormationClient.waitForStackToComplete(stackName);
+			cloudFormationClientWrapper.waitForStackToComplete(stackName);
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
 		
-		return Optional.of(cloudFormationClient.describeStack(stackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+stackName)));
+		return Optional.of(cloudFormationClientWrapper.describeStack(stackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+stackName)));
 	}
 		
 	private void createBucket(String bucketName) {
@@ -606,7 +606,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		
 		String globalStackName = String.format(GLOBAL_RESOURCES_STACK_NAME_FORMAT, stack);
 		
-		String topicArn = cloudFormationClient.getOutput(globalStackName, config.getTopic());
+		String topicArn = cloudFormationClientWrapper.getOutput(globalStackName, config.getTopic());
 		
 		String configName = config.getTopic() + "Configuration";
 		

@@ -12,7 +12,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
@@ -35,7 +35,7 @@ public class CdnBuilderImplTemplateTest {
 	private RepoConfiguration mockConfig;
 
 	@Mock
-	private CloudFormationClient mockCloudFormationClient;
+	private CloudFormationClientWrapper mockCloudFormationClientWrapper;
 
 	@Mock
 	private StackTagsProvider mockStackTagsProvider;
@@ -52,7 +52,7 @@ public class CdnBuilderImplTemplateTest {
 	@BeforeEach
 	void setUp() {
 		velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
-		builder = new CdnBuilderImpl(mockConfig, mockCloudFormationClient, mockStackTagsProvider, velocityEngine);
+		builder = new CdnBuilderImpl(mockConfig, mockCloudFormationClientWrapper, mockStackTagsProvider, velocityEngine);
 	}
 
 	@AfterEach
@@ -67,8 +67,8 @@ public class CdnBuilderImplTemplateTest {
 		Stack expectedStack = new Stack().withStackName("cdn-dev-synapse").withTags(expectedTags);
 		when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
-		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
-		when(mockCloudFormationClient.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
+		when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
+		when(mockCloudFormationClientWrapper.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
 
 		when(mockConfig.getProperty("org.sagebionetworks.beanstalk.ssl.arn.portal")).thenReturn("acmarn");
 		when(mockConfig.getProperty("org.sagebionetworks.stack.instance.alias")).thenReturn("dev");
@@ -91,8 +91,8 @@ public class CdnBuilderImplTemplateTest {
 		Stack expectedStack = new Stack().withStackName("cdn-tst-data-synapse").withTags(expectedTags);
 		when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
-		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
-		when(mockCloudFormationClient.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
+		when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
+		when(mockCloudFormationClientWrapper.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
 
 		when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("tst");
 		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.public.key.encoded")).thenReturn(FAKE_PUBLIC_KEY);
@@ -103,7 +103,7 @@ public class CdnBuilderImplTemplateTest {
 
 		String expectedDataCdnTemplate = new JSONObject(TemplateUtils.loadContentFromFile("cdn/synapse-data-cdn-test.json")).toString(5);
 
-		verify(mockCloudFormationClient).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
 		CreateOrUpdateStackRequest req = createOrUpdateStackRequestArgumentCaptor.getValue();
 		assertEquals("cdn-tst-data-synapse", req.getStackName());
 		assertEquals(expectedDataCdnTemplate, new JSONObject(req.getTemplateBody()).toString(5));

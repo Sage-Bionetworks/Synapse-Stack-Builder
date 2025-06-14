@@ -56,7 +56,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 
 @ExtendWith(MockitoExtension.class)
-public class CloudFormationClientImplTest {
+public class CloudFormationClientWrapperImplTest {
 
 	public static final String SES_SYNAPSE_ORG_COMPLAINT_TOPIC_KEY = "SesSynapseOrgComplaintTopic";
 	public static final String SES_SYNAPSE_ORG_COMPLAINT_TOPIC_VALUE = "theSesComplaintTopicArn";
@@ -87,7 +87,7 @@ public class CloudFormationClientImplTest {
 	@Captor
 	ArgumentCaptor<UpdateStackRequest> updateStackRequestCapture;
 
-	CloudFormationClientImpl client;
+	CloudFormationClientWrapperImpl client;
 
 	String stackName;
 	String templateBody;
@@ -110,7 +110,7 @@ public class CloudFormationClientImplTest {
 	public void before() throws MalformedURLException {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 		
-		client = new CloudFormationClientImpl(mockCloudFormationClient, mockS3Client, mockConfig, mockLoggerFactory, mockThreadProvider);
+		client = new CloudFormationClientWrapperImpl(mockCloudFormationClient, mockS3Client, mockConfig, mockLoggerFactory, mockThreadProvider);
 
 		stackId = "theStackId";
 		Collection<Output> outputs = new ArrayList<>();
@@ -315,7 +315,7 @@ public class CloudFormationClientImplTest {
 	@Test
 	public void testExecuteWithS3TemplateNoUpdates() {
 		when(mockConfig.getConfigurationBucket()).thenReturn(bucket);
-		AmazonCloudFormationException exception = new AmazonCloudFormationException(CloudFormationClientImpl.NO_UPDATES_ARE_TO_BE_PERFORMED);
+		AmazonCloudFormationException exception = new AmazonCloudFormationException(CloudFormationClientWrapperImpl.NO_UPDATES_ARE_TO_BE_PERFORMED);
 		
 		when(mockFunction.apply(anyString())).thenThrow(exception);
 		// call under test

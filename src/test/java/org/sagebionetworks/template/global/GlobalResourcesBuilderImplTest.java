@@ -28,7 +28,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.SesClientWrapperImpl;
@@ -45,7 +45,7 @@ public class GlobalResourcesBuilderImplTest {
     @Mock
     Configuration mockConfig;
     @Mock
-    CloudFormationClient mockCloudFormationClient;
+    CloudFormationClientWrapper mockCloudFormationClientWrapper;
     VelocityEngine velocityEngine;
     @Mock
     LoggerFactory mockLoggerFactory;
@@ -74,7 +74,7 @@ public class GlobalResourcesBuilderImplTest {
         Tag t = new Tag().withKey("aKey").withValue("aValue");
         expectedTags.add(t);
 
-        builder = new GlobalResourcesBuilderImpl(mockCloudFormationClient, velocityEngine, mockConfig, mockLoggerFactory, mockStackTagsProvider, mockSesClient);
+        builder = new GlobalResourcesBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, mockConfig, mockLoggerFactory, mockStackTagsProvider, mockSesClient);
 
     }
 
@@ -94,8 +94,8 @@ public class GlobalResourcesBuilderImplTest {
     @Test
     public void testSetupSesTopics() {
         String stackName = "prodStackName";
-        when(mockCloudFormationClient.getOutput(stackName, GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC)).thenReturn("theComplaintTopic");
-        when(mockCloudFormationClient.getOutput(stackName, GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC)).thenReturn("theBounceTopic");
+        when(mockCloudFormationClientWrapper.getOutput(stackName, GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC)).thenReturn("theComplaintTopic");
+        when(mockCloudFormationClientWrapper.getOutput(stackName, GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC)).thenReturn("theBounceTopic");
 
         // call under test
         builder.setupSesTopics(stackName);
@@ -111,7 +111,7 @@ public class GlobalResourcesBuilderImplTest {
 
         builder.buildGlobalResources(); // call under test
 
-        verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
+        verify(mockCloudFormationClientWrapper).createOrUpdateStack(requestCaptor.capture());
         CreateOrUpdateStackRequest req = requestCaptor.getValue();
         assertEquals("synapse-dev-global-resources", req.getStackName());
         assertEquals(expectedTags, req.getTags());
@@ -132,13 +132,13 @@ public class GlobalResourcesBuilderImplTest {
     @Test
     public void testBuildGlobalResourcesProd() throws InterruptedException {
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("prod");
-        when(mockCloudFormationClient.getOutput("synapse-prod-global-resources", GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC)).thenReturn("complaintTopicArn");
-        when(mockCloudFormationClient.getOutput("synapse-prod-global-resources", GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC)).thenReturn("bounceTopicArn");
+        when(mockCloudFormationClientWrapper.getOutput("synapse-prod-global-resources", GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC)).thenReturn("complaintTopicArn");
+        when(mockCloudFormationClientWrapper.getOutput("synapse-prod-global-resources", GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC)).thenReturn("bounceTopicArn");
         when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
         builder.buildGlobalResources(); // call under test
 
-        verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
+        verify(mockCloudFormationClientWrapper).createOrUpdateStack(requestCaptor.capture());
         CreateOrUpdateStackRequest req = requestCaptor.getValue();
         assertEquals("synapse-prod-global-resources", req.getStackName());
         assertEquals(expectedTags, req.getTags());

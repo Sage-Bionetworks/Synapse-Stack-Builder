@@ -11,7 +11,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
@@ -33,7 +33,7 @@ public class UserDocsRedirectorBuilderImplTemplateTest {
 	private RepoConfiguration mockConfig;
 
 	@Mock
-	private CloudFormationClient mockCloudFormationClient;
+	private CloudFormationClientWrapper mockCloudFormationClientWrapper;
 
 	@Mock
 	private StackTagsProvider mockStackTagsProvider;
@@ -49,7 +49,7 @@ public class UserDocsRedirectorBuilderImplTemplateTest {
 		when(mockConfig.getProperty("org.sagebionetworks.beanstalk.ssl.arn.portal")).thenReturn("acmarn");
 		when(mockConfig.getProperty("org.sagebionetworks.stack.instance.alias")).thenReturn("tst");
 		velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
-		builder = new UserDocsRedirectorBuilderImpl(mockConfig, mockCloudFormationClient, mockStackTagsProvider, velocityEngine);
+		builder = new UserDocsRedirectorBuilderImpl(mockConfig, mockCloudFormationClientWrapper, mockStackTagsProvider, velocityEngine);
 	}
 
 	@AfterEach
@@ -64,8 +64,8 @@ public class UserDocsRedirectorBuilderImplTemplateTest {
 		Stack expectedStack = new Stack().withStackName("tst-docs-synapse").withTags(expectedTags);
 		when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
-		when(mockCloudFormationClient.waitForStackToComplete("tst-docs-synapse")).thenReturn(Optional.of(expectedStack));
-		when(mockCloudFormationClient.describeStack("tst-docs-synapse")).thenReturn(Optional.of(expectedStack));
+		when(mockCloudFormationClientWrapper.waitForStackToComplete("tst-docs-synapse")).thenReturn(Optional.of(expectedStack));
+		when(mockCloudFormationClientWrapper.describeStack("tst-docs-synapse")).thenReturn(Optional.of(expectedStack));
 
 		// call under test
 		Optional<Stack> optStack = builder.buildStack();

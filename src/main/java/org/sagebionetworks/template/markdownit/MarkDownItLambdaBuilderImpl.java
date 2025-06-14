@@ -10,7 +10,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
@@ -34,7 +34,7 @@ public class MarkDownItLambdaBuilderImpl implements MarkDownItLambdaBuilder {
 
     private ArtifactDownload downloader;
 
-    private CloudFormationClient cloudFormationClient;
+    private CloudFormationClientWrapper cloudFormationClientWrapper;
 
     private StackTagsProvider tagsProvider;
 
@@ -44,12 +44,12 @@ public class MarkDownItLambdaBuilderImpl implements MarkDownItLambdaBuilder {
 
     @Inject
     public MarkDownItLambdaBuilderImpl(RepoConfiguration config,
-                                       ArtifactDownload downloader, CloudFormationClient cloudFormationClient,
+                                       ArtifactDownload downloader, CloudFormationClientWrapper cloudFormationClientWrapper,
                                        StackTagsProvider tagsProvider, AmazonS3 s3Client,
                                        VelocityEngine velocityEngine) {
         this.config = config;
         this.downloader = downloader;
-        this.cloudFormationClient = cloudFormationClient;
+        this.cloudFormationClientWrapper = cloudFormationClientWrapper;
         this.tagsProvider = tagsProvider;
         this.s3Client = s3Client;
         this.velocityEngine = velocityEngine;
@@ -98,15 +98,15 @@ public class MarkDownItLambdaBuilderImpl implements MarkDownItLambdaBuilder {
                 .withTemplateBody(resultJSON)
                 .withTags(tagsProvider.getStackTags(config))
                 .withCapabilities(CAPABILITY_NAMED_IAM);
-        cloudFormationClient.createOrUpdateStack(req);
+        cloudFormationClientWrapper.createOrUpdateStack(req);
 
         try {
-            cloudFormationClient.waitForStackToComplete(stackName);
+            cloudFormationClientWrapper.waitForStackToComplete(stackName);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
-        return Optional.of(cloudFormationClient.describeStack(stackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+stackName)));
+        return Optional.of(cloudFormationClientWrapper.describeStack(stackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+stackName)));
 
     }
 }

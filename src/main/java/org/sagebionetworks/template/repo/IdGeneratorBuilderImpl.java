@@ -7,7 +7,7 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
@@ -21,17 +21,17 @@ import static org.sagebionetworks.template.Constants.*;
 
 public class IdGeneratorBuilderImpl implements IdGeneratorBuilder {
 
-	CloudFormationClient cloudFormationClient;
+	CloudFormationClientWrapper cloudFormationClientWrapper;
 	VelocityEngine velocityEngine;
 	Configuration config;
 	Logger logger;
 	SecretBuilder secretBuilder;
 
 	@Inject
-	public IdGeneratorBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
-			Configuration config, LoggerFactory loggerFactory, SecretBuilder secretBuilder) {
+	public IdGeneratorBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper, VelocityEngine velocityEngine,
+                                  Configuration config, LoggerFactory loggerFactory, SecretBuilder secretBuilder) {
 		super();
-		this.cloudFormationClient = cloudFormationClient;
+		this.cloudFormationClientWrapper = cloudFormationClientWrapper;
 		this.velocityEngine = velocityEngine;
 		this.config = config;
 		this.logger = loggerFactory.getLogger(IdGeneratorBuilderImpl.class);
@@ -71,7 +71,7 @@ public class IdGeneratorBuilderImpl implements IdGeneratorBuilder {
 		this.logger.info("Template for stack: " + stackName);
 		this.logger.info(resultJSON);
 		// create or update the template
-		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
+		this.cloudFormationClientWrapper.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
 				.withTemplateBody(resultJSON).withParameters(parameter));
 
 	}

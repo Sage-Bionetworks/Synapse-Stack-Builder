@@ -46,7 +46,7 @@ import com.google.inject.Inject;
  * Basic implementation CloudFormationClient
  *
  */
-public class CloudFormationClientImpl implements CloudFormationClient {
+public class CloudFormationClientWrapperImpl implements CloudFormationClientWrapper {
 
 	public static final String S3_URL_TEMPLATE = "https://s3.amazonaws.com/%s/%s";
 
@@ -61,13 +61,13 @@ public class CloudFormationClientImpl implements CloudFormationClient {
 	ThreadProvider threadProvider;
 
 	@Inject
-	public CloudFormationClientImpl(AmazonCloudFormation cloudFormationClient, AmazonS3 s3Client,
-			Configuration configuration, LoggerFactory loggerFactory, ThreadProvider threadProvider) {
+	public CloudFormationClientWrapperImpl(AmazonCloudFormation cloudFormationClient, AmazonS3 s3Client,
+										   Configuration configuration, LoggerFactory loggerFactory, ThreadProvider threadProvider) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.s3Client = s3Client;
 		this.configuration = configuration;
-		this.logger = loggerFactory.getLogger(CloudFormationClientImpl.class);
+		this.logger = loggerFactory.getLogger(CloudFormationClientWrapperImpl.class);
 		this.threadProvider = threadProvider;
 	}
 

@@ -13,7 +13,7 @@ import com.amazonaws.services.cloudformation.model.Stack;
  * @author John
  *
  */
-public interface CloudFormationClient {
+public interface CloudFormationClientWrapper {
 
 	/**
 	 * Does a stack with the given name exist.

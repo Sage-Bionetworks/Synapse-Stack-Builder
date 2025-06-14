@@ -16,7 +16,7 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
@@ -28,17 +28,17 @@ import com.google.inject.Inject;
 
 public class IpAddressPoolBuilderImpl implements IpAddressPoolBuilder {
 
-	private CloudFormationClient cloudFormationClient;
+	private CloudFormationClientWrapper cloudFormationClientWrapper;
 	private VelocityEngine velocityEngine;
 	private Configuration config;
 	private Logger logger;
 	private StackTagsProvider tagsProvider;
 
 	@Inject
-	public IpAddressPoolBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
-			Configuration config, LoggerFactory loggerFactory, StackTagsProvider tagsProvider) {
+	public IpAddressPoolBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper, VelocityEngine velocityEngine,
+                                    Configuration config, LoggerFactory loggerFactory, StackTagsProvider tagsProvider) {
 		super();
-		this.cloudFormationClient = cloudFormationClient;
+		this.cloudFormationClientWrapper = cloudFormationClientWrapper;
 		this.velocityEngine = velocityEngine;
 		this.config = config;
 		this.logger = loggerFactory.getLogger(IpAddressPoolBuilderImpl.class);
@@ -80,7 +80,7 @@ public class IpAddressPoolBuilderImpl implements IpAddressPoolBuilder {
 		this.logger.info("Template for stack: " + stackName);
 		this.logger.info(resultJSON);
 		// create or update the template
-		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
+		this.cloudFormationClientWrapper.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
 				.withTemplateBody(resultJSON).withParameters(parameter).withTags(tagsProvider.getStackTags(config)));
 	}
 	

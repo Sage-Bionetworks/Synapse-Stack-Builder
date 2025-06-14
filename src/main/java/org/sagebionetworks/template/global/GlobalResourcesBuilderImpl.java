@@ -6,7 +6,7 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
@@ -30,7 +30,7 @@ import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_S
 
 public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
 
-    CloudFormationClient cloudFormationClient;
+    CloudFormationClientWrapper cloudFormationClientWrapper;
     VelocityEngine velocityEngine;
     Configuration config;
     Logger logger;
@@ -38,13 +38,13 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
     SesClientWrapper sesClientWrapper;
 
     @Inject
-    public GlobalResourcesBuilderImpl(CloudFormationClient cloudFormationClient,
+    public GlobalResourcesBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper,
                                       VelocityEngine velocityEngine,
                                       Configuration config,
                                       LoggerFactory loggerFactory,
                                       StackTagsProvider stackTagsProvider,
                                       SesClientWrapper sesClientWrapper) {
-        this.cloudFormationClient = cloudFormationClient;
+        this.cloudFormationClientWrapper = cloudFormationClientWrapper;
         this.velocityEngine = velocityEngine;
         this.config = config;
         this.logger = loggerFactory.getLogger(GlobalResourcesBuilderImpl.class);
@@ -63,13 +63,13 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
         JSONObject templateJson = new JSONObject(resultJSON);
         resultJSON = templateJson.toString(JSON_INDENT);
         //this.logger.info(resultJSON);
-        cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest()
+        cloudFormationClientWrapper.createOrUpdateStack(new CreateOrUpdateStackRequest()
             .withStackName(stackName)
             .withTemplateBody(resultJSON)
             .withCapabilities(CAPABILITY_NAMED_IAM)
             .withTags(stackTagsProvider.getStackTags(config))
         );
-        cloudFormationClient.waitForStackToComplete(stackName);
+        cloudFormationClientWrapper.waitForStackToComplete(stackName);
         // setup SES notifications on prod stack
         if ("prod".equalsIgnoreCase(config.getProperty(PROPERTY_KEY_STACK))) {
             setupSesTopics(stackName);
@@ -89,8 +89,8 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
     }
 
     public void setupSesTopics(String stackName) {
-        String sesComplaintSnsTopic = this.cloudFormationClient.getOutput(stackName, GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC);
-        String sesBounceSnsTopic = this.cloudFormationClient.getOutput(stackName, GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC);
+        String sesComplaintSnsTopic = this.cloudFormationClientWrapper.getOutput(stackName, GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC);
+        String sesBounceSnsTopic = this.cloudFormationClientWrapper.getOutput(stackName, GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC);
         sesClientWrapper.setComplaintNotificationTopic(SES_SYNAPSE_DOMAIN, sesComplaintSnsTopic);
         sesClientWrapper.setBounceNotificationTopic(SES_SYNAPSE_DOMAIN, sesBounceSnsTopic);
     }

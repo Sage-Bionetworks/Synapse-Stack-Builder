@@ -6,7 +6,6 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -16,7 +15,7 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.RepoConfiguration;
@@ -39,7 +38,7 @@ class CdnBuilderImplTest {
 	private RepoConfiguration mockConfig;
 
 	@Mock
-	private CloudFormationClient mockCloudFormationClient;
+	private CloudFormationClientWrapper mockCloudFormationClientWrapper;
 
 	@Mock
 	private StackTagsProvider mockStackTagsProvider;
@@ -104,8 +103,8 @@ class CdnBuilderImplTest {
 		Stack expectedStack = new Stack().withStackName("cdn-dev-synapse").withTags(expectedTags);
 		when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
-		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
-		when(mockCloudFormationClient.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
+		when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
+		when(mockCloudFormationClientWrapper.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
 
 		when(mockConfig.getProperty("org.sagebionetworks.beanstalk.ssl.arn.portal")).thenReturn("acmarn");
 		when(mockConfig.getProperty("org.sagebionetworks.stack.instance.alias")).thenReturn("dev");
@@ -114,7 +113,7 @@ class CdnBuilderImplTest {
 		Optional<Stack> optStack = builder.buildCdnStack(CdnBuilder.Type.PORTAL);
 
 		verify(mockVelocityEngine).getTemplate("templates/cdn/synapse_cdn.yaml.vtp");
-		verify(mockCloudFormationClient).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
 		CreateOrUpdateStackRequest req = createOrUpdateStackRequestArgumentCaptor.getValue();
 		assertEquals("cdn-dev-synapse", req.getStackName());
 		assertEquals("someYamlTemplate", req.getTemplateBody());
@@ -144,8 +143,8 @@ class CdnBuilderImplTest {
 		Stack expectedStack = new Stack().withStackName("cdn-tst-data-synapse").withTags(expectedTags);
 		when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
-		when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
-		when(mockCloudFormationClient.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
+		when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
+		when(mockCloudFormationClientWrapper.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
 
 		when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("tst");
 		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.public.key.encoded")).thenReturn("12345");
@@ -155,7 +154,7 @@ class CdnBuilderImplTest {
 		Optional<Stack> optStack = builder.buildCdnStack(CdnBuilder.Type.DATA);
 
 		verify(mockVelocityEngine).getTemplate("templates/cdn/synapse-data-cdn.json.vtp");
-		verify(mockCloudFormationClient).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
 		CreateOrUpdateStackRequest req = createOrUpdateStackRequestArgumentCaptor.getValue();
 		assertEquals("cdn-tst-data-synapse", req.getStackName());
 		assertEquals("someJsonTemplate", req.getTemplateBody());

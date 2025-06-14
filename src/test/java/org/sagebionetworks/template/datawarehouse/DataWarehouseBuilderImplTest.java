@@ -13,7 +13,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
@@ -53,7 +53,7 @@ public class DataWarehouseBuilderImplTest {
 	@Captor
 	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
 	@Mock
-	private CloudFormationClient cloudFormationClient;
+	private CloudFormationClientWrapper cloudFormationClientWrapper;
 	private VelocityEngine velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
 	@Mock
 	private Configuration mockConfig;
@@ -77,7 +77,7 @@ public class DataWarehouseBuilderImplTest {
 	@BeforeEach
 	public void before() {
 		when(loggerFactory.getLogger(any())).thenReturn(logger);
-		builder = new DataWarehouseBuilderImpl(cloudFormationClient, velocityEngine, mockConfig, loggerFactory, tagsProvider,
+		builder = new DataWarehouseBuilderImpl(cloudFormationClientWrapper, velocityEngine, mockConfig, loggerFactory, tagsProvider,
 				dataWarehouseConfig, mockDownloader, mockS3Client);
 	}
 
@@ -150,7 +150,7 @@ public class DataWarehouseBuilderImplTest {
 		verify(mockS3Client).putObject(eq("dev.aws-glue.sagebase.org"), eq("scripts/v1.0.0/utilities/utils.py"), any(), any());
 		verifyNoMoreInteractions(mockS3Client);
 
-		verify(cloudFormationClient).createOrUpdateStack(requestCaptor.capture());
+		verify(cloudFormationClientWrapper).createOrUpdateStack(requestCaptor.capture());
 
 		CreateOrUpdateStackRequest req = requestCaptor.getValue();
 		JSONObject json = new JSONObject(req.getTemplateBody());

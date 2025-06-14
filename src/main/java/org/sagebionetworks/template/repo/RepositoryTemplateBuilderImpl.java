@@ -88,7 +88,7 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
@@ -125,7 +125,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	public static final List<String> MACHINE_TYPE_LIST = List.of("Workers", "Repository");
 	public static final List<String> POOL_TYPE_LIST = List.of("Idgen", "Main", "Migration", "Tables");
 
-	private final CloudFormationClient cloudFormationClient;
+	private final CloudFormationClientWrapper cloudFormationClientWrapper;
 	private final Ec2ClientWrapper ec2ClientWrapper;
 	private final VelocityEngine velocityEngine;
 	private final RepoConfiguration config;
@@ -143,7 +143,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	private final Set<WaitConditionHandler> waitConditionHandlers;
 
 	@Inject
-	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
+	public RepositoryTemplateBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper, VelocityEngine velocityEngine,
                                          RepoConfiguration configuration, LoggerFactory loggerFactory, ArtifactCopy artifactCopy,
                                          SecretBuilder secretBuilder, Set<VelocityContextProvider> contextProviders,
                                          ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkDefaultAMIEncrypter,
@@ -151,7 +151,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
                                          Ec2ClientWrapper ec2ClientWrapper, ElasticBeanstalkClient beanstalkClient, ImageBuilderClient imageBuilderClient, TimeToLive ttl,
                                          StsClient stsClient, Set<WaitConditionHandler> waitConditionHandlers) {
 		super();
-		this.cloudFormationClient = cloudFormationClient;
+		this.cloudFormationClientWrapper = cloudFormationClientWrapper;
 		this.ec2ClientWrapper = ec2ClientWrapper;
 		this.velocityEngine = velocityEngine;
 		this.config = configuration;
@@ -202,7 +202,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 
 		buildAndDeployStack(context, sharedResourceStackName, TEMPLATE_SHARED_RESOUCES_MAIN_JSON_VTP, sharedParameters);
 		// Wait for the shared resources to complete
-		Stack sharedStackResults = cloudFormationClient.waitForStackToComplete(sharedResourceStackName, waitConditionHandlers).orElseThrow(()->new IllegalStateException("Stack does not exist: "+sharedResourceStackName));
+		Stack sharedStackResults = cloudFormationClientWrapper.waitForStackToComplete(sharedResourceStackName, waitConditionHandlers).orElseThrow(()->new IllegalStateException("Stack does not exist: "+sharedResourceStackName));
 				
 		// Build each bean stalk environment.
 		List<String> environmentNames = buildEnvironments(sharedStackResults);
@@ -308,7 +308,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.logger.info("Template for stack: " + stackName);
 		this.logger.info(resultJSON);
 		// create or update the template
-		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest()
+		this.cloudFormationClientWrapper.createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(stackName)
 				.withTemplateBody(resultJSON)
 				.withParameters(parameters)
@@ -544,7 +544,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 */
 	List<String> getPrivateSubnets(String color) {
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
-		String privateSubnets = cloudFormationClient.getOutput(
+		String privateSubnets = cloudFormationClientWrapper.getOutput(
 				Constants.createVpcPrivateSubnetsStackName(stack, color),
 				Constants.VPC_PRIVATE_SUBNETS_STACK_PRIVATE_SUBNETS_OUPUT_KEY);
 		String[] privateSubnetIds = privateSubnets.split(",");

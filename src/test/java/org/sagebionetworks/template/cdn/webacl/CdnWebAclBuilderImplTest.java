@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.mockito.stubbing.Answer;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.RepoConfiguration;
@@ -40,7 +40,7 @@ public class CdnWebAclBuilderImplTest {
     private RepoConfiguration mockConfig;
 
     @Mock
-    private CloudFormationClient mockCloudFormationClient;
+    private CloudFormationClientWrapper mockCloudFormationClientWrapper;
 
     @Mock
     private StackTagsProvider mockStackTagsProvider;
@@ -74,8 +74,8 @@ public class CdnWebAclBuilderImplTest {
         expectedTags.add(tag);
         Stack expectedStack = new Stack().withStackName("tst-cloudfront-webacl-stack").withTags(expectedTags);
         when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
-        when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
-        when(mockCloudFormationClient.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
+        when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
+        when(mockCloudFormationClientWrapper.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
 
         when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("tst");
 
@@ -88,7 +88,7 @@ public class CdnWebAclBuilderImplTest {
         assertEquals(tag, optStack.get().getTags().get(0));
 
         verify(mockVelocityEngine).getTemplate("templates/cdn/synapse-cdn-webacl.json.vtp");
-        verify(mockCloudFormationClient).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
+        verify(mockCloudFormationClientWrapper).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
         CreateOrUpdateStackRequest actualReq = createOrUpdateStackRequestArgumentCaptor.getValue();
         assertNotNull(actualReq);
         assertEquals("tst-cloudfront-webacl-stack", actualReq.getStackName());

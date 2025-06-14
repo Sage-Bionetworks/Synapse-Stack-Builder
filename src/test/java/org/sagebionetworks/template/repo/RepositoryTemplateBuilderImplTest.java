@@ -97,7 +97,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
@@ -143,7 +143,7 @@ import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
 public class RepositoryTemplateBuilderImplTest {
 
 	@Mock
-	private CloudFormationClient mockCloudFormationClient;
+	private CloudFormationClientWrapper mockCloudFormationClientWrapper;
 	@Mock
 	private Ec2ClientWrapper mockEc2ClientWrapper;
 	@Mock
@@ -221,7 +221,7 @@ public class RepositoryTemplateBuilderImplTest {
 		
 		gridQueueRef = "GridQueueRefQueue";
 		
-		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
+		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder,
 				Sets.newHashSet(mockContextProvider1, mockContextProvider2,
 						new BedrockAgentContextProvider(config, mockS3Client),
@@ -281,7 +281,7 @@ public class RepositoryTemplateBuilderImplTest {
 				.withOutputValue("synhelp-endpoint")
 		);
 
-		when(mockCloudFormationClient.waitForStackToComplete(any(String.class), any())).thenReturn(Optional.of(sharedResouces));
+		when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class), any())).thenReturn(Optional.of(sharedResouces));
 		
 	}
 
@@ -342,7 +342,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 		setupValidBeanstalkConfig();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
-		when(mockCloudFormationClient.getOutput(anyString(), anyString()))
+		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
 				.thenReturn(String.join(",", EXPECTED_SUBNETS));
 		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		stack = "prod";
@@ -353,8 +353,8 @@ public class RepositoryTemplateBuilderImplTest {
 		// call under test
 		builder.buildAndDeploy();
 
-		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
-		verify(mockCloudFormationClient).waitForStackToComplete("prod-101-shared-resources", Set.of(mockWaitConditionHandler));
+		verify(mockCloudFormationClientWrapper, times(4)).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete("prod-101-shared-resources", Set.of(mockWaitConditionHandler));
 		
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
@@ -520,7 +520,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 		setupValidBeanstalkConfig();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
-		when(mockCloudFormationClient.getOutput(anyString(), anyString()))
+		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
 				.thenReturn(String.join(",", EXPECTED_SUBNETS));
 		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		stack = "prod";
@@ -532,7 +532,7 @@ public class RepositoryTemplateBuilderImplTest {
 		// call under test
 		builder.buildAndDeploy();
 
-		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClientWrapper, times(4)).createOrUpdateStack(requestCaptor.capture());
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
 		assertEquals("prod-101-shared-resources", request.getStackName());
@@ -644,7 +644,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 		setupValidBeanstalkConfig();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
-		when(mockCloudFormationClient.getOutput(anyString(), anyString()))
+		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
 				.thenReturn(String.join(",", EXPECTED_SUBNETS));
 		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		stack = "dev";
@@ -656,8 +656,8 @@ public class RepositoryTemplateBuilderImplTest {
 		// call under test
 		builder.buildAndDeploy();
 
-		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
-		verify(mockCloudFormationClient).waitForStackToComplete("dev-101-shared-resources", Set.of(mockWaitConditionHandler));
+		verify(mockCloudFormationClientWrapper, times(4)).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete("dev-101-shared-resources", Set.of(mockWaitConditionHandler));
 		
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
@@ -789,7 +789,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		setupValidBeanstalkConfig();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
-		when(mockCloudFormationClient.getOutput(anyString(), anyString()))
+		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
 				.thenReturn(String.join(",", EXPECTED_SUBNETS));
 		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn("repoSnapshotIdentifier");
@@ -806,7 +806,7 @@ public class RepositoryTemplateBuilderImplTest {
 		// call under test
 		builder.buildAndDeploy();
 
-		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClientWrapper, times(4)).createOrUpdateStack(requestCaptor.capture());
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
 		assertEquals("dev-101-shared-resources", request.getStackName());
@@ -1289,7 +1289,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 //		
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
-		when(mockCloudFormationClient.getOutput(anyString(), anyString()))
+		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
 				.thenReturn(String.join(",", EXPECTED_SUBNETS));
 		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");

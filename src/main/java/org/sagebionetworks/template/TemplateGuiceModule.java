@@ -150,7 +150,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
 	@Override
 	protected void configure() {
-		bind(CloudFormationClient.class).to(CloudFormationClientImpl.class);
+		bind(CloudFormationClientWrapper.class).to(CloudFormationClientWrapperImpl.class);
 		bind(VpcTemplateBuilder.class).to(VpcTemplateBuilderImpl.class);
 		bind(SubnetTemplateBuilder.class).to(SubnetTemplateBuilderImpl.class);
 		bind(Configuration.class).to(ConfigurationImpl.class);
