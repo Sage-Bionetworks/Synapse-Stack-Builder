@@ -1,7 +1,7 @@
 package org.sagebionetworks.template.cdn;
 
-import com.amazonaws.services.cloudformation.model.Stack;
-import com.amazonaws.services.cloudformation.model.Tag;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.Tag;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
@@ -62,9 +62,9 @@ public class CdnBuilderImplTemplateTest {
 	@Test
 	void testBuildCdnStack() throws Exception {
 		List<Tag> expectedTags = new ArrayList<>();
-		Tag tag = new Tag().withKey("aKey").withValue("aValue");
+		Tag tag = Tag.builder().key("aKey").value("aValue").build();
 		expectedTags.add(tag);
-		Stack expectedStack = new Stack().withStackName("cdn-dev-synapse").withTags(expectedTags);
+		Stack expectedStack = Stack.builder().stackName("cdn-dev-synapse").tags(expectedTags).build();
 		when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
 		when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
@@ -86,9 +86,9 @@ public class CdnBuilderImplTemplateTest {
 	@Test
 	void testBuildDataCdnStackTemplate() throws Exception{
 		List<Tag> expectedTags = new ArrayList<>();
-		Tag tag = new Tag().withKey("aKey").withValue("aValue");
+		Tag tag = Tag.builder().key("aKey").value("aValue").build();
 		expectedTags.add(tag);
-		Stack expectedStack = new Stack().withStackName("cdn-tst-data-synapse").withTags(expectedTags);
+		Stack expectedStack = Stack.builder().stackName("cdn-tst-data-synapse").tags(expectedTags).build();
 		when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
 		when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
