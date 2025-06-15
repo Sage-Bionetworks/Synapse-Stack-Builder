@@ -1,6 +1,6 @@
 package org.sagebionetworks.template.cdn;
 
-import com.amazonaws.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
 import com.google.inject.Inject;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.logging.log4j.LogManager;
