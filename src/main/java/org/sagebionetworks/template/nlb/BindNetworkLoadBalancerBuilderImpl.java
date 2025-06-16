@@ -23,8 +23,8 @@ import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.ip.address.IpAddressPoolBuilderImpl;
 
-import com.amazonaws.services.cloudformation.model.Parameter;
 import com.google.inject.Inject;
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
 
 public class BindNetworkLoadBalancerBuilderImpl implements BindNetworkLoadBalancerBuilder {
 
@@ -70,7 +70,7 @@ public class BindNetworkLoadBalancerBuilderImpl implements BindNetworkLoadBalanc
 		context.put(MAPPINGS_CSV, mappingsCSV);
 		context.put("listeners", listeners);
 		context.put("stack", stack);
-		Parameter parameter = new Parameter();
+		Parameter parameter = Parameter.builder().build();
 
 		// Merge the context with the template
 		Template template = this.velocityEngine.getTemplate("templates/global/dns-record-to-stack-mapping.json.vpt");

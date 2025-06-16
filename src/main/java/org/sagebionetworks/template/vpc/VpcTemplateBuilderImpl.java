@@ -13,8 +13,8 @@ import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 
-import com.amazonaws.services.cloudformation.model.Parameter;
 import com.google.inject.Inject;
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
 
 import static org.sagebionetworks.template.Constants.*;
 
@@ -120,8 +120,8 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 	 * @return
 	 */
 	public Parameter[] createParameters(String stackName) {
-		Parameter VpnCidrNew = new Parameter().withParameterKey(PARAMETER_VPN_CIDR_NEW)
-				.withParameterValue(config.getProperty(PROPERTY_KEY_VPC_VPN_CIDR_NEW));
+		Parameter VpnCidrNew = Parameter.builder().parameterKey(PARAMETER_VPN_CIDR_NEW)
+				.parameterValue(config.getProperty(PROPERTY_KEY_VPC_VPN_CIDR_NEW)).build();
 		return new Parameter[] { VpnCidrNew };
 	}
 }

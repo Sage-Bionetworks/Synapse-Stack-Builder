@@ -47,8 +47,6 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.cloudformation.model.Output;
-import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AbortIncompleteMultipartUpload;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -78,6 +76,9 @@ import com.amazonaws.services.s3.model.inventory.InventoryConfiguration;
 import com.amazonaws.services.s3.model.inventory.InventoryFrequency;
 import com.amazonaws.services.s3.model.inventory.InventoryS3BucketDestination;
 import com.amazonaws.services.s3.model.lifecycle.LifecycleFilter;
+import software.amazon.awssdk.services.cloudformation.model.Capability;
+import software.amazon.awssdk.services.cloudformation.model.Output;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.lambda.model.InvocationType;
 import software.amazon.awssdk.services.lambda.model.InvokeRequest;
@@ -168,7 +169,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -241,7 +242,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -298,7 +299,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -366,7 +367,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -469,7 +470,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -551,7 +552,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -630,7 +631,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -696,7 +697,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -747,7 +748,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -811,7 +812,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -871,7 +872,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -947,7 +948,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -1018,7 +1019,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -1080,7 +1081,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -1162,7 +1163,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -1264,7 +1265,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -1343,7 +1344,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -1397,7 +1398,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -1452,7 +1453,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -1583,7 +1584,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -1645,7 +1646,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -1705,7 +1706,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -1760,7 +1761,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -1832,7 +1833,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -1906,7 +1907,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -1980,7 +1981,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -2054,7 +2055,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -2128,7 +2129,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -2218,11 +2219,13 @@ public class S3BucketBuilderImplTest {
 			((StringWriter) invocation.getArgument(1)).append("{}");
 			return null;
 		}).when(mockTemplate).merge(any(), any());
-		
-		Stack virusScannerStack = new Stack().withOutputs(
-			new Output().withOutputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_TRIGGER_TOPIC).withOutputValue("snsTopicArn"),
-			new Output().withOutputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_UPDATER_LAMBDA).withOutputValue("updaterLambdaArn")
-		);
+
+		Stack virusScannerStack = Stack.builder()
+				.outputs(
+						Output.builder().outputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_TRIGGER_TOPIC).outputValue("snsTopicArn").build(),
+						Output.builder().outputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_UPDATER_LAMBDA).outputValue("updaterLambdaArn").build()
+				)
+				.build();
 		
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(virusScannerStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -2269,7 +2272,7 @@ public class S3BucketBuilderImplTest {
 				.withStackName(expectedVirusScannerStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList())
-				.withCapabilities(CAPABILITY_NAMED_IAM));
+				.withCapabilities(Capability.CAPABILITY_NAMED_IAM));
 
 		assertEquals(capturedCreateOrUpdateStackArgs.get(1), new CreateOrUpdateStackRequest()
 				.withStackName(expectedBucketPolicyStackName)
@@ -2325,15 +2328,17 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
-		
-		Stack virusScannerStack = new Stack().withOutputs(
-			new Output().withOutputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_TRIGGER_TOPIC).withOutputValue("snsTopicArn"),
-			new Output().withOutputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_UPDATER_LAMBDA).withOutputValue("updaterLambdaArn")
-		);
+
+		Stack virusScannerStack = Stack.builder()
+				.outputs(
+						Output.builder().outputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_TRIGGER_TOPIC).outputValue("snsTopicArn").build(),
+						Output.builder().outputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_UPDATER_LAMBDA).outputValue("updaterLambdaArn").build()
+				)
+				.build();
 		
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(virusScannerStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -2396,7 +2401,7 @@ public class S3BucketBuilderImplTest {
 				.withStackName(expectedVirusScannerStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList())
-				.withCapabilities(CAPABILITY_NAMED_IAM));
+				.withCapabilities(Capability.CAPABILITY_NAMED_IAM));
 
 		assertEquals(capturedCreateOrUpdateStackArgs.get(1), new CreateOrUpdateStackRequest()
 				.withStackName(expectedBucketPolicyStackName)
@@ -2423,7 +2428,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -2466,7 +2471,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
@@ -2507,7 +2512,7 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());

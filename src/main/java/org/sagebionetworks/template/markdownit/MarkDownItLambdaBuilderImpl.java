@@ -1,7 +1,5 @@
 package org.sagebionetworks.template.markdownit;
 
-import com.amazonaws.services.cloudformation.model.Stack;
-
 import com.amazonaws.services.s3.AmazonS3;
 import com.google.inject.Inject;
 import org.apache.commons.io.FilenameUtils;
@@ -16,6 +14,8 @@ import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.utils.ArtifactDownload;
+import software.amazon.awssdk.services.cloudformation.model.Capability;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
 
 import java.io.File;
 import java.io.StringWriter;
@@ -97,7 +97,7 @@ public class MarkDownItLambdaBuilderImpl implements MarkDownItLambdaBuilder {
                 .withStackName(stackName)
                 .withTemplateBody(resultJSON)
                 .withTags(tagsProvider.getStackTags(config))
-                .withCapabilities(CAPABILITY_NAMED_IAM);
+                .withCapabilities(Capability.CAPABILITY_NAMED_IAM);
         cloudFormationClientWrapper.createOrUpdateStack(req);
 
         try {

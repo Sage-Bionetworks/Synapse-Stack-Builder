@@ -112,8 +112,6 @@ import org.sagebionetworks.war.WarAppenderImpl;
 
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
-import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.google.inject.Provides;
@@ -125,6 +123,7 @@ import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.athena.AthenaClient;
 import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkClient;
 import software.amazon.awssdk.services.glue.GlueClient;
@@ -210,11 +209,9 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	 * @return
 	 */
 	@Provides
-	public AmazonCloudFormation provideAmazonCloudFormationClient() {
-		AmazonCloudFormationClientBuilder builder = AmazonCloudFormationClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
+	public CloudFormationClient provideAmazonCloudFormationClient() {
+		CloudFormationClient client = CloudFormationClient.builder().region(Region.US_EAST_1).build();
+		return client;
 	}
 	
 	@Provides

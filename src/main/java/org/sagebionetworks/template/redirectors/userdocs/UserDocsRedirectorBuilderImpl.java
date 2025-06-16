@@ -1,6 +1,5 @@
 package org.sagebionetworks.template.redirectors.userdocs;
 
-import com.amazonaws.services.cloudformation.model.Stack;
 import com.google.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,6 +10,7 @@ import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.RepoConfiguration;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
 
 import java.io.StringWriter;
 import java.util.Optional;

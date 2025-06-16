@@ -1,7 +1,6 @@
 package org.sagebionetworks.template.redirectors.userdocs;
 
-import com.amazonaws.services.cloudformation.model.Stack;
-import com.amazonaws.services.cloudformation.model.Tag;
+
 import org.apache.velocity.app.VelocityEngine;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +15,8 @@ import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.config.RepoConfiguration;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.Tag;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,9 +60,9 @@ public class UserDocsRedirectorBuilderImplTemplateTest {
 	@Test
 	void testBuildUserDocsRedirectorStack() throws Exception {
 		List<Tag> expectedTags = new ArrayList<>();
-		Tag tag = new Tag().withKey("aKey").withValue("aValue");
+		Tag tag = Tag.builder().key("aKey").value("aValue").build();
 		expectedTags.add(tag);
-		Stack expectedStack = new Stack().withStackName("tst-docs-synapse").withTags(expectedTags);
+		Stack expectedStack = Stack.builder().stackName("tst-docs-synapse").tags(expectedTags).build();
 		when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
 		when(mockCloudFormationClientWrapper.waitForStackToComplete("tst-docs-synapse")).thenReturn(Optional.of(expectedStack));
@@ -71,9 +72,9 @@ public class UserDocsRedirectorBuilderImplTemplateTest {
 		Optional<Stack> optStack = builder.buildStack();
 
 		assertTrue(optStack.isPresent());
-		assertEquals("tst-docs-synapse", optStack.get().getStackName());
-		assertEquals(1, optStack.get().getTags().size());
-		assertEquals(tag, optStack.get().getTags().get(0));
+		assertEquals("tst-docs-synapse", optStack.get().stackName());
+		assertEquals(1, optStack.get().tags().size());
+		assertEquals(tag, optStack.get().tags().get(0));
 
 	}
 

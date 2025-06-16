@@ -33,7 +33,6 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AbortIncompleteMultipartUpload;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -68,6 +67,8 @@ import com.amazonaws.services.s3.model.inventory.InventoryS3BucketDestination;
 import com.amazonaws.services.s3.model.inventory.InventorySchedule;
 import com.amazonaws.services.s3.model.lifecycle.LifecycleFilter;
 import com.google.inject.Inject;
+import software.amazon.awssdk.services.cloudformation.model.Capability;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.lambda.model.InvocationType;
 import software.amazon.awssdk.services.lambda.model.InvokeRequest;
@@ -106,11 +107,11 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	
 
 	private static String getStackOutput(Stack stack, String key) {
-		return stack.getOutputs().stream()
-		.filter( output -> output.getOutputKey().equals(key))
+		return stack.outputs().stream()
+		.filter( output -> output.outputKey().equals(key))
 		.findFirst()
-		.orElseThrow(() -> new IllegalStateException("Could not find " + key + " output from stack " + stack.getStackName()))
-		.getOutputValue();
+		.orElseThrow(() -> new IllegalStateException("Could not find " + key + " output from stack " + stack.stackName()))
+		.outputValue();
 	}
 	
 	private AmazonS3 s3Client;
@@ -285,7 +286,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 				.withStackName(stackName)
 				.withTemplateBody(resultJSON)
 				.withTags(tagsProvider.getStackTags(this.config))
-				.withCapabilities(CAPABILITY_NAMED_IAM));
+				.withCapabilities(Capability.CAPABILITY_NAMED_IAM));
 		
 		try {
 			cloudFormationClientWrapper.waitForStackToComplete(stackName);

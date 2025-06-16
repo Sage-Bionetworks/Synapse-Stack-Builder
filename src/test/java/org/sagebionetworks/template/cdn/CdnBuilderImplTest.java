@@ -120,9 +120,9 @@ class CdnBuilderImplTest {
 		assertEquals(expectedTags, req.getTags());
 
 		assertTrue(optStack.isPresent());
-		assertEquals("cdn-dev-synapse", optStack.get().getStackName());
-		assertEquals(1, optStack.get().getTags().size());
-		assertEquals(tag, optStack.get().getTags().get(0));
+		assertEquals("cdn-dev-synapse", optStack.get().stackName());
+		assertEquals(1, optStack.get().tags().size());
+		assertEquals(tag, optStack.get().tags().get(0));
 
 	}
 
@@ -161,9 +161,9 @@ class CdnBuilderImplTest {
 		assertEquals(expectedTags, req.getTags());
 
 		assertTrue(optStack.isPresent());
-		assertEquals("cdn-tst-data-synapse", optStack.get().getStackName());
-		assertEquals(1, optStack.get().getTags().size());
-		assertEquals(tag, optStack.get().getTags().get(0));
+		assertEquals("cdn-tst-data-synapse", optStack.get().stackName());
+		assertEquals(1, optStack.get().tags().size());
+		assertEquals(tag, optStack.get().tags().get(0));
 
 	}
 }

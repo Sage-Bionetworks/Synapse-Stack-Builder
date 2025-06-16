@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
-import com.amazonaws.services.cloudformation.model.Stack;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +27,7 @@ import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import com.amazonaws.services.s3.AmazonS3;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
@@ -104,7 +104,7 @@ public class S3BucketBuilderIntegrationTest {
 
         when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(dataBucket, inventoryBucket, bucket, bucket2));
 
-        Stack bucketPolicyStack = new Stack();
+        Stack bucketPolicyStack = Stack.builder().build();
 
         when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
         when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());

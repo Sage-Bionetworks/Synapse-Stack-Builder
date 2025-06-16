@@ -23,8 +23,8 @@ import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.ip.address.IpAddressPoolBuilderImpl;
 
-import com.amazonaws.services.cloudformation.model.Parameter;
 import com.google.inject.Inject;
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
 
 public class NetworkLoadBalancerBuilderImpl implements NetworkLoadBalancerBuilder {
 
@@ -58,7 +58,7 @@ public class NetworkLoadBalancerBuilderImpl implements NetworkLoadBalancerBuilde
 		context.put("nlbs", nlbs);
 		context.put("stack", stack);
 
-		Parameter parameter = new Parameter();
+		Parameter parameter = Parameter.builder().build();
 
 		// Merge the context with the template
 		Template template = this.velocityEngine.getTemplate("templates/global/domain-network-load-balancer.json.vpt");

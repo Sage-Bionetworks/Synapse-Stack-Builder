@@ -14,6 +14,7 @@ import org.sagebionetworks.template.SesClientWrapper;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.repo.DeletionPolicy;
+import software.amazon.awssdk.services.cloudformation.model.Capability;
 
 import java.io.StringWriter;
 
@@ -66,7 +67,7 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
         cloudFormationClientWrapper.createOrUpdateStack(new CreateOrUpdateStackRequest()
             .withStackName(stackName)
             .withTemplateBody(resultJSON)
-            .withCapabilities(CAPABILITY_NAMED_IAM)
+            .withCapabilities(Capability.CAPABILITY_NAMED_IAM)
             .withTags(stackTagsProvider.getStackTags(config))
         );
         cloudFormationClientWrapper.waitForStackToComplete(stackName);
