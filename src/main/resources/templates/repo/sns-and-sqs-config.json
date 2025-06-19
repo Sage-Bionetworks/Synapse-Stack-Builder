@@ -164,6 +164,16 @@
 			"messageRetentionPeriodSec": 1209600
 		},
 		{
+			"queueName": "SEARCH_INDEX",
+			"subscribedTopicNames": [
+				"ENTITY",
+				"WIKI"
+			],
+			"messageVisibilityTimeoutSec": 60,
+			"deadLetterQueueMaxFailureCount": 5,
+			"messageRetentionPeriodSec": 1209600
+		},
+		{
 			"queueName": "TABLE_UPDATE",
 			"subscribedTopicNames": [
 				"TABLE"
