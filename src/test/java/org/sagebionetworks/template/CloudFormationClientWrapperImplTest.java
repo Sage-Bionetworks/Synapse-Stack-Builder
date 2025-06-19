@@ -100,6 +100,7 @@ public class CloudFormationClientWrapperImplTest {
 
 	String stackId;
 	DescribeStacksResponse initDescribeResult, describeResult;
+	// TODO: renove these 2
 	UpdateStackResponse updateResult;
 	CreateStackResponse createResult;
 	
@@ -109,6 +110,7 @@ public class CloudFormationClientWrapperImplTest {
 	UpdateStackResponse.Builder updateStackResponseBuilder;
 	CreateOrUpdateStackRequest inputReqequest;
 
+	// TODO: Remove these 2
 	Stack initStack, stack;
 
 	String bucket;
@@ -151,6 +153,11 @@ public class CloudFormationClientWrapperImplTest {
 				.withCapabilities(capabilities);
 
 		bucket = "theBucket";
+
+		stackBuilder = Stack.builder();
+		describeStacksResponseBuilder = DescribeStacksResponse.builder();
+		createStackResponseBuilder = CreateStackResponse.builder();
+		updateStackResponseBuilder = UpdateStackResponse.builder();
 
 	}
 
@@ -210,7 +217,8 @@ public class CloudFormationClientWrapperImplTest {
 	@Test
 	public void testIsStartedInUpdateRollbackCompleteTrue() {
 		Stack stack = stackBuilder.stackId(stackId).stackName(stackName).stackStatus(StackStatus.UPDATE_ROLLBACK_COMPLETE).build();
-		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(describeResult);
+		DescribeStacksResponse describeResponse = describeStacksResponseBuilder.stacks(stack).build();
+		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(describeResponse);
 		// call under test
 		boolean isStartedInUpdateRollbackComplete = client.isStartedInUpdateRollbackComplete(stackName);
 		assertTrue(isStartedInUpdateRollbackComplete);

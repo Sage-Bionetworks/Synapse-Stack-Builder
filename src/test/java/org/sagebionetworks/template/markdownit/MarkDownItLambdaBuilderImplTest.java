@@ -15,6 +15,7 @@ import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.utils.ArtifactDownload;
+import software.amazon.awssdk.services.cloudformation.model.Capability;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
 
 import java.io.File;
@@ -111,7 +112,7 @@ public class MarkDownItLambdaBuilderImplTest {
         assertEquals("dev-markdown-it-function", request.getStackName());
         assertTrue(request.getTags().isEmpty());
         assertEquals(1, request.getCapabilities().length);
-        assertEquals(CAPABILITY_NAMED_IAM, request.getCapabilities()[0]);
+        assertEquals(Capability.CAPABILITY_NAMED_IAM, request.getCapabilities()[0]);
         assertNotNull(request.getTemplateBody());
 
         JSONObject templateJson = new JSONObject(request.getTemplateBody());

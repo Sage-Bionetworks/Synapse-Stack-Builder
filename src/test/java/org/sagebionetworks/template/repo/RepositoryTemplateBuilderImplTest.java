@@ -239,9 +239,12 @@ public class RepositoryTemplateBuilderImplTest {
 		imagePipelineArn="arn:aws:imagebuilder:us-east-1:867686887310:image/cis-for-eb";
 		imageId = "ami-0123456789";
 
-		sharedResouces = Stack.builder().build();
-		Output dbOut = Output.builder().outputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT).outputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix).build();
 		databaseEndpointSuffix = "something.amazon.com";
+		sharedResouces = Stack.builder().build();
+		Output dbOut = Output.builder()
+				.outputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
+				.outputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix)
+				.build();
 		// TableDB output
 		Output tableDBOutput1 = Output.builder()
 				.outputKey(stack + instance + "Table0" + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
@@ -1331,6 +1334,7 @@ public class RepositoryTemplateBuilderImplTest {
 	
 		// call under test
 		String suffix = builder.extractDatabaseSuffix(sharedResouces);
+
 		assertEquals(databaseEndpointSuffix, suffix);
 	}
 

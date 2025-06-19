@@ -70,9 +70,6 @@ public class SynapseHelpKnowledgeBaseDataSourceSyncTest {
 	@Mock
 	private Logger mockLogger;
 	
-	@Mock
-	private StackEvent mockStackEvent;
-		
 	@Captor
 	private ArgumentCaptor<Consumer<ListKnowledgeBasesRequest.Builder>> listKnowledgeBasesRequestCaptor;
 	@Captor
@@ -147,9 +144,11 @@ public class SynapseHelpKnowledgeBaseDataSourceSyncTest {
 				)
 			)).build()
 		);
-		
+
+		StackEvent stackEvent = StackEvent.builder().build();
+
 		// Call under test
-		assertEquals(Optional.of("sync-completed"), handler.handle(mockStackEvent));
+		assertEquals(Optional.of("sync-completed"), handler.handle(stackEvent));
 		
 		assertEquals(
 			ListKnowledgeBasesRequest.builder().build(),
@@ -188,11 +187,13 @@ public class SynapseHelpKnowledgeBaseDataSourceSyncTest {
 		
 		when(mockBedrockAgentClient.listKnowledgeBasesPaginator(listKnowledgeBasesRequestCaptor.capture())).thenReturn(
 			new ListKnowledgeBasesIterable(mockBedrockAgentClient, ListKnowledgeBasesRequest.builder().build())
-		);		
-		
+		);
+
+		StackEvent stackEvent = StackEvent.builder().build();
+
 		assertThrows(NoSuchElementException.class, () -> {
 			// Call under test
-			handler.handle(mockStackEvent);
+			handler.handle(stackEvent);
 		});
 		
 		assertEquals(
@@ -227,10 +228,12 @@ public class SynapseHelpKnowledgeBaseDataSourceSyncTest {
 		when(mockBedrockAgentClient.listDataSourcesPaginator(listDataSourceRequestCaptor.capture())).thenReturn(
 			new ListDataSourcesIterable(mockBedrockAgentClient, ListDataSourcesRequest.builder().build())
 		);
-				
+
+		StackEvent stackEvent = StackEvent.builder().build();
+
 		assertThrows(NoSuchElementException.class, () -> {
 			// Call under test
-			handler.handle(mockStackEvent);
+			handler.handle(stackEvent);
 		});
 		
 		assertEquals(
@@ -280,9 +283,11 @@ public class SynapseHelpKnowledgeBaseDataSourceSyncTest {
 				IngestionJobSummary.builder().knowledgeBaseId(KNOWLEDGE_BASE_ID).dataSourceId(DATA_SOURCE_ID).ingestionJobId(JOB_ID).build()
 			)).build()
 		);
-				
+
+		StackEvent stackEvent = StackEvent.builder().build();
+
 		// Call under test
-		assertEquals(Optional.of("sync-started"), handler.handle(mockStackEvent));
+		assertEquals(Optional.of("sync-started"), handler.handle(stackEvent));
 		
 		assertEquals(
 			ListKnowledgeBasesRequest.builder().build(),
@@ -351,10 +356,12 @@ public class SynapseHelpKnowledgeBaseDataSourceSyncTest {
 				.failureReasons("Some failure")
 			)).build()
 		);
-		
+
+		StackEvent stackEvent = StackEvent.builder().build();
+
 		assertEquals("Sync job job-id failed (Status: FAILED, Failures: [Some failure])", assertThrows(IllegalStateException.class, () -> {			
 			// Call under test
-			handler.handle(mockStackEvent);
+			handler.handle(stackEvent);
 		}).getMessage());
 		
 		verify(mockBedrockAgentClient, times(2)).getIngestionJob(getIngestionJobRequestCaptor.capture());
