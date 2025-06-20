@@ -44,7 +44,7 @@
         "Fn::GetAtt": ["SharedCloudFrontWebACL", "Arn"]
       },
       "Export": {
-        "Name": "SharedCloudFrontWebACLArn"
+        "Name": { "Fn::Sub": "#[[${AWS::AccountId}-${AWS::StackName}]]#-WebACLArn" }
       }
     }
   }
