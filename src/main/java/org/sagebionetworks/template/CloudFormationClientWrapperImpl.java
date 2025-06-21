@@ -2,10 +2,12 @@ package org.sagebionetworks.template;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterator;
@@ -113,7 +115,10 @@ public class CloudFormationClientWrapperImpl implements CloudFormationClientWrap
 						.stackName(requestInput.getStackName())
 						.templateURL(templateUrl);
 				if (requestInput.getParameters() != null) {
-					builder.parameters(requestInput.getParameters());
+					builder.parameters(
+							Arrays.stream(requestInput.getParameters())
+									.filter(Objects::nonNull)
+									.collect(Collectors.toList()));
 				}
 				if (requestInput.getCapabilities() != null) {
 					builder.capabilities(requestInput.getCapabilities());
