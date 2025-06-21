@@ -165,6 +165,7 @@ public class CloudFormationClientWrapperImpl implements CloudFormationClientWrap
 		if (doesStackNameExist(request.getStackName())) {
 			updateStack(request);
 		} else {
+			logger.info(String.format("createOrUpdateStack() DEBUG: %s", request));
 			createStack(request);
 		}
 	}
@@ -185,7 +186,8 @@ public class CloudFormationClientWrapperImpl implements CloudFormationClientWrap
 			return Optional.of(results.stacks().get(0));
 		} catch (CloudFormationException e) {
 			return Optional.empty();
-		}	}
+		}
+	}
 
 	/**
 	 * Save the given template to to S3.
