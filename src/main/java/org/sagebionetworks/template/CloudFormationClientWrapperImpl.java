@@ -121,10 +121,13 @@ public class CloudFormationClientWrapperImpl implements CloudFormationClientWrap
 									.collect(Collectors.toList()));
 				}
 				if (requestInput.getCapabilities() != null) {
-					builder.capabilities(requestInput.getCapabilities());
+					builder.capabilities(
+							Arrays.stream(requestInput.getCapabilities())
+									.filter(Objects::nonNull)
+									.collect(Collectors.toList()));
 				}
 				if (requestInput.getTags() != null) {
-					builder.tags(requestInput.getTags());
+					builder.tags(requestInput.getTags().stream().filter(Objects::nonNull).collect(Collectors.toList()));;
 				}
 				if (requestInput.getEnableTerminationProtection() != null) {
 					builder.enableTerminationProtection(requestInput.getEnableTerminationProtection());
