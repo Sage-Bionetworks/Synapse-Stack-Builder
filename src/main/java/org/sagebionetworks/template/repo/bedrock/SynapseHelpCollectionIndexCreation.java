@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 import org.apache.logging.log4j.Logger;
+import org.opensearch.client.opensearch._types.OpenSearchException;
 import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.LoggerFactory;
@@ -36,6 +37,7 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 	
 	private OpenSearchClientFactory openSearchClientFactory;
 	
+	private int retryCount = 0;
 	
 	@Inject
 	public SynapseHelpCollectionIndexCreation(LoggerFactory loggerFactory, RepoConfiguration config, OpenSearchServerlessClient ossClient, OpenSearchClientFactory openSearchClientFactory) {
@@ -96,6 +98,15 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 			
 			return Optional.of("index-creation-complete");
 			
+		} catch (OpenSearchException e) {
+			logger.warn("The collection {} might not be ready yet:", collectionName, e);
+			retryCount++;
+			
+			if (retryCount < 5) {
+				return Optional.empty();
+			}
+			
+			throw e;
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		}
