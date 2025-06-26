@@ -27,6 +27,8 @@ import software.amazon.awssdk.services.opensearchserverless.model.CollectionStat
  */
 public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler {
 	
+	static final int MAX_RETRY_COUNT = 5;
+	
 	private static final String IDX_NAME = "vector-idx";
 	
 	private Logger logger;
@@ -67,9 +69,10 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 		
 		OpenSearchIndicesClient client = openSearchClientFactory.getIndicesClient(collection.collectionEndpoint());
 		
-		try {	
+		try {
 			if (client.exists(req -> req.index(IDX_NAME)).value()) {
 				logger.warn("Index {} already exists.", IDX_NAME);
+				retryCount = 0;
 				return Optional.of("index-already-exists");
 			}
 			
@@ -96,13 +99,16 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 			
 			logger.info("Index {} creation completed.", IDX_NAME);
 			
+			retryCount = 0;
+			
 			return Optional.of("index-creation-complete");
 			
 		} catch (OpenSearchException e) {
 			logger.warn("The collection {} might not be ready yet:", collectionName, e);
+			
 			retryCount++;
 			
-			if (retryCount < 5) {
+			if (retryCount <= MAX_RETRY_COUNT) {
 				return Optional.empty();
 			}
 			

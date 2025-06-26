@@ -23,6 +23,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.opensearch.client.opensearch._types.ErrorCause;
+import org.opensearch.client.opensearch._types.ErrorResponse;
+import org.opensearch.client.opensearch._types.OpenSearchException;
 import org.opensearch.client.opensearch._types.mapping.Property;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
 import org.opensearch.client.opensearch.indices.CreateIndexResponse;
@@ -242,6 +245,54 @@ public class SynapseHelpCollectionIndexCreationTest {
 		
 		verifyNoMoreInteractions(mockOpenSearchIndicesClient);
 	
+	}
+	
+	@Test
+	public void testHandleWithRetryOnOpenSearchException() throws IOException, InterruptedException {
+		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
+		when(mockConfig.getProperty(Constants.PROPERTY_KEY_INSTANCE)).thenReturn("101");
+		
+		when(mockOssManagementClient.batchGetCollection(getCollectionRequestCaptor.capture())).thenReturn(BatchGetCollectionResponse.builder()
+			.collectionDetails(CollectionDetail.builder().status(CollectionStatus.ACTIVE).collectionEndpoint(COLLECTION_ENDPOINT).build()).build()
+		);
+		
+		when(mockOpenSearchClientFactory.getIndicesClient(COLLECTION_ENDPOINT)).thenReturn(mockOpenSearchIndicesClient);
+		
+		OpenSearchException ex = new OpenSearchException(new ErrorResponse.Builder().error(new ErrorCause.Builder().type("nope").reason("bad").build()).build());
+		
+		when(mockOpenSearchIndicesClient.exists(existRequestCaptor.capture())).thenThrow(ex);
+		
+		for (int i = 0; i < SynapseHelpCollectionIndexCreation.MAX_RETRY_COUNT; i++) {
+			// Call under test
+			assertEquals(Optional.empty(), handler.handle(mockStackEvent));
+		}
+		
+		assertEquals(ex, assertThrows(OpenSearchException.class, () -> {
+			handler.handle(mockStackEvent).isEmpty();	
+		}));
+		
+		verifyNoMoreInteractions(mockOpenSearchIndicesClient);
+	}
+	
+	@Test
+	public void testHandleWithRetryOnOpenSearchExceptionAndSuccess() throws IOException, InterruptedException {
+		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
+		when(mockConfig.getProperty(Constants.PROPERTY_KEY_INSTANCE)).thenReturn("101");
+		
+		when(mockOssManagementClient.batchGetCollection(getCollectionRequestCaptor.capture())).thenReturn(BatchGetCollectionResponse.builder()
+			.collectionDetails(CollectionDetail.builder().status(CollectionStatus.ACTIVE).collectionEndpoint(COLLECTION_ENDPOINT).build()).build()
+		);
+		
+		when(mockOpenSearchClientFactory.getIndicesClient(COLLECTION_ENDPOINT)).thenReturn(mockOpenSearchIndicesClient);
+		
+		OpenSearchException ex = new OpenSearchException(new ErrorResponse.Builder().error(new ErrorCause.Builder().type("nope").reason("bad").build()).build());
+		
+		when(mockOpenSearchIndicesClient.exists(existRequestCaptor.capture())).thenThrow(ex).thenReturn(new BooleanResponse(true));
+		
+		assertEquals(Optional.empty(), handler.handle(mockStackEvent));
+		assertEquals(Optional.of("index-already-exists"), handler.handle(mockStackEvent));
+				
+		verifyNoMoreInteractions(mockOpenSearchIndicesClient);
 	}
 	
 
