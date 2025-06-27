@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 import org.apache.logging.log4j.Logger;
+import org.opensearch.client.opensearch._types.OpenSearchException;
 import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.LoggerFactory;
@@ -26,6 +27,8 @@ import software.amazon.awssdk.services.opensearchserverless.model.CollectionStat
  */
 public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler {
 	
+	static final int MAX_RETRY_COUNT = 5;
+	
 	private static final String IDX_NAME = "vector-idx";
 	
 	private Logger logger;
@@ -36,6 +39,7 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 	
 	private OpenSearchClientFactory openSearchClientFactory;
 	
+	private int retryCount = 0;
 	
 	@Inject
 	public SynapseHelpCollectionIndexCreation(LoggerFactory loggerFactory, RepoConfiguration config, OpenSearchServerlessClient ossClient, OpenSearchClientFactory openSearchClientFactory) {
@@ -65,9 +69,10 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 		
 		OpenSearchIndicesClient client = openSearchClientFactory.getIndicesClient(collection.collectionEndpoint());
 		
-		try {	
+		try {
 			if (client.exists(req -> req.index(IDX_NAME)).value()) {
 				logger.warn("Index {} already exists.", IDX_NAME);
+				retryCount = 0;
 				return Optional.of("index-already-exists");
 			}
 			
@@ -94,8 +99,20 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 			
 			logger.info("Index {} creation completed.", IDX_NAME);
 			
+			retryCount = 0;
+			
 			return Optional.of("index-creation-complete");
 			
+		} catch (OpenSearchException e) {
+			logger.warn("The collection {} might not be ready yet:", collectionName, e);
+			
+			retryCount++;
+			
+			if (retryCount <= MAX_RETRY_COUNT) {
+				return Optional.empty();
+			}
+			
+			throw e;
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		}
