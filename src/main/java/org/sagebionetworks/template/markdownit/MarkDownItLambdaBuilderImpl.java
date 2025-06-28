@@ -24,6 +24,8 @@ import java.util.Optional;
 import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_ARTIFACT_BUCKET;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_URL;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_MARKDOWNIT_SUBNETS;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_MARKDOWNIT_VPC;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 public class MarkDownItLambdaBuilderImpl implements MarkDownItLambdaBuilder {
@@ -78,12 +80,17 @@ public class MarkDownItLambdaBuilderImpl implements MarkDownItLambdaBuilder {
 
     private Optional<Stack> buildMarkDownItLambdaStack(String stack, String artifactBucket, String artifactKey) {
 
-        String stackName = String.format("%s-markdown-it-function", stack);
+        String stackName = String.format("%s-markdown-it-function-direct", stack);
+
+        String vpcId = config.getProperty(PROPERTY_KEY_LAMBDA_MARKDOWNIT_VPC);
+        String[] subnetIds = config.getCommaSeparatedProperty(PROPERTY_KEY_LAMBDA_MARKDOWNIT_SUBNETS);
 
         // Setup context
         VelocityContext context = new VelocityContext();
         context.put("lambdaArtifactBucket", artifactBucket);
         context.put("lambdaArtifactKey", artifactKey);
+        context.put("vpcId", vpcId);
+        context.put("subnetIds", subnetIds);
 
         // Generate template
         Template template = velocityEngine.getTemplate(Constants.TEMPLATE_MARKDOWNIT_API_VTP);

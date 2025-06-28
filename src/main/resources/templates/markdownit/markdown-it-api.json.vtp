@@ -1,5 +1,20 @@
 {
   "Resources": {
+    "mdlambdaSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Security group for markdown lambda",
+        "VpcId": "${vpcId}",
+        "SecurityGroupIngress": [],
+        "SecurityGroupEgress": [],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "markdown-lambda-sg"
+          }
+        ]
+      }
+    },
     "mdlambdaServiceRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
@@ -16,7 +31,8 @@
           "Version": "2012-10-17"
         },
         "ManagedPolicyArns": [
-            #[[{ "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole" }]]#
+            #[[{ "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole" }]]#,
+            #[[{ "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole" }]]#
         ]
       }
     },
@@ -30,34 +46,23 @@
         "Handler": "index.handler",
         "Role": { "Fn::GetAtt": [ "mdlambdaServiceRole", "Arn" ] },
         "Runtime": "nodejs20.x",
-        "Timeout": 10
-      }
-    },
-    "mdlambdaFunctionUrl": {
-      "Type": "AWS::Lambda::Url",
-      "Properties": {
-        "AuthType": "NONE",
-        "TargetFunctionArn": { "Ref": "mdlambda" },
-        "Cors": {
-          "AllowOrigins": ["*"],
-          "AllowMethods": ["GET", "POST"]
+        "Timeout": 10,
+        "MemorySize": 256,
+        "VpcConfig": {
+          "SecurityGroupIds": [{ "Ref": "mdlambdaSecurityGroup" }],
+          "SubnetIds": [
+          #foreach($subnetId in $subnetIds)
+            "${subnetId}"#if($foreach.hasNext),#end
+          #end
+          ]
         }
-      }
-    },
-    "mdlambdaFunctionUrlPermission": {
-      "Type": "AWS::Lambda::Permission",
-      "Properties": {
-        "Action": "lambda:InvokeFunctionUrl",
-        "FunctionName": { "Ref": "mdlambda" },
-        "Principal": "*",
-        "FunctionUrlAuthType": "NONE"
       }
     }
   },
   "Outputs": {
-    "LambdaFunctionUrl": {
-      "Value": { "Ref": "mdlambdaFunctionUrl" },
-      "Description": "The URL endpoint for the Lambda function"
+    "LambdaFunctionArn": {
+      "Value": { "Ref": "mdlambda" },
+      "Description": "The ARN of the Lambda function"
     }
   }
 
