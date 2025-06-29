@@ -39,6 +39,7 @@ import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_ARTIFACT_BUCKET;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_URL;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_VERSION;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_MARKDOWNIT_SUBNETS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_MARKDOWNIT_VPC;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
@@ -73,7 +74,7 @@ public class MarkDownItLambdaBuilderImplTest {
         stack = "dev";
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
         when(mockConfig.getProperty(PROPERTY_KEY_LAMBDA_ARTIFACT_BUCKET)).thenReturn("lambda.sagebase.org");
-        when(mockConfig.getProperty(PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_URL)).thenReturn("https://sagebionetworks.jfrog.io/lambda/org/sagebase/markdownit/markdownit.zip");
+        when(mockConfig.getProperty(PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_VERSION)).thenReturn("v1.0.0");
         when(mockConfig.getProperty(PROPERTY_KEY_LAMBDA_MARKDOWNIT_VPC)).thenReturn("vpc-12345");
         when(mockConfig.getCommaSeparatedProperty(PROPERTY_KEY_LAMBDA_MARKDOWNIT_SUBNETS)).thenReturn(new String[]{"subnet-12345", "subnet-12346"});
     }
@@ -101,12 +102,12 @@ public class MarkDownItLambdaBuilderImplTest {
         when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(markdownItLambdaStack));
 
         String expectedBucket = "lambda.sagebase.org";
-        String expectedKey = "artifacts/markdown-it/markdownit.zip";
+        String expectedKey = "artifacts/markdown-it/v1.0.0/markdown-it.zip";
 
         // call under test
         builder.buildMarkDownItLambda();
 
-        verify(mockDownloader).downloadFile("https://sagebionetworks.jfrog.io/lambda/org/sagebase/markdownit/markdownit.zip");
+        verify(mockDownloader).downloadFile("https://github.com/Sage-Bionetwors/synapse-markdown-it-lambda/releases/download/v1.0.0/markdown-it.zip");
         verify(mockS3Client).putObject(expectedBucket, expectedKey, mockFile);
 
         verify(mockFile).delete();
