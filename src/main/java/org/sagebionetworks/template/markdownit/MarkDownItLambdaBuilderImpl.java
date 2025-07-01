@@ -24,7 +24,6 @@ import java.util.Optional;
 import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_ARTIFACT_BUCKET;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_URL;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_VERSION;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_MARKDOWNIT_SUBNETS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_MARKDOWNIT_VPC;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
@@ -64,11 +63,10 @@ public class MarkDownItLambdaBuilderImpl implements MarkDownItLambdaBuilder {
 
         String stack = config.getProperty(PROPERTY_KEY_STACK);
         String artifactBucket = config.getProperty(PROPERTY_KEY_LAMBDA_ARTIFACT_BUCKET);
-        String version = config.getProperty(PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_VERSION);
-        String lambdaSourceArtifactUrl = getSourceArtifactUrl(version);
-        String lambdaArtifactKey = String.format("artifacts/markdown-it/%s/markdown-it.zip", version);
+        String lambdaSourceArtifactUrl = config.getProperty(PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_URL);
+        String lambdaArtifactKey = String.format("artifacts/markdown-it/%s", FilenameUtils.getName(lambdaSourceArtifactUrl));
 
-        // Download from Github and upload to S3
+        // Download from jfrog and upload to S3
         File artifact = downloader.downloadFile(lambdaSourceArtifactUrl);
         try {
             s3Client.putObject(artifactBucket, lambdaArtifactKey, artifact);
@@ -78,12 +76,6 @@ public class MarkDownItLambdaBuilderImpl implements MarkDownItLambdaBuilder {
 
         buildMarkDownItLambdaStack(stack, artifactBucket, lambdaArtifactKey);
 
-    }
-
-    private String getSourceArtifactUrl(String version) {
-        final String LAMBDA_SOURCE_ARTIFACT_URL_FORMAT = "https://github.com/Sage-Bionetwors/synapse-markdown-it-lambda/releases/download/%s/markdown-it.zip";
-        String lambdaSourceArtifactUrl = String.format(LAMBDA_SOURCE_ARTIFACT_URL_FORMAT, version);
-        return lambdaSourceArtifactUrl;
     }
 
     private Optional<Stack> buildMarkDownItLambdaStack(String stack, String artifactBucket, String artifactKey) {

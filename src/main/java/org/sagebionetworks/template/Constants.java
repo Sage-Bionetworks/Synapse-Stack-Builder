@@ -128,7 +128,6 @@ public class Constants {
 	public static final String PROPERTY_KEY_LAMBDA_ARTIFACT_BUCKET = "org.sagebionetworks.lambda.artifact.bucket";
 	public static final String PROPERTY_KEY_LAMBDA_VIRUS_SCANNER_ARTIFACT_URL = "org.sagebionetworks.lambda.virusscanner.artifactUrl";
 	public static final String PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_URL = "org.sagebionetworks.lambda.markdownit.artifactUrl";
-	public static final String PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_VERSION = "org.sagebionetworks.lambda.markdownit.artifact.version";
 	public static final String PROPERTY_KEY_LAMBDA_MARKDOWNIT_VPC = "org.sagebionetworks.lambda.markdownit.vpc";
 	public static final String PROPERTY_KEY_LAMBDA_MARKDOWNIT_SUBNETS = "org.sagebionetworks.lambda.markdownit.vpc.subnets";
 
