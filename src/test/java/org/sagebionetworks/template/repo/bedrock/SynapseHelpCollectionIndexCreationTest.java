@@ -251,6 +251,8 @@ public class SynapseHelpCollectionIndexCreationTest {
 	
 	@Test
 	public void testHandleWithRetryOnOpenSearchException() throws IOException, InterruptedException {
+		StackEvent stackEvent = StackEvent.builder().build();
+
 		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
 		when(mockConfig.getProperty(Constants.PROPERTY_KEY_INSTANCE)).thenReturn("101");
 		
@@ -266,11 +268,11 @@ public class SynapseHelpCollectionIndexCreationTest {
 		
 		for (int i = 0; i < SynapseHelpCollectionIndexCreation.MAX_RETRY_COUNT; i++) {
 			// Call under test
-			assertEquals(Optional.empty(), handler.handle(mockStackEvent));
+			assertEquals(Optional.empty(), handler.handle(stackEvent));
 		}
 		
 		assertEquals(ex, assertThrows(OpenSearchException.class, () -> {
-			handler.handle(mockStackEvent).isEmpty();	
+			handler.handle(stackEvent).isEmpty();
 		}));
 		
 		verifyNoMoreInteractions(mockOpenSearchIndicesClient);
@@ -278,6 +280,7 @@ public class SynapseHelpCollectionIndexCreationTest {
 	
 	@Test
 	public void testHandleWithRetryOnOpenSearchExceptionAndSuccess() throws IOException, InterruptedException {
+		StackEvent stackEvent = StackEvent.builder().build();
 		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
 		when(mockConfig.getProperty(Constants.PROPERTY_KEY_INSTANCE)).thenReturn("101");
 		
@@ -291,8 +294,8 @@ public class SynapseHelpCollectionIndexCreationTest {
 		
 		when(mockOpenSearchIndicesClient.exists(existRequestCaptor.capture())).thenThrow(ex).thenReturn(new BooleanResponse(true));
 		
-		assertEquals(Optional.empty(), handler.handle(mockStackEvent));
-		assertEquals(Optional.of("index-already-exists"), handler.handle(mockStackEvent));
+		assertEquals(Optional.empty(), handler.handle(stackEvent));
+		assertEquals(Optional.of("index-already-exists"), handler.handle(stackEvent));
 				
 		verifyNoMoreInteractions(mockOpenSearchIndicesClient);
 	}
