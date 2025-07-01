@@ -90,13 +90,19 @@ public class CloudFormationClientWrapperImpl implements CloudFormationClientWrap
 						.stackName(requestInput.getStackName())
 						.templateURL(templateUrl);
 				if (requestInput.getParameters() != null) {
-					builder.parameters(requestInput.getParameters());
+					builder.parameters(
+							Arrays.stream(requestInput.getParameters())
+									.filter(Objects::nonNull)
+									.collect(Collectors.toList()));
 				}
 				if (requestInput.getCapabilities() != null) {
-					builder.capabilities(requestInput.getCapabilities());
+					builder.capabilities(
+							Arrays.stream(requestInput.getCapabilities())
+									.filter(Objects::nonNull)
+									.collect(Collectors.toList()));
 				}
 				if (requestInput.getTags() != null) {
-					builder.tags(requestInput.getTags());
+					builder.tags(requestInput.getTags().stream().filter(Objects::nonNull).collect(Collectors.toList()));;
 				}
 				UpdateStackRequest request = builder.build();
 				UpdateStackResponse results = cloudFormationClient.updateStack(request);
