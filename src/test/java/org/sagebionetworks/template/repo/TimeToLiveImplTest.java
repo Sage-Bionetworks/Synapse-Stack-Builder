@@ -22,8 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.config.TimeToLiveImpl;
 import org.sagebionetworks.util.Clock;
-
-import com.amazonaws.services.cloudformation.model.Parameter;
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
 
 @ExtendWith(MockitoExtension.class)
 public class TimeToLiveImplTest {
@@ -67,8 +66,10 @@ public class TimeToLiveImplTest {
 		Optional<Parameter> op = ttl.createTimeToLiveParameter();
 
 		Optional<Parameter> expected = Optional
-				.of(new Parameter().withParameterKey(PARAM_KEY_TIME_TO_LIVE)
-						.withParameterValue("2023-02-20T19:08:24.344-08:00[America/Los_Angeles]"));
+				.of(Parameter.builder()
+						.parameterKey(PARAM_KEY_TIME_TO_LIVE)
+						.parameterValue("2023-02-20T19:08:24.344-08:00[America/Los_Angeles]")
+						.build());
 		assertEquals(expected, op);
 	}
 
@@ -86,7 +87,7 @@ public class TimeToLiveImplTest {
 
 	@Test
 	public void testIsTimeToLiveExpiredWithNoMatch() {
-		List<Parameter> param = List.of(new Parameter().withParameterKey("wrong"));
+		List<Parameter> param = List.of(Parameter.builder().parameterKey("wrong").build());
 		// call under test
 		assertFalse(ttl.isTimeToLiveExpired(param));
 	}
@@ -94,7 +95,7 @@ public class TimeToLiveImplTest {
 	@Test
 	public void testIsTimeToLiveExpiredWithMatchDefault() {
 		List<Parameter> param = List.of(
-				new Parameter().withParameterKey(PARAM_KEY_TIME_TO_LIVE).withParameterValue("NONE"));
+				Parameter.builder().parameterKey(PARAM_KEY_TIME_TO_LIVE).parameterValue("NONE").build());
 		// call under test
 		assertFalse(ttl.isTimeToLiveExpired(param));
 	}
@@ -104,8 +105,10 @@ public class TimeToLiveImplTest {
 		long nowMs = ZonedDateTime.parse("2023-02-21T03:08:04.000Z", DateTimeFormatter.ISO_ZONED_DATE_TIME)
 				.toEpochSecond() * 1000;
 		when(mockClock.currentTimeMillis()).thenReturn(nowMs);
-		List<Parameter> param = List.of(new Parameter().withParameterKey(PARAM_KEY_TIME_TO_LIVE)
-				.withParameterValue("2023-02-21T03:08:05.000Z"));
+		List<Parameter> param = List.of(Parameter.builder()
+				.parameterKey(PARAM_KEY_TIME_TO_LIVE)
+				.parameterValue("2023-02-21T03:08:05.000Z")
+				.build());
 		// call under test
 		assertFalse(ttl.isTimeToLiveExpired(param));
 	}
@@ -115,8 +118,10 @@ public class TimeToLiveImplTest {
 		long nowMs = ZonedDateTime.parse("2023-02-21T03:08:04.000Z", DateTimeFormatter.ISO_ZONED_DATE_TIME)
 				.toEpochSecond() * 1000;
 		when(mockClock.currentTimeMillis()).thenReturn(nowMs);
-		List<Parameter> param = List.of(new Parameter().withParameterKey(PARAM_KEY_TIME_TO_LIVE)
-				.withParameterValue("2023-02-21T03:08:03.000Z"));
+		List<Parameter> param = List.of(Parameter.builder()
+				.parameterKey(PARAM_KEY_TIME_TO_LIVE)
+				.parameterValue("2023-02-21T03:08:03.000Z")
+				.build());
 		// call under test
 		assertTrue(ttl.isTimeToLiveExpired(param));
 	}

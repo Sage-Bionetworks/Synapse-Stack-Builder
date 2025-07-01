@@ -23,7 +23,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
@@ -36,7 +36,7 @@ public class NetworkLoadBalancerBuilderImplTest {
 	@Mock
 	private Configuration mockConfig;
 	@Mock
-	private CloudFormationClient mockCloudFormationClient;
+	private CloudFormationClientWrapper mockCloudFormationClientWrapper;
 
 	private VelocityEngine velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
 	@Mock
@@ -55,7 +55,7 @@ public class NetworkLoadBalancerBuilderImplTest {
 	@BeforeEach
 	public void before() {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
-		builder = new NetworkLoadBalancerBuilderImpl(mockCloudFormationClient, velocityEngine, mockConfig,
+		builder = new NetworkLoadBalancerBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, mockConfig,
 				mockLoggerFactory, mockStackTagsProvider);
 	}
 
@@ -69,7 +69,7 @@ public class NetworkLoadBalancerBuilderImplTest {
 		// call under test
 		builder.buildAndDeploy();
 
-		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(requestCaptor.capture());
 		CreateOrUpdateStackRequest request = requestCaptor.getValue();
 		assertNotNull(request);
 		assertEquals("dev-nlbs", request.getStackName());

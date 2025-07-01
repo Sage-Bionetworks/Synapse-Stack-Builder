@@ -1,6 +1,5 @@
 package org.sagebionetworks.template.vpc;
 
-import com.amazonaws.services.cloudformation.model.Tag;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -12,18 +11,17 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.Configuration;
+import software.amazon.awssdk.services.cloudformation.model.Tag;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -31,13 +29,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.*;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OLD_VPC_CIDR;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SubnetTemplateBuilderImplTest {
 
     @Mock
-    CloudFormationClient mockCloudFormationClient;
+    CloudFormationClientWrapper mockCloudFormationClientWrapper;
     @Mock
     Configuration mockConfig;
     @Mock
@@ -73,10 +70,10 @@ public class SubnetTemplateBuilderImplTest {
         when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 
         expectedTags = new LinkedList<>();
-        Tag t = new Tag().withKey("aKey").withValue("aValue");
+        Tag t = Tag.builder().key("aKey").value("aValue").build();
         when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
-        builder = new SubnetTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, mockConfig, mockLoggerFactory, mockStackTagsProvider);
+        builder = new SubnetTemplateBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, mockConfig, mockLoggerFactory, mockStackTagsProvider);
 
         colors = new String[] {"Red", "Green"};
         subnetPrefix = "10.24";
@@ -131,7 +128,7 @@ public class SubnetTemplateBuilderImplTest {
         // call under test
         builder.buildAndDeployPublicSubnets();
 
-        verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
+        verify(mockCloudFormationClientWrapper).createOrUpdateStack(requestCaptor.capture());
         CreateOrUpdateStackRequest request = requestCaptor.getValue();
         assertEquals("synapse-dev-vpc-2-public-subnets", request.getStackName());
         assertNull(request.getParameters());
@@ -146,7 +143,7 @@ public class SubnetTemplateBuilderImplTest {
         // call under test
         builder.buildAndDeployPrivateSubnets();
 
-        verify(mockCloudFormationClient, times(2)).createOrUpdateStack(requestCaptor.capture());
+        verify(mockCloudFormationClientWrapper, times(2)).createOrUpdateStack(requestCaptor.capture());
         List<CreateOrUpdateStackRequest> requests = requestCaptor.getAllValues();
 
         assertEquals(2, requests.size());
