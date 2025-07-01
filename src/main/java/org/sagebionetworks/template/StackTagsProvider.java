@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.sagebionetworks.template.config.Configuration;
 
-import com.amazonaws.services.cloudformation.model.Tag;
+import software.amazon.awssdk.services.cloudformation.model.Tag;
 
 public interface StackTagsProvider {
 

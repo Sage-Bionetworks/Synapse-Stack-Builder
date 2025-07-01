@@ -10,7 +10,6 @@ import org.sagebionetworks.template.ThreadProvider;
 import org.sagebionetworks.template.WaitConditionHandler;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
-import com.amazonaws.services.cloudformation.model.StackEvent;
 import com.google.inject.Inject;
 
 import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
@@ -19,6 +18,7 @@ import software.amazon.awssdk.services.bedrockagent.model.IngestionJob;
 import software.amazon.awssdk.services.bedrockagent.model.IngestionJobStatistics;
 import software.amazon.awssdk.services.bedrockagent.model.IngestionJobSummary;
 import software.amazon.awssdk.services.bedrockagent.model.KnowledgeBaseSummary;
+import software.amazon.awssdk.services.cloudformation.model.StackEvent;
 
 /**
  * When a bedrock knowledge base is created its data source needs to be synchronized, we do this after the datasource is created through a 

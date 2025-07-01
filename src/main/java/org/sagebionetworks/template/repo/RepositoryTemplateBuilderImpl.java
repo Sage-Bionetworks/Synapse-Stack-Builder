@@ -88,11 +88,11 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
-import org.sagebionetworks.template.Ec2Client;
+import org.sagebionetworks.template.Ec2ClientWrapper;
 import org.sagebionetworks.template.ImageBuilderClient;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
@@ -108,16 +108,17 @@ import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
 
-import com.amazonaws.services.cloudformation.model.Output;
-import com.amazonaws.services.cloudformation.model.Parameter;
-import com.amazonaws.services.cloudformation.model.Stack;
-import com.amazonaws.services.cloudformation.model.Tag;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
-import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
-import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
-import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import com.google.inject.Inject;
 
+import software.amazon.awssdk.services.cloudformation.model.Capability;
+import software.amazon.awssdk.services.cloudformation.model.Output;
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.Tag;
+import software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkClient;
+import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
+import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsResponse;
+import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformSummary;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
 
@@ -125,9 +126,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	public static final List<String> MACHINE_TYPE_LIST = List.of("Workers", "Repository");
 	public static final List<String> POOL_TYPE_LIST = List.of("Idgen", "Main", "Migration", "Tables");
 
-	
-	private final CloudFormationClient cloudFormationClient;
-	private final Ec2Client ec2Client;
+	private final CloudFormationClientWrapper cloudFormationClientWrapper;
+	private final Ec2ClientWrapper ec2ClientWrapper;
 	private final VelocityEngine velocityEngine;
 	private final RepoConfiguration config;
 	private final Logger logger;
@@ -137,23 +137,23 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	private final ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkSolutionStackNameProvider;
 	private final StackTagsProvider stackTagsProvider;
 	private final CloudwatchLogsVelocityContextProvider cwlContextProvider;
-	private final AWSElasticBeanstalk beanstalkClient;
+	private final ElasticBeanstalkClient beanstalkClient;
 	private final ImageBuilderClient imageBuilderClient;
 	private final TimeToLive timeToLive;
 	private final StsClient stsClient;
 	private final Set<WaitConditionHandler> waitConditionHandlers;
 
 	@Inject
-	public RepositoryTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
-										 RepoConfiguration configuration, LoggerFactory loggerFactory, ArtifactCopy artifactCopy,
-										 SecretBuilder secretBuilder, Set<VelocityContextProvider> contextProviders,
-										 ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkDefaultAMIEncrypter,
-										 StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
-										 Ec2Client ec2Client, AWSElasticBeanstalk beanstalkClient, ImageBuilderClient imageBuilderClient, TimeToLive ttl, 
-										 StsClient stsClient, Set<WaitConditionHandler> waitConditionHandlers) {
+	public RepositoryTemplateBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper, VelocityEngine velocityEngine,
+                                         RepoConfiguration configuration, LoggerFactory loggerFactory, ArtifactCopy artifactCopy,
+                                         SecretBuilder secretBuilder, Set<VelocityContextProvider> contextProviders,
+                                         ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkDefaultAMIEncrypter,
+                                         StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
+                                         Ec2ClientWrapper ec2ClientWrapper, ElasticBeanstalkClient beanstalkClient, ImageBuilderClient imageBuilderClient, TimeToLive ttl,
+                                         StsClient stsClient, Set<WaitConditionHandler> waitConditionHandlers) {
 		super();
-		this.cloudFormationClient = cloudFormationClient;
-		this.ec2Client = ec2Client;
+		this.cloudFormationClientWrapper = cloudFormationClientWrapper;
+		this.ec2ClientWrapper = ec2ClientWrapper;
 		this.velocityEngine = velocityEngine;
 		this.config = configuration;
 		this.logger = loggerFactory.getLogger(RepositoryTemplateBuilderImpl.class);
@@ -177,8 +177,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		String tomcatVersion = config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT);
 		String requestedPlatformVersion = config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX);
 		ListPlatformVersionsRequest lpvReq = BeanstalkUtils.buildListPlatformVersionsRequest(javaVersion, tomcatVersion, null);
-		ListPlatformVersionsResult lpvRes = this.beanstalkClient.listPlatformVersions(lpvReq);
-		List<PlatformSummary> summaries = lpvRes.getPlatformSummaryList();
+		ListPlatformVersionsResponse lpvRes = this.beanstalkClient.listPlatformVersions(lpvReq);
+		List<PlatformSummary> summaries = lpvRes.platformSummaryList();
 		String latestPlatformVersion = BeanstalkUtils.getLatestPlatformVersion(summaries);
 		String actualVersion = requestedPlatformVersion;
 		if (LATEST.equals(requestedPlatformVersion)) {
@@ -203,7 +203,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 
 		buildAndDeployStack(context, sharedResourceStackName, TEMPLATE_SHARED_RESOUCES_MAIN_JSON_VTP, sharedParameters);
 		// Wait for the shared resources to complete
-		Stack sharedStackResults = cloudFormationClient.waitForStackToComplete(sharedResourceStackName, waitConditionHandlers).orElseThrow(()->new IllegalStateException("Stack does not exist: "+sharedResourceStackName));
+		Stack sharedStackResults = cloudFormationClientWrapper.waitForStackToComplete(sharedResourceStackName, waitConditionHandlers).orElseThrow(()->new IllegalStateException("Stack does not exist: "+sharedResourceStackName));
 				
 		// Build each bean stalk environment.
 		List<String> environmentNames = buildEnvironments(sharedStackResults);
@@ -273,7 +273,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		
 		// Determine Beanstalk subnets for instances
 		List<String> vpcSubnets = getPrivateSubnets(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR));
-		List<String> beanstalkSubnets = ec2Client.getAvailableSubnetsForInstanceType(ec2InstanceType, vpcSubnets);
+		List<String> beanstalkSubnets = ec2ClientWrapper.getAvailableSubnetsForInstanceType(ec2InstanceType, vpcSubnets);
 		String beanstalkSubnetsAsString = String.join(",", beanstalkSubnets);
 		context.put(BEANSTALK_INSTANCES_SUBNETS, beanstalkSubnetsAsString);
 
@@ -309,11 +309,11 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.logger.info("Template for stack: " + stackName);
 		this.logger.info(resultJSON);
 		// create or update the template
-		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest()
+		this.cloudFormationClientWrapper.createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(stackName)
 				.withTemplateBody(resultJSON)
 				.withParameters(parameters)
-				.withCapabilities(CAPABILITY_NAMED_IAM)
+				.withCapabilities(Capability.CAPABILITY_NAMED_IAM)
 				.withTags(stackTags)
 				.withEnableTerminationProtection(enableTerminationProtection));
 	}
@@ -485,8 +485,10 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	Parameter[] createSharedParameters() {
 		List<Parameter> params = new ArrayList<>(2);
 		String passwordValue = secretBuilder.getRepositoryDatabasePassword();
-		Parameter databasePassword = new Parameter().withParameterKey(PARAMETER_MYSQL_PASSWORD)
-				.withParameterValue(passwordValue);
+		Parameter databasePassword = Parameter.builder()
+				.parameterKey(PARAMETER_MYSQL_PASSWORD)
+				.parameterValue(passwordValue)
+				.build();
 		params.add(databasePassword);
 		timeToLive.createTimeToLiveParameter().ifPresent(ttl -> {
 			params.add(ttl);
@@ -529,9 +531,9 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		String instance = config.getProperty(PROPERTY_KEY_INSTANCE);
 		String outputName = stack+instance+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
 		// find the database end point suffix
-		for(Output output: sharedResouces.getOutputs()) {
-			if(outputName.equals(output.getOutputKey())){
-				String[] split = output.getOutputValue().split(stack+"-"+instance+"-db.");
+		for(Output output: sharedResouces.outputs()) {
+			if(outputName.equals(output.outputKey())){
+				String[] split = output.outputValue().split(stack+"-"+instance+"-db.");
 				return split[1];
 			}
 		}
@@ -545,7 +547,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 */
 	List<String> getPrivateSubnets(String color) {
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
-		String privateSubnets = cloudFormationClient.getOutput(
+		String privateSubnets = cloudFormationClientWrapper.getOutput(
 				Constants.createVpcPrivateSubnetsStackName(stack, color),
 				Constants.VPC_PRIVATE_SUBNETS_STACK_PRIVATE_SUBNETS_OUPUT_KEY);
 		String[] privateSubnetIds = privateSubnets.split(",");

@@ -25,8 +25,8 @@ public class RegularExpressions {
 	public static String REPO_V1_ENITTY_SYNID_TABLE_QUERY_ASYNC_START = String
 			.format("\\/+repo\\/v1\\/entity\\/%s\\/table\\/query\\/async\\/start", SYN_ID);
 
-	public static String REPO_V1_ENITTY_SYNID_TABLE_DOWNLOAD_CSV_ASYNC_START = String
-			.format("\\/+repo\\/v1\\/entity\\/%s\\/table\\/download\\/csv\\/async\\/start", SYN_ID);
+	public static String REPO_V1_ENITTY_SYNID_TABLE_DOWNLOAD_ASYNC_START = String
+			.format("\\/+repo\\/v1\\/entity\\/%s\\/table\\/download\\/(csv|pfb)\\/async\\/start", SYN_ID);
 
 	public static String REPO_V1_ACCOUNT_UNSIGNEDLONG_EMAIL_VALIDATION = String
 			.format("\\/+repo\\/v1\\/account\\/%s\\/emailValidation", UNSIGNED_LONG);
@@ -62,8 +62,8 @@ public class RegularExpressions {
 		context.put("regex_repo_v1_entity_synid_table_query_async_start",
 				toEscapedJSON(REPO_V1_ENITTY_SYNID_TABLE_QUERY_ASYNC_START));
 
-		context.put("regex_repo_v1_entity_synid_table_csv_download_async_start",
-				toEscapedJSON(REPO_V1_ENITTY_SYNID_TABLE_DOWNLOAD_CSV_ASYNC_START));
+		context.put("regex_repo_v1_entity_synid_table_download_async_start",
+				toEscapedJSON(REPO_V1_ENITTY_SYNID_TABLE_DOWNLOAD_ASYNC_START));
 		
 		context.put("regex_repo_v1_account_unsignedlong_email_validation", 
 				toEscapedJSON(REPO_V1_ACCOUNT_UNSIGNEDLONG_EMAIL_VALIDATION));

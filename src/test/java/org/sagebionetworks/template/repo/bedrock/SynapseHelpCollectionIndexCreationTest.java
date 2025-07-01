@@ -23,6 +23,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.opensearch.client.opensearch._types.ErrorCause;
+import org.opensearch.client.opensearch._types.ErrorResponse;
+import org.opensearch.client.opensearch._types.OpenSearchException;
 import org.opensearch.client.opensearch._types.mapping.Property;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
 import org.opensearch.client.opensearch.indices.CreateIndexResponse;
@@ -35,8 +38,7 @@ import org.sagebionetworks.template.OpenSearchClientFactory;
 import org.sagebionetworks.template.WaitConditionHandler;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
-import com.amazonaws.services.cloudformation.model.StackEvent;
-
+import software.amazon.awssdk.services.cloudformation.model.StackEvent;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
 import software.amazon.awssdk.services.opensearchserverless.model.BatchGetCollectionRequest;
 import software.amazon.awssdk.services.opensearchserverless.model.BatchGetCollectionResponse;
@@ -64,10 +66,7 @@ public class SynapseHelpCollectionIndexCreationTest {
 	
 	@Mock
 	private Logger mockLogger;
-	
-	@Mock
-	private StackEvent mockStackEvent;
-	
+
 	@Mock
 	private OpenSearchIndicesClient mockOpenSearchIndicesClient;
 	
@@ -112,9 +111,10 @@ public class SynapseHelpCollectionIndexCreationTest {
 				.shardsAcknowledged(true)
 			)
 		);
+		StackEvent stackEvent = StackEvent.builder().build();
 		
 		// Call under test
-		assertEquals(Optional.of("index-creation-complete"), handler.handle(mockStackEvent));
+		assertEquals(Optional.of("index-creation-complete"), handler.handle(stackEvent));
 		
 		assertEquals(
 			BatchGetCollectionRequest.builder().names("dev-101-synhelp").build(), 
@@ -151,9 +151,10 @@ public class SynapseHelpCollectionIndexCreationTest {
 		when(mockOssManagementClient.batchGetCollection(getCollectionRequestCaptor.capture())).thenReturn(BatchGetCollectionResponse.builder()
 			.collectionDetails(CollectionDetail.builder().status(CollectionStatus.CREATING).collectionEndpoint(COLLECTION_ENDPOINT).build()).build()
 		);
-				
+		StackEvent stackEvent = StackEvent.builder().build();
+
 		// Call under test
-		assertEquals(Optional.empty(), handler.handle(mockStackEvent));
+		assertEquals(Optional.empty(), handler.handle(stackEvent));
 		
 		verifyNoMoreInteractions(mockOpenSearchIndicesClient);
 		
@@ -168,10 +169,11 @@ public class SynapseHelpCollectionIndexCreationTest {
 		when(mockOssManagementClient.batchGetCollection(getCollectionRequestCaptor.capture())).thenReturn(BatchGetCollectionResponse.builder()
 			.collectionDetails(Collections.emptyList()).build()
 		);
-		
+		StackEvent stackEvent = StackEvent.builder().build();
+
 		assertThrows(NoSuchElementException.class, () -> {			
 			// Call under test
-			handler.handle(mockStackEvent);
+			handler.handle(stackEvent);
 		});
 				
 		verifyNoMoreInteractions(mockOpenSearchIndicesClient);
@@ -191,9 +193,10 @@ public class SynapseHelpCollectionIndexCreationTest {
 		when(mockOpenSearchClientFactory.getIndicesClient(COLLECTION_ENDPOINT)).thenReturn(mockOpenSearchIndicesClient);
 		
 		when(mockOpenSearchIndicesClient.exists(existRequestCaptor.capture())).thenReturn(new BooleanResponse(true));
-				
+		StackEvent stackEvent = StackEvent.builder().build();
+
 		// Call under test
-		assertEquals(Optional.of("index-already-exists"), handler.handle(mockStackEvent));
+		assertEquals(Optional.of("index-already-exists"), handler.handle(stackEvent));
 		
 		assertEquals(
 			BatchGetCollectionRequest.builder().names("dev-101-synhelp").build(), 
@@ -223,10 +226,12 @@ public class SynapseHelpCollectionIndexCreationTest {
 		IOException ex = new IOException("nope");
 		
 		when(mockOpenSearchIndicesClient.exists(existRequestCaptor.capture())).thenThrow(ex);
-				
+
+		StackEvent stackEvent = StackEvent.builder().build();
+
 		IllegalStateException result = assertThrows(IllegalStateException.class, () -> {			
 			// Call under test
-			handler.handle(mockStackEvent);
+			handler.handle(stackEvent);
 		});
 		
 		assertEquals(ex, result.getCause());
@@ -242,6 +247,54 @@ public class SynapseHelpCollectionIndexCreationTest {
 		
 		verifyNoMoreInteractions(mockOpenSearchIndicesClient);
 	
+	}
+	
+	@Test
+	public void testHandleWithRetryOnOpenSearchException() throws IOException, InterruptedException {
+		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
+		when(mockConfig.getProperty(Constants.PROPERTY_KEY_INSTANCE)).thenReturn("101");
+		
+		when(mockOssManagementClient.batchGetCollection(getCollectionRequestCaptor.capture())).thenReturn(BatchGetCollectionResponse.builder()
+			.collectionDetails(CollectionDetail.builder().status(CollectionStatus.ACTIVE).collectionEndpoint(COLLECTION_ENDPOINT).build()).build()
+		);
+		
+		when(mockOpenSearchClientFactory.getIndicesClient(COLLECTION_ENDPOINT)).thenReturn(mockOpenSearchIndicesClient);
+		
+		OpenSearchException ex = new OpenSearchException(new ErrorResponse.Builder().error(new ErrorCause.Builder().type("nope").reason("bad").build()).build());
+		
+		when(mockOpenSearchIndicesClient.exists(existRequestCaptor.capture())).thenThrow(ex);
+		
+		for (int i = 0; i < SynapseHelpCollectionIndexCreation.MAX_RETRY_COUNT; i++) {
+			// Call under test
+			assertEquals(Optional.empty(), handler.handle(mockStackEvent));
+		}
+		
+		assertEquals(ex, assertThrows(OpenSearchException.class, () -> {
+			handler.handle(mockStackEvent).isEmpty();	
+		}));
+		
+		verifyNoMoreInteractions(mockOpenSearchIndicesClient);
+	}
+	
+	@Test
+	public void testHandleWithRetryOnOpenSearchExceptionAndSuccess() throws IOException, InterruptedException {
+		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
+		when(mockConfig.getProperty(Constants.PROPERTY_KEY_INSTANCE)).thenReturn("101");
+		
+		when(mockOssManagementClient.batchGetCollection(getCollectionRequestCaptor.capture())).thenReturn(BatchGetCollectionResponse.builder()
+			.collectionDetails(CollectionDetail.builder().status(CollectionStatus.ACTIVE).collectionEndpoint(COLLECTION_ENDPOINT).build()).build()
+		);
+		
+		when(mockOpenSearchClientFactory.getIndicesClient(COLLECTION_ENDPOINT)).thenReturn(mockOpenSearchIndicesClient);
+		
+		OpenSearchException ex = new OpenSearchException(new ErrorResponse.Builder().error(new ErrorCause.Builder().type("nope").reason("bad").build()).build());
+		
+		when(mockOpenSearchIndicesClient.exists(existRequestCaptor.capture())).thenThrow(ex).thenReturn(new BooleanResponse(true));
+		
+		assertEquals(Optional.empty(), handler.handle(mockStackEvent));
+		assertEquals(Optional.of("index-already-exists"), handler.handle(mockStackEvent));
+				
+		verifyNoMoreInteractions(mockOpenSearchIndicesClient);
 	}
 	
 

@@ -97,11 +97,11 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
-import org.sagebionetworks.template.Ec2Client;
+import org.sagebionetworks.template.Ec2ClientWrapper;
 import org.sagebionetworks.template.ImageBuilderClient;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
@@ -122,19 +122,18 @@ import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
 import org.sagebionetworks.template.repo.grid.GridContextProvider;
 import org.sagebionetworks.template.vpc.Color;
 
-import com.amazonaws.services.cloudformation.model.Output;
-import com.amazonaws.services.cloudformation.model.Parameter;
-import com.amazonaws.services.cloudformation.model.Stack;
-import com.amazonaws.services.cloudformation.model.Tag;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
-import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
-import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
-import com.amazonaws.services.elasticbeanstalk.model.PlatformFilter;
-import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
+import software.amazon.awssdk.services.cloudformation.model.Output;
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.Tag;
+import software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkClient;
+import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
+import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsResponse;
+import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformFilter;
+import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformSummary;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
@@ -144,11 +143,11 @@ import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
 public class RepositoryTemplateBuilderImplTest {
 
 	@Mock
-	private CloudFormationClient mockCloudFormationClient;
+	private CloudFormationClientWrapper mockCloudFormationClientWrapper;
 	@Mock
-	private Ec2Client mockEc2Client;
+	private Ec2ClientWrapper mockEc2ClientWrapper;
 	@Mock
-	private AWSElasticBeanstalk mockBeanstalkClient;
+	private ElasticBeanstalkClient mockBeanstalkClient;
 	@Mock
 	private ImageBuilderClient mockImageBuilderClient;
 	@Mock
@@ -215,20 +214,20 @@ public class RepositoryTemplateBuilderImplTest {
 		velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
 
 		expectedTags = new LinkedList<>();
-		Tag t = new Tag().withKey("aKey").withValue("aValue");
+		Tag t = Tag.builder().key("aKey").value("aValue").build();
 		expectedTags.add(t);
 
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 		
 		gridQueueRef = "GridQueueRefQueue";
 		
-		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory,
+		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder,
 				Sets.newHashSet(mockContextProvider1, mockContextProvider2,
 						new BedrockAgentContextProvider(config, mockS3Client),
 						new GridContextProvider(gridQueueRef, config)),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
-				mockEc2Client, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive, mockStsClient,
+                mockEc2ClientWrapper, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive, mockStsClient,
 				Set.of(mockWaitConditionHandler));
 		
 		builderSpy = Mockito.spy(builder);
@@ -239,21 +238,23 @@ public class RepositoryTemplateBuilderImplTest {
 		opsStackPrefix = "ops-vpc";
 		imagePipelineArn="arn:aws:imagebuilder:us-east-1:867686887310:image/cis-for-eb";
 		imageId = "ami-0123456789";
-		
-		sharedResouces = new Stack();
-		Output dbOut = new Output();
-		dbOut.withOutputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
+
 		databaseEndpointSuffix = "something.amazon.com";
-		dbOut.withOutputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix);
+		sharedResouces = Stack.builder().build();
+		Output dbOut = Output.builder()
+				.outputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
+				.outputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix)
+				.build();
 		// TableDB output
-		Output tableDBOutput1 = new Output();
-		tableDBOutput1.withOutputKey(stack + instance + "Table0" + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
-		tableDBOutput1.withOutputValue(stack + "-" + instance + "-table-0." + databaseEndpointSuffix);
-		Output tableDBOutput2 = new Output();
-		tableDBOutput2.withOutputKey(stack + instance + "Table1" + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT);
-		tableDBOutput2.withOutputValue(stack + "-" + instance + "-table-1." + databaseEndpointSuffix);
-		
-		sharedResouces.withOutputs(dbOut, tableDBOutput1, tableDBOutput2);
+		Output tableDBOutput1 = Output.builder()
+				.outputKey(stack + instance + "Table0" + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
+				.outputValue(stack + "-" + instance + "-table-0." + databaseEndpointSuffix)
+				.build();
+		Output tableDBOutput2 = Output.builder()
+				.outputKey(stack + instance + "Table1" + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
+				.outputValue(stack + "-" + instance + "-table-1." + databaseEndpointSuffix)
+				.build();
+		sharedResouces = Stack.builder().outputs(dbOut, tableDBOutput1, tableDBOutput2).build();
 
 		secretsSouce = new SourceBundle("secretBucket", "secretKey");
 		keyAlias = "alias/some/alias";
@@ -269,20 +270,21 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		
 		
-		sharedResouces = new Stack();
+		sharedResouces = Stack.builder().build();
 		
 		databaseEndpointSuffix = "something.amazon.com";
-		
-		sharedResouces.withOutputs(
-			new Output()
-				.withOutputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
-				.withOutputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix), 
-			new Output()
-				.withOutputKey("SynapseHelpCollectionEndpoint")
-				.withOutputValue("synhelp-endpoint")
-		);
 
-		when(mockCloudFormationClient.waitForStackToComplete(any(String.class), any())).thenReturn(Optional.of(sharedResouces));
+		sharedResouces = Stack.builder().outputs(
+				Output.builder()
+						.outputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
+						.outputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix)
+						.build(),
+				Output.builder()
+						.outputKey("SynapseHelpCollectionEndpoint")
+						.outputValue("synhelp-endpoint")
+						.build()
+		).build();
+		when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class), any())).thenReturn(Optional.of(sharedResouces));
 		
 	}
 
@@ -343,9 +345,9 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 		setupValidBeanstalkConfig();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
-		when(mockCloudFormationClient.getOutput(anyString(), anyString()))
+		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
 				.thenReturn(String.join(",", EXPECTED_SUBNETS));
-		when(mockEc2Client.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
+		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		stack = "prod";
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
@@ -354,8 +356,8 @@ public class RepositoryTemplateBuilderImplTest {
 		// call under test
 		builder.buildAndDeploy();
 
-		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
-		verify(mockCloudFormationClient).waitForStackToComplete("prod-101-shared-resources", Set.of(mockWaitConditionHandler));
+		verify(mockCloudFormationClientWrapper, times(4)).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete("prod-101-shared-resources", Set.of(mockWaitConditionHandler));
 		
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
@@ -521,9 +523,9 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 		setupValidBeanstalkConfig();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
-		when(mockCloudFormationClient.getOutput(anyString(), anyString()))
+		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
 				.thenReturn(String.join(",", EXPECTED_SUBNETS));
-		when(mockEc2Client.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
+		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		stack = "prod";
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
@@ -533,7 +535,7 @@ public class RepositoryTemplateBuilderImplTest {
 		// call under test
 		builder.buildAndDeploy();
 
-		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClientWrapper, times(4)).createOrUpdateStack(requestCaptor.capture());
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
 		assertEquals("prod-101-shared-resources", request.getStackName());
@@ -590,7 +592,7 @@ public class RepositoryTemplateBuilderImplTest {
 	public void testBuildAndDeployDev() throws InterruptedException {
 		
 		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(
-				Optional.of(new Parameter().withParameterKey(PARAM_KEY_TIME_TO_LIVE).withParameterValue("NONE")));
+				Optional.of(Parameter.builder().parameterKey(PARAM_KEY_TIME_TO_LIVE).parameterValue("NONE").build()));
 		
 		when(mockStackTagsProvider.getStackTags(config)).thenReturn(expectedTags);
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
@@ -645,9 +647,9 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 		setupValidBeanstalkConfig();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
-		when(mockCloudFormationClient.getOutput(anyString(), anyString()))
+		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
 				.thenReturn(String.join(",", EXPECTED_SUBNETS));
-		when(mockEc2Client.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
+		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		stack = "dev";
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
@@ -657,8 +659,8 @@ public class RepositoryTemplateBuilderImplTest {
 		// call under test
 		builder.buildAndDeploy();
 
-		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
-		verify(mockCloudFormationClient).waitForStackToComplete("dev-101-shared-resources", Set.of(mockWaitConditionHandler));
+		verify(mockCloudFormationClientWrapper, times(4)).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete("dev-101-shared-resources", Set.of(mockWaitConditionHandler));
 		
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
@@ -667,7 +669,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(false, request.getEnableTerminationProtection());
 		assertNotNull(request.getParameters());
 		assertEquals(2, request.getParameters().length);
-		assertEquals("NONE", request.getParameters()[1].getParameterValue());
+		assertEquals("NONE", request.getParameters()[1].parameterValue());
 		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);
 		JSONObject templateJson = new JSONObject(bodyJSONString);
@@ -790,9 +792,9 @@ public class RepositoryTemplateBuilderImplTest {
 
 		setupValidBeanstalkConfig();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
-		when(mockCloudFormationClient.getOutput(anyString(), anyString()))
+		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
 				.thenReturn(String.join(",", EXPECTED_SUBNETS));
-		when(mockEc2Client.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
+		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn("repoSnapshotIdentifier");
 		String[] tableSnaphotIdentifiers = { "table0SnapshotIdentifier", "table1SnapshotIdentifier" };
 		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS))
@@ -807,7 +809,7 @@ public class RepositoryTemplateBuilderImplTest {
 		// call under test
 		builder.buildAndDeploy();
 
-		verify(mockCloudFormationClient, times(4)).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClientWrapper, times(4)).createOrUpdateStack(requestCaptor.capture());
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
 		assertEquals("dev-101-shared-resources", request.getStackName());
@@ -961,8 +963,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(params);
 		assertEquals(1, params.length);
 		Parameter param = params[0];
-		assertEquals(PARAMETER_MYSQL_PASSWORD, param.getParameterKey());
-		assertEquals("somePassword", param.getParameterValue());
+		assertEquals(PARAMETER_MYSQL_PASSWORD, param.parameterKey());
+		assertEquals("somePassword", param.parameterValue());
 
 		verify(mockTimeToLive).createTimeToLiveParameter();
 	}
@@ -972,19 +974,19 @@ public class RepositoryTemplateBuilderImplTest {
 
 		when(mockSecretBuilder.getRepositoryDatabasePassword()).thenReturn("somePassword");
 		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(
-				Optional.of(new Parameter().withParameterKey(PARAM_KEY_TIME_TO_LIVE).withParameterValue("NONE")));
+				Optional.of(Parameter.builder().parameterKey(PARAM_KEY_TIME_TO_LIVE).parameterValue("NONE").build()));
 
 		// call under test
 		Parameter[] params = builder.createSharedParameters();
 		assertNotNull(params);
 		assertEquals(2, params.length);
 		Parameter param = params[0];
-		assertEquals(PARAMETER_MYSQL_PASSWORD, param.getParameterKey());
-		assertEquals("somePassword", param.getParameterValue());
+		assertEquals(PARAMETER_MYSQL_PASSWORD, param.parameterKey());
+		assertEquals("somePassword", param.parameterValue());
 
 		param = params[1];
-		assertEquals(PARAM_KEY_TIME_TO_LIVE, param.getParameterKey());
-		assertEquals("NONE", param.getParameterValue());
+		assertEquals(PARAM_KEY_TIME_TO_LIVE, param.parameterKey());
+		assertEquals("NONE", param.parameterValue());
 
 		verify(mockTimeToLive).createTimeToLiveParameter();
 	}
@@ -1290,18 +1292,17 @@ public class RepositoryTemplateBuilderImplTest {
 
 //		
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
-		when(mockCloudFormationClient.getOutput(anyString(), anyString()))
+		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
 				.thenReturn(String.join(",", EXPECTED_SUBNETS));
-		when(mockEc2Client.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
+		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("latest");
 		// This will make the call to getActualBeanstalkLinuxPlatform() return 3.4.7
-		PlatformSummary expectedSummary = new PlatformSummary().withPlatformVersion("3.4.7");
+		PlatformSummary expectedSummary = PlatformSummary.builder().platformVersion("3.4.7").build();
 		List<PlatformSummary> expectedSummaries = Arrays.asList(expectedSummary);
-		ListPlatformVersionsResult expectedLpvr = new ListPlatformVersionsResult()
-				.withPlatformSummaryList(expectedSummaries);
-		when(mockBeanstalkClient.listPlatformVersions(any())).thenReturn(expectedLpvr);
+		ListPlatformVersionsResponse expectedLpvr = ListPlatformVersionsResponse.builder().platformSummaryList(expectedSummaries).build();
+		when(mockBeanstalkClient.listPlatformVersions(any(ListPlatformVersionsRequest.class))).thenReturn(expectedLpvr);
 		when(config.getProperty("org.sagebionetworks.cloudfront.keypair")).thenReturn("dataCdnKeyPairId");
 
 		EnvironmentDescriptor environment = new EnvironmentDescriptor().withType(EnvironmentType.REPOSITORY_SERVICES);
@@ -1333,6 +1334,7 @@ public class RepositoryTemplateBuilderImplTest {
 	
 		// call under test
 		String suffix = builder.extractDatabaseSuffix(sharedResouces);
+
 		assertEquals(databaseEndpointSuffix, suffix);
 	}
 
@@ -1356,13 +1358,12 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("4.5.6");
 		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2023";
-		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=")
-				.withValues(expectedPlatformName);
-		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
-		// No plaform found with that name
+		PlatformFilter expectedFilter = PlatformFilter.builder().type("PlatformName").operator("=").values(expectedPlatformName).build();
+		ListPlatformVersionsRequest expectedRequest = ListPlatformVersionsRequest.builder().filters(expectedFilter).build();
+
+		// No platform found with that name
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
-		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult()
-				.withPlatformSummaryList(expectedSummaries);
+		ListPlatformVersionsResponse expectedResult = ListPlatformVersionsResponse.builder().platformSummaryList(expectedSummaries).build();
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 
 		assertThrows(IllegalArgumentException.class, ()->{
@@ -1374,22 +1375,26 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testGetActualBeanstalkBeanstalkPlatformOverrideNotLatest() {
-		// we explicitely request 3.4.6, which is not the latest version, expected is
+		// we explicitly request 3.4.6, which is not the latest version, expected is
 		// 3.4.6 and log msg
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("3.4.6");
 		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2023";
-		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=")
-				.withValues(expectedPlatformName);
-		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
+		PlatformFilter expectedFilter = PlatformFilter.builder()
+				.type("PlatformName")
+				.operator("=")
+				.values(expectedPlatformName)
+				.build();
+		ListPlatformVersionsRequest expectedRequest = ListPlatformVersionsRequest.builder()
+				.filters(expectedFilter)
+				.build();
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
-		PlatformSummary summary = new PlatformSummary().withPlatformVersion("3.4.6");
-		expectedSummaries.add(summary);
-		summary = new PlatformSummary().withPlatformVersion("3.4.7");
-		expectedSummaries.add(summary);
-		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult()
-				.withPlatformSummaryList(expectedSummaries);
+		expectedSummaries.add(PlatformSummary.builder().platformVersion("3.4.6").build());
+		expectedSummaries.add(PlatformSummary.builder().platformVersion("3.4.7").build());
+		ListPlatformVersionsResponse expectedResult = ListPlatformVersionsResponse.builder()
+				.platformSummaryList(expectedSummaries)
+				.build();
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 
 		// call under test
@@ -1406,16 +1411,20 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("3.4.6");
 		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2023";
-		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=")
-				.withValues(expectedPlatformName);
-		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
+		PlatformFilter expectedFilter = PlatformFilter.builder()
+				.type("PlatformName")
+				.operator("=")
+				.values(expectedPlatformName)
+				.build();
+		ListPlatformVersionsRequest expectedRequest = ListPlatformVersionsRequest.builder()
+				.filters(expectedFilter)
+				.build();
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
-		PlatformSummary summary = new PlatformSummary().withPlatformVersion("3.4.5");
-		expectedSummaries.add(summary);
-		summary = new PlatformSummary().withPlatformVersion("3.4.6");
-		expectedSummaries.add(summary);
-		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult()
-				.withPlatformSummaryList(expectedSummaries);
+		expectedSummaries.add(PlatformSummary.builder().platformVersion("3.4.5").build());
+		expectedSummaries.add(PlatformSummary.builder().platformVersion("3.4.6").build());
+		ListPlatformVersionsResponse expectedResult = ListPlatformVersionsResponse.builder()
+				.platformSummaryList(expectedSummaries)
+				.build();
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 
 		// call under test
@@ -1431,16 +1440,22 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("latest");
 		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2023";
-		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=")
-				.withValues(expectedPlatformName);
-		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
+		PlatformFilter expectedFilter = PlatformFilter.builder()
+				.type("PlatformName")
+				.operator("=")
+				.values(expectedPlatformName)
+				.build();
+		ListPlatformVersionsRequest expectedRequest = ListPlatformVersionsRequest.builder()
+				.filters(expectedFilter)
+				.build();
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
-		PlatformSummary summary = new PlatformSummary().withPlatformVersion("3.4.5");
+		PlatformSummary summary = PlatformSummary.builder().platformVersion("3.4.5").build();
 		expectedSummaries.add(summary);
-		summary = new PlatformSummary().withPlatformVersion("3.4.6");
+		summary = PlatformSummary.builder().platformVersion("3.4.6").build();
 		expectedSummaries.add(summary);
-		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult()
-				.withPlatformSummaryList(expectedSummaries);
+		ListPlatformVersionsResponse expectedResult = ListPlatformVersionsResponse.builder()
+				.platformSummaryList(expectedSummaries)
+				.build();
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 
 		// call under test
@@ -1581,7 +1596,7 @@ public class RepositoryTemplateBuilderImplTest {
 	public void testBuildEnvironmentsWithTTL() {
 
 		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
-		Parameter ttl = new Parameter().withParameterKey("ttl").withParameterValue("value");
+		Parameter ttl = Parameter.builder().parameterKey("ttl").parameterValue("value").build();
 		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(Optional.of(ttl));
 
 		EnvironmentDescriptor e1 = new EnvironmentDescriptor().withName("repo");
@@ -1609,14 +1624,12 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("3.4.7");
 		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2023";
-		PlatformFilter expectedFilter = new PlatformFilter().withType("PlatformName").withOperator("=")
-				.withValues(expectedPlatformName);
-		ListPlatformVersionsRequest expectedRequest = new ListPlatformVersionsRequest().withFilters(expectedFilter);
+		PlatformFilter expectedFilter = PlatformFilter.builder().type("PlatformName").operator("=").values(expectedPlatformName).build();
+		ListPlatformVersionsRequest expectedRequest = ListPlatformVersionsRequest.builder().filters(expectedFilter).build();
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
-		PlatformSummary summary = new PlatformSummary().withPlatformVersion("3.4.7");
+		PlatformSummary summary = PlatformSummary.builder().platformVersion("3.4.7").build();
 		expectedSummaries.add(summary);
-		ListPlatformVersionsResult expectedResult = new ListPlatformVersionsResult()
-				.withPlatformSummaryList(expectedSummaries);
+		ListPlatformVersionsResponse expectedResult = ListPlatformVersionsResponse.builder().platformSummaryList(expectedSummaries).build();
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 	}
 }

@@ -2,25 +2,25 @@ package org.sagebionetworks.template.repo.beanstalk;
 
 import java.util.List;
 
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
-import com.amazonaws.services.elasticbeanstalk.model.DescribePlatformVersionRequest;
-import com.amazonaws.services.elasticbeanstalk.model.PlatformDescription;
-import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import com.google.inject.Inject;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.config.RepoConfiguration;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkClient;
+import software.amazon.awssdk.services.elasticbeanstalk.model.DescribePlatformVersionRequest;
+import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformDescription;
+import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformSummary;
 
 public class ElasticBeanstalkSolutionStackNameProviderImpl implements ElasticBeanstalkSolutionStackNameProvider {
-	AWSElasticBeanstalk elasticBeanstalk;
-	AmazonEC2 ec2;
+	ElasticBeanstalkClient elasticBeanstalk;
+	Ec2Client ec2;
 	Configuration config;
 
 	static final String AMI_VIRTUALIZATION_TYPE = "hvm";
 	static final String SOURCE_AMI_TAG_KEY = "CopiedFrom";
 
 	@Inject
-	public ElasticBeanstalkSolutionStackNameProviderImpl(AWSElasticBeanstalk elasticBeanstalk, AmazonEC2 ec2, RepoConfiguration config) {
+	public ElasticBeanstalkSolutionStackNameProviderImpl(ElasticBeanstalkClient elasticBeanstalk, Ec2Client ec2, RepoConfiguration config) {
 		this.elasticBeanstalk = elasticBeanstalk;
 		this.ec2 = ec2;
 		this.config = config;
@@ -35,11 +35,10 @@ public class ElasticBeanstalkSolutionStackNameProviderImpl implements ElasticBea
 				linuxVersion);
 
 		//use the platformArn to retrieve the platform's AMI image id
-		PlatformDescription description = elasticBeanstalk.describePlatformVersion(
-				new DescribePlatformVersionRequest().withPlatformArn(platformArn)
-			).getPlatformDescription();
+		DescribePlatformVersionRequest req = DescribePlatformVersionRequest.builder().platformArn(platformArn).build();
+		PlatformDescription description = elasticBeanstalk.describePlatformVersion(req).platformDescription();
+		String solutionStackName = description.solutionStackName();
 
-		String solutionStackName = description.getSolutionStackName();
 		return solutionStackName;
 	}
 
@@ -50,13 +49,13 @@ public class ElasticBeanstalkSolutionStackNameProviderImpl implements ElasticBea
 		}
 		List<PlatformSummary> platformSummaryList = elasticBeanstalk.listPlatformVersions(
 				BeanstalkUtils.buildListPlatformVersionsRequest(javaVersion, tomcatVersion, amazonLinuxVersion)
-		).getPlatformSummaryList();
+		).platformSummaryList();
 
 		if(platformSummaryList == null || platformSummaryList.size() != 1){
 			throw new IllegalArgumentException("There should only be 1 result matching your elastic beanstalk platform parameters");
 		}
 
-		return platformSummaryList.get(0).getPlatformArn();
+		return platformSummaryList.get(0).platformArn();
 	}
 
 }

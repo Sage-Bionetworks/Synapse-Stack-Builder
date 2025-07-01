@@ -266,8 +266,7 @@
                               "Effect": "Allow",
                               "Principal": "*",
                               "Action": ["*"],
-                              "Resource": ["*"],
-							  "Condition": {"StringEquals": {"aws:PrincipalAccount": {"Ref": "AWS::AccountId"}}}
+                              "Resource": ["*"]
                          }]
                     },
                     "RouteTableIds": [
@@ -325,7 +324,7 @@
                          "Version": "2012-10-17",
                          "Statement": [{
                               "Effect": "Allow",
-                              "Principal": { "AWS": { "Ref": "AWS::AccountId" }},
+                              "Principal": { "AWS": [{ "Ref": "AWS::AccountId" }, "050451359079"]},
                               "Action": "*",
                               "Resource": "*"
                          }]
@@ -352,7 +351,7 @@
                          "Version": "2012-10-17",
                          "Statement": [{
                               "Effect": "Allow",
-                              "Principal": { "AWS": { "Ref": "AWS::AccountId" }},
+                              "Principal": { "AWS": [{ "Ref": "AWS::AccountId" }, "050451359079"]},
                               "Action": "*",
                               "Resource": "*"
                          }]
@@ -379,7 +378,7 @@
                          "Version": "2012-10-17",
                          "Statement": [{
                               "Effect": "Allow",
-                              "Principal": { "AWS": { "Ref": "AWS::AccountId" }},
+                              "Principal": { "AWS": [{ "Ref": "AWS::AccountId" }, "050451359079"]},
                               "Action": "*",
                               "Resource": "*"
                          }]
@@ -406,7 +405,7 @@
                          "Version": "2012-10-17",
                          "Statement": [{
                               "Effect": "Allow",
-                              "Principal": { "AWS": { "Ref": "AWS::AccountId" }},
+                              "Principal": { "AWS": [{ "Ref": "AWS::AccountId" }, "050451359079"]},
                               "Action": "*",
                               "Resource": "*"
                          }]

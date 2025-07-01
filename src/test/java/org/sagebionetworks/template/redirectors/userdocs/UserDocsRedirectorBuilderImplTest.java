@@ -1,7 +1,5 @@
 package org.sagebionetworks.template.redirectors.userdocs;
 
-import com.amazonaws.services.cloudformation.model.Stack;
-import com.amazonaws.services.cloudformation.model.Tag;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -16,10 +14,12 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.RepoConfiguration;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.Tag;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ class UserDocsRedirectorBuilderImplTest {
 	private RepoConfiguration mockConfig;
 
 	@Mock
-	private CloudFormationClient mockCloudFormationClient;
+	private CloudFormationClientWrapper mockCloudFormationClientWrapper;
 
 	@Mock
 	private StackTagsProvider mockStackTagsProvider;
@@ -92,29 +92,29 @@ class UserDocsRedirectorBuilderImplTest {
 			}
 		}).when(mockTemplate).merge(any(), any());
 		List<Tag> expectedTags = new ArrayList<>();
-		Tag tag = new Tag().withKey("aKey").withValue("aValue");
+		Tag tag = Tag.builder().key("aKey").value("aValue").build();
 		expectedTags.add(tag);
-		Stack expectedStack = new Stack().withStackName("tst-docs-synapse").withTags(expectedTags);
+		Stack expectedStack = Stack.builder().stackName("tst-docs-synapse").tags(expectedTags).build();
 		when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
-		when(mockCloudFormationClient.waitForStackToComplete(any())).thenReturn(Optional.of(expectedStack));
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(expectedStack));
+		when(mockCloudFormationClientWrapper.waitForStackToComplete(any())).thenReturn(Optional.of(expectedStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(expectedStack));
 
 		// call under test
 		Optional<Stack> optStack = builder.buildStack();
 
 		verify(mockVelocityEngine).getTemplate("templates/redirectors/user_docs_redirector.yaml.vtp");
-		verify(mockCloudFormationClient).waitForStackToComplete("tst-docs-synapse");
-		verify(mockCloudFormationClient).describeStack("tst-docs-synapse");
-		verify(mockCloudFormationClient).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete("tst-docs-synapse");
+		verify(mockCloudFormationClientWrapper).describeStack("tst-docs-synapse");
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
 		CreateOrUpdateStackRequest req = createOrUpdateStackRequestArgumentCaptor.getValue();
 		assertEquals("tst-docs-synapse", req.getStackName());
 		assertEquals("someYamlTemplate", req.getTemplateBody());
 		assertEquals(expectedTags, req.getTags());
 
 		assertTrue(optStack.isPresent());
-		assertEquals("tst-docs-synapse", optStack.get().getStackName());
-		assertEquals(1, optStack.get().getTags().size());
-		assertEquals(tag, optStack.get().getTags().get(0));
+		assertEquals("tst-docs-synapse", optStack.get().stackName());
+		assertEquals(1, optStack.get().tags().size());
+		assertEquals(tag, optStack.get().tags().get(0));
 	}
 }

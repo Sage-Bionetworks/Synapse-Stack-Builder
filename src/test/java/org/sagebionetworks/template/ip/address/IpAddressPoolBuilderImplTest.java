@@ -13,7 +13,6 @@ import java.util.Set;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.app.VelocityEngine;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,7 +22,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
@@ -36,7 +35,7 @@ public class IpAddressPoolBuilderImplTest {
 	@Mock
 	private Configuration mockConfig;
 	@Mock
-	private CloudFormationClient mockCloudFormationClient;
+	private CloudFormationClientWrapper mockCloudFormationClientWrapper;
 
 	private VelocityEngine velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
 	@Mock
@@ -54,7 +53,7 @@ public class IpAddressPoolBuilderImplTest {
 	@BeforeEach
 	public void before() {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
-		builder = new IpAddressPoolBuilderImpl(mockCloudFormationClient, velocityEngine, mockConfig, mockLoggerFactory,
+		builder = new IpAddressPoolBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, mockConfig, mockLoggerFactory,
 				mockStackTagsProvider);
 	}
 
@@ -67,7 +66,7 @@ public class IpAddressPoolBuilderImplTest {
 		// call under test
 		builder.buildAndDeploy();
 
-		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(requestCaptor.capture());
 		CreateOrUpdateStackRequest request = requestCaptor.getValue();
 		assertNotNull(request);
 		assertEquals("dev-ip-address-pool", request.getStackName());

@@ -1,6 +1,5 @@
 package org.sagebionetworks.template.datawarehouse;
 
-import com.amazonaws.services.cloudformation.model.Tag;
 import com.amazonaws.services.s3.AmazonS3;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.app.VelocityEngine;
@@ -13,7 +12,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
@@ -44,6 +43,8 @@ import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
+import software.amazon.awssdk.services.cloudformation.model.Tag;
+
 @ExtendWith(MockitoExtension.class)
 public class DataWarehouseBuilderImplTest {
 
@@ -53,7 +54,7 @@ public class DataWarehouseBuilderImplTest {
 	@Captor
 	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
 	@Mock
-	private CloudFormationClient cloudFormationClient;
+	private CloudFormationClientWrapper cloudFormationClientWrapper;
 	private VelocityEngine velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
 	@Mock
 	private Configuration mockConfig;
@@ -77,7 +78,7 @@ public class DataWarehouseBuilderImplTest {
 	@BeforeEach
 	public void before() {
 		when(loggerFactory.getLogger(any())).thenReturn(logger);
-		builder = new DataWarehouseBuilderImpl(cloudFormationClient, velocityEngine, mockConfig, loggerFactory, tagsProvider,
+		builder = new DataWarehouseBuilderImpl(cloudFormationClientWrapper, velocityEngine, mockConfig, loggerFactory, tagsProvider,
 				dataWarehouseConfig, mockDownloader, mockS3Client);
 	}
 
@@ -136,7 +137,7 @@ public class DataWarehouseBuilderImplTest {
 
 		when(dataWarehouseConfig.getEtlJobDescriptors()).thenReturn(jobs);
 
-		List<Tag> tags = List.of(new Tag().withKey("aKey").withValue("aValue"));
+		List<Tag> tags = List.of(Tag.builder().key("aKey").value("aValue").build());
 
 		when(tagsProvider.getStackTags(mockConfig)).thenReturn(tags);
 
@@ -150,7 +151,7 @@ public class DataWarehouseBuilderImplTest {
 		verify(mockS3Client).putObject(eq("dev.aws-glue.sagebase.org"), eq("scripts/v1.0.0/utilities/utils.py"), any(), any());
 		verifyNoMoreInteractions(mockS3Client);
 
-		verify(cloudFormationClient).createOrUpdateStack(requestCaptor.capture());
+		verify(cloudFormationClientWrapper).createOrUpdateStack(requestCaptor.capture());
 
 		CreateOrUpdateStackRequest req = requestCaptor.getValue();
 		JSONObject json = new JSONObject(req.getTemplateBody());

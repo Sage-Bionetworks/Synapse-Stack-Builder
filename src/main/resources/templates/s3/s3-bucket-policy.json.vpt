@@ -1,72 +1,76 @@
 {
-  "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "Provision bucket policies for Synapse S3 buckets",
-  "Resources": {
-    "DataBucketPolicy": {
-      "Type": "AWS::S3::BucketPolicy",
-      "Properties": {
-        "Bucket": "${stack}data.sagebase.org",
-        "PolicyDocument": {
-          "Version": "2012-10-17",
-          "Statement":[
-            {
-              "Sid": "VirusScannerPolicy",
-              "Effect":"Deny",
-              "Action":[
-                "s3:GetObject"
-              ],
-              "Principal":"*",
-              "Resource": "arn:aws:s3:::${stack}data.sagebase.org/*",
-              "Condition":{
-                "StringEquals":{
-                  "s3:ExistingObjectTag/av-status":"INFECTED"
-                }
-              }
-            },
-            {
-              "Sid": "AllowCloudFrontServicePrincipal",
-              "Effect": "Allow",
-              "Principal": {
-                "Service": "cloudfront.amazonaws.com"
-              },
-              "Action": "s3:GetObject",
-              "Resource": "arn:aws:s3:::${stack}data.sagebase.org/*",
-              "Condition": {
-                "StringEquals": {
-                  "AWS:SourceArn": {"Fn::ImportValue": "${stack}data-sagebase-org-CDN-ARN"}
-                }
-              }
-            }
-          ]
-        }
-      }
-    },
-    "InventoryBucketPolicy": {
-      "Type": "AWS::S3::BucketPolicy",
-      "Properties": {
-        "Bucket": "${stack}.datawarehouse.sagebase.org",
-        "PolicyDocument": {
-          "Version":"2012-10-17",
-          "Statement":[
-            {
-              "Sid":"InventoryPolicy",
-              "Effect":"Allow",
-              "Principal": {"Service": "s3.amazonaws.com"},
-              "Action":"s3:PutObject",
-              "Resource":["arn:aws:s3:::${stack}.datawarehouse.sagebase.org/*"],
-              "Condition": {
-                "ArnLike": {
-                  "aws:SourceArn": "arn:aws:s3:::${stack}data.sagebase.org"
-                },
-                "StringEquals": {
-                  "aws:SourceAccount": { "Ref": "AWS::AccountId" },
-                  "s3:x-amz-acl": "bucket-owner-full-control"
-                }
-              }
-            }
-          ]
-        }
-      }
-    }
-  }
+	"AWSTemplateFormatVersion": "2010-09-09",
+ 	"Description": "Provision bucket policies for Synapse S3 buckets",
+	"Resources": {
+#foreach($bucket in $buckets)
+		"${bucket.name.replaceAll("[^a-zA-Z0-9]", "")}BucketPolicy": {
+			"Type": "AWS::S3::BucketPolicy",
+			"Properties": {
+				"Bucket": "$bucket.name",
+				"PolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+#if ($bucket.virusScanEnabled)
+						{
+							"Sid": "VirusScannerPolicy",
+							"Effect":"Deny",
+							"Action":[ "s3:GetObject" ],
+							"Principal":"*",
+							"Resource": "arn:aws:s3:::$bucket.name/*",
+							"Condition":{
+								"StringEquals":{
+									"s3:ExistingObjectTag/av-status":"INFECTED"
+								}
+							}
+						},
+#end
+#if ($bucket.name == "${stack}data.sagebase.org")
+						{
+							"Sid": "AllowCloudFrontServicePrincipal",
+							"Effect": "Allow",
+							"Principal": {
+								"Service": "cloudfront.amazonaws.com"
+							},
+							"Action": "s3:GetObject",
+							"Resource": "arn:aws:s3:::$bucket.name/*",
+							"Condition": {
+								"StringEquals": {
+									"AWS:SourceArn": {"Fn::ImportValue": "${stack}data-sagebase-org-CDN-ARN"}
+								}
+							}
+						},
+#elseif ($bucket.name == "${stack}.datawarehouse.sagebase.org")
+						{
+							"Sid":"InventoryPolicy",
+							"Effect":"Allow",
+							"Principal": {"Service": "s3.amazonaws.com"},
+							"Action":"s3:PutObject",
+							"Resource":["arn:aws:s3:::$bucket.name/*"],
+							"Condition": {
+								"ArnLike": { "aws:SourceArn": "arn:aws:s3:::${stack}data.sagebase.org" },
+								"StringEquals": {
+									"aws:SourceAccount": { "Ref": "AWS::AccountId" },
+									"s3:x-amz-acl": "bucket-owner-full-control"
+								}
+							}
+						},
+#end
+						{
+							"Sid": "RestrictToTLSRequestsOnly",
+							"Action": "s3:*",
+							"Effect": "Deny",
+							"Resource": [
+								"arn:aws:s3:::$bucket.name",
+								"arn:aws:s3:::$bucket.name/*"
+							],
+							"Condition": { "Bool": { "aws:SecureTransport": "false" }},
+							"Principal": "*"
+						}
+					]
+				}
+			}
+		}#if($foreach.hasNext),
+#end
+#end
+	}
 }

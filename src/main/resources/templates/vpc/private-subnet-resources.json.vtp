@@ -138,14 +138,7 @@
                   ],
                   "Resource":[
                      "*"
-                  ],
-                  "Condition": {
-			        "StringEquals": {
-			        	"aws:PrincipalAccount": {
-							"Ref": "AWS::AccountId"
-						}
-			        }
-			      }
+                  ]
                }
             ]
          },
@@ -218,9 +211,7 @@
                  {
                     "Effect":"Allow",
                     "Principal": {
-						"AWS": {
-							"Ref": "AWS::AccountId"
-						}
+						"AWS": [{ "Ref": "AWS::AccountId" }, 050451359079]
 					},
                     "Action": "*",
                     "Resource": "*"

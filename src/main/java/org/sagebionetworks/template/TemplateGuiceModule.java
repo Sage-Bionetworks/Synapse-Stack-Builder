@@ -22,6 +22,8 @@ import org.apache.velocity.runtime.resource.loader.FileResourceLoader;
 import org.sagebionetworks.client.SynapseAdminClient;
 import org.sagebionetworks.template.cdn.CdnBuilder;
 import org.sagebionetworks.template.cdn.CdnBuilderImpl;
+import org.sagebionetworks.template.cdn.webacl.CdnWebAclBuilder;
+import org.sagebionetworks.template.cdn.webacl.CdnWebAclBuilderImpl;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.config.ConfigurationImpl;
 import org.sagebionetworks.template.config.RepoConfiguration;
@@ -38,8 +40,6 @@ import org.sagebionetworks.template.datawarehouse.DataWarehouseConfig;
 import org.sagebionetworks.template.datawarehouse.DataWarehouseConfigValidator;
 import org.sagebionetworks.template.datawarehouse.backfill.BackfillDataWarehouseBuilder;
 import org.sagebionetworks.template.datawarehouse.backfill.BackfillDataWarehouseBuilderImpl;
-import org.sagebionetworks.template.dns.DnsBuilder;
-import org.sagebionetworks.template.dns.DnsBuilderImpl;
 import org.sagebionetworks.template.docs.SynapseDocsBuilder;
 import org.sagebionetworks.template.docs.SynapseDocsBuilderImpl;
 import org.sagebionetworks.template.global.GlobalResourcesBuilder;
@@ -112,28 +112,8 @@ import org.sagebionetworks.war.WarAppenderImpl;
 
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
-import com.amazonaws.services.athena.AmazonAthena;
-import com.amazonaws.services.athena.AmazonAthenaClientBuilder;
-import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClientBuilder;
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClientBuilder;
-import com.amazonaws.services.glue.AWSGlue;
-import com.amazonaws.services.glue.AWSGlueClientBuilder;
-import com.amazonaws.services.kms.AWSKMS;
-import com.amazonaws.services.kms.AWSKMSAsyncClientBuilder;
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
-import com.amazonaws.services.route53.AmazonRoute53;
-import com.amazonaws.services.route53.AmazonRoute53ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Named;
@@ -141,10 +121,18 @@ import com.google.inject.name.Named;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.athena.AthenaClient;
 import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkClient;
+import software.amazon.awssdk.services.glue.GlueClient;
 import software.amazon.awssdk.services.imagebuilder.ImagebuilderClient;
 import software.amazon.awssdk.services.imagebuilder.ImagebuilderClientBuilder;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
@@ -161,7 +149,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
 	@Override
 	protected void configure() {
-		bind(CloudFormationClient.class).to(CloudFormationClientImpl.class);
+		bind(CloudFormationClientWrapper.class).to(CloudFormationClientWrapperImpl.class);
 		bind(VpcTemplateBuilder.class).to(VpcTemplateBuilderImpl.class);
 		bind(SubnetTemplateBuilder.class).to(SubnetTemplateBuilderImpl.class);
 		bind(Configuration.class).to(ConfigurationImpl.class);
@@ -183,14 +171,12 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(SesClientWrapper.class).to(SesClientWrapperImpl.class);
 		bind(GlobalResourcesBuilder.class).to(GlobalResourcesBuilderImpl.class);
 		bind(CloudwatchLogsVelocityContextProvider.class).to(CloudwatchLogsVelocityContextProviderImpl.class);
-		bind(Ec2Client.class).to(Ec2ClientImpl.class);
+		bind(Ec2ClientWrapper.class).to(Ec2ClientWrapperImpl.class);
 		bind(SynapseAdminClientFactory.class).to(SynapseAdminClientFactoryImpl.class);
 		bind(AsynchAdminJobExecutor.class).to(AsynchAdminJobExecutorImpl.class);
 		bind(SynapseDocsBuilder.class).to(SynapseDocsBuilderImpl.class);
 		bind(UserDocsRedirectorBuilder.class).to(UserDocsRedirectorBuilderImpl.class);
 		bind(CdnBuilder.class).to(CdnBuilderImpl.class);
-		bind(Route53Client.class).to(Route53ClientImpl.class);
-		bind(DnsBuilder.class).to(DnsBuilderImpl.class);
 		bind(IpAddressPoolBuilder.class).to(IpAddressPoolBuilderImpl.class);
 		bind(NetworkLoadBalancerBuilder.class).to(NetworkLoadBalancerBuilderImpl.class);
 		bind(BindNetworkLoadBalancerBuilder.class).to(BindNetworkLoadBalancerBuilderImpl.class);
@@ -201,6 +187,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(BackfillDataWarehouseBuilder.class).to(BackfillDataWarehouseBuilderImpl.class);
 		bind(MarkDownItLambdaBuilder.class).to(MarkDownItLambdaBuilderImpl.class);
 		bind(ImageBuilderClient.class).to(ImageBuilderClientImpl.class);
+		bind(CdnWebAclBuilder.class).to(CdnWebAclBuilderImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 
@@ -222,11 +209,9 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	 * @return
 	 */
 	@Provides
-	public AmazonCloudFormation provideAmazonCloudFormationClient() {
-		AmazonCloudFormationClientBuilder builder = AmazonCloudFormationClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
+	public CloudFormationClient provideAmazonCloudFormationClient() {
+		CloudFormationClient client = CloudFormationClient.builder().region(Region.US_EAST_1).build();
+		return client;
 	}
 	
 	@Provides
@@ -238,27 +223,21 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 	
 	@Provides
-	public AWSLambda provideAWSLambdaClient() {
-		AWSLambdaClientBuilder builder = AWSLambdaClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
+	public LambdaClient provideAWSLambdaClient() {
+		LambdaClient client = LambdaClient.builder().region(Region.US_EAST_1).build();
+		return client;
 	}
 
 	@Provides
-	public AWSGlue provideAmazonAWSGlueClient() {
-		AWSGlueClientBuilder builder = AWSGlueClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
+	public GlueClient provideAmazonAWSGlueClient() {
+		GlueClient client = GlueClient.builder().region(Region.US_EAST_1).build();
+		return client;
 	}
 
 	@Provides
-	public AmazonAthena provideAmazonAmazonAthenaClient() {
-		AmazonAthenaClientBuilder builder = AmazonAthenaClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
+	public AthenaClient provideAmazonAmazonAthenaClient() {
+		AthenaClient client = AthenaClient.builder().region(Region.US_EAST_1).build();
+		return client;
 	}
 
 	@Provides
@@ -273,53 +252,30 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 	
 	@Provides
-	public AWSSecretsManager provideAWSSecretsManager() {
-	    AWSSecretsManagerClientBuilder builder = AWSSecretsManagerClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-	    return builder.build();
-	}
-	
-	@Provides
-	public AWSKMS provideAWSKMSClient() {
-		AWSKMSAsyncClientBuilder builder = AWSKMSAsyncClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
-	}
-	
-	@Provides
-	public AmazonElasticLoadBalancing provideAmazonElasticLoadBalancing() {
-		AmazonElasticLoadBalancingClientBuilder builder = AmazonElasticLoadBalancingClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
+	public SecretsManagerClient provideAWSSecretsManager() {
+		SecretsManagerClient client = SecretsManagerClient.builder().region(Region.US_EAST_1).build();
+		return client;
 	}
 
 	@Provides
-	public AmazonEC2 provideAmazonEc2(){
-		AmazonEC2ClientBuilder builder = AmazonEC2ClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
+	public KmsClient provideAWSKMSClient() {
+		KmsClient client = KmsClient.builder().region(Region.US_EAST_1).build();
+		return client;
 	}
 
 	@Provides
-	public AWSElasticBeanstalk provideAmazonElasticBeanstalk(){
-		AWSElasticBeanstalkClientBuilder builder = AWSElasticBeanstalkClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
+	public Ec2Client provideAmazonEc2(){
+		Ec2Client client = Ec2Client.builder().region(Region.US_EAST_1).build();
+		return client;
 	}
 
 	@Provides
-	public AmazonRoute53 provideAmazonRoute53() {
-		AmazonRoute53ClientBuilder builder = AmazonRoute53ClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
+	public ElasticBeanstalkClient provideAmazonElasticBeanstalk(){
+		ElasticBeanstalkClient client = ElasticBeanstalkClient.builder()
+				.region(Region.US_EAST_1).build();
+		return client;
 	}
-	
+
 	@Provides
 	public VelocityEngine velocityEngineProvider() {
 		VelocityEngine engine = new VelocityEngine();

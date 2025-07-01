@@ -64,7 +64,7 @@
       "ScanResultSQS":{
          "Type":"AWS::SQS::Queue",
          "Properties":{
-
+         	"SqsManagedSseEnabled": true
          }
       },
       "ScanResultQueuePolicy":{
@@ -276,10 +276,35 @@
 
          }
       },
+      "ClamavVirusDefinitionsBucketPolicy":{
+         "Type":"AWS::S3::BucketPolicy",
+         "DependsOn": [ "ClamavVirusDefinitionsBucket" ],
+         "Properties":{
+            "Bucket": {
+               "Ref":"ClamavVirusDefinitionsBucket"
+            },
+            "PolicyDocument":{
+               "Version":"2012-10-17",
+               "Statement":[
+                  {
+			        "Sid": "RestrictToTLSRequestsOnly",
+			        "Action": "s3:*",
+			        "Effect": "Deny",
+			        "Resource": [ 
+			        	{ "Fn::GetAtt":[ "ClamavVirusDefinitionsBucket", "Arn" ] },
+			        	{ "Fn::Join":[ "", [ { "Fn::GetAtt":[ "ClamavVirusDefinitionsBucket", "Arn" ] }, "/*" ]] }
+			        ],
+			        "Condition": { "Bool": { "aws:SecureTransport": "false" }},
+			        "Principal": "*"
+			    }
+               ]
+            }
+         }
+      },
       "VirusScanDeadLetterQueue":{
          "Type":"AWS::SQS::Queue",
          "Properties":{
-
+             "SqsManagedSseEnabled": true
          }
       },
       "VirusDefinitionUpdateRole":{

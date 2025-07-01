@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
@@ -23,7 +24,7 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
@@ -32,10 +33,6 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.cloudformation.model.Stack;
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.InvocationType;
-import com.amazonaws.services.lambda.model.InvokeRequest;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AbortIncompleteMultipartUpload;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -70,6 +67,11 @@ import com.amazonaws.services.s3.model.inventory.InventoryS3BucketDestination;
 import com.amazonaws.services.s3.model.inventory.InventorySchedule;
 import com.amazonaws.services.s3.model.lifecycle.LifecycleFilter;
 import com.google.inject.Inject;
+import software.amazon.awssdk.services.cloudformation.model.Capability;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.InvocationType;
+import software.amazon.awssdk.services.lambda.model.InvokeRequest;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
 
@@ -105,32 +107,32 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	
 
 	private static String getStackOutput(Stack stack, String key) {
-		return stack.getOutputs().stream()
-		.filter( output -> output.getOutputKey().equals(key))
+		return stack.outputs().stream()
+		.filter( output -> output.outputKey().equals(key))
 		.findFirst()
-		.orElseThrow(() -> new IllegalStateException("Could not find " + key + " output from stack " + stack.getStackName()))
-		.getOutputValue();
+		.orElseThrow(() -> new IllegalStateException("Could not find " + key + " output from stack " + stack.stackName()))
+		.outputValue();
 	}
 	
 	private AmazonS3 s3Client;
 	private StsClient stsClient;
-	private AWSLambda lambdaClient;
+	private LambdaClient lambdaClient;
 	private RepoConfiguration config;
 	private S3Config s3Config;
 	private VelocityEngine velocity;
-	private CloudFormationClient cloudFormationClient;
+	private CloudFormationClientWrapper cloudFormationClientWrapper;
 	private StackTagsProvider tagsProvider;
 	private ArtifactDownload downloader;
 	
 	@Inject
-	public S3BucketBuilderImpl(AmazonS3 s3Client, StsClient stsClient, AWSLambda lambdaClient, RepoConfiguration config, S3Config s3Config, VelocityEngine velocity, CloudFormationClient cloudFormationClient, StackTagsProvider tagsProvider, ArtifactDownload downloader) {
+	public S3BucketBuilderImpl(AmazonS3 s3Client, StsClient stsClient, LambdaClient lambdaClient, RepoConfiguration config, S3Config s3Config, VelocityEngine velocity, CloudFormationClientWrapper cloudFormationClientWrapper, StackTagsProvider tagsProvider, ArtifactDownload downloader) {
 		this.s3Client = s3Client;
 		this.stsClient = stsClient;
 		this.lambdaClient = lambdaClient;
 		this.config = config;
 		this.s3Config = s3Config;
 		this.velocity = velocity;
-		this.cloudFormationClient = cloudFormationClient;
+		this.cloudFormationClientWrapper = cloudFormationClientWrapper;
 		this.tagsProvider = tagsProvider;
 		this.downloader = downloader;
 	}
@@ -190,10 +192,11 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			
 			// We also need to trigger the lambda that updates the clamav definitions to setup them up so that the scanner can download them
 			String virusScannerUpdatedLambda = getStackOutput(virusScannerStack, CF_OUTPUT_VIRUS_UPDATER_LAMBDA);
-			
-			lambdaClient.invoke(new InvokeRequest()
-				.withFunctionName(virusScannerUpdatedLambda)
-				.withInvocationType(InvocationType.Event)
+
+			lambdaClient.invoke(InvokeRequest.builder()
+					.functionName(virusScannerUpdatedLambda)
+					.invocationType(InvocationType.EVENT)
+					.build()
 			);
 		});
 
@@ -204,6 +207,10 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		VelocityContext context = new VelocityContext();
 
 		context.put(Constants.STACK, stack);
+		context.put(CF_PROPERTY_BUCKETS, s3Config.getBuckets().stream()
+			.filter(bucket -> !bucket.isDevOnly() || !stack.equalsIgnoreCase(Constants.PROD_STACK_NAME))
+			.collect(Collectors.toList())
+		);
 
 		// Merge the context with the template
 		Template template = velocity.getTemplate(Constants.TEMPLATE_S3_BUCKET_POLICY);
@@ -217,21 +224,21 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		LOG.info(resultJSON);
 
 		resultJSON = new JSONObject(resultJSON).toString(5);
-
+		
 		String stackName = TemplateUtils.replaceStackVariable(BUCKET_POLICY_STACK_NAME, stack);
 
-		cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest()
+		cloudFormationClientWrapper.createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(stackName)
 				.withTemplateBody(resultJSON)
 				.withTags(tagsProvider.getStackTags(config)));
 
 		try {
-			cloudFormationClient.waitForStackToComplete(stackName);
+			cloudFormationClientWrapper.waitForStackToComplete(stackName);
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
 
-		return Optional.of(cloudFormationClient.describeStack(stackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+stackName)));
+		return Optional.of(cloudFormationClientWrapper.describeStack(stackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+stackName)));
 	}
 	
 	private Optional<Stack>buildVirusScannerStack(String stack, S3VirusScannerConfig config, List<String> buckets) {
@@ -275,19 +282,19 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		
 		String stackName = TemplateUtils.replaceStackVariable(VIRUS_SCANNER_STACK_NAME, stack);
 		
-		cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest()
+		cloudFormationClientWrapper.createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(stackName)
 				.withTemplateBody(resultJSON)
 				.withTags(tagsProvider.getStackTags(this.config))
-				.withCapabilities(CAPABILITY_NAMED_IAM));
+				.withCapabilities(Capability.CAPABILITY_NAMED_IAM));
 		
 		try {
-			cloudFormationClient.waitForStackToComplete(stackName);
+			cloudFormationClientWrapper.waitForStackToComplete(stackName);
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
 		
-		return Optional.of(cloudFormationClient.describeStack(stackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+stackName)));
+		return Optional.of(cloudFormationClientWrapper.describeStack(stackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+stackName)));
 	}
 		
 	private void createBucket(String bucketName) {
@@ -600,7 +607,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		
 		String globalStackName = String.format(GLOBAL_RESOURCES_STACK_NAME_FORMAT, stack);
 		
-		String topicArn = cloudFormationClient.getOutput(globalStackName, config.getTopic());
+		String topicArn = cloudFormationClientWrapper.getOutput(globalStackName, config.getTopic());
 		
 		String configName = config.getTopic() + "Configuration";
 		

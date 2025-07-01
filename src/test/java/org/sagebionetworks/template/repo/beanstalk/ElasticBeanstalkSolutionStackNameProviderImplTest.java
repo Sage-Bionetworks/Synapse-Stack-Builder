@@ -12,24 +12,24 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.sagebionetworks.template.repo.beanstalk.ElasticBeanstalkSolutionStackNameProviderImpl.AMI_VIRTUALIZATION_TYPE;
-import com.amazonaws.services.ec2.AmazonEC2Client;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
-import com.amazonaws.services.elasticbeanstalk.model.CustomAmi;
-import com.amazonaws.services.elasticbeanstalk.model.DescribePlatformVersionRequest;
-import com.amazonaws.services.elasticbeanstalk.model.DescribePlatformVersionResult;
-import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
-import com.amazonaws.services.elasticbeanstalk.model.ListPlatformVersionsResult;
-import com.amazonaws.services.elasticbeanstalk.model.PlatformDescription;
-import com.amazonaws.services.elasticbeanstalk.model.PlatformSummary;
 import org.sagebionetworks.template.config.RepoConfiguration;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkClient;
+import software.amazon.awssdk.services.elasticbeanstalk.model.CustomAmi;
+import software.amazon.awssdk.services.elasticbeanstalk.model.DescribePlatformVersionRequest;
+import software.amazon.awssdk.services.elasticbeanstalk.model.DescribePlatformVersionResponse;
+import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
+import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsResponse;
+import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformDescription;
+import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformSummary;
 
 @ExtendWith(MockitoExtension.class)
 public class ElasticBeanstalkSolutionStackNameProviderImplTest {
 	@Mock
-	AWSElasticBeanstalkClient mockElasticBeanstalkClient;
+	ElasticBeanstalkClient mockElasticBeanstalkClient;
 
 	@Mock
-	AmazonEC2Client mockEc2Client;
+	Ec2Client mockEc2Client;
 
 	@Mock
 	RepoConfiguration mockConfig;
@@ -43,25 +43,27 @@ public class ElasticBeanstalkSolutionStackNameProviderImplTest {
 	PlatformDescription platformDescription;
 
 	@BeforeEach
-	public void setUp(){
+	public void setUp() {
 		encrypter = new ElasticBeanstalkSolutionStackNameProviderImpl(mockElasticBeanstalkClient, mockEc2Client, mockConfig);
-		platformDescription = new PlatformDescription()
-				.withSolutionStackName(solutionStackName)
-				.withCustomAmiList(
-						new CustomAmi()
-								.withVirtualizationType("These are not the types you are looking for").withImageId("wrong1"),
-						new CustomAmi()
-								.withVirtualizationType(AMI_VIRTUALIZATION_TYPE).withImageId(originalImageId),
-						new CustomAmi()
-								.withVirtualizationType("Wrong again").withImageId("wrong2"));
+		platformDescription = PlatformDescription.builder()
+				.solutionStackName(solutionStackName)
+				.customAmiList(
+						CustomAmi.builder()
+								.virtualizationType("These are not the types you are looking for").imageId("wrong1").build(),
+						CustomAmi.builder()
+								.virtualizationType(AMI_VIRTUALIZATION_TYPE).imageId(originalImageId).build(),
+						CustomAmi.builder()
+								.virtualizationType("Wrong again").imageId("wrong2").build())
+				.build();
 	}
 
 	@Test
 	public void testGetSolutionStackName(){
 		when(mockElasticBeanstalkClient.listPlatformVersions(any(ListPlatformVersionsRequest.class)))
-				.thenReturn(new ListPlatformVersionsResult().withPlatformSummaryList(new PlatformSummary().withPlatformArn(platformArn)));
-		when(mockElasticBeanstalkClient.describePlatformVersion(new DescribePlatformVersionRequest()
-				.withPlatformArn(platformArn))).thenReturn(new DescribePlatformVersionResult().withPlatformDescription(platformDescription));
+				.thenReturn(ListPlatformVersionsResponse.builder()
+						.platformSummaryList(PlatformSummary.builder().platformArn(platformArn).build()).build());
+		when(mockElasticBeanstalkClient.describePlatformVersion(DescribePlatformVersionRequest.builder().platformArn(platformArn).build()))
+				.thenReturn(DescribePlatformVersionResponse.builder().platformDescription(platformDescription).build());
 
 		String expectedSolutionStackName = solutionStackName;
 		//method under test
@@ -92,7 +94,7 @@ public class ElasticBeanstalkSolutionStackNameProviderImplTest {
 	@Test
 	public void testGetPlatformArn__noResults(){
 		when(mockElasticBeanstalkClient.listPlatformVersions(any(ListPlatformVersionsRequest.class)))
-				.thenReturn(new ListPlatformVersionsResult());
+				.thenReturn(ListPlatformVersionsResponse.builder().build());
 
 		//method under test
 		IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
@@ -103,7 +105,7 @@ public class ElasticBeanstalkSolutionStackNameProviderImplTest {
 	@Test
 	public void testGetPlatformArn__resultFound(){
 		when(mockElasticBeanstalkClient.listPlatformVersions(any(ListPlatformVersionsRequest.class)))
-			.thenReturn(new ListPlatformVersionsResult().withPlatformSummaryList(new PlatformSummary().withPlatformArn(platformArn)));
+			.thenReturn(ListPlatformVersionsResponse.builder().platformSummaryList(PlatformSummary.builder().platformArn(platformArn).build()).build());
 		//method under test
 		String arnResult = encrypter.getPlatformArn("1", "2", "3");
 

@@ -1,25 +1,6 @@
 package org.sagebionetworks.template.datawarehouse.backfill;
 
 import com.amazonaws.internal.ReleasableInputStream;
-import com.amazonaws.services.athena.AmazonAthena;
-import com.amazonaws.services.athena.model.Datum;
-import com.amazonaws.services.athena.model.GetQueryExecutionRequest;
-import com.amazonaws.services.athena.model.GetQueryExecutionResult;
-import com.amazonaws.services.athena.model.GetQueryResultsRequest;
-import com.amazonaws.services.athena.model.GetQueryResultsResult;
-import com.amazonaws.services.athena.model.QueryExecutionContext;
-import com.amazonaws.services.athena.model.QueryExecutionStatus;
-import com.amazonaws.services.athena.model.ResultConfiguration;
-import com.amazonaws.services.athena.model.Row;
-import com.amazonaws.services.athena.model.StartQueryExecutionRequest;
-import com.amazonaws.services.athena.model.StartQueryExecutionResult;
-import com.amazonaws.services.glue.AWSGlue;
-import com.amazonaws.services.glue.model.BatchCreatePartitionRequest;
-import com.amazonaws.services.glue.model.GetTableRequest;
-import com.amazonaws.services.glue.model.GetTableResult;
-import com.amazonaws.services.glue.model.PartitionInput;
-import com.amazonaws.services.glue.model.StartJobRunRequest;
-import com.amazonaws.services.glue.model.StorageDescriptor;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
@@ -30,7 +11,7 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
@@ -39,6 +20,26 @@ import org.sagebionetworks.template.datawarehouse.DataWarehouseBuilderImpl;
 import org.sagebionetworks.template.repo.VelocityExceptionThrower;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 import org.sagebionetworks.util.ValidateArgument;
+import software.amazon.awssdk.services.athena.AthenaClient;
+import software.amazon.awssdk.services.athena.model.Datum;
+import software.amazon.awssdk.services.athena.model.GetQueryExecutionRequest;
+import software.amazon.awssdk.services.athena.model.GetQueryExecutionResponse;
+import software.amazon.awssdk.services.athena.model.GetQueryResultsRequest;
+import software.amazon.awssdk.services.athena.model.GetQueryResultsResponse;
+import software.amazon.awssdk.services.athena.model.QueryExecutionContext;
+import software.amazon.awssdk.services.athena.model.QueryExecutionState;
+import software.amazon.awssdk.services.athena.model.ResultConfiguration;
+import software.amazon.awssdk.services.athena.model.Row;
+import software.amazon.awssdk.services.athena.model.StartQueryExecutionRequest;
+import software.amazon.awssdk.services.athena.model.StartQueryExecutionResponse;
+import software.amazon.awssdk.services.cloudformation.model.Capability;
+import software.amazon.awssdk.services.glue.GlueClient;
+import software.amazon.awssdk.services.glue.model.BatchCreatePartitionRequest;
+import software.amazon.awssdk.services.glue.model.GetTableRequest;
+import software.amazon.awssdk.services.glue.model.GetTableResponse;
+import software.amazon.awssdk.services.glue.model.PartitionInput;
+import software.amazon.awssdk.services.glue.model.StartJobRunRequest;
+import software.amazon.awssdk.services.glue.model.StorageDescriptor;
 
 import java.io.File;
 import java.io.IOException;
@@ -88,17 +89,17 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
     private Logger logger;
     private VelocityEngine velocityEngine;
     private AmazonS3 s3Client;
-    private CloudFormationClient cloudFormationClient;
+    private CloudFormationClientWrapper cloudFormationClientWrapper;
     private StackTagsProvider tagsProvider;
-    private AWSGlue awsGlue;
-    private AmazonAthena athena;
+    private GlueClient awsGlue;
+    private AthenaClient athena;
 
     @Inject
-    public BackfillDataWarehouseBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
+    public BackfillDataWarehouseBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper, VelocityEngine velocityEngine,
                                             Configuration config, LoggerFactory loggerFactory,
                                             StackTagsProvider tagsProvider, ArtifactDownload downloader,
-                                            AmazonS3 s3Client, AWSGlue awsGlue, AmazonAthena athena) {
-        this.cloudFormationClient = cloudFormationClient;
+                                            AmazonS3 s3Client, GlueClient awsGlue, AthenaClient athena) {
+        this.cloudFormationClientWrapper = cloudFormationClientWrapper;
         this.velocityEngine = velocityEngine;
         this.config = config;
         this.logger = loggerFactory.getLogger(DataWarehouseBuilderImpl.class);
@@ -149,11 +150,11 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
         this.logger.info(resultJSON);
         // create or update the stack
         String stackName = new StringJoiner("-").add(stack).add(databaseName).add("backfill-etl-jobs").toString();
-        this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
+        this.cloudFormationClientWrapper.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
                 .withTemplateBody(resultJSON).withTags(tagsProvider.getStackTags(config))
-                .withCapabilities(CAPABILITY_NAMED_IAM));
+                .withCapabilities(Capability.CAPABILITY_NAMED_IAM));
         try {
-            cloudFormationClient.waitForStackToComplete(stackName);
+            cloudFormationClientWrapper.waitForStackToComplete(stackName);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -239,93 +240,97 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
                                       String recordDate, String midPath, String s3Location) {
         StorageDescriptor storageDescriptor = createStorageDescriptor(databaseName, tableName, releaseNumber,
                 recordDate, midPath, s3Location);
-        PartitionInput partitionInput = new PartitionInput()
-                .withValues(releaseNumber, recordDate)
-                .withStorageDescriptor(storageDescriptor);
-        BatchCreatePartitionRequest batchCreatePartitionRequest = new BatchCreatePartitionRequest()
-                .withDatabaseName(databaseName)
-                .withTableName(tableName)
-                .withPartitionInputList(partitionInput);
+        PartitionInput partitionInput = PartitionInput.builder()
+                .values(releaseNumber, recordDate)
+                .storageDescriptor(storageDescriptor)
+                .build();
+        BatchCreatePartitionRequest batchCreatePartitionRequest = BatchCreatePartitionRequest.builder()
+                .databaseName(databaseName)
+                .tableName(tableName)
+                .partitionInputList(partitionInput)
+                .build();
         awsGlue.batchCreatePartition(batchCreatePartitionRequest);
     }
 
     private StorageDescriptor createStorageDescriptor(String databaseName, String tableName,
                                                       String releaseNumber, String recordDate,
                                                       String midPath, String s3Location) {
-        GetTableResult getTableResult = getCurrentSchema(databaseName, tableName);
-        StorageDescriptor currentTableStorageDescriptor = getTableResult.getTable().getStorageDescriptor();
-        return new StorageDescriptor()
-                .withLocation(getS3PartitionLocation(s3Location, releaseNumber, recordDate, midPath))
-                .withInputFormat(currentTableStorageDescriptor.getInputFormat())
-                .withOutputFormat(currentTableStorageDescriptor.getOutputFormat())
-                .withSerdeInfo(currentTableStorageDescriptor.getSerdeInfo());
-
+        GetTableResponse getTableResult = getCurrentSchema(databaseName, tableName);
+        StorageDescriptor currentTableStorageDescriptor = getTableResult.table().storageDescriptor();
+        return StorageDescriptor.builder()
+                .location(getS3PartitionLocation(s3Location, releaseNumber, recordDate, midPath))
+                .inputFormat(currentTableStorageDescriptor.inputFormat())
+                .outputFormat(currentTableStorageDescriptor.outputFormat())
+                .serdeInfo(currentTableStorageDescriptor.serdeInfo())
+                .build();
     }
 
-    private GetTableResult getCurrentSchema(String databaseName, String tableName) {
-        GetTableRequest getTableRequest = new GetTableRequest().withDatabaseName(databaseName).withName(tableName);
+    private GetTableResponse getCurrentSchema(String databaseName, String tableName) {
+        GetTableRequest getTableRequest = GetTableRequest.builder().databaseName(databaseName).name(tableName).build();
         return awsGlue.getTable(getTableRequest);
     }
 
     private List<String> getAthenaQueryResult(String year, String database, String table, String location) {
         String query = "select distinct instance from " + table + " where year='" + year + "' order by instance desc ";
-        QueryExecutionContext queryExecutionContext = new QueryExecutionContext().withDatabase(database);
+        QueryExecutionContext queryExecutionContext = QueryExecutionContext.builder().database(database).build();
 
         // Create a ResultConfiguration
-        ResultConfiguration resultConfiguration = new ResultConfiguration().withOutputLocation(location);
+        ResultConfiguration resultConfiguration = ResultConfiguration.builder().outputLocation(location).build();
 
         // Create a StartQueryExecutionRequest
-        StartQueryExecutionRequest startQueryExecutionRequest = new StartQueryExecutionRequest()
-                .withQueryString(query)
-                .withQueryExecutionContext(queryExecutionContext)
-                .withResultConfiguration(resultConfiguration);
+        StartQueryExecutionRequest startQueryExecutionRequest = StartQueryExecutionRequest.builder()
+                .queryString(query)
+                .queryExecutionContext(queryExecutionContext)
+                .resultConfiguration(resultConfiguration).build();
 
         // Start the query execution
-        StartQueryExecutionResult startQueryExecutionResult = athena.startQueryExecution(startQueryExecutionRequest);
+        StartQueryExecutionResponse startQueryExecutionResult = athena.startQueryExecution(startQueryExecutionRequest);
 
         // Get the query execution ID
-        String queryExecutionId = startQueryExecutionResult.getQueryExecutionId();
+        String queryExecutionId = startQueryExecutionResult.queryExecutionId();
         // Wait for the query to complete (optional)
         waitForQueryCompletion(athena, queryExecutionId);
         return getQueryResults(athena, queryExecutionId);
     }
 
-    private static void waitForQueryCompletion(AmazonAthena athenaClient, String queryExecutionId) {
-        GetQueryExecutionRequest getQueryExecutionRequest = new GetQueryExecutionRequest()
-                .withQueryExecutionId(queryExecutionId);
+    private static void waitForQueryCompletion(AthenaClient athenaClient, String queryExecutionId) {
+        GetQueryExecutionRequest getQueryExecutionRequest = GetQueryExecutionRequest.builder()
+                .queryExecutionId(queryExecutionId)
+                .build();
 
-        GetQueryExecutionResult queryExecution;
-        QueryExecutionStatus status;
+        GetQueryExecutionResponse queryExecution;
+        QueryExecutionState status;
 
         do {
             queryExecution = athenaClient.getQueryExecution(getQueryExecutionRequest);
-            status = queryExecution.getQueryExecution().getStatus();
+            status = queryExecution.queryExecution().status().state();
             // Sleep for a few seconds before checking the status again
             try {
                 Thread.sleep(5000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        } while (!(status.getState().equals("SUCCEEDED") || status.getState().equals("FAILED")));
+        } while (!(status == QueryExecutionState.SUCCEEDED || status == QueryExecutionState.FAILED));
     }
     private String getS3PartitionLocation(String s3Localtion, String releaseNumber, String recordDate, String midPath) {
         return String.join("/", s3Localtion, releaseNumber, midPath, recordDate);
     }
 
-    private static List<String> getQueryResults(AmazonAthena athenaClient, String queryExecutionId) {
-        GetQueryResultsRequest getQueryResultsRequest = new GetQueryResultsRequest()
-                .withQueryExecutionId(queryExecutionId);
+    private static List<String> getQueryResults(AthenaClient athenaClient, String queryExecutionId) {
+        GetQueryResultsRequest getQueryResultsRequest = GetQueryResultsRequest.builder()
+                .queryExecutionId(queryExecutionId)
+                .build();
 
-        GetQueryResultsResult queryResultsResponse = athenaClient.getQueryResults(getQueryResultsRequest);
+        GetQueryResultsResponse queryResultsResponse = athenaClient.getQueryResults(getQueryResultsRequest);
 
         List<String> glueJobInputList = new ArrayList<>();
         boolean firstRow = false;
-        for (Row row : queryResultsResponse.getResultSet().getRows()) {
+        for (Row row : queryResultsResponse.resultSet().rows()) {
             if(!firstRow){
                 firstRow = true;
                 continue;
             }
-            String instance = getColumnValue(row.getData().get(0));
+            String instance = getColumnValue(row.data().get(0));
             glueJobInputList.add(instance);
         }
 
@@ -333,8 +338,8 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
     }
 
     private static String getColumnValue(Datum datum) {
-        if (datum != null && datum.getVarCharValue() != null) {
-            return datum.getVarCharValue();
+        if (datum != null && datum.varCharValue() != null) {
+            return datum.varCharValue();
         }
         return "";
     }
@@ -352,7 +357,7 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
                 entry("--END_DATE", endDate),
                 entry("--RELEASE_NUMBER", releaseNumber),
                 entry("--STACK", stack));
-        StartJobRunRequest startJobRunRequest = new StartJobRunRequest().withArguments(argumentMap).withJobName(jobName);
+        StartJobRunRequest startJobRunRequest = StartJobRunRequest.builder().arguments(argumentMap).jobName(jobName).build();
         awsGlue.startJobRun(startJobRunRequest);
         try {
             Thread.sleep(2000);
@@ -370,7 +375,7 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
                 entry("--SOURCE_TABLE_NAME", sourceTableName),
                 entry("--YEAR", year),
                 entry("--STACK", stack));
-        StartJobRunRequest startJobRunRequest = new StartJobRunRequest().withArguments(argumentMap).withJobName(jobName);
+        StartJobRunRequest startJobRunRequest = StartJobRunRequest.builder().arguments(argumentMap).jobName(jobName).build();
         awsGlue.startJobRun(startJobRunRequest);
     }
 

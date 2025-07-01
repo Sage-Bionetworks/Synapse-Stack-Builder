@@ -59,7 +59,7 @@
 								},
 								{
 									"RegexMatchStatement": {
-										"RegexString": "${regex_repo_v1_entity_synid_table_csv_download_async_start}",
+										"RegexString": "${regex_repo_v1_entity_synid_table_download_async_start}",
 										"FieldToMatch": {
 											"UriPath": {
 											}

@@ -101,15 +101,18 @@
 		}
 		,
 		{
-			"regexKey": "regex_repo_v1_entity_synid_table_csv_download_async_start",
+			"regexKey": "regex_repo_v1_entity_synid_table_download_async_start",
 			"hits": [
 				"/repo/v1/entity/syn9223372036854775807/table/download/csv/async/start",
-				"//repo/v1/entity/syn51513938/table/download/csv/async/start"
+				"//repo/v1/entity/syn51513938/table/download/csv/async/start",
+				"/repo/v1/entity/syn9223372036854775807/table/download/pfb/async/start",
+				"//repo/v1/entity/syn51513938/table/download/pfb/async/start"
 			],
 			"misses": [
 				"/repo/v1/entity/syn92233720368547758070/table/download/csv/async/start",
 				"/repo/v1/entity/bar/table/download/csv/async/start",
-				"/repo/v1/entity/syn123/table/download/csv/async/start/"
+				"/repo/v1/entity/syn123/table/download/csv/async/start/",
+				"/repo/v1/entity/syn9223372036854775807/table/download/notcsvorpfb/async/start"
 			]
 		},
 		{

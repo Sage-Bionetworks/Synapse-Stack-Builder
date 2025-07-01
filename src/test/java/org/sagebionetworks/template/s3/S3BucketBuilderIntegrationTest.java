@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
-import com.amazonaws.services.cloudformation.model.Stack;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.TemplateUtils;
@@ -25,10 +24,11 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 
-import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.s3.AmazonS3;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
@@ -46,13 +46,13 @@ public class S3BucketBuilderIntegrationTest {
     private AmazonS3 mockS3Client;
 
     @Mock
-    private AWSLambda mockLambdaClient;
+    private LambdaClient mockLambdaClient;
 
     @Mock
     private StsClient mockStsClient;
 
     @Mock
-    private CloudFormationClient mockCloudFormationClient;
+    private CloudFormationClientWrapper mockCloudFormationClientWrapper;
 
     @Mock
     private StackTagsProvider mockTagsProvider;
@@ -72,7 +72,7 @@ public class S3BucketBuilderIntegrationTest {
         // Validate the real S3Config
         injector.getInstance(S3Config.class);
 
-        builder = new S3BucketBuilderImpl(mockS3Client, mockStsClient, mockLambdaClient, mockConfig, mockS3Config, velocityEngine, mockCloudFormationClient, mockTagsProvider, mockDownloader);
+        builder = new S3BucketBuilderImpl(mockS3Client, mockStsClient, mockLambdaClient, mockConfig, mockS3Config, velocityEngine, mockCloudFormationClientWrapper, mockTagsProvider, mockDownloader);
 
         stack = "dev";
         accountId = "12345";
@@ -81,17 +81,32 @@ public class S3BucketBuilderIntegrationTest {
         GetCallerIdentityResponse expectedGetCallerIdentityResp = GetCallerIdentityResponse.builder().account(accountId).build();
         when(mockStsClient.getCallerIdentity(any(GetCallerIdentityRequest.class))).thenReturn(expectedGetCallerIdentityResp);
     }
-
+    
     @Test
     public void testBuildS3BucketPolicyStack() throws InterruptedException {
+    	
+    	S3BucketDescriptor dataBucket = new S3BucketDescriptor();
+    	dataBucket.setName("${stack}data.sagebase.org");
+    	dataBucket.setVirusScanEnabled(true);
+    	
+    	S3BucketDescriptor inventoryBucket = new S3BucketDescriptor();
+    	inventoryBucket.setName("${stack}.datawarehouse.sagebase.org");
 
         S3BucketDescriptor bucket = new S3BucketDescriptor();
+        
+        bucket.setName("${stack}.bucket.sagebase.org");
+        bucket.setVirusScanEnabled(true);
+        
+        S3BucketDescriptor bucket2 = new S3BucketDescriptor();
+        
+        bucket2.setName("${stack}.bucket2.sagebase.org");
+        bucket2.setDevOnly(true);
 
-        when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+        when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(dataBucket, inventoryBucket, bucket, bucket2));
 
-        Stack bucketPolicyStack = new Stack();
+        Stack bucketPolicyStack = Stack.builder().build();
 
-        when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+        when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
         when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
         // Call under test
@@ -100,12 +115,12 @@ public class S3BucketBuilderIntegrationTest {
         String expectedStackName = stack + "-synapse-bucket-policies";
         String expectedBucketPolicyTemplate = new JSONObject(TemplateUtils.loadContentFromFile("s3/s3-bucket-policy-test.json")).toString(5);
 
-        verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+        verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
                 .withStackName("dev-synapse-bucket-policies")
                 .withTemplateBody(expectedBucketPolicyTemplate)
                 .withTags(Collections.emptyList()));
 
-        verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-        verify(mockCloudFormationClient).describeStack(expectedStackName);
+        verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+        verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
     }
 }
