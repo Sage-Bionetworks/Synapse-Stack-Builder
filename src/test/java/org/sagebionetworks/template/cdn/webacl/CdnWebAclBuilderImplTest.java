@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.amazonaws.services.cloudformation.model.Stack;
-import com.amazonaws.services.cloudformation.model.Tag;
 import org.apache.velocity.Template;
 import org.apache.velocity.app.VelocityEngine;
 
@@ -28,10 +26,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.mockito.stubbing.Answer;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.RepoConfiguration;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.Tag;
 
 @ExtendWith(MockitoExtension.class)
 public class CdnWebAclBuilderImplTest {
@@ -40,7 +40,7 @@ public class CdnWebAclBuilderImplTest {
     private RepoConfiguration mockConfig;
 
     @Mock
-    private CloudFormationClient mockCloudFormationClient;
+    private CloudFormationClientWrapper mockCloudFormationClientWrapper;
 
     @Mock
     private StackTagsProvider mockStackTagsProvider;
@@ -70,12 +70,12 @@ public class CdnWebAclBuilderImplTest {
         }).when(mockTemplate).merge(any(), any());
 
         List<Tag> expectedTags = new ArrayList<>();
-        Tag tag = new Tag().withKey("aKey").withValue("aValue");
+        Tag tag = Tag.builder().key("aKey").value("aValue").build();
         expectedTags.add(tag);
-        Stack expectedStack = new Stack().withStackName("tst-cloudfront-webacl-stack").withTags(expectedTags);
+        Stack expectedStack = Stack.builder().stackName("tst-cloudfront-webacl-stack").tags(expectedTags).build();
         when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
-        when(mockCloudFormationClient.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
-        when(mockCloudFormationClient.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
+        when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
+        when(mockCloudFormationClientWrapper.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
 
         when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("tst");
 
@@ -83,12 +83,12 @@ public class CdnWebAclBuilderImplTest {
         Optional<Stack> optStack = builder.buildCdnWebAcl();
 
         assertTrue(optStack.isPresent());
-        assertEquals("tst-cloudfront-webacl-stack", optStack.get().getStackName());
-        assertEquals(1, optStack.get().getTags().size());
-        assertEquals(tag, optStack.get().getTags().get(0));
+        assertEquals("tst-cloudfront-webacl-stack", optStack.get().stackName());
+        assertEquals(1, optStack.get().tags().size());
+        assertEquals(tag, optStack.get().tags().get(0));
 
         verify(mockVelocityEngine).getTemplate("templates/cdn/synapse-cdn-webacl.json.vtp");
-        verify(mockCloudFormationClient).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
+        verify(mockCloudFormationClientWrapper).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
         CreateOrUpdateStackRequest actualReq = createOrUpdateStackRequestArgumentCaptor.getValue();
         assertNotNull(actualReq);
         assertEquals("tst-cloudfront-webacl-stack", actualReq.getStackName());
@@ -96,9 +96,9 @@ public class CdnWebAclBuilderImplTest {
         assertEquals(tag, actualReq.getTags().get(0));
 
         assertTrue(optStack.isPresent());
-        assertEquals("tst-cloudfront-webacl-stack", optStack.get().getStackName());
-        assertEquals(1, optStack.get().getTags().size());
-        assertEquals(tag, optStack.get().getTags().get(0));
+        assertEquals("tst-cloudfront-webacl-stack", optStack.get().stackName());
+        assertEquals(1, optStack.get().tags().size());
+        assertEquals(tag, optStack.get().tags().get(0));
 
     }
 

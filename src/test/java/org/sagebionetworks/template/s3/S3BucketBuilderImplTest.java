@@ -39,7 +39,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
@@ -47,8 +47,6 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.cloudformation.model.Output;
-import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AbortIncompleteMultipartUpload;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -78,6 +76,9 @@ import com.amazonaws.services.s3.model.inventory.InventoryConfiguration;
 import com.amazonaws.services.s3.model.inventory.InventoryFrequency;
 import com.amazonaws.services.s3.model.inventory.InventoryS3BucketDestination;
 import com.amazonaws.services.s3.model.lifecycle.LifecycleFilter;
+import software.amazon.awssdk.services.cloudformation.model.Capability;
+import software.amazon.awssdk.services.cloudformation.model.Output;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.lambda.model.InvocationType;
 import software.amazon.awssdk.services.lambda.model.InvokeRequest;
@@ -107,7 +108,7 @@ public class S3BucketBuilderImplTest {
 	private VelocityEngine mockVelocity;
 	
 	@Mock
-	private CloudFormationClient mockCloudFormationClient;
+	private CloudFormationClientWrapper mockCloudFormationClientWrapper;
 	
 	@Mock
 	private StackTagsProvider mockTagsProvider;
@@ -168,9 +169,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		// Call under test
@@ -197,13 +198,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 		
 		BucketLifecycleConfiguration config = bucketLifeCycleConfigurationCaptor.getValue();
 		
@@ -241,9 +242,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Mimics an existing life cycle with the abort rule already present
@@ -273,13 +274,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 	}
 	
 	@Test
@@ -298,9 +299,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Mimics an existing life cycle with the abort rule already present
@@ -344,13 +345,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 	}
 
 	@Test
@@ -366,9 +367,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		AmazonServiceException notFound = new AmazonServiceException("NotFound");
@@ -409,13 +410,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 	}
 
 	@Test
@@ -469,9 +470,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Call under test
@@ -509,12 +510,12 @@ public class S3BucketBuilderImplTest {
 		VelocityContext context = velocityContextCaptor.getValue();
 		assertEquals(context.get(Constants.STACK), stack);
 		String expectedStackName = stack + "-synapse-bucket-policies";
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 	}
 	
 	@Test
@@ -551,9 +552,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Call under test
@@ -589,12 +590,12 @@ public class S3BucketBuilderImplTest {
 		VelocityContext context = velocityContextCaptor.getValue();
 		assertEquals(context.get(Constants.STACK), stack);
 		String expectedStackName = stack + "-synapse-bucket-policies";
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 	}
 	
 	@Test
@@ -630,9 +631,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Call under test
@@ -653,12 +654,12 @@ public class S3BucketBuilderImplTest {
 		VelocityContext context = velocityContextCaptor.getValue();
 		assertEquals(context.get(Constants.STACK), stack);
 		String expectedStackName = stack + "-synapse-bucket-policies";
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 
 	}
 	
@@ -696,9 +697,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Call under test
@@ -720,12 +721,12 @@ public class S3BucketBuilderImplTest {
 		VelocityContext context = velocityContextCaptor.getValue();
 		assertEquals(context.get(Constants.STACK), stack);
 		String expectedStackName = stack + "-synapse-bucket-policies";
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 
 	}
 	
@@ -747,9 +748,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Call under test
@@ -785,13 +786,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 	}
 	
 	@Test
@@ -811,9 +812,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Mimics an existing life cycle with a retention rule already present
@@ -845,13 +846,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 	}
 	
 	@Test
@@ -871,9 +872,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Mimics an existing life cycle with a retention rule already present
@@ -917,13 +918,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 	}
 	
 	@Test
@@ -947,9 +948,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 				
 		// Call under test
@@ -988,13 +989,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 	}
 	
 	@Test
@@ -1018,9 +1019,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Mimics an existing life cycle with a transition rule already present
@@ -1050,13 +1051,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 	}
 	
 	@Test
@@ -1080,9 +1081,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Mimics an existing life cycle with a transition rule already present
@@ -1125,13 +1126,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 	}
 	
 	@Test
@@ -1162,9 +1163,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		when(mockS3Client.getBucketLifecycleConfiguration(anyString())).thenReturn(new BucketLifecycleConfiguration()
@@ -1230,13 +1231,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 	}
 	
 	@Test
@@ -1264,9 +1265,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 				
 		// Call under test
@@ -1313,13 +1314,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 	}
 	
 	@Test
@@ -1343,9 +1344,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		// Call under test
@@ -1368,13 +1369,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 
 	}
 	
@@ -1397,9 +1398,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		// Call under test
@@ -1415,13 +1416,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 
 	}
 	
@@ -1452,9 +1453,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 				
 		// Call under test
@@ -1484,13 +1485,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 		
 	}
 	
@@ -1583,9 +1584,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 				
 		// Call under test
@@ -1612,13 +1613,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 	}
 	
 	@Test
@@ -1645,9 +1646,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 				
 		// Call under test
@@ -1673,13 +1674,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 		
 	}
 	
@@ -1705,9 +1706,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		// Call under test
@@ -1724,13 +1725,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 	}
 	
 	@Test
@@ -1752,7 +1753,7 @@ public class S3BucketBuilderImplTest {
 		String expectedGlobalStackName = "synapse-" + stack + "-global-resources";
 
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
-		when(mockCloudFormationClient.getOutput(any(), any())).thenReturn(expectedTopicArn);
+		when(mockCloudFormationClientWrapper.getOutput(any(), any())).thenReturn(expectedTopicArn);
 		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
 
 		doAnswer(invocation -> {
@@ -1760,15 +1761,15 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockCloudFormationClient).getOutput(expectedGlobalStackName, topic);
+		verify(mockCloudFormationClientWrapper).getOutput(expectedGlobalStackName, topic);
 		verify(mockS3Client).getBucketNotificationConfiguration(expectedBucketName);
 		
 		ArgumentCaptor<BucketNotificationConfiguration> argCaptor = ArgumentCaptor.forClass(BucketNotificationConfiguration.class);
@@ -1792,13 +1793,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 		
 	}
 	
@@ -1823,7 +1824,7 @@ public class S3BucketBuilderImplTest {
 		BucketNotificationConfiguration existingConfig = new BucketNotificationConfiguration();
 
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
-		when(mockCloudFormationClient.getOutput(any(), any())).thenReturn(expectedTopicArn);
+		when(mockCloudFormationClientWrapper.getOutput(any(), any())).thenReturn(expectedTopicArn);
 		when(mockS3Client.getBucketNotificationConfiguration(anyString())).thenReturn(existingConfig);
 		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
 
@@ -1832,15 +1833,15 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockCloudFormationClient).getOutput(expectedGlobalStackName, topic);
+		verify(mockCloudFormationClientWrapper).getOutput(expectedGlobalStackName, topic);
 		verify(mockS3Client).getBucketNotificationConfiguration(expectedBucketName);
 		
 		ArgumentCaptor<BucketNotificationConfiguration> argCaptor = ArgumentCaptor.forClass(BucketNotificationConfiguration.class);
@@ -1864,13 +1865,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 		
 	}
 	
@@ -1897,7 +1898,7 @@ public class S3BucketBuilderImplTest {
 		existingConfig.addConfiguration("otherConfig", new TopicConfiguration("otherArn", EnumSet.of(S3Event.ObjectCreated)));
 
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
-		when(mockCloudFormationClient.getOutput(any(), any())).thenReturn(expectedTopicArn);
+		when(mockCloudFormationClientWrapper.getOutput(any(), any())).thenReturn(expectedTopicArn);
 		when(mockS3Client.getBucketNotificationConfiguration(anyString())).thenReturn(existingConfig);
 		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
 
@@ -1906,15 +1907,15 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockCloudFormationClient).getOutput(expectedGlobalStackName, topic);
+		verify(mockCloudFormationClientWrapper).getOutput(expectedGlobalStackName, topic);
 		verify(mockS3Client).getBucketNotificationConfiguration(expectedBucketName);
 		
 		ArgumentCaptor<BucketNotificationConfiguration> argCaptor = ArgumentCaptor.forClass(BucketNotificationConfiguration.class);
@@ -1938,13 +1939,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 		
 	}
 	
@@ -1971,7 +1972,7 @@ public class S3BucketBuilderImplTest {
 		existingConfig.addConfiguration(expectedConfigName, new TopicConfiguration().withTopicARN("otherArn").withEvents(events));
 
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
-		when(mockCloudFormationClient.getOutput(any(), any())).thenReturn(expectedTopicArn);
+		when(mockCloudFormationClientWrapper.getOutput(any(), any())).thenReturn(expectedTopicArn);
 		when(mockS3Client.getBucketNotificationConfiguration(anyString())).thenReturn(existingConfig);
 		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
 
@@ -1980,15 +1981,15 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockCloudFormationClient).getOutput(expectedGlobalStackName, topic);
+		verify(mockCloudFormationClientWrapper).getOutput(expectedGlobalStackName, topic);
 		verify(mockS3Client).getBucketNotificationConfiguration(expectedBucketName);
 		
 		ArgumentCaptor<BucketNotificationConfiguration> argCaptor = ArgumentCaptor.forClass(BucketNotificationConfiguration.class);
@@ -2012,13 +2013,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 		
 	}
 	
@@ -2045,7 +2046,7 @@ public class S3BucketBuilderImplTest {
 		existingConfig.addConfiguration(expectedConfigName, new TopicConfiguration(expectedTopicArn, "s3:ObjectRestore:Post"));
 
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
-		when(mockCloudFormationClient.getOutput(any(), any())).thenReturn(expectedTopicArn);
+		when(mockCloudFormationClientWrapper.getOutput(any(), any())).thenReturn(expectedTopicArn);
 		when(mockS3Client.getBucketNotificationConfiguration(anyString())).thenReturn(existingConfig);
 		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
 
@@ -2054,15 +2055,15 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockCloudFormationClient).getOutput(expectedGlobalStackName, topic);
+		verify(mockCloudFormationClientWrapper).getOutput(expectedGlobalStackName, topic);
 		verify(mockS3Client).getBucketNotificationConfiguration(expectedBucketName);
 		
 		ArgumentCaptor<BucketNotificationConfiguration> argCaptor = ArgumentCaptor.forClass(BucketNotificationConfiguration.class);
@@ -2086,13 +2087,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 		
 	}
 	
@@ -2119,7 +2120,7 @@ public class S3BucketBuilderImplTest {
 		existingConfig.addConfiguration(expectedConfigName, new TopicConfiguration().withTopicARN(expectedTopicArn).withEvents(events));
 
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
-		when(mockCloudFormationClient.getOutput(any(), any())).thenReturn(expectedTopicArn);
+		when(mockCloudFormationClientWrapper.getOutput(any(), any())).thenReturn(expectedTopicArn);
 		when(mockS3Client.getBucketNotificationConfiguration(anyString())).thenReturn(existingConfig);
 		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
 
@@ -2128,15 +2129,15 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockCloudFormationClient).getOutput(expectedGlobalStackName, topic);
+		verify(mockCloudFormationClientWrapper).getOutput(expectedGlobalStackName, topic);
 		verify(mockS3Client).getBucketNotificationConfiguration(expectedBucketName);
 		verify(mockS3Client, never()).setBucketNotificationConfiguration(any(), any());
 
@@ -2148,13 +2149,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 	}
 	
 	@Test
@@ -2180,7 +2181,7 @@ public class S3BucketBuilderImplTest {
 		existingConfig.addConfiguration(expectedConfigName, new QueueConfiguration().withQueueARN("queueArn").withEvents(events));
 
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
-		when(mockCloudFormationClient.getOutput(any(), any())).thenReturn(expectedTopicArn);
+		when(mockCloudFormationClientWrapper.getOutput(any(), any())).thenReturn(expectedTopicArn);
 		when(mockS3Client.getBucketNotificationConfiguration(anyString())).thenReturn(existingConfig);
 
 		IllegalStateException ex = assertThrows(IllegalStateException.class, () -> {			
@@ -2190,7 +2191,7 @@ public class S3BucketBuilderImplTest {
 		
 		assertEquals("The notification configuration " + expectedConfigName + " was found but was not a TopicConfiguration", ex.getMessage());
 
-		verify(mockCloudFormationClient).getOutput(expectedGlobalStackName, topic);
+		verify(mockCloudFormationClientWrapper).getOutput(expectedGlobalStackName, topic);
 		verify(mockS3Client).getBucketNotificationConfiguration(expectedBucketName);
 		verify(mockS3Client, never()).setBucketNotificationConfiguration(any(), any());
 	}
@@ -2218,13 +2219,15 @@ public class S3BucketBuilderImplTest {
 			((StringWriter) invocation.getArgument(1)).append("{}");
 			return null;
 		}).when(mockTemplate).merge(any(), any());
+
+		Stack virusScannerStack = Stack.builder()
+				.outputs(
+						Output.builder().outputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_TRIGGER_TOPIC).outputValue("snsTopicArn").build(),
+						Output.builder().outputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_UPDATER_LAMBDA).outputValue("updaterLambdaArn").build()
+				)
+				.build();
 		
-		Stack virusScannerStack = new Stack().withOutputs(
-			new Output().withOutputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_TRIGGER_TOPIC).withOutputValue("snsTopicArn"),
-			new Output().withOutputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_UPDATER_LAMBDA).withOutputValue("updaterLambdaArn")
-		);
-		
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(virusScannerStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(virusScannerStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		String expectedBucket = stack + "-lambda-bucket";
@@ -2257,9 +2260,9 @@ public class S3BucketBuilderImplTest {
 		ArgumentCaptor<String> argCaptorWaitForStack = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<String> argCaptorDescribeStack = ArgumentCaptor.forClass(String.class);
 
-		verify(mockCloudFormationClient, times(2)).createOrUpdateStack(argCreateOrUpdateStack.capture());
-		verify(mockCloudFormationClient, times(2)).waitForStackToComplete(argCaptorWaitForStack.capture());
-		verify(mockCloudFormationClient, times(2)).describeStack(argCaptorDescribeStack.capture());
+		verify(mockCloudFormationClientWrapper, times(2)).createOrUpdateStack(argCreateOrUpdateStack.capture());
+		verify(mockCloudFormationClientWrapper, times(2)).waitForStackToComplete(argCaptorWaitForStack.capture());
+		verify(mockCloudFormationClientWrapper, times(2)).describeStack(argCaptorDescribeStack.capture());
 
 		List<CreateOrUpdateStackRequest> capturedCreateOrUpdateStackArgs = argCreateOrUpdateStack.getAllValues();
 		List<String> capturedWaitForStackArgs = argCaptorWaitForStack.getAllValues();
@@ -2269,7 +2272,7 @@ public class S3BucketBuilderImplTest {
 				.withStackName(expectedVirusScannerStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList())
-				.withCapabilities(CAPABILITY_NAMED_IAM));
+				.withCapabilities(Capability.CAPABILITY_NAMED_IAM));
 
 		assertEquals(capturedCreateOrUpdateStackArgs.get(1), new CreateOrUpdateStackRequest()
 				.withStackName(expectedBucketPolicyStackName)
@@ -2325,17 +2328,19 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
+
+		Stack virusScannerStack = Stack.builder()
+				.outputs(
+						Output.builder().outputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_TRIGGER_TOPIC).outputValue("snsTopicArn").build(),
+						Output.builder().outputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_UPDATER_LAMBDA).outputValue("updaterLambdaArn").build()
+				)
+				.build();
 		
-		Stack virusScannerStack = new Stack().withOutputs(
-			new Output().withOutputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_TRIGGER_TOPIC).withOutputValue("snsTopicArn"),
-			new Output().withOutputKey(S3BucketBuilderImpl.CF_OUTPUT_VIRUS_UPDATER_LAMBDA).withOutputValue("updaterLambdaArn")
-		);
-		
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(virusScannerStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(virusScannerStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 				
 		// Fake an existing config for the scanner
@@ -2384,9 +2389,9 @@ public class S3BucketBuilderImplTest {
 		ArgumentCaptor<String> argCaptorWaitForStack = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<String> argCaptorDescribeStack = ArgumentCaptor.forClass(String.class);
 
-		verify(mockCloudFormationClient, times(2)).createOrUpdateStack(argCreateOrUpdateStack.capture());
-		verify(mockCloudFormationClient, times(2)).waitForStackToComplete(argCaptorWaitForStack.capture());
-		verify(mockCloudFormationClient, times(2)).describeStack(argCaptorDescribeStack.capture());
+		verify(mockCloudFormationClientWrapper, times(2)).createOrUpdateStack(argCreateOrUpdateStack.capture());
+		verify(mockCloudFormationClientWrapper, times(2)).waitForStackToComplete(argCaptorWaitForStack.capture());
+		verify(mockCloudFormationClientWrapper, times(2)).describeStack(argCaptorDescribeStack.capture());
 
 		List<CreateOrUpdateStackRequest> capturedCreateOrUpdateStackArgs = argCreateOrUpdateStack.getAllValues();
 		List<String> capturedWaitForStackArgs = argCaptorWaitForStack.getAllValues();
@@ -2396,7 +2401,7 @@ public class S3BucketBuilderImplTest {
 				.withStackName(expectedVirusScannerStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList())
-				.withCapabilities(CAPABILITY_NAMED_IAM));
+				.withCapabilities(Capability.CAPABILITY_NAMED_IAM));
 
 		assertEquals(capturedCreateOrUpdateStackArgs.get(1), new CreateOrUpdateStackRequest()
 				.withStackName(expectedBucketPolicyStackName)
@@ -2423,9 +2428,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		// Call under test
@@ -2439,13 +2444,13 @@ public class S3BucketBuilderImplTest {
 
 		String expectedStackName = stack + "-synapse-bucket-policies";
 
-		verify(mockCloudFormationClient).createOrUpdateStack(new CreateOrUpdateStackRequest()
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(expectedStackName)
 				.withTemplateBody("{}")
 				.withTags(Collections.emptyList()));
 
-		verify(mockCloudFormationClient).waitForStackToComplete(expectedStackName);
-		verify(mockCloudFormationClient).describeStack(expectedStackName);
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
 
 
 	}
@@ -2466,9 +2471,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
 		AmazonS3Exception exception = new AmazonS3Exception("Nope");
@@ -2507,9 +2512,9 @@ public class S3BucketBuilderImplTest {
 			return null;
 		}).when(mockTemplate).merge(any(), any());
 
-		Stack bucketPolicyStack = new Stack();
+		Stack bucketPolicyStack = Stack.builder().build();
 
-		when(mockCloudFormationClient.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		when(mockS3Client.getPublicAccessBlock(any())).thenReturn(new GetPublicAccessBlockResult()
 			.withPublicAccessBlockConfiguration(new PublicAccessBlockConfiguration()

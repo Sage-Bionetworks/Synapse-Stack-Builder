@@ -22,20 +22,19 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
-
-import com.amazonaws.services.cloudformation.model.Parameter;
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
 
 @ExtendWith(MockitoExtension.class)
 public class IdGeneratorBuilderImplTest {
 
 	@Mock
-	CloudFormationClient mockCloudFormationClient;
+    CloudFormationClientWrapper mockCloudFormationClientWrapper;
 	@Mock
 	Configuration config;
 	@Mock
@@ -63,7 +62,7 @@ public class IdGeneratorBuilderImplTest {
 		when(mockSecretBuilder.getIdGeneratorPassword()).thenReturn("somePassword");
 		when(config.getProperty(PROPERTY_KEY_ID_GENERATOR_HOSTED_ZONE_ID)).thenReturn("hostedZoneId");
 
-		builder = new IdGeneratorBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory, mockSecretBuilder);
+		builder = new IdGeneratorBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, config, mockLoggerFactory, mockSecretBuilder);
 	}
 
 	@Test
@@ -71,11 +70,11 @@ public class IdGeneratorBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn("prod");
 		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn("Green");
 		when(mockSecretBuilder.getIdGeneratorPassword()).thenReturn("somePassword");
-		builder = new IdGeneratorBuilderImpl(mockCloudFormationClient, velocityEngine, config, mockLoggerFactory, mockSecretBuilder);
+		builder = new IdGeneratorBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, config, mockLoggerFactory, mockSecretBuilder);
 
 		// call under test
 		builder.buildAndDeploy();
-		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(requestCaptor.capture());
 		CreateOrUpdateStackRequest request = requestCaptor.getValue();
 		assertEquals("prod-id-generator-3-green", request.getStackName());
 		JSONObject template = new JSONObject(request.getTemplateBody());
@@ -91,8 +90,8 @@ public class IdGeneratorBuilderImplTest {
 		Parameter[] params = request.getParameters();
 		assertNotNull(params);
 		Parameter param = params[0];
-		assertEquals(PARAMETER_MYSQL_PASSWORD, param.getParameterKey());
-		assertEquals("somePassword", param.getParameterValue());
+		assertEquals(PARAMETER_MYSQL_PASSWORD, param.parameterKey());
+		assertEquals("somePassword", param.parameterValue());
 		assertEquals(1, params.length);
 	}
 	
@@ -103,7 +102,7 @@ public class IdGeneratorBuilderImplTest {
 	public void testBuildDev() {
 		// call under test
 		builder.buildAndDeploy();
-		verify(mockCloudFormationClient).createOrUpdateStack(requestCaptor.capture());
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(requestCaptor.capture());
 		CreateOrUpdateStackRequest request = requestCaptor.getValue();
 		assertEquals("dev-id-generator-3-green", request.getStackName());
 		JSONObject template = new JSONObject(request.getTemplateBody());
@@ -119,8 +118,8 @@ public class IdGeneratorBuilderImplTest {
 		Parameter[] params = request.getParameters();
 		assertNotNull(params);
 		Parameter param = params[0];
-		assertEquals(PARAMETER_MYSQL_PASSWORD, param.getParameterKey());
-		assertEquals("somePassword", param.getParameterValue());
+		assertEquals(PARAMETER_MYSQL_PASSWORD, param.parameterKey());
+		assertEquals("somePassword", param.parameterValue());
 		assertEquals(1, params.length);
 	}
 

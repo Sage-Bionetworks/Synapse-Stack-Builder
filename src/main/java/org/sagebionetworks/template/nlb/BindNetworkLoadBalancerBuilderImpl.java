@@ -16,31 +16,31 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.ip.address.IpAddressPoolBuilderImpl;
 
-import com.amazonaws.services.cloudformation.model.Parameter;
 import com.google.inject.Inject;
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
 
 public class BindNetworkLoadBalancerBuilderImpl implements BindNetworkLoadBalancerBuilder {
 
 	public static final String MAPPINGS_CSV = "mappingsCSV";
 	
-	private CloudFormationClient cloudFormationClient;
+	private CloudFormationClientWrapper cloudFormationClientWrapper;
 	private VelocityEngine velocityEngine;
 	private Configuration config;
 	private Logger logger;
 	private StackTagsProvider tagsProvider;
 
 	@Inject
-	public BindNetworkLoadBalancerBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
-			Configuration config, LoggerFactory loggerFactory, StackTagsProvider tagsProvider) {
+	public BindNetworkLoadBalancerBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper, VelocityEngine velocityEngine,
+                                              Configuration config, LoggerFactory loggerFactory, StackTagsProvider tagsProvider) {
 		super();
-		this.cloudFormationClient = cloudFormationClient;
+		this.cloudFormationClientWrapper = cloudFormationClientWrapper;
 		this.velocityEngine = velocityEngine;
 		this.config = config;
 		this.logger = loggerFactory.getLogger(IpAddressPoolBuilderImpl.class);
@@ -70,7 +70,7 @@ public class BindNetworkLoadBalancerBuilderImpl implements BindNetworkLoadBalanc
 		context.put(MAPPINGS_CSV, mappingsCSV);
 		context.put("listeners", listeners);
 		context.put("stack", stack);
-		Parameter parameter = new Parameter();
+		Parameter parameter = Parameter.builder().build();
 
 		// Merge the context with the template
 		Template template = this.velocityEngine.getTemplate("templates/global/dns-record-to-stack-mapping.json.vpt");
@@ -86,11 +86,11 @@ public class BindNetworkLoadBalancerBuilderImpl implements BindNetworkLoadBalanc
 		this.logger.info(resultJSON);
 
 		// create or update the template
-		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
+		this.cloudFormationClientWrapper.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
 				.withTemplateBody(resultJSON).withParameters(parameter).withTags(tagsProvider.getStackTags(config)));
 		
 		try {
-			this.cloudFormationClient.waitForStackToComplete(stackName);
+			this.cloudFormationClientWrapper.waitForStackToComplete(stackName);
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}

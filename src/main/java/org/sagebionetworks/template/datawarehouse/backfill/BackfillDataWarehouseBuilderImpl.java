@@ -11,7 +11,7 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
@@ -32,6 +32,7 @@ import software.amazon.awssdk.services.athena.model.ResultConfiguration;
 import software.amazon.awssdk.services.athena.model.Row;
 import software.amazon.awssdk.services.athena.model.StartQueryExecutionRequest;
 import software.amazon.awssdk.services.athena.model.StartQueryExecutionResponse;
+import software.amazon.awssdk.services.cloudformation.model.Capability;
 import software.amazon.awssdk.services.glue.GlueClient;
 import software.amazon.awssdk.services.glue.model.BatchCreatePartitionRequest;
 import software.amazon.awssdk.services.glue.model.GetTableRequest;
@@ -88,17 +89,17 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
     private Logger logger;
     private VelocityEngine velocityEngine;
     private AmazonS3 s3Client;
-    private CloudFormationClient cloudFormationClient;
+    private CloudFormationClientWrapper cloudFormationClientWrapper;
     private StackTagsProvider tagsProvider;
     private GlueClient awsGlue;
     private AthenaClient athena;
 
     @Inject
-    public BackfillDataWarehouseBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
+    public BackfillDataWarehouseBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper, VelocityEngine velocityEngine,
                                             Configuration config, LoggerFactory loggerFactory,
                                             StackTagsProvider tagsProvider, ArtifactDownload downloader,
                                             AmazonS3 s3Client, GlueClient awsGlue, AthenaClient athena) {
-        this.cloudFormationClient = cloudFormationClient;
+        this.cloudFormationClientWrapper = cloudFormationClientWrapper;
         this.velocityEngine = velocityEngine;
         this.config = config;
         this.logger = loggerFactory.getLogger(DataWarehouseBuilderImpl.class);
@@ -149,11 +150,11 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
         this.logger.info(resultJSON);
         // create or update the stack
         String stackName = new StringJoiner("-").add(stack).add(databaseName).add("backfill-etl-jobs").toString();
-        this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
+        this.cloudFormationClientWrapper.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
                 .withTemplateBody(resultJSON).withTags(tagsProvider.getStackTags(config))
-                .withCapabilities(CAPABILITY_NAMED_IAM));
+                .withCapabilities(Capability.CAPABILITY_NAMED_IAM));
         try {
-            cloudFormationClient.waitForStackToComplete(stackName);
+            cloudFormationClientWrapper.waitForStackToComplete(stackName);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

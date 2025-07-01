@@ -7,14 +7,14 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
 
-import com.amazonaws.services.cloudformation.model.Parameter;
 import com.google.inject.Inject;
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
 
 import static org.sagebionetworks.template.Constants.*;
 
@@ -24,16 +24,16 @@ import static org.sagebionetworks.template.Constants.*;
  */
 public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 
-	CloudFormationClient cloudFormationClient;
+	CloudFormationClientWrapper cloudFormationClientWrapper;
 	VelocityEngine velocityEngine;
 	Configuration config;
 	Logger logger;
 	StackTagsProvider stackTagsProvider;
 
 	@Inject
-	public VpcTemplateBuilderImpl(CloudFormationClient cloudFormationClient, VelocityEngine velocityEngine,
+	public VpcTemplateBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper, VelocityEngine velocityEngine,
 								  Configuration configuration, LoggerFactory loggerFactory, StackTagsProvider stackTagsProvider) {
-		this.cloudFormationClient = cloudFormationClient;
+		this.cloudFormationClientWrapper = cloudFormationClientWrapper;
 		this.velocityEngine = velocityEngine;
 		this.config = configuration;
 		this.logger = loggerFactory.getLogger(VpcTemplateBuilderImpl.class);
@@ -58,12 +58,12 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 		this.logger.info(resultJSON);
 		Parameter[] params = createParameters(stackName);
 		// create or update the template
-		this.cloudFormationClient.createOrUpdateStack(new CreateOrUpdateStackRequest()
+		this.cloudFormationClientWrapper.createOrUpdateStack(new CreateOrUpdateStackRequest()
 				.withStackName(stackName)
 				.withTemplateBody(resultJSON)
 				.withTags(stackTagsProvider.getStackTags(config))
 				.withParameters(params));
-		this.cloudFormationClient.waitForStackToComplete(stackName);
+		this.cloudFormationClientWrapper.waitForStackToComplete(stackName);
 	}
 
 	/**
@@ -120,8 +120,8 @@ public class VpcTemplateBuilderImpl implements VpcTemplateBuilder {
 	 * @return
 	 */
 	public Parameter[] createParameters(String stackName) {
-		Parameter VpnCidrNew = new Parameter().withParameterKey(PARAMETER_VPN_CIDR_NEW)
-				.withParameterValue(config.getProperty(PROPERTY_KEY_VPC_VPN_CIDR_NEW));
+		Parameter VpnCidrNew = Parameter.builder().parameterKey(PARAMETER_VPN_CIDR_NEW)
+				.parameterValue(config.getProperty(PROPERTY_KEY_VPC_VPN_CIDR_NEW)).build();
 		return new Parameter[] { VpnCidrNew };
 	}
 }
