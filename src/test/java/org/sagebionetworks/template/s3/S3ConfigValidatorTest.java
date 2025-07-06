@@ -14,8 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import com.amazonaws.services.s3.model.StorageClass;
+import software.amazon.awssdk.services.s3.model.TransitionStorageClass;
 
 @ExtendWith(MockitoExtension.class)
 public class S3ConfigValidatorTest {
@@ -107,7 +106,7 @@ public class S3ConfigValidatorTest {
 		bucket.setName("bucket");
 		bucket.setStorageClassTransitions(Collections.singletonList(
 				new S3BucketClassTransition()
-					.withStorageClass(StorageClass.IntelligentTiering)
+					.withStorageClass(TransitionStorageClass.INTELLIGENT_TIERING)
 					.withDays(30)
 		));
 
@@ -124,10 +123,10 @@ public class S3ConfigValidatorTest {
 		bucket.setName("bucket");
 		bucket.setStorageClassTransitions(Arrays.asList(
 				new S3BucketClassTransition()
-					.withStorageClass(StorageClass.IntelligentTiering)
+					.withStorageClass(TransitionStorageClass.INTELLIGENT_TIERING)
 					.withDays(30),
 				new S3BucketClassTransition()
-					.withStorageClass(StorageClass.IntelligentTiering)
+					.withStorageClass(TransitionStorageClass.INTELLIGENT_TIERING)
 					.withDays(10)
 		));
 
@@ -169,7 +168,7 @@ public class S3ConfigValidatorTest {
 		bucket.setName("bucket");
 		bucket.setStorageClassTransitions(Arrays.asList(
 				new S3BucketClassTransition()
-					.withStorageClass(StorageClass.IntelligentTiering)
+					.withStorageClass(TransitionStorageClass.INTELLIGENT_TIERING)
 					.withDays(null)
 		));
 
@@ -190,7 +189,7 @@ public class S3ConfigValidatorTest {
 		bucket.setName("bucket");
 		bucket.setStorageClassTransitions(Arrays.asList(
 				new S3BucketClassTransition()
-					.withStorageClass(StorageClass.IntelligentTiering)
+					.withStorageClass(TransitionStorageClass.INTELLIGENT_TIERING)
 					.withDays(0)
 		));
 

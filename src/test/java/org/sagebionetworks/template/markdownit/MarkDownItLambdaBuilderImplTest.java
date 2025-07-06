@@ -1,6 +1,5 @@
 package org.sagebionetworks.template.markdownit;
 
-import com.amazonaws.services.s3.AmazonS3;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +16,8 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 import software.amazon.awssdk.services.cloudformation.model.Capability;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.File;
 import java.util.Collections;
@@ -49,7 +50,7 @@ public class MarkDownItLambdaBuilderImplTest {
     StackTagsProvider mockTagsProvider;
 
     @Mock
-    AmazonS3 mockS3Client;
+    S3Client mockS3Client;
 
     VelocityEngine velocityEngine;
 
@@ -96,7 +97,7 @@ public class MarkDownItLambdaBuilderImplTest {
         builder.buildMarkDownItLambda();
 
         verify(mockDownloader).downloadFile("https://sagebionetworks.jfrog.io/lambda/org/sagebase/markdownit/markdownit.zip");
-        verify(mockS3Client).putObject(expectedBucket, expectedKey, mockFile);
+        verify(mockS3Client).putObject(PutObjectRequest.builder().bucket(expectedBucket).key(expectedKey).build(), mockFile.toPath());
 
         verify(mockFile).delete();
 

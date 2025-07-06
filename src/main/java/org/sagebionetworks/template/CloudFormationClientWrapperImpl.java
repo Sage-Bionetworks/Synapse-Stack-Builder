@@ -22,11 +22,9 @@ import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.google.inject.Inject;
 
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
 import software.amazon.awssdk.services.cloudformation.model.CloudFormationException;
 import software.amazon.awssdk.services.cloudformation.model.CreateStackRequest;
@@ -44,6 +42,9 @@ import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 import software.amazon.awssdk.services.cloudformation.model.UpdateStackRequest;
 import software.amazon.awssdk.services.cloudformation.model.UpdateStackResponse;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 /**
  * Basic implementation CloudFormationClient
@@ -58,13 +59,13 @@ public class CloudFormationClientWrapperImpl implements CloudFormationClientWrap
 	public static final int SLEEP_TIME = 10 * 1000;
 	public static final String NO_UPDATES_ARE_TO_BE_PERFORMED = "No updates are to be performed";
 	CloudFormationClient cloudFormationClient;
-	AmazonS3 s3Client;
+	S3Client s3Client;
 	Configuration configuration;
 	Logger logger;
 	ThreadProvider threadProvider;
 
 	@Inject
-	public CloudFormationClientWrapperImpl(CloudFormationClient cloudFormationClient, AmazonS3 s3Client,
+	public CloudFormationClientWrapperImpl(CloudFormationClient cloudFormationClient, S3Client s3Client,
 										   Configuration configuration, LoggerFactory loggerFactory, ThreadProvider threadProvider) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
@@ -215,9 +216,8 @@ public class CloudFormationClientWrapperImpl implements CloudFormationClientWrap
 			String key = "templates/" + stackName + "-" + UUID.randomUUID() + ".json";
 			byte[] bytes = template.getBytes("UTF-8");
 			ByteArrayInputStream input = new ByteArrayInputStream(bytes);
-			ObjectMetadata metadata = new ObjectMetadata();
-			metadata.setContentLength(bytes.length);
-			s3Client.putObject(new PutObjectRequest(bucket, key, input, metadata));
+			PutObjectRequest request = PutObjectRequest.builder().bucket(bucket).key(key).contentLength((long)bytes.length).build();
+			s3Client.putObject(request, RequestBody.fromBytes(bytes));
 			return new SourceBundle(bucket, key);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
@@ -240,7 +240,8 @@ public class CloudFormationClientWrapperImpl implements CloudFormationClientWrap
 	 * @param bundle
 	 */
 	void deleteTemplate(SourceBundle bundle) {
-		s3Client.deleteObject(bundle.getBucket(), bundle.getKey());
+		DeleteObjectRequest delObjRequest = DeleteObjectRequest.builder().bucket(bundle.getBucket()).key(bundle.getKey()).build();
+		s3Client.deleteObject(delObjRequest);
 	}
 
 	public boolean isStartedInUpdateRollbackComplete(String stackName) {

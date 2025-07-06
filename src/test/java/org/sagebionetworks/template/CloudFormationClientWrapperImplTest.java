@@ -34,9 +34,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
 import software.amazon.awssdk.services.cloudformation.model.Capability;
 import software.amazon.awssdk.services.cloudformation.model.CloudFormationException;
@@ -57,6 +56,9 @@ import software.amazon.awssdk.services.cloudformation.model.StackEvent;
 import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 import software.amazon.awssdk.services.cloudformation.model.UpdateStackRequest;
 import software.amazon.awssdk.services.cloudformation.model.UpdateStackResponse;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @ExtendWith(MockitoExtension.class)
 public class CloudFormationClientWrapperImplTest {
@@ -69,7 +71,7 @@ public class CloudFormationClientWrapperImplTest {
 	@Mock
 	CloudFormationClient mockCloudFormationClient;
 	@Mock
-	AmazonS3 mockS3Client;
+	S3Client mockS3Client;
 	@Mock
 	Configuration mockConfig;
 	@Mock
@@ -306,41 +308,52 @@ public class CloudFormationClientWrapperImplTest {
 	@Test
 	public void testSaveTemplateToS3() {
 		when(mockConfig.getConfigurationBucket()).thenReturn(bucket);
+
 		// call under test
 		SourceBundle bundle = client.saveTemplateToS3(stackName, templateBody);
+
 		Assertions.assertNotNull(bundle);
 		Assertions.assertEquals(bucket, bundle.getBucket());
 		Assertions.assertNotNull(bundle.getKey());
 		assertTrue(bundle.getKey().startsWith("templates/someStackName"));
 		assertTrue(bundle.getKey().endsWith(".json"));
 		ArgumentCaptor<PutObjectRequest> requestCapture = ArgumentCaptor.forClass(PutObjectRequest.class);
-		verify(mockS3Client).putObject(requestCapture.capture());
+		verify(mockS3Client).putObject(requestCapture.capture(), any(RequestBody.class));
 		PutObjectRequest request = requestCapture.getValue();
 		Assertions.assertNotNull(request);
-		Assertions.assertEquals(bucket, request.getBucketName());
-		Assertions.assertEquals(bundle.getKey(), request.getKey());
-		Assertions.assertNotNull(request.getMetadata());
-		Assertions.assertEquals(4L, request.getMetadata().getContentLength());
+		Assertions.assertEquals(bucket, request.bucket());
+		Assertions.assertEquals(bundle.getKey(), request.key());
+		Assertions.assertNotNull(request.contentType());
+		Assertions.assertEquals(4L, request.contentLength());
 	}
 
 	@Test
 	public void testDeleteTemplate() {
 		String key = "someKey";
 		SourceBundle bundle = new SourceBundle(bucket, key);
+		ArgumentCaptor<DeleteObjectRequest> requestCapture = ArgumentCaptor.forClass(DeleteObjectRequest.class);
+
 		// call under test
 		client.deleteTemplate(bundle);
-		verify(mockS3Client).deleteObject(bucket, key);
+
+		verify(mockS3Client).deleteObject(requestCapture.capture());
+		DeleteObjectRequest request = requestCapture.getValue();
+		Assertions.assertNotNull(request);
+		Assertions.assertEquals(bucket, request.bucket());
+		Assertions.assertEquals(key, request.key());
 	}
 
 	@Test
 	public void testExecuteWithS3Template() {
 		when(mockConfig.getConfigurationBucket()).thenReturn(bucket);
 		when(mockFunction.apply(anyString())).thenReturn(stackId);
+
 		// call under test
 		client.executeWithS3Template(inputReqequest, mockFunction);
-		verify(mockS3Client).putObject(any(PutObjectRequest.class));
+
+		verify(mockS3Client).putObject(any(PutObjectRequest.class), any(RequestBody.class));
 		verify(mockFunction).apply(anyString());
-		verify(mockS3Client).deleteObject(anyString(), anyString());
+		verify(mockS3Client).deleteObject(any(DeleteObjectRequest.class));
 	}
 
 
@@ -360,9 +373,9 @@ public class CloudFormationClientWrapperImplTest {
 		// call under test
 		client.executeWithS3Template(inputReqequest, mockFunction);
 
-		verify(mockS3Client).putObject(any(PutObjectRequest.class));
+		verify(mockS3Client).putObject(any(PutObjectRequest.class), any(RequestBody.class));
 		verify(mockFunction).apply(any(String.class));
-		verify(mockS3Client).deleteObject(any(String.class), any(String.class));
+		verify(mockS3Client).deleteObject(any(DeleteObjectRequest.class));
 		verify(mockLogger).info(any(String.class));
 	}
 

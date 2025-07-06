@@ -122,9 +122,9 @@ import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
 import org.sagebionetworks.template.repo.grid.GridContextProvider;
 import org.sagebionetworks.template.vpc.Color;
 
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.cloudformation.model.Output;
 import software.amazon.awssdk.services.cloudformation.model.Parameter;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
@@ -134,6 +134,8 @@ import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersio
 import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsResponse;
 import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformFilter;
 import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformSummary;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
@@ -177,7 +179,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Mock
 	private WaitConditionHandler mockWaitConditionHandler;
 	@Mock
-	private AmazonS3Client mockS3Client;
+	private S3Client mockS3Client;
 	
 	@Captor
 	private ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
@@ -459,9 +461,16 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("prod-configuration.sagebase.org", openApiBucket);
 		String openApiKey = s3.getString("S3ObjectKey");
 		assertEquals("chat/openapi/101.json",s3.getString("S3ObjectKey"));
-		verify(mockS3Client).putObject(eq(openApiBucket), eq(openApiKey), jsonStringCaptor.capture());
-		
-		JSONObject openApiSchema = new JSONObject(jsonStringCaptor.getValue());
+
+		ArgumentCaptor<PutObjectRequest> putObjectRequestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
+		ArgumentCaptor<RequestBody> requestBodyCaptor = ArgumentCaptor.forClass(RequestBody.class);
+		verify(mockS3Client).putObject(putObjectRequestCaptor.capture(), requestBodyCaptor.capture());
+
+		PutObjectRequest putObjectRequest = putObjectRequestCaptor.getValue();
+		assertEquals("prod-configuration.sagebase.org", putObjectRequest.bucket());
+		assertEquals("chat/openapi/101.json", putObjectRequest.key());
+		RequestBody requestBody = requestBodyCaptor.getValue();
+		JSONObject openApiSchema = new JSONObject(requestBody.toString());
 		assertTrue(openApiSchema.has("openapi"));
 		assertTrue(openApiSchema.has("info"));
 		assertTrue(openApiSchema.has("paths"));

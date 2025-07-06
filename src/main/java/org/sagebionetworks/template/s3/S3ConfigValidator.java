@@ -4,9 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.sagebionetworks.util.ValidateArgument;
-
-import com.amazonaws.services.s3.model.S3Event;
-import com.amazonaws.services.s3.model.StorageClass;
+import software.amazon.awssdk.services.s3.model.TransitionStorageClass;
 
 public class S3ConfigValidator {
 	
@@ -57,7 +55,7 @@ public class S3ConfigValidator {
 			return;
 		}
 		
-		Set<StorageClass> classes = new HashSet<>();
+		Set<TransitionStorageClass> classes = new HashSet<>();
 		
 		for (S3BucketClassTransition transition : bucket.getStorageClassTransitions()) {
 			ValidateArgument.required(transition.getStorageClass(), "The storageClass for the transition in bucket " + bucket.getName());
@@ -90,12 +88,7 @@ public class S3ConfigValidator {
 		ValidateArgument.requiredNotEmpty(config.getEvents(), "The events");
 		
 		config.getEvents().forEach(event -> {
-			
-			try {
-				S3Event.fromValue(event);
-			} catch (IllegalArgumentException ex) {
-				throw new IllegalArgumentException("Unsupported event type: " + event);
-			}
+			validateEventType(event);
 		});
 	}
 	
@@ -103,5 +96,43 @@ public class S3ConfigValidator {
 		ValidateArgument.requiredNotBlank(config.getLambdaArtifactBucket(), "The artifact bucket");
 		ValidateArgument.requiredNotBlank(config.getNotificationEmail(), "The notification email");
 	}
-	
+
+	private void validateEventType(String eventType) {
+		// https://docs.aws.amazon.com/AmazonS3/latest/userguide/notification-how-to-event-types-and-destinations.html#supported-notification-event-types
+		// https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/model/S3Event.html
+		final Set<String> VALID_S3_EVENTS = Set.of(
+				"s3:IntelligentTiering",
+				"s3:LifecycleExpiration:*",
+				"s3:LifecycleExpiration:Delete",
+				"s3:LifecycleExpiration:DeleteMarkerCreated",
+				"s3:LifecycleTransition",
+				"s3:ObjectAclPut",
+				"s3:ObjectCreated:*",
+				"s3:ObjectCreated:CompleteMultipartUpload",
+				"s3:ObjectCreated:Copy",
+				"s3:ObjectCreated:Post",
+				"s3:ObjectCreated:Put",
+				"s3:ObjectRemoved:*",
+				"s3:ObjectRemoved:Delete",
+				"s3:ObjectRemoved:DeleteMarkerCreated",
+				"s3:ObjectRestore:*",
+				"s3:ObjectRestore:Completed",
+				"s3:ObjectRestore:Delete",
+				"s3:ObjectRestore:Post",
+				"s3:ObjectTagging:*",
+				"s3:ObjectTagging:Delete",
+				"s3:ObjectTagging:Put",
+				"s3:ReducedRedundancyLostObject",
+				"s3:Replication:*",
+				"s3:Replication:OperationFailedReplication",
+				"s3:Replication:OperationMissedThreshold",
+				"s3:Replication:OperationNotTracked",
+				"s3:Replication:OperationReplicatedAfterThreshold"
+		);
+
+		if (VALID_S3_EVENTS.contains(eventType)) { return; }
+		throw new IllegalArgumentException("Unsupported event type: " + eventType);
+	}
+
+
 }

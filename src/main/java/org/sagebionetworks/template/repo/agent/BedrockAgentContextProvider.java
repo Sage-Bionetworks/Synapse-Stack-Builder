@@ -12,19 +12,21 @@ import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
 
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.google.inject.Inject;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class BedrockAgentContextProvider implements VelocityContextProvider {
 	
 	private final RepoConfiguration repoConfig;
-	private final AmazonS3Client s3Cient;
+	private final S3Client s3Client;
 
 	@Inject
-	public BedrockAgentContextProvider(RepoConfiguration repoConfig, AmazonS3Client s3Client) {
+	public BedrockAgentContextProvider(RepoConfiguration repoConfig, S3Client s3Client) {
 		super();
 		this.repoConfig = repoConfig;
-		this.s3Cient = s3Client;
+		this.s3Client = s3Client;
 	}
 
 	@Override
@@ -37,7 +39,8 @@ public class BedrockAgentContextProvider implements VelocityContextProvider {
 		String openApiSchemakey = String.format("chat/openapi/%s.json", instance);
 		
 		String openApiSchemJsonString = TemplateUtils.loadContentFromFile("templates/repo/agent/agent_open_api.json");
-		s3Cient.putObject(openApiSchemaBucket, openApiSchemakey, openApiSchemJsonString);
+		PutObjectRequest putObjectRequest = PutObjectRequest.builder().bucket(openApiSchemaBucket).key(openApiSchemakey).build();
+		s3Client.putObject(putObjectRequest, RequestBody.fromString(openApiSchemJsonString));
 		
 		String openApiSchemaS3Arn = String.format("arn:aws:s3:::%s/%s", openApiSchemaBucket, openApiSchemakey);
 

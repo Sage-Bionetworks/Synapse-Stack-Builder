@@ -1,8 +1,9 @@
 package org.sagebionetworks.template.s3;
 
-import java.util.Objects;
 
-import com.amazonaws.services.s3.model.StorageClass;
+import software.amazon.awssdk.services.s3.model.TransitionStorageClass;
+
+import java.util.Objects;
 
 /**
  * Transition rule for a bucket 
@@ -12,7 +13,7 @@ public class S3BucketClassTransition {
 	/**
 	 * The target storage class
 	 */
-	private StorageClass storageClass;
+	private TransitionStorageClass storageClass;
 	
 	/**
 	 * The number of days after object creation to transition the objects to
@@ -21,11 +22,11 @@ public class S3BucketClassTransition {
 	
 	public S3BucketClassTransition() { }
 
-	public StorageClass getStorageClass() {
+	public TransitionStorageClass getStorageClass() {
 		return storageClass;
 	}
 
-	public S3BucketClassTransition withStorageClass(StorageClass storageClass) {
+	public S3BucketClassTransition withStorageClass(TransitionStorageClass storageClass) {
 		this.storageClass = storageClass;
 		return this;
 	}
