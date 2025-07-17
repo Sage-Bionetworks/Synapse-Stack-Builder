@@ -1,16 +1,16 @@
 package org.sagebionetworks.template.redirectors.userdocs;
 
-import com.amazonaws.services.cloudformation.model.Stack;
 import com.google.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.RepoConfiguration;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
 
 import java.io.StringWriter;
 import java.util.Optional;
@@ -30,13 +30,13 @@ public class UserDocsRedirectorBuilderImpl implements  UserDocsRedirectorBuilder
 
 	private RepoConfiguration config;
 	private VelocityEngine velocity;
-	private CloudFormationClient cloudFormationClient;
+	private CloudFormationClientWrapper cloudFormationClientWrapper;
 	private StackTagsProvider tagsProvider;
 
 	@Inject
-	public UserDocsRedirectorBuilderImpl(RepoConfiguration config, CloudFormationClient cloudFormationClient, StackTagsProvider tagsProvider, VelocityEngine velocity) {
+	public UserDocsRedirectorBuilderImpl(RepoConfiguration config, CloudFormationClientWrapper cloudFormationClientWrapper, StackTagsProvider tagsProvider, VelocityEngine velocity) {
 		this.config = config;
-		this.cloudFormationClient = cloudFormationClient;
+		this.cloudFormationClientWrapper = cloudFormationClientWrapper;
 		this.tagsProvider = tagsProvider;
 		this.velocity = velocity;
 	}
@@ -70,13 +70,13 @@ public class UserDocsRedirectorBuilderImpl implements  UserDocsRedirectorBuilder
 				.withStackName(cfStackName)
 				.withTemplateBody(cfTemplateYaml)
 				.withTags(tagsProvider.getStackTags(config));
-		cloudFormationClient.createOrUpdateStack(cfStackRequest);
+		cloudFormationClientWrapper.createOrUpdateStack(cfStackRequest);
 		try {
-			cloudFormationClient.waitForStackToComplete(cfStackName);
+			cloudFormationClientWrapper.waitForStackToComplete(cfStackName);
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
-		return cloudFormationClient.describeStack(cfStackName);
+		return cloudFormationClientWrapper.describeStack(cfStackName);
 	}
 
 }
