@@ -43,6 +43,7 @@
           "S3Bucket": "${lambdaArtifactBucket}",
           "S3Key": "${lambdaArtifactKey}"
         },
+        "FunctionName": "${stack}-markdownit",
         "Handler": "index.handler",
         "Role": { "Fn::GetAtt": [ "mdlambdaServiceRole", "Arn" ] },
         "Runtime": "nodejs20.x",

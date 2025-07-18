@@ -95,6 +95,7 @@ public class MarkDownItLambdaBuilderImpl implements MarkDownItLambdaBuilder {
 
         // Setup context
         VelocityContext context = new VelocityContext();
+        context.put("stack", stack);
         context.put("lambdaArtifactBucket", artifactBucket);
         context.put("lambdaArtifactKey", artifactKey);
         context.put("vpcId", vpcId);
