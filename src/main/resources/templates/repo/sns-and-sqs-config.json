@@ -465,6 +465,13 @@
 			],
 			"messageVisibilityTimeoutSec": 120,
 			"oldestMessageInQueueAlarmThresholdSec": 30
+		},
+		{
+			"queueName": "GRID_INTERNAL_EVENT",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 120,
+			"oldestMessageInQueueAlarmThresholdSec": 30
 		}
 	]
 }
