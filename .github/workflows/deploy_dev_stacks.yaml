@@ -1,0 +1,72 @@
+---
+# Deploy a dev stack for each developer,
+# updating the stacks as changes are pushed/merged
+#
+# First, make sure a runner exists.
+# Then run the deployment on a runner.
+name: Build Synapse Dev Stacks
+
+on:
+  pull_request:
+    branches: ['*']
+  push:
+    branches: ['*']
+
+
+jobs:
+  determine-instances:
+    runs-on: ubuntu-latest
+    steps:
+      - id: create-list
+        run: |
+        # if owner is Sage-Bionetworks
+        # then 'instances' is the list of dev stacks to build
+        # else 'instances' has just one element, the branch name
+        if [ "${{ github.repository_owner }}" = "Sage-Bionetworks"]; then
+          echo "instances=[\"brucehoff\"]" >> $GITHUB_OUTPUT
+        elif
+          echo "instances=[\"${{ github.ref_name }}\"]" >> $GITHUB_OUTPUT
+        fi
+    outputs:
+      instances: ${{ steps.create-list.outputs.instances }} 
+
+  create-codebuild-project:
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          # we have to start with this role or we run into trouble when getting an sts token for the role, below
+          role-to-assume: arn:aws:iam::449435941126:role/sagebase-github-oidc-sage-bionetworks-synapse-ops-dev
+          aws-region: us-east-1
+          # eight hours
+          role-duration-seconds: 28800
+
+      - name: Deploy to AWS CloudFormation
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: ${{ github.repository_owner }}
+          template: build/codebuild_cf_template.yaml
+          parameter-overrides: "Name=${{ github.repository_owner }}"
+
+  build-stacks:
+    needs: [create-codebuild-project, determine-instances]
+    strategy:
+      matrix:
+        INSTANCE: ${{ needs.determine-instances.outputs.instances }}
+
+    steps:
+      - name: Build and Test
+        uses: aws-actions/aws-codebuild-run-build@v1
+        with:
+          project-name: ${{ github.repository_owner }}
+          buildspec-override: |
+            version: 0.2
+            env:
+              variables:
+                INSTANCE: ${{ matrix.INSTANCE }}
+            phases:
+              build:
+                commands:
+                  mvn clean install
+                  export CMD_PROPS="-Dorg.sagebionetworks.stack=dev -Dorg.sagebionetworks.instance=${INSTANCE} -Dorg.sagebionetworks.vpc.subnet.color=Green"
+                  java -Xms256m -Xmx2g -cp ./target/stack-builder-0.2.0-SNAPSHOT-jar-with-dependencies.jar $CMD_PROPS org.sagebionetworks.template.repo.RepositoryBuilderMain
+...
