@@ -28,7 +28,7 @@ jobs:
           else
             # instance name must be alphanumeric
             ref_name=${{ github.ref_name }}
-            lower_case_ref_name=echo $ref_name | tr '[:upper:]' '[:lower:]'
+            lower_case_ref_name=$(echo $ref_name | tr '[:upper:]' '[:lower:]')
             alpha_only_ref_name=$(echo $lower_case_ref_name | sed 's/[^[:alnum:]]//g')
             echo transformed $ref_name into $alpha_only_ref_name
             echo "instances=[\"${alpha_only_ref_name}\"]" >> $GITHUB_OUTPUT
