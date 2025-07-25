@@ -58,7 +58,7 @@ jobs:
     needs: [create-codebuild-project, determine-instances]
     strategy:
       matrix:
-        INSTANCE: ${{ needs.determine-instances.outputs.instances }}
+        INSTANCE: ${{ fromJSON(needs.determine-instances.outputs.instances) }}
 
     steps:
       - name: Build and Test
