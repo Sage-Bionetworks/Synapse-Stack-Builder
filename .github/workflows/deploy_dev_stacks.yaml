@@ -31,6 +31,9 @@ jobs:
       instances: ${{ steps.create-list.outputs.instances }}
 
   create-codebuild-project:
+    permissions:
+      id-token: write
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - uses: aws-actions/configure-aws-credentials@v1
