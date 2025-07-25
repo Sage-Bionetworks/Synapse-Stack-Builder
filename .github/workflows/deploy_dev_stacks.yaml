@@ -28,7 +28,7 @@ jobs:
             echo "instances=[\"${{ github.ref_name }}\"]" >> $GITHUB_OUTPUT
           fi
     outputs:
-      instances: ${{ steps.create-list.outputs.instances }} 
+      instances: ${{ steps.create-list.outputs.instances }}
 
   create-codebuild-project:
     runs-on: ubuntu-latest
