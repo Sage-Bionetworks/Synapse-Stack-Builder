@@ -219,7 +219,12 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
 		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
 		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
+		AmazonS3 result = builder.build();
+		System.out.println("TemplateGuiceModule:");
+		System.out.println("AWS_ACCESS_KEY_ID: "+System.getenv("AWS_ACCESS_KEY_ID"));
+		System.out.println("AWS_SECRET_KEY: "+System.getenv("AWS_SECRET_KEY"));
+		System.out.println("AWS_SESSION_TOKEN: "+System.getenv("AWS_SESSION_TOKEN"));
+		return result;
 	}
 	
 	@Provides
