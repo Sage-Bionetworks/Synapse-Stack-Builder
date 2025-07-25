@@ -49,7 +49,7 @@ jobs:
       - name: Deploy to AWS CloudFormation
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          name: ${{ github.repository_owner }}
+          name: ${{ github.repository_owner }}-CodeBuild-Project
           template: build/codebuild_cf_template.yaml
           parameter-overrides: "RepositoryOwner=${{ github.repository_owner }}"
 
