@@ -19,14 +19,14 @@ jobs:
     steps:
       - id: create-list
         run: |
-        # if owner is Sage-Bionetworks
-        # then 'instances' is the list of dev stacks to build
-        # else 'instances' has just one element, the branch name
-        if [ "${{ github.repository_owner }}" = "Sage-Bionetworks"]; then
-          echo "instances=[\"brucehoff\"]" >> $GITHUB_OUTPUT
-        elif
-          echo "instances=[\"${{ github.ref_name }}\"]" >> $GITHUB_OUTPUT
-        fi
+          # if owner is Sage-Bionetworks
+          # then 'instances' is the list of dev stacks to build
+          # else 'instances' has just one element, the branch name
+          if [ "${{ github.repository_owner }}" = "Sage-Bionetworks"]; then
+            echo "instances=[\"brucehoff\"]" >> $GITHUB_OUTPUT
+          elif
+            echo "instances=[\"${{ github.ref_name }}\"]" >> $GITHUB_OUTPUT
+          fi
     outputs:
       instances: ${{ steps.create-list.outputs.instances }} 
 
