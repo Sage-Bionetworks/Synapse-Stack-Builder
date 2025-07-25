@@ -49,6 +49,7 @@ jobs:
           parameter-overrides: "Name=${{ github.repository_owner }}"
 
   build-stacks:
+    runs-on: ubuntu-latest
     needs: [create-codebuild-project, determine-instances]
     strategy:
       matrix:
