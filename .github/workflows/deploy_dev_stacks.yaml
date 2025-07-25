@@ -31,6 +31,7 @@ jobs:
       instances: ${{ steps.create-list.outputs.instances }} 
 
   create-codebuild-project:
+    runs-on: ubuntu-latest
     steps:
       - uses: aws-actions/configure-aws-credentials@v1
         with:
