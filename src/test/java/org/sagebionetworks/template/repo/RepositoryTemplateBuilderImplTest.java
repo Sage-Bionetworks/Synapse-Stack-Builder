@@ -352,7 +352,7 @@ public class RepositoryTemplateBuilderImplTest {
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
-		when(mockStsClient.getCallerIdentity()).thenReturn(null); // TODO remove		
+		
 		// call under test
 		builder.buildAndDeploy();
 
@@ -530,7 +530,7 @@ public class RepositoryTemplateBuilderImplTest {
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
-		when(mockStsClient.getCallerIdentity()).thenReturn(null); // TODO remove
+
 
 		// call under test
 		builder.buildAndDeploy();
@@ -654,7 +654,7 @@ public class RepositoryTemplateBuilderImplTest {
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
-		when(mockStsClient.getCallerIdentity()).thenReturn(null); // TODO remove
+
 		
 		// call under test
 		builder.buildAndDeploy();
@@ -804,7 +804,7 @@ public class RepositoryTemplateBuilderImplTest {
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
-		when(mockStsClient.getCallerIdentity()).thenReturn(null); // TODO remove
+
 		
 		// call under test
 		builder.buildAndDeploy();

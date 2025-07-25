@@ -193,10 +193,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 
 	@Override
 	public void buildAndDeploy() throws InterruptedException {
-		
-		
-		System.out.println("Caller identity:"+stsClient.getCallerIdentity()); // TODO Remove this debugging line
- 
+
 		// Create the context from the input
 		VelocityContext context = createSharedContext();
 

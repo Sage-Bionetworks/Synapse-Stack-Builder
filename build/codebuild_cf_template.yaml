@@ -5,27 +5,7 @@ Parameters:
     Type: String
     Description: The owner of the repository.  Will be used as the project name
 Resources:
-  ExecutionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2008-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: codebuild.amazonaws.com
-            Action: sts:AssumeRole
-          - Effect: Allow
-            Principal:
-              Federated: arn:aws:iam::449435941126:oidc-provider/token.actions.githubusercontent.com
-            Action: "sts:AssumeRoleWithWebIdentity"
-            Condition:
-              StringLike:
-                "token.actions.githubusercontent.com:sub": !Sub "repo:${RepositoryOwner}/Synapse-Stack-Builder:ref:refs/heads/*"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AdministratorAccess
-        - arn:aws:iam::aws:policy/AWSKeyManagementServicePowerUser
-  CodeBuildProject:
+ CodeBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
       Name: !Ref "RepositoryOwner"
@@ -48,7 +28,6 @@ Resources:
         PrivilegedMode: true
         ImagePullCredentialsType: CODEBUILD
         EnvironmentVariables: []
-      # TODO delete dead code ServiceRole: !Ref ExecutionRole
       ServiceRole: arn:aws:iam::449435941126:role/synapse-dev-cmk-SynapseDeploymentRole-15QJA2H05YVY
       TimeoutInMinutes: 600
       QueuedTimeoutInMinutes: 480
