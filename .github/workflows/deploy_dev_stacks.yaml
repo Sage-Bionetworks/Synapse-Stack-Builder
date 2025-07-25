@@ -36,9 +36,9 @@ jobs:
       - uses: aws-actions/configure-aws-credentials@v1
         with:
           # we have to start with this role or we run into trouble when getting an sts token for the role, below
-          # role-to-assume: arn:aws:iam::449435941126:role/sagebase-github-oidc-sage-bionetworks-synapse-ops-dev
+          role-to-assume: arn:aws:iam::449435941126:role/sagebase-github-oidc-sage-bionetworks-synapse-ops-dev
           aws-region: us-east-1
-          # role-duration-seconds: 18000
+          role-duration-seconds: 18000
 
       - name: Checkout repository
         uses: actions/checkout@v3
