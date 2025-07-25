@@ -19,14 +19,16 @@ jobs:
     steps:
       - id: create-list
         run: |
+          #
           # if owner is Sage-Bionetworks
           # then 'instances' is the list of dev stacks to build
           # else 'instances' has just one element, the branch name
+          #
           if [ "${{ github.repository_owner }}" = "Sage-Bionetworks" ]; then
-            # note, stack instance names must be alphanumeric only and letters must be lower case
+            # note, stack instance names must be alphanumeric only and lower case
             echo "instances=[\"brucehoff\"]" >> $GITHUB_OUTPUT
           else
-            # instance name must be alphanumeric
+            # instance name must be alphanumeric and lower case
             ref_name=${{ github.ref_name }}
             lower_case_ref_name=$(echo $ref_name | tr '[:upper:]' '[:lower:]')
             alpha_only_ref_name=$(echo $lower_case_ref_name | sed 's/[^[:alnum:]]//g')
@@ -44,6 +46,7 @@ jobs:
     steps:
       - uses: aws-actions/configure-aws-credentials@v1
         with:
+          # TODO create a dedicated role for this project
           role-to-assume: arn:aws:iam::449435941126:role/sagebase-github-oidc-sage-bionetworks-synapse-ops-dev
           aws-region: us-east-1
           role-duration-seconds: 18000
@@ -72,6 +75,7 @@ jobs:
     steps:
       - uses: aws-actions/configure-aws-credentials@v1
         with:
+          # TODO use dedicated role
           role-to-assume: arn:aws:iam::449435941126:role/sagebase-github-oidc-sage-bionetworks-synapse-ops-dev
           aws-region: us-east-1
           role-duration-seconds: 18000
@@ -89,14 +93,11 @@ jobs:
               build:
                 commands:
                   - mvn clean install
-                  - aws sts get-caller-identity
-                  # Synapse does not seem to work with ECS, so get the STS token and present it via environment variables
+                  # Synapse does not seem able to get cred's from ECS, so we convert them to environment variables
                   - STS_CREDENTIALS=$(curl -L http://169.254.170.2/$AWS_CONTAINER_CREDENTIALS_RELATIVE_URI)
                   - export AWS_ACCESS_KEY_ID=$(echo $STS_CREDENTIALS | jq -r '.AccessKeyId')
                   - export AWS_SECRET_KEY=$(echo $STS_CREDENTIALS | jq -r '.SecretAccessKey')
                   - export AWS_SESSION_TOKEN=$(echo $STS_CREDENTIALS | jq -r '.Token')
-                  - echo Credential Expiration
-                  - echo $STS_CREDENTIALS | jq -r '.Expiration'
                   - export CMD_PROPS="-Dorg.sagebionetworks.stack=dev -Dorg.sagebionetworks.instance=${INSTANCE} -Dorg.sagebionetworks.vpc.subnet.color=Green"
                   - java -Xms256m -Xmx2g -cp ./target/stack-builder-0.2.0-SNAPSHOT-jar-with-dependencies.jar $CMD_PROPS org.sagebionetworks.template.repo.RepositoryBuilderMain
 ...

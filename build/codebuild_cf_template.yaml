@@ -48,7 +48,8 @@ Resources:
         PrivilegedMode: true
         ImagePullCredentialsType: CODEBUILD
         EnvironmentVariables: []
-      ServiceRole: !Ref ExecutionRole
+      # TODO delete dead code ServiceRole: !Ref ExecutionRole
+      ServiceRole: arn:aws:iam::449435941126:role/synapse-dev-cmk-SynapseDeploymentRole-15QJA2H05YVY
       TimeoutInMinutes: 600
       QueuedTimeoutInMinutes: 480
       EncryptionKey: arn:aws:kms:us-east-1:449435941126:alias/aws/s3
