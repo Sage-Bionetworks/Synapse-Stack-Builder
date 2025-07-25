@@ -18,10 +18,10 @@ Resources:
           - Effect: Allow
             Principal:
               Federated: arn:aws:iam::449435941126:oidc-provider/token.actions.githubusercontent.com
-            Action: AssumeRoleWithWebIdentity
+            Action: "sts:AssumeRoleWithWebIdentity"
             Condition:
               StringLike:
-                token.actions.githubusercontent.com:sub: !Sub "repo:${RepositoryOwner}/Synapse-Stack-Builder:ref:refs/heads/*"
+                "token.actions.githubusercontent.com:sub": !Sub "repo:${RepositoryOwner}/Synapse-Stack-Builder:ref:refs/heads/*"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AdministratorAccess
   CodeBuildProject:
