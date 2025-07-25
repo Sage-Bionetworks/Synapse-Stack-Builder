@@ -38,7 +38,6 @@ jobs:
     steps:
       - uses: aws-actions/configure-aws-credentials@v1
         with:
-          # we have to start with this role or we run into trouble when getting an sts token for the role, below
           role-to-assume: arn:aws:iam::449435941126:role/sagebase-github-oidc-sage-bionetworks-synapse-ops-dev
           aws-region: us-east-1
           role-duration-seconds: 18000
@@ -54,6 +53,9 @@ jobs:
           parameter-overrides: "RepositoryOwner=${{ github.repository_owner }}"
 
   build-stacks:
+    permissions:
+      id-token: write
+      contents: read
     runs-on: ubuntu-latest
     needs: [create-codebuild-project, determine-instances]
     strategy:
@@ -61,6 +63,12 @@ jobs:
         INSTANCE: ${{ fromJSON(needs.determine-instances.outputs.instances) }}
 
     steps:
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::449435941126:role/sagebase-github-oidc-sage-bionetworks-synapse-ops-dev
+          aws-region: us-east-1
+          role-duration-seconds: 18000
+
       - name: Build and Test
         uses: aws-actions/aws-codebuild-run-build@v1
         with:
