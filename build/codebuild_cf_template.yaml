@@ -24,6 +24,7 @@ Resources:
                 "token.actions.githubusercontent.com:sub": !Sub "repo:${RepositoryOwner}/Synapse-Stack-Builder:ref:refs/heads/*"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AdministratorAccess
+        - arn:aws:iam::aws:policy/AWSKeyManagementServicePowerUser
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
