@@ -25,17 +25,6 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AdministratorAccess
         - arn:aws:iam::aws:policy/AWSKeyManagementServicePowerUser
-      Policies:
-        - PolicyName: allow-secretsmanager-access-policy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              # TODO make this permission more narrow
-              - Effect: 'Allow'
-                Action:
-                  - kms:*
-                  - secretsmanager:*
-                Resource: '*'
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
