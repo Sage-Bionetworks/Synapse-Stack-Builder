@@ -24,7 +24,7 @@ jobs:
           # else 'instances' has just one element, the branch name
           if [ "${{ github.repository_owner }}" = "Sage-Bionetworks"]; then
             echo "instances=[\"brucehoff\"]" >> $GITHUB_OUTPUT
-          elif
+          else
             echo "instances=[\"${{ github.ref_name }}\"]" >> $GITHUB_OUTPUT
           fi
     outputs:
