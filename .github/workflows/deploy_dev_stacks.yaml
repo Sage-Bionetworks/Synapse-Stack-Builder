@@ -39,7 +39,7 @@ jobs:
           role-to-assume: arn:aws:iam::449435941126:role/sagebase-github-oidc-sage-bionetworks-synapse-ops-dev
           aws-region: us-east-1
           # eight hours
-          role-duration-seconds: 28800
+          role-duration-seconds: 18000
 
       - name: Deploy to AWS CloudFormation
         uses: aws-actions/aws-cloudformation-github-deploy@v1
