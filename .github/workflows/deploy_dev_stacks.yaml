@@ -27,7 +27,9 @@ jobs:
             echo "instances=[\"brucehoff\"]" >> $GITHUB_OUTPUT
           else
             # instance name must be alphanumeric
-            alpha_only_ref_name=$(echo ${{ github.ref_name }} | sed 's/[^[:alnum:]]//g')
+            branch_name=${{ github.ref_name }}
+            alpha_only_ref_name=$(echo $branch_name | sed 's/[^[:alnum:]]//g')
+            echo transformed $branch_name into $alpha_only_ref_name
             echo "instances=[\"${alpha_only_ref_name}\"]" >> $GITHUB_OUTPUT
           fi
     outputs:
