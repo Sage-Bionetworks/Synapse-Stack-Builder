@@ -84,6 +84,13 @@ jobs:
                 commands:
                   - mvn clean install
                   - aws sts get-caller-identity
+                  # Synapse does not seem to work with ECS, so get the STS token and present it via environment variables
+                  - STS_CREDENTIALS=$(curl -L http://169.254.170.2/$AWS_CONTAINER_CREDENTIALS_RELATIVE_URI)
+                  - export AWS_ACCESS_KEY_ID=$(echo $STS_CREDENTIALS | jq -r '.AccessKeyId')
+                  - export AWS_SECRET_KEY=$(echo $STS_CREDENTIALS | jq -r '.SecretAccessKey')
+                  - export AWS_SESSION_TOKEN=$(echo $STS_CREDENTIALS | jq -r '.Token')
+                  - echo Credential Expiration
+                  - echo $STS_CREDENTIALS | jq -r '.Expiration'
                   - export CMD_PROPS="-Dorg.sagebionetworks.stack=dev -Dorg.sagebionetworks.instance=${INSTANCE} -Dorg.sagebionetworks.vpc.subnet.color=Green"
                   - java -Xms256m -Xmx2g -cp ./target/stack-builder-0.2.0-SNAPSHOT-jar-with-dependencies.jar $CMD_PROPS org.sagebionetworks.template.repo.RepositoryBuilderMain
 ...
