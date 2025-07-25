@@ -51,7 +51,7 @@ jobs:
         with:
           name: ${{ github.repository_owner }}
           template: build/codebuild_cf_template.yaml
-          parameter-overrides: "Name=${{ github.repository_owner }}"
+          parameter-overrides: "RepositoryOwner=${{ github.repository_owner }}"
 
   build-stacks:
     runs-on: ubuntu-latest
