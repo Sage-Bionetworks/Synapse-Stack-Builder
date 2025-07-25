@@ -50,6 +50,7 @@ jobs:
         with:
           name: ${{ github.repository_owner }}-CodeBuild-Project
           template: build/codebuild_cf_template.yaml
+          no-fail-on-empty-changeset: "1"
           parameter-overrides: "RepositoryOwner=${{ github.repository_owner }}"
 
   build-stacks:
