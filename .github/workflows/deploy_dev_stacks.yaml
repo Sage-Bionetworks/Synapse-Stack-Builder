@@ -40,6 +40,9 @@ jobs:
 #          aws-region: us-east-1
 #          role-duration-seconds: 18000
 
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
       - name: Deploy to AWS CloudFormation
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
