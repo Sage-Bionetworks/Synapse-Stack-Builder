@@ -402,24 +402,11 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	private void configureBucketLifeCycle(S3BucketDescriptor bucket) {
 		
 		// Returns null if no life cycle configuration was found
-		List<LifecycleRule> existingRules = null;
-		try {
-			existingRules = s3Client.getBucketLifecycleConfiguration(GetBucketLifecycleConfigurationRequest.builder()
-				.bucket(bucket.getName())
-				.build()).rules();
-		} catch (S3Exception e) {
-			if (e.statusCode() == 404) {
-				// No lifecycle configuration exists
-				existingRules = null;
-			} else {
-				throw e;
-			}
-		}
-		
-		List<LifecycleRule> rules = existingRules == null ? new ArrayList<>() : new ArrayList<>(existingRules);
+		GetBucketLifecycleConfigurationResponse response = s3Client.getBucketLifecycleConfiguration(GetBucketLifecycleConfigurationRequest.builder().bucket(bucket.getName()).build());
+
+		List<LifecycleRule> rules = response.rules() == null ? new ArrayList<>() : new ArrayList<>(response.rules());
 		
 		boolean update = false;
-		
 
 		if (bucket.getRetentionDays() != null) {
 			if (addOrUpdateRule(rules, bucket.getName(), RULE_ID_RETENTION, bucket, this::createRetentionRule, this::updateRetentionRule)) {
