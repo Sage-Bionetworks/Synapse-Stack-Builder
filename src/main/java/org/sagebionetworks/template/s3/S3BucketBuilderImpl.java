@@ -401,10 +401,22 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	
 	private void configureBucketLifeCycle(S3BucketDescriptor bucket) {
 		
-		// Returns null if no life cycle configuration was found
-		GetBucketLifecycleConfigurationResponse response = s3Client.getBucketLifecycleConfiguration(GetBucketLifecycleConfigurationRequest.builder().bucket(bucket.getName()).build());
+		boolean configurationExists = true;
+		GetBucketLifecycleConfigurationResponse getBucketLifecycleConfigurationResponse = null;
 
-		List<LifecycleRule> rules = response.rules() == null ? new ArrayList<>() : new ArrayList<>(response.rules());
+		try {
+			getBucketLifecycleConfigurationResponse = s3Client.getBucketLifecycleConfiguration(GetBucketLifecycleConfigurationRequest.builder()
+					.bucket(bucket.getName())
+					.build());
+		} catch (S3Exception e) {
+			if (e.statusCode() == 404) {
+				configurationExists = false;
+			} else {
+				throw e;
+			}
+		}
+
+		List<LifecycleRule> rules = !configurationExists ? new ArrayList<>() : new ArrayList<>(getBucketLifecycleConfigurationResponse.rules());
 		
 		boolean update = false;
 

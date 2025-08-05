@@ -192,7 +192,7 @@ public class S3BucketBuilderImplTest {
 
 		String expectedBucketName = stack + ".bucket";
 		
-		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockS3Config.getBuckets()).thenReturn(List.of(bucket));
 		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
 
 		doAnswer(invocation -> {
