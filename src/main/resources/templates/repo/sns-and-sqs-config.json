@@ -481,6 +481,13 @@
 			],
 			"messageVisibilityTimeoutSec": 120,
 			"oldestMessageInQueueAlarmThresholdSec": 30
+		},
+		{
+			"queueName": "GRID_REPLICA_PATCH_BUILDER.fifo",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 120,
+			"oldestMessageInQueueAlarmThresholdSec": 30
 		}
 	]
 }
