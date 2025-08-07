@@ -49,8 +49,15 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	private static final Logger LOG = LogManager.getLogger(S3BucketBuilderImpl.class);
 
 	static final String INVENTORY_ID = "defaultInventory";
-	static final List<String> INVENTORY_FIELDS = Arrays.asList(
-			"Size", "LastModifiedDate", "ETag", "IsMultipartUploaded", "StorageClass", "IntelligentTieringAccessTier", "EncryptionStatus", "ObjectOwner"
+	static final List<InventoryOptionalField> INVENTORY_FIELDS = Arrays.asList(
+			InventoryOptionalField.SIZE,
+			InventoryOptionalField.LAST_MODIFIED_DATE,
+			InventoryOptionalField.E_TAG,
+			InventoryOptionalField.IS_MULTIPART_UPLOADED,
+			InventoryOptionalField.STORAGE_CLASS,
+			InventoryOptionalField.INTELLIGENT_TIERING_ACCESS_TIER,
+			InventoryOptionalField.ENCRYPTION_STATUS,
+			InventoryOptionalField.OBJECT_OWNER
 	);
 	
 	static final String RULE_ID_RETENTION = "retentionRule";
@@ -376,7 +383,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 							.format(InventoryFormat.PARQUET)
 							.build())
 						.build())
-					.optionalFields(INVENTORY_FIELDS.stream().map(InventoryOptionalField::fromValue).collect(Collectors.toList()))
+					.optionalFields(INVENTORY_FIELDS)
 					.schedule(InventorySchedule.builder()
 						.frequency(InventoryFrequency.WEEKLY)
 						.build())
