@@ -471,7 +471,7 @@
 			"queueName": "GRID_INTERNAL_EVENT",
 			"subscribedTopicNames": [
 			],
-			"messageVisibilityTimeoutSec": 120,
+			"messageVisibilityTimeoutSec": 30,
 			"oldestMessageInQueueAlarmThresholdSec": 30
 		},
 		{
@@ -479,14 +479,14 @@
 			"subscribedTopicNames": [
 				"GRID_REPLICA_CHANGES"
 			],
-			"messageVisibilityTimeoutSec": 120,
+			"messageVisibilityTimeoutSec": 30,
 			"oldestMessageInQueueAlarmThresholdSec": 30
 		},
 		{
 			"queueName": "GRID_REPLICA_PATCH_BUILDER.fifo",
 			"subscribedTopicNames": [
 			],
-			"messageVisibilityTimeoutSec": 120,
+			"messageVisibilityTimeoutSec": 30,
 			"oldestMessageInQueueAlarmThresholdSec": 30
 		}
 	]
