@@ -5,6 +5,9 @@
             "Type": "AWS::SQS::Queue",
             "Properties": {
                 "QueueName": "${stack}-${instance}-${queueDescriptor.queueName}",
+                #if ( $queueDescriptor.fifoQueue)
+                "FifoQueue": true,
+                #end
                 #if ($queueDescriptor.deadLetterQueueMaxFailureCount)
                 "RedrivePolicy": {
                     "deadLetterTargetArn" : {"Fn::GetAtt" : [ "${queueDescriptor.queueReferenceName}DeadLetter" , "Arn" ]},
