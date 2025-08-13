@@ -1,10 +1,6 @@
 package org.sagebionetworks.template.utils;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -44,6 +40,45 @@ public class ArtifactDownloadImpl implements ArtifactDownload {
                 bos.flush();
                 return temp;
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public InputStream downloadAsStream(String url) {
+        HttpGet httpget = new HttpGet(url);
+        try {
+            HttpResponse response = httpClient.execute(httpget);
+            StatusLine statusLine = response.getStatusLine();
+            if (statusLine.getStatusCode() != HttpStatus.SC_OK) {
+                throw new RuntimeException("Failed to download file: " + url + " Status code:"
+                        + statusLine.getStatusCode() + " reason: " + statusLine.getReasonPhrase());
+            }
+
+            return new BufferedInputStream(response.getEntity().getContent());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public byte[] downloadAsBytes(String url) {
+        try (InputStream inputStream = downloadAsStream(url)) {
+            if (inputStream == null) {
+                throw new IOException("Failed to open input stream from URL: " + url);
+            }
+
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            int bytesRead;
+            byte[] data = new byte[8192]; // 8KB buffer
+
+            while ((bytesRead = inputStream.read(data, 0, data.length)) != -1) {
+                buffer.write(data, 0, bytesRead);
+            }
+
+            buffer.flush();
+            return buffer.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

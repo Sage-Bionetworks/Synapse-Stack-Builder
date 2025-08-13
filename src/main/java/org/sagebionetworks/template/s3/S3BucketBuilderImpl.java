@@ -5,13 +5,10 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_VIRUS_S
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -34,7 +31,6 @@ import org.sagebionetworks.template.utils.ArtifactDownload;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.core.sync.RequestBody;
-import java.nio.file.Paths;
 import com.google.inject.Inject;
 import software.amazon.awssdk.services.cloudformation.model.Capability;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
@@ -226,18 +222,15 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		String lambdaArtifactBucket = TemplateUtils.replaceStackVariable(config.getLambdaArtifactBucket(), stack);
 		String lambdaArtifactKey = String.format(VIRUS_SCANNER_KEY_TEMPLATE, FilenameUtils.getName(lambdaSourceArtifactUrl));
 		
-		File artifact = downloader.downloadFile(lambdaSourceArtifactUrl);
-		
-		try {
-			s3Client.putObject(PutObjectRequest.builder()
-				.bucket(lambdaArtifactBucket)
-				.key(lambdaArtifactKey)
-				.build(),
-				RequestBody.fromFile(Paths.get(artifact.getAbsolutePath())));
-		} finally {
-			artifact.delete();
-		}
-		
+		byte[] content = downloader.downloadAsBytes(lambdaSourceArtifactUrl);
+
+		s3Client.putObject(
+				PutObjectRequest.builder()
+						.bucket(lambdaArtifactBucket)
+						.key(lambdaArtifactKey)
+						.build(),
+				RequestBody.fromBytes(content));
+
 		VelocityContext context = new VelocityContext();
 		
 		context.put(Constants.STACK, stack);
@@ -695,13 +688,15 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			update = true;
 		}
 		
+		// Find the config with matching name (Config = bucketConfig.getConfigurationByName() in v1)
+		// BucketNotificationConfiguration used to be map<String, NotificationConfiguration>
 		TopicConfiguration existingTopicConfig = topicConfigurations.stream()
 			.filter(tc -> tc.id() != null && tc.id().equals(configName))
 			.findFirst()
 			.orElse(null);
 		
 		List<TopicConfiguration> topicConfigs = new ArrayList<>(topicConfigurations);
-		
+
 		if (existingTopicConfig == null) {  // No topic with configName
 			TopicConfiguration newTopicConfig = TopicConfiguration.builder()
 				.id(configName)
@@ -714,13 +709,19 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			List<Event> eventList = events.stream().map(Event::fromValue).collect(Collectors.toList());
 			
 			if (!existingTopicConfig.topicArn().equals(topicArn) || !existingTopicConfig.events().equals(eventList)) {
-				TopicConfiguration updatedTopicConfig = existingTopicConfig.toBuilder()
-					.topicArn(topicArn)
-					.events(eventList)
-					.build();
-				topicConfigs.remove(existingTopicConfig);
-				topicConfigs.add(updatedTopicConfig);
-				update = true;
+				Iterator<TopicConfiguration> iterator = topicConfigs.iterator();
+				while (iterator.hasNext()) {
+					TopicConfiguration config = iterator.next();
+					if (config.id().equals(existingTopicConfig.id())) {
+						iterator.remove();
+						topicConfigs.add(existingTopicConfig.toBuilder()
+								.topicArn(topicArn)
+								.events(eventList)
+								.build());
+						update = true;
+						break;
+					}
+				}
 			}
 		}
 		
