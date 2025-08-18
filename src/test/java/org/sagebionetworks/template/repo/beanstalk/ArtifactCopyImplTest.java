@@ -93,6 +93,7 @@ public class ArtifactCopyImplTest {
 		
 		// call under test
 		SourceBundle result = copier.copyArtifactIfNeeded(environment, version, beanstalkNumber);
+
 		assertNotNull(result);
 		assertEquals(bucket, result.getBucket());
 		assertEquals(s3Key, result.getKey());
@@ -106,7 +107,7 @@ public class ArtifactCopyImplTest {
 		assertEquals(bucket, putObjectCaptor.getValue().bucket());
 		assertEquals(s3Key, putObjectCaptor.getValue().key());
 		assertEquals(mockCopy.toPath(), pathCaptor.getValue());
-		verify(mockLogger, times(3)).info(any(String.class));
+		verify(mockLogger, times(4)).info(any(String.class));
 		// the temp file should get deleted.
 		verify(mockFile).delete();
 		verify(mockCopy).delete();

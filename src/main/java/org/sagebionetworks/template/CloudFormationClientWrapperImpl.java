@@ -205,7 +205,7 @@ public class CloudFormationClientWrapperImpl implements CloudFormationClientWrap
 	}
 
 	/**
-	 * Save the given template to to S3.
+	 * Save the given template to S3.
 	 * 
 	 * @param template
 	 * @return
@@ -216,7 +216,7 @@ public class CloudFormationClientWrapperImpl implements CloudFormationClientWrap
 			String key = "templates/" + stackName + "-" + UUID.randomUUID() + ".json";
 			byte[] bytes = template.getBytes("UTF-8");
 			ByteArrayInputStream input = new ByteArrayInputStream(bytes);
-			PutObjectRequest request = PutObjectRequest.builder().bucket(bucket).key(key).contentLength((long)bytes.length).build();
+			PutObjectRequest request = PutObjectRequest.builder().bucket(bucket).key(key).contentLength((long)bytes.length).contentType("application/json").build();
 			s3Client.putObject(request, RequestBody.fromBytes(bytes));
 			return new SourceBundle(bucket, key);
 		} catch (IOException e) {
