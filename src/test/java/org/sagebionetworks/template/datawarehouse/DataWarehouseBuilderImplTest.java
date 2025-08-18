@@ -122,12 +122,12 @@ public class DataWarehouseBuilderImplTest {
 		GlueTableDescriptor jobTable = new GlueTableDescriptor();
 		jobTable.setName("testTable");
 		jobTable.setDescription("Test table");
-		jobTable.setColumns(Arrays.asList(column));
+		jobTable.setColumns(List.of(column));
 		
 		GlueTableDescriptor anotherTable = new GlueTableDescriptor();
 		anotherTable.setName("anotherTable");
 		anotherTable.setDescription("Another Test table");
-		anotherTable.setColumns(Arrays.asList(column));
+		anotherTable.setColumns(List.of(column));
 		anotherTable.setLocation("s3://${stack}.inventory.sagebase.org/inventory/${stack}data.sagebase.org/defaultInventory/hive/");
 		anotherTable.setInputFormat("org.apache.hadoop.hive.ql.io.SymlinkTextInputFormat");
 		

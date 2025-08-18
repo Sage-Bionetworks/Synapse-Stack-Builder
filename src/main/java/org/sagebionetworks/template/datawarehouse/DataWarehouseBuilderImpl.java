@@ -142,13 +142,12 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
 			ZipEntry entry = null;
 			while ((entry = zipInputStream.getNextEntry()) != null) {
 				if (!entry.isDirectory() && entry.getName().contains(scriptPath)) {
-					String scriptFile = entry.getName();
+                    byte[] fileContent = zipInputStream.readAllBytes();
+                    String scriptFile = entry.getName();
 					String s3Key = s3ScriptsPath + scriptFile.replace(scriptPath, "");
 					logger.info("Uploading " + scriptFile + " to " + s3Key);
-					// Uses a stream with close disabled so that the s3 sdk does not close it for us
                     PutObjectRequest putObjectRequest = PutObjectRequest.builder().bucket(bucket).key(s3Key).build();
-                    // TODO: there seems to be a problem where the entry size is < 0...
-                    RequestBody requestBody = RequestBody.fromInputStream(ReleasableInputStream.wrap(zipInputStream).disableClose(), -1);
+                    RequestBody requestBody = RequestBody.fromBytes(fileContent);
                     s3Client.putObject(putObjectRequest, requestBody);
 				}
 			}
