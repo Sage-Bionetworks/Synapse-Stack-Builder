@@ -488,6 +488,12 @@
 			],
 			"messageVisibilityTimeoutSec": 30,
 			"oldestMessageInQueueAlarmThresholdSec": 30
+		},
+		{
+			"queueName": "DOWNLOAD_CSV_FROM_GRID",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 60
 		}
 	]
 }
