@@ -77,6 +77,8 @@ import static org.sagebionetworks.template.Constants.TEMPLATE_BEAN_STALK_ENVIRON
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -125,6 +127,7 @@ import org.sagebionetworks.template.vpc.Color;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.services.cloudformation.model.Output;
 import software.amazon.awssdk.services.cloudformation.model.Parameter;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
@@ -291,7 +294,7 @@ public class RepositoryTemplateBuilderImplTest {
 	}
 
 	@Test
-	public void testBuildAndDeployProd() throws InterruptedException {
+	public void testBuildAndDeployProd() throws Exception {
 		
 		when(mockStackTagsProvider.getStackTags(config)).thenReturn(expectedTags);
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
@@ -453,7 +456,7 @@ public class RepositoryTemplateBuilderImplTest {
 	
 	}
 
-	void validateOpenApiSchema(JSONObject bedrockAgentProps) {
+	void validateOpenApiSchema(JSONObject bedrockAgentProps) throws Exception {
 
 		JSONObject s3 = bedrockAgentProps.getJSONArray("ActionGroups").getJSONObject(1).getJSONObject("ApiSchema")
 				.getJSONObject("S3");
@@ -470,7 +473,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("prod-configuration.sagebase.org", putObjectRequest.bucket());
 		assertEquals("chat/openapi/101.json", putObjectRequest.key());
 		RequestBody requestBody = requestBodyCaptor.getValue();
-		JSONObject openApiSchema = new JSONObject(requestBody.toString());
+		JSONObject openApiSchema = new JSONObject(requestBodyToString(requestBody));
 		assertTrue(openApiSchema.has("openapi"));
 		assertTrue(openApiSchema.has("info"));
 		assertTrue(openApiSchema.has("paths"));
@@ -1641,4 +1644,13 @@ public class RepositoryTemplateBuilderImplTest {
 		ListPlatformVersionsResponse expectedResult = ListPlatformVersionsResponse.builder().platformSummaryList(expectedSummaries).build();
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 	}
+
+	static String requestBodyToString(RequestBody body) throws Exception {
+		// If your SDK exposes an Optional, use .orElseThrow(...)
+		ContentStreamProvider provider = body.contentStreamProvider();
+		try (InputStream in = provider.newStream()) {
+			return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+		}
+	}
+
 }
