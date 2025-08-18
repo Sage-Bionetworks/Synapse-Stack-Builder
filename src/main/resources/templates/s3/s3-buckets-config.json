@@ -5,7 +5,7 @@
 			"inventoryEnabled": true,
 			"storageClassTransitions": [
 				{
-					"storageClass": "IntelligentTiering",
+					"storageClass": "INTELLIGENT_TIERING",
 					"days": 35
 				}
 			],
@@ -61,7 +61,7 @@
 			"name": "${stack}.datawarehouse.sagebase.org",
 			"storageClassTransitions": [
 				{
-					"storageClass": "IntelligentTiering",
+					"storageClass": "INTELLIGENT_TIERING",
 					"days": 1
 				}
 			]

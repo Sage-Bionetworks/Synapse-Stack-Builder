@@ -328,7 +328,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 	
 	@Provides
-	public LoadBalancerAlarmsConfig loadBalanacerConfigProvider() throws IOException {
+	public LoadBalancerAlarmsConfig loadBalancerConfigProvider() throws IOException {
 		return new LoadBalancerAlarmsConfigValidator(loadFromJsonFile(LOAD_BALANCER_ALARM_CONFIG_FILE, LoadBalancerAlarmsConfig.class)).validate();
 	}
 	
