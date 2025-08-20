@@ -31,8 +31,6 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
-import software.amazon.awssdk.transfer.s3.model.CompletedCopy;
-import software.amazon.awssdk.transfer.s3.model.Copy;
 
 @ExtendWith(MockitoExtension.class)
 public class SynapseDocsBuilderImplTest {
@@ -42,18 +40,7 @@ public class SynapseDocsBuilderImplTest {
 	
 	@Mock
 	private RepoConfiguration mockConfig;
-	
-	private ListObjectsV2Response mockSourceListing;
 
-	private ListObjectsV2Response mockDestinationListing;
-	
-	private ListObjectsV2Request mockSourceListRequest;
-	
-	private ListObjectsV2Request mockDestinationListRequest;
-	
-	private Copy mockCopy;
-	private CompletedCopy mockCompletedCopy;
-	
 	private String prodInstance;
 	private String sourceBucket;
 	private String destinationBucket;
@@ -85,8 +72,6 @@ public class SynapseDocsBuilderImplTest {
 		jsonOutOfDate = instanceObjectOutOfDate.toString();
 		sourceBucket = "sourceBucket";
 		destinationBucket = "destinationBucket";
-		mockSourceListRequest = ListObjectsV2Request.builder().build();
-		mockDestinationListRequest = ListObjectsV2Request.builder().build();
 		objectKey = "objectKey";
 		object = S3Object.builder()
 				.key(objectKey)
@@ -103,7 +88,10 @@ public class SynapseDocsBuilderImplTest {
 		when(mockConfig.getProperty(PROPERTY_KEY_DOCS_DESTINATION_BUCKET)).thenReturn(destinationBucket);
 		doAnswer(invocation -> true).when(builderSpy).verifyDeployment(destinationBucket);
 		doNothing().when(builderSpy).sync(sourceBucket, destinationBucket);
+
+		// call under test
 		builderSpy.deployDocs();
+
 		verify(builderSpy).verifyDeployment(destinationBucket);
 		verify(builderSpy).sync(sourceBucket, destinationBucket);
 	}
@@ -111,7 +99,10 @@ public class SynapseDocsBuilderImplTest {
 	@Test
 	public void testDeployDocsWithMissingSourceBucketName() {
 		when(mockConfig.getProperty(PROPERTY_KEY_DOCS_SOURCE_BUCKET)).thenThrow(ConfigurationPropertyNotFound.class);
+
+		// call under test
 		builderSpy.deployDocs();
+
 		verify(builderSpy, never()).verifyDeployment(any());
 		verify(builderSpy, never()).sync(any(), any());
 	}
@@ -120,7 +111,10 @@ public class SynapseDocsBuilderImplTest {
 	public void testDeployDocsWithMissingDestinationBucketName() {
 		when(mockConfig.getProperty(PROPERTY_KEY_DOCS_SOURCE_BUCKET)).thenReturn(sourceBucket);
 		when(mockConfig.getProperty(PROPERTY_KEY_DOCS_DESTINATION_BUCKET)).thenThrow(ConfigurationPropertyNotFound.class);
+
+		// call under test
 		builderSpy.deployDocs();
+
 		verify(builderSpy, never()).verifyDeployment(any());
 		verify(builderSpy, never()).sync(any(), any());
 	}
@@ -130,7 +124,10 @@ public class SynapseDocsBuilderImplTest {
 		when(mockConfig.getProperty(PROPERTY_KEY_DOCS_SOURCE_BUCKET)).thenReturn(sourceBucket);
 		when(mockConfig.getProperty(PROPERTY_KEY_DOCS_DESTINATION_BUCKET)).thenReturn(destinationBucket);
 		doAnswer(invocation -> false).when(builderSpy).verifyDeployment(destinationBucket);
+
+		// call under test
 		builderSpy.deployDocs();
+
 		verify(builderSpy).verifyDeployment(destinationBucket);
 		verify(builderSpy, never()).sync(any(), any());
 	}	
@@ -138,6 +135,7 @@ public class SynapseDocsBuilderImplTest {
 	@Test
 	public void testVerifyDeploymentWithFalseFlag() {
 		when(mockConfig.getBooleanProperty(PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG)).thenReturn(false);
+
 		// call under test
 		assertFalse(builder.verifyDeployment(destinationBucket));
 	}
@@ -146,6 +144,7 @@ public class SynapseDocsBuilderImplTest {
 	public void testVerifyDeploymentWithMissingDeploymentFlag() {
 		when(mockConfig.getBooleanProperty(PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG))
 			.thenThrow(ConfigurationPropertyNotFound.class);
+
 		// call under test
 		assertFalse(builder.verifyDeployment(destinationBucket));
 	}
@@ -160,6 +159,7 @@ public class SynapseDocsBuilderImplTest {
 		ResponseBytes<GetObjectResponse> responseBytes = ResponseBytes.fromByteArray(GetObjectResponse.builder().build(), jsonUpToDate.getBytes());
 		when(mockS3Client.getObjectAsBytes(getObjectRequestCaptor.capture())).thenReturn(responseBytes);
 		when(mockConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(prodInstance);
+
 		// call under test
 		assertFalse(builder.verifyDeployment(destinationBucket));
 	}
@@ -173,8 +173,8 @@ public class SynapseDocsBuilderImplTest {
 		ArgumentCaptor<Consumer<GetObjectRequest.Builder>> getObjectRequestCaptor = ArgumentCaptor.forClass(Consumer.class);
 		ResponseBytes<GetObjectResponse> responseBytes = ResponseBytes.fromByteArray(GetObjectResponse.builder().build(), jsonOutOfDate.getBytes());
 		when(mockS3Client.getObjectAsBytes(getObjectRequestCaptor.capture())).thenReturn(responseBytes);
-		// JSON tracking of instance < prod instance
 		when(mockConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(prodInstance);
+
 		// call under test
 		assertTrue(builder.verifyDeployment(destinationBucket));
 	}
@@ -183,6 +183,7 @@ public class SynapseDocsBuilderImplTest {
 	public void testVerifyDeploymentWithNoInstanceJsonFile() {
 		when(mockConfig.getBooleanProperty(PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG)).thenReturn(true);
 		doAnswer(invocation -> false).when(builderSpy).doesObjectExist(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE);
+
 		// call under test
 		assertTrue(builderSpy.verifyDeployment(destinationBucket));
 	}
@@ -248,23 +249,6 @@ public class SynapseDocsBuilderImplTest {
 	
 	@Test
 	public void testSyncWithDestinationSameKeyWithSameETag() throws Exception {
-/*
-		when(mockConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(prodInstance);
-		
-		// call under test
-		builderSpy.sync(sourceBucket, destinationBucket);
-		
-		verify(mockS3Client, never()).deleteObject(any(DeleteObjectRequest.class));
-		
-		// Verify putObject is called with the correct parameters
-		ArgumentCaptor<PutObjectRequest> putObjectRequestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
-		ArgumentCaptor<RequestBody> requestBodyCaptor = ArgumentCaptor.forClass(RequestBody.class);
-		verify(mockS3Client).putObject(putObjectRequestCaptor.capture(), requestBodyCaptor.capture());
-		
-		PutObjectRequest capturedPutObjectRequest = putObjectRequestCaptor.getValue();
-		assertEquals(destinationBucket, capturedPutObjectRequest.bucket());
-		assertEquals(DOCS_STACK_INSTANCE_JSON_FILE, capturedPutObjectRequest.key());
- */
 
 		// Source page
 		ListObjectsV2Response srcPage2 = ListObjectsV2Response.builder()

@@ -83,7 +83,6 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 		Map<String, String> destinationRelKeyToETag = listRelKeyToEtag(destinationBucket, prefix);
 
 		// copy source to destination, keep track of copied keys
-		Set<String> sourceRelKeys = new HashSet<>();
 		ListObjectsV2Iterable srcPages = s3Client.listObjectsV2Paginator(ListObjectsV2Request.builder()
 				.bucket(sourceBucket)
 				.prefix(prefix)
@@ -93,10 +92,7 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 			for (S3Object obj : page.contents()) {
 
 				String srcKey = obj.key();
-				if (!srcKey.startsWith(prefix)) continue; // should not happen
 				String relKey = srcKey.substring(prefix.length());
-				sourceRelKeys.add(relKey);
-
 				String dstKey = prefix + relKey;
 
 				String srcEtag = obj.eTag();
@@ -110,13 +106,12 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 							.destinationKey(dstKey)
 							.build();
 					s3Client.copyObject(copyReq);
-					// Reflect the new state in our cache (helps if there are duplicate keys in listing)
-					destinationRelKeyToETag.put(relKey, srcEtag);
 				}
+
+				destinationRelKeyToETag.remove(relKey);
 			}
 		}
 		List<String> toDeleteAbsKeys = destinationRelKeyToETag.keySet().stream()
-				.filter(rel -> !sourceRelKeys.contains(rel))
 				.map(rel -> prefix + rel)
 				.collect(Collectors.toList());
 
