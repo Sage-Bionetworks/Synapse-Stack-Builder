@@ -1,9 +1,10 @@
 package org.sagebionetworks.template.config;
 
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
+
 import java.util.List;
 import java.util.Optional;
 
-import com.amazonaws.services.cloudformation.model.Parameter;
 
 /**
  * Help to setup and check time-to-live (TTL) parameters for a cloud formation

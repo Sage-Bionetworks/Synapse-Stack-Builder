@@ -5,25 +5,25 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.Logger;
-import org.sagebionetworks.template.CloudFormationClient;
+import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.config.TimeToLive;
 
-import com.amazonaws.services.cloudformation.model.Stack;
-import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.google.inject.Inject;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 
 public class ExpiredStackTeardownImpl implements ExpiredStackTeardown {
 
-	private final CloudFormationClient cloudFormationClient;
+	private final CloudFormationClientWrapper cloudFormationClientWrapper;
 	private final TimeToLive timeToLive;
 	private final Logger logger;
 
 	@Inject
-	public ExpiredStackTeardownImpl(CloudFormationClient cloudFormationClient, TimeToLive timeToLive,
-			LoggerFactory loggerFactory) {
+	public ExpiredStackTeardownImpl(CloudFormationClientWrapper cloudFormationClientWrapper, TimeToLive timeToLive,
+                                    LoggerFactory loggerFactory) {
 		super();
-		this.cloudFormationClient = cloudFormationClient;
+		this.cloudFormationClientWrapper = cloudFormationClientWrapper;
 		this.timeToLive = timeToLive;
 		this.logger = loggerFactory.getLogger(getClass());
 	}
@@ -36,20 +36,20 @@ public class ExpiredStackTeardownImpl implements ExpiredStackTeardown {
 					StackStatus.UPDATE_ROLLBACK_COMPLETE, StackStatus.DELETE_FAILED);
 
 			// find any stack that is expired and can be deleted.
-			List<Stack> toDelete = cloudFormationClient.streamOverAllStacks()
-					.filter(s -> deletableStatus.contains(StackStatus.valueOf(s.getStackStatus())))
-					.filter(s -> timeToLive.isTimeToLiveExpired(s.getParameters()))
-					.filter(s -> s.getEnableTerminationProtection() == null
-							|| Boolean.FALSE.equals(s.getEnableTerminationProtection()))
+			List<Stack> toDelete = cloudFormationClientWrapper.streamOverAllStacks()
+					.filter(s -> deletableStatus.contains(s.stackStatus()))
+					.filter(s -> timeToLive.isTimeToLiveExpired(s.parameters()))
+					.filter(s -> s.enableTerminationProtection() == null
+							|| !s.enableTerminationProtection())
 					.collect(Collectors.toList());
 
 			toDelete.forEach(s -> {
-				logger.info(String.format("Deleting stack: '%s'...", s.getStackName()));
+				logger.info(String.format("Deleting stack: '%s'...", s.stackName()));
 
 				try {
-					cloudFormationClient.deleteStack(s.getStackName());
+					cloudFormationClientWrapper.deleteStack(s.stackName());
 				} catch (Exception e) {
-					logger.error(String.format("Failed to delete stack: '%s'", s.getStackName()), e);
+					logger.error(String.format("Failed to delete stack: '%s'", s.stackName()), e);
 				}
 			});
 		} catch (Exception e) {

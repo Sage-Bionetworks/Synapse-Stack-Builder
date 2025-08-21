@@ -15,6 +15,11 @@ public class SnsAndSqsNameValidatorTest {
 	public void testValidateName_nameContainsUnderscore(){
 		SnsAndSqsNameValidator.validateName("my_underscored_name");
 	}
+	
+	@Test
+	public void testValidateNameWithFifo(){
+		SnsAndSqsNameValidator.validateName("my_underscored_name.fifo");
+	}
 
 	@Test (expected = IllegalArgumentException.class)
 	public void testValidateName_nameContainsSpace(){
