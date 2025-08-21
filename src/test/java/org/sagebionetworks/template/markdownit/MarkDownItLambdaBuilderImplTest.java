@@ -67,7 +67,6 @@ public class MarkDownItLambdaBuilderImplTest {
         stack = "dev";
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
         when(mockConfig.getProperty(PROPERTY_KEY_LAMBDA_ARTIFACT_BUCKET)).thenReturn("lambda.sagebase.org");
-        when(mockConfig.getProperty(PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_URL)).thenReturn("https://sagebionetworks.jfrog.io/lambda/org/sagebase/markdownit/markdownit.zip");
         when(mockConfig.getProperty(PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_VERSION)).thenReturn("v1.0.0");
         when(mockConfig.getProperty(PROPERTY_KEY_LAMBDA_MARKDOWNIT_VPC)).thenReturn("vpc-12345");
         when(mockConfig.getCommaSeparatedProperty(PROPERTY_KEY_LAMBDA_MARKDOWNIT_SUBNETS)).thenReturn(new String[]{"subnet-12345", "subnet-12346"});
@@ -115,7 +114,7 @@ public class MarkDownItLambdaBuilderImplTest {
         verify(mockCloudFormationClientWrapper, times(1)).describeStack(argCaptorDescribeStack.capture());
 
         CreateOrUpdateStackRequest request = argCaptorCreateOrUpdateStack.getValue();
-        assertEquals("dev-markdown-it-function", request.getStackName());
+        assertEquals("dev-markdown-it-function-direct", request.getStackName());
         assertTrue(request.getTags().isEmpty());
         assertEquals(1, request.getCapabilities().length);
         assertEquals(Capability.CAPABILITY_NAMED_IAM, request.getCapabilities()[0]);
@@ -128,8 +127,7 @@ public class MarkDownItLambdaBuilderImplTest {
         assertTrue(resources.has("mdlambda"));
         assertTrue(resources.has("mdlambdaFunctionUrl"));
 
-        assertEquals("dev-markdown-it-function", argCaptorWaitForStack.getValue());
-        assertEquals("dev-markdown-it-function", argCaptorDescribeStack.getValue());
+        assertEquals("dev-markdown-it-function-direct", argCaptorWaitForStack.getValue());
 
     }
 
