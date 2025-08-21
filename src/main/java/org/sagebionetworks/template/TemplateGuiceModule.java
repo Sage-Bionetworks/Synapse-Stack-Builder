@@ -97,8 +97,6 @@ import org.sagebionetworks.template.s3.S3BucketBuilder;
 import org.sagebionetworks.template.s3.S3BucketBuilderImpl;
 import org.sagebionetworks.template.s3.S3Config;
 import org.sagebionetworks.template.s3.S3ConfigValidator;
-import org.sagebionetworks.template.s3.S3TransferManagerFactory;
-import org.sagebionetworks.template.s3.S3TransferManagerFactoryImpl;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 import org.sagebionetworks.template.utils.ArtifactDownloadImpl;
 import org.sagebionetworks.template.vpc.SubnetTemplateBuilder;
@@ -335,11 +333,6 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public SynapseAdminClient synapseAdminClient(SynapseAdminClientFactory factory) {
 		return factory.getInstance();
-	}
-	
-	@Provides
-	public S3TransferManagerFactory provideS3TransferManagerFactory(S3AsyncClient s3Client) {
-		return new S3TransferManagerFactoryImpl(s3Client);
 	}
 
 	@Provides

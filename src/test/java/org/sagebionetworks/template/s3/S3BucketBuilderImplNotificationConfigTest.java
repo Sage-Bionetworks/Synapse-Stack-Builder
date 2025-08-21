@@ -159,7 +159,7 @@ public class S3BucketBuilderImplNotificationConfigTest {
         assertEquals(1, bucketConfig.topicConfigurations().size());
         TopicConfiguration snsConfig = bucketConfig.topicConfigurations().get(0);
         assertEquals(expectedTopicArn, snsConfig.topicArn());
-        assertEquals(events.stream().map(Event::fromValue).collect(Collectors.toList()), snsConfig.events());
+        assertEquals(events.stream().map(Event::fromValue).collect(Collectors.toSet()), new HashSet<>(snsConfig.events()));
 
         verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
         VelocityContext context = velocityContextCaptor.getValue();
@@ -235,7 +235,7 @@ public class S3BucketBuilderImplNotificationConfigTest {
         assertEquals(1, bucketConfig.topicConfigurations().size());
         TopicConfiguration snsConfig = bucketConfig.topicConfigurations().get(0);
         assertEquals(expectedTopicArn, snsConfig.topicArn());
-        assertEquals(events.stream().map(Event::fromValue).collect(Collectors.toList()), snsConfig.events());
+        assertEquals(events.stream().map(Event::fromValue).collect(Collectors.toSet()), new HashSet<>(snsConfig.events()));
 
         verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
 
@@ -320,7 +320,7 @@ public class S3BucketBuilderImplNotificationConfigTest {
         assertEquals(2, bucketConfig.topicConfigurations().size());
         TopicConfiguration snsConfig = bucketConfig.topicConfigurations().get(1); // TODO: OK?
         assertEquals(expectedTopicArn, snsConfig.topicArn());
-        assertEquals(events.stream().map(Event::fromValue).collect(Collectors.toList()), snsConfig.events());
+        assertEquals(events.stream().map(Event::fromValue).collect(Collectors.toSet()), new HashSet<>(snsConfig.events()));
 
         verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
 
@@ -401,7 +401,7 @@ public class S3BucketBuilderImplNotificationConfigTest {
         assertEquals(1, bucketConfig.topicConfigurations().size());
         TopicConfiguration snsConfig = bucketConfig.topicConfigurations().get(0);
         assertEquals(expectedTopicArn, snsConfig.topicArn());
-        assertEquals(events.stream().map(Event::fromValue).collect(Collectors.toList()), snsConfig.events());
+        assertEquals(events.stream().map(Event::fromValue).collect(Collectors.toSet()), new HashSet<>(snsConfig.events()));
 
         verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
 
@@ -482,7 +482,7 @@ public class S3BucketBuilderImplNotificationConfigTest {
         assertEquals(1, bucketConfig.topicConfigurations().size());
         TopicConfiguration snsConfig = bucketConfig.topicConfigurations().get(0);
         assertEquals(expectedTopicArn, snsConfig.topicArn());
-        assertEquals(events.stream().map(Event::fromValue).collect(Collectors.toList()), snsConfig.events());
+        assertEquals(events.stream().map(Event::fromValue).collect(Collectors.toSet()), new HashSet<>(snsConfig.events()));
 
         verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
 

@@ -701,14 +701,15 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			TopicConfiguration newTopicConfig = TopicConfiguration.builder()
 				.id(configName)
 				.topicArn(topicArn)
-				.events(events.stream().map(Event::fromValue).collect(Collectors.toList()))
+				.events(events.stream().map(Event::fromValue).collect(Collectors.toSet()))
 				.build();
 			topicConfigs.add(newTopicConfig);
 			update = true;
 		} else {
-			List<Event> eventList = events.stream().map(Event::fromValue).collect(Collectors.toList());
+			HashSet<Event> existingTopicEvents = new HashSet<>(existingTopicConfig.events());
+			HashSet<Event> eventList = (HashSet<Event>) events.stream().map(Event::fromValue).collect(Collectors.toSet());
 			
-			if (!existingTopicConfig.topicArn().equals(topicArn) || !existingTopicConfig.events().equals(eventList)) {
+			if (!existingTopicConfig.topicArn().equals(topicArn) || !existingTopicEvents.equals(eventList)) {
 				Iterator<TopicConfiguration> iterator = topicConfigs.iterator();
 				while (iterator.hasNext()) {
 					TopicConfiguration config = iterator.next();
