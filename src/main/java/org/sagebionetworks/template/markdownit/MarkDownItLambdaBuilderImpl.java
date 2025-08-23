@@ -114,7 +114,7 @@ public class MarkDownItLambdaBuilderImpl implements MarkDownItLambdaBuilder {
                 .withTemplateBody(resultJSON)
                 .withTags(tagsProvider.getStackTags(config))
                 .withCapabilities(Capability.CAPABILITY_NAMED_IAM);
-        //cloudFormationClientWrapper.createOrUpdateStack(req);
+        cloudFormationClientWrapper.createOrUpdateStack(req);
 
         try {
             cloudFormationClientWrapper.waitForStackToComplete(stackName);

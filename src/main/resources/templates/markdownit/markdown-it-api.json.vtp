@@ -58,13 +58,30 @@
           ]
         }
       }
+    },
+    "mdlambdaVersion": {
+      "Type": "AWS::Lambda::Version",
+      "Properties": {
+       "FunctionName": { "Ref": "mdlambda" }
+      }
+    },
+    "mdlambdaAliasProd": {
+      "Type": "AWS::Lambda::Alias",
+      "Properties": {
+        "Name": "prod",
+        "FunctionName": { "Ref": "mdlambda" },
+        "FunctionVersion": { "Fn::GetAtt": [ "mdlambdaVersion", "Version" ] }
+      }
     }
   },
   "Outputs": {
     "LambdaFunctionArn": {
-      "Value": { "Ref": "mdlambda" },
+      "Value": { "Fn::GetAtt": ["mdlambda", "Arn"] },
       "Description": "The ARN of the Lambda function"
+    },
+    "LambdaAliasArn": {
+    "Value": { "Ref": "mdlambdaAliasProd" },
+    "Description": "Stable ARN for invoking the prod alias"
     }
   }
-
 }
