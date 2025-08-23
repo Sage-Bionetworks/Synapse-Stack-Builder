@@ -81,7 +81,7 @@ public class MarkDownItLambdaBuilderImpl implements MarkDownItLambdaBuilder {
     }
 
     private String getSourceArtifactUrl(String version) {
-        final String LAMBDA_SOURCE_ARTIFACT_URL_FORMAT = "https://github.com/Sage-Bionetwors/synapse-markdown-it-lambda/releases/download/%s/markdown-it.zip";
+        final String LAMBDA_SOURCE_ARTIFACT_URL_FORMAT = "https://github.com/Sage-Bionetworks/synapse-markdown-it-lambda/releases/download/%s/markdown-it.zip";
         String lambdaSourceArtifactUrl = String.format(LAMBDA_SOURCE_ARTIFACT_URL_FORMAT, version);
         return lambdaSourceArtifactUrl;
     }
@@ -114,7 +114,7 @@ public class MarkDownItLambdaBuilderImpl implements MarkDownItLambdaBuilder {
                 .withTemplateBody(resultJSON)
                 .withTags(tagsProvider.getStackTags(config))
                 .withCapabilities(Capability.CAPABILITY_NAMED_IAM);
-        cloudFormationClientWrapper.createOrUpdateStack(req);
+        //cloudFormationClientWrapper.createOrUpdateStack(req);
 
         try {
             cloudFormationClientWrapper.waitForStackToComplete(stackName);
