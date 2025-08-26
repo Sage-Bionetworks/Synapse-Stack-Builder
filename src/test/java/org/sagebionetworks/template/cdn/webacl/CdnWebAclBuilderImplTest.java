@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.mockito.ArgumentCaptor;
@@ -72,18 +73,19 @@ public class CdnWebAclBuilderImplTest {
         List<Tag> expectedTags = new ArrayList<>();
         Tag tag = Tag.builder().key("aKey").value("aValue").build();
         expectedTags.add(tag);
-        Stack expectedStack = Stack.builder().stackName("tst-cloudfront-webacl-stack").tags(expectedTags).build();
+        Stack expectedStack = Stack.builder().stackName("dev-staging-cloudfront-webacl-stack").tags(expectedTags).build();
         when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
         when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
         when(mockCloudFormationClientWrapper.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
 
-        when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("tst");
+        when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("dev");
+        when(mockConfig.getProperty("org.sagebionetworks.instance")).thenReturn("staging");
 
         // call under test
         Optional<Stack> optStack = builder.buildCdnWebAcl();
 
         assertTrue(optStack.isPresent());
-        assertEquals("tst-cloudfront-webacl-stack", optStack.get().stackName());
+        assertEquals("dev-staging-cloudfront-webacl-stack", optStack.get().stackName());
         assertEquals(1, optStack.get().tags().size());
         assertEquals(tag, optStack.get().tags().get(0));
 
@@ -91,14 +93,27 @@ public class CdnWebAclBuilderImplTest {
         verify(mockCloudFormationClientWrapper).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
         CreateOrUpdateStackRequest actualReq = createOrUpdateStackRequestArgumentCaptor.getValue();
         assertNotNull(actualReq);
-        assertEquals("tst-cloudfront-webacl-stack", actualReq.getStackName());
+        assertEquals("dev-staging-cloudfront-webacl-stack", actualReq.getStackName());
         assertEquals("someYamlTemplate", actualReq.getTemplateBody());
         assertEquals(tag, actualReq.getTags().get(0));
 
         assertTrue(optStack.isPresent());
-        assertEquals("tst-cloudfront-webacl-stack", optStack.get().stackName());
+        assertEquals("dev-staging-cloudfront-webacl-stack", optStack.get().stackName());
         assertEquals(1, optStack.get().tags().size());
         assertEquals(tag, optStack.get().tags().get(0));
+
+    }
+
+    @Test
+    public void testBuildCdnWebAclStackWithInvalidInstance() throws Exception {
+
+        when(mockConfig.getProperty("org.sagebionetworks.instance")).thenReturn("badinstance");
+
+        // call under test
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> {
+            builder.buildCdnWebAcl();
+        });
+        assertEquals("Invalid instance: badinstance", e.getMessage());
 
     }
 

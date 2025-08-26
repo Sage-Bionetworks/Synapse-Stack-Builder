@@ -1,8 +1,8 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "WebACL for CloudFront distributions",
+  "Description": "WebACL for CloudFront distribution",
   "Resources": {
-    "SharedCloudFrontWebACL": {
+    "CloudFrontWebACL": {
       "Type": "AWS::WAFv2::WebACL",
       "Properties": {
         "Scope": "CLOUDFRONT",
@@ -12,14 +12,14 @@
         "VisibilityConfig": {
           "SampledRequestsEnabled": true,
           "CloudWatchMetricsEnabled": true,
-          "MetricName": "SharedCloudFrontWebACL"
+          "MetricName": "CloudFrontWebACL"
         },
         "Rules": [
           {
             "Name": "AWSManagedRulesCommonRuleSet",
             "Priority": 1,
             "OverrideAction": {
-              "None": {}
+              "Count": {}
             },
             "Statement": {
               "ManagedRuleGroupStatement": {
@@ -41,7 +41,7 @@
     "WebACLArn": {
       "Description": "ARN of the shared WAF WebACL",
       "Value": {
-        "Fn::GetAtt": ["SharedCloudFrontWebACL", "Arn"]
+        "Fn::GetAtt": ["CloudFrontWebACL", "Arn"]
       },
       "Export": {
         "Name": { "Fn::Sub": "#[[${AWS::AccountId}-${AWS::StackName}]]#-WebACLArn" }

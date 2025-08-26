@@ -15,6 +15,7 @@ import software.amazon.awssdk.services.cloudformation.model.Stack;
 import java.io.StringWriter;
 import java.util.Optional;
 
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 public class CdnWebAclBuilderImpl implements CdnWebAclBuilder {
@@ -41,8 +42,11 @@ public class CdnWebAclBuilderImpl implements CdnWebAclBuilder {
     }
 
     Optional<Stack> buildCdnWebAcl() {
-
-        String cfStackName = String.format("%s-cloudfront-webacl-stack", config.getProperty(PROPERTY_KEY_STACK));
+        // use instance to really pass a pseudo-instance (prod | staging | tst)
+        // so we can have separate webACLs to test in the prod stack (dev stack does not use CDN)
+        String instance = config.getProperty(PROPERTY_KEY_INSTANCE);
+        validateInstance(instance);
+        String cfStackName = String.format("%s-%s-cloudfront-webacl-stack", config.getProperty(PROPERTY_KEY_STACK), instance);
         Template cfTemplate = velocityEngine.getTemplate(TEMPLATE_WAF_CDN);
         VelocityContext context = new VelocityContext();
         StringWriter writer = new StringWriter();
@@ -62,5 +66,18 @@ public class CdnWebAclBuilderImpl implements CdnWebAclBuilder {
             throw new RuntimeException("Stack creation/update was interrupted", e);
         }
         return cloudFormationClientWrapper.describeStack(cfStackName);
+    }
+
+    /**
+     *
+     * @param instance
+     * @return true if instance in (prod, staging, tst)
+     * @raise IllegalArgumentException if not
+     */
+    private void validateInstance(String instance) {
+        if ("prod".equals(instance) || "staging".equals(instance) || "tst".equals(instance)) {
+            return;
+        }
+        throw new IllegalArgumentException("Invalid instance: " + instance);
     }
 }
