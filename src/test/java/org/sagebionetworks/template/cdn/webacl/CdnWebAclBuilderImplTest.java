@@ -15,6 +15,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -58,8 +60,9 @@ public class CdnWebAclBuilderImplTest {
     @InjectMocks
     private CdnWebAclBuilderImpl builder;
 
-    @Test
-    public void testBuildCdnWebAclStack() throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = {"prod", "staging", "tst"})
+    public void testBuildCdnWebAclStack(String instance) throws Exception {
         when(mockVelocityEngine.getTemplate(any(String.class))).thenReturn(mockTemplate);
         doAnswer(new Answer<Void>() {
             @Override
@@ -73,19 +76,20 @@ public class CdnWebAclBuilderImplTest {
         List<Tag> expectedTags = new ArrayList<>();
         Tag tag = Tag.builder().key("aKey").value("aValue").build();
         expectedTags.add(tag);
-        Stack expectedStack = Stack.builder().stackName("dev-staging-cloudfront-webacl-stack").tags(expectedTags).build();
+        String expectedStackName = "dev-" + instance + "-cloudfront-webacl-stack";
+        Stack expectedStack = Stack.builder().stackName(expectedStackName).tags(expectedTags).build();
         when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
         when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
         when(mockCloudFormationClientWrapper.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
 
         when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("dev");
-        when(mockConfig.getProperty("org.sagebionetworks.instance")).thenReturn("staging");
+        when(mockConfig.getProperty("org.sagebionetworks.instance")).thenReturn(instance);
 
         // call under test
         Optional<Stack> optStack = builder.buildCdnWebAcl();
 
         assertTrue(optStack.isPresent());
-        assertEquals("dev-staging-cloudfront-webacl-stack", optStack.get().stackName());
+        assertEquals(expectedStackName, optStack.get().stackName());
         assertEquals(1, optStack.get().tags().size());
         assertEquals(tag, optStack.get().tags().get(0));
 
@@ -93,14 +97,9 @@ public class CdnWebAclBuilderImplTest {
         verify(mockCloudFormationClientWrapper).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
         CreateOrUpdateStackRequest actualReq = createOrUpdateStackRequestArgumentCaptor.getValue();
         assertNotNull(actualReq);
-        assertEquals("dev-staging-cloudfront-webacl-stack", actualReq.getStackName());
+        assertEquals(expectedStackName, actualReq.getStackName());
         assertEquals("someYamlTemplate", actualReq.getTemplateBody());
         assertEquals(tag, actualReq.getTags().get(0));
-
-        assertTrue(optStack.isPresent());
-        assertEquals("dev-staging-cloudfront-webacl-stack", optStack.get().stackName());
-        assertEquals(1, optStack.get().tags().size());
-        assertEquals(tag, optStack.get().tags().get(0));
 
     }
 
