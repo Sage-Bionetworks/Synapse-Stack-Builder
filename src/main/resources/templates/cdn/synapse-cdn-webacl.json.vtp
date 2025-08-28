@@ -39,7 +39,7 @@
   },
   "Outputs": {
     "WebACLArn": {
-      "Description": "ARN of the shared WAF WebACL",
+      "Description": "ARN of the WAF WebACL",
       "Value": {
         "Fn::GetAtt": ["CloudFrontWebACL", "Arn"]
       },
