@@ -3,6 +3,29 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: >-
   Provision Cloudfront distribution for a synapse.org endpoint (www, staging, tst)
 Resources:
+  CloudfrontWebACL:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Scope: CLOUDFRONT
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: CloudFrontWebACL
+      Rules:
+        - Name: AWSManagedRulesCommonRuleSet
+          Priority: 1
+          OverrideAction:
+            Count: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSCommon
   Cloudfront:
     Type: AWS::CloudFront::Distribution
     DeletionPolicy: Retain
@@ -37,11 +60,16 @@ Resources:
             EventType: viewer-response
             FunctionARN: !GetAtt CacheHeaderOverrideOnErrorFct.FunctionARN
           ViewerProtocolPolicy: redirect-to-https
+        Logging:
+          Bucket: ${stack}.log.sagebase.org
+          IncludeCookies: false
+          Prefix: cdn/cloudfront/${SubDomainName}/
         PriceClass: PriceClass_100
         ViewerCertificate:
           AcmCertificateArn: ${AcmCertificateArn}
           MinimumProtocolVersion: TLSv1.2_2021
           SslSupportMethod: sni-only
+        WebAclId: !Ref CloudfrontWebACL
   CacheHeaderOverrideOnErrorFct:
     Type: AWS::CloudFront::Function
     Properties:

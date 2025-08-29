@@ -64,20 +64,21 @@ public class CdnBuilderImplTemplateTest {
 		List<Tag> expectedTags = new ArrayList<>();
 		Tag tag = Tag.builder().key("aKey").value("aValue").build();
 		expectedTags.add(tag);
-		Stack expectedStack = Stack.builder().stackName("cdn-dev-synapse").tags(expectedTags).build();
+		Stack expectedStack = Stack.builder().stackName("cdn-tst-synapse").tags(expectedTags).build();
 		when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
 		when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
 		when(mockCloudFormationClientWrapper.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
 
 		when(mockConfig.getProperty("org.sagebionetworks.beanstalk.ssl.arn.portal")).thenReturn("acmarn");
-		when(mockConfig.getProperty("org.sagebionetworks.stack.instance.alias")).thenReturn("dev");
+		when(mockConfig.getProperty("org.sagebionetworks.stack.instance.alias")).thenReturn("tst");
+		when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("dev");
 
 		// call under test
 		Optional<Stack> optStack = builder.buildCdnStack(CdnBuilder.Type.PORTAL);
 
 		assertTrue(optStack.isPresent());
-		assertEquals("cdn-dev-synapse", optStack.get().stackName());
+		assertEquals("cdn-tst-synapse", optStack.get().stackName());
 		assertEquals(1, optStack.get().tags().size());
 		assertEquals(tag, optStack.get().tags().get(0));
 

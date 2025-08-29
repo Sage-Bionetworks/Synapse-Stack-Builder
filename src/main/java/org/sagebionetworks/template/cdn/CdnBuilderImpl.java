@@ -59,15 +59,18 @@ public class CdnBuilderImpl implements CdnBuilder {
 	VelocityContext createContext(Type type) {
 		VelocityContext ctxt = new VelocityContext();
 
+		// stack always in context
+		String stack = config.getProperty(PROPERTY_KEY_STACK);
+		ctxt.put(STACK, stack);
+
 		if (Type.PORTAL.equals(type)) {
 			// The ACM ARN is the same as the one used for portal
 			String acmCertificateArn = config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN + "portal");
 			ctxt.put(CTXT_KEY_ACM_CERT_ARN, acmCertificateArn);
+			// Need to handle tst so can't just derive from stack
 			String stackInstanceAlias = config.getProperty(PROPERTY_KEY_STACK_INSTANCE_ALIAS);
 			ctxt.put(CTXT_KEY_SUBDOMAIN_NAME, stackInstanceAlias);
 		} else if (Type.DATA.equals(type)) {
-			String stack = config.getProperty(PROPERTY_KEY_STACK);
-			ctxt.put(STACK, stack);
 			String dataCDNPublicKey = config.getProperty(PROPERTY_KEY_DATA_CDN_PUBLIC_KEY);
 			ctxt.put(CTXT_KEY_PUBLIC_KEY, dataCDNPublicKey);
 			String acmCertificateArn = config.getProperty(PROPERTY_KEY_DATA_CDN_CERTIFICATE_ARN);
