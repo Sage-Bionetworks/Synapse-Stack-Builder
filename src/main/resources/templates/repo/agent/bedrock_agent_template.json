@@ -83,7 +83,7 @@
 									"Action": [
 										"bedrock:InvokeModel*",
 										"bedrock:GetInferenceProfile",
-										"bedrock:ListInferenceProfiles",
+										"bedrock:ListInferenceProfiles"
 									],
 									"Resource": [
 										"arn:aws:bedrock:us-east-1::foundation-model/*",

@@ -772,6 +772,7 @@
 		#parse("templates/repo/opensearch-template.json.vpt")
 		#parse("templates/repo/bedrock-knowledge-base-template.json.vpt")
 		${bedrock_agent_resouces}
+		${bedrock_grid_agent_resouces}
 		#parse("templates/repo/grid/grid-websocket.json.vpt")
 	},
 	"Outputs": {

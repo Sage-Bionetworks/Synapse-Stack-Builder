@@ -1,0 +1,518 @@
+{
+	"openapi": "3.0.1",
+	"info": {
+		"title": "...",
+		"version": "v1"
+	},
+	"paths": {
+		"/repo/v1/grid/json-schema": {
+			"get": {
+				"tags": [
+					"GridAgent"
+				],
+				"operationId": "get-/repo/v1/grid/json-schema",
+				"parameters": [
+				],
+				"responses": {
+					"200": {
+						"description": "The JSON schema used to validate the rows of the grid session.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/repo/v1/grid/query": {
+			"post": {
+				"tags": [
+					"GridAgent"
+				],
+				"operationId": "post-/repo/v1/grid/query",
+				"parameters": [
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.Query"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "The result of the query.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.QueryResult"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"org.sagebionetworks.repo.model.grid.sql.Literal": {
+				"type": "object",
+				"properties": {
+					"concreteType": {
+						"type": "string",
+						"enum": [
+							"org.sagebionetworks.repo.model.grid.sql.Literal"
+						]
+					},
+					"value": {
+						"type": "string"
+					},
+					"dataType": {
+						"type": "string"
+					}
+				},
+				"description": "Literal is a single value of a given type.",
+				"required": [
+					"concreteType"
+				]
+			},
+			"org.sagebionetworks.repo.model.grid.sql.Identifier": {
+				"type": "object",
+				"properties": {
+					"concreteType": {
+						"type": "string",
+						"enum": [
+							"org.sagebionetworks.repo.model.grid.sql.Identifier"
+						]
+					},
+					"value": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"concreteType"
+				]
+			},
+			"org.sagebionetworks.repo.model.grid.sql.QueryResult": {
+				"type": "object",
+				"properties": {
+					"columnNames": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"description": "The column names from the select."
+					},
+					"rows": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.Row",
+							"description": "A single row of a grid query result."
+						},
+						"description": "A single page of rows."
+					}
+				},
+				"description": "Tabular query results from a SQL query."
+			},
+			"org.sagebionetworks.repo.model.grid.sql.Star": {
+				"type": "object",
+				"properties": {
+					"concreteType": {
+						"type": "string",
+						"enum": [
+							"org.sagebionetworks.repo.model.grid.sql.Star"
+						]
+					}
+				},
+				"description": "Indicates an asterisk (*).",
+				"required": [
+					"concreteType"
+				]
+			},
+			"org.sagebionetworks.repo.model.grid.sql.SelectItem": {
+				"type": "object",
+				"properties": {
+					"expression": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.SqlExpression",
+						"description": "A generic SQL expression."
+					}
+				}
+			},
+			"org.sagebionetworks.repo.model.grid.sql.ValidationResults": {
+				"type": "object",
+				"properties": {
+					"isValid": {
+						"type": "boolean"
+					},
+					"validationErrorMessage": {
+						"type": "string"
+					},
+					"allValidationMessages": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"description": "If the object is not valid according to the schema, a the flat list of error messages will be provided with one error message per sub-schema."
+					}
+				},
+				"description": "Results of a grid row against a JSON schema"
+			},
+			"org.sagebionetworks.repo.model.schema.JsonSchema": {
+				"type": "object",
+				"properties": {
+					"$schema": {
+						"type": "string"
+					},
+					"$id": {
+						"type": "string"
+					},
+					"$ref": {
+						"type": "string"
+					},
+					"type": {
+						"type": "string"
+					},
+					"items": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+					},
+					"properties": {
+						"type": "object",
+						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.9.3.2.1\">properties<\/a>",
+						"additionalProperties": {
+							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+						}
+					},
+					"title": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"allOf": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+						},
+						"description": "Use allOf to 'extend' or 'implement' one or more schemas.  See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.9.2.1.1\">allOf<\/a>"
+					},
+					"anyOf": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+						},
+						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.9.2.1.2\">anyOf<\/a>"
+					},
+					"oneOf": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+						},
+						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.9.2.1.3\">oneOf<\/a>"
+					},
+					"not": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+					},
+					"format": {
+						"type": "string"
+					},
+					"definitions": {
+						"type": "object",
+						"description": "In an effor to support draft-07 implementations, we are using 'definitions' instead of '$defs'.  See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.appendix.A\">Appendix A<\/a>",
+						"additionalProperties": {
+							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+						}
+					},
+					"enum": {
+						"type": "array",
+						"items": {
+						},
+						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.section.6.1.2\">enum<\/a>"
+					},
+					"const": {
+						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.section.6.1.3\">const<\/a>"
+					},
+					"source": {
+						"type": "string"
+					},
+					"required": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.section.6.5.3\">required<\/a>"
+					},
+					"maxLength": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"minLength": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"uniqueItems": {
+						"type": "boolean"
+					},
+					"pattern": {
+						"type": "string"
+					},
+					"if": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+					},
+					"then": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+					},
+					"else": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+					},
+					"maximum": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"minimum": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"default": {
+						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.section.9.2\">default<\/a>"
+					},
+					"contains": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+					},
+					"additionalProperties": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+					}
+				},
+				"description": "The JSON schema is defined by: <a href=\"https://json-schema.org/\">json-schema.org<\/a>, specifically draft-07.  Only features listed here are currently supported."
+			},
+			"org.sagebionetworks.repo.model.grid.sql.OrderByItem": {
+				"type": "object",
+				"properties": {
+					"expression": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.SqlExpression",
+						"description": "A generic SQL expression."
+					},
+					"direction": {
+						"type": "string"
+					}
+				}
+			},
+			"org.sagebionetworks.repo.model.grid.sql.FunctionCall": {
+				"type": "object",
+				"properties": {
+					"concreteType": {
+						"type": "string",
+						"enum": [
+							"org.sagebionetworks.repo.model.grid.sql.FunctionCall"
+						]
+					},
+					"name": {
+						"type": "string"
+					},
+					"arguments": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.SqlExpression",
+							"description": "A generic SQL expression."
+						},
+						"description": "An array of arguments passed to the function."
+					},
+					"distinct": {
+						"type": "boolean"
+					}
+				},
+				"required": [
+					"concreteType"
+				]
+			},
+			"org.sagebionetworks.repo.model.grid.sql.Query": {
+				"type": "object",
+				"properties": {
+					"select": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.SelectClause",
+						"description": "Object model describing the SELECT statment of a SQL query."
+					},
+					"where": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.SqlExpression",
+							"description": "A generic SQL expression."
+						},
+						"description": "Optional WHERE clause."
+					},
+					"groupBy": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.SqlExpression",
+							"description": "A generic SQL expression."
+						},
+						"description": "Optional GROUP BY clause."
+					},
+					"orderBy": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.OrderByItem"
+						},
+						"description": "Optional ORDER BY clause."
+					},
+					"limit": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"offset": {
+						"type": "integer",
+						"format": "int32"
+					}
+				},
+				"description": "Defines a SQL query to be run against the current grid."
+			},
+			"org.sagebionetworks.repo.model.grid.sql.BinaryExpression": {
+				"type": "object",
+				"properties": {
+					"concreteType": {
+						"type": "string",
+						"enum": [
+							"org.sagebionetworks.repo.model.grid.sql.BinaryExpression"
+						]
+					},
+					"left": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.SqlExpression",
+						"description": "A generic SQL expression."
+					},
+					"operator": {
+						"type": "string"
+					},
+					"right": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.SqlExpression",
+						"description": "A generic SQL expression."
+					}
+				},
+				"required": [
+					"concreteType"
+				]
+			},
+			"org.sagebionetworks.repo.model.grid.sql.Row": {
+				"type": "object",
+				"properties": {
+					"cellValues": {
+						"type": "array",
+						"items": {
+						},
+						"description": "Cell values for a single row of a query result. The first column is at index zero, the second at 1 and so on."
+					},
+					"validationResults": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.ValidationResults",
+						"description": "Results of a grid row against a JSON schema"
+					}
+				},
+				"description": "A single row of a grid query result."
+			},
+			"org.sagebionetworks.repo.model.grid.sql.InExpression": {
+				"type": "object",
+				"properties": {
+					"concreteType": {
+						"type": "string",
+						"enum": [
+							"org.sagebionetworks.repo.model.grid.sql.InExpression"
+						]
+					},
+					"left": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.ColumnReference"
+					},
+					"values": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.Literal",
+							"description": "Literal is a single value of a given type."
+						},
+						"description": "An array of literal values for the 'IN' operator."
+					},
+					"not": {
+						"type": "boolean"
+					}
+				},
+				"description": "In expression is used for a where condition using the 'in' opperator.",
+				"required": [
+					"concreteType"
+				]
+			},
+			"org.sagebionetworks.repo.model.grid.sql.ColumnReference": {
+				"type": "object",
+				"properties": {
+					"concreteType": {
+						"type": "string",
+						"enum": [
+							"org.sagebionetworks.repo.model.grid.sql.ColumnReference"
+						]
+					},
+					"column": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.Identifier"
+					}
+				},
+				"required": [
+					"concreteType"
+				]
+			},
+			"org.sagebionetworks.repo.model.grid.sql.SelectClause": {
+				"type": "object",
+				"properties": {
+					"setQuantifier": {
+						"type": "string"
+					},
+					"selectList": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.SelectItem"
+						},
+						"description": "One ore more select items."
+					}
+				},
+				"description": "Object model describing the SELECT statment of a SQL query."
+			},
+			"org.sagebionetworks.repo.model.grid.sql.SqlExpression": {
+				"type": "object",
+				"properties": {
+					"concreteType": {
+						"type": "string"
+					}
+				},
+				"description": "A generic SQL expression.",
+				"oneOf": [
+					{
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.Star"
+					},
+					{
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.Literal"
+					},
+					{
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.BinaryExpression"
+					},
+					{
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.Identifier"
+					},
+					{
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.InExpression"
+					},
+					{
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.FunctionCall"
+					},
+					{
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.sql.ColumnReference"
+					}
+				],
+				"required": [
+					"concreteType"
+				],
+				"discriminator": {
+					"propertyName": "concreteType"
+				}
+			}
+		}
+	}
+}
