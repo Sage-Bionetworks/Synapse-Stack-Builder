@@ -13,12 +13,14 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
 
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.google.inject.Inject;
 
 public class BedrockGridAgentContextProvider implements VelocityContextProvider {
 
 	private final RepoConfiguration repoConfig;
 	private final AmazonS3Client s3Cient;
 
+	@Inject
 	public BedrockGridAgentContextProvider(RepoConfiguration repoConfig, AmazonS3Client s3Cient) {
 		super();
 		this.repoConfig = repoConfig;
@@ -34,40 +36,37 @@ public class BedrockGridAgentContextProvider implements VelocityContextProvider 
 		String openApiSchemaBucket = String.format("%s-configuration.sagebase.org", stack);
 		String openApiSchemakey = String.format("chat/openapi/grid/%s.json", instance);
 
-		String openApiSchemJsonString = TemplateUtils.loadContentFromFile("templates/repo/agent/grid_agent_open_api.json");
+		String openApiSchemJsonString = TemplateUtils
+				.loadContentFromFile("templates/repo/agent/grid_agent_open_api.json");
 		s3Cient.putObject(openApiSchemaBucket, openApiSchemakey, openApiSchemJsonString);
-		
+
 		String openApiSchemaS3Arn = String.format("arn:aws:s3:::%s/%s", openApiSchemaBucket, openApiSchemakey);
-		
-		JSONObject baseTemplate = new JSONObject(TemplateUtils.loadContentFromFile("templates/repo/agent/grid_agent_template.json"));
+
+		JSONObject baseTemplate = new JSONObject(
+				TemplateUtils.loadContentFromFile("templates/repo/agent/grid_agent_template.json"));
 
 		JSONObject resources = baseTemplate.getJSONObject("Resources");
-		
-		JSONArray roleStatements = resources
-				.getJSONObject("bedrockGridAgentRole")
-				.getJSONObject("Properties")
-				.getJSONArray("Policies")
-				.getJSONObject(0)
-				.getJSONObject("PolicyDocument")
-				.getJSONArray("Statement");
-		
+
+		JSONArray roleStatements = resources.getJSONObject("bedrockGridAgentRole").getJSONObject("Properties")
+				.getJSONArray("Policies").getJSONObject(0).getJSONObject("PolicyDocument").getJSONArray("Statement");
+
 		// set bucket and key
 		JSONObject statementTwo = roleStatements.getJSONObject(1);
 		statementTwo.put("Resource", openApiSchemaS3Arn);
-		
+
 		JSONObject bedrockAgentProps = resources.getJSONObject("bedrockGridAgent").getJSONObject("Properties");
-		
+
 		JSONObject s3 = bedrockAgentProps.getJSONArray("ActionGroups").getJSONObject(0).getJSONObject("ApiSchema")
 				.getJSONObject("S3");
 		s3.put("S3BucketName", openApiSchemaBucket);
 		s3.put("S3ObjectKey", openApiSchemakey);
-		
+
 		bedrockAgentProps.put("AgentName", agentName);
 		String instructions = TemplateUtils.loadContentFromFile("templates/repo/agent/grid-agent-instructions.txt");
 		bedrockAgentProps.put("Instructions", instructions);
 
 		String json = resources.toString();
-		context.put("bedrock_grid_agent_resouces", "," + json.substring(1, json.length()-1));
+		context.put("bedrock_grid_agent_resouces", "," + json.substring(1, json.length() - 1));
 	}
 
 }
