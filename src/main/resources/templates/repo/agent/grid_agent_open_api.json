@@ -10,7 +10,8 @@
 				"tags": [
 					"GridAgent"
 				],
-				"operationId": "get-/repo/v1/grid/json-schema",
+				"description": "Call to get the JSON schema associated with the grid seession and used for row validation.",
+				"operationId": "get_grid_json-schema",
 				"parameters": [
 				],
 				"responses": {
@@ -32,7 +33,8 @@
 				"tags": [
 					"GridAgent"
 				],
-				"operationId": "post-/repo/v1/grid/query",
+				"description": "Query the grid with a SQL like query.",
+				"operationId": "post_grid_query",
 				"parameters": [
 				],
 				"requestBody": {
