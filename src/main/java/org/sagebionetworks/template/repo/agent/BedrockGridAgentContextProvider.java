@@ -63,7 +63,7 @@ public class BedrockGridAgentContextProvider implements VelocityContextProvider 
 
 		bedrockAgentProps.put("AgentName", agentName);
 		String instructions = TemplateUtils.loadContentFromFile("templates/repo/agent/grid-agent-instructions.txt");
-		bedrockAgentProps.put("Instructions", instructions);
+		bedrockAgentProps.put("Instruction", instructions);
 
 		String json = resources.toString();
 		context.put("bedrock_grid_agent_resouces", "," + json.substring(1, json.length() - 1));
