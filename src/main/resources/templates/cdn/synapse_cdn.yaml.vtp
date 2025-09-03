@@ -34,8 +34,12 @@ Resources:
       DistributionConfig:
         Comment: 'Cloudfront distribution for ${SubDomainName}.synapse.org'
         Origins:
-          - DomainName: '${SubDomainName}.synapse.org'
             Id: CustomOriginId
+#if($SubDomainName == 'prod')
+            - DomainName: 'www.synapse.org'
+#else
+            - DomainName: '${SubDomainName}.synapse.org'
+#end
             CustomOriginConfig:
               OriginProtocolPolicy: https-only
         Enabled: true
