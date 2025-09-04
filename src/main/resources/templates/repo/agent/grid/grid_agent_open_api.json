@@ -1,0 +1,259 @@
+{
+	"openapi": "3.0.1",
+	"info": {
+		"title": "...",
+		"version": "v1"
+	},
+	"paths": {
+		"/repo/v1/grid/json-schema": {
+			"get": {
+				"tags": [
+					"GridAgent"
+				],
+				"description": "Call to get the JSON schema associated with the grid seession and used for row validation.",
+				"operationId": "get_grid_json_schema",
+				"parameters": [
+				],
+				"responses": {
+					"200": {
+						"description": "The JSON schema used to validate the rows of the grid session.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/repo/v1/grid/feature/request": {
+			"put": {
+				"tags": [
+					"GridAgent"
+				],
+				"description": "Submit a feature request to enhance Grid Agent capabilities for tabular data curation. Agents can specify the desired functionality, category, priority level, use case, and target user role.",
+				"operationId": "put_grid_feature_request",
+				"parameters": [
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.AgentFeatureRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"204": {
+						"description": "Void"
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"org.sagebionetworks.repo.model.grid.AgentFeatureRequest": {
+				"type": "object",
+				"properties": {
+					"featureDescription": {
+						"type": "string",
+						"description": "Detailed description of the requested function and how it would help with tabular data curation.",
+						"maxLength": 1000,
+						"minLength": 10
+					},
+					"category": {
+						"type": "string",
+						"description": "Category of the requested feature for better organization and prioritization.",
+						"enum": [
+							"data_cleaning",
+							"data_transformation",
+							"data_validation",
+							"data_analysis",
+							"visualization",
+							"import_export",
+							"collaboration",
+							"automation",
+							"other"
+						]
+					},
+					"priority": {
+						"type": "string",
+						"description": "Suggested priority level for the feature request.",
+						"enum": [
+							"low",
+							"medium",
+							"high",
+							"critical"
+						]
+					},
+					"useCase": {
+						"type": "string",
+						"description": "Specific use case or scenario where this feature would be beneficial.",
+						"maxLength": 500
+					},
+					"userRole": {
+						"type": "string",
+						"description": "Role or type of user who would benefit from this feature (e.g., data analyst, researcher, business user).",
+						"maxLength": 100
+					}
+				},
+				"description": "Request for a new function to enhance Agent capabilities for tabular data curation."
+			},
+			"org.sagebionetworks.repo.model.schema.JsonSchema": {
+				"type": "object",
+				"properties": {
+					"$schema": {
+						"type": "string",
+						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.8.1.1\">The \"$schema\" Keyword<\/a>"
+					},
+					"$id": {
+						"type": "string",
+						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.8.2.2\">The \"$id\" Keyword<\/a>"
+					},
+					"$ref": {
+						"type": "string",
+						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.8.2.4.1\">Direct References with \"$ref\"<\/a>"
+					},
+					"type": {
+						"type": "string",
+						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.4.2.1\">Instance Data Model<\/a>",
+						"enum": [
+							"null",
+							"boolean",
+							"object",
+							"array",
+							"number",
+							"string",
+							"integer"
+						]
+					},
+					"items": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+					},
+					"properties": {
+						"type": "object",
+						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.9.3.2.1\">properties<\/a>",
+						"additionalProperties": {
+							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+						}
+					},
+					"title": {
+						"type": "string",
+						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-hypermedia.html#rfc.section.6.5.1\">title<\/a>"
+					},
+					"description": {
+						"type": "string",
+						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-hypermedia.html#rfc.section.6.5.2\">description<\/a>"
+					},
+					"allOf": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+						},
+						"description": "Use allOf to 'extend' or 'implement' one or more schemas.  See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.9.2.1.1\">allOf<\/a>"
+					},
+					"anyOf": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+						},
+						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.9.2.1.2\">anyOf<\/a>"
+					},
+					"oneOf": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+						},
+						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.9.2.1.3\">oneOf<\/a>"
+					},
+					"not": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+					},
+					"format": {
+						"type": "string",
+						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.section.7.3\">Defined Formats<\/a>"
+					},
+					"definitions": {
+						"type": "object",
+						"description": "In an effor to support draft-07 implementations, we are using 'definitions' instead of '$defs'.  See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.appendix.A\">Appendix A<\/a>",
+						"additionalProperties": {
+							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+						}
+					},
+					"enum": {
+						"type": "array",
+						"items": {
+						},
+						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.section.6.1.2\">enum<\/a>"
+					},
+					"const": {
+						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.section.6.1.3\">const<\/a>"
+					},
+					"source": {
+						"type": "string",
+						"description": "Used to indicate that this schema is derived from another object/schema.  The value should be a URL reference to the original work.  The 'source' is solely descriptive and should have no impact on validation."
+					},
+					"required": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.section.6.5.3\">required<\/a>"
+					},
+					"maxLength": {
+						"type": "integer",
+						"description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.3.1\">maxLength<\/a>",
+						"format": "int32"
+					},
+					"minLength": {
+						"type": "integer",
+						"description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.3.2\">minLength<\/a>",
+						"format": "int32"
+					},
+					"uniqueItems": {
+						"type": "boolean",
+						"description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.4.3\">uniqueItems<\/a>"
+					},
+					"pattern": {
+						"type": "string",
+						"description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.3.3\">pattern<\/a>"
+					},
+					"if": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+					},
+					"then": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+					},
+					"else": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+					},
+					"maximum": {
+						"type": "integer",
+						"description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.2\">maximum<\/a>",
+						"format": "int32"
+					},
+					"minimum": {
+						"type": "integer",
+						"description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.4\">minimum<\/a>",
+						"format": "int32"
+					},
+					"default": {
+						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.section.9.2\">default<\/a>"
+					},
+					"contains": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+					},
+					"additionalProperties": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
+					}
+				},
+				"description": "The JSON schema is defined by: <a href=\"https://json-schema.org/\">json-schema.org<\/a>, specifically draft-07.  Only features listed here are currently supported."
+			}
+		}
+	}
+}

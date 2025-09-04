@@ -73,9 +73,9 @@
 						"ActionGroupExecutor": {
 							"CustomControl": "RETURN_CONTROL"
 						},
-						"ActionGroupName": "org_sage_one",
+						"ActionGroupName": "org_sage_grid_one",
 						"ActionGroupState": "ENABLED",
-						"Description": "Functions to read and write data from the grid session.",
+						"Description": "Functions to interact with the grid session.",
 						"ApiSchema": {
 							"S3": {
 								"S3BucketName": {

@@ -37,13 +37,13 @@ public class BedrockGridAgentContextProvider implements VelocityContextProvider 
 		String openApiSchemakey = String.format("chat/openapi/grid/%s.json", instance);
 
 		String openApiSchemJsonString = TemplateUtils
-				.loadContentFromFile("templates/repo/agent/grid_agent_open_api.json");
+				.loadContentFromFile("templates/repo/agent/grid/grid_agent_open_api.json");
 		s3Cient.putObject(openApiSchemaBucket, openApiSchemakey, openApiSchemJsonString);
 
 		String openApiSchemaS3Arn = String.format("arn:aws:s3:::%s/%s", openApiSchemaBucket, openApiSchemakey);
 
 		JSONObject baseTemplate = new JSONObject(
-				TemplateUtils.loadContentFromFile("templates/repo/agent/grid_agent_template.json"));
+				TemplateUtils.loadContentFromFile("templates/repo/agent/grid/grid_agent_template.json"));
 
 		JSONObject resources = baseTemplate.getJSONObject("Resources");
 
@@ -62,7 +62,7 @@ public class BedrockGridAgentContextProvider implements VelocityContextProvider 
 		s3.put("S3ObjectKey", openApiSchemakey);
 
 		bedrockAgentProps.put("AgentName", agentName);
-		String instructions = TemplateUtils.loadContentFromFile("templates/repo/agent/grid-agent-instructions.txt");
+		String instructions = TemplateUtils.loadContentFromFile("templates/repo/agent/grid/grid-agent-instructions.txt");
 		bedrockAgentProps.put("Instruction", instructions);
 
 		String json = resources.toString();
