@@ -18,13 +18,13 @@ import com.google.inject.Inject;
 public class BedrockGridAgentContextProvider implements VelocityContextProvider {
 
 	private final RepoConfiguration repoConfig;
-	private final AmazonS3Client s3Cient;
+	private final AmazonS3Client s3Client;
 
 	@Inject
-	public BedrockGridAgentContextProvider(RepoConfiguration repoConfig, AmazonS3Client s3Cient) {
+	public BedrockGridAgentContextProvider(RepoConfiguration repoConfig, AmazonS3Client s3Client) {
 		super();
 		this.repoConfig = repoConfig;
-		this.s3Cient = s3Cient;
+		this.s3Client = s3Client;
 	}
 
 	@Override
@@ -38,7 +38,7 @@ public class BedrockGridAgentContextProvider implements VelocityContextProvider 
 
 		String openApiSchemJsonString = TemplateUtils
 				.loadContentFromFile("templates/repo/agent/grid/grid_agent_open_api.json");
-		s3Cient.putObject(openApiSchemaBucket, openApiSchemakey, openApiSchemJsonString);
+		s3Client.putObject(openApiSchemaBucket, openApiSchemakey, openApiSchemJsonString);
 
 		String openApiSchemaS3Arn = String.format("arn:aws:s3:::%s/%s", openApiSchemaBucket, openApiSchemakey);
 
@@ -66,7 +66,7 @@ public class BedrockGridAgentContextProvider implements VelocityContextProvider 
 		bedrockAgentProps.put("Instruction", instructions);
 
 		String json = resources.toString();
-		context.put("bedrock_grid_agent_resouces", "," + json.substring(1, json.length() - 1));
+		context.put("bedrock_grid_agent_resources", "," + json.substring(1, json.length() - 1));
 	}
 
 }

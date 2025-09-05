@@ -10,7 +10,7 @@
 				"tags": [
 					"GridAgent"
 				],
-				"description": "Call to get the JSON schema associated with the grid seession and used for row validation.",
+				"description": "Call to get the JSON schema associated with the grid session  and used for row validation.",
 				"operationId": "get_grid_json_schema",
 				"parameters": [
 				],
