@@ -1,0 +1,109 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "This template contains all of the resources needed to create the base Synapse Bedrock Grid Agent.",
+	"Resources": {
+		"bedrockGridAgentRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Principal": {
+								"Service": "bedrock.amazonaws.com"
+							},
+							"Action": "sts:AssumeRole",
+							"Condition": {
+								"StringEquals": {
+									"aws:SourceAccount": {
+										"Ref": "AWS::AccountId"
+									}
+								},
+								"ArnLike": {
+									"aws:SourceArn": {
+										"Fn::Sub": "arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:agent/*"
+									}
+								}
+							}
+						}
+					]
+				},
+				"Policies": [
+					{
+						"PolicyName": "bedrockGridAgentPolicy",
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [
+								{
+									"Effect": "Allow",
+									"Action": [
+										"bedrock:InvokeModel*",
+										"bedrock:GetInferenceProfile",
+										"bedrock:ListInferenceProfiles"
+									],
+									"Resource": [
+										"arn:aws:bedrock:us-east-1::foundation-model/*",
+										"arn:aws:bedrock:us-east-2::foundation-model/*",
+										"arn:aws:bedrock:us-west-2::foundation-model/*",
+										{
+											"Fn::Sub": "arn:aws:bedrock:us-east-1:${AWS::AccountId}:inference-profile/*"
+										}
+									]
+								},
+								{
+									"Effect": "Allow",
+									"Action": [
+										"s3:ListObject",
+										"s3:GetObject"
+									],
+									"Resource": "*"
+								}
+							]
+						}
+					}
+				]
+			}
+		},
+		"bedrockGridAgent": {
+			"Type": "AWS::Bedrock::Agent",
+			"Properties": {
+				"ActionGroups": [
+					{
+						"ActionGroupExecutor": {
+							"CustomControl": "RETURN_CONTROL"
+						},
+						"ActionGroupName": "org_sage_grid_one",
+						"ActionGroupState": "ENABLED",
+						"Description": "Functions to interact with the grid session.",
+						"ApiSchema": {
+							"S3": {
+								"S3BucketName": {
+									"Ref": "openApiSchemaS3Bucket"
+								},
+								"S3ObjectKey": {
+									"Ref": "openApiSchemaS3Key"
+								}
+							}
+						}
+					}
+				],
+				"AgentName": {
+					"Ref": "agentName"
+				},
+				"AgentResourceRoleArn": {
+					"Fn::GetAtt": [
+						"bedrockGridAgentRole",
+						"Arn"
+					]
+				},
+				"AutoPrepare": true,
+				"Description": "The agent tasked with aiding with grid data curation.",
+				"FoundationModel": "us.anthropic.claude-sonnet-4-20250514-v1:0",
+				"IdleSessionTTLInSeconds": 3600,
+				"Instruction": "inserted from the context provider",
+				"SkipResourceInUseCheckOnDelete": true
+			}
+		}
+	}
+}
