@@ -1,5 +1,7 @@
 package org.sagebionetworks.template.cdn;
 
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
 import software.amazon.awssdk.services.cloudformation.model.Tag;
 import org.apache.velocity.app.VelocityEngine;
@@ -24,6 +26,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -61,49 +65,42 @@ public class CdnBuilderImplTemplateTest {
 
 	@Test
 	void testBuildCdnStack() throws Exception {
-		List<Tag> expectedTags = new ArrayList<>();
-		Tag tag = Tag.builder().key("aKey").value("aValue").build();
-		expectedTags.add(tag);
-		Stack expectedStack = Stack.builder().stackName("cdn-tst-synapse").tags(expectedTags).build();
-		when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
-
-		when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
-		when(mockCloudFormationClientWrapper.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
-
-		when(mockConfig.getProperty("org.sagebionetworks.beanstalk.ssl.arn.portal")).thenReturn("acmarn");
-		when(mockConfig.getProperty("org.sagebionetworks.stack.instance.alias")).thenReturn("tst");
 		when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("dev");
 
 		// call under test
-		Optional<Stack> optStack = builder.buildCdnStack(CdnBuilder.Type.PORTAL);
-
-		assertTrue(optStack.isPresent());
-		assertEquals("cdn-tst-synapse", optStack.get().stackName());
-		assertEquals(1, optStack.get().tags().size());
-		assertEquals(tag, optStack.get().tags().get(0));
-
+		IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class,
+				() -> builder.buildCdnStack(CdnBuilder.Type.PORTAL),
+				"Expected stack name to be 'prod'"
+		);
 	}
 
-	@Test
-	void testBuildCdnStackProd() throws Exception {
+	@ParameterizedTest
+	@ValueSource(strings = {"prod", "staging", "tst"})
+	void testBuildCdnStackProd(String instanceAlias) throws Exception {
 		List<Tag> expectedTags = new ArrayList<>();
 		Tag tag = Tag.builder().key("aKey").value("aValue").build();
 		expectedTags.add(tag);
-		Stack expectedStack = Stack.builder().stackName("cdn-prod-synapse").tags(expectedTags).build();
+		Stack expectedStack = Stack.builder().stackName(String.format("cdn-%s-synapse", instanceAlias)).tags(expectedTags).build();
 		when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
 		when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
 		when(mockCloudFormationClientWrapper.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
 
 		when(mockConfig.getProperty("org.sagebionetworks.beanstalk.ssl.arn.portal")).thenReturn("acmarn");
-		when(mockConfig.getProperty("org.sagebionetworks.stack.instance.alias")).thenReturn("prod");
-		when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("dev");
+		when(mockConfig.getProperty("org.sagebionetworks.stack.instance.alias")).thenReturn(instanceAlias);
+		when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("prod");
 
 		// call under test
 		Optional<Stack> optStack = builder.buildCdnStack(CdnBuilder.Type.PORTAL);
 
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
+		CreateOrUpdateStackRequest actualCreateOrUpdateStackRequest = createOrUpdateStackRequestArgumentCaptor.getValue();
+		assertEquals(String.format("cdn-%s-synapse", instanceAlias), actualCreateOrUpdateStackRequest.getStackName());
+		assertNotNull(actualCreateOrUpdateStackRequest.getTemplateBody());
+		// Cannot use .json template because of the function so cannot test the template content more thouroughly
+
 		assertTrue(optStack.isPresent());
-		assertEquals("cdn-prod-synapse", optStack.get().stackName());
+		assertEquals(String.format("cdn-%s-synapse", instanceAlias), optStack.get().stackName());
 		assertEquals(1, optStack.get().tags().size());
 		assertEquals(tag, optStack.get().tags().get(0));
 

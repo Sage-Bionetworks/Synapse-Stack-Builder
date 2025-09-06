@@ -60,7 +60,13 @@ public class CdnBuilderImpl implements CdnBuilder {
 		VelocityContext ctxt = new VelocityContext();
 
 		// stack always in context
+		// Note: technically this only works on the prod stack,
+		// We don't have a naming scheme for prod/staging/tst on the dev stack
+		// and the (prod) dev stack does not not use a CDN
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
+		if (Type.PORTAL.equals(type) && !"prod".equals(stack)) {
+			throw new IllegalArgumentException("Only the 'prod' stack is supported at this time.");
+		}
 		ctxt.put(STACK, stack);
 
 		if (Type.PORTAL.equals(type)) {
