@@ -69,7 +69,7 @@ class CdnBuilderImplTest {
 		VelocityContext ctxt = builder.createContext(CdnBuilder.Type.PORTAL);
 
 		assertEquals("acmarn", ctxt.get("AcmCertificateArn"));
-		assertEquals("tst", ctxt.get("SubDomainName"));
+		assertEquals("tst", ctxt.get("StackInstanceAlias"));
 	}
 
 	@Test

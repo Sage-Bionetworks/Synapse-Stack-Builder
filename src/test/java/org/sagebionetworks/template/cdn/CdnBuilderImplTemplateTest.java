@@ -23,6 +23,7 @@ import org.sagebionetworks.template.TemplateUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -63,15 +64,36 @@ public class CdnBuilderImplTemplateTest {
 	void tearDown() {
 	}
 
-	@Test
-	void testBuildCdnStack() throws Exception {
+	@ParameterizedTest
+	@ValueSource(strings = {"prod", "staging", "tst"})
+	void testBuildCdnStackDev(String instanceAlias) throws Exception {
+		List<Tag> expectedTags = new ArrayList<>();
+		Tag tag = Tag.builder().key("aKey").value("aValue").build();
+		expectedTags.add(tag);
+		Stack expectedStack = Stack.builder().stackName(String.format("cdn-%s-synapse", instanceAlias)).tags(expectedTags).build();
+		when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
+
+		when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
+		when(mockCloudFormationClientWrapper.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
+
+		when(mockConfig.getProperty("org.sagebionetworks.beanstalk.ssl.arn.portal")).thenReturn("acmarn");
+		when(mockConfig.getProperty("org.sagebionetworks.stack.instance.alias")).thenReturn(instanceAlias);
 		when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("dev");
 
 		// call under test
-		IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class,
-				() -> builder.buildCdnStack(CdnBuilder.Type.PORTAL),
-				"Expected stack name to be 'prod'"
-		);
+		Optional<Stack> optStack = builder.buildCdnStack(CdnBuilder.Type.PORTAL);
+
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
+		CreateOrUpdateStackRequest actualCreateOrUpdateStackRequest = createOrUpdateStackRequestArgumentCaptor.getValue();
+		assertEquals(String.format("cdn-%s-synapse", instanceAlias), actualCreateOrUpdateStackRequest.getStackName());
+		assertNotNull(actualCreateOrUpdateStackRequest.getTemplateBody());
+		String templateBody = actualCreateOrUpdateStackRequest.getTemplateBody();
+
+		assertTrue(optStack.isPresent());
+		assertEquals(String.format("cdn-%s-synapse", instanceAlias), optStack.get().stackName());
+		assertEquals(1, optStack.get().tags().size());
+		assertEquals(tag, optStack.get().tags().get(0));
+
 	}
 
 	@ParameterizedTest

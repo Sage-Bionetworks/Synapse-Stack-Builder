@@ -263,7 +263,9 @@ public class Constants {
 	// CDNs context keys
 	public static final String CTXT_KEY_ACM_CERT_ARN = "AcmCertificateArn";
 	public static final String CTXT_KEY_SUBDOMAIN_NAME = "SubDomainName";
+	public static final String CTXT_KEY_STACK_INSTANCE_ALIAS = "StackInstanceAlias";
 	public static final String CTXT_KEY_DOMAIN_NAME = "DomainName";
+	public static final String CTXT_KEY_ORIGIN = "Origin";
 	public static final String CTXT_KEY_PUBLIC_KEY = "DataCdnPublicKey";
 	public static final String CTXT_KEY_PUBLIC_KEY_HASH = "PublicKeyHash";
 	public static final String CTXT_KEY_DATA_CDN_KEYPAIR_ID = "dataCdnKeyPairId";

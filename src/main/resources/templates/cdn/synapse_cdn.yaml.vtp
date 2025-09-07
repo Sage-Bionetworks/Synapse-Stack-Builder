@@ -32,21 +32,17 @@ Resources:
     DependsOn: CacheHeaderOverrideOnErrorFct
     Properties:
       DistributionConfig:
-        Comment: 'Cloudfront distribution for ${SubDomainName}.synapse.org'
+        Comment: 'Cloudfront distribution for ${Origin}'
         Origins:
-            Id: CustomOriginId
-#if($SubDomainName == 'prod')
-            - DomainName: 'www.synapse.org'
-#else
-            - DomainName: '${SubDomainName}.synapse.org'
-#end
+          - Id: CustomOriginId
+            DomainName: ${Origin}
             CustomOriginConfig:
               OriginProtocolPolicy: https-only
         Enabled: true
         HttpVersion: 'http2'
         DefaultRootObject: index.html
         Aliases:
-          - 'cdn-${SubDomainName}.synapse.org'
+          - 'cdn-${Origin}''
         DefaultCacheBehavior:
           DefaultTTL: 3600
           AllowedMethods:
@@ -67,7 +63,7 @@ Resources:
         Logging:
           Bucket: ${stack}.log.sagebase.org
           IncludeCookies: false
-          Prefix: cdn/cloudfront/${SubDomainName}/
+          Prefix: cdn/${StackInstanceAlias}/
         PriceClass: PriceClass_100
         ViewerCertificate:
           AcmCertificateArn: ${AcmCertificateArn}
@@ -103,7 +99,7 @@ Resources:
       FunctionConfig:
         Comment: Overrides the cache headers if status code returned is 4xx or 5xx
         Runtime: cloudfront-js-1.0
-      Name: '${SubDomainName}-hoverride-fct'
+      Name: '${StackInstanceAlias}-hoverride-fct'
 
 Outputs:
   CloudfrontId:
