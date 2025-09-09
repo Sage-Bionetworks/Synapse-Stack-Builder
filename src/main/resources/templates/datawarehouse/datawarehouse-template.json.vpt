@@ -27,26 +27,37 @@
 							"Statement": [{
 								"Effect": "Allow",
 								"Action": [
-									"glue:*",
-									"cloudwatch:PutMetricData"
+									"glue:*"
 								],
-								"Resource": "*"
-							}]
-						}
-					},
-					{
-						"PolicyName": "IAM",
-						"PolicyDocument": {
-							"Version": "2012-10-17",
-							"Statement": [{
-								"Effect": "Allow",
-								"Action": [
-									"iam:ListRolePolicies",
-									"iam:GetRole",
-									"iam:GetRolePolicy"
-								],
-								"Resource": "*"
-							}]
+								"Resource": [
+								    "arn:aws:glue:*:*:rootcatalog*",
+                                	"arn:aws:glue:*:*:catalog*",
+                                	"arn:aws:glue:*:*:crawler*",
+                                	"arn:aws:glue:*:*:connection*",
+                                	"arn:aws:glue:*:*:trigger*",
+                                	"arn:aws:glue:*:*:workflow*",
+                                	"arn:aws:glue:*:*:session*",
+                                	"arn:aws:glue:*:*:registry*",
+                                	"arn:aws:glue:*:*:schema*",
+                                	"arn:aws:glue:*:*:completion*",
+                                	"arn:aws:glue:*:*:job*",
+                                	"arn:aws:glue:*:*:database*",
+                                	"arn:aws:glue:*:*:table/*/*"
+								]
+							},
+							{
+                            	"Action": [
+                            	    "cloudwatch:PutMetricData"
+                            	],
+                            	"Resource": "*",
+                            	"Condition": {
+                            	    "StringLike": {
+                            		    "cloudwatch:namespace": "Glue/*"
+                            		}
+                            	},
+                            	"Effect": "Allow"
+                            }
+							]
 						}
 					},
 					{
