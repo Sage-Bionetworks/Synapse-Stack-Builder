@@ -417,7 +417,7 @@
                               "logs:CreateLogStream",
                               "logs:PutLogEvents"
                            ],
-                           "Resource":"arn:aws:logs:*:*:/aws/lambda/${stack}-synapse-virus-scanner*"
+                           "Resource":"arn:aws:logs:*:*:/aws/lambda/${stack}-synapse-virus-*"
                         },
                         {
                            "Action":[

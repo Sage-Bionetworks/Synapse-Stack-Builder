@@ -60,7 +60,10 @@
 									"glue:GetTableVersions"
 								],
 								"Resource":[
-									"*"
+									"arn:aws:glue:*:*:rootcatalog*",
+                                    "arn:aws:glue:*:*:catalog*",
+                                    "arn:aws:glue:*:*:database*",
+                                    "arn:aws:glue:*:*:table/*/*"
 								]
 							}
 						]
