@@ -42,7 +42,7 @@ Resources:
         HttpVersion: 'http2'
         DefaultRootObject: index.html
         Aliases:
-          - 'cdn-${Origin}''
+          - 'cdn-${Origin}'
         DefaultCacheBehavior:
           DefaultTTL: 3600
           AllowedMethods:
@@ -61,7 +61,7 @@ Resources:
             FunctionARN: !GetAtt CacheHeaderOverrideOnErrorFct.FunctionARN
           ViewerProtocolPolicy: redirect-to-https
         Logging:
-          Bucket: ${stack}.log.sagebase.org
+          Bucket: ${stack}.log.sagebase.org.s3.amazonaws.com
           IncludeCookies: false
           Prefix: cdn/${StackInstanceAlias}/
         PriceClass: PriceClass_100
@@ -69,7 +69,7 @@ Resources:
           AcmCertificateArn: ${AcmCertificateArn}
           MinimumProtocolVersion: TLSv1.2_2021
           SslSupportMethod: sni-only
-        WebAclId: !Ref CloudfrontWebACL
+        WebACLId: !GetAtt CloudfrontWebACL.Arn
   CacheHeaderOverrideOnErrorFct:
     Type: AWS::CloudFront::Function
     Properties:
