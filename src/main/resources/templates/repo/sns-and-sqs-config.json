@@ -494,6 +494,12 @@
 			"subscribedTopicNames": [
 			],
 			"messageVisibilityTimeoutSec": 60
+		},
+		{
+			"queueName": "GRID_EXPORT_RECORDSET",
+            "subscribedTopicNames": [
+            ],
+            "messageVisibilityTimeoutSec": 60
 		}
 	]
 }
