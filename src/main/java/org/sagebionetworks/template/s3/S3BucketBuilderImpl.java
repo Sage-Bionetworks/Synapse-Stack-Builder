@@ -4,9 +4,6 @@ import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_STACK_NAME
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_VIRUS_SCANNER_ARTIFACT_URL;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.function.BiFunction;
