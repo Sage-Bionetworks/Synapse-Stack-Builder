@@ -1,5 +1,8 @@
 package org.sagebionetworks.template.repo.queues;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Collections;
@@ -34,5 +37,23 @@ public class SqsQueueDescriptorTest {
 	public void testConstructor_goodNames() {
 		new SqsQueueDescriptor("goodName", Collections.singletonList("goodNameAgain"), messageVisibilityTimeoutSec,
 				deadLetterQueueMaxFailureCount, oldestMessageInQueueAlarmThresholdSec, messageRetentionPeriodSec);
+	}
+
+	@Test
+	public void testGetFifoFalse() {
+		SqsQueueDescriptor d = new SqsQueueDescriptor("goodName", Collections.singletonList("goodNameAgain"),
+				messageVisibilityTimeoutSec, deadLetterQueueMaxFailureCount, oldestMessageInQueueAlarmThresholdSec,
+				messageRetentionPeriodSec);
+		assertFalse(d.getFifoQueue());
+		assertEquals("Goodname", d.getQueueReferenceName());
+	}
+
+	@Test
+	public void testGetFifo() {
+		SqsQueueDescriptor d = new SqsQueueDescriptor("goodName.fifo", Collections.singletonList("goodNameAgain"),
+				messageVisibilityTimeoutSec, deadLetterQueueMaxFailureCount, oldestMessageInQueueAlarmThresholdSec,
+				messageRetentionPeriodSec);
+		assertTrue(d.getFifoQueue());
+		assertEquals("GoodnameFifo", d.getQueueReferenceName());
 	}
 }

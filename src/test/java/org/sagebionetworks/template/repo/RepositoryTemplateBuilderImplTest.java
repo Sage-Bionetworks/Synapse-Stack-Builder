@@ -112,6 +112,7 @@ import org.sagebionetworks.template.WaitConditionHandler;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.config.TimeToLive;
 import org.sagebionetworks.template.repo.agent.BedrockAgentContextProvider;
+import org.sagebionetworks.template.repo.agent.BedrockGridAgentContextProvider;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.ElasticBeanstalkSolutionStackNameProvider;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
@@ -230,6 +231,7 @@ public class RepositoryTemplateBuilderImplTest {
 				mockArtifactCopy, mockSecretBuilder,
 				Sets.newHashSet(mockContextProvider1, mockContextProvider2,
 						new BedrockAgentContextProvider(config, mockS3Client),
+						new BedrockGridAgentContextProvider(config, mockS3Client),
 						new GridContextProvider(gridQueueRef, config)),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
                 mockEc2ClientWrapper, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive, mockStsClient,
@@ -425,6 +427,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.has("SynapseHelpKnowledgeBase"));
 		assertTrue(resources.has("bedrockAgentRole"));
 		assertTrue(resources.has("bedrockAgent"));
+		assertTrue(resources.has("bedrockGridAgentRole"));
+		assertTrue(resources.has("bedrockGridAgent"));
 		
 		assertTrue(resources.getJSONObject("bedrockAgentRole").toString().contains("arn:aws:s3:::prod-configuration.sagebase.org/chat/openapi/101.json"));
 		

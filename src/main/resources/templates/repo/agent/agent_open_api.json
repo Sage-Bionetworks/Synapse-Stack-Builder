@@ -32,44 +32,6 @@
 						}
 					}
 				}
-			},
-			"put": {
-				"description": "Set the annotations of an entity.",
-				"operationId": "orgSageOneEntityAnnotationsPut",
-				"x-requireConfirmation": "ENABLED",
-				"parameters": [
-					{
-						"name": "entityId",
-						"description": "The 'syn' of the target Entity.",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"requestBody": {
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/org.sagebionetworks.repo.model.annotation.v2.Annotations"
-							}
-						}
-					},
-					"required": true
-				},
-				"responses": {
-					"201": {
-						"description": "the updated annotations",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/org.sagebionetworks.repo.model.annotation.v2.Annotations"
-								}
-							}
-						}
-					}
-				}
 			}
 		}
 	},

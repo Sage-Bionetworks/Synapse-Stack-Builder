@@ -29,7 +29,8 @@
 		"QUERY_CACHE_HIT",
 		"ACCESS_REQUIREMENT",
 		"PROJECT_STORAGE_EVENT",
-		"REPLICATED_EVENT"
+		"REPLICATED_EVENT",
+		"GRID_REPLICA_CHANGES"
 	],
 	"snsGlobalTopicNames": [
 		"SES_SYNAPSE_ORG_BOUNCE",
@@ -465,6 +466,40 @@
 			],
 			"messageVisibilityTimeoutSec": 120,
 			"oldestMessageInQueueAlarmThresholdSec": 30
+		},
+		{
+			"queueName": "GRID_INTERNAL_EVENT",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 30,
+			"oldestMessageInQueueAlarmThresholdSec": 30
+		},
+		{
+			"queueName": "GRID_REPLICA_CHANGES_VALIDATION",
+			"subscribedTopicNames": [
+				"GRID_REPLICA_CHANGES"
+			],
+			"messageVisibilityTimeoutSec": 30,
+			"oldestMessageInQueueAlarmThresholdSec": 30
+		},
+		{
+			"queueName": "GRID_REPLICA_PATCH_BUILDER.fifo",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 30,
+			"oldestMessageInQueueAlarmThresholdSec": 30
+		},
+		{
+			"queueName": "DOWNLOAD_CSV_FROM_GRID",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 60
+		},
+		{
+			"queueName": "GRID_EXPORT_RECORDSET",
+            "subscribedTopicNames": [
+            ],
+            "messageVisibilityTimeoutSec": 60
 		}
 	]
 }
