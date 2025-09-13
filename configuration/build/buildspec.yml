@@ -11,4 +11,5 @@ phases:
       - export AWS_SESSION_TOKEN=$(echo $STS_CREDENTIALS | jq -r '.Token')
       - export CMD_PROPS="-Dorg.sagebionetworks.stack=dev -Dorg.sagebionetworks.instance=${user} -Dorg.sagebionetworks.vpc.subnet.color=Green"
       - mvn clean install
+      - echo value CMD_PROPS $CMD_PROPS
       - java -Xms256m -Xmx2g -cp ./target/stack-builder-0.2.0-SNAPSHOT-jar-with-dependencies.jar $CMD_PROPS org.sagebionetworks.template.repo.RepositoryBuilderMain
