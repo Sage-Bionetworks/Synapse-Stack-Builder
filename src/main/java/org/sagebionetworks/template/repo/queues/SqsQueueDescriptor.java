@@ -21,17 +21,17 @@ public class SqsQueueDescriptor {
 
 	final Integer deadLetterQueueMaxFailureCount;
 	final Integer oldestMessageInQueueAlarmThresholdSec;
-	
+
 	final Set<SnsTopicDescriptor> subscribedTopicDescriptors;
 	final Integer messageRetentionPeriodSec;
 
 	@JsonCreator
-	public SqsQueueDescriptor(@JsonProperty(value = "queueName", required=true) String queueName,
-							  @JsonProperty(value = "subscribedTopicNames", required=true) List<String> subscribedTopicNames,
-							  @JsonProperty(value = "messageVisibilityTimeoutSec", required=true) Integer messageVisibilityTimeoutSec,
-							  @JsonProperty("deadLetterQueueMaxFailureCount") Integer deadLetterQueueMaxFailureCount,
-							  @JsonProperty("oldestMessageInQueueAlarmThresholdSec") Integer oldestMessageInQueueAlarmThresholdSec,
-							  @JsonProperty("messageRetentionPeriodSec") Integer messageRetentionPeriodSec) {
+	public SqsQueueDescriptor(@JsonProperty(value = "queueName", required = true) String queueName,
+			@JsonProperty(value = "subscribedTopicNames", required = true) List<String> subscribedTopicNames,
+			@JsonProperty(value = "messageVisibilityTimeoutSec", required = true) Integer messageVisibilityTimeoutSec,
+			@JsonProperty("deadLetterQueueMaxFailureCount") Integer deadLetterQueueMaxFailureCount,
+			@JsonProperty("oldestMessageInQueueAlarmThresholdSec") Integer oldestMessageInQueueAlarmThresholdSec,
+			@JsonProperty("messageRetentionPeriodSec") Integer messageRetentionPeriodSec) {
 		SnsAndSqsNameValidator.validateName(queueName);
 		SnsAndSqsNameValidator.validateNames(subscribedTopicNames);
 
@@ -43,7 +43,7 @@ public class SqsQueueDescriptor {
 		this.subscribedTopicDescriptors = new HashSet<>(subscribedTopicNames.size());
 		this.messageRetentionPeriodSec = messageRetentionPeriodSec;
 	}
-	
+
 	void addTopicDescriptor(SnsTopicDescriptor topicDescriptor) {
 		this.subscribedTopicDescriptors.add(topicDescriptor);
 	}
@@ -55,8 +55,8 @@ public class SqsQueueDescriptor {
 		return queueName;
 	}
 
-	public String getQueueReferenceName(){
-		return Constants.createCamelCaseName(queueName, "_");
+	public String getQueueReferenceName() {
+		return Constants.createCamelCaseName(queueName.replace(".", "_"), "_");
 	}
 
 	public Set<SnsTopicDescriptor> getSubscribedTopicDescriptors() {
@@ -74,9 +74,17 @@ public class SqsQueueDescriptor {
 	public Integer getOldestMessageInQueueAlarmThresholdSec() {
 		return oldestMessageInQueueAlarmThresholdSec;
 	}
-	
+
 	public Integer getMessageRetentionPeriodSec() {
 		return messageRetentionPeriodSec;
+	}
+
+	/**
+	 * A FIFO queue will have a name that ends with '.fifo'
+	 * @return
+	 */
+	public Boolean getFifoQueue() {
+		return queueName.toLowerCase().endsWith(".fifo");
 	}
 
 	@Override
@@ -111,6 +119,5 @@ public class SqsQueueDescriptor {
 		return Objects.hash(deadLetterQueueMaxFailureCount, messageRetentionPeriodSec, messageVisibilityTimeoutSec,
 				oldestMessageInQueueAlarmThresholdSec, queueName, subscribedTopicDescriptors, subscribedTopicNames);
 	}
-
 
 }
