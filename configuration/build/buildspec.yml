@@ -7,7 +7,8 @@ version: 0.2
 phases:
   build:
     commands:
-      # Synapse does not seem able to get cred's from ECS, so we convert them to environment variables
+      # CodeBuild runs in ECS.  Synapse does not seem able to retrieve 
+      # credentials from ECS, so here we convert them to environment variables
       - STS_CREDENTIALS=$(curl -L http://169.254.170.2/$AWS_CONTAINER_CREDENTIALS_RELATIVE_URI)
       - export AWS_ACCESS_KEY_ID=$(echo $STS_CREDENTIALS | jq -r '.AccessKeyId')
       - export AWS_SECRET_KEY=$(echo $STS_CREDENTIALS | jq -r '.SecretAccessKey')
