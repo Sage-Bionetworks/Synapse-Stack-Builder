@@ -1,259 +1,809 @@
 {
-	"openapi": "3.0.1",
-	"info": {
-		"title": "...",
-		"version": "v1"
-	},
-	"paths": {
-		"/repo/v1/grid/json-schema": {
-			"get": {
-				"tags": [
-					"GridAgent"
-				],
-				"description": "Call to get the JSON schema associated with the grid session  and used for row validation.",
+     "openapi": "3.0.1",
+     "info": {
+          "title": "...",
+          "version": "v1"
+     },
+     "paths": {
+          "/repo/v1/grid/json-schema": {"get": {
+               "tags": ["GridAgent"],
+				"description": "Call to get the JSON schema associated with the grid session and used for row validation.",
 				"operationId": "get_grid_json_schema",
-				"parameters": [
-				],
-				"responses": {
-					"200": {
-						"description": "The JSON schema used to validate the rows of the grid session.",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
-								}
-							}
-						}
-					}
-				}
-			}
-		},
-		"/repo/v1/grid/feature/request": {
-			"put": {
-				"tags": [
-					"GridAgent"
-				],
+               "parameters": [],
+               "responses": {"200": {
+                    "description": "The JSON schema used to validate the rows of the grid session.",
+                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"}}}
+               }}
+          }},
+          "/repo/v1/grid/feature/request": {"put": {
+               "tags": ["GridAgent"],
 				"description": "Submit a feature request to enhance Grid Agent capabilities for tabular data curation. Agents can specify the desired functionality, category, priority level, use case, and target user role.",
 				"operationId": "put_grid_feature_request",
-				"parameters": [
-				],
-				"requestBody": {
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.AgentFeatureRequest"
-							}
-						}
-					},
-					"required": true
-				},
-				"responses": {
-					"204": {
-						"description": "Void"
-					}
-				}
-			}
-		}
-	},
-	"components": {
-		"schemas": {
-			"org.sagebionetworks.repo.model.grid.AgentFeatureRequest": {
-				"type": "object",
-				"properties": {
-					"featureDescription": {
-						"type": "string",
-						"description": "Detailed description of the requested function and how it would help with tabular data curation.",
-						"maxLength": 1000,
-						"minLength": 10
-					},
-					"category": {
-						"type": "string",
-						"description": "Category of the requested feature for better organization and prioritization.",
-						"enum": [
-							"data_cleaning",
-							"data_transformation",
-							"data_validation",
-							"data_analysis",
-							"visualization",
-							"import_export",
-							"collaboration",
-							"automation",
-							"other"
-						]
-					},
-					"priority": {
-						"type": "string",
-						"description": "Suggested priority level for the feature request.",
-						"enum": [
-							"low",
-							"medium",
-							"high",
-							"critical"
-						]
-					},
-					"useCase": {
-						"type": "string",
-						"description": "Specific use case or scenario where this feature would be beneficial.",
-						"maxLength": 500
-					},
-					"userRole": {
-						"type": "string",
-						"description": "Role or type of user who would benefit from this feature (e.g., data analyst, researcher, business user).",
-						"maxLength": 100
-					}
-				},
-				"description": "Request for a new function to enhance Agent capabilities for tabular data curation."
-			},
-			"org.sagebionetworks.repo.model.schema.JsonSchema": {
-				"type": "object",
-				"properties": {
-					"$schema": {
-						"type": "string",
-						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.8.1.1\">The \"$schema\" Keyword<\/a>"
-					},
-					"$id": {
-						"type": "string",
-						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.8.2.2\">The \"$id\" Keyword<\/a>"
-					},
-					"$ref": {
-						"type": "string",
-						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.8.2.4.1\">Direct References with \"$ref\"<\/a>"
-					},
-					"type": {
-						"type": "string",
-						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.4.2.1\">Instance Data Model<\/a>",
-						"enum": [
-							"null",
-							"boolean",
-							"object",
-							"array",
-							"number",
-							"string",
-							"integer"
-						]
-					},
-					"items": {
-						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
-					},
-					"properties": {
-						"type": "object",
-						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.9.3.2.1\">properties<\/a>",
-						"additionalProperties": {
-							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
-						}
-					},
-					"title": {
-						"type": "string",
-						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-hypermedia.html#rfc.section.6.5.1\">title<\/a>"
-					},
-					"description": {
-						"type": "string",
-						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-hypermedia.html#rfc.section.6.5.2\">description<\/a>"
-					},
-					"allOf": {
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
-						},
-						"description": "Use allOf to 'extend' or 'implement' one or more schemas.  See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.9.2.1.1\">allOf<\/a>"
-					},
-					"anyOf": {
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
-						},
-						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.9.2.1.2\">anyOf<\/a>"
-					},
-					"oneOf": {
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
-						},
-						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.9.2.1.3\">oneOf<\/a>"
-					},
-					"not": {
-						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
-					},
-					"format": {
-						"type": "string",
-						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.section.7.3\">Defined Formats<\/a>"
-					},
-					"definitions": {
-						"type": "object",
-						"description": "In an effor to support draft-07 implementations, we are using 'definitions' instead of '$defs'.  See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.appendix.A\">Appendix A<\/a>",
-						"additionalProperties": {
-							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
-						}
-					},
-					"enum": {
-						"type": "array",
-						"items": {
-						},
-						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.section.6.1.2\">enum<\/a>"
-					},
-					"const": {
-						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.section.6.1.3\">const<\/a>"
-					},
-					"source": {
-						"type": "string",
-						"description": "Used to indicate that this schema is derived from another object/schema.  The value should be a URL reference to the original work.  The 'source' is solely descriptive and should have no impact on validation."
-					},
-					"required": {
-						"type": "array",
-						"items": {
-							"type": "string"
-						},
-						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.section.6.5.3\">required<\/a>"
-					},
-					"maxLength": {
-						"type": "integer",
-						"description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.3.1\">maxLength<\/a>",
-						"format": "int32"
-					},
-					"minLength": {
-						"type": "integer",
-						"description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.3.2\">minLength<\/a>",
-						"format": "int32"
-					},
-					"uniqueItems": {
-						"type": "boolean",
-						"description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.4.3\">uniqueItems<\/a>"
-					},
-					"pattern": {
-						"type": "string",
-						"description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.3.3\">pattern<\/a>"
-					},
-					"if": {
-						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
-					},
-					"then": {
-						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
-					},
-					"else": {
-						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
-					},
-					"maximum": {
-						"type": "integer",
-						"description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.2\">maximum<\/a>",
-						"format": "int32"
-					},
-					"minimum": {
-						"type": "integer",
-						"description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.4\">minimum<\/a>",
-						"format": "int32"
-					},
-					"default": {
-						"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.section.9.2\">default<\/a>"
-					},
-					"contains": {
-						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
-					},
-					"additionalProperties": {
-						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"
-					}
-				},
-				"description": "The JSON schema is defined by: <a href=\"https://json-schema.org/\">json-schema.org<\/a>, specifically draft-07.  Only features listed here are currently supported."
-			}
-		}
-	}
+               "parameters": [],
+               "requestBody": {
+                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.AgentFeatureRequest"}}},
+                    "required": true
+               },
+               "responses": {"204": {"description": "Void"}}
+          }},
+          "/repo/v1/grid/query": {"post": {
+               "tags": ["GridAgent"],
+               "description":"Use this function to ask questions about the grid data or to retrieve a filtered, sorted, or aggregated dataset. This is the primary tool for data analysis. For example, use this for requests like 'show me all rows where the status is pending' or 'count how many items are in each category'.",
+               "operationId": "post_grid_query",
+               "parameters": [],
+               "requestBody": {
+                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.Query"}}},
+                    "required": true
+               },
+               "responses": {"201": {
+                    "description": "The query results.",
+                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.result.QueryResult"}}}
+               }}
+          }}
+     },
+     "components": {"schemas": {
+          "org.sagebionetworks.repo.model.grid.query.Filter": {
+               "type": "object",
+               "properties": {"concreteType": {
+                    "type": "string",
+                    "description": "Required. Full name of the exact type used."
+               }},
+               "description": "A generic filter.",
+               "oneOf": [
+                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter"},
+                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.RowSelectionFilter"},
+                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.RowIsValidFilter"},
+                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.CellValueFilter"}
+               ],
+               "required": ["concreteType"],
+               "discriminator": {"propertyName": "concreteType"}
+          },
+          "org.sagebionetworks.repo.model.grid.query.result.QueryResult": {
+               "type": "object",
+               "properties": {
+                    "selectColumns": {
+                         "type": "array",
+                         "items": {
+                              "$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.result.SelectColumn",
+                              "description": "Information about a single selected column."
+                         },
+                         "description": "Information about the selected columns."
+                    },
+                    "rows": {
+                         "type": "array",
+                         "items": {
+                              "$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.result.Row",
+                              "description": "A single row of a grid query result."
+                         },
+                         "description": "A single page of rows."
+                    }
+               },
+               "description": "Results of a query against a grid session."
+          },
+          "org.sagebionetworks.repo.model.grid.query.SelectClause": {
+               "type": "object",
+               "properties": {
+                    "distinct": {
+                         "type": "boolean",
+                         "description": "Optional. When true, DISTINCT will be used."
+                    },
+                    "selectList": {
+                         "type": "array",
+                         "items": {
+                              "$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.SelectItem",
+                              "description": "A generic select item."
+                         },
+                         "description": "One ore more select items."
+                    }
+               },
+               "description": "Will translate to: SELECT [DISTINCT] select_item, [ select_item...]"
+          },
+          "org.sagebionetworks.repo.model.grid.query.function.Count": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Full name of the exact type used.",
+                         "enum": ["org.sagebionetworks.repo.model.grid.query.function.Count"]
+                    },
+                    "alias": {
+                         "type": "string",
+                         "description": "Optional. Provides an alias to the column selection. For example, 'count(*)' can be aliased as 'count'. The alias should be provided for aggregate functions that are to be used in the 'ORDER BY' clause."
+                    },
+                    "columnName": {
+                         "type": "string",
+                         "description": "The name of a column."
+                    }
+               },
+               "description": "Returns a count of the number of non-NULL values of column_name in the rows retrieved by a SELECT statement. The result is a BIGINT value.  Translates to: COUNT(column_name).",
+               "required": ["concreteType"]
+          },
+          "org.sagebionetworks.repo.model.grid.query.function.CountStar": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Full name of the exact type used.",
+                         "enum": ["org.sagebionetworks.repo.model.grid.query.function.CountStar"]
+                    },
+                    "alias": {
+                         "type": "string",
+                         "description": "Optional. Provides an alias to the column selection. For example, 'count(*)' can be aliased as 'count'. The alias should be provided for aggregate functions that are to be used in the 'ORDER BY' clause."
+                    }
+               },
+               "description": "Use this to count the total number of rows that match the query. For example, for a user request like 'how many rows are there in total?', select this item. The alias property can be used to name the resulting count column.",
+               "required": ["concreteType"]
+          },
+          "org.sagebionetworks.repo.model.grid.query.result.ValidationResults": {
+               "type": "object",
+               "properties": {
+                    "isValid": {
+                         "type": "boolean",
+                         "description": "Will be 'true' if the row is valid according to the JSON schema. Will be 'false' when the row is invalid."
+                    },
+                    "validationErrorMessage": {
+                         "type": "string",
+                         "description": "If the object is not valid according to the schema, a simple one line error message will be provided."
+                    },
+                    "allValidationMessages": {
+                         "type": "array",
+                         "items": {"type": "string"},
+                         "description": "If the object is not valid according to the schema, a the flat list of error messages will be provided with one error message per sub-schema."
+                    }
+               },
+               "description": "Results of a grid row against a JSON schema"
+          },
+          "org.sagebionetworks.repo.model.schema.JsonSchema": {
+               "type": "object",
+               "properties": {
+                    "$schema": {
+                         "type": "string",
+                         "description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.8.1.1\">The \"$schema\" Keyword<\/a>"
+                    },
+                    "$id": {
+                         "type": "string",
+                         "description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.8.2.2\">The \"$id\" Keyword<\/a>"
+                    },
+                    "$ref": {
+                         "type": "string",
+                         "description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.8.2.4.1\">Direct References with \"$ref\"<\/a>"
+                    },
+                    "type": {
+                         "type": "string",
+                         "description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.4.2.1\">Instance Data Model<\/a>",
+                         "enum": [
+                              "null",
+                              "boolean",
+                              "object",
+                              "array",
+                              "number",
+                              "string",
+                              "integer"
+                         ]
+                    },
+                    "items": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"},
+                    "properties": {
+                         "type": "object",
+                         "description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.9.3.2.1\">properties<\/a>",
+                         "additionalProperties": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"}
+                    },
+                    "title": {
+                         "type": "string",
+                         "description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-hypermedia.html#rfc.section.6.5.1\">title<\/a>"
+                    },
+                    "description": {
+                         "type": "string",
+                         "description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-hypermedia.html#rfc.section.6.5.2\">description<\/a>"
+                    },
+                    "allOf": {
+                         "type": "array",
+                         "items": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"},
+                         "description": "Use allOf to 'extend' or 'implement' one or more schemas.  See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.9.2.1.1\">allOf<\/a>"
+                    },
+                    "anyOf": {
+                         "type": "array",
+                         "items": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"},
+                         "description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.9.2.1.2\">anyOf<\/a>"
+                    },
+                    "oneOf": {
+                         "type": "array",
+                         "items": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"},
+                         "description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-core.html#rfc.section.9.2.1.3\">oneOf<\/a>"
+                    },
+                    "not": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"},
+                    "format": {
+                         "type": "string",
+                         "description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.section.7.3\">Defined Formats<\/a>"
+                    },
+                    "definitions": {
+                         "type": "object",
+                         "description": "In an effor to support draft-07 implementations, we are using 'definitions' instead of '$defs'.  See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.appendix.A\">Appendix A<\/a>",
+                         "additionalProperties": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"}
+                    },
+                    "enum": {
+                         "type": "array",
+                         "items": {},
+                         "description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.section.6.1.2\">enum<\/a>"
+                    },
+                    "const": {"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.section.6.1.3\">const<\/a>"},
+                    "source": {
+                         "type": "string",
+                         "description": "Used to indicate that this schema is derived from another object/schema.  The value should be a URL reference to the original work.  The 'source' is solely descriptive and should have no impact on validation."
+                    },
+                    "required": {
+                         "type": "array",
+                         "items": {"type": "string"},
+                         "description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.section.6.5.3\">required<\/a>"
+                    },
+                    "maxLength": {
+                         "type": "integer",
+                         "description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.3.1\">maxLength<\/a>",
+                         "format": "int32"
+                    },
+                    "minLength": {
+                         "type": "integer",
+                         "description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.3.2\">minLength<\/a>",
+                         "format": "int32"
+                    },
+                    "uniqueItems": {
+                         "type": "boolean",
+                         "description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.4.3\">uniqueItems<\/a>"
+                    },
+                    "pattern": {
+                         "type": "string",
+                         "description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.3.3\">pattern<\/a>"
+                    },
+                    "if": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"},
+                    "then": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"},
+                    "else": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"},
+                    "maximum": {
+                         "type": "integer",
+                         "description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.2\">maximum<\/a>",
+                         "format": "int32"
+                    },
+                    "minimum": {
+                         "type": "integer",
+                         "description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.4\">minimum<\/a>",
+                         "format": "int32"
+                    },
+                    "default": {"description": "See: <a href=\"https://json-schema.org/draft/2019-09/json-schema-validation.html#rfc.section.9.2\">default<\/a>"},
+                    "contains": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"},
+                    "additionalProperties": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.schema.JsonSchema"}
+               },
+               "description": "The JSON schema is defined by: <a href=\"https://json-schema.org/\">json-schema.org<\/a>, specifically draft-07.  Only features listed here are currently supported."
+          },
+          "org.sagebionetworks.repo.model.grid.query.function.Sum": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Full name of the exact type used.",
+                         "enum": ["org.sagebionetworks.repo.model.grid.query.function.Sum"]
+                    },
+                    "alias": {
+                         "type": "string",
+                         "description": "Optional. Provides an alias to the column selection. For example, 'count(*)' can be aliased as 'count'. The alias should be provided for aggregate functions that are to be used in the 'ORDER BY' clause."
+                    },
+                    "distinct": {
+                         "type": "boolean",
+                         "description": "Optional. When true, DISTINCT will be used."
+                    },
+                    "columnName": {
+                         "type": "string",
+                         "description": "The name of a column."
+                    }
+               },
+               "description": "Returns the sum of column_name. If the return set has no rows, SUM() returns NULL. The DISTINCT keyword can be used to sum only the distinct values of column_name.  Will translate to: SUM([DISTINCT] column_name)",
+               "required": ["concreteType"]
+          },
+          "org.sagebionetworks.repo.model.grid.query.CellValueFilter": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Full name of the exact type used.",
+                         "enum": ["org.sagebionetworks.repo.model.grid.query.CellValueFilter"]
+                    },
+                    "columnName": {
+                         "type": "string",
+                         "description": "Required. The name of the column to filter by."
+                    },
+                    "operator": {
+                         "type": "string",
+                         "description": "The comparison operator.",
+                         "enum": [
+                              "EQUALS",
+                              "NOT_EQUALS",
+                              "GREATER_THAN",
+                              "LESS_THAN",
+                              "GREATER_THAN_OR_EQUALS",
+                              "LESS_THAN_OR_EQUALS",
+                              "IN",
+                              "NOT_IN",
+                              "LIKE",
+                              "NOT_LIKE"
+                         ]
+                    },
+                    "value": {
+                         "type": "array",
+                         "items": {},
+                         "description": "For the operators: 'LIKE' and 'NOT_LIKE', more then one value may be provided.  For all other operators, a single value is required. When using either 'LIKE' or 'NOT_LIKE', the wildcard character: '%' is used to represents zero or more characters, and '_' is used to represents a single character."
+                    }
+               },
+               "description": "A filter used to select rows based on cell values. For example, to handle a user request like 'find all rows where the Project column is Alpha', you would set 'columnName' to 'Project', 'operator' to 'EQUALS', and 'value' to ['Alpha']",
+               "required": ["concreteType"]
+          },
+          "org.sagebionetworks.repo.model.grid.query.SelectItem": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Full name of the exact type used."
+                    },
+                    "alias": {
+                         "type": "string",
+                         "description": "Optional. Provides an alias to the column selection. For example, 'count(*)' can be aliased as 'count'. The alias should be provided for aggregate functions that are to be used in the 'ORDER BY' clause."
+                    }
+               },
+               "description": "A generic select item.",
+               "oneOf": [
+                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.function.GroupConcat"},
+                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.function.Average"},
+                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.function.CountStar"},
+                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.function.PopulationStandardVariance"},
+                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.function.Count"},
+                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.function.StandardDeviation"},
+                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.ColumnName"},
+                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.function.SampleStandardDeviation"},
+                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.Star"},
+                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.function.Max"},
+                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.function.SampleVariance"},
+                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.function.Sum"},
+                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.function.Min"},
+                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.function.CountDistinct"}
+               ],
+               "required": ["concreteType"],
+               "discriminator": {"propertyName": "concreteType"}
+          },
+          "org.sagebionetworks.repo.model.grid.query.function.GroupConcat": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Full name of the exact type used.",
+                         "enum": ["org.sagebionetworks.repo.model.grid.query.function.GroupConcat"]
+                    },
+                    "alias": {
+                         "type": "string",
+                         "description": "Optional. Provides an alias to the column selection. For example, 'count(*)' can be aliased as 'count'. The alias should be provided for aggregate functions that are to be used in the 'ORDER BY' clause."
+                    },
+                    "distinct": {
+                         "type": "boolean",
+                         "description": "Optional. When true, DISTINCT will be used."
+                    },
+                    "columnNames": {
+                         "type": "array",
+                         "items": {"type": "string"},
+                         "description": "One or more column name."
+                    },
+                    "orderBy": {
+                         "type": "array",
+                         "items": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.OrderByItem"},
+                         "description": "Optional ORDER BY clause."
+                    },
+                    "separator": {
+                         "type": "string",
+                         "description": "The SEPARATOR character."
+                    }
+               },
+               "description": "This function returns a string result with the concatenated non-NULL values from a group. It returns NULL if there are no non-NULL values. Will translate to: GROUP_CONCAT([DISTINCT] column_name [,column_name ...][ORDER BY col_name[ASC | DESC] [,col_name ...]][SEPARATOR str_val])",
+               "required": ["concreteType"]
+          },
+          "org.sagebionetworks.repo.model.grid.query.RowIsValidFilter": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Full name of the exact type used.",
+                         "enum": ["org.sagebionetworks.repo.model.grid.query.RowIsValidFilter"]
+                    },
+                    "value": {
+                         "type": "boolean",
+                         "description": "Set to 'true' to find rows that are valid according to the schema. Set to 'false' to find rows that are invalid and have validation errors.'"
+                    }
+               },
+               "description": "Use this filter for simple requests to find all 'valid' or 'invalid' rows based on their overall validation status.",
+               "required": ["concreteType"]
+          },
+          "org.sagebionetworks.repo.model.grid.query.function.CountDistinct": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Full name of the exact type used.",
+                         "enum": ["org.sagebionetworks.repo.model.grid.query.function.CountDistinct"]
+                    },
+                    "alias": {
+                         "type": "string",
+                         "description": "Optional. Provides an alias to the column selection. For example, 'count(*)' can be aliased as 'count'. The alias should be provided for aggregate functions that are to be used in the 'ORDER BY' clause."
+                    },
+                    "columnNames": {
+                         "type": "array",
+                         "items": {"type": "string"},
+                         "description": "Optional. One or more column name."
+                    }
+               },
+               "description": "Will translate to: COUNT(DISTINCT column_name,[column_name...])",
+               "required": ["concreteType"]
+          },
+          "org.sagebionetworks.repo.model.grid.query.function.StandardDeviation": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Full name of the exact type used.",
+                         "enum": ["org.sagebionetworks.repo.model.grid.query.function.StandardDeviation"]
+                    },
+                    "alias": {
+                         "type": "string",
+                         "description": "Optional. Provides an alias to the column selection. For example, 'count(*)' can be aliased as 'count'. The alias should be provided for aggregate functions that are to be used in the 'ORDER BY' clause."
+                    },
+                    "columnName": {
+                         "type": "string",
+                         "description": "The name of a column."
+                    }
+               },
+               "description": "Returns the population standard deviation of column_name. STD() is a synonym for the standard SQL function STDDEV_POP(). Will translate to: STD(column_name)",
+               "required": ["concreteType"]
+          },
+          "org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Full name of the exact type used.",
+                         "enum": ["org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter"]
+                    },
+                    "operator": {
+                         "type": "string",
+                         "description": "The comparison operator.",
+                         "enum": [
+                              "LIKE",
+                              "NOT_LIKE"
+                         ]
+                    },
+                    "validationResultValue": {
+                         "type": "array",
+                         "items": {},
+                         "description": "One or more validation result value.  For wildcards use '%' to represents zero or more characters, and '_' to represents a single character.  For example, LIKE '%expected type: String, found%' would match rows with a validation result that contains the message: 'expected type: String, found'."
+                    }
+               },
+               "description": "Use this filter to find rows that have data quality issues or schema validation errors. This is ideal for requests about finding 'errors', 'invalid data', or 'rows that failed validation'. To find rows with a specific error message, set the 'operator' to 'LIKE' and provide the error text in 'validationResultValue'. For example, for a user request like 'show me all rows with a type error', a good value for 'validationResultValue' would be ['%expected type:%'].",
+               "required": ["concreteType"]
+          },
+          "org.sagebionetworks.repo.model.grid.query.function.Max": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Full name of the exact type used.",
+                         "enum": ["org.sagebionetworks.repo.model.grid.query.function.Max"]
+                    },
+                    "alias": {
+                         "type": "string",
+                         "description": "Optional. Provides an alias to the column selection. For example, 'count(*)' can be aliased as 'count'. The alias should be provided for aggregate functions that are to be used in the 'ORDER BY' clause."
+                    },
+                    "distinct": {
+                         "type": "boolean",
+                         "description": "Optional. When true, DISTINCT will be used."
+                    },
+                    "columnName": {
+                         "type": "string",
+                         "description": "The name of a column."
+                    }
+               },
+               "description": "Returns the maximum value of column_name. MAX() may take a string argument; in such cases, it returns the maximum string value.  Will translate to: MAX([DISTINCT] column_name)",
+               "required": ["concreteType"]
+          },
+          "org.sagebionetworks.repo.model.grid.query.Query": {
+               "type": "object",
+               "properties": {
+                    "select": {
+                         "$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.SelectClause",
+                         "description": "Will translate to: SELECT [DISTINCT] select_item, [ select_item...]"
+                    },
+                    "where": {
+                         "type": "array",
+                         "items": {
+                              "$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.Filter",
+                              "description": "A generic filter."
+                         },
+                         "description": "Optional WHERE clause. There will be an implicit 'AND' between each provided filter."
+                    },
+                    "groupBy": {
+                         "type": "array",
+                         "items": {"type": "string"},
+                         "description": "Optional GROUP BY clause. A list of one or more column names."
+                    },
+                    "orderBy": {
+                         "type": "array",
+                         "items": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.OrderByItem"},
+                         "description": "Optional ORDER BY clause."
+                    },
+                    "limit": {
+                         "type": "integer",
+                         "description": "Required. Limit of the number of rows returned to avoid loading more data than needed into your context window.",
+                         "format": "int32"
+                    },
+                    "offset": {
+                         "type": "integer",
+                         "description": "Optional. specifies the offset of the first row to return.",
+                         "format": "int32"
+                    }
+               },
+               "description": "Defines a SQL 'like' query to be run against the current grid."
+          },
+          "org.sagebionetworks.repo.model.grid.query.function.Average": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Full name of the exact type used.",
+                         "enum": ["org.sagebionetworks.repo.model.grid.query.function.Average"]
+                    },
+                    "alias": {
+                         "type": "string",
+                         "description": "Optional. Provides an alias to the column selection. For example, 'count(*)' can be aliased as 'count'. The alias should be provided for aggregate functions that are to be used in the 'ORDER BY' clause."
+                    },
+                    "distinct": {
+                         "type": "boolean",
+                         "description": "Optional. When true, DISTINCT will be used."
+                    },
+                    "columnName": {
+                         "type": "string",
+                         "description": "The name of a column."
+                    }
+               },
+               "description": "Returns the average value of column_name. The DISTINCT option can be used to return the average of the distinct values of column_name. Will translate to: AVG([DISTINCT] column_name)",
+               "required": ["concreteType"]
+          },
+          "org.sagebionetworks.repo.model.grid.query.Star": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Full name of the exact type used.",
+                         "enum": ["org.sagebionetworks.repo.model.grid.query.Star"]
+                    },
+                    "alias": {
+                         "type": "string",
+                         "description": "Optional. Provides an alias to the column selection. For example, 'count(*)' can be aliased as 'count'. The alias should be provided for aggregate functions that are to be used in the 'ORDER BY' clause."
+                    }
+               },
+               "description": "Used to select all columns from the grid. Use this option when to get a general understanding of all of the columns of the grid.",
+               "required": ["concreteType"]
+          },
+          "org.sagebionetworks.repo.model.grid.query.result.SelectColumn": {
+               "type": "object",
+               "properties": {
+                    "columnName": {
+                         "type": "string",
+                         "description": "The name of the column.  Will be the alias if one is provide in the select item."
+                    },
+                    "columnIndex": {
+                         "type": "integer",
+                         "description": "The index of this column. The first column will have an index of zero.",
+                         "format": "int32"
+                    },
+                    "isSelected": {
+                         "type": "boolean",
+                         "description": "When true, this column is currently selected by the user."
+                    }
+               },
+               "description": "Information about a single selected column."
+          },
+          "org.sagebionetworks.repo.model.grid.AgentFeatureRequest": {
+               "type": "object",
+               "properties": {
+                    "featureDescription": {
+                         "type": "string",
+                         "description": "Detailed description of the requested function and how it would help with tabular data curation.",
+                         "maxLength": 1000,
+                         "minLength": 10
+                    },
+                    "category": {
+                         "type": "string",
+                         "description": "Category of the requested feature for better organization and prioritization.",
+                         "enum": [
+                              "data_cleaning",
+                              "data_transformation",
+                              "data_validation",
+                              "data_analysis",
+                              "visualization",
+                              "import_export",
+                              "collaboration",
+                              "automation",
+                              "other"
+                         ]
+                    },
+                    "priority": {
+                         "type": "string",
+                         "description": "Suggested priority level for the feature request.",
+                         "enum": [
+                              "low",
+                              "medium",
+                              "high",
+                              "critical"
+                         ]
+                    },
+                    "useCase": {
+                         "type": "string",
+                         "description": "Specific use case or scenario where this feature would be beneficial.",
+                         "maxLength": 500
+                    },
+                    "userRole": {
+                         "type": "string",
+                         "description": "Role or type of user who would benefit from this feature (e.g., data analyst, researcher, business user).",
+                         "maxLength": 100
+                    }
+               },
+               "description": "Request for a new function to enhance Agent capabilities for tabular data curation."
+          },
+          "org.sagebionetworks.repo.model.grid.query.function.SampleStandardDeviation": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Full name of the exact type used.",
+                         "enum": ["org.sagebionetworks.repo.model.grid.query.function.SampleStandardDeviation"]
+                    },
+                    "alias": {
+                         "type": "string",
+                         "description": "Optional. Provides an alias to the column selection. For example, 'count(*)' can be aliased as 'count'. The alias should be provided for aggregate functions that are to be used in the 'ORDER BY' clause."
+                    },
+                    "columnName": {
+                         "type": "string",
+                         "description": "The name of a column."
+                    }
+               },
+               "description": "Returns the sample standard deviation of column_name (the square root of VAR_SAMP().  Will translate to: STDDEV_SAMP(column_name)",
+               "required": ["concreteType"]
+          },
+          "org.sagebionetworks.repo.model.grid.query.result.Row": {
+               "type": "object",
+               "properties": {
+                    "cellValues": {
+                         "type": "array",
+                         "items": {},
+                         "description": "An array of cell values for a single row.  Each cell's index will corresponds to the SelectColumn.columnIndex"
+                    },
+                    "validationResults": {
+                         "$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.result.ValidationResults",
+                         "description": "Results of a grid row against a JSON schema"
+                    },
+                    "isSelected": {
+                         "type": "boolean",
+                         "description": "When true, this row is currently selected by the user.  Will be excluded for queries that contain any type of aggregation (count, group by...)."
+                    }
+               },
+               "description": "A single row of a grid query result."
+          },
+          "org.sagebionetworks.repo.model.grid.query.ColumnName": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Full name of the exact type used.",
+                         "enum": ["org.sagebionetworks.repo.model.grid.query.ColumnName"]
+                    },
+                    "alias": {
+                         "type": "string",
+                         "description": "Optional. Provides an alias to the column selection. For example, 'count(*)' can be aliased as 'count'. The alias should be provided for aggregate functions that are to be used in the 'ORDER BY' clause."
+                    },
+                    "columnName": {
+                         "type": "string",
+                         "description": "Name of a column."
+                    }
+               },
+               "description": "A SelectItem that is the name of a column.",
+               "required": ["concreteType"]
+          },
+          "org.sagebionetworks.repo.model.grid.query.function.SampleVariance": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Full name of the exact type used.",
+                         "enum": ["org.sagebionetworks.repo.model.grid.query.function.SampleVariance"]
+                    },
+                    "alias": {
+                         "type": "string",
+                         "description": "Optional. Provides an alias to the column selection. For example, 'count(*)' can be aliased as 'count'. The alias should be provided for aggregate functions that are to be used in the 'ORDER BY' clause."
+                    },
+                    "columnName": {
+                         "type": "string",
+                         "description": "The name of a column."
+                    }
+               },
+               "description": "Returns the sample variance of column_name. That is, the denominator is the number of rows minus one.  Will translate to: VAR_SAMP(column_name).",
+               "required": ["concreteType"]
+          },
+          "org.sagebionetworks.repo.model.grid.query.function.Min": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Full name of the exact type used.",
+                         "enum": ["org.sagebionetworks.repo.model.grid.query.function.Min"]
+                    },
+                    "alias": {
+                         "type": "string",
+                         "description": "Optional. Provides an alias to the column selection. For example, 'count(*)' can be aliased as 'count'. The alias should be provided for aggregate functions that are to be used in the 'ORDER BY' clause."
+                    },
+                    "distinct": {
+                         "type": "boolean",
+                         "description": "Optional. When true, DISTINCT will be used."
+                    },
+                    "columnName": {
+                         "type": "string",
+                         "description": "The name of a column."
+                    }
+               },
+               "description": "Returns the minimum value of column_name. MIN() may take a string argument; in such cases, it returns the minimum string value.  Will translate to: MIN([DISTINCT] column_name)",
+               "required": ["concreteType"]
+          },
+          "org.sagebionetworks.repo.model.grid.query.OrderByItem": {
+               "type": "object",
+               "properties": {
+                    "columnName": {
+                         "type": "string",
+                         "description": "Name of a column.  Can also be the alias of an aggregate function in the select clause."
+                    },
+                    "direction": {
+                         "type": "string",
+                         "description": "The ordering direction (default is ASC).",
+                         "enum": [
+                              "ASC",
+                              "DESC"
+                         ]
+                    }
+               }
+          },
+          "org.sagebionetworks.repo.model.grid.query.RowSelectionFilter": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Full name of the exact type used.",
+                         "enum": ["org.sagebionetworks.repo.model.grid.query.RowSelectionFilter"]
+                    },
+                    "isSelected": {
+                         "type": "boolean",
+                         "description": "When true, only rows that the user has selected will be returned.  When false, rows that the user has selected with be excluded.  This filter should be excluded to ignore the user's row selection. "
+                    }
+               },
+               "description": "Use this filter to narrow down results based on rows the user has actively selected in the interface. For user requests like 'show me only my selected items' or 'run this analysis on the rows I've checked', set the 'isSelected' property to true. For requests to see the opposite, like 'show me the unselected rows', set 'isSelected' to false. If the user makes no mention of selected items, do not include this filter in the query.",
+               "required": ["concreteType"]
+          },
+          "org.sagebionetworks.repo.model.grid.query.function.PopulationStandardVariance": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Full name of the exact type used.",
+                         "enum": ["org.sagebionetworks.repo.model.grid.query.function.PopulationStandardVariance"]
+                    },
+                    "alias": {
+                         "type": "string",
+                         "description": "Optional. Provides an alias to the column selection. For example, 'count(*)' can be aliased as 'count'. The alias should be provided for aggregate functions that are to be used in the 'ORDER BY' clause."
+                    },
+                    "columnName": {
+                         "type": "string",
+                         "description": "The name of a column."
+                    }
+               },
+               "description": "Returns the population standard variance of column_name. It considers rows as the whole population, not as a sample, so it has the number of rows as the denominator. Will translate to: VAR_POP(column_name)",
+               "required": ["concreteType"]
+          }
+     }}
 }
