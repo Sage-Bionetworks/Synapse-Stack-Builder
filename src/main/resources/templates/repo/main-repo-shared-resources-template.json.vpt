@@ -585,7 +585,9 @@
                         {
                             "Effect": "Allow",
                             "Action": ["appconfig:StartConfigurationSession", "appconfig:GetLatestConfiguration"],
-                            "Resource": "*"
+                            "Resource": [
+                                "arn:aws:appconfig:*:*:application/*/environment/*/configuration/*"
+                            ]
                         }
                     ]
 		        }
