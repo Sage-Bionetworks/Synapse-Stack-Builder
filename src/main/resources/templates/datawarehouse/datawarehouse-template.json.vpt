@@ -30,7 +30,6 @@
 									"glue:*"
 								],
 								"Resource": [
-								    "arn:aws:glue:*:*:rootcatalog*",
                                 	"arn:aws:glue:*:*:catalog*",
                                 	"arn:aws:glue:*:*:crawler*",
                                 	"arn:aws:glue:*:*:connection*",
