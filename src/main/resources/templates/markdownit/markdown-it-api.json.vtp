@@ -28,7 +28,9 @@
                         "logs:PutLogEvents"
                     ],
                     "Resource": [
-                        "arn:aws:logs:*:*:log-group:/aws/lambda/*"
+                        {
+                            "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:log-group:/aws/lambda/*"
+                        }
                     ]
                 }
                 ]

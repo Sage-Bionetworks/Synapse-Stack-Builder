@@ -413,8 +413,12 @@
                             "logs:FilterLogEvents"
                         ],
                         "Resource": [
-                            "arn:aws:logs:*:*:log-group:API-Gateway-Execution-Logs*",
-                            "arn:aws:logs:*:*:log-group:/aws/apigateway/*"
+                            {
+                                "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:log-group:API-Gateway-Execution-Logs*"
+                            },
+                            {
+                                "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:log-group:/aws/apigateway/*"
+                            }
                         ]
                     }
                     ]

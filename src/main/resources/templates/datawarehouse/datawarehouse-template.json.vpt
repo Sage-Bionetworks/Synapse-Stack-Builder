@@ -30,18 +30,42 @@
 									"glue:*"
 								],
 								"Resource": [
-                                	"arn:aws:glue:*:*:catalog*",
-                                	"arn:aws:glue:*:*:crawler*",
-                                	"arn:aws:glue:*:*:connection*",
-                                	"arn:aws:glue:*:*:trigger*",
-                                	"arn:aws:glue:*:*:workflow*",
-                                	"arn:aws:glue:*:*:session*",
-                                	"arn:aws:glue:*:*:registry*",
-                                	"arn:aws:glue:*:*:schema*",
-                                	"arn:aws:glue:*:*:completion*",
-                                	"arn:aws:glue:*:*:job*",
-                                	"arn:aws:glue:*:*:database*",
-                                	"arn:aws:glue:*:*:table/*/*"
+								    {
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:catalog*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:crawler*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:connection*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:trigger*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:workflow*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:session*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:registry*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:schema*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#completion*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:job*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:database*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:table/*/*"
+                                	}
 								]
 							},
 							{
