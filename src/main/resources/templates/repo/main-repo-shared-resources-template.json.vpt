@@ -585,7 +585,11 @@
                         {
                             "Effect": "Allow",
                             "Action": ["appconfig:StartConfigurationSession", "appconfig:GetLatestConfiguration"],
-                            "Resource": "*"
+                            "Resource": [
+                                {
+                                    "Fn::Sub": "arn:aws:appconfig:#[[${AWS::Region}:${AWS::AccountId}]]#:application/*/environment/*/configuration/*"
+                                }
+                            ]
                         }
                     ]
 		        }
