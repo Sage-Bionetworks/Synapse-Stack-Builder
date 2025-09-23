@@ -734,16 +734,7 @@
 							"Sid": "Allow root administration of the key",
 							"Effect": "Allow",
 							"Principal": {
-								"AWS": [
-								    { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:root" },
-                                    { "Fn::ImportValue": "us-east-1-synapse-${stack}-cmk-SynapseDeploymentRoleArn"},
-                                    { "Fn::GetAtt": [ "${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"] },
-                                    #if(${stack} == 'prod')
-                                    { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Administrator_6620166dd0e7f1b6" }
-                                    #else
-                                    "*"
-                                    #end
-								]
+								"AWS":  "*"
 							},
 							"Action": [
 								"kms:*"
