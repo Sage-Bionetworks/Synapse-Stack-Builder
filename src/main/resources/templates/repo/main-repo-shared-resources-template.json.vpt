@@ -505,9 +505,26 @@
                          {
                              "Effect": "Allow",
                              "Action": [
-                                 "aoss:*"
+                                 "aoss:APIAccessAll",
+                                 "aoss:CreateAccessPolicy",
+                                 "aoss:CreateCollection",
+                                 "aoss:CreateIndex",
+                                 "aoss:CreateSecurityPolicy",
+                                 "aoss:CreateVpcEndpoint",
+                                 "aoss:GetIndex",
+                                 "aoss:UpdateCollection",
+                                 "aoss:UpdateIndex",
+                                 "aoss:UpdateSecurityPolicy",
+                                 "aoss:UpdateVpcEndpoint"
                              ],
-                             "Resource": "*"
+                             "Resource": [
+                                {
+                                    "Fn::Sub": "arn:aws:aoss:#[[${AWS::Region}:${AWS::AccountId}]]#:collection/*"
+                                },
+                                {
+                                    "Fn::Sub": "arn:aws:aoss:#[[${AWS::Region}:${AWS::AccountId}]]#:dashboards/default"
+                                }
+                             ]
                          },
                          {
                              "Effect": "Allow",
