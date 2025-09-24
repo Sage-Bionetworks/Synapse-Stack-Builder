@@ -506,16 +506,22 @@
                              "Effect": "Allow",
                              "Action": [
                                  "aoss:APIAccessAll",
+                                 "aoss:BatchGetCollection",
                                  "aoss:CreateAccessPolicy",
                                  "aoss:CreateCollection",
                                  "aoss:CreateIndex",
                                  "aoss:CreateSecurityPolicy",
-                                 "aoss:CreateVpcEndpoint",
+                                 "aoss:DeleteAccessPolicy",
+                                 "aoss:DeleteCollection",
+                                 "aoss:DeleteIndex",
+                                 "aoss:DeleteSecurityPolicy",
                                  "aoss:GetIndex",
+                                 "aoss:GetAccessPolicy",
+                                 "aoss:GetSecurityPolicy",
+                                 "aoss:"UpdateAccessPolicy",
                                  "aoss:UpdateCollection",
                                  "aoss:UpdateIndex",
-                                 "aoss:UpdateSecurityPolicy",
-                                 "aoss:UpdateVpcEndpoint"
+                                 "aoss:UpdateSecurityPolicy"
                              ],
                              "Resource": [
                                 {
