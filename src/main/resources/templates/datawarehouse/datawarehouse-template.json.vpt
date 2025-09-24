@@ -55,7 +55,7 @@
                                 	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:schema*"
                                 	},
                                 	{
-                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#completion*"
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:completion*"
                                 	},
                                 	{
                                 	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:job*"
@@ -135,7 +135,9 @@
 									"logs:PutLogEvents"
 								],
 								"Resource": [
-									"arn:aws:logs:*:*:/aws-glue/*"
+								{
+								    "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:/aws-glue/*"
+								}
 								]
 							}]
 						}
