@@ -32,7 +32,7 @@
                "operationId": "put_repo_v1_grid_query",
                "parameters": [],
                "requestBody": {
-                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.Query"}}},
+                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.QueryRequest"}}},
                     "required": true
                },
                "responses": {"200": {
@@ -42,21 +42,6 @@
           }}
      },
      "components": {"schemas": {
-          "org.sagebionetworks.repo.model.grid.query.result.SelectColumn": {
-               "type": "object",
-               "properties": {
-                    "columnName": {
-                         "type": "string",
-                         "description": "The name of the column.  Will be the alias if one is provide in the select item."
-                    },
-                    "columnIndex": {
-                         "type": "integer",
-                         "description": "The index of this column. The first column will have an index of zero.",
-                         "format": "int32"
-                    }
-               },
-               "description": "Information about a single selected column."
-          },
           "org.sagebionetworks.repo.model.grid.query.Filter": {
                "type": "object",
                "properties": {"concreteType": {
@@ -72,53 +57,6 @@
                ],
                "required": ["concreteType"],
                "discriminator": {"propertyName": "concreteType"}
-          },
-          "org.sagebionetworks.repo.model.grid.AgentFeatureRequest": {
-               "type": "object",
-               "properties": {
-                    "featureDescription": {
-                         "type": "string",
-                         "description": "Detailed description of the requested function and how it would help with tabular data curation.",
-                         "maxLength": 1000,
-                         "minLength": 10
-                    },
-                    "category": {
-                         "type": "string",
-                         "description": "Category of the requested feature for better organization and prioritization.",
-                         "enum": [
-                              "data_cleaning",
-                              "data_transformation",
-                              "data_validation",
-                              "data_analysis",
-                              "visualization",
-                              "import_export",
-                              "collaboration",
-                              "automation",
-                              "other"
-                         ]
-                    },
-                    "priority": {
-                         "type": "string",
-                         "description": "Suggested priority level for the feature request.",
-                         "enum": [
-                              "low",
-                              "medium",
-                              "high",
-                              "critical"
-                         ]
-                    },
-                    "useCase": {
-                         "type": "string",
-                         "description": "Specific use case or scenario where this feature would be beneficial.",
-                         "maxLength": 500
-                    },
-                    "userRole": {
-                         "type": "string",
-                         "description": "Role or type of user who would benefit from this feature (e.g., data analyst, researcher, business user).",
-                         "maxLength": 100
-                    }
-               },
-               "description": "Request for a new function to enhance Agent capabilities for tabular data curation."
           },
           "org.sagebionetworks.repo.model.grid.query.result.QueryResult": {
                "type": "object",
@@ -166,21 +104,6 @@
                "description": "Use this filter to find rows that have data quality issues or schema validation errors. This is ideal for requests about finding 'errors', 'invalid data', or 'rows that failed validation'. To find rows with a specific error message, set the 'operator' to 'LIKE' and provide the error text in 'validationResultValue'. For example, for a user request like 'show me all rows with a type error', a good value for 'validationResultValue' would be '%expected type:%'.",
                "required": ["concreteType"]
           },
-          "org.sagebionetworks.repo.model.grid.query.result.Row": {
-               "type": "object",
-               "properties": {
-                    "cellValues": {
-                         "type": "array",
-                         "items": {},
-                         "description": "An array of cell values for a single row.  Each cell's index will corresponds to the SelectColumn.columnIndex"
-                    },
-                    "validationResults": {
-                         "$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.result.ValidationResults",
-                         "description": "Results of a grid row against a JSON schema"
-                    }
-               },
-               "description": "A single row of a grid query result."
-          },
           "org.sagebionetworks.repo.model.grid.query.Query": {
                "type": "object",
                "properties": {
@@ -213,37 +136,13 @@
                },
                "description": "Defines a structured query using JSON filter objects - NOT SQL syntax. Use predefined filter types with specific concreteType values."
           },
-          "org.sagebionetworks.repo.model.grid.query.RowIsValidFilter": {
+          "org.sagebionetworks.repo.model.grid.query.QueryRequest": {
                "type": "object",
-               "properties": {
-                    "concreteType": {
-                         "type": "string",
-                         "description": "Required. Must be a properly quoted JSON string matching one of: \"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\", \"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\", or \"org.sagebionetworks.repo.model.grid.query.CellValueFilter\"",
-                         "enum": ["org.sagebionetworks.repo.model.grid.query.RowIsValidFilter"]
-                    },
-                    "value": {
-                         "type": "boolean",
-                         "description": "Set to 'true' to find rows that are valid according to the schema. Set to 'false' to find rows that are invalid and have validation errors.'"
-                    }
-               },
-               "description": "Use this filter for simple requests to find all 'valid' or 'invalid' rows based on their overall validation status.",
-               "required": ["concreteType"]
-          },
-          "org.sagebionetworks.repo.model.grid.query.RowSelectionFilter": {
-               "type": "object",
-               "properties": {
-                    "concreteType": {
-                         "type": "string",
-                         "description": "Required. Must be a properly quoted JSON string matching one of: \"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\", \"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\", or \"org.sagebionetworks.repo.model.grid.query.CellValueFilter\"",
-                         "enum": ["org.sagebionetworks.repo.model.grid.query.RowSelectionFilter"]
-                    },
-                    "isSelected": {
-                         "type": "boolean",
-                         "description": "When true, only rows that the user has selected will be returned.  When false, rows that the user has selected with be excluded.  This filter should be excluded to ignore the user's row selection. "
-                    }
-               },
-               "description": "Use this filter to narrow down results based on rows the user has actively selected in the interface. For user requests like 'show me only my selected items' or 'run this analysis on the rows I've checked', set the 'isSelected' property to true. For requests to see the opposite, like 'show me the unselected rows', set 'isSelected' to false. If the user makes no mention of selected items, do not include this filter in the query.",
-               "required": ["concreteType"]
+               "properties": {"query": {
+                    "$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.Query",
+                    "description": "Defines a structured query using JSON filter objects - NOT SQL syntax. Use predefined filter types with specific concreteType values."
+               }},
+               "description": "Request to run a query."
           },
           "org.sagebionetworks.repo.model.grid.query.result.ValidationResults": {
                "type": "object",
@@ -420,6 +319,115 @@
                     }
                },
                "description": "A filter used to select rows based on cell values. For example, to handle a user request like 'find all rows where the Project column is Alpha', you would set 'columnName' to 'Project', 'operator' to 'EQUALS', and 'value' to ['Alpha']",
+               "required": ["concreteType"]
+          },
+          "org.sagebionetworks.repo.model.grid.query.result.SelectColumn": {
+               "type": "object",
+               "properties": {
+                    "columnName": {
+                         "type": "string",
+                         "description": "The name of the column.  Will be the alias if one is provide in the select item."
+                    },
+                    "columnIndex": {
+                         "type": "integer",
+                         "description": "The index of this column. The first column will have an index of zero.",
+                         "format": "int32"
+                    }
+               },
+               "description": "Information about a single selected column."
+          },
+          "org.sagebionetworks.repo.model.grid.AgentFeatureRequest": {
+               "type": "object",
+               "properties": {
+                    "featureDescription": {
+                         "type": "string",
+                         "description": "Detailed description of the requested function and how it would help with tabular data curation.",
+                         "maxLength": 1000,
+                         "minLength": 10
+                    },
+                    "category": {
+                         "type": "string",
+                         "description": "Category of the requested feature for better organization and prioritization.",
+                         "enum": [
+                              "data_cleaning",
+                              "data_transformation",
+                              "data_validation",
+                              "data_analysis",
+                              "visualization",
+                              "import_export",
+                              "collaboration",
+                              "automation",
+                              "other"
+                         ]
+                    },
+                    "priority": {
+                         "type": "string",
+                         "description": "Suggested priority level for the feature request.",
+                         "enum": [
+                              "low",
+                              "medium",
+                              "high",
+                              "critical"
+                         ]
+                    },
+                    "useCase": {
+                         "type": "string",
+                         "description": "Specific use case or scenario where this feature would be beneficial.",
+                         "maxLength": 500
+                    },
+                    "userRole": {
+                         "type": "string",
+                         "description": "Role or type of user who would benefit from this feature (e.g., data analyst, researcher, business user).",
+                         "maxLength": 100
+                    }
+               },
+               "description": "Request for a new function to enhance Agent capabilities for tabular data curation."
+          },
+          "org.sagebionetworks.repo.model.grid.query.result.Row": {
+               "type": "object",
+               "properties": {
+                    "cellValues": {
+                         "type": "array",
+                         "items": {},
+                         "description": "An array of cell values for a single row.  Each cell's index will corresponds to the SelectColumn.columnIndex"
+                    },
+                    "validationResults": {
+                         "$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.result.ValidationResults",
+                         "description": "Results of a grid row against a JSON schema"
+                    }
+               },
+               "description": "A single row of a grid query result."
+          },
+          "org.sagebionetworks.repo.model.grid.query.RowIsValidFilter": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Must be a properly quoted JSON string matching one of: \"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\", \"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\", or \"org.sagebionetworks.repo.model.grid.query.CellValueFilter\"",
+                         "enum": ["org.sagebionetworks.repo.model.grid.query.RowIsValidFilter"]
+                    },
+                    "value": {
+                         "type": "boolean",
+                         "description": "Set to 'true' to find rows that are valid according to the schema. Set to 'false' to find rows that are invalid and have validation errors.'"
+                    }
+               },
+               "description": "Use this filter for simple requests to find all 'valid' or 'invalid' rows based on their overall validation status.",
+               "required": ["concreteType"]
+          },
+          "org.sagebionetworks.repo.model.grid.query.RowSelectionFilter": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Must be a properly quoted JSON string matching one of: \"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\", \"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\", or \"org.sagebionetworks.repo.model.grid.query.CellValueFilter\"",
+                         "enum": ["org.sagebionetworks.repo.model.grid.query.RowSelectionFilter"]
+                    },
+                    "isSelected": {
+                         "type": "boolean",
+                         "description": "When true, only rows that the user has selected will be returned.  When false, rows that the user has selected with be excluded.  This filter should be excluded to ignore the user's row selection. "
+                    }
+               },
+               "description": "Use this filter to narrow down results based on rows the user has actively selected in the interface. For user requests like 'show me only my selected items' or 'run this analysis on the rows I've checked', set the 'isSelected' property to true. For requests to see the opposite, like 'show me the unselected rows', set 'isSelected' to false. If the user makes no mention of selected items, do not include this filter in the query.",
                "required": ["concreteType"]
           }
      }}
