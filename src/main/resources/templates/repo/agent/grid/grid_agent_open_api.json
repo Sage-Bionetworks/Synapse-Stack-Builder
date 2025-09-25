@@ -28,8 +28,8 @@
           }},
           "/repo/v1/grid/query": {"put": {
                "tags": ["GridAgent"],
-               "description":"Use this function to query grid data using structured filter objects. IMPORTANT: The 'filters' parameter requires JSON filter objects with specific 'concreteType' values - do not use SQL syntax. Use RowIsValidFilter for validation errors, CellValueFilter for column comparisons, RowSelectionFilter for user selections, and RowValidationResultFilter for specific error messages.",
-			   "operationId": "put_repo_v1_grid_query",
+               "description":"Use this function to query grid data using structured filter objects. CRITICAL: The 'filters' parameter must be valid JSON with all strings enclosed in double quotes. Example: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\",\"value\":false}]. Do not use unquoted property names or string values.",
+               "operationId": "put_repo_v1_grid_query",
                "parameters": [],
                "requestBody": {
                     "content": {"application/json": {"schema": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.Query"}}},
@@ -61,9 +61,9 @@
                "type": "object",
                "properties": {"concreteType": {
                     "type": "string",
-                    "description": "Required. Must match the full name of one of the four filter types: 'org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter' or 'org.sagebionetworks.repo.model.grid.query.RowSelectionFilter', or 'org.sagebionetworks.repo.model.grid.query.RowIsValidFilter' or, 'org.sagebionetworks.repo.model.grid.query.CellValueFilter'"
+                    "description": "Required. Must be a properly quoted JSON string matching one of: \"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\", \"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\", or \"org.sagebionetworks.repo.model.grid.query.CellValueFilter\""
                }},
-               "description": "There are four different types of filters that can be applied to a grid query. For example, a filter to find all rows where column named: 'someInt' has a value greater than 12, the following filter would be used:{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"someInt\",\"operator\":\"GREATER_THAN\",\"value\":[12]}. In order to find all rows with a JSON schema validation error use the following filter: {\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\",\"value\":false}.  In order to find all rows with JSON schema validation error message that indicates the wrong type was provided, you could use the filter: {\"concreteType:\"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\",\"operator\":\"LIKE\",\"validationResultValue\":\"%expected type%\"}. In order to find all rows that are currently selected by the user, you would use the following filter: {\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\",\"isSelected\":true}.",
+               "description": "All filter objects must use valid JSON syntax with double quotes around all strings. CORRECT: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\",\"value\":false}]. INCORRECT: [{concreteType=org.sagebionetworks.repo.model.grid.query.RowIsValidFilter, value=false}]. There are four different types of filters that can be applied to a grid query. For example, a filter to find all rows where column named: 'someInt' has a value greater than 12, the following filter would be used:[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"someInt\",\"operator\":\"GREATER_THAN\",\"value\":[12]}]. In order to find all rows with a JSON schema validation error use the following filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\",\"value\":false}].  In order to find all rows with JSON schema validation error message that indicates the wrong type was provided, you could use the filter: [{\"concreteType:\"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\",\"operator\":\"LIKE\",\"validationResultValue\":\"%expected type%\"}]. In order to find all rows that are currently selected by the user, you would use the following filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\",\"isSelected\":true}].",
                "oneOf": [
                     {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter"},
                     {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.RowSelectionFilter"},
@@ -147,7 +147,7 @@
                "properties": {
                     "concreteType": {
                          "type": "string",
-                         "description": "Required. Must match the full name of one of the four filter types: 'org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter' or 'org.sagebionetworks.repo.model.grid.query.RowSelectionFilter', or 'org.sagebionetworks.repo.model.grid.query.RowIsValidFilter' or, 'org.sagebionetworks.repo.model.grid.query.CellValueFilter'",
+                         "description": "Required. Must be a properly quoted JSON string matching one of: \"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\", \"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\", or \"org.sagebionetworks.repo.model.grid.query.CellValueFilter\"",
                          "enum": ["org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter"]
                     },
                     "operator": {
@@ -196,9 +196,9 @@
                          "type": "array",
                          "items": {
                               "$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.Filter",
-                              "description": "There are four different types of filters that can be applied to a grid query. For example, a filter to find all rows where column named: 'someInt' has a value greater than 12, the following filter would be used:{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"someInt\",\"operator\":\"GREATER_THAN\",\"value\":[12]}. In order to find all rows with a JSON schema validation error use the following filter: {\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\",\"value\":false}.  In order to find all rows with JSON schema validation error message that indicates the wrong type was provided, you could use the filter: {\"concreteType:\"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\",\"operator\":\"LIKE\",\"validationResultValue\":\"%expected type%\"}. In order to find all rows that are currently selected by the user, you would use the following filter: {\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\",\"isSelected\":true}."
+                              "description": "All filter objects must use valid JSON syntax with double quotes around all strings. CORRECT: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\",\"value\":false}]. INCORRECT: [{concreteType=org.sagebionetworks.repo.model.grid.query.RowIsValidFilter, value=false}]. There are four different types of filters that can be applied to a grid query. For example, a filter to find all rows where column named: 'someInt' has a value greater than 12, the following filter would be used:[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"someInt\",\"operator\":\"GREATER_THAN\",\"value\":[12]}]. In order to find all rows with a JSON schema validation error use the following filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\",\"value\":false}].  In order to find all rows with JSON schema validation error message that indicates the wrong type was provided, you could use the filter: [{\"concreteType:\"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\",\"operator\":\"LIKE\",\"validationResultValue\":\"%expected type%\"}]. In order to find all rows that are currently selected by the user, you would use the following filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\",\"isSelected\":true}]."
                          },
-                         "description": "Optional filters using structured JSON objects. Each filter must be a complete JSON object with the required 'concreteType' property. IMPORTANT: Do not use SQL syntax - use the predefined filter objects. Examples: To find invalid rows: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\",\"value\":false}]. To find rows where 'age' > 25: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"age\",\"operator\":\"GREATER_THAN\",\"value\":[25]}]. Multiple filters are combined with AND logic."
+                         "description": "Optional. Each filter must have properly quoted property names and string values. Each filter must be a complete JSON object with the required 'concreteType' property. IMPORTANT: Do not use SQL syntax - use the predefined filter objects. Examples: To find invalid rows: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\",\"value\":false}]. To find rows where 'age' > 25: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"age\",\"operator\":\"GREATER_THAN\",\"value\":[25]}]. Multiple filters are combined with AND logic."
                     },
                     "limit": {
                          "type": "integer",
@@ -218,7 +218,7 @@
                "properties": {
                     "concreteType": {
                          "type": "string",
-                         "description": "Required. Must match the full name of one of the four filter types: 'org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter' or 'org.sagebionetworks.repo.model.grid.query.RowSelectionFilter', or 'org.sagebionetworks.repo.model.grid.query.RowIsValidFilter' or, 'org.sagebionetworks.repo.model.grid.query.CellValueFilter'",
+                         "description": "Required. Must be a properly quoted JSON string matching one of: \"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\", \"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\", or \"org.sagebionetworks.repo.model.grid.query.CellValueFilter\"",
                          "enum": ["org.sagebionetworks.repo.model.grid.query.RowIsValidFilter"]
                     },
                     "value": {
@@ -234,7 +234,7 @@
                "properties": {
                     "concreteType": {
                          "type": "string",
-                         "description": "Required. Must match the full name of one of the four filter types: 'org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter' or 'org.sagebionetworks.repo.model.grid.query.RowSelectionFilter', or 'org.sagebionetworks.repo.model.grid.query.RowIsValidFilter' or, 'org.sagebionetworks.repo.model.grid.query.CellValueFilter'",
+                         "description": "Required. Must be a properly quoted JSON string matching one of: \"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\", \"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\", or \"org.sagebionetworks.repo.model.grid.query.CellValueFilter\"",
                          "enum": ["org.sagebionetworks.repo.model.grid.query.RowSelectionFilter"]
                     },
                     "isSelected": {
@@ -388,7 +388,7 @@
                "properties": {
                     "concreteType": {
                          "type": "string",
-                         "description": "Required. Must match the full name of one of the four filter types: 'org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter' or 'org.sagebionetworks.repo.model.grid.query.RowSelectionFilter', or 'org.sagebionetworks.repo.model.grid.query.RowIsValidFilter' or, 'org.sagebionetworks.repo.model.grid.query.CellValueFilter'",
+                         "description": "Required. Must be a properly quoted JSON string matching one of: \"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\", \"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\", or \"org.sagebionetworks.repo.model.grid.query.CellValueFilter\"",
                          "enum": ["org.sagebionetworks.repo.model.grid.query.CellValueFilter"]
                     },
                     "columnName": {
