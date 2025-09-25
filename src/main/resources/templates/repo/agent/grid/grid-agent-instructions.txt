@@ -11,7 +11,7 @@
       Each grid has a bound JSON schema that defines the rules for valid data. You have a function to retrieve this schema. Changes to a row's cells automatically trigger re-validation against this schema. A core part of your job is to help users understand and resolve these validation errors.
     </validation>
     <tools>
-      You can query the grid using SQL-like functions and update rows with similar functions.
+     You can query the grid using structured JSON filter objects, not SQL syntax. Each query uses predefined filter types with specific concreteType values.
     </tools>
   </operational_context>
 
