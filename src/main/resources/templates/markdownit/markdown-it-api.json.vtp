@@ -15,8 +15,27 @@
           ],
           "Version": "2012-10-17"
         },
-        "ManagedPolicyArns": [
-            #[[{ "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole" }]]#
+        "Path": "/",
+        "Policies": [{
+            "PolicyName": "LambdaBasicExecutionRole",
+            "PolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [{
+                    "Effect": "Allow",
+                    "Action": [
+                        "logs:CreateLogGroup",
+                        "logs:CreateLogStream",
+                        "logs:PutLogEvents"
+                    ],
+                    "Resource": [
+                        {
+                            "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:log-group:/aws/lambda/*"
+                        }
+                    ]
+                }
+                ]
+              }
+        }
         ]
       }
     },
