@@ -28,7 +28,7 @@
           }},
           "/repo/v1/grid/query": {"put": {
                "tags": ["GridAgent"],
-               "description":"Use this function to query grid data using structured filter objects. CRITICAL: The 'filters' parameter must be valid JSON with all strings enclosed in double quotes. Example: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\",\"value\":false}]. Do not use unquoted property names or string values.",
+               "description":"Use this function to query grid data using structured filter objects. CRITICAL: The 'query' parameter must be valid JSON with all strings enclosed in double quotes. Example to query for all columns and rows: {\"columnSelection\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.SelectAll\"}],\"limit\":10}. Do not use unquoted property names or string values.",
                "operationId": "put_repo_v1_grid_query",
                "parameters": [],
                "requestBody": {
@@ -343,18 +343,12 @@
                     "concreteType": {
                          "type": "string",
                          "description": "Required. Full name of the exact type used."
-                    },
-                    "alias": {
-                         "type": "string",
-                         "description": "Optional. Provides an alias to the column selection. For example, 'count(*)' can be aliased as 'count'. The alias should be provided for aggregate functions that are to be used in the 'ORDER BY' clause."
                     }
                },
                "description": "A generic select item.",
                "oneOf": [
                     {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.SelectAll"},
-                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.function.CountStar"},
-                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.ColumnName"},
-                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.UserSelectedColumns"}
+                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.function.CountStar"}
                ],
                "required": ["concreteType"],
                "discriminator": {"propertyName": "concreteType"}
@@ -436,26 +430,6 @@
                },
                "description": "A single row of a grid query result."
           },
-          "org.sagebionetworks.repo.model.grid.query.ColumnName": {
-               "type": "object",
-               "properties": {
-                    "concreteType": {
-                         "type": "string",
-                         "description": "Required. Full name of the exact type used.",
-                         "enum": ["org.sagebionetworks.repo.model.grid.query.ColumnName"]
-                    },
-                    "alias": {
-                         "type": "string",
-                         "description": "Optional. Provides an alias to the column selection. For example, 'count(*)' can be aliased as 'count'. The alias should be provided for aggregate functions that are to be used in the 'ORDER BY' clause."
-                    },
-                    "columnName": {
-                         "type": "string",
-                         "description": "Name of a column."
-                    }
-               },
-               "description": "A SelectItem that is the name of a column.",
-               "required": ["concreteType"]
-          },
           "org.sagebionetworks.repo.model.grid.query.RowIsValidFilter": {
                "type": "object",
                "properties": {
@@ -470,22 +444,6 @@
                     }
                },
                "description": "Use this filter for simple requests to find all 'valid' or 'invalid' rows based on their overall validation status.",
-               "required": ["concreteType"]
-          },
-          "org.sagebionetworks.repo.model.grid.query.UserSelectedColumns": {
-               "type": "object",
-               "properties": {
-                    "concreteType": {
-                         "type": "string",
-                         "description": "Required. Full name of the exact type used.",
-                         "enum": ["org.sagebionetworks.repo.model.grid.query.UserSelectedColumns"]
-                    },
-                    "alias": {
-                         "type": "string",
-                         "description": "Optional. Provides an alias to the column selection. For example, 'count(*)' can be aliased as 'count'. The alias should be provided for aggregate functions that are to be used in the 'ORDER BY' clause."
-                    }
-               },
-               "description": "A SelectItem that will result in the selection of all columns that the user currently has selected.",
                "required": ["concreteType"]
           },
           "org.sagebionetworks.repo.model.grid.query.RowSelectionFilter": {
