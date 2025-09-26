@@ -18,8 +18,7 @@
           "/repo/v1/grid/feature/request": {"put": {
                "tags": ["GridAgent"],
                "description": "Submit a feature request to enhance Grid Agent capabilities for tabular data curation. Agents can specify the desired functionality, category, priority level, use case, and target user role.",
-               "description":"Use this function to query grid data using structured filter objects. CRITICAL: The 'query' parameter must be valid JSON with all strings enclosed in double quotes. Example to query for all columns and rows: {\"columnSelection\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.SelectAll\"}],\"limit\":10}. Do not use unquoted property names or string values.",
-               "operationId": "put_repo_v1_grid_query",
+               "operationId": "put_repo_v1_grid_feature_request",
                "parameters": [],
                "requestBody": {
                     "content": {"application/json": {"schema": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.AgentFeatureRequest"}}},
@@ -29,7 +28,8 @@
           }},
           "/repo/v1/grid/query": {"put": {
                "tags": ["GridAgent"],
-               "operationId": "put-/repo/v1/grid/query",
+               "description":"Use this function to query grid data using structured filter objects. CRITICAL: The 'query' parameter must be valid JSON with all strings enclosed in double quotes. Example to query for all columns and rows: {\"columnSelection\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.SelectAll\"}],\"limit\":10}. Do not use unquoted property names or string values.",
+               "operationId": "put_repo_v1_grid_query",
                "parameters": [],
                "requestBody": {
                     "content": {"application/json": {"schema": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.QueryRequest"}}},
