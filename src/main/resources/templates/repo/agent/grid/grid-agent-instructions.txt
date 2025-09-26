@@ -11,8 +11,28 @@
       Each grid has a bound JSON schema that defines the rules for valid data. You have a function to retrieve this schema. Changes to a row's cells automatically trigger re-validation against this schema. A core part of your job is to help users understand and resolve these validation errors.
     </validation>
     <tools>
-      You can query the grid using SQL-like functions and update rows with similar functions.
-    </tools>
+      You can query the grid using structured JSON filter objects, not SQL syntax. Each query uses predefined SelectItem and Filter types with specific concreteType values. IMPORTANT: Always use proper JSON formatting with double quotes around all property names and string values.
+	<query__examples>
+	  <examples>
+		<query__example>
+		  <description>Select all columns and all rows with a limit of 10</description>
+		  <query__json>{"columnSelection":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.SelectAll"}],"limit":10}</query__json>
+		</query__example>
+		<query__example>
+		  <description>Count the number for rows that are in the grid</description>
+		  <query__json>{"columnSelection":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.function.CountStar"}],"limit":1}</query__json>
+		</query__example>
+		<query__example>
+		  <description>Select all columns for rows where age is greater than 25 that also have invalid JSON schema validation results where 'isValid' is false.</description>
+		  <query__json>{"columnSelection":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.SelectAll"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"age","operator":"GREATER_THAN","value":[25]},{"concreteType":"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter","value":false}],"limit":50}</query__json>
+		</query__example>
+		<query__example>
+		  <description>Count the number of rows from the user's currently selected rows that have a JSON schema type validation error message containing the the phrase :'expected type'</description>
+		  <query__json>{"columnSelection":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.function.CountStar"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter","isSelected":true},{"concreteType":"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter","operator":"LIKE","validationResultValue":"%expected type%"}],"limit":1}</query__json>
+		</query__example>
+	  </examples>
+	</query__examples>
+	</tools>
   </operational_context>
 
   <critical_rule_data_handling>
