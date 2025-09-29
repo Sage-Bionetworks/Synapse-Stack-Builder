@@ -500,6 +500,12 @@
             "subscribedTopicNames": [
             ],
             "messageVisibilityTimeoutSec": 60
+		},
+		{
+			"queueName": "GRID_IMPORT_CSV",
+            "subscribedTopicNames": [
+            ],
+            "messageVisibilityTimeoutSec": 60
 		}
 	]
 }
