@@ -8,4 +8,5 @@ Action=SendMessage&MessageBody=$util.urlEncode($input.body)
 &MessageAttribute.3.Name=EventSource
 &MessageAttribute.3.Value.DataType=String
 &MessageAttribute.3.Value.StringValue=WEBSOCKET
-&MessageGroupId=ConnectionId
+&MessageGroupId=$context.connectionId
+&MessageDeduplicationId=$context.requestId
