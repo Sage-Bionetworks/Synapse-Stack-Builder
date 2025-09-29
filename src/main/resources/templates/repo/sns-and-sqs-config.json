@@ -457,8 +457,7 @@
 			"subscribedTopicNames": [
 			],
 			"messageVisibilityTimeoutSec": 30,
-			"oldestMessageInQueueAlarmThresholdSec": 10,
-			"deadLetterQueueMaxFailureCount": 3
+			"oldestMessageInQueueAlarmThresholdSec": 10
 		},
 		{
 			"queueName": "GRID_CREATE",
