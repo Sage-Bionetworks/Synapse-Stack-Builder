@@ -453,7 +453,7 @@
 			"messageVisibilityTimeoutSec": 60
 		},
 		{
-			"queueName": "GRID_WEBSOCKET_MESSAGE",
+			"queueName": "GRID_WEBSOCKET_MESSAGE.fifo",
 			"subscribedTopicNames": [
 			],
 			"messageVisibilityTimeoutSec": 30,
@@ -468,7 +468,7 @@
 			"oldestMessageInQueueAlarmThresholdSec": 30
 		},
 		{
-			"queueName": "GRID_INTERNAL_EVENT",
+			"queueName": "GRID_INTERNAL_EVENT.fifo",
 			"subscribedTopicNames": [
 			],
 			"messageVisibilityTimeoutSec": 30,

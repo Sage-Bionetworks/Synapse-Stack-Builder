@@ -71,7 +71,7 @@ public class GridTemplatesTest {
 		// Parse the resulting template
 		String rawResult = stringWriter.toString();
 		String[] resultSplit = rawResult.split("&");
-		assertEquals(11, resultSplit.length);
+		assertEquals(12, resultSplit.length);
 		assertEquals("Action=SendMessage", resultSplit[0]);
 		String[] message = resultSplit[1].split("=");
 		assertEquals(2, message.length);
@@ -93,6 +93,7 @@ public class GridTemplatesTest {
 		assertEquals("MessageAttribute.3.Name=EventSource", resultSplit[8]);
 		assertEquals("MessageAttribute.3.Value.DataType=String", resultSplit[9]);
 		assertEquals("MessageAttribute.3.Value.StringValue=WEBSOCKET", resultSplit[10]);
+		assertEquals("MessageGroupId=ConnectionId", resultSplit[11]);
 	}
 
 	@Test
@@ -108,7 +109,7 @@ public class GridTemplatesTest {
 		// Parse the resulting template
 		String rawResult = stringWriter.toString();
 		String[] resultSplit = rawResult.split("&");
-		assertEquals(11, resultSplit.length);
+		assertEquals(12, resultSplit.length);
 		assertEquals("Action=SendMessage", resultSplit[0]);
 		String[] message = resultSplit[1].split("=");
 		assertEquals(2, message.length);
@@ -129,6 +130,7 @@ public class GridTemplatesTest {
 		assertEquals("MessageAttribute.3.Name=EventSource", resultSplit[8]);
 		assertEquals("MessageAttribute.3.Value.DataType=String", resultSplit[9]);
 		assertEquals("MessageAttribute.3.Value.StringValue=WEBSOCKET", resultSplit[10]);
+		assertEquals("MessageGroupId=ConnectionId", resultSplit[11]);
 	}
 
 	@Test
@@ -144,7 +146,7 @@ public class GridTemplatesTest {
 		// Parse the resulting template
 		String rawResult = stringWriter.toString();
 		String[] resultSplit = rawResult.split("&");
-		assertEquals(11, resultSplit.length);
+		assertEquals(12, resultSplit.length);
 		assertEquals("Action=SendMessage", resultSplit[0]);
 		String[] message = resultSplit[1].split("=");
 		assertEquals(2, message.length);
@@ -165,6 +167,8 @@ public class GridTemplatesTest {
 		assertEquals("MessageAttribute.3.Name=EventSource", resultSplit[8]);
 		assertEquals("MessageAttribute.3.Value.DataType=String", resultSplit[9]);
 		assertEquals("MessageAttribute.3.Value.StringValue=WEBSOCKET", resultSplit[10]);
+		
+		assertEquals("MessageGroupId=ConnectionId", resultSplit[11]);
 	}
 
 	@Test
