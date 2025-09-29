@@ -4,6 +4,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
 import java.util.StringJoiner;
+import java.util.UUID;
 
 import org.apache.velocity.VelocityContext;
 import org.json.JSONArray;
@@ -36,7 +37,7 @@ public class BedrockGridAgentContextProvider implements VelocityContextProvider 
 		String agentName = new StringJoiner("-").add(stack).add(instance).add("grid").add("agent").toString();
 
 		String openApiSchemaBucket = String.format("%s-configuration.sagebase.org", stack);
-		String openApiSchemakey = String.format("chat/openapi/grid/%s.json", instance);
+		String openApiSchemakey = String.format("chat/openapi/grid/%s/%s.json", instance, UUID.randomUUID().toString());
 
 		String openApiSchemJsonString = TemplateUtils
 				.loadContentFromFile("templates/repo/agent/grid/grid_agent_open_api.json");

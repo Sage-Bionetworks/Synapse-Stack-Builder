@@ -27,26 +27,60 @@
 							"Statement": [{
 								"Effect": "Allow",
 								"Action": [
-									"glue:*",
-									"cloudwatch:PutMetricData"
+									"glue:*"
 								],
-								"Resource": "*"
-							}]
-						}
-					},
-					{
-						"PolicyName": "IAM",
-						"PolicyDocument": {
-							"Version": "2012-10-17",
-							"Statement": [{
-								"Effect": "Allow",
-								"Action": [
-									"iam:ListRolePolicies",
-									"iam:GetRole",
-									"iam:GetRolePolicy"
-								],
-								"Resource": "*"
-							}]
+								"Resource": [
+								    {
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:catalog*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:crawler*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:connection*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:trigger*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:workflow*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:session*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:registry*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:schema*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:completion*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:job*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:database*"
+                                	},
+                                	{
+                                	    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:table/*/*"
+                                	}
+								]
+							},
+							{
+                            	"Action": [
+                            	    "cloudwatch:PutMetricData"
+                            	],
+                            	"Resource": "*",
+                            	"Condition": {
+                            	    "StringLike": {
+                            		    "cloudwatch:namespace": "Glue/*"
+                            		}
+                            	},
+                            	"Effect": "Allow"
+                            }
+							]
 						}
 					},
 					{
@@ -101,7 +135,9 @@
 									"logs:PutLogEvents"
 								],
 								"Resource": [
-									"arn:aws:logs:*:*:/aws-glue/*"
+								{
+								    "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:/aws-glue/*"
+								}
 								]
 							}]
 						}
