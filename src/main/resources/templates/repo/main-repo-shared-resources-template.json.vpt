@@ -498,30 +498,68 @@
                          {
                              "Effect": "Allow",
                              "Action": [
-                                 "apigateway:*"
+                                "apigateway:DELETE",
+                                "apigateway:GET",
+                                "apigateway:PATCH",
+                                "apigateway:POST",
+                                "apigateway:PUT"
                              ],
-                             "Resource": "*"
+                             "Resource": [
+                                 {
+                                     "Fn::Sub": "arn:aws:apigateway:#[[${AWS::Region}]]#::/account"
+                                 },
+                                 {
+                                     "Fn::Sub": "arn:aws:apigateway:#[[${AWS::Region}]]#::/apikeys*"
+                                 },
+                                 {
+                                     "Fn::Sub": "arn:aws:apigateway:#[[${AWS::Region}]]#::/restapis*"
+                                 },
+                                 {
+                                     "Fn::Sub": "arn:aws:apigateway:#[[${AWS::Region}]]#::/domainnames*"
+                                 },
+                                 {
+                                     "Fn::Sub": "arn:aws:apigateway:#[[${AWS::Region}]]#::/clientcertificates*"
+                                 },
+                                 {
+                                     "Fn::Sub": "arn:aws:apigateway:#[[${AWS::Region}]]#::/restapis*"
+                                 },
+                                 {
+                                     "Fn::Sub": "arn:aws:apigateway:#[[${AWS::Region}]]#::/domainnameaccessassociations*"
+                                 },
+                                 {
+                                     "Fn::Sub": "arn:aws:apigateway:#[[${AWS::Region}:${AWS::AccountId}]]#:/domainnames*"
+                                 },
+                                 {
+                                     "Fn::Sub": "arn:aws:apigateway:#[[${AWS::Region}]]#::/usageplans*"
+                                 },
+                                 {
+                                     "Fn::Sub": "arn:aws:apigateway:#[[${AWS::Region}]]#::/vpclinks*"
+                                 },
+                                 {
+                                     "Fn::Sub": "arn:aws:apigateway:#[[${AWS::Region}]]#::/tags*"
+                                 }
+                             ]
                          },
                          {
                              "Effect": "Allow",
                              "Action": [
-                                 "aoss:APIAccessAll",
-                                 "aoss:BatchGetCollection",
-                                 "aoss:CreateAccessPolicy",
-                                 "aoss:CreateCollection",
-                                 "aoss:CreateIndex",
-                                 "aoss:CreateSecurityPolicy",
-                                 "aoss:DeleteAccessPolicy",
-                                 "aoss:DeleteCollection",
-                                 "aoss:DeleteIndex",
-                                 "aoss:DeleteSecurityPolicy",
-                                 "aoss:GetIndex",
-                                 "aoss:GetAccessPolicy",
-                                 "aoss:GetSecurityPolicy",
-                                 "aoss:"UpdateAccessPolicy",
-                                 "aoss:UpdateCollection",
-                                 "aoss:UpdateIndex",
-                                 "aoss:UpdateSecurityPolicy"
+                                "aoss:APIAccessAll",
+                                "aoss:BatchGetCollection",
+                                "aoss:CreateAccessPolicy",
+                                "aoss:CreateCollection",
+                                "aoss:CreateIndex",
+                                "aoss:CreateSecurityPolicy",
+                                "aoss:DeleteAccessPolicy",
+                                "aoss:DeleteCollection",
+                                "aoss:DeleteIndex",
+                                "aoss:DeleteSecurityPolicy",
+                                "aoss:GetIndex",
+                                "aoss:GetAccessPolicy",
+                                "aoss:GetSecurityPolicy",
+                                "aoss:UpdateAccessPolicy",
+                                "aoss:UpdateCollection",
+                                "aoss:UpdateIndex",
+                                "aoss:UpdateSecurityPolicy"
                              ],
                              "Resource": [
                                 {
