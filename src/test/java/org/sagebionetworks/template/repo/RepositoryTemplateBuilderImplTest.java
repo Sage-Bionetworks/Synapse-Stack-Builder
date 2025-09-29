@@ -435,9 +435,23 @@ public class RepositoryTemplateBuilderImplTest {
 		JSONObject bedrockAgentProps = resources.getJSONObject("bedrockAgent").getJSONObject("Properties");
 		
 		assertEquals("prod-101-agent", bedrockAgentProps.get("AgentName"));
+
+		ArgumentCaptor<PutObjectRequest> putObjectRequestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
+		ArgumentCaptor<RequestBody> requestBodyCaptor = ArgumentCaptor.forClass(RequestBody.class);
+		verify(mockS3Client, times(2)).putObject(putObjectRequestCaptor.capture(), requestBodyCaptor.capture());
+
+		List<PutObjectRequest> putObjectRequests = putObjectRequestCaptor.getAllValues();
+		assertEquals(2, putObjectRequests.size());
+		List<RequestBody> requestBodies = requestBodyCaptor.getAllValues();
+		assertEquals(2, requestBodies.size());
+		PutObjectRequest putObjectRequest1 = putObjectRequests.get(0);
+		PutObjectRequest putObjectRequest2 = putObjectRequests.get(1);
+		RequestBody requestBody1 = requestBodies.get(0);
+		RequestBody requestBody2 = requestBodies.get(1);
 		
-		validateOpenApiSchema(bedrockAgentProps);
-		
+		validateOpenApiSchema(bedrockAgentProps, putObjectRequest1, requestBody1);
+		// TODO: validate 2nd call Q: why was it not 2 calls in develop?
+
 		assertTrue(resources.getJSONObject("GridApiGatewaySQSRole").toString().contains(gridQueueRef));
 		assertTrue(resources.getJSONObject("GridWebsocketApi").toString().contains("prod-101-grid-websocket"));
 		
@@ -460,7 +474,7 @@ public class RepositoryTemplateBuilderImplTest {
 	
 	}
 
-	void validateOpenApiSchema(JSONObject bedrockAgentProps) throws Exception {
+	void validateOpenApiSchema(JSONObject bedrockAgentProps, PutObjectRequest putObjectRequest, RequestBody requestBody) throws Exception {
 
 		JSONObject s3 = bedrockAgentProps.getJSONArray("ActionGroups").getJSONObject(1).getJSONObject("ApiSchema")
 				.getJSONObject("S3");
@@ -469,14 +483,8 @@ public class RepositoryTemplateBuilderImplTest {
 		String openApiKey = s3.getString("S3ObjectKey");
 		assertEquals("chat/openapi/101.json",s3.getString("S3ObjectKey"));
 
-		ArgumentCaptor<PutObjectRequest> putObjectRequestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
-		ArgumentCaptor<RequestBody> requestBodyCaptor = ArgumentCaptor.forClass(RequestBody.class);
-		verify(mockS3Client).putObject(putObjectRequestCaptor.capture(), requestBodyCaptor.capture());
-
-		PutObjectRequest putObjectRequest = putObjectRequestCaptor.getValue();
 		assertEquals("prod-configuration.sagebase.org", putObjectRequest.bucket());
 		assertEquals("chat/openapi/101.json", putObjectRequest.key());
-		RequestBody requestBody = requestBodyCaptor.getValue();
 		JSONObject openApiSchema = new JSONObject(requestBodyToString(requestBody));
 		assertTrue(openApiSchema.has("openapi"));
 		assertTrue(openApiSchema.has("info"));
