@@ -431,10 +431,12 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.has("bedrockGridAgent"));
 		
 		assertTrue(resources.getJSONObject("bedrockAgentRole").toString().contains("arn:aws:s3:::prod-configuration.sagebase.org/chat/openapi/101.json"));
-		
 		JSONObject bedrockAgentProps = resources.getJSONObject("bedrockAgent").getJSONObject("Properties");
-		
 		assertEquals("prod-101-agent", bedrockAgentProps.get("AgentName"));
+
+		assertTrue(resources.getJSONObject("bedrockGridAgentRole").toString().contains("arn:aws:s3:::prod-configuration.sagebase.org/chat/openapi/"));
+		JSONObject bedrockGridAgentProps = resources.getJSONObject("bedrockGridAgent").getJSONObject("Properties");
+		assertEquals("prod-101-grid-agent", bedrockGridAgentProps.get("AgentName"));
 
 		ArgumentCaptor<PutObjectRequest> putObjectRequestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
 		ArgumentCaptor<RequestBody> requestBodyCaptor = ArgumentCaptor.forClass(RequestBody.class);
@@ -449,8 +451,8 @@ public class RepositoryTemplateBuilderImplTest {
 		RequestBody requestBody1 = requestBodies.get(0);
 		RequestBody requestBody2 = requestBodies.get(1);
 		
-		validateOpenApiSchema(bedrockAgentProps, putObjectRequest1, requestBody1);
-		// TODO: validate 2nd call Q: why was it not 2 calls in develop?
+		validateOpenApiSchemaBedrockAgent(bedrockAgentProps, putObjectRequest1, requestBody1);
+		validateOpenApiSchemaBedrockGridAgent(bedrockGridAgentProps, putObjectRequest2, requestBody2);
 
 		assertTrue(resources.getJSONObject("GridApiGatewaySQSRole").toString().contains(gridQueueRef));
 		assertTrue(resources.getJSONObject("GridWebsocketApi").toString().contains("prod-101-grid-websocket"));
@@ -474,8 +476,9 @@ public class RepositoryTemplateBuilderImplTest {
 	
 	}
 
-	void validateOpenApiSchema(JSONObject bedrockAgentProps, PutObjectRequest putObjectRequest, RequestBody requestBody) throws Exception {
+	void validateOpenApiSchemaBedrockAgent(JSONObject bedrockAgentProps, PutObjectRequest putObjectRequest, RequestBody requestBody) throws Exception {
 
+		assertEquals(2, bedrockAgentProps.getJSONArray("ActionGroups").length());
 		JSONObject s3 = bedrockAgentProps.getJSONArray("ActionGroups").getJSONObject(1).getJSONObject("ApiSchema")
 				.getJSONObject("S3");
 		String openApiBucket = s3.getString("S3BucketName");
@@ -485,6 +488,25 @@ public class RepositoryTemplateBuilderImplTest {
 
 		assertEquals("prod-configuration.sagebase.org", putObjectRequest.bucket());
 		assertEquals("chat/openapi/101.json", putObjectRequest.key());
+		JSONObject openApiSchema = new JSONObject(requestBodyToString(requestBody));
+		assertTrue(openApiSchema.has("openapi"));
+		assertTrue(openApiSchema.has("info"));
+		assertTrue(openApiSchema.has("paths"));
+	}
+
+	void validateOpenApiSchemaBedrockGridAgent(JSONObject bedrockAgentProps, PutObjectRequest putObjectRequest, RequestBody requestBody) throws Exception {
+
+		assertEquals(1, bedrockAgentProps.getJSONArray("ActionGroups").length());
+		JSONObject s3 = bedrockAgentProps.getJSONArray("ActionGroups").getJSONObject(0).getJSONObject("ApiSchema")
+				.getJSONObject("S3");
+		String openApiBucket = s3.getString("S3BucketName");
+		assertEquals("prod-configuration.sagebase.org", openApiBucket);
+		String openApiKey = s3.getString("S3ObjectKey");
+		String expectedS3ObjectKeyPrefix = "chat/openapi/grid/" + instance;
+		assertTrue(openApiKey.startsWith(expectedS3ObjectKeyPrefix));
+
+		assertEquals("prod-configuration.sagebase.org", putObjectRequest.bucket());
+		assertTrue(putObjectRequest.key().startsWith(expectedS3ObjectKeyPrefix));
 		JSONObject openApiSchema = new JSONObject(requestBodyToString(requestBody));
 		assertTrue(openApiSchema.has("openapi"));
 		assertTrue(openApiSchema.has("info"));
