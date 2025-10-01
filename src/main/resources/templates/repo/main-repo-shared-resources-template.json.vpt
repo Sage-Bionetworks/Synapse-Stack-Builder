@@ -487,14 +487,93 @@
                         {
                             "Effect": "Allow",
                             "Action": [
-                                "logs:*"
+                                "logs:CreateLogGroup",
+                                "logs:CreateLogStream",
+                                "logs:DeleteLogGroup",
+                                "logs:DeleteLogStream",
+                                "logs:DescribeDeliveries",
+                                "logs:DescribeDeliveryDestinations",
+                                "logs:DescribeDeliverySources",
+                                "logs:DescribeDestinations",
+                                "logs:DescribeFieldIndexes",
+                                "logs:DescribeIndexPolicies",
+                                "logs:DescribeLogGroups",
+                                "logs:DescribeLogStreams",
+                                "logs:DescribeQueries",
+                                "logs:DescribeQueryDefinitions",
+                                "logs:DescribeResourcePolicies",
+                                "logs:FilterLogEvents",
+                                "logs:GetLogEvents",
+                                "logs:GetLogGroupFields",
+                                "logs:GetLogRecord",
+                                "logs:GetQueryResults",
+                                "logs:GetTransformer",
+                                "logs:ListLogGroups",
+                                "logs:ListTagsForResource",
+                                "logs:PutLogEvents",
+                                "logs:PutRetentionPolicy",
+                                "logs:StartQuery"
                             ],
-                            "Resource": "*"
+                            "Resource": [
+                                {
+                                  "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:log-group*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:destination*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:delivery*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#::anomaly-detector*"
+                                }
+                            ]
                         },
                         {
                             "Effect": "Allow",
-                            "Action": "elasticbeanstalk:*",
-                            "Resource": "*"
+                            "Action": [
+                            "elasticbeanstalk:AddTags",
+                            "elasticbeanstalk:ComposeEnvironments",
+                            "elasticbeanstalk:CreateApplication",
+                            "elasticbeanstalk:CreateApplicationVersion",
+                            "elasticbeanstalk:CreateConfigurationTemplate",
+                            "elasticbeanstalk:CreateEnvironment",
+                            "elasticbeanstalk:DeleteApplication",
+                            "elasticbeanstalk:DeleteApplicationVersion",
+                            "elasticbeanstalk:DeleteConfigurationTemplate",
+                            "elasticbeanstalk:DescribeApplications",
+                            "elasticbeanstalk:DescribeApplicationVersions",
+                            "elasticbeanstalk:DescribeConfigurationSettings",
+                            "elasticbeanstalk:DescribeEnvironmentHealth",
+                            "elasticbeanstalk:DescribeEnvironments",
+                            "elasticbeanstalk:DescribePlatformVersion",
+                            "elasticbeanstalk:ListPlatformVersions",
+                            "elasticbeanstalk:ListTagsForResource",
+                            "elasticbeanstalk:RebuildEnvironment",
+                            "elasticbeanstalk:RemoveTags",
+                            "elasticbeanstalk:UpdateApplication",
+                            "elasticbeanstalk:UpdateApplicationVersion",
+                            "elasticbeanstalk:UpdateConfigurationTemplate",
+                            "elasticbeanstalk:UpdateEnvironment",
+                            "elasticbeanstalk:UpdateTagsForResource"
+                            ],
+                            "Resource": [
+                                {
+                                  "Fn::Sub": "arn:aws:elasticbeanstalk:#[[${AWS::Region}:${AWS::AccountId}]]#:application*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:elasticbeanstalk:#[[${AWS::Region}:${AWS::AccountId}]]#:configurationtemplate/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:elasticbeanstalk:#[[${AWS::Region}:${AWS::AccountId}]]#:environment/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:elasticbeanstalk:#[[${AWS::Region}]]#::solutionstack/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:elasticbeanstalk:#[[${AWS::Region}]]#::platform/*"
+                                },
+                            ]
                         },
                         {
                              "Effect": "Allow",
