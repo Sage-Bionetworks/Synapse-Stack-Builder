@@ -458,9 +458,36 @@
                         {
                             "Effect": "Allow",
                             "Action": [
-                                "glue:*"
+                                "glue:BatchCreatePartition",
+                                "glue:BatchGetPartition",
+                                "glue:CreateDatabase",
+                                "glue:CreateTable",
+                                "glue:DeleteDatabase",
+                                "glue:DeleteTable",
+                                "glue:UpdateTable",
+                                "glue:UpdateDatabase",
+                                "glue:GetTables",
+                                "glue:GetTable",
+                                "glue:GetDatabase",
+                                "glue:GetDatabases",
+                                "glue:GetPartitions"
                             ],
-                            "Resource": "*"
+                            "Resource": [
+                                {
+                                    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:catalog*"
+                                },
+                                {
+                                    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:database*"
+                                },
+                                {
+                                    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:table*"
+                                }
+                            ],
+                            "Condition": {
+                                    "StringEquals": {
+                                        "glue:LakeFormationPermissions": "true"
+                                    }
+                                }
                         },
                         {
                             "Effect": "Allow",
