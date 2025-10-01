@@ -8,3 +8,5 @@ Action=SendMessage&MessageBody=$util.urlEncode(\"[8,\"\"connection\"\",{\"\"grid
 &MessageAttribute.3.Name=EventSource
 &MessageAttribute.3.Value.DataType=String
 &MessageAttribute.3.Value.StringValue=WEBSOCKET
+&MessageGroupId=$context.connectionId
+&MessageDeduplicationId=$context.requestId
