@@ -408,27 +408,7 @@
                             "Resource": "*"
                         },
                         {
-                            "Action": "sns:*",
-                            "Effect": "Allow",
-                            "Resource": "*"
-                        },
-                        {
-                            "Action": "sqs:*",
-                            "Effect": "Allow",
-                            "Resource": "*"
-                        },
-                        {
                             "Action": "cloudwatch:*",
-                            "Effect": "Allow",
-                            "Resource": "*"
-                        },
-                        {
-                            "Action": "cloudsearch:*",
-                            "Effect": "Allow",
-                            "Resource": "*"
-                        },
-                        {
-                            "Action": "ses:*",
                             "Effect": "Allow",
                             "Resource": "*"
                         },
@@ -444,117 +424,9 @@
                         {
                             "Effect": "Allow",
                             "Action": [
-                                "firehose:*"
-                            ],
-                            "Resource": "*"
-                        },
-                        {
-                            "Effect": "Allow",
-                            "Action": [
-                                "kinesis:*"
-                            ],
-                            "Resource": "*"
-                        },
-                        {
-                            "Effect": "Allow",
-                            "Action": [
-                                "glue:BatchCreatePartition",
-                                "glue:BatchGetPartition",
-                                "glue:CreateDatabase",
-                                "glue:CreateTable",
-                                "glue:DeleteDatabase",
-                                "glue:DeleteTable",
-                                "glue:UpdateTable",
-                                "glue:UpdateDatabase",
-                                "glue:GetTables",
-                                "glue:GetTable",
-                                "glue:GetDatabase",
-                                "glue:GetDatabases",
-                                "glue:GetPartitions"
-                            ],
-                            "Resource": [
-                                {
-                                    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:catalog*"
-                                },
-                                {
-                                    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:database*"
-                                },
-                                {
-                                    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:table*"
-                                }
-                            ],
-                            "Condition": {
-                                    "StringEquals": {
-                                        "glue:LakeFormationPermissions": "true"
-                                    }
-                                }
-                        },
-                        {
-                            "Effect": "Allow",
-                            "Action": [
-                                "athena:BatchGetQueryExecution",
-                                "athena:GetQueryExecution",
-                                "athena:GetQueryResults",
-                                "athena:StartQueryExecution",
-                                "athena:StopQueryExecution"
-                            ],
-                            "Resource": [
-                                {
-                                    "Fn::Sub": "arn:aws:athena:#[[${AWS::Region}:${AWS::AccountId}]]#:workgroup/*"
-                                }
-                            ]
-                        },
-                        {
-                            "Effect": "Allow",
-                            "Action": [
                                 "sts:AssumeRole"
                             ],
                             "Resource": "*"
-                        },
-                        {
-                            "Effect": "Allow",
-                            "Action": [
-                                "logs:CreateLogGroup",
-                                "logs:CreateLogStream",
-                                "logs:DeleteLogGroup",
-                                "logs:DeleteLogStream",
-                                "logs:DescribeDeliveries",
-                                "logs:DescribeDeliveryDestinations",
-                                "logs:DescribeDeliverySources",
-                                "logs:DescribeDestinations",
-                                "logs:DescribeFieldIndexes",
-                                "logs:DescribeIndexPolicies",
-                                "logs:DescribeLogGroups",
-                                "logs:DescribeLogStreams",
-                                "logs:DescribeQueries",
-                                "logs:DescribeQueryDefinitions",
-                                "logs:DescribeResourcePolicies",
-                                "logs:FilterLogEvents",
-                                "logs:GetLogEvents",
-                                "logs:GetLogGroupFields",
-                                "logs:GetLogRecord",
-                                "logs:GetQueryResults",
-                                "logs:GetTransformer",
-                                "logs:ListLogGroups",
-                                "logs:ListTagsForResource",
-                                "logs:PutLogEvents",
-                                "logs:PutRetentionPolicy",
-                                "logs:StartQuery"
-                            ],
-                            "Resource": [
-                                {
-                                  "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:log-group*"
-                                },
-                                {
-                                  "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:destination*"
-                                },
-                                {
-                                  "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:delivery*"
-                                },
-                                {
-                                  "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#::anomaly-detector*"
-                                }
-                            ]
                         },
                         {
                             "Effect": "Allow",
@@ -773,36 +645,6 @@
                          {
                              "Effect": "Allow",
                              "Action": [
-                                "aoss:APIAccessAll",
-                                "aoss:BatchGetCollection",
-                                "aoss:CreateAccessPolicy",
-                                "aoss:CreateCollection",
-                                "aoss:CreateIndex",
-                                "aoss:CreateSecurityPolicy",
-                                "aoss:DeleteAccessPolicy",
-                                "aoss:DeleteCollection",
-                                "aoss:DeleteIndex",
-                                "aoss:DeleteSecurityPolicy",
-                                "aoss:GetIndex",
-                                "aoss:GetAccessPolicy",
-                                "aoss:GetSecurityPolicy",
-                                "aoss:UpdateAccessPolicy",
-                                "aoss:UpdateCollection",
-                                "aoss:UpdateIndex",
-                                "aoss:UpdateSecurityPolicy"
-                             ],
-                             "Resource": [
-                                {
-                                    "Fn::Sub": "arn:aws:aoss:#[[${AWS::Region}:${AWS::AccountId}]]#:collection/*"
-                                },
-                                {
-                                    "Fn::Sub": "arn:aws:aoss:#[[${AWS::Region}:${AWS::AccountId}]]#:dashboards/default"
-                                }
-                             ]
-                         },
-                         {
-                             "Effect": "Allow",
-                             "Action": [
                                  "execute-api:*"
                              ],
                              "Resource": "*"
@@ -810,6 +652,194 @@
                     ]
 		        }
 		    }
+        },
+        "${stack}${instance}SynapesRepoWorkersSearchAndLogsManagedPolicy": {
+        		    "Type": "AWS::IAM::ManagedPolicy",
+        		    "Properties": {
+        		        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                     "Effect": "Allow",
+                                     "Action": [
+                                        "aoss:APIAccessAll",
+                                        "aoss:BatchGetCollection",
+                                        "aoss:CreateAccessPolicy",
+                                        "aoss:CreateCollection",
+                                        "aoss:CreateIndex",
+                                        "aoss:CreateSecurityPolicy",
+                                        "aoss:DeleteAccessPolicy",
+                                        "aoss:DeleteCollection",
+                                        "aoss:DeleteIndex",
+                                        "aoss:DeleteSecurityPolicy",
+                                        "aoss:GetIndex",
+                                        "aoss:GetAccessPolicy",
+                                        "aoss:GetSecurityPolicy",
+                                        "aoss:UpdateAccessPolicy",
+                                        "aoss:UpdateCollection",
+                                        "aoss:UpdateIndex",
+                                        "aoss:UpdateSecurityPolicy"
+                                     ],
+                                     "Resource": [
+                                        {
+                                            "Fn::Sub": "arn:aws:aoss:#[[${AWS::Region}:${AWS::AccountId}]]#:collection/*"
+                                        },
+                                        {
+                                            "Fn::Sub": "arn:aws:aoss:#[[${AWS::Region}:${AWS::AccountId}]]#:dashboards/default"
+                                        }
+                                     ]
+                                },
+                                {
+                                    "Action": "cloudsearch:*",
+                                    "Effect": "Allow",
+                                    "Resource": "*"
+                                },
+                                {
+                                     "Effect": "Allow",
+                                     "Action": [
+                                         "logs:CreateLogGroup",
+                                         "logs:CreateLogStream",
+                                         "logs:DeleteLogGroup",
+                                         "logs:DeleteLogStream",
+                                         "logs:DescribeDeliveries",
+                                         "logs:DescribeDeliveryDestinations",
+                                         "logs:DescribeDeliverySources",
+                                         "logs:DescribeDestinations",
+                                         "logs:DescribeFieldIndexes",
+                                         "logs:DescribeIndexPolicies",
+                                         "logs:DescribeLogGroups",
+                                         "logs:DescribeLogStreams",
+                                         "logs:DescribeQueries",
+                                         "logs:DescribeQueryDefinitions",
+                                         "logs:DescribeResourcePolicies",
+                                         "logs:FilterLogEvents",
+                                         "logs:GetLogEvents",
+                                         "logs:GetLogGroupFields",
+                                         "logs:GetLogRecord",
+                                         "logs:GetQueryResults",
+                                         "logs:GetTransformer",
+                                         "logs:ListLogGroups",
+                                         "logs:ListTagsForResource",
+                                         "logs:PutLogEvents",
+                                         "logs:PutRetentionPolicy",
+                                         "logs:StartQuery"
+                                     ],
+                                     "Resource": [
+                                         {
+                                           "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:log-group*"
+                                         },
+                                         {
+                                           "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:destination*"
+                                         },
+                                         {
+                                           "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:delivery*"
+                                         },
+                                         {
+                                           "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#::anomaly-detector*"
+                                         }
+                                     ]
+                                }
+                            ]
+                        }
+                    }
+        },
+        "${stack}${instance}SynapesRepoWorkersNotificationManagedPolicy": {
+                		    "Type": "AWS::IAM::ManagedPolicy",
+                		    "Properties": {
+                		        "PolicyDocument": {
+                                    "Version": "2012-10-17",
+                                    "Statement": [
+                                        {
+                                            "Action": "sns:*",
+                                            "Effect": "Allow",
+                                            "Resource": "*"
+                                        },
+                                        {
+                                            "Action": "sqs:*",
+                                            "Effect": "Allow",
+                                            "Resource": "*"
+                                        },
+                                        {
+                                            "Action": "ses:*",
+                                            "Effect": "Allow",
+                                            "Resource": "*"
+                                        }
+                                    ]
+                                }
+                            }
+        },
+        "${stack}${instance}SynapesRepoWorkersStreamingDataAnalyticsManagedPolicy": {
+                        		    "Type": "AWS::IAM::ManagedPolicy",
+                        		    "Properties": {
+                        		        "PolicyDocument": {
+                                            "Version": "2012-10-17",
+                                            "Statement": [
+                                                {
+                                                    "Effect": "Allow",
+                                                    "Action": [
+                                                        "firehose:*"
+                                                    ],
+                                                    "Resource": "*"
+                                                },
+                                                {
+                                                    "Effect": "Allow",
+                                                    "Action": [
+                                                        "kinesis:*"
+                                                    ],
+                                                    "Resource": "*"
+                                                },
+                                                {
+                                                    "Effect": "Allow",
+                                                    "Action": [
+                                                        "glue:BatchCreatePartition",
+                                                        "glue:BatchGetPartition",
+                                                        "glue:CreateDatabase",
+                                                        "glue:CreateTable",
+                                                        "glue:DeleteDatabase",
+                                                        "glue:DeleteTable",
+                                                        "glue:UpdateTable",
+                                                        "glue:UpdateDatabase",
+                                                        "glue:GetTables",
+                                                        "glue:GetTable",
+                                                        "glue:GetDatabase",
+                                                        "glue:GetDatabases",
+                                                        "glue:GetPartitions"
+                                                    ],
+                                                    "Resource": [
+                                                        {
+                                                            "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:catalog*"
+                                                        },
+                                                        {
+                                                            "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:database*"
+                                                        },
+                                                        {
+                                                            "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:table*"
+                                                        }
+                                                    ],
+                                                    "Condition": {
+                                                            "StringEquals": {
+                                                                "glue:LakeFormationPermissions": "true"
+                                                            }
+                                                        }
+                                                },
+                                                {
+                                                    "Effect": "Allow",
+                                                    "Action": [
+                                                        "athena:BatchGetQueryExecution",
+                                                        "athena:GetQueryExecution",
+                                                        "athena:GetQueryResults",
+                                                        "athena:StartQueryExecution",
+                                                        "athena:StopQueryExecution"
+                                                    ],
+                                                    "Resource": [
+                                                        {
+                                                            "Fn::Sub": "arn:aws:athena:#[[${AWS::Region}:${AWS::AccountId}]]#:workgroup/*"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
         },
         "${stack}${instance}SynapesRepoWorkersServiceRole": {
 			"Type": "AWS::IAM::Role",
@@ -836,6 +866,15 @@
                     "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
                     {
                         "Ref": "${stack}${instance}SynapesRepoWorkersServiceManagedPolicy"
+                    },
+                    {
+                        "Ref": "${stack}${instance}SynapesRepoWorkersSearchAndLogsManagedPolicy"
+                    },
+                    {
+                        "Ref": "${stack}${instance}SynapesRepoWorkersNotificationManagedPolicy"
+                    },
+                    {
+                        "Ref": "${stack}${instance}SynapesRepoWorkersStreamingDataAnalyticsManagedPolicy"
                     }
 				]
 			}
