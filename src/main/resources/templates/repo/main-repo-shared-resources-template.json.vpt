@@ -777,16 +777,18 @@
                                                 {
                                                     "Effect": "Allow",
                                                     "Action": [
-                                                        "firehose:*"
+                                                        "firehose:CreateDeliveryStream",
+                                                        "firehose:DeleteDeliveryStream",
+                                                        "firehose:DescribeDeliveryStream",
+                                                        "firehose:ListTagsForDeliveryStream",
+                                                        "firehose:PutRecord",
+                                                        "firehose:PutRecordBatch"
                                                     ],
-                                                    "Resource": "*"
-                                                },
-                                                {
-                                                    "Effect": "Allow",
-                                                    "Action": [
-                                                        "kinesis:*"
-                                                    ],
-                                                    "Resource": "*"
+                                                    "Resource": [
+                                                        {
+                                                            "Fn::Sub": "arn:aws:firehose:#[[${AWS::Region}:${AWS::AccountId}]]#:deliverystream/*"
+                                                        }
+                                                    ]
                                                 },
                                                 {
                                                     "Effect": "Allow",
