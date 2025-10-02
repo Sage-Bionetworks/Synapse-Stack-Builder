@@ -760,9 +760,72 @@
                                             "Resource": "*"
                                         },
                                         {
-                                            "Action": "ses:*",
+                                            "Action": [
+                                                "ses:CreateEmailTemplate",
+                                                "ses:CreateEmailIdentity",
+                                                "ses:DeleteEmailTemplate",
+                                                "ses:GetEmailTemplate",
+                                                "ses:GetContact",
+                                                "ses:GetContactList",
+                                                "ses:GetAccount",
+                                                "ses:GetEmailIdentity",
+                                                "ses:ListEmailTemplates",
+                                                "ses:ListContactLists",
+                                                "ses:ListContacts",
+                                                "ses:ListConfigurationSets",
+                                                "ses:ListTagsForResource",
+                                                "ses:PutAccountSendingAttributes",
+                                                "ses:PutConfigurationSetSendingOptions",
+                                                "ses:UpdateEmailTemplate",
+                                                "ses:UpdateContact",
+                                                "ses:UpdateContactList",
+                                                "ses:SendEmail",
+                                                "ses:SendCustomVerificationEmail",
+                                                "ses:SendBulkEmail",
+                                                "ses:TagResource"
+                                            ],
                                             "Effect": "Allow",
-                                            "Resource": "*"
+                                            "Resource": [
+                                                {
+                                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}]]#:aws:reputation-policy/*"
+                                                },
+                                                {
+                                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:configuration-set/*"
+                                                },
+                                                {
+                                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:contact-list/*"
+                                                },
+                                                {
+                                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:custom-verification-email-template/*"
+                                                },
+                                                {
+                                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:dedicated-ip-pool/*"
+                                                },
+                                                {
+                                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:deliverability-test-report/*"
+                                                },
+                                                {
+                                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:export-job/*"
+                                                },
+                                                {
+                                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:identity/*"
+                                                },
+                                                {
+                                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:import-job/*"
+                                                },
+                                                {
+                                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:template/*"
+                                                },
+                                                {
+                                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:multi-region-endpoint/*"
+                                                },
+                                                {
+                                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:mailmanager-archive/*"
+                                                },
+                                                {
+                                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:tenant/*"
+                                                }
+                                            ]
                                         }
                                     ]
                                 }
