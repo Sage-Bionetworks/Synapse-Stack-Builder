@@ -522,7 +522,11 @@
                             "Action": [
                                 "sts:AssumeRole"
                             ],
-                            "Resource": "*"
+                            "Resource": [
+                                {
+                                  "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/*"
+                                }
+                            ]
                         },
                         {
                             "Effect": "Allow",
@@ -741,9 +745,18 @@
                          {
                              "Effect": "Allow",
                              "Action": [
-                                 "execute-api:*"
+                                "execute-api:InvalidateCache",
+                                "execute-api:Invoke",
+                                "execute-api:ManageConnections"
                              ],
-                             "Resource": "*"
+                             "Resource": [
+                                {
+                                    "Fn::Sub": "arn:aws:execute-api:#[[${AWS::Region}:${AWS::AccountId}]]#:*"
+                                },
+                                {
+                                   "Fn::Sub": "arn:aws:execute-api:#[[${AWS::Region}:${AWS::AccountId}]]#:/domainnames/*"
+                                },
+                             ]
                          }
                     ]
 		        }
