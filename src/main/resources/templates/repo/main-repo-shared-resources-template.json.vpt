@@ -750,9 +750,33 @@
                                     "Version": "2012-10-17",
                                     "Statement": [
                                         {
-                                            "Action": "sns:*",
+                                            "Action": [
+                                                    "sns:AddPermission",
+                                                    "sns:CreateTopic",
+                                                    "sns:DeleteTopic",
+                                                    "sns:GetDataProtectionPolicy",
+                                                    "sns:GetSubscriptionAttributes",
+                                                    "sns:GetTopicAttributes",
+                                                    "sns:ListSubscriptions",
+                                                    "sns:ListSubscriptionsByTopic",
+                                                    "sns:ListTagsForResource",
+                                                    "sns:ListTopics",
+                                                    "sns:PutDataProtectionPolicy",
+                                                    "sns:Publish",
+                                                    "sns:PutDataProtectionPolicy",
+                                                    "sns:SetSubscriptionAttributes",
+                                                    "sns:SetTopicAttributes",
+                                                    "sns:Subscribe",
+                                                    "sns:TagResource",
+                                                    "sns:Unsubscribe",
+                                                    "sns:UntagResource"
+                                            ],
                                             "Effect": "Allow",
-                                            "Resource": "*"
+                                            "Resource": [
+                                                {
+                                                    "Fn::Sub": "arn:aws:sns:#[[${AWS::Region}:${AWS::AccountId}]]#:${stack}-${instance}*"
+                                                }
+                                            ]
                                         },
                                         {
                                             "Action": [
