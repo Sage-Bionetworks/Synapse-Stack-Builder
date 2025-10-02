@@ -408,9 +408,56 @@
                             "Resource": "*"
                         },
                         {
-                            "Action": "cloudwatch:*",
+                            "Action": [
+                                "cloudwatch:DeleteAlarms",
+                                "cloudwatch:DeleteMetricStream",
+                                "cloudwatch:DeleteDashboards",
+                                "cloudwatch:DescribeAlarmHistory",
+                                "cloudwatch:DescribeAlarms",
+                                "cloudwatch:DescribeAlarmsForMetric",
+                                "cloudwatch:DisableAlarmActions",
+                                "cloudwatch:EnableAlarmActions",
+                                "cloudwatch:GenerateQuery",
+                                "cloudwatch:GetMetricData",
+                                "cloudwatch:GetMetricStatistics",
+                                "cloudwatch:GetMetricStream",
+                                "cloudwatch:GetDashboard",
+                                "cloudwatch:ListTagsForResource",
+                                "cloudwatch:ListMetricStreams",
+                                "cloudwatch:ListMetrics",
+                                "cloudwatch:ListDashboards",
+                                "cloudwatch:Link",
+                                "cloudwatch:PutMetricAlarm",
+                                "cloudwatch:PutMetricData",
+                                "cloudwatch:PutMetricStream",
+                                "cloudwatch:PutDashboard",
+                                "cloudwatch:SetAlarmState",
+                                "cloudwatch:StartMetricStreams",
+                                "cloudwatch:StopMetricStreams",
+                                "cloudwatch:TagResource",
+                                "cloudwatch:UntagResource"
+                            ],
                             "Effect": "Allow",
-                            "Resource": "*"
+                            "Resource": [
+                                {
+                                  "Fn::Sub": "arn:aws:cloudwatch:#[[${AWS::Region}:${AWS::AccountId}]]#:alarm:*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:cloudwatch:#[[${AWS::Region}:${AWS::AccountId}]]#:dashboard/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:cloudwatch:#[[${AWS::Region}:${AWS::AccountId}]]#:insight-rule/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:cloudwatch:#[[${AWS::Region}:${AWS::AccountId}]]#:metric-stream/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:cloudwatch:#[[${AWS::Region}:${AWS::AccountId}]]#:slo/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:cloudwatch:#[[${AWS::Region}:${AWS::AccountId}]]#:service/*"
+                                }
+                            ]
                         },
                         {
                             "Action": [
