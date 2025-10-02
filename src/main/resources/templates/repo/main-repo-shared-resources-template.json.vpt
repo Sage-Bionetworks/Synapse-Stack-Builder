@@ -690,9 +690,37 @@
                                      ]
                                 },
                                 {
-                                    "Action": "cloudsearch:*",
+                                    "Action": [
+                                        "cloudsearch:AddTags",
+                                        "cloudsearch:CreateDomain",
+                                        "cloudsearch:DefineAnalysisScheme",
+                                        "cloudsearch:DefineExpression",
+                                        "cloudsearch:DefineIndexField",
+                                        "cloudsearch:DeleteAnalysisScheme",
+                                        "cloudsearch:DeleteDomain",
+                                        "cloudsearch:DeleteExpression",
+                                        "cloudsearch:DeleteIndexField",
+                                        "cloudsearch:DescribeAnalysisSchemes",
+                                        "cloudsearch:DescribeDomainEndpointOptions",
+                                        "cloudsearch:DescribeDomains",
+                                        "cloudsearch:DescribeIndexFields",
+                                        "cloudsearch:DescribeServiceAccessPolicies",
+                                        "cloudsearch:IndexDocuments",
+                                        "cloudsearch:ListDomainNames",
+                                        "cloudsearch:ListTags",
+                                        "cloudsearch:RemoveTags",
+                                        "cloudsearch:UpdateDomainEndpointOptions",
+                                        "cloudsearch:UpdateServiceAccessPolicies",
+                                        "cloudsearch:document",
+                                        "cloudsearch:search",
+                                        "cloudsearch:suggest"
+                                    ],
                                     "Effect": "Allow",
-                                    "Resource": "*"
+                                    "Resource": [
+                                        {
+                                           "Fn::Sub": "arn:aws:cloudsearch:#[[${AWS::Region}:${AWS::AccountId}]]#:domain/${stack}-${instance}-sagebase-org"
+                                         }
+                                    ]
                                 },
                                 {
                                      "Effect": "Allow",
