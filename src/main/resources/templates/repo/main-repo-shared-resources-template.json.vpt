@@ -755,9 +755,22 @@
                                             "Resource": "*"
                                         },
                                         {
-                                            "Action": "sqs:*",
+                                            "Action": [
+                                                "sqs:ChangeMessageVisibility",
+                                                "sqs:CreateQueue",
+                                                "sqs:DeleteMessage",
+                                                "sqs:DeleteQueue",
+                                                "sqs:PurgeQueue",
+                                                "sqs:ReceiveMessage",
+                                                "sqs:SendMessage",
+                                                "sqs:SetQueueAttributes"
+                                            ],
                                             "Effect": "Allow",
-                                            "Resource": "*"
+                                            "Resource": [
+                                                {
+                                                    "Fn::Sub": "arn:aws:sqs:#[[${AWS::Region}:${AWS::AccountId}]]#:${stack}-${instance}*"
+                                                }
+                                            ]
                                         },
                                         {
                                             "Action": [
