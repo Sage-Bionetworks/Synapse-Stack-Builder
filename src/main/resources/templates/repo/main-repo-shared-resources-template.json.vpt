@@ -433,18 +433,9 @@
                             "Resource": [
                                     "arn:aws:s3:::*",
                                     "arn:aws:s3:::storage-lens*",
-                                {
-                                    "Fn::Sub": "arn:aws:s3:#[[${AWS::Region}:${AWS::AccountId}]]#:accesspoint/*"
-                                },
-                                {
-                                    "Fn::Sub": "arn:aws:s3-object-lambda:#[[${AWS::Region}:${AWS::AccountId}]]#:accesspoint/*"
-                                },
-                                {
-                                    "Fn::Sub": "arn:aws:s3::#[[${AWS::AccountId}]]#:accesspoint/*"
-                                },
-                                {
-                                    "Fn::Sub": "arn:aws:s3:#[[${AWS::Region}:${AWS::AccountId}]]#::access-grants/*"
-                                }
+                                    "arn:aws:s3:::accesspoint/*",
+                                    "arn:aws:s3-object-lambda:::accesspoint/*",
+                                    "arn:aws:s3:::access-grants/*"
                             ]
                         },
                         {
