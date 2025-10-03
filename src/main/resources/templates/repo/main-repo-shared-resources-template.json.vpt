@@ -432,11 +432,9 @@
                             "Effect": "Allow",
                             "Resource": [
                                     "arn:aws:s3:::*",
+                                    "arn:aws:s3:::storage-lens*",
                                 {
                                     "Fn::Sub": "arn:aws:s3:#[[${AWS::Region}:${AWS::AccountId}]]#:accesspoint/*"
-                                },
-                                {
-                                    "Fn::Sub": "arn:aws:s3::#[[${AWS::AccountId}]]#:storage-lens*"
                                 },
                                 {
                                     "Fn::Sub": "arn:aws:s3-object-lambda:#[[${AWS::Region}:${AWS::AccountId}]]#:accesspoint/*"
