@@ -432,10 +432,7 @@
                             "Effect": "Allow",
                             "Resource": [
                                     "arn:aws:s3:::*",
-                                    "arn:aws:s3:::storage-lens*",
-                                    "arn:aws:s3:::accesspoint/*",
-                                    "arn:aws:s3-object-lambda:::accesspoint/*",
-                                    "arn:aws:s3:::access-grants/*"
+                                    "arn:aws:s3-object-lambda:::accesspoint/*"
                             ]
                         },
                         {
@@ -587,9 +584,6 @@
                                  },
                                  {
                                      "Fn::Sub": "arn:aws:apigateway:#[[${AWS::Region}]]#::/clientcertificates*"
-                                 },
-                                 {
-                                     "Fn::Sub": "arn:aws:apigateway:#[[${AWS::Region}]]#::/restapis*"
                                  },
                                  {
                                      "Fn::Sub": "arn:aws:apigateway:#[[${AWS::Region}]]#::/domainnameaccessassociations*"
@@ -1113,6 +1107,9 @@
                     },
                     {
                         "Ref": "${stack}${instance}SynapesRepoWorkersStreamingDataAnalyticsManagedPolicy"
+                    },
+                    {
+                        "Ref": "${stack}${instance}SynapesRepoWorkersBedrockManagedPolicy"
                     }
 				]
 			}
