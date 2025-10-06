@@ -914,6 +914,7 @@
                                                 "sqs:CreateQueue",
                                                 "sqs:DeleteMessage",
                                                 "sqs:DeleteQueue",
+                                                "sqs:GetQueueUrl",
                                                 "sqs:PurgeQueue",
                                                 "sqs:ReceiveMessage",
                                                 "sqs:SendMessage",
