@@ -96,9 +96,11 @@
 	        			}
 	        		},
 	        		"text_raw": {
+	        			"Type": "text",
 	        			"Index": true
 	        		},
 	        		"text_metadata": {
+	        			"Type": "text",
 	        			"Index": false
 	        		}
 	        	}

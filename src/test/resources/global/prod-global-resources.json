@@ -164,8 +164,14 @@
               "SpaceType": "l2"
             }
           },
-          "text_raw": {"Index": true},
-          "text_metadata": {"Index": false}
+		  "text_raw": {
+  			"Type": "text",
+  			"Index": true
+  		  },
+            "text_metadata": {
+  			"Type": "text",
+  			"Index": false
+  		  }
         }},
         "Settings": {"Index": {
           "Knn": true,
