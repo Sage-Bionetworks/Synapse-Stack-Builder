@@ -302,6 +302,12 @@
 			"messageVisibilityTimeoutSec": 300
 		},
 		{
+			"queueName": "ADD_TO_DOWNLOAD_LIST_STATS",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 300
+		},
+		{
 			"queueName": "DOWNLOAD_LIST_PACKAGE",
 			"subscribedTopicNames": [
 			],
