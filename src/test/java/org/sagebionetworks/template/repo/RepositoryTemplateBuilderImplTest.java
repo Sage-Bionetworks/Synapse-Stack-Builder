@@ -28,7 +28,6 @@ import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.IDENTITY_ARN;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.NOSNAPSHOT;
-import static org.sagebionetworks.template.Constants.OPS_VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
 import static org.sagebionetworks.template.Constants.PARAM_KEY_TIME_TO_LIVE;
@@ -48,7 +47,6 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ENABLE_RDS_ENH
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IMAGE_PIPELINE_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OAUTH_ENDPOINT;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
@@ -126,6 +124,7 @@ import org.sagebionetworks.template.vpc.Color;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
 import software.amazon.awssdk.services.cloudformation.model.Output;
 import software.amazon.awssdk.services.cloudformation.model.Parameter;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
@@ -191,7 +190,6 @@ public class RepositoryTemplateBuilderImplTest {
 	private RepositoryTemplateBuilderImpl builderSpy;
 
 	private String stack;
-	private String opsStackPrefix;
 	private String instance;
 	private String vpcSubnetColor;
 	private String imagePipelineArn;
@@ -237,7 +235,6 @@ public class RepositoryTemplateBuilderImplTest {
 		stack = "dev";
 		instance = "101";
 		vpcSubnetColor = Color.Green.name();
-		opsStackPrefix = "ops-vpc";
 		imagePipelineArn="arn:aws:imagebuilder:us-east-1:867686887310:image/cis-for-eb";
 		imageId = "ami-0123456789";
 
@@ -314,7 +311,6 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(15000);
-		when(config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn(opsStackPrefix);
 		when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(imagePipelineArn);
 		
 		for (EnvironmentType type : EnvironmentType.values()) {
@@ -372,6 +368,8 @@ public class RepositoryTemplateBuilderImplTest {
 		
 		JSONObject templateJson = new JSONObject(bodyJSONString);
 		
+		System.out.println(templateJson.toString(2));
+		
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		assertNotNull(resources);
 		// database group
@@ -417,9 +415,6 @@ public class RepositoryTemplateBuilderImplTest {
 		
 		assertFalse(resources.has("WebhookTestApi"));
 		assertTrue(resources.has("SynapseSearchCollection"));
-		assertTrue(resources.has("SynapseHelpCollection"));
-		assertTrue(resources.has("SynapseHelpKnowledgeBaseExecutionRole"));
-		assertTrue(resources.has("SynapseHelpKnowledgeBase"));
 		assertTrue(resources.has("bedrockAgentRole"));
 		assertTrue(resources.has("bedrockAgent"));
 		assertTrue(resources.has("bedrockGridAgentRole"));
@@ -495,7 +490,6 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(-1);
-		when(config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn(opsStackPrefix);
 		when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(imagePipelineArn);
 		
 		for (EnvironmentType type : EnvironmentType.values()) {
@@ -619,7 +613,6 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(15000);
-		when(config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn(opsStackPrefix);
 		when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(imagePipelineArn);
 		
 		for (EnvironmentType type : EnvironmentType.values()) {
@@ -719,9 +712,6 @@ public class RepositoryTemplateBuilderImplTest {
 
 		assertTrue(resources.has("WebhookTestApi"));
 		assertTrue(resources.has("SynapseSearchCollection"));
-		assertTrue(resources.has("SynapseHelpCollection"));
-		assertTrue(resources.has("SynapseHelpKnowledgeBaseExecutionRole"));
-		assertTrue(resources.has("SynapseHelpKnowledgeBase"));
 		assertTrue(resources.has("bedrockAgentRole"));
 		assertTrue(resources.has("bedrockAgent"));
 		
@@ -768,7 +758,6 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(1000);
-		when(config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn(opsStackPrefix);
 		when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(imagePipelineArn);
 		
 		for (EnvironmentType type : EnvironmentType.values()) {
@@ -1049,7 +1038,6 @@ public class RepositoryTemplateBuilderImplTest {
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
 		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 		when(mockStsClient.getCallerIdentity(any(GetCallerIdentityRequest.class))).thenReturn(GetCallerIdentityResponse.builder().arn("currentIdentityArn").build());
-		when(config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn(opsStackPrefix);
 		
 		// call under test
 		VelocityContext context = builder.createSharedContext();
@@ -1060,7 +1048,6 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("Green", context.get(VPC_SUBNET_COLOR));
 		assertEquals("dev-101-shared-resources", context.get(SHARED_RESOUCES_STACK_NAME));
 		assertEquals("us-east-1-synapse-dev-vpc-2", context.get(VPC_EXPORT_PREFIX));
-		assertEquals(opsStackPrefix, context.get(OPS_VPC_EXPORT_PREFIX));
 		
 		assertEquals("Count:{}", context.get(ADMIN_RULE_ACTION));
 		assertEquals("Delete", context.get(DELETION_POLICY));

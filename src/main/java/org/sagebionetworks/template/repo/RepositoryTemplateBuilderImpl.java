@@ -3,7 +3,6 @@ package org.sagebionetworks.template.repo;
 
 import static org.sagebionetworks.template.Constants.ADMIN_RULE_ACTION;
 import static org.sagebionetworks.template.Constants.BEANSTALK_INSTANCES_SUBNETS;
-import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
 import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.CTXT_ENABLE_ENHANCED_RDS_MONITORING;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_DOMAIN_NAME;
@@ -23,7 +22,6 @@ import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.MACHINE_TYPES;
 import static org.sagebionetworks.template.Constants.NOSNAPSHOT;
 import static org.sagebionetworks.template.Constants.OAUTH_ENDPOINT;
-import static org.sagebionetworks.template.Constants.OPS_VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
 import static org.sagebionetworks.template.Constants.POOL_TYPES;
@@ -43,7 +41,6 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ENABLE_RDS_ENH
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IMAGE_PIPELINE_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OAUTH_ENDPOINT;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
@@ -353,8 +350,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		context.put(IDENTITY_ARN, stsClient.getCallerIdentity(GetCallerIdentityRequest.builder().build()).arn());
 		
 		RegularExpressions.bindRegexToContext(context);
-		
-		context.put(OPS_VPC_EXPORT_PREFIX, config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX));
 
 		return context;
 	}

@@ -81,8 +81,6 @@ import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateBuilder;
 import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateBuilderImpl;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilder;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilderImpl;
-import org.sagebionetworks.template.repo.bedrock.SynapseHelpCollectionIndexCreation;
-import org.sagebionetworks.template.repo.bedrock.SynapseHelpKnowledgeBaseDataSourceSync;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsConfig;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsConfigValidator;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
@@ -199,11 +197,6 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		velocityContextProviderMultibinder.addBinding().to(BedrockAgentContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(BedrockGridAgentContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(GridContextProvider.class);
-		
-		Multibinder<WaitConditionHandler> waitConditionHandlerBinder = Multibinder.newSetBinder(binder(), WaitConditionHandler.class);
-		
-		waitConditionHandlerBinder.addBinding().to(SynapseHelpCollectionIndexCreation.class);
-		waitConditionHandlerBinder.addBinding().to(SynapseHelpKnowledgeBaseDataSourceSync.class);
 	}
 	
 	/**
