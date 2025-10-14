@@ -444,34 +444,6 @@
                         {
                             "Effect": "Allow",
                             "Action": [
-                                "firehose:*"
-                            ],
-                            "Resource": "*"
-                        },
-                        {
-                            "Effect": "Allow",
-                            "Action": [
-                                "kinesis:*"
-                            ],
-                            "Resource": "*"
-                        },
-                        {
-                            "Effect": "Allow",
-                            "Action": [
-                                "glue:*"
-                            ],
-                            "Resource": "*"
-                        },
-                        {
-                            "Effect": "Allow",
-                            "Action": [
-                                "athena:*"
-                            ],
-                            "Resource": "*"
-                        },
-                        {
-                            "Effect": "Allow",
-                            "Action": [
                                 "sts:AssumeRole"
                             ],
                             "Resource": "*"
@@ -520,6 +492,81 @@
 		        }
 		    }
         },
+        "${stack}${instance}SynapesRepoWorkersStreamingDataAnalyticsManagedPolicy": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "firehose:CreateDeliveryStream",
+                                "firehose:DeleteDeliveryStream",
+                                "firehose:DescribeDeliveryStream",
+                                "firehose:ListTagsForDeliveryStream",
+                                "firehose:PutRecord",
+                                "firehose:PutRecordBatch"
+                            ],
+                            "Resource": [
+                                {
+                                    "Fn::Sub": "arn:aws:firehose:#[[${AWS::Region}:${AWS::AccountId}]]#:deliverystream/*"
+                                }
+                            ]
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "glue:BatchCreatePartition",
+                                "glue:BatchGetPartition",
+                                "glue:CreateDatabase",
+                                "glue:CreateTable",
+                                "glue:DeleteDatabase",
+                                "glue:DeleteTable",
+                                "glue:UpdateTable",
+                                "glue:UpdateDatabase",
+                                "glue:GetTables",
+                                "glue:GetTable",
+                                "glue:GetDatabase",
+                                "glue:GetDatabases",
+                                "glue:GetPartitions"
+                            ],
+                            "Resource": [
+                                {
+                                    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:catalog*"
+                                },
+                                {
+                                    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:database*"
+                                },
+                                {
+                                    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:table*"
+                                }
+                                ],
+                                "Condition": {
+                                        "StringEquals": {
+                                            "glue:LakeFormationPermissions": "true"
+                                        }
+                                    }
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "athena:BatchGetQueryExecution",
+                                        "athena:GetQueryExecution",
+                                        "athena:GetQueryResults",
+                                        "athena:StartQueryExecution",
+                                        "athena:StopQueryExecution"
+                                    ],
+                                    "Resource": [
+                                        {
+                                            "Fn::Sub": "arn:aws:athena:#[[${AWS::Region}:${AWS::AccountId}]]#:workgroup/*"
+                                        }
+                                    ]
+                                }
+                    ]
+                }
+            }
+        },
         "${stack}${instance}SynapesRepoWorkersServiceRole": {
 			"Type": "AWS::IAM::Role",
 			"Properties": {
@@ -545,6 +592,9 @@
                     "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
                     {
                         "Ref": "${stack}${instance}SynapesRepoWorkersServiceManagedPolicy"
+                    },
+                    {
+                        "Ref": "${stack}${instance}SynapesRepoWorkersStreamingDataAnalyticsManagedPolicy"
                     }
 				]
 			}
