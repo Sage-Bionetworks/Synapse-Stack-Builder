@@ -197,6 +197,10 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		velocityContextProviderMultibinder.addBinding().to(BedrockAgentContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(BedrockGridAgentContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(GridContextProvider.class);
+		
+		Multibinder<WaitConditionHandler> waitConditionHandlerBinder = Multibinder.newSetBinder(binder(), WaitConditionHandler.class);
+		
+		// waitConditionHandlerBinder.addBinding().to(SynapseHelpKnowledgeBaseDataSourceSync.class);
 	}
 	
 	/**

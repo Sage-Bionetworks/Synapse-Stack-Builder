@@ -104,7 +104,6 @@ import org.sagebionetworks.template.ImageBuilderClient;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
-import org.sagebionetworks.template.WaitConditionHandler;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.config.TimeToLive;
 import org.sagebionetworks.template.repo.agent.BedrockAgentContextProvider;
@@ -175,8 +174,6 @@ public class RepositoryTemplateBuilderImplTest {
 	@Mock
 	private StsClient mockStsClient;
 	@Mock
-	private WaitConditionHandler mockWaitConditionHandler;
-	@Mock
 	private AmazonS3Client mockS3Client;
 	
 	@Captor
@@ -227,8 +224,7 @@ public class RepositoryTemplateBuilderImplTest {
 						new BedrockGridAgentContextProvider(config, mockS3Client),
 						new GridContextProvider(gridQueueRef, config)),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
-                mockEc2ClientWrapper, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive, mockStsClient,
-				Set.of(mockWaitConditionHandler));
+                mockEc2ClientWrapper, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive, mockStsClient);
 		
 		builderSpy = Mockito.spy(builder);
 
@@ -283,7 +279,7 @@ public class RepositoryTemplateBuilderImplTest {
 						.outputValue("synhelp-endpoint")
 						.build()
 		).build();
-		when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class), any())).thenReturn(Optional.of(sharedResouces));
+		when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(sharedResouces));
 		
 	}
 
@@ -355,7 +351,7 @@ public class RepositoryTemplateBuilderImplTest {
 		builder.buildAndDeploy();
 
 		verify(mockCloudFormationClientWrapper, times(4)).createOrUpdateStack(requestCaptor.capture());
-		verify(mockCloudFormationClientWrapper).waitForStackToComplete("prod-101-shared-resources", Set.of(mockWaitConditionHandler));
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete("prod-101-shared-resources");
 		
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
@@ -657,7 +653,7 @@ public class RepositoryTemplateBuilderImplTest {
 		builder.buildAndDeploy();
 
 		verify(mockCloudFormationClientWrapper, times(4)).createOrUpdateStack(requestCaptor.capture());
-		verify(mockCloudFormationClientWrapper).waitForStackToComplete("dev-101-shared-resources", Set.of(mockWaitConditionHandler));
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete("dev-101-shared-resources");
 		
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);

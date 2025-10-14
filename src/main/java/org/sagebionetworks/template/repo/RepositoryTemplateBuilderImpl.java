@@ -93,7 +93,6 @@ import org.sagebionetworks.template.Ec2ClientWrapper;
 import org.sagebionetworks.template.ImageBuilderClient;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
-import org.sagebionetworks.template.WaitConditionHandler;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.config.TimeToLive;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
@@ -138,7 +137,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	private final ImageBuilderClient imageBuilderClient;
 	private final TimeToLive timeToLive;
 	private final StsClient stsClient;
-	private final Set<WaitConditionHandler> waitConditionHandlers;
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper, VelocityEngine velocityEngine,
@@ -147,7 +145,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
                                          ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkDefaultAMIEncrypter,
                                          StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
                                          Ec2ClientWrapper ec2ClientWrapper, ElasticBeanstalkClient beanstalkClient, ImageBuilderClient imageBuilderClient, TimeToLive ttl,
-                                         StsClient stsClient, Set<WaitConditionHandler> waitConditionHandlers) {
+                                         StsClient stsClient) {
 		super();
 		this.cloudFormationClientWrapper = cloudFormationClientWrapper;
 		this.ec2ClientWrapper = ec2ClientWrapper;
@@ -164,7 +162,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.imageBuilderClient = imageBuilderClient;
 		this.timeToLive = ttl;
 		this.stsClient = stsClient;
-		this.waitConditionHandlers = waitConditionHandlers;
 	}
 
 	public String getActualBeanstalkAmazonLinuxPlatform() {
@@ -200,7 +197,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 
 		buildAndDeployStack(context, sharedResourceStackName, TEMPLATE_SHARED_RESOUCES_MAIN_JSON_VTP, sharedParameters);
 		// Wait for the shared resources to complete
-		Stack sharedStackResults = cloudFormationClientWrapper.waitForStackToComplete(sharedResourceStackName, waitConditionHandlers).orElseThrow(()->new IllegalStateException("Stack does not exist: "+sharedResourceStackName));
+		Stack sharedStackResults = cloudFormationClientWrapper.waitForStackToComplete(sharedResourceStackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+sharedResourceStackName));
 				
 		// Build each bean stalk environment.
 		List<String> environmentNames = buildEnvironments(sharedStackResults);
