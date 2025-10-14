@@ -408,27 +408,12 @@
                             "Resource": "*"
                         },
                         {
-                            "Action": "sns:*",
-                            "Effect": "Allow",
-                            "Resource": "*"
-                        },
-                        {
-                            "Action": "sqs:*",
-                            "Effect": "Allow",
-                            "Resource": "*"
-                        },
-                        {
                             "Action": "cloudwatch:*",
                             "Effect": "Allow",
                             "Resource": "*"
                         },
                         {
                             "Action": "cloudsearch:*",
-                            "Effect": "Allow",
-                            "Resource": "*"
-                        },
-                        {
-                            "Action": "ses:*",
                             "Effect": "Allow",
                             "Resource": "*"
                         },
@@ -491,6 +476,131 @@
                     ]
 		        }
 		    }
+        },
+        "${stack}${instance}SynapesRepoWorkersNotificationManagedPolicy": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": [
+                                    "sns:AddPermission",
+                                    "sns:CreateTopic",
+                                    "sns:DeleteTopic",
+                                    "sns:GetDataProtectionPolicy",
+                                    "sns:GetSubscriptionAttributes",
+                                    "sns:GetTopicAttributes",
+                                    "sns:ListSubscriptions",
+                                    "sns:ListSubscriptionsByTopic",
+                                    "sns:ListTagsForResource",
+                                    "sns:ListTopics",
+                                    "sns:PutDataProtectionPolicy",
+                                    "sns:Publish",
+                                    "sns:PutDataProtectionPolicy",
+                                    "sns:SetSubscriptionAttributes",
+                                    "sns:SetTopicAttributes",
+                                    "sns:Subscribe",
+                                    "sns:TagResource",
+                                    "sns:Unsubscribe",
+                                    "sns:UntagResource"
+                            ],
+                            "Effect": "Allow",
+                            "Resource": [
+                                {
+                                    "Fn::Sub": "arn:aws:sns:#[[${AWS::Region}:${AWS::AccountId}]]#:${stack}-${instance}*"
+                                }
+                            ]
+                        },
+                        {
+                            "Action": [
+                                "sqs:ChangeMessageVisibility",
+                                "sqs:CreateQueue",
+                                "sqs:DeleteMessage",
+                                "sqs:DeleteQueue",
+                                "sqs:PurgeQueue",
+                                "sqs:ReceiveMessage",
+                                "sqs:SendMessage",
+                                "sqs:SetQueueAttributes"
+                            ],
+                            "Effect": "Allow",
+                            "Resource": [
+                                {
+                                    "Fn::Sub": "arn:aws:sqs:#[[${AWS::Region}:${AWS::AccountId}]]#:${stack}-${instance}*"
+                                }
+                            ]
+                        },
+                        {
+                            "Action": [
+                                "ses:CreateEmailTemplate",
+                                "ses:CreateEmailIdentity",
+                                "ses:DeleteEmailTemplate",
+                                "ses:GetEmailTemplate",
+                                "ses:GetContact",
+                                "ses:GetContactList",
+                                "ses:GetAccount",
+                                "ses:GetEmailIdentity",
+                                "ses:ListEmailTemplates",
+                                "ses:ListContactLists",
+                                "ses:ListContacts",
+                                "ses:ListConfigurationSets",
+                                "ses:ListTagsForResource",
+                                "ses:PutAccountSendingAttributes",
+                                "ses:PutConfigurationSetSendingOptions",
+                                "ses:UpdateEmailTemplate",
+                                "ses:UpdateContact",
+                                "ses:UpdateContactList",
+                                "ses:SendEmail",
+                                "ses:SendCustomVerificationEmail",
+                                "ses:SendBulkEmail",
+                                "ses:TagResource"
+                            ],
+                            "Effect": "Allow",
+                            "Resource": [
+                                {
+                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}]]#:aws:reputation-policy/*"
+                                },
+                                {
+                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:configuration-set/*"
+                                },
+                                {
+                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:contact-list/*"
+                                },
+                                {
+                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:custom-verification-email-template/*"
+                                },
+                                {
+                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:dedicated-ip-pool/*"
+                                },
+                                {
+                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:deliverability-test-report/*"
+                                },
+                                {
+                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:export-job/*"
+                                },
+                                {
+                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:identity/*"
+                                },
+                                {
+                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:import-job/*"
+                                },
+                                {
+                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:template/*"
+                                },
+                                {
+                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:multi-region-endpoint/*"
+                                },
+                                {
+                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:mailmanager-archive/*"
+                                },
+                                {
+                                    "Fn::Sub": "arn:aws:ses:#[[${AWS::Region}:${AWS::AccountId}]]#:tenant/*"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
         },
         "${stack}${instance}SynapesRepoWorkersStreamingDataAnalyticsManagedPolicy": {
             "Type": "AWS::IAM::ManagedPolicy",
@@ -595,6 +705,9 @@
                     },
                     {
                         "Ref": "${stack}${instance}SynapesRepoWorkersStreamingDataAnalyticsManagedPolicy"
+                    },
+                    {
+                        "Ref": "${stack}${instance}SynapesRepoWorkersNotificationManagedPolicy"
                     }
 				]
 			}
