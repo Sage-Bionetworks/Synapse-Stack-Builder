@@ -159,6 +159,16 @@
         "SynapseHelpCollectionDeployerDataAccessPolicy"
       ]
     },
+	"SynapseHelpCollectionReadyWaitCondition": {
+	  "Type": "AWS::CloudFormation::WaitCondition",
+	    "DependsOn": [ "SynapseHelpCollection" ],
+	    "CreationPolicy" : {
+	      "ResourceSignal" : {
+	        "Timeout" : "PT5M",
+	        "Count" : "1"
+	      }
+	  }
+	},
     "SynapseHelpCollectionIndex": {
       "Type": "AWS::OpenSearchServerless::Index",
       "Properties": {
@@ -191,7 +201,7 @@
           "KnnAlgoParamEfSearch": 512
         }}
       },
-      "DependsOn": ["SynapseHelpCollection"]
+      "DependsOn": ["SynapseHelpCollectionReadyWaitCondition"]
     },
     "SynapseHelpKnoweldgeBaseExecutionRolePolicy": {
       "Type": "AWS::IAM::RolePolicy",

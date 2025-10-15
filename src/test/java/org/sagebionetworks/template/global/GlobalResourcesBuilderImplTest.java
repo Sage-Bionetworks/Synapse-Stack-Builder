@@ -3,7 +3,6 @@ package org.sagebionetworks.template.global;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -21,7 +20,6 @@ import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.logging.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
@@ -34,7 +32,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
-import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.SesClientWrapperImpl;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
@@ -54,10 +51,6 @@ public class GlobalResourcesBuilderImplTest {
     CloudFormationClientWrapper mockCloudFormationClientWrapper;
     VelocityEngine velocityEngine;
     @Mock
-    LoggerFactory mockLoggerFactory;
-    @Mock
-    Logger mockLogger;
-    @Mock
     StackTagsProvider mockStackTagsProvider;
     @Mock
     SesClientWrapperImpl mockSesClient;
@@ -75,14 +68,12 @@ public class GlobalResourcesBuilderImplTest {
     @BeforeEach
     public void before() {
         velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
-
-        when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
-
+        
         expectedTags = new LinkedList<>();
         Tag t = Tag.builder().key("aKey").value("aValue").build();
         expectedTags.add(t);
 
-        builder = new GlobalResourcesBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, mockConfig, mockLoggerFactory, mockStackTagsProvider, mockSesClient, mockStsClient);
+        builder = new GlobalResourcesBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, mockConfig, mockStackTagsProvider, mockSesClient, mockStsClient);
 
     }
 

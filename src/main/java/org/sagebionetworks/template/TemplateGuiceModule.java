@@ -44,6 +44,7 @@ import org.sagebionetworks.template.docs.SynapseDocsBuilder;
 import org.sagebionetworks.template.docs.SynapseDocsBuilderImpl;
 import org.sagebionetworks.template.global.GlobalResourcesBuilder;
 import org.sagebionetworks.template.global.GlobalResourcesBuilderImpl;
+import org.sagebionetworks.template.global.waitconditions.SynapseHelpCollectionReadyWaitCondition;
 import org.sagebionetworks.template.ip.address.IpAddressPoolBuilder;
 import org.sagebionetworks.template.ip.address.IpAddressPoolBuilderImpl;
 import org.sagebionetworks.template.jobs.AsynchAdminJobExecutor;
@@ -200,7 +201,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		
 		Multibinder<WaitConditionHandler> waitConditionHandlerBinder = Multibinder.newSetBinder(binder(), WaitConditionHandler.class);
 		
-		// waitConditionHandlerBinder.addBinding().to(SynapseHelpKnowledgeBaseDataSourceSync.class);
+		waitConditionHandlerBinder.addBinding().to(SynapseHelpCollectionReadyWaitCondition.class);
 	}
 	
 	/**

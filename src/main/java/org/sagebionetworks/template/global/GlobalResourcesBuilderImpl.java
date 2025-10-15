@@ -16,7 +16,6 @@ import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 
 import java.io.StringWriter;
 
-import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -24,7 +23,6 @@ import org.json.JSONObject;
 import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
-import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.SesClientWrapper;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.config.Configuration;
@@ -40,7 +38,6 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
 	private final CloudFormationClientWrapper cloudFormationClientWrapper;
     private final VelocityEngine velocityEngine;
     private final Configuration config;
-    private final Logger logger;
     private final StackTagsProvider stackTagsProvider;
     private final SesClientWrapper sesClientWrapper;
 	private final StsClient stsClient;
@@ -49,14 +46,12 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
     public GlobalResourcesBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper,
                                       VelocityEngine velocityEngine,
                                       Configuration config,
-                                      LoggerFactory loggerFactory,
                                       StackTagsProvider stackTagsProvider,
                                       SesClientWrapper sesClientWrapper,
                                       StsClient stsClient) {
         this.cloudFormationClientWrapper = cloudFormationClientWrapper;
         this.velocityEngine = velocityEngine;
         this.config = config;
-        this.logger = loggerFactory.getLogger(GlobalResourcesBuilderImpl.class);
         this.stackTagsProvider = stackTagsProvider;
         this.sesClientWrapper = sesClientWrapper;
         this.stsClient = stsClient;
