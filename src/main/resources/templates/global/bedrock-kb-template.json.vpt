@@ -244,7 +244,14 @@
  			"Target": {
  				"Arn": "arn:aws:scheduler:::aws-sdk:bedrockagent:startIngestionJob",
  				"RoleArn": { "Fn::GetAtt": ["SynapseHelpKnowledgeBaseIngestionScheduleRole", "Arn"] },
- 				"Input": { "Fn::Sub": "{\"KnowledgeBaseId\":\"#[[${SynapseHelpKnowledgeBase}]]#\",\"DataSourceId\":\"#[[${SynapseHelpKnowledgeBaseDataSource}]]#\"}" }
+ 				"Input": { 
+ 					"Fn::Sub": [
+ 						"{\"KnowledgeBaseId\":\"#[[${SynapseHelpKnowledgeBase}]]#\",\"DataSourceId\":\"#[[${dataSourceId}]]#\"}",
+ 						{
+	            			"dataSourceId": { "Fn::GetAtt": ["SynapseHelpKnowledgeBaseDataSource", "DataSourceId"] }
+	            		}
+ 					]
+ 				}
  			}
  		}
     }

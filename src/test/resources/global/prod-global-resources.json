@@ -292,7 +292,14 @@
             "SynapseHelpKnowledgeBaseIngestionScheduleRole",
             "Arn"
           ]},
-          "Input": {"Fn::Sub": "{\"KnowledgeBaseId\":\"${SynapseHelpKnowledgeBase}\",\"DataSourceId\":\"${SynapseHelpKnowledgeBaseDataSource}\"}"}
+		  "Input": {
+  			"Fn::Sub": [
+  				"{\"KnowledgeBaseId\":\"${SynapseHelpKnowledgeBase}\",\"DataSourceId\":\"${dataSourceId}\"}",
+  				{
+          			"dataSourceId": { "Fn::GetAtt": ["SynapseHelpKnowledgeBaseDataSource", "DataSourceId"] }
+          		}
+  			]
+  		  }
         }
       }
     }
