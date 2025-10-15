@@ -7,7 +7,6 @@ import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_STACK_NAME
 import static org.sagebionetworks.template.Constants.IDENTITY_ARN;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.OPS_VPC_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.SES_SYNAPSE_DOMAIN;
 import static org.sagebionetworks.template.Constants.STACK;
@@ -94,7 +93,7 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
         context.put(DELETION_POLICY, Constants.isProd(config.getProperty(PROPERTY_KEY_STACK)) ? DeletionPolicy.Retain.name() : DeletionPolicy.Delete.name());
         
         context.put(VPC_EXPORT_PREFIX, Constants.createVpcExportPrefix(stack));
-        context.put(OPS_VPC_EXPORT_PREFIX, config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX));
+        context.put(OPS_VPC_EXPORT_PREFIX, "us-east-1-vpc");
         context.put(IDENTITY_ARN, stsClient.getCallerIdentity().arn());
         
         return context;

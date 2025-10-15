@@ -139,7 +139,7 @@
           "[{\"Rules\":[{\"ResourceType\":\"collection\",\"Resource\":[\"collection/prod-synhelp\"]}],\"AllowFromPublic\":false,\"SourceServices\":[\"bedrock.amazonaws.com\"],\"SourceVPCEs\":[\"${stackVpcEndpointId}\",\"${opsVpcEndpointId}\"]}]",
           {
             "stackVpcEndpointId": {"Fn::ImportValue": "us-east-1-synapse-prod-vpc-2-open-search-vpce"},
-            "opsVpcEndpointId": {"Fn::ImportValue": "opsVpcPrefix-OSSVpcEndpointId"}
+            "opsVpcEndpointId": {"Fn::ImportValue": "us-east-1-vpc-OSSVpcEndpointId"}
           }
         ]}
       }

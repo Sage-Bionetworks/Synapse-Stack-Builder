@@ -11,7 +11,6 @@ import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_S
 import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC;
 import static org.sagebionetworks.template.Constants.IDENTITY_ARN;
 import static org.sagebionetworks.template.Constants.OPS_VPC_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.SES_SYNAPSE_DOMAIN;
 import static org.sagebionetworks.template.Constants.STACK;
@@ -87,11 +86,10 @@ public class GlobalResourcesBuilderImplTest {
     public void testCreateContext() {
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("dev");
         when(mockStsClient.getCallerIdentity()).thenReturn(GetCallerIdentityResponse.builder().arn("currentIdentityArn").build());
-        when(mockConfig.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn("opsVpcPrefix");
         VelocityContext context = builder.createContext();
         assertEquals("dev", context.get(STACK));
         assertEquals("us-east-1-synapse-dev-vpc-2", context.get(VPC_EXPORT_PREFIX));
-        assertEquals("opsVpcPrefix", context.get(OPS_VPC_EXPORT_PREFIX));
+        assertEquals("us-east-1-vpc", context.get(OPS_VPC_EXPORT_PREFIX));
         assertEquals("currentIdentityArn", context.get(IDENTITY_ARN));
     }
 
@@ -111,7 +109,6 @@ public class GlobalResourcesBuilderImplTest {
     @Test
     public void testBuildGlobalResourcesDev() throws InterruptedException {
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("dev");
-        when(mockConfig.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn("opsVpcPrefix");
 		when(mockStsClient.getCallerIdentity()).thenReturn(GetCallerIdentityResponse.builder().arn("currentIdentityArn").build());
         when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
@@ -140,7 +137,6 @@ public class GlobalResourcesBuilderImplTest {
     @Test
     public void testBuildGlobalResourcesProd() throws InterruptedException {
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("prod");
-        when(mockConfig.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn("opsVpcPrefix");
         when(mockStsClient.getCallerIdentity()).thenReturn(GetCallerIdentityResponse.builder().arn("currentIdentityArn").build());
         when(mockCloudFormationClientWrapper.getOutput("synapse-prod-global-resources", GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC)).thenReturn("complaintTopicArn");
         when(mockCloudFormationClientWrapper.getOutput("synapse-prod-global-resources", GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC)).thenReturn("bounceTopicArn");
