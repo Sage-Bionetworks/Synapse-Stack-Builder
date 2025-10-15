@@ -485,25 +485,33 @@
                     "Statement": [
                         {
                             "Action": [
-                                    "sns:AddPermission",
-                                    "sns:CreateTopic",
-                                    "sns:DeleteTopic",
-                                    "sns:GetDataProtectionPolicy",
-                                    "sns:GetSubscriptionAttributes",
-                                    "sns:GetTopicAttributes",
-                                    "sns:ListSubscriptions",
-                                    "sns:ListSubscriptionsByTopic",
-                                    "sns:ListTagsForResource",
-                                    "sns:ListTopics",
-                                    "sns:PutDataProtectionPolicy",
-                                    "sns:Publish",
-                                    "sns:PutDataProtectionPolicy",
-                                    "sns:SetSubscriptionAttributes",
-                                    "sns:SetTopicAttributes",
-                                    "sns:Subscribe",
-                                    "sns:TagResource",
-                                    "sns:Unsubscribe",
-                                    "sns:UntagResource"
+                                "sns:ListSubscriptions",
+                                "sns:ListTopics",
+                                "sns:Subscribe",
+                                "sns:Unsubscribe"
+                            ],
+                            "Resource": [
+                                "Fn::Sub": "arn:aws:sns:#[[${AWS::Region}:${AWS::AccountId}]]#:*"
+                            ],
+                            "Effect": "Allow"
+                        },
+                        {
+                            "Action": [
+                                "sns:AddPermission",
+                                "sns:CreateTopic",
+                                "sns:DeleteTopic",
+                                "sns:GetDataProtectionPolicy",
+                                "sns:GetSubscriptionAttributes",
+                                "sns:GetTopicAttributes",
+                                "sns:ListSubscriptionsByTopic",
+                                "sns:ListTagsForResource",
+                                "sns:PutDataProtectionPolicy",
+                                "sns:Publish",
+                                "sns:PutDataProtectionPolicy",
+                                "sns:SetSubscriptionAttributes",
+                                "sns:SetTopicAttributes",
+                                "sns:TagResource",
+                                "sns:UntagResource"
                             ],
                             "Effect": "Allow",
                             "Resource": [
@@ -514,10 +522,20 @@
                         },
                         {
                             "Action": [
+                                "sqs:ListQueues"
+                            ],
+                            "Resource": [
+                                 "Fn::Sub": "arn:aws:sqs:#[[${AWS::Region}:${AWS::AccountId}]]#:*"
+                            ],
+                            "Effect": "Allow"
+                        },
+                        {
+                            "Action": [
                                 "sqs:ChangeMessageVisibility",
                                 "sqs:CreateQueue",
                                 "sqs:DeleteMessage",
                                 "sqs:DeleteQueue",
+                                "sqs:GetQueueUrl",
                                 "sqs:PurgeQueue",
                                 "sqs:ReceiveMessage",
                                 "sqs:SendMessage",
@@ -625,21 +643,29 @@
                             ]
                         },
                         {
-                            "Effect": "Allow",
                             "Action": [
                                 "glue:BatchCreatePartition",
                                 "glue:BatchGetPartition",
+                                "glue:GetTables",
+                                "glue:GetDatabases",
+                                "glue:GetPartitions"
+                            ],
+                            "Resource": [
+                                "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:*"
+                            ],
+                            "Effect": "Allow"
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
                                 "glue:CreateDatabase",
                                 "glue:CreateTable",
                                 "glue:DeleteDatabase",
                                 "glue:DeleteTable",
                                 "glue:UpdateTable",
                                 "glue:UpdateDatabase",
-                                "glue:GetTables",
                                 "glue:GetTable",
-                                "glue:GetDatabase",
-                                "glue:GetDatabases",
-                                "glue:GetPartitions"
+                                "glue:GetDatabase"
                             ],
                             "Resource": [
                                 {
