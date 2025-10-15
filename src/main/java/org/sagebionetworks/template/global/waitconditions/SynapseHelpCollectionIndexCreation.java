@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.apache.logging.log4j.Logger;
 import org.opensearch.client.opensearch._types.OpenSearchException;
+import org.opensearch.client.opensearch._types.WaitForActiveShardOptions;
 import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.LoggerFactory;
@@ -12,9 +13,9 @@ import org.sagebionetworks.template.OpenSearchClientFactory;
 import org.sagebionetworks.template.WaitConditionHandler;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
-import software.amazon.awssdk.services.cloudformation.model.StackEvent;
 import com.google.inject.Inject;
 
+import software.amazon.awssdk.services.cloudformation.model.StackEvent;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
 import software.amazon.awssdk.services.opensearchserverless.model.CollectionDetail;
 import software.amazon.awssdk.services.opensearchserverless.model.CollectionStatus;
@@ -79,6 +80,7 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 			logger.info("Index {} does not exist, creating...", IDX_NAME);
 			
 			client.create(req -> req
+				.waitForActiveShards( opt -> opt.option(WaitForActiveShardOptions.All))
 				.index(IDX_NAME)
 				.settings(settings -> settings.knn(true).knnAlgoParamEfSearch(512))
 				.mappings(mappings -> mappings
@@ -97,18 +99,11 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 				)
 			);
 			
-			// Wait until the index is consistent
-			if (client.exists(req -> req.index(IDX_NAME)).value()) {
-				logger.info("Index {} creation completed.", IDX_NAME);
-				
-				retryCount = 0;
-				
-				return Optional.of("index-creation-complete");
-			} else {
-				logger.warn("Index {} not ready yet.", IDX_NAME);
-				retryCount++;
-				return Optional.empty();
-			}
+			logger.info("Index {} creation completed.", IDX_NAME);
+			
+			retryCount = 0;
+			
+			return Optional.of("index-creation-complete");
 			
 		} catch (OpenSearchException e) {
 			logger.warn("The collection {} might not be ready yet:", collectionName, e);
