@@ -128,6 +128,8 @@ public class GlobalResourcesBuilderImplTest {
         
         JSONObject templateJSON = new JSONObject(req.getTemplateBody());
         
+        System.out.println(templateJSON.toString(2));
+        
         assertEquals(expectedJson, templateJSON.toString());
 
         verify(mockSesClient, never()).setComplaintNotificationTopic(anyString(), anyString());

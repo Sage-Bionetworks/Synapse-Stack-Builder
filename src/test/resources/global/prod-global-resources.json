@@ -249,6 +249,52 @@
           "Count" : "1"
 		}
 	  }
+    },
+	"SynapseHelpKnowledgeBaseIngestionScheduleRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Effect": "Allow",
+            "Principal": {"Service": "scheduler.amazonaws.com"},
+            "Action": "sts:AssumeRole",
+            "Condition": {"StringEquals": {
+              "aws:SourceAccount": {"Ref": "AWS::AccountId"},
+              "aws:SourceArn": {"Fn::Sub": "arn:aws:scheduler:${AWS::Region}:${AWS::AccountId}:schedule-group/default"}
+            }}
+          }]
+        },
+        "Policies": [{
+          "PolicyName": "StartIngestionJobPolicy",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [{
+              "Effect": "Allow",
+              "Action": ["bedrock:StartIngestionJob"],
+              "Resource": {"Fn::Sub": "arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:knowledge-base/${SynapseHelpKnowledgeBase}"}
+            }]
+          }
+        }]
+      }
+    },
+    "SynapseHelpKnowledgeBaseIngestionSchedule": {
+      "Type": "AWS::Scheduler::Schedule",
+      "Properties": {
+        "Name": "prod-synhelp-knowledge-base-sync",
+        "Description": "Sync job that sync the synapse help documentation knowledge base used by the synapse agents.",
+        "FlexibleTimeWindow": {"Mode": "OFF"},
+        "ScheduleExpression": "cron(0 3 ? * TUE *)",
+        "ScheduleExpressionTimezone": "America/Los_Angeles",
+        "Target": {
+          "Arn": "arn:aws:scheduler:::aws-sdk:bedrock-agent:startIngestionJob",
+          "RoleArn": {"Fn::GetAtt": [
+            "SynapseHelpKnowledgeBaseIngestionScheduleRole",
+            "Arn"
+          ]},
+          "Input": {"Fn::Sub": "{\"KnowledgeBaseId\":\"${SynapseHelpKnowledgeBase}\",\"DataSourceId\":\"${SynapseHelpKnowledgeBaseDataSource}\"}"}
+        }
+      }
     }
   },
   "Outputs": {
