@@ -25,7 +25,6 @@ import static org.sagebionetworks.template.Constants.DELETION_POLICY;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_MEMORY;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
-import static org.sagebionetworks.template.Constants.IDENTITY_ARN;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.NOSNAPSHOT;
 import static org.sagebionetworks.template.Constants.OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
@@ -133,9 +132,6 @@ import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersio
 import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsResponse;
 import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformFilter;
 import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformSummary;
-import software.amazon.awssdk.services.sts.StsClient;
-import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
-import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -171,8 +167,6 @@ public class RepositoryTemplateBuilderImplTest {
 	private CloudwatchLogsVelocityContextProvider mockCwlContextProvider;
 	@Mock
 	private TimeToLive mockTimeToLive;
-	@Mock
-	private StsClient mockStsClient;
 	@Mock
 	private AmazonS3Client mockS3Client;
 	
@@ -224,7 +218,7 @@ public class RepositoryTemplateBuilderImplTest {
 						new BedrockGridAgentContextProvider(config, mockS3Client),
 						new GridContextProvider(gridQueueRef, config)),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
-                mockEc2ClientWrapper, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive, mockStsClient);
+                mockEc2ClientWrapper, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive);
 		
 		builderSpy = Mockito.spy(builder);
 
@@ -259,25 +253,17 @@ public class RepositoryTemplateBuilderImplTest {
 	}
 
 	private void configureStack(String inputStack) throws InterruptedException {
-		when(mockStsClient.getCallerIdentity(any(GetCallerIdentityRequest.class))).thenReturn(GetCallerIdentityResponse.builder().arn("currentIdentityArn").build());
 		stack = inputStack;
 		
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		
-		
-		sharedResouces = Stack.builder().build();
-		
 		databaseEndpointSuffix = "something.amazon.com";
 
 		sharedResouces = Stack.builder().outputs(
-				Output.builder()
-						.outputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
-						.outputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix)
-						.build(),
-				Output.builder()
-						.outputKey("SynapseHelpCollectionEndpoint")
-						.outputValue("synhelp-endpoint")
-						.build()
+			Output.builder()
+				.outputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
+				.outputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix)
+				.build()
 		).build();
 		when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(sharedResouces));
 		
@@ -363,8 +349,6 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(bodyJSONString);
 		
 		JSONObject templateJson = new JSONObject(bodyJSONString);
-		
-		System.out.println(templateJson.toString(2));
 		
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		assertNotNull(resources);
@@ -1033,7 +1017,6 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
 		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
-		when(mockStsClient.getCallerIdentity(any(GetCallerIdentityRequest.class))).thenReturn(GetCallerIdentityResponse.builder().arn("currentIdentityArn").build());
 		
 		// call under test
 		VelocityContext context = builder.createSharedContext();
@@ -1117,7 +1100,6 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
 		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
-		when(mockStsClient.getCallerIdentity(any(GetCallerIdentityRequest.class))).thenReturn(GetCallerIdentityResponse.builder().arn("currentIdentityArn").build());
 		
 		// call under test
 		VelocityContext context = builder.createSharedContext();
@@ -1131,7 +1113,6 @@ public class RepositoryTemplateBuilderImplTest {
 		
 		assertEquals("Block:{}", context.get(ADMIN_RULE_ACTION));
 		assertEquals("Retain", context.get(DELETION_POLICY));
-		assertEquals("currentIdentityArn", context.get(IDENTITY_ARN));
 	}
 
 

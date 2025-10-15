@@ -28,6 +28,22 @@
 			}			
 		}
 	},
+	"SynapseHelpCollectionDeployerDataAccessPolicy": {
+		"Type":"AWS::OpenSearchServerless::AccessPolicy",
+		"Properties": {
+            "Name":"${stack}-synhelp-deployer",
+            "Type":"data",
+            "Description":"Access policy for the deployer to create the index for the synapse help collection",
+            "Policy": {
+               "Fn::Sub": [
+               		"[{\"Rules\":[{\"ResourceType\":\"index\",\"Resource\":[\"index/${stack}-synhelp/*\"],\"Permission\":[\"aoss:CreateIndex\",\"aoss:DescribeIndex\"]}],\"Principal\":[\"#[[${deployerRoleArn}]]#\"]}]",
+                	{
+                		"deployerRoleArn" : "${identityArn}"
+					}
+                ]
+            }
+		}
+ 	},
  	"SynapseHelpCollectionKnowledgeBaseDataAccessPolicy": {
 		"Type":"AWS::OpenSearchServerless::AccessPolicy",
 		"Properties": {
@@ -35,7 +51,8 @@
             "Type":"data",
             "Description":"Access policy for the knowledge base to sync and query the synapse help collection",
             "Policy": {
-               "Fn::Sub": ["[{\"Rules\":[{\"ResourceType\":\"index\",\"Resource\":[\"index/${stack}-synhelp/*\"],\"Permission\":[\"aoss:CreateIndex\",\"aoss:UpdateIndex\",\"aoss:DescribeIndex\",\"aoss:ReadDocument\",\"aoss:WriteDocument\"]},{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-synhelp\"],\"Permission\":[\"aoss:DescribeCollectionItems\",\"aoss:CreateCollectionItems\",\"aoss:UpdateCollectionItems\"]}],\"Principal\":[\"#[[${executionRoleArn}]]#\"]}]",
+               "Fn::Sub": [
+               		"[{\"Rules\":[{\"ResourceType\":\"index\",\"Resource\":[\"index/${stack}-synhelp/*\"],\"Permission\":[\"aoss:CreateIndex\",\"aoss:UpdateIndex\",\"aoss:DescribeIndex\",\"aoss:ReadDocument\",\"aoss:WriteDocument\"]},{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-synhelp\"],\"Permission\":[\"aoss:DescribeCollectionItems\",\"aoss:CreateCollectionItems\",\"aoss:UpdateCollectionItems\"]}],\"Principal\":[\"#[[${executionRoleArn}]]#\"]}]",
                 	{
                 		"executionRoleArn": { "Fn::GetAtt": ["SynapseHelpKnowledgeBaseExecutionRole", "Arn"] }
 					}
@@ -77,7 +94,7 @@
 	        "Description":"Vector store collection for synapse help documentation",
 	        "StandbyReplicas": "DISABLED"
 	     },
-	     "DependsOn": ["SynapseHelpCollectionEncryptionPolicy", "SynapseHelpCollectionNetworkPolicy", "SynapseHelpCollectionKnowledgeBaseDataAccessPolicy"]
+	     "DependsOn": ["SynapseHelpCollectionEncryptionPolicy", "SynapseHelpCollectionNetworkPolicy", "SynapseHelpCollectionKnowledgeBaseDataAccessPolicy", "SynapseHelpCollectionDeployerDataAccessPolicy"]
 	},
 	"SynapseHelpCollectionIndex": {
 	    "Type":"AWS::OpenSearchServerless::Index",

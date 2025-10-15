@@ -93,6 +93,18 @@
         }]
       }}
     },
+    "SynapseHelpCollectionDeployerDataAccessPolicy": {
+      "Type": "AWS::OpenSearchServerless::AccessPolicy",
+      "Properties": {
+        "Name": "prod-synhelp-deployer",
+        "Type": "data",
+        "Description": "Access policy for the deployer to create the index for the synapse help collection",
+        "Policy": {"Fn::Sub": [
+          "[{\"Rules\":[{\"ResourceType\":\"index\",\"Resource\":[\"index/prod-synhelp/*\"],\"Permission\":[\"aoss:CreateIndex\",\"aoss:DescribeIndex\"]}],\"Principal\":[\"${deployerRoleArn}\"]}]",
+          {"deployerRoleArn": "currentIdentityArn"}
+        ]}
+      }
+    },
     "SynapseHelpCollectionKnowledgeBaseDataAccessPolicy": {
       "Type": "AWS::OpenSearchServerless::AccessPolicy",
       "Properties": {
@@ -143,7 +155,8 @@
       "DependsOn": [
         "SynapseHelpCollectionEncryptionPolicy",
         "SynapseHelpCollectionNetworkPolicy",
-        "SynapseHelpCollectionKnowledgeBaseDataAccessPolicy"
+        "SynapseHelpCollectionKnowledgeBaseDataAccessPolicy",
+        "SynapseHelpCollectionDeployerDataAccessPolicy"
       ]
     },
     "SynapseHelpCollectionIndex": {
@@ -164,14 +177,14 @@
               "SpaceType": "l2"
             }
           },
-		  "text_raw": {
-  			"Type": "text",
-  			"Index": true
-  		  },
-            "text_metadata": {
-  			"Type": "text",
-  			"Index": false
-  		  }
+          "text_raw": {
+            "Type": "text",
+            "Index": true
+          },
+          "text_metadata": {
+            "Type": "text",
+            "Index": false
+          }
         }},
         "Settings": {"Index": {
           "Knn": true,

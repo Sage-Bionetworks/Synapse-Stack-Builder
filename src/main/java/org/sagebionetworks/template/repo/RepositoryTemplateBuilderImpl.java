@@ -16,7 +16,6 @@ import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
 import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.IDENTITY_ARN;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.MACHINE_TYPES;
@@ -115,8 +114,6 @@ import software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkClient;
 import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
 import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsResponse;
 import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformSummary;
-import software.amazon.awssdk.services.sts.StsClient;
-import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
 
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
 	public static final List<String> MACHINE_TYPE_LIST = List.of("Workers", "Repository");
@@ -136,7 +133,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	private final ElasticBeanstalkClient beanstalkClient;
 	private final ImageBuilderClient imageBuilderClient;
 	private final TimeToLive timeToLive;
-	private final StsClient stsClient;
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper, VelocityEngine velocityEngine,
@@ -144,8 +140,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
                                          SecretBuilder secretBuilder, Set<VelocityContextProvider> contextProviders,
                                          ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkDefaultAMIEncrypter,
                                          StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
-                                         Ec2ClientWrapper ec2ClientWrapper, ElasticBeanstalkClient beanstalkClient, ImageBuilderClient imageBuilderClient, TimeToLive ttl,
-                                         StsClient stsClient) {
+                                         Ec2ClientWrapper ec2ClientWrapper, ElasticBeanstalkClient beanstalkClient, ImageBuilderClient imageBuilderClient, TimeToLive ttl) {
 		super();
 		this.cloudFormationClientWrapper = cloudFormationClientWrapper;
 		this.ec2ClientWrapper = ec2ClientWrapper;
@@ -161,7 +156,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.beanstalkClient = beanstalkClient;
 		this.imageBuilderClient = imageBuilderClient;
 		this.timeToLive = ttl;
-		this.stsClient = stsClient;
 	}
 
 	public String getActualBeanstalkAmazonLinuxPlatform() {
@@ -343,8 +337,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		for(VelocityContextProvider provider : contextProviders){
 			provider.addToContext(context);
 		}
-		
-		context.put(IDENTITY_ARN, stsClient.getCallerIdentity(GetCallerIdentityRequest.builder().build()).arn());
 		
 		RegularExpressions.bindRegexToContext(context);
 

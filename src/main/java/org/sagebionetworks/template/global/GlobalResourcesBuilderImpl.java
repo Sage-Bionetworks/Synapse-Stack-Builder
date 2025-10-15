@@ -4,6 +4,7 @@ import static org.sagebionetworks.template.Constants.DELETION_POLICY;
 import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC;
 import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC;
 import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_STACK_NAME_FORMAT;
+import static org.sagebionetworks.template.Constants.IDENTITY_ARN;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.OPS_VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX;
@@ -32,15 +33,17 @@ import org.sagebionetworks.template.repo.DeletionPolicy;
 import com.google.inject.Inject;
 
 import software.amazon.awssdk.services.cloudformation.model.Capability;
+import software.amazon.awssdk.services.sts.StsClient;
 
 public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
 
-    CloudFormationClientWrapper cloudFormationClientWrapper;
-    VelocityEngine velocityEngine;
-    Configuration config;
-    Logger logger;
-    StackTagsProvider stackTagsProvider;
-    SesClientWrapper sesClientWrapper;
+	private final CloudFormationClientWrapper cloudFormationClientWrapper;
+    private final VelocityEngine velocityEngine;
+    private final Configuration config;
+    private final Logger logger;
+    private final StackTagsProvider stackTagsProvider;
+    private final SesClientWrapper sesClientWrapper;
+	private final StsClient stsClient;
 
     @Inject
     public GlobalResourcesBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper,
@@ -48,13 +51,15 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
                                       Configuration config,
                                       LoggerFactory loggerFactory,
                                       StackTagsProvider stackTagsProvider,
-                                      SesClientWrapper sesClientWrapper) {
+                                      SesClientWrapper sesClientWrapper,
+                                      StsClient stsClient) {
         this.cloudFormationClientWrapper = cloudFormationClientWrapper;
         this.velocityEngine = velocityEngine;
         this.config = config;
         this.logger = loggerFactory.getLogger(GlobalResourcesBuilderImpl.class);
         this.stackTagsProvider = stackTagsProvider;
         this.sesClientWrapper = sesClientWrapper;
+        this.stsClient = stsClient;
     }
 
     @Override
@@ -95,6 +100,7 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
         
         context.put(VPC_EXPORT_PREFIX, Constants.createVpcExportPrefix(stack));
         context.put(OPS_VPC_EXPORT_PREFIX, config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX));
+        context.put(IDENTITY_ARN, stsClient.getCallerIdentity().arn());
         
         return context;
     }
