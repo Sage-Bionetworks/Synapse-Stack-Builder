@@ -491,7 +491,9 @@
                                 "sns:Unsubscribe"
                             ],
                             "Resource": [
-                                "Fn::Sub": "arn:aws:sns:#[[${AWS::Region}:${AWS::AccountId}]]#:*"
+                                {
+                                    "Fn::Sub": "arn:aws:sns:#[[${AWS::Region}:${AWS::AccountId}]]#:*"
+                                }
                             ],
                             "Effect": "Allow"
                         },
@@ -525,7 +527,9 @@
                                 "sqs:ListQueues"
                             ],
                             "Resource": [
-                                 "Fn::Sub": "arn:aws:sqs:#[[${AWS::Region}:${AWS::AccountId}]]#:*"
+                                {
+                                    "Fn::Sub": "arn:aws:sqs:#[[${AWS::Region}:${AWS::AccountId}]]#:*"
+                                }
                             ],
                             "Effect": "Allow"
                         },
@@ -651,7 +655,9 @@
                                 "glue:GetPartitions"
                             ],
                             "Resource": [
-                                "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:*"
+                                {
+                                    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:*"
+                                }
                             ],
                             "Effect": "Allow"
                         },
