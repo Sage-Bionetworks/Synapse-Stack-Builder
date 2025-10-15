@@ -142,50 +142,16 @@
 		"SynapseHelpCollectionDeployerDataAccessPolicy"
       ]
     },
-	"SynapseHelpCollectionReadyWaitCondition": {
-	  "Type": "AWS::CloudFormation::WaitCondition",
-	    "DependsOn": [ "SynapseHelpCollection" ],
-	    "CreationPolicy" : {
-	      "ResourceSignal" : {
-	        "Timeout" : "PT5M",
-	        "Count" : "1"
-	      }
-	  }
+	"SynapseHelpCollectionCreateIndexWaitCondition": {
+		"Type": "AWS::CloudFormation::WaitCondition",
+		"DependsOn": [ "SynapseHelpCollection" ],
+		"CreationPolicy" : {
+	        "ResourceSignal" : {
+	            "Timeout" : "PT5M",
+	            "Count" : "1"
+	        }
+	    }
 	},
-    "SynapseHelpCollectionIndex": {
-      "Type": "AWS::OpenSearchServerless::Index",
-      "Properties": {
-        "CollectionEndpoint": {"Fn::GetAtt": [
-          "SynapseHelpCollection",
-          "CollectionEndpoint"
-        ]},
-        "IndexName": "vector-idx",
-        "Mappings": {"Properties": {
-          "text_vector": {
-            "Type": "knn_vector",
-            "Dimension": 1024,
-            "Method": {
-              "Name": "hnsw",
-              "Engine": "faiss",
-              "SpaceType": "l2"
-            }
-          },
-          "text_raw": {
-			"Type": "text",
-			"Index": true
-		  },
-          "text_metadata": {
-			"Type": "text",
-			"Index": false
-		  }
-        }},
-        "Settings": {"Index": {
-          "Knn": true,
-          "KnnAlgoParamEfSearch": 512
-        }}
-      },
-      "DependsOn": ["SynapseHelpCollectionReadyWaitCondition"]
-    },
     "SynapseHelpKnoweldgeBaseExecutionRolePolicy": {
       "Type": "AWS::IAM::RolePolicy",
       "Properties": {
@@ -214,7 +180,7 @@
     "SynapseHelpKnowledgeBase": {
       "Type": "AWS::Bedrock::KnowledgeBase",
       "DependsOn": [
-        "SynapseHelpCollectionIndex",
+        "SynapseHelpCollectionCreateIndexWaitCondition",
         "SynapseHelpKnoweldgeBaseExecutionRolePolicy"
       ],
       "Properties": {

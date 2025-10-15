@@ -10,49 +10,52 @@ import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.OpenSearchClientFactory;
 import org.sagebionetworks.template.WaitConditionHandler;
-import org.sagebionetworks.template.config.Configuration;
-
-import com.google.inject.Inject;
+import org.sagebionetworks.template.config.RepoConfiguration;
 
 import software.amazon.awssdk.services.cloudformation.model.StackEvent;
+import com.google.inject.Inject;
+
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
 import software.amazon.awssdk.services.opensearchserverless.model.CollectionDetail;
 import software.amazon.awssdk.services.opensearchserverless.model.CollectionStatus;
 
 /**
- * A wait condition that pauses the stack creation until the synapse help open search collection data access policy that
- * allows the deployer to create an index is consistent. 
+ * A bedrock knowledge base that uses an open search collection requires the index to exists before its creation, since
+ * the index creation is part of the opensearch API operations and there is no cloudformation resource for it we need to
+ * invoke the opensearch API as part of a wait condition in the stack. Note that a wait condition is only processed during
+ * the stack creation, so the index cannot be updated. 
  */
-public class SynapseHelpCollectionReadyWaitCondition implements WaitConditionHandler {
+public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler {
+	
 	static final int MAX_RETRY_COUNT = 5;
 	
 	private static final String IDX_NAME = "vector-idx";
 	
 	private Logger logger;
 	
-	private Configuration config;
+	private RepoConfiguration config;
 	
 	private OpenSearchServerlessClient ossManagementClient;
 	
 	private OpenSearchClientFactory openSearchClientFactory;
 	
-	private int retryCount = 0;	
+	private int retryCount = 0;
 	
 	@Inject
-	public SynapseHelpCollectionReadyWaitCondition(LoggerFactory loggerFactory, Configuration config, OpenSearchServerlessClient ossClient, OpenSearchClientFactory openSearchClientFactory) {
-		this.logger = loggerFactory.getLogger(SynapseHelpCollectionReadyWaitCondition.class);
+	public SynapseHelpCollectionIndexCreation(LoggerFactory loggerFactory, RepoConfiguration config, OpenSearchServerlessClient ossClient, OpenSearchClientFactory openSearchClientFactory) {
+		this.logger = loggerFactory.getLogger(SynapseHelpCollectionIndexCreation.class);
 		this.config = config;
 		this.ossManagementClient = ossClient;
 		this.openSearchClientFactory = openSearchClientFactory;
 	}
-
+	
 	@Override
 	public String getWaitConditionId() {
-		return "SynapseHelpCollectionReadyWaitCondition";
+		return "SynapseHelpCollectionCreateIndexWaitCondition";
 	}
-
+	
 	@Override
-	public Optional<String> handle(StackEvent stackEvent) throws InterruptedException { 
+	public Optional<String> handle(StackEvent stackEvent) {
 		String collectionName = config.getProperty(Constants.PROPERTY_KEY_STACK) + "-synhelp";
 		
 		CollectionDetail collection = ossManagementClient.batchGetCollection(req -> req
@@ -67,15 +70,45 @@ public class SynapseHelpCollectionReadyWaitCondition implements WaitConditionHan
 		OpenSearchIndicesClient client = openSearchClientFactory.getIndicesClient(collection.collectionEndpoint());
 		
 		try {
-			
-			// This operation fails if the data access policy is not propagated yet
 			if (client.exists(req -> req.index(IDX_NAME)).value()) {
 				logger.warn("Index {} already exists.", IDX_NAME);
 				retryCount = 0;
 				return Optional.of("index-already-exists");
 			}
 			
-			return Optional.of("collection-ready");
+			logger.info("Index {} does not exist, creating...", IDX_NAME);
+			
+			client.create(req -> req
+				.index(IDX_NAME)
+				.settings(settings -> settings.knn(true).knnAlgoParamEfSearch(512))
+				.mappings(mappings -> mappings
+					.properties("text_vector", p -> p
+						.knnVector(vector -> vector
+							.dimension(1024)
+							.method(method -> method
+								.name("hnsw")
+								.engine("faiss")
+								.spaceType("l2")
+							)
+						)
+					)
+					.properties("text_raw", p -> p.text(text -> text.index(true)))
+					.properties("text_metadata", p -> p.text(text -> text.index(false)))
+				)
+			);
+			
+			// Wait until the index is consistent
+			if (client.exists(req -> req.index(IDX_NAME)).value()) {
+				logger.info("Index {} creation completed.", IDX_NAME);
+				
+				retryCount = 0;
+				
+				return Optional.of("index-creation-complete");
+			} else {
+				logger.warn("Index {} not ready yet.", IDX_NAME);
+				retryCount++;
+				return Optional.empty();
+			}
 			
 		} catch (OpenSearchException e) {
 			logger.warn("The collection {} might not be ready yet:", collectionName, e);
@@ -90,6 +123,6 @@ public class SynapseHelpCollectionReadyWaitCondition implements WaitConditionHan
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		}
+		
 	}
-
 }
