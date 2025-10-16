@@ -624,6 +624,120 @@
                 }
             }
         },
+        "${stack}${instance}SynapesRepoWorkersSearchAndLogsManagedPolicy": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                             "Effect": "Allow",
+                             "Action": [
+                                "aoss:APIAccessAll",
+                                "aoss:CreateAccessPolicy",
+                                "aoss:CreateCollection",
+                                "aoss:CreateIndex",
+                                "aoss:CreateSecurityPolicy",
+                                "aoss:DeleteAccessPolicy",
+                                "aoss:DeleteCollection",
+                                "aoss:DeleteIndex",
+                                "aoss:DeleteSecurityPolicy",
+                                "aoss:GetIndex",
+                                "aoss:GetAccessPolicy",
+                                "aoss:GetSecurityPolicy",
+                                "aoss:UpdateAccessPolicy",
+                                "aoss:UpdateCollection",
+                                "aoss:UpdateIndex",
+                                "aoss:UpdateSecurityPolicy"
+                             ],
+                                 "Resource": [
+                                    {
+                                        "Fn::Sub": "arn:aws:aoss:#[[${AWS::Region}:${AWS::AccountId}]]#:*"
+                                    }
+                                 ]
+                            },
+                            {
+                                "Action": [
+                                    "cloudsearch:AddTags",
+                                    "cloudsearch:CreateDomain",
+                                    "cloudsearch:DefineAnalysisScheme",
+                                    "cloudsearch:DefineExpression",
+                                    "cloudsearch:DefineIndexField",
+                                    "cloudsearch:DeleteAnalysisScheme",
+                                    "cloudsearch:DeleteDomain",
+                                    "cloudsearch:DeleteExpression",
+                                    "cloudsearch:DeleteIndexField",
+                                    "cloudsearch:DescribeAnalysisSchemes",
+                                    "cloudsearch:DescribeDomainEndpointOptions",
+                                    "cloudsearch:DescribeDomains",
+                                    "cloudsearch:DescribeIndexFields",
+                                    "cloudsearch:DescribeServiceAccessPolicies",
+                                    "cloudsearch:IndexDocuments",
+                                    "cloudsearch:ListDomainNames",
+                                    "cloudsearch:ListTags",
+                                    "cloudsearch:RemoveTags",
+                                    "cloudsearch:UpdateDomainEndpointOptions",
+                                    "cloudsearch:UpdateServiceAccessPolicies",
+                                    "cloudsearch:document",
+                                    "cloudsearch:search",
+                                    "cloudsearch:suggest"
+                                    ],
+                                    "Effect": "Allow",
+                                    "Resource": [
+                                        {
+                                           "Fn::Sub": "arn:aws:cloudsearch:#[[${AWS::Region}:${AWS::AccountId}]]#:domain/${stack}-${instance}-sagebase-org"
+                                         }
+                                    ]
+                                },
+                                {
+                                     "Effect": "Allow",
+                                     "Action": [
+                                         "logs:CreateLogGroup",
+                                         "logs:CreateLogStream",
+                                         "logs:DeleteLogGroup",
+                                         "logs:DeleteLogStream",
+                                         "logs:DescribeDeliveries",
+                                         "logs:DescribeDeliveryDestinations",
+                                         "logs:DescribeDeliverySources",
+                                         "logs:DescribeDestinations",
+                                         "logs:DescribeFieldIndexes",
+                                         "logs:DescribeIndexPolicies",
+                                         "logs:DescribeLogGroups",
+                                         "logs:DescribeLogStreams",
+                                         "logs:DescribeQueries",
+                                         "logs:DescribeQueryDefinitions",
+                                         "logs:DescribeResourcePolicies",
+                                         "logs:FilterLogEvents",
+                                         "logs:GetLogEvents",
+                                         "logs:GetLogGroupFields",
+                                         "logs:GetLogRecord",
+                                         "logs:GetQueryResults",
+                                         "logs:GetTransformer",
+                                         "logs:ListLogGroups",
+                                         "logs:ListTagsForResource",
+                                         "logs:PutLogEvents",
+                                         "logs:PutRetentionPolicy",
+                                         "logs:StartQuery"
+                                     ],
+                                     "Resource": [
+                                         {
+                                           "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:log-group*"
+                                         },
+                                         {
+                                           "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:destination*"
+                                         },
+                                         {
+                                           "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:delivery*"
+                                         },
+                                         {
+                                           "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#::anomaly-detector*"
+                                         }
+                                     ]
+                                }
+                            ]
+                        }
+                    }
+        },
         "${stack}${instance}SynapesRepoWorkersStreamingDataAnalyticsManagedPolicy": {
             "Type": "AWS::IAM::ManagedPolicy",
             "Properties": {
@@ -740,6 +854,9 @@
                     },
                     {
                         "Ref": "${stack}${instance}SynapesRepoWorkersNotificationManagedPolicy"
+                    },
+                    {
+                        "Ref": "${stack}${instance}SynapesRepoWorkersSearchAndLogsManagedPolicy"
                     }
 				]
 			}
