@@ -413,11 +413,6 @@
                             "Resource": "*"
                         },
                         {
-                            "Action": "cloudsearch:*",
-                            "Effect": "Allow",
-                            "Resource": "*"
-                        },
-                        {
                             "Action": [
                                 "kms:Decrypt",
                                 "kms:Encrypt",
@@ -435,34 +430,13 @@
                         },
                         {
                             "Effect": "Allow",
-                            "Action": [
-                                "logs:*"
-                            ],
-                            "Resource": "*"
-                        },
-                        {
-                            "Effect": "Allow",
                             "Action": "elasticbeanstalk:*",
                             "Resource": "*"
                         },
-                        {
-                             "Effect": "Allow",
-                             "Action": [
-                                 "bedrock:*"
-                             ],
-                             "Resource": "*"
-                         },
                          {
                              "Effect": "Allow",
                              "Action": [
                                  "apigateway:*"
-                             ],
-                             "Resource": "*"
-                         },
-                         {
-                             "Effect": "Allow",
-                             "Action": [
-                                 "aoss:*"
                              ],
                              "Resource": "*"
                          },
