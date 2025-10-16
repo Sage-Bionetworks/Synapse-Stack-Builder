@@ -802,6 +802,139 @@
                 }
             }
         },
+        "${stack}${instance}SynapesRepoWorkersBedrockManagedPolicy": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                             "Effect": "Allow",
+                             "Action": [
+                                 "bedrock:AssociateAgentKnowledgeBase",
+                                 "bedrock:AssociateAgentKnowledgeBase",
+                                 "bedrock:CreateAgent",
+                                 "bedrock:CreateAgentActionGroup",
+                                 "bedrock:CreateDataSource",
+                                 "bedrock:CreateKnowledgeBase",
+                                 "bedrock:CreateSession",
+                                 "bedrock:DeleteAgent",
+                                 "bedrock:DeleteAgentActionGroup",
+                                 "bedrock:DeleteDataSource",
+                                 "bedrock:DeleteKnowledgeBase",
+                                 "bedrock:DeleteSession",
+                                 "bedrock:DisassociateAgentKnowledgeBase",
+                                 "bedrock:EndSession",
+                                 "bedrock:GetAgent",
+                                 "bedrock:GetAgentActionGroup",
+                                 "bedrock:GetAgentKnowledgeBase",
+                                 "bedrock:GetDataSource",
+                                 "bedrock:GetKnowledgeBase",
+                                 "bedrock:GetSession",
+                                 "bedrock:InvokeAgent",
+                                 "bedrock:InvokeModel",
+                                 "bedrock:ListAgentActionGroups",
+                                 "bedrock:ListAgentKnowledgeBases",
+                                 "bedrock:ListAgents",
+                                 "bedrock:ListDataSources",
+                                 "bedrock:ListIngestionJobs",
+                                 "bedrock:ListKnowledgeBases",
+                                 "bedrock:ListSessions",
+                                 "bedrock:ListTagsForResource",
+                                 "bedrock:PrepareAgent",
+                                 "bedrock:StartIngestionJob",
+                                 "bedrock:StopIngestionJob",
+                                 "bedrock:TagResource",
+                                 "bedrock:UntagResource",
+                                 "bedrock:UpdateAgent",
+                                 "bedrock:UpdateAgentActionGroup",
+                                 "bedrock:UpdateAgentKnowledgeBase",
+                                 "bedrock:UpdateDataSource",
+                                 "bedrock:UpdateKnowledgeBase",
+                                 "bedrock:UpdateSession"
+                             ],
+                             "Resource": [
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}]]#::foundation-model/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:async-invoke/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:inference-profile/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:default-prompt-router/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:prompt-router/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:application-inference-profile/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:custom-model/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:provisioned-model/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:model-customization-job/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:agent/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:agent-alias/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:knowledge-base/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:model*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:evaluation-job/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:guardrail*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:automated*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:flow*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:model*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:prompt/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:imported-model/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:marketplace/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:data-automation*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:blueprint/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:session/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:custom-model/*"
+                                }
+                             ]
+                         }
+                    ]
+                }
+            }
+        },
         "${stack}${instance}SynapesRepoWorkersServiceRole": {
 			"Type": "AWS::IAM::Role",
 			"Properties": {
@@ -836,6 +969,9 @@
                     },
                     {
                         "Ref": "${stack}${instance}SynapesRepoWorkersSearchAndLogsManagedPolicy"
+                    },
+                    {
+                        "Ref": "${stack}${instance}SynapesRepoWorkersBedrockManagedPolicy"
                     }
 				]
 			}
