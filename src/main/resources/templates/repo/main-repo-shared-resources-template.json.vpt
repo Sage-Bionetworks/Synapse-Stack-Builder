@@ -766,18 +766,7 @@
                                 "glue:BatchGetPartition",
                                 "glue:GetTables",
                                 "glue:GetDatabases",
-                                "glue:GetPartitions"
-                            ],
-                            "Resource": [
-                                {
-                                    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:*"
-                                }
-                            ],
-                            "Effect": "Allow"
-                        },
-                        {
-                            "Effect": "Allow",
-                            "Action": [
+                                "glue:GetPartitions",
                                 "glue:CreateDatabase",
                                 "glue:CreateTable",
                                 "glue:DeleteDatabase",
@@ -789,36 +778,26 @@
                             ],
                             "Resource": [
                                 {
-                                    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:catalog*"
-                                },
-                                {
-                                    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:database*"
-                                },
-                                {
-                                    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:table*"
+                                    "Fn::Sub": "arn:aws:glue:#[[${AWS::Region}:${AWS::AccountId}]]#:*"
                                 }
-                                ],
-                                "Condition": {
-                                        "StringEquals": {
-                                            "glue:LakeFormationPermissions": "true"
-                                        }
-                                    }
-                                },
+                            ],
+                            "Effect": "Allow"
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "athena:BatchGetQueryExecution",
+                                "athena:GetQueryExecution",
+                                "athena:GetQueryResults",
+                                "athena:StartQueryExecution",
+                                "athena:StopQueryExecution"
+                            ],
+                            "Resource": [
                                 {
-                                    "Effect": "Allow",
-                                    "Action": [
-                                        "athena:BatchGetQueryExecution",
-                                        "athena:GetQueryExecution",
-                                        "athena:GetQueryResults",
-                                        "athena:StartQueryExecution",
-                                        "athena:StopQueryExecution"
-                                    ],
-                                    "Resource": [
-                                        {
-                                            "Fn::Sub": "arn:aws:athena:#[[${AWS::Region}:${AWS::AccountId}]]#:workgroup/*"
-                                        }
-                                    ]
+                                    "Fn::Sub": "arn:aws:athena:#[[${AWS::Region}:${AWS::AccountId}]]#:workgroup/*"
                                 }
+                            ]
+                        }
                     ]
                 }
             }
