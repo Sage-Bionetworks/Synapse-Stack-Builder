@@ -766,7 +766,6 @@
 		#parse("templates/repo/appconfig-template.json.vpt")
 		#parse("templates/repo/api-gateway-template.json.vpt")
 		#parse("templates/repo/opensearch-template.json.vpt")
-		#parse("templates/repo/bedrock-knowledge-base-template.json.vpt")
 		${bedrock_agent_resouces}
 		${bedrock_grid_agent_resources}
 		#parse("templates/repo/grid/grid-websocket.json.vpt")
@@ -878,27 +877,6 @@
 								"Ref": "AWS::StackName"
 							},
 							"Temp-Credentials-Service-Role-Arn"
-						]
-					]
-				}
-			}
-		},
-		"SynapseHelpCollectionEndpoint": {
-			"Value": {
-				"Fn::GetAtt" : ["SynapseHelpCollection", "CollectionEndpoint"]
-			},
-			"Export": {
-				"Name": {
-					"Fn::Join": [
-						"-",
-						[
-							{
-								"Ref": "AWS::Region"
-							},
-							{
-								"Ref": "AWS::StackName"
-							},
-							"Synapse-Help-Collection-Endpoint"
 						]
 					]
 				}

@@ -1,10 +1,11 @@
-package org.sagebionetworks.template.repo.bedrock;
+package org.sagebionetworks.template.global.waitconditions;
 
 import java.io.IOException;
 import java.util.Optional;
 
 import org.apache.logging.log4j.Logger;
 import org.opensearch.client.opensearch._types.OpenSearchException;
+import org.opensearch.client.opensearch._types.WaitForActiveShardOptions;
 import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.LoggerFactory;
@@ -12,9 +13,9 @@ import org.sagebionetworks.template.OpenSearchClientFactory;
 import org.sagebionetworks.template.WaitConditionHandler;
 import org.sagebionetworks.template.config.RepoConfiguration;
 
-import software.amazon.awssdk.services.cloudformation.model.StackEvent;
 import com.google.inject.Inject;
 
+import software.amazon.awssdk.services.cloudformation.model.StackEvent;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
 import software.amazon.awssdk.services.opensearchserverless.model.CollectionDetail;
 import software.amazon.awssdk.services.opensearchserverless.model.CollectionStatus;
@@ -56,7 +57,7 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 	
 	@Override
 	public Optional<String> handle(StackEvent stackEvent) {
-		String collectionName = config.getProperty(Constants.PROPERTY_KEY_STACK) + "-" + config.getProperty(Constants.PROPERTY_KEY_INSTANCE) + "-synhelp";
+		String collectionName = config.getProperty(Constants.PROPERTY_KEY_STACK) + "-synhelp";
 		
 		CollectionDetail collection = ossManagementClient.batchGetCollection(req -> req
 			.names(collectionName)
@@ -79,6 +80,7 @@ public class SynapseHelpCollectionIndexCreation implements WaitConditionHandler 
 			logger.info("Index {} does not exist, creating...", IDX_NAME);
 			
 			client.create(req -> req
+				.waitForActiveShards( opt -> opt.option(WaitForActiveShardOptions.All))
 				.index(IDX_NAME)
 				.settings(settings -> settings.knn(true).knnAlgoParamEfSearch(512))
 				.mappings(mappings -> mappings

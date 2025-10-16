@@ -3,21 +3,22 @@ package org.sagebionetworks.template.global;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC;
 import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC;
+import static org.sagebionetworks.template.Constants.IDENTITY_ARN;
+import static org.sagebionetworks.template.Constants.OPS_VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.SES_SYNAPSE_DOMAIN;
 import static org.sagebionetworks.template.Constants.STACK;
+import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.logging.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
@@ -30,13 +31,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.CloudFormationClientWrapper;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
-import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.SesClientWrapperImpl;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.Configuration;
+
 import software.amazon.awssdk.services.cloudformation.model.Tag;
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
 
 @ExtendWith(MockitoExtension.class)
 public class GlobalResourcesBuilderImplTest {
@@ -47,14 +50,12 @@ public class GlobalResourcesBuilderImplTest {
     CloudFormationClientWrapper mockCloudFormationClientWrapper;
     VelocityEngine velocityEngine;
     @Mock
-    LoggerFactory mockLoggerFactory;
-    @Mock
-    Logger mockLogger;
-    @Mock
     StackTagsProvider mockStackTagsProvider;
     @Mock
     SesClientWrapperImpl mockSesClient;
-
+	@Mock
+	StsClient mockStsClient;
+	
     List<Tag> expectedTags;
 
     @Captor
@@ -66,14 +67,12 @@ public class GlobalResourcesBuilderImplTest {
     @BeforeEach
     public void before() {
         velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
-
-        when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
-
+        
         expectedTags = new LinkedList<>();
         Tag t = Tag.builder().key("aKey").value("aValue").build();
         expectedTags.add(t);
 
-        builder = new GlobalResourcesBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, mockConfig, mockLoggerFactory, mockStackTagsProvider, mockSesClient);
+        builder = new GlobalResourcesBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, mockConfig, mockStackTagsProvider, mockSesClient, mockStsClient);
 
     }
 
@@ -86,8 +85,12 @@ public class GlobalResourcesBuilderImplTest {
     @Test
     public void testCreateContext() {
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("dev");
+        when(mockStsClient.getCallerIdentity()).thenReturn(GetCallerIdentityResponse.builder().arn("currentIdentityArn").build());
         VelocityContext context = builder.createContext();
         assertEquals("dev", context.get(STACK));
+        assertEquals("us-east-1-synapse-dev-vpc-2", context.get(VPC_EXPORT_PREFIX));
+        assertEquals("us-east-1-vpc", context.get(OPS_VPC_EXPORT_PREFIX));
+        assertEquals("currentIdentityArn", context.get(IDENTITY_ARN));
     }
 
     @Test
@@ -106,6 +109,7 @@ public class GlobalResourcesBuilderImplTest {
     @Test
     public void testBuildGlobalResourcesDev() throws InterruptedException {
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("dev");
+		when(mockStsClient.getCallerIdentity()).thenReturn(GetCallerIdentityResponse.builder().arn("currentIdentityArn").build());
         when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
         builder.buildGlobalResources(); // call under test
@@ -121,6 +125,8 @@ public class GlobalResourcesBuilderImplTest {
         
         JSONObject templateJSON = new JSONObject(req.getTemplateBody());
         
+        System.out.println(templateJSON.toString(2));
+        
         assertEquals(expectedJson, templateJSON.toString());
 
         verify(mockSesClient, never()).setComplaintNotificationTopic(anyString(), anyString());
@@ -131,6 +137,7 @@ public class GlobalResourcesBuilderImplTest {
     @Test
     public void testBuildGlobalResourcesProd() throws InterruptedException {
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("prod");
+        when(mockStsClient.getCallerIdentity()).thenReturn(GetCallerIdentityResponse.builder().arn("currentIdentityArn").build());
         when(mockCloudFormationClientWrapper.getOutput("synapse-prod-global-resources", GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC)).thenReturn("complaintTopicArn");
         when(mockCloudFormationClientWrapper.getOutput("synapse-prod-global-resources", GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC)).thenReturn("bounceTopicArn");
         when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
