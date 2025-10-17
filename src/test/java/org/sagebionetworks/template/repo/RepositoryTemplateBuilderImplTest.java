@@ -80,6 +80,7 @@ import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -229,10 +230,10 @@ public class RepositoryTemplateBuilderImplTest {
 		
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder,
-				Sets.newHashSet(mockContextProvider1, mockContextProvider2,
+				new LinkedHashSet<>(List.of(mockContextProvider1, mockContextProvider2,
 						new BedrockAgentContextProvider(config, mockS3Client),
 						new BedrockGridAgentContextProvider(config, mockS3Client),
-						new GridContextProvider(gridQueueRef, config)),
+						new GridContextProvider(gridQueueRef, config))),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
                 mockEc2ClientWrapper, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive, mockStsClient,
 				Set.of(mockWaitConditionHandler));
@@ -443,9 +444,7 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(mockS3Client, times(2)).putObject(putObjectRequestCaptor.capture(), requestBodyCaptor.capture());
 
 		List<PutObjectRequest> putObjectRequests = putObjectRequestCaptor.getAllValues();
-		assertEquals(2, putObjectRequests.size());
 		List<RequestBody> requestBodies = requestBodyCaptor.getAllValues();
-		assertEquals(2, requestBodies.size());
 		PutObjectRequest putObjectRequest1 = putObjectRequests.get(0);
 		PutObjectRequest putObjectRequest2 = putObjectRequests.get(1);
 		RequestBody requestBody1 = requestBodies.get(0);
