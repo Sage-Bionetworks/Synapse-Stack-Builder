@@ -96,8 +96,7 @@ jobs:
           template: ${{ inputs.CODE_PIPELINE_CF_TEMPLATE }}
           name: ${{ inputs.PIPELINE_NAME }}
           capabilities: CAPABILITY_IAM,CAPABILITY_NAMED_IAM
-          #parameter-overrides: ${{ inputs.PIPELINE_PARAMETERS }},GitHubToken=${{ secrets.GITHUB_TOKEN }}
-          parameter-overrides: GitHubToken=${{ secrets.GITHUB_TOKEN }}
+          parameter-overrides: ${{ inputs.PIPELINE_PARAMETERS }},GitHubToken=${{ secrets.GITHUB_TOKEN }}
 
       - name: Output Pipeline Console URL
         run: |

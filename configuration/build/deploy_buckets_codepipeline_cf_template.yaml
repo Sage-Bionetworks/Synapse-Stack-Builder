@@ -95,8 +95,6 @@ Resources:
   CodeBuildServiceRole:
     Type: AWS::IAM::Role
     Properties:
-      # Note: This name is referenced in the Stack Builder too
-      # RoleName: !Sub 'Synapse-Build-${BuildParamUser}-CodeBuildServiceRole' TODO DELETE THIS DEAD CODE (AND THE ABOVE COMMENT)
       MaxSessionDuration: 28800
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
