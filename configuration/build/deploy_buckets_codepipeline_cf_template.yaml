@@ -122,9 +122,10 @@ Resources:
               OutputArtifacts:
                 - Name: StackBuilderRepoSource
               Configuration:
-                Owner: !Ref StackBuilderRepoOwner
-                Repo: !Ref StackBuilderRepository
-                Branch: !Ref StackBuilderBranch
+                # TODO: Do we need to specify these param's?
+                #Owner: !Ref StackBuilderRepoOwner
+                #Repo: !Ref StackBuilderRepository
+                #Branch: !Ref StackBuilderBranch
                 OAuthToken: !Ref GitHubToken
                 PollForSourceChanges: false # instead we will trigger from GitHub workflow
         - Name: DeployBuckets
