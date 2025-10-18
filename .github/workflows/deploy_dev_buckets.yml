@@ -30,6 +30,7 @@ jobs:
     with:
       CODE_PIPELINE_CF_TEMPLATE: configuration/build/deploy_buckets_codepipeline_cf_template.yaml
       PIPELINE_NAME: Stack-Builder-Deploy-Buckets
+      PIPELINE_PARAMETERS: ""
       CODE_PIPELINE_SOURCE_REVISIONS: "actionName=CheckoutStackBuilderRepo,revisionType=COMMIT_ID,revisionValue=${{ github.sha }}"
       ROLE_TO_ASSUME: arn:aws:iam::449435941126:role/sagebase-github-oidc-sage-bionetworks-synapse-build
     secrets: inherit
