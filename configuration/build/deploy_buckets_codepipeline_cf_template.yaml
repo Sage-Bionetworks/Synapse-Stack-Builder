@@ -6,6 +6,24 @@ Parameters:
     Description: Token to authorize GitHub requests
     AllowedPattern: ".+"
     ConstraintDescription: Parameter cannot be empty.
+  Repository:
+    Type: String
+    Default: Synapse-Stack-Builder
+    Description: Repository name
+    AllowedPattern: ".+"
+    ConstraintDescription: Parameter cannot be empty.
+  Branch:
+    Type: String
+    Description: Branch of the repository to build
+    Default: develop
+    AllowedPattern: ".+"
+    ConstraintDescription: Parameter cannot be empty.
+  RepoOwner:
+    Type: String
+    Description: Owner of the repository to build
+    Default: Sage-Bionetworks
+    AllowedPattern: ".+"
+    ConstraintDescription: Parameter cannot be empty.
   BuildImage:
     Type: String
     Description: CodeBuild image to use for the build
@@ -122,10 +140,9 @@ Resources:
               OutputArtifacts:
                 - Name: StackBuilderRepoSource
               Configuration:
-                # TODO: Do we need to specify these param's?
-                #Owner: !Ref StackBuilderRepoOwner
-                #Repo: !Ref StackBuilderRepository
-                #Branch: !Ref StackBuilderBranch
+                Owner: !Ref RepoOwner
+                Repo: !Ref Repository
+                Branch: !Ref Branch
                 OAuthToken: !Ref GitHubToken
                 PollForSourceChanges: false # instead we will trigger from GitHub workflow
         - Name: DeployBuckets
