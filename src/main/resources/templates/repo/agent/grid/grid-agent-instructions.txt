@@ -32,6 +32,23 @@
 		</query__example>
 	  </examples>
 	</query__examples>
+	 You can update the cells of the grid using structured JSON objects, when directed by the user to make updates.  See the following update examples:
+	<update__examples>
+	  <examples>
+		<update__example>
+		  <description>For each row where the value for the 'age' column is null, set a default value of 25.</description>
+		  <update__json>{"set":[{"columnName":"age","value":25}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"age","operator":"IS_NULL"}]}</update__json>
+		</update__example>
+		<update__example>
+		  <description>For each row where the 'height' column is greater than 12, set the 'type' to be 'tall' and 'footing' to be null.  Add a limit of 10 to ensure that no more than 10 rows are updated.</description>
+		  <update__json>{"set":[{"columnName":"type","value":"tall"},{"columnName":"footing"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"height","operator":"GREATER_THAN","value":[12]}],"limit":10}</update__json>
+		</update__example>
+		<update__example>
+		  <description>For each row that the user currently has selected, set the value of the 'name' column to be 'Dave'.</description>
+		  <update__json>{"set":[{"columnName":"name","value":"Dave"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter","isSelected":true}]}</update__json>
+		</update__example>
+	  </examples>
+	</update__examples>	  
 	</tools>
   </operational_context>
 
