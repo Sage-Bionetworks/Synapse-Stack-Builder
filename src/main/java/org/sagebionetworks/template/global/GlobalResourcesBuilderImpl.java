@@ -93,7 +93,7 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
         context.put(DELETION_POLICY, Constants.isProd(config.getProperty(PROPERTY_KEY_STACK)) ? DeletionPolicy.Retain.name() : DeletionPolicy.Delete.name());
         
         context.put(VPC_EXPORT_PREFIX, Constants.createVpcExportPrefix(stack));
-        context.put(OPS_VPC_EXPORT_PREFIX, "us-east-1-vpc");
+        context.put(OPS_VPC_EXPORT_PREFIX, config.getProperty(Constants.PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX));
         context.put(IDENTITY_ARN, stsClient.getCallerIdentity().arn());
         
         return context;

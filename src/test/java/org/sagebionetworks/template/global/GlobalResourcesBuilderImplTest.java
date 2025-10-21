@@ -15,6 +15,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.SES_SYNAPSE_DOMAIN;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -85,6 +86,7 @@ public class GlobalResourcesBuilderImplTest {
     @Test
     public void testCreateContext() {
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("dev");
+        when(mockConfig.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn("us-east-1-vpc");
         when(mockStsClient.getCallerIdentity()).thenReturn(GetCallerIdentityResponse.builder().arn("currentIdentityArn").build());
         VelocityContext context = builder.createContext();
         assertEquals("dev", context.get(STACK));
@@ -109,6 +111,7 @@ public class GlobalResourcesBuilderImplTest {
     @Test
     public void testBuildGlobalResourcesDev() throws InterruptedException {
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("dev");
+        when(mockConfig.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn("us-east-1-vpc");
 		when(mockStsClient.getCallerIdentity()).thenReturn(GetCallerIdentityResponse.builder().arn("currentIdentityArn").build());
         when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
 
@@ -137,6 +140,7 @@ public class GlobalResourcesBuilderImplTest {
     @Test
     public void testBuildGlobalResourcesProd() throws InterruptedException {
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn("prod");
+        when(mockConfig.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn("us-east-1-vpc");
         when(mockStsClient.getCallerIdentity()).thenReturn(GetCallerIdentityResponse.builder().arn("currentIdentityArn").build());
         when(mockCloudFormationClientWrapper.getOutput("synapse-prod-global-resources", GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC)).thenReturn("complaintTopicArn");
         when(mockCloudFormationClientWrapper.getOutput("synapse-prod-global-resources", GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC)).thenReturn("bounceTopicArn");

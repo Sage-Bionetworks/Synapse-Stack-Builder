@@ -70,6 +70,8 @@ public class Constants {
 	public static final String PROPERTY_KEY_VPC_ENDPOINTS_AZ = "org.sagebionetworks.vpc.endpoints.availability.zones";
 	public static final String PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN = "org.sagebionetworks.vpc.peering.accept.role.arn";
 	public static final String PROPERTY_KEY_OLD_VPC_CIDR = "org.sagebionetworks.vpc.old.vpc.cidr";
+	public static final String PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX = "org.sagebionetworks.vpc.ops.export.prefix";
+	
 	// repo
 	public static final String PROPERTY_KEY_STACK = "org.sagebionetworks.stack";
 	public static final String PROPERTY_KEY_INSTANCE = "org.sagebionetworks.instance";
