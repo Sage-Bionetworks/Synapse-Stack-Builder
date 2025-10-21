@@ -93,7 +93,12 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
         context.put(DELETION_POLICY, Constants.isProd(config.getProperty(PROPERTY_KEY_STACK)) ? DeletionPolicy.Retain.name() : DeletionPolicy.Delete.name());
         
         context.put(VPC_EXPORT_PREFIX, Constants.createVpcExportPrefix(stack));
-        context.put(OPS_VPC_EXPORT_PREFIX, "us-east-1-vpc");
+        // PLFM-9305: ops vpc has different name in different accounts
+        if ("dev".equals(stack)) {
+            context.put(OPS_VPC_EXPORT_PREFIX, "us-east-1-vpc");
+        } else {
+            context.put(OPS_VPC_EXPORT_PREFIX, "us-east-1-ops-vpc-v2");
+        }
         context.put(IDENTITY_ARN, stsClient.getCallerIdentity().arn());
         
         return context;
