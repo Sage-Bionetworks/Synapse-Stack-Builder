@@ -34,6 +34,10 @@
 		  <description>Count the currently selected rows whose validation error message contains 'expected type' (SQL LIKE pattern using % wildcards).</description>
 		  <query__json>{"columnSelection":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.function.CountStar"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter","isSelected":true},{"concreteType":"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter","operator":"LIKE","validationResultValue":"%expected type%"}],"limit":1}</query__json>
 		</query__example>
+		<query__example>
+	      <description>Return up to 10 rows selecting only the columns currently selected by the user.</description>
+	      <query__json>{"columnSelection":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.SelectSelection"}],"limit":10}</query__json>
+	    </query__example>
 	  </examples>
 	</query__examples>
 	 You can update the cells of the grid using structured JSON objects, when directed by the user to make updates.  See the following update examples:
