@@ -128,7 +128,7 @@
                               "$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.SelectItem",
                               "description": "A generic select item."
                          },
-                         "description": "One or more SelectItem is required to define the columns that will be returned by this query.  Each SelectItem must be a complete JSON object with the required 'concreteType' property. IMPORTANT: Do not use SQL syntax - use the predefined SelectItem objects. Examples: To select all columns: {\"concreteType\":\"org.sagebionetworks.repo.model.grid..query.SelectAll\"}. To select the count of the number of rows use: {\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.function.CountStar\"}"
+                         "description": "One or more SelectItem is required to define the columns that will be returned by this query.  Each SelectItem must be a complete JSON object with the required 'concreteType' property. IMPORTANT: Do not use SQL syntax - use the predefined SelectItem objects. Examples: To select all columns: {\"concreteType\":\"org.sagebionetworks.repo.model.grid..query.SelectAll\"}. To select a column named 'foo': {\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.SelectByName\",\"columnName\":\"foo\"}. To select the count of the number of rows use: {\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.function.CountStar\"}"
                     },
                     "filters": {
                          "type": "array",
@@ -400,6 +400,7 @@
                "description": "A generic select item.",
                "oneOf": [
                     {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.SelectAll"},
+					{"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.SelectByName"},
                     {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.function.CountStar"}
                ],
                "required": ["concreteType"],
@@ -553,6 +554,22 @@
                }},
                "description": "A SelectItem that will result in the selection of all columns.",
                "required": ["concreteType"]
+          },
+		  "org.sagebionetworks.repo.model.grid.query.SelectByName": {
+                "type": "object",
+                "properties": {
+					"concreteType": {
+                    	"type": "string",
+                     	"description": "Required. Full name of the exact type used.",
+                     	"enum": ["org.sagebionetworks.repo.model.grid.query.SelectByName"]
+                	},
+                    "columnName": {
+                         "type": "string",
+                         "description": "The name of the column to include in the select."
+                    }
+                },
+                "description": "A SelectItem that will result in the selection of a single column given its name. This can be used in place of SelectAll when only specific columns are needed.",
+                "required": ["concreteType", "columnName"]
           },
           "org.sagebionetworks.repo.model.grid.update.SetValue": {
                "type": "object",
