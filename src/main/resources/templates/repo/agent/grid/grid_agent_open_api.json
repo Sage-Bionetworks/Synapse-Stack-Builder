@@ -379,7 +379,9 @@
                               "LIKE",
                               "NOT_LIKE",
                               "IS_NULL",
-                              "IS_NOT_NULL"
+                              "IS_NOT_NULL",
+                              "IS_UNDEFINED",
+                              "IS_NOT_UNDEFINED"
                          ]
                     },
                     "value": {
@@ -591,7 +593,7 @@
                          "type": "string",
                          "description": "Target column name or ID to update."
                     },
-                    "value": {"description": "Literal JSON value to assign to the column for all selected rows. Supports string, number, boolean, object, array, or null, or you may omit this property to clear the value."}
+                    "value": { "description": "Literal JSON value to assign to the field in each target document: string, number, boolean, object, array, or null. Omit \"value\" to remove/unset the field (`undefined`); include \\`\"value\": null\\` to store JSON null. Must be a literal constant — no SQL or expressions; value is bound and stored as-is." }
                },
                "description": "Represents a single column assignment (one entry of the SQL SET clause)."
           }
