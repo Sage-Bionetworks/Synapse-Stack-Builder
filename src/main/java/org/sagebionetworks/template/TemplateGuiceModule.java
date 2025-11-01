@@ -44,6 +44,8 @@ import org.sagebionetworks.template.docs.SynapseDocsBuilder;
 import org.sagebionetworks.template.docs.SynapseDocsBuilderImpl;
 import org.sagebionetworks.template.global.GlobalResourcesBuilder;
 import org.sagebionetworks.template.global.GlobalResourcesBuilderImpl;
+import org.sagebionetworks.template.global.waitconditions.SynapseHelpCollectionIndexCreation;
+import org.sagebionetworks.template.global.waitconditions.SynapseHelpKnowledgeBaseDataSourceSync;
 import org.sagebionetworks.template.ip.address.IpAddressPoolBuilder;
 import org.sagebionetworks.template.ip.address.IpAddressPoolBuilderImpl;
 import org.sagebionetworks.template.jobs.AsynchAdminJobExecutor;
@@ -81,8 +83,6 @@ import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateBuilder;
 import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateBuilderImpl;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilder;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilderImpl;
-import org.sagebionetworks.template.repo.bedrock.SynapseHelpCollectionIndexCreation;
-import org.sagebionetworks.template.repo.bedrock.SynapseHelpKnowledgeBaseDataSourceSync;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsConfig;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsConfigValidator;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
@@ -298,7 +298,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Named("GridQueueReferenceName")
 	public String getGridQueueRef(SnsAndSqsConfig config) {
 		SqsQueueDescriptor des = config.getQueueDescriptors().stream()
-				.filter(d -> "GRID_WEBSOCKET_MESSAGE".equals(d.getQueueName())).findFirst().get();
+				.filter(d -> "GRID_WEBSOCKET_MESSAGE.fifo".equals(d.getQueueName())).findFirst().get();
 		return des.getQueueReferenceName() + "Queue";
 	}
 

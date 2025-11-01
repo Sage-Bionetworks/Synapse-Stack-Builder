@@ -59,7 +59,7 @@ class UserDocsRedirectorBuilderImplTest {
 
 	@BeforeEach
 	void setUp() {
-		when(mockConfig.getProperty("org.sagebionetworks.beanstalk.ssl.arn.portal")).thenReturn("acmarn");
+		when(mockConfig.getProperty("org.sagebionetworks.docs.ssl.arn")).thenReturn("acmarn");
 		when(mockConfig.getProperty("org.sagebionetworks.stack.instance.alias")).thenReturn("tst");
 	}
 
@@ -73,7 +73,7 @@ class UserDocsRedirectorBuilderImplTest {
 		// call under test
 		VelocityContext ctxt = builder.createContext();
 
-		verify(mockConfig).getProperty("org.sagebionetworks.beanstalk.ssl.arn.portal");
+		verify(mockConfig).getProperty("org.sagebionetworks.docs.ssl.arn");
 		verify(mockConfig).getProperty("org.sagebionetworks.stack.instance.alias");
 		assertEquals("acmarn", ctxt.get("AcmCertificateArn"));
 		assertEquals("tst", ctxt.get("SubDomainName"));

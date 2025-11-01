@@ -39,6 +39,20 @@
                     "description": "The query results.",
                     "content": {"application/json": {"schema": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.result.QueryResult"}}}
                }}
+          }},
+          "/repo/v1/grid/update": {"put": {
+               "tags": ["GridAgent"],
+               "description":"Apply one or more column updates to selected grid rows (SQL UPDATE style). The request provides: - set: Required array of assignments (each with a columnName and a JSON value). Each value is applied uniformly to all targeted rows; use null to clear a column. - filters: Optional list of row filters (logical AND) defining which rows are eligible. If omitted, all rows are considered. - limit: Optional cap on how many matching rows are actually updated (must be >=1 and <=100). Response includes: - rowsUpdated: Number of rows actually modified (after any limit). Use this function for batch edits, normalization, clearing values, or correcting data across multiple rows in one operation.",
+               "operationId": "put_repo_v1_grid_update",
+               "parameters": [],
+               "requestBody": {
+                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.update.GridUpdateRequest"}}},
+                    "required": true
+               },
+               "responses": {"200": {
+                    "description": "Summary of the update outcome.",
+                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.update.GridUpdateResponse"}}}
+               }}
           }}
      },
      "components": {"schemas": {
@@ -46,14 +60,15 @@
                "type": "object",
                "properties": {"concreteType": {
                     "type": "string",
-                    "description": "Required. Must be a properly quoted JSON string matching one of: \"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\", \"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\", or \"org.sagebionetworks.repo.model.grid.query.CellValueFilter\""
+                    "description": "Required. Must be a properly quoted JSON string matching one of: \"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\", \"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\", \"org.sagebionetworks.repo.model.grid.query.CellValueFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIdFilter\""
                }},
-               "description": "All filter objects must use valid JSON syntax with double quotes around all strings. There are four different types of filters that can be applied to a grid query. For example, a filter to find all rows where column named: 'someInt' has a value greater than 12, the following filter would be used:[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"someInt\",\"operator\":\"GREATER_THAN\",\"value\":[12]}]. In order to find all rows with a JSON schema validation error use the following filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\",\"value\":false}].  In order to find all rows with JSON schema validation error message that indicates the wrong type was provided, you could use the filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\",\"operator\":\"LIKE\",\"validationResultValue\":\"%expected type%\"}]. In order to find all rows that are currently selected by the user, you would use the following filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\",\"isSelected\":true}].",
+               "description": "All filter objects must use valid JSON syntax with double quotes around all strings. There are five different types of filters that can be applied to a grid query. For example, a filter to find all rows where column named: 'someInt' has a value greater than 12, the following filter would be used:[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"someInt\",\"operator\":\"GREATER_THAN\",\"value\":[12]}]. In order to find all rows with a JSON schema validation error use the following filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\",\"value\":false}].  In order to find all rows with JSON schema validation error message that indicates the wrong type was provided, you could use the filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\",\"operator\":\"LIKE\",\"validationResultValue\":\"%expected type%\"}]. In order to find all rows that are currently selected by the user, you would use the following filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\",\"isSelected\":true}].",
                "oneOf": [
                     {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter"},
                     {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.RowSelectionFilter"},
                     {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.RowIsValidFilter"},
-                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.CellValueFilter"}
+                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.CellValueFilter"},
+                    {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.RowIdFilter"}
                ],
                "required": ["concreteType"],
                "discriminator": {"propertyName": "concreteType"}
@@ -85,7 +100,7 @@
                "properties": {
                     "concreteType": {
                          "type": "string",
-                         "description": "Required. Must be a properly quoted JSON string matching one of: \"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\", \"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\", or \"org.sagebionetworks.repo.model.grid.query.CellValueFilter\"",
+                         "description": "Required. Must be a properly quoted JSON string matching one of: \"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\", \"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\", \"org.sagebionetworks.repo.model.grid.query.CellValueFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIdFilter\"",
                          "enum": ["org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter"]
                     },
                     "operator": {
@@ -113,13 +128,13 @@
                               "$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.SelectItem",
                               "description": "A generic select item."
                          },
-                         "description": "One or more SelectItem is required to define the columns that will be returned by this query.  Each SelectItem must be a complete JSON object with the required 'concreteType' property. IMPORTANT: Do not use SQL syntax - use the predefined SelectItem objects. Examples: To select all columns: {\"concreteType\":\"org.sagebionetworks.repo.model.grid..query.SelectAll\"}. To select the count of the number of rows use: {\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.function.CountStar\"}"
+                         "description": "One or more SelectItem is required to define the columns that will be returned by this query.  Each SelectItem must be a complete JSON object with the required 'concreteType' property. IMPORTANT: Do not use SQL syntax - use the predefined SelectItem objects. Examples: To select all columns: {\"concreteType\":\"org.sagebionetworks.repo.model.grid..query.SelectAll\"}. To select a column named 'foo': {\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.SelectByName\",\"columnName\":\"foo\"}. To select only the columns currently selected by the user: {\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.SelectSelection\"}. To select the count of the number of rows use: {\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.function.CountStar\"}"
                     },
                     "filters": {
                          "type": "array",
                          "items": {
                               "$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.Filter",
-                              "description": "All filter objects must use valid JSON syntax with double quotes around all strings. There are four different types of filters that can be applied to a grid query. For example, a filter to find all rows where column named: 'someInt' has a value greater than 12, the following filter would be used:[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"someInt\",\"operator\":\"GREATER_THAN\",\"value\":[12]}]. In order to find all rows with a JSON schema validation error use the following filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\",\"value\":false}].  In order to find all rows with JSON schema validation error message that indicates the wrong type was provided, you could use the filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\",\"operator\":\"LIKE\",\"validationResultValue\":\"%expected type%\"}]. In order to find all rows that are currently selected by the user, you would use the following filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\",\"isSelected\":true}]."
+                              "description": "All filter objects must use valid JSON syntax with double quotes around all strings. There are five different types of filters that can be applied to a grid query. For example, a filter to find all rows where column named: 'someInt' has a value greater than 12, the following filter would be used:[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"someInt\",\"operator\":\"GREATER_THAN\",\"value\":[12]}]. In order to find all rows with a JSON schema validation error use the following filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\",\"value\":false}].  In order to find all rows with JSON schema validation error message that indicates the wrong type was provided, you could use the filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\",\"operator\":\"LIKE\",\"validationResultValue\":\"%expected type%\"}]. In order to find all rows that are currently selected by the user, you would use the following filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\",\"isSelected\":true}]."
                          },
                          "description": "Optional. Each filter must be a complete JSON object with the required 'concreteType' property. IMPORTANT: Do not use SQL syntax - use the predefined filter objects. Examples: To find invalid rows: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\",\"value\":false}]. To find rows where 'age' > 25: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"age\",\"operator\":\"GREATER_THAN\",\"value\":[25]}]. Multiple filters are combined with AND logic."
                     },
@@ -135,6 +150,14 @@
                     }
                },
                "description": "Defines a structured query using JSON SelectItems and Filters objects - NOT SQL syntax. Use the predefined SelectItems and Filters with specific concreteType values."
+          },
+          "org.sagebionetworks.repo.model.grid.update.GridUpdateRequest": {
+               "type": "object",
+               "properties": {"update": {
+                    "$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.update.Update",
+                    "description": "Request to update one or more cells in a grid (SQL UPDATE style)."
+               }},
+               "description": "Request to update the cells of the current grid session."
           },
           "org.sagebionetworks.repo.model.grid.query.function.CountStar": {
                "type": "object",
@@ -153,6 +176,33 @@
                     "description": "Defines a structured query using JSON SelectItems and Filters objects - NOT SQL syntax. Use the predefined SelectItems and Filters with specific concreteType values."
                }},
                "description": "Request to run a query."
+          },
+          "org.sagebionetworks.repo.model.grid.update.Update": {
+               "type": "object",
+               "properties": {
+                    "set": {
+                         "type": "array",
+                         "items": {
+                              "$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.update.SetValue",
+                              "description": "Represents a single column assignment (one entry of the SQL SET clause)."
+                         },
+                         "description": "Required. Array representing the SQL SET clause; each object specifies a target column and the literal value to assign for all selected rows."
+                    },
+                    "filters": {
+                         "type": "array",
+                         "items": {
+                              "$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.Filter",
+                              "description": "All filter objects must use valid JSON syntax with double quotes around all strings. There are five different types of filters that can be applied to a grid query. For example, a filter to find all rows where column named: 'someInt' has a value greater than 12, the following filter would be used:[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"someInt\",\"operator\":\"GREATER_THAN\",\"value\":[12]}]. In order to find all rows with a JSON schema validation error use the following filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\",\"value\":false}].  In order to find all rows with JSON schema validation error message that indicates the wrong type was provided, you could use the filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\",\"operator\":\"LIKE\",\"validationResultValue\":\"%expected type%\"}]. In order to find all rows that are currently selected by the user, you would use the following filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\",\"isSelected\":true}]."
+                         },
+                         "description": "Optional. Array of Filter objects selecting the rows to update (acts like the SQL WHERE clause). If omitted, all rows are eligible. Multiple filters are combined with logical AND. Use when the user constrains target rows (e.g., \"where columnThree is null\" or \"only rows with status='ACTIVE'\")."
+                    },
+                    "limit": {
+                         "type": "integer",
+                         "description": "Optional. Maximum number of matching rows to update (analogous to SQL LIMIT). Use only when the user explicitly requests a cap (e.g., limit 10). If omitted, all filtered rows are updated. Valid range: 1-100.",
+                         "format": "int32"
+                    }
+               },
+               "description": "Request to update one or more cells in a grid (SQL UPDATE style)."
           },
           "org.sagebionetworks.repo.model.grid.query.result.ValidationResults": {
                "type": "object",
@@ -265,6 +315,16 @@
                          "description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.3.2\">minLength<\/a>",
                          "format": "int32"
                     },
+                    "maxItems": {
+                         "type": "integer",
+                         "description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.4.1\">maxItems<\/a>",
+                         "format": "int32"
+                    },
+                    "minItems": {
+                         "type": "integer",
+                         "description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.4.2\">minItems<\/a>",
+                         "format": "int32"
+                    },
                     "uniqueItems": {
                          "type": "boolean",
                          "description": "See: <a href=\"https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.4.3\">uniqueItems<\/a>"
@@ -297,7 +357,7 @@
                "properties": {
                     "concreteType": {
                          "type": "string",
-                         "description": "Required. Must be a properly quoted JSON string matching one of: \"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\", \"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\", or \"org.sagebionetworks.repo.model.grid.query.CellValueFilter\"",
+                         "description": "Required. Must be a properly quoted JSON string matching one of: \"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\", \"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\", \"org.sagebionetworks.repo.model.grid.query.CellValueFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIdFilter\"",
                          "enum": ["org.sagebionetworks.repo.model.grid.query.CellValueFilter"]
                     },
                     "columnName": {
@@ -340,6 +400,8 @@
                "description": "A generic select item.",
                "oneOf": [
                     {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.SelectAll"},
+					{"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.SelectByName"},
+					{"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.SelectSelection"},
                     {"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.function.CountStar"}
                ],
                "required": ["concreteType"],
@@ -407,6 +469,23 @@
                },
                "description": "Request for a new function to enhance Agent capabilities for tabular data curation."
           },
+          "org.sagebionetworks.repo.model.grid.query.RowIdFilter": {
+               "type": "object",
+               "properties": {
+                    "concreteType": {
+                         "type": "string",
+                         "description": "Required. Must be a properly quoted JSON string matching one of: \"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\", \"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\", \"org.sagebionetworks.repo.model.grid.query.CellValueFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIdFilter\"",
+                         "enum": ["org.sagebionetworks.repo.model.grid.query.RowIdFilter"]
+                    },
+                    "rowIdsIn": {
+                         "type": "array",
+                         "items": {"type": "string"},
+                         "description": "Array of explicit row IDs. The result will include any row whose ID appears in this list (logical OR). Provide only IDs previously obtained from a grid query. Omit this filter if you do not know the IDs. Do not include duplicates or IDs not present in the current grid."
+                    }
+               },
+               "description": "Row ID inclusion filter. Use when you need to operate on specific existing rows by their explicit row IDs obtained from a prior grid query (e.g., an update). The filter matches any row whose ID is in the provided list (logical OR semantics). Do not use for pattern matching or broad selection; supply only the exact row IDs you intend to modify or retrieve.",
+               "required": ["concreteType"]
+          },
           "org.sagebionetworks.repo.model.grid.query.result.Row": {
                "type": "object",
                "properties": {
@@ -418,16 +497,29 @@
                     "validationResults": {
                          "$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.result.ValidationResults",
                          "description": "Results of a grid row against a JSON schema"
+                    },
+                    "rowId": {
+                         "type": "string",
+                         "description": "Logical timestamp identifying the row in compact form `replicaId.sequenceNumber` (e.g. `123.456`). Used in filters (RowIdFilter) and patch/update operations."
                     }
                },
                "description": "A single row of a grid query result."
+          },
+          "org.sagebionetworks.repo.model.grid.update.GridUpdateResponse": {
+               "type": "object",
+               "properties": {"rowsUpdated": {
+                    "type": "integer",
+                    "description": "Number of rows actually updated (after applying any limit).",
+                    "format": "int32"
+               }},
+               "description": "Response summarizing the outcome of a grid update operation."
           },
           "org.sagebionetworks.repo.model.grid.query.RowIsValidFilter": {
                "type": "object",
                "properties": {
                     "concreteType": {
                          "type": "string",
-                         "description": "Required. Must be a properly quoted JSON string matching one of: \"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\", \"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\", or \"org.sagebionetworks.repo.model.grid.query.CellValueFilter\"",
+                         "description": "Required. Must be a properly quoted JSON string matching one of: \"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\", \"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\", \"org.sagebionetworks.repo.model.grid.query.CellValueFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIdFilter\"",
                          "enum": ["org.sagebionetworks.repo.model.grid.query.RowIsValidFilter"]
                     },
                     "value": {
@@ -443,7 +535,7 @@
                "properties": {
                     "concreteType": {
                          "type": "string",
-                         "description": "Required. Must be a properly quoted JSON string matching one of: \"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\", \"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\", or \"org.sagebionetworks.repo.model.grid.query.CellValueFilter\"",
+                         "description": "Required. Must be a properly quoted JSON string matching one of: \"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\", \"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\", \"org.sagebionetworks.repo.model.grid.query.CellValueFilter\", \"org.sagebionetworks.repo.model.grid.query.RowIdFilter\"",
                          "enum": ["org.sagebionetworks.repo.model.grid.query.RowSelectionFilter"]
                     },
                     "isSelected": {
@@ -463,6 +555,45 @@
                }},
                "description": "A SelectItem that will result in the selection of all columns.",
                "required": ["concreteType"]
+          },
+		  "org.sagebionetworks.repo.model.grid.query.SelectByName": {
+                "type": "object",
+                "properties": {
+					"concreteType": {
+                    	"type": "string",
+                     	"description": "Required. Full name of the exact type used.",
+                     	"enum": ["org.sagebionetworks.repo.model.grid.query.SelectByName"]
+                	},
+                    "columnName": {
+                         "type": "string",
+                         "description": "The name of the column to include in the select."
+                    }
+                },
+                "description": "A SelectItem that will result in the selection of a single column given its name. This can be used in place of SelectAll when only specific columns are needed.",
+                "required": ["concreteType", "columnName"]
+          },
+		  "org.sagebionetworks.repo.model.grid.query.SelectSelection": {
+              	"type": "object",
+              	"properties": {
+					"concreteType": {
+                  		"type": "string",
+                   		"description": "Required. Full name of the exact type used.",
+                   		"enum": ["org.sagebionetworks.repo.model.grid.query.SelectSelection"]
+              		}
+              	},
+              	"description": "A SelectItem that will result in the selection of the columns the user has actively selected in the interface.",
+              	"required": ["concreteType"]
+          },
+          "org.sagebionetworks.repo.model.grid.update.SetValue": {
+               "type": "object",
+               "properties": {
+                    "columnName": {
+                         "type": "string",
+                         "description": "Target column name or ID to update."
+                    },
+                    "value": {"description": "Literal JSON value to assign to the column for all selected rows. Supports string, number, boolean, object, array, or null (use null to clear)"}
+               },
+               "description": "Represents a single column assignment (one entry of the SQL SET clause)."
           }
      }}
 }

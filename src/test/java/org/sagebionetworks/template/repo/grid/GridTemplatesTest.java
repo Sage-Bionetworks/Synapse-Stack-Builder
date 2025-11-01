@@ -62,6 +62,7 @@ public class GridTemplatesTest {
 		String sessionId = "987654321";
 		requestContext.setConnectionId("con3333");
 		requestContext.setEventType("CONNECT");
+		requestContext.setRequestId("request456");
 		requestInput.addParams("gridSessionId", sessionId).addParams("replicaId", "222").addParams("userId", "987");
 
 		// call under test
@@ -71,7 +72,7 @@ public class GridTemplatesTest {
 		// Parse the resulting template
 		String rawResult = stringWriter.toString();
 		String[] resultSplit = rawResult.split("&");
-		assertEquals(11, resultSplit.length);
+		assertEquals(13, resultSplit.length);
 		assertEquals("Action=SendMessage", resultSplit[0]);
 		String[] message = resultSplit[1].split("=");
 		assertEquals(2, message.length);
@@ -93,6 +94,8 @@ public class GridTemplatesTest {
 		assertEquals("MessageAttribute.3.Name=EventSource", resultSplit[8]);
 		assertEquals("MessageAttribute.3.Value.DataType=String", resultSplit[9]);
 		assertEquals("MessageAttribute.3.Value.StringValue=WEBSOCKET", resultSplit[10]);
+		assertEquals("MessageGroupId=con3333", resultSplit[11]);
+		assertEquals("MessageDeduplicationId=request456", resultSplit[12]);
 	}
 
 	@Test
@@ -100,6 +103,7 @@ public class GridTemplatesTest {
 		requestContext.setConnectionId("con3333");
 		requestContext.setEventType("MESSAGE");
 		requestInput.setBody("[1,2]");
+		requestContext.setRequestId("request456");
 
 		// call under test
 		Template template = loadEscapedTemplate("templates/repo/grid/default-request-template.vpt");
@@ -108,7 +112,7 @@ public class GridTemplatesTest {
 		// Parse the resulting template
 		String rawResult = stringWriter.toString();
 		String[] resultSplit = rawResult.split("&");
-		assertEquals(11, resultSplit.length);
+		assertEquals(13, resultSplit.length);
 		assertEquals("Action=SendMessage", resultSplit[0]);
 		String[] message = resultSplit[1].split("=");
 		assertEquals(2, message.length);
@@ -129,6 +133,8 @@ public class GridTemplatesTest {
 		assertEquals("MessageAttribute.3.Name=EventSource", resultSplit[8]);
 		assertEquals("MessageAttribute.3.Value.DataType=String", resultSplit[9]);
 		assertEquals("MessageAttribute.3.Value.StringValue=WEBSOCKET", resultSplit[10]);
+		assertEquals("MessageGroupId=con3333", resultSplit[11]);
+		assertEquals("MessageDeduplicationId=request456", resultSplit[12]);
 	}
 
 	@Test
@@ -136,6 +142,7 @@ public class GridTemplatesTest {
 		requestContext.setConnectionId("con3333");
 		requestContext.setEventType("DISCONNECT");
 		requestInput.setBody("[1,2]");
+		requestContext.setRequestId("request456");
 
 		// call under test
 		Template template = loadEscapedTemplate("templates/repo/grid/disconnect-request-template.vpt");
@@ -144,7 +151,7 @@ public class GridTemplatesTest {
 		// Parse the resulting template
 		String rawResult = stringWriter.toString();
 		String[] resultSplit = rawResult.split("&");
-		assertEquals(11, resultSplit.length);
+		assertEquals(13, resultSplit.length);
 		assertEquals("Action=SendMessage", resultSplit[0]);
 		String[] message = resultSplit[1].split("=");
 		assertEquals(2, message.length);
@@ -165,6 +172,9 @@ public class GridTemplatesTest {
 		assertEquals("MessageAttribute.3.Name=EventSource", resultSplit[8]);
 		assertEquals("MessageAttribute.3.Value.DataType=String", resultSplit[9]);
 		assertEquals("MessageAttribute.3.Value.StringValue=WEBSOCKET", resultSplit[10]);
+		
+		assertEquals("MessageGroupId=con3333", resultSplit[11]);
+		assertEquals("MessageDeduplicationId=request456", resultSplit[12]);
 	}
 
 	@Test

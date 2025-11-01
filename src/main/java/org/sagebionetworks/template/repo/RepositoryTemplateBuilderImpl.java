@@ -3,7 +3,6 @@ package org.sagebionetworks.template.repo;
 
 import static org.sagebionetworks.template.Constants.ADMIN_RULE_ACTION;
 import static org.sagebionetworks.template.Constants.BEANSTALK_INSTANCES_SUBNETS;
-import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
 import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.CTXT_ENABLE_ENHANCED_RDS_MONITORING;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_DOMAIN_NAME;
@@ -17,13 +16,11 @@ import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
 import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.IDENTITY_ARN;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.MACHINE_TYPES;
 import static org.sagebionetworks.template.Constants.NOSNAPSHOT;
 import static org.sagebionetworks.template.Constants.OAUTH_ENDPOINT;
-import static org.sagebionetworks.template.Constants.OPS_VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
 import static org.sagebionetworks.template.Constants.POOL_TYPES;
@@ -43,7 +40,6 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ENABLE_RDS_ENH
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IMAGE_PIPELINE_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OAUTH_ENDPOINT;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
@@ -96,7 +92,6 @@ import org.sagebionetworks.template.Ec2ClientWrapper;
 import org.sagebionetworks.template.ImageBuilderClient;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
-import org.sagebionetworks.template.WaitConditionHandler;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.config.TimeToLive;
 import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
@@ -119,8 +114,6 @@ import software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkClient;
 import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
 import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsResponse;
 import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformSummary;
-import software.amazon.awssdk.services.sts.StsClient;
-import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
 
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
 	public static final List<String> MACHINE_TYPE_LIST = List.of("Workers", "Repository");
@@ -140,8 +133,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	private final ElasticBeanstalkClient beanstalkClient;
 	private final ImageBuilderClient imageBuilderClient;
 	private final TimeToLive timeToLive;
-	private final StsClient stsClient;
-	private final Set<WaitConditionHandler> waitConditionHandlers;
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper, VelocityEngine velocityEngine,
@@ -149,8 +140,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
                                          SecretBuilder secretBuilder, Set<VelocityContextProvider> contextProviders,
                                          ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkDefaultAMIEncrypter,
                                          StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
-                                         Ec2ClientWrapper ec2ClientWrapper, ElasticBeanstalkClient beanstalkClient, ImageBuilderClient imageBuilderClient, TimeToLive ttl,
-                                         StsClient stsClient, Set<WaitConditionHandler> waitConditionHandlers) {
+                                         Ec2ClientWrapper ec2ClientWrapper, ElasticBeanstalkClient beanstalkClient, ImageBuilderClient imageBuilderClient, TimeToLive ttl) {
 		super();
 		this.cloudFormationClientWrapper = cloudFormationClientWrapper;
 		this.ec2ClientWrapper = ec2ClientWrapper;
@@ -166,8 +156,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.beanstalkClient = beanstalkClient;
 		this.imageBuilderClient = imageBuilderClient;
 		this.timeToLive = ttl;
-		this.stsClient = stsClient;
-		this.waitConditionHandlers = waitConditionHandlers;
 	}
 
 	public String getActualBeanstalkAmazonLinuxPlatform() {
@@ -203,7 +191,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 
 		buildAndDeployStack(context, sharedResourceStackName, TEMPLATE_SHARED_RESOUCES_MAIN_JSON_VTP, sharedParameters);
 		// Wait for the shared resources to complete
-		Stack sharedStackResults = cloudFormationClientWrapper.waitForStackToComplete(sharedResourceStackName, waitConditionHandlers).orElseThrow(()->new IllegalStateException("Stack does not exist: "+sharedResourceStackName));
+		Stack sharedStackResults = cloudFormationClientWrapper.waitForStackToComplete(sharedResourceStackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+sharedResourceStackName));
 				
 		// Build each bean stalk environment.
 		List<String> environmentNames = buildEnvironments(sharedStackResults);
@@ -350,11 +338,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 			provider.addToContext(context);
 		}
 		
-		context.put(IDENTITY_ARN, stsClient.getCallerIdentity(GetCallerIdentityRequest.builder().build()).arn());
-		
 		RegularExpressions.bindRegexToContext(context);
-		
-		context.put(OPS_VPC_EXPORT_PREFIX, config.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX));
 
 		return context;
 	}

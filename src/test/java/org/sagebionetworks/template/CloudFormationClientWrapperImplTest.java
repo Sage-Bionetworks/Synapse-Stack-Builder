@@ -15,7 +15,6 @@ import static org.mockito.Mockito.when;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -117,12 +116,18 @@ public class CloudFormationClientWrapperImplTest {
 	String bucket;
 
 	Capability[] capabilities;
+	
+	String waitConditionId;
 
 	@BeforeEach
 	public void before() throws MalformedURLException {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
-
-		client = new CloudFormationClientWrapperImpl(mockCloudFormationClient, mockS3Client, mockConfig, mockLoggerFactory, mockThreadProvider);
+		
+		waitConditionId = "waitConditionId";
+		
+		when(mockWaitConditionHandler.getWaitConditionId()).thenReturn(waitConditionId);
+		
+		client = new CloudFormationClientWrapperImpl(mockCloudFormationClient, mockS3Client, mockConfig, mockLoggerFactory, mockThreadProvider, Set.of(mockWaitConditionHandler));
 
 		stackId = "theStackId";
 		Collection<Output> outputs = new ArrayList<>();
@@ -433,7 +438,7 @@ public class CloudFormationClientWrapperImplTest {
 		DescribeStacksResponse describeStacksResponse1 = describeStacksResponseBuilder.stacks(stack1).build();
 		DescribeStacksResponse describeStacksResponse2 = describeStacksResponseBuilder.stacks(stack2).build();
 		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(describeStacksResponse1, describeStacksResponse2);
-
+		when(mockCloudFormationClient.describeStackEvents(any(DescribeStackEventsRequest.class))).thenReturn(DescribeStackEventsResponse.builder().build());
 		when(mockThreadProvider.currentTimeMillis()).thenReturn(1L, 2L,3L,4L,Long.MAX_VALUE);
 
 		// call under test
@@ -456,6 +461,7 @@ public class CloudFormationClientWrapperImplTest {
 		DescribeStacksResponse describeStacksResponse1 = describeStacksResponseBuilder.stacks(stack1).build();
 		DescribeStacksResponse describeStacksResponse2 = describeStacksResponseBuilder.stacks(stack2).build();
 		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(describeStacksResponse1, describeStacksResponse2);
+		when(mockCloudFormationClient.describeStackEvents(any(DescribeStackEventsRequest.class))).thenReturn(DescribeStackEventsResponse.builder().build());
 
 		when(mockThreadProvider.currentTimeMillis()).thenReturn(1L, 2L,3L,4L,Long.MAX_VALUE);
 
@@ -603,21 +609,19 @@ public class CloudFormationClientWrapperImplTest {
 				describeStacksResponse2,
 				describeStacksResponse3
 		);
-
-		String waitConditionId = "waitConditionId";
+		
 		StackEvent waitConditionEvent = StackEvent.builder()
 				.resourceType("AWS::CloudFormation::WaitCondition")
 				.logicalResourceId(waitConditionId)
 				.resourceStatus(ResourceStatus.CREATE_IN_PROGRESS)
 				.build();
 
-		when(mockWaitConditionHandler.getWaitConditionId()).thenReturn(waitConditionId);
 		when(mockWaitConditionHandler.handle(waitConditionEvent)).thenReturn(Optional.of("done"));
 		when(mockCloudFormationClient.describeStackEvents(DescribeStackEventsRequest.builder().stackName(stackName).build()))
 				.thenReturn(DescribeStackEventsResponse.builder().stackEvents(waitConditionEvent).build());
 
 		// call under test
-		Stack resultStack = client.waitForStackToComplete(stackName, Set.of(mockWaitConditionHandler)).get();
+		Stack resultStack = client.waitForStackToComplete(stackName).get();
 
 		verify(mockCloudFormationClient).signalResource(SignalResourceRequest.builder()
 				.logicalResourceId(waitConditionId)
@@ -643,16 +647,13 @@ public class CloudFormationClientWrapperImplTest {
 				describeStacksResponse3
 		);
 
-		String waitConditionId = "waitConditionId";
-
 		StackEvent waitConditionEvent = StackEvent.builder()
 				.resourceType("AWS::CloudFormation::WaitCondition")
 				.logicalResourceId(waitConditionId)
 				.resourceStatus(ResourceStatus.CREATE_IN_PROGRESS)
 				.eventId("last")
 				.build();
-
-		when(mockWaitConditionHandler.getWaitConditionId()).thenReturn(waitConditionId);
+		
 		when(mockWaitConditionHandler.handle(waitConditionEvent)).thenReturn(Optional.of("done"));
 		when(mockCloudFormationClient.describeStackEvents(DescribeStackEventsRequest.builder().stackName(stackName).build()))
 			.thenReturn(
@@ -679,7 +680,7 @@ public class CloudFormationClientWrapperImplTest {
 			);
 
 		// call under test
-		Optional<Stack> resultStack = client.waitForStackToComplete(stackName, Set.of(mockWaitConditionHandler));
+		Optional<Stack> resultStack = client.waitForStackToComplete(stackName);
 
 		assertTrue(resultStack.isPresent());
 
@@ -705,23 +706,20 @@ public class CloudFormationClientWrapperImplTest {
 				describeStacksResponse2,
 				describeStacksResponse2,
 				describeStacksResponse3
-		);
-
-		String waitConditionId = "waitConditionId";
+		);		
 
 		StackEvent waitConditionEvent = StackEvent.builder()
 				.resourceType("AWS::CloudFormation::WaitCondition")
 				.logicalResourceId(waitConditionId)
 				.resourceStatus(ResourceStatus.CREATE_IN_PROGRESS)
 				.build();
-
-		when(mockWaitConditionHandler.getWaitConditionId()).thenReturn(waitConditionId);
+		
 		when(mockWaitConditionHandler.handle(waitConditionEvent)).thenReturn(Optional.of("done"));
 		when(mockCloudFormationClient.describeStackEvents(DescribeStackEventsRequest.builder().stackName(stackName).build()))
 				.thenReturn(DescribeStackEventsResponse.builder().stackEvents(waitConditionEvent).build());
 
 		// call under test
-		Optional<Stack> resultStack = client.waitForStackToComplete(stackName, Set.of(mockWaitConditionHandler));
+		Optional<Stack> resultStack = client.waitForStackToComplete(stackName);
 
 		assertTrue(resultStack.isPresent());
 
@@ -752,29 +750,26 @@ public class CloudFormationClientWrapperImplTest {
 				describeStacksResponse2,
 				describeStacksResponse3
 		);
-
-		String waitConditionId = "waitConditionId";
-
+		
 		StackEvent waitConditionEvent = StackEvent.builder()
 				.resourceType("AWS::CloudFormation::WaitCondition")
-				.logicalResourceId(waitConditionId)
+				.logicalResourceId(waitConditionId + "-mistmatching")
 				.resourceStatus(ResourceStatus.CREATE_IN_PROGRESS)
 				.eventId("last")
 				.build();
-
-		when(mockWaitConditionHandler.getWaitConditionId()).thenReturn(waitConditionId + "-mistmatching");
+		
 		when(mockCloudFormationClient.describeStackEvents(DescribeStackEventsRequest.builder().stackName(stackName).build()))
 				.thenReturn(DescribeStackEventsResponse.builder().stackEvents(waitConditionEvent).build());
 
 		IllegalStateException result = assertThrows(IllegalStateException.class, () -> {
 			// call under test
-			Optional<Stack> resultStack = client.waitForStackToComplete(stackName, Set.of(mockWaitConditionHandler));
+			client.waitForStackToComplete(stackName);
 		});
 
-		assertEquals("Processing wait condition waitConditionId failed: could not find an handler.", result.getMessage());
+		assertEquals("Processing wait condition waitConditionId-mistmatching failed: could not find an handler.", result.getMessage());
 
 		verify(mockCloudFormationClient).signalResource(SignalResourceRequest.builder()
-				.logicalResourceId(waitConditionId)
+				.logicalResourceId(waitConditionId + "-mistmatching")
 				.stackName(stackName)
 				.status(ResourceSignalStatus.FAILURE)
 				.uniqueId("handler-not-found")
@@ -796,9 +791,7 @@ public class CloudFormationClientWrapperImplTest {
 				describeStacksResponse1,
 				describeStacksResponse2,
 				describeStacksResponse3
-		);
-
-		String waitConditionId = "waitConditionId";
+		);		
 
 		StackEvent waitConditionEvent = StackEvent.builder()
 				.resourceType("AWS::CloudFormation::WaitCondition")
@@ -806,8 +799,6 @@ public class CloudFormationClientWrapperImplTest {
 				.resourceStatus(ResourceStatus.CREATE_IN_PROGRESS)
 				.eventId("last")
 				.build();
-
-		when(mockWaitConditionHandler.getWaitConditionId()).thenReturn(waitConditionId);
 
 		RuntimeException cause = new RuntimeException("processing error");
 
@@ -817,7 +808,7 @@ public class CloudFormationClientWrapperImplTest {
 
 		IllegalStateException result = assertThrows(IllegalStateException.class, () -> {
 			// call under test
-			Optional<Stack> resultStack = client.waitForStackToComplete(stackName, Set.of(mockWaitConditionHandler));
+			Optional<Stack> resultStack = client.waitForStackToComplete(stackName);
 		});
 
 		assertEquals("Processing wait condition waitConditionId failed.", result.getMessage());
@@ -846,9 +837,7 @@ public class CloudFormationClientWrapperImplTest {
 				describeStacksResponse1,
 				describeStacksResponse2,
 				describeStacksResponse3
-		);
-
-		String waitConditionId = "waitConditionId";
+		);		
 
 		StackEvent waitConditionEvent = StackEvent.builder()
 				.resourceType("AWS::CloudFormation::WaitCondition")
@@ -856,38 +845,17 @@ public class CloudFormationClientWrapperImplTest {
 				.resourceStatus(ResourceStatus.CREATE_IN_PROGRESS)
 				.eventId("last")
 				.build();
-
-		when(mockWaitConditionHandler.getWaitConditionId()).thenReturn(waitConditionId);
+		
 		when(mockWaitConditionHandler.handle(waitConditionEvent)).thenReturn(Optional.empty());
 		when(mockCloudFormationClient.describeStackEvents(DescribeStackEventsRequest.builder().stackName(stackName).build()))
 				.thenReturn(DescribeStackEventsResponse.builder().stackEvents(waitConditionEvent).build());
 
 		// call under test
-		Optional<Stack> resultStack = client.waitForStackToComplete(stackName, Set.of(mockWaitConditionHandler));
+		Optional<Stack> resultStack = client.waitForStackToComplete(stackName);
 
 		assertTrue(resultStack.isPresent());
 
-		verifyNoMoreInteractions(mockCloudFormationClient, mockWaitConditionHandler);	}
-
-	@Test
-	public void testWaitForStackToCompleteWithEmptyWaitConditionHandlers() throws InterruptedException {
-		Stack stack1 = stackBuilder.stackStatus(StackStatus.CREATE_IN_PROGRESS).build();
-		Stack stack2 = stackBuilder.stackStatus(StackStatus.CREATE_IN_PROGRESS).build();
-		Stack stack3 = stackBuilder.stackStatus(StackStatus.CREATE_COMPLETE).build();
-		DescribeStacksResponse describeStacksResponse1 = describeStacksResponseBuilder.stacks(stack1).build();
-		DescribeStacksResponse describeStacksResponse2 = describeStacksResponseBuilder.stacks(stack2).build();
-		DescribeStacksResponse describeStacksResponse3 = describeStacksResponseBuilder.stacks(stack3).build();
-
-		when(mockCloudFormationClient.describeStacks(any(DescribeStacksRequest.class))).thenReturn(
-			describeStacksResponse1,
-			describeStacksResponse2,
-			describeStacksResponse3
-		);
-
-		// call under test
-		Optional<Stack> resultStack = client.waitForStackToComplete(stackName, Collections.emptySet());
-
-		verifyNoMoreInteractions(mockCloudFormationClient, mockWaitConditionHandler);
+		verifyNoMoreInteractions(mockCloudFormationClient, mockWaitConditionHandler);	
 	}
 
 	@Test

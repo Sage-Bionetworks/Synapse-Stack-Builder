@@ -302,6 +302,12 @@
 			"messageVisibilityTimeoutSec": 300
 		},
 		{
+			"queueName": "ADD_TO_DOWNLOAD_LIST_STATS",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 300
+		},
+		{
 			"queueName": "DOWNLOAD_LIST_PACKAGE",
 			"subscribedTopicNames": [
 			],
@@ -453,12 +459,11 @@
 			"messageVisibilityTimeoutSec": 60
 		},
 		{
-			"queueName": "GRID_WEBSOCKET_MESSAGE",
+			"queueName": "GRID_WEBSOCKET_MESSAGE.fifo",
 			"subscribedTopicNames": [
 			],
 			"messageVisibilityTimeoutSec": 30,
-			"oldestMessageInQueueAlarmThresholdSec": 10,
-			"deadLetterQueueMaxFailureCount": 3
+			"oldestMessageInQueueAlarmThresholdSec": 10
 		},
 		{
 			"queueName": "GRID_CREATE",
@@ -468,7 +473,7 @@
 			"oldestMessageInQueueAlarmThresholdSec": 30
 		},
 		{
-			"queueName": "GRID_INTERNAL_EVENT",
+			"queueName": "GRID_INTERNAL_EVENT.fifo",
 			"subscribedTopicNames": [
 			],
 			"messageVisibilityTimeoutSec": 30,
