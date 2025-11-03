@@ -381,7 +381,7 @@
                               "IS_NULL",
                               "IS_NOT_NULL",
                               "IS_UNDEFINED",
-                              "IS_NOT_UNDEFINED"
+                              "IS_DEFINED"
                          ]
                     },
                     "value": {

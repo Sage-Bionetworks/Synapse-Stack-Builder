@@ -19,8 +19,8 @@
 		  <query__json>{"columnSelection":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.SelectAll"}],"limit":10}</query__json>
 		</query__example>
 		<query__example>
-		  <description>Return up to 10 rows selecting two columns by their name (no filters).</description>
-		  <query__json>{"columnSelection":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.SelectByName","columnName":"name"},{"concreteType":"org.sagebionetworks.repo.model.grid.query.SelectByName","columnName":"age"}],"limit":10}</query__json>
+		  <description>Return up to 10 rows selecting the species and weight columns by name (no filters).</description>
+		  <query__json>{"columnSelection":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.SelectByName","columnName":"species"},{"concreteType":"org.sagebionetworks.repo.model.grid.query.SelectByName","columnName":"weight"}],"limit":10}</query__json>
 		</query__example>
 		<query__example>
 		  <description>Return the total number of rows currently in the grid (single count value).</description>
