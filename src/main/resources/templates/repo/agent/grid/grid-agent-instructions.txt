@@ -28,7 +28,11 @@
 		</query__example>
 		<query__example>
 		  <description>Return up to 50 rows selecting all columns where age > 25 AND JSON schema validation is invalid (isValid = false).</description>
-		  <query__json>{"columnSelection":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.SelectAll"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"age","operator":"GREATER_THAN","value":[25]},{"concreteType":"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter","value":false}],"limit":50}</query__json>
+		  <query__json>{"columnSelection":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.SelectAll"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"age","operator":"GREATER_THAN","value":25},{"concreteType":"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter","value":false}],"limit":50}</query__json>
+		</query__example>
+		<query__example>
+		  <description>Return up to 5 rows selecting all columns where color is one of "red", or "green".</description>
+		  <query__json>{"columnSelection":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.SelectAll"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"color","operator":"IN","value":["red","green"]}],"limit":50}</query__json>
 		</query__example>
 		<query__example>
 		  <description>Count the currently selected rows whose validation error message contains 'expected type' (SQL LIKE pattern using % wildcards).</description>
@@ -52,7 +56,7 @@
 		</update__example>
 		<update__example>
 		  <description>For rows where height > 12, set type = 'tall' and footing = null; cap updates at 10 rows.</description>
-		  <update__json>{"set":[{"columnName":"type","value":"tall"},{"columnName":"footing","value":null}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"height","operator":"GREATER_THAN","value":[12]}],"limit":10}</update__json>
+		  <update__json>{"set":[{"columnName":"type","value":"tall"},{"columnName":"footing","value":null}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"height","operator":"GREATER_THAN","value":12}],"limit":10}</update__json>
 		</update__example>
 		<update__example>
 		  <description>Set name = 'Dave' for all currently selected rows.</description>
