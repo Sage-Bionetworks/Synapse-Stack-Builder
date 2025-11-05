@@ -4,6 +4,7 @@
 	"Resources": {
 #parse("templates/global/sns-template.json.vpt")
 #parse("templates/global/webacl-cloudwatch-loggroup.json.vpt")
+#parse("templates/global/bedrock-kb-template.json.vpt")
 	},
 	"Outputs": {
 		"NotificationTopic": {
@@ -81,6 +82,46 @@
 								"Ref": "AWS::StackName"
 							},
 							"WebAclCloudWatchLogGroupArn"
+						]
+					]
+		        }
+		    }
+		},
+		"SynapseHelpKnowledgeBaseId": {
+			"Description": "The id of the shared bedrock KB that contains the synapse help documentation",
+			"Value": {"Fn::GetAtt": ["SynapseHelpKnowledgeBase", "KnowledgeBaseId"]},
+			"Export": {
+		        "Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"SynapseHelpKnowledgeBaseId"
+						]
+					]
+		        }
+		    }
+		},
+		"SynapseHelpKnowledgeBaseArn": {
+			"Description": "The arn of the shared bedrock KB that contains the synapse help documentation",
+			"Value": {"Fn::GetAtt": ["SynapseHelpKnowledgeBase", "KnowledgeBaseArn"]},
+			"Export": {
+		        "Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"SynapseHelpKnowledgeBaseArn"
 						]
 					]
 		        }

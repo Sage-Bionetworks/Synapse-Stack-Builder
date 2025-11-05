@@ -57,21 +57,24 @@ public class CloudFormationClientWrapperImpl implements CloudFormationClientWrap
 
 	public static final int SLEEP_TIME = 10 * 1000;
 	public static final String NO_UPDATES_ARE_TO_BE_PERFORMED = "No updates are to be performed";
-	CloudFormationClient cloudFormationClient;
-	AmazonS3 s3Client;
-	Configuration configuration;
-	Logger logger;
-	ThreadProvider threadProvider;
-
+	
+	private final CloudFormationClient cloudFormationClient;
+	private final AmazonS3 s3Client;
+	private final Configuration configuration;
+	private final Logger logger;
+	private final ThreadProvider threadProvider;
+	private final Map<String, WaitConditionHandler> waitConditionHandlerMap;
+	
 	@Inject
 	public CloudFormationClientWrapperImpl(CloudFormationClient cloudFormationClient, AmazonS3 s3Client,
-										   Configuration configuration, LoggerFactory loggerFactory, ThreadProvider threadProvider) {
+										   Configuration configuration, LoggerFactory loggerFactory, ThreadProvider threadProvider, Set<WaitConditionHandler> waitConditionHandlers) {
 		super();
 		this.cloudFormationClient = cloudFormationClient;
 		this.s3Client = s3Client;
 		this.configuration = configuration;
 		this.logger = loggerFactory.getLogger(CloudFormationClientWrapperImpl.class);
 		this.threadProvider = threadProvider;
+		this.waitConditionHandlerMap = waitConditionHandlers.stream().collect(Collectors.toMap(WaitConditionHandler::getWaitConditionId, Function.identity()));
 	}
 
 	@Override
@@ -251,15 +254,7 @@ public class CloudFormationClientWrapperImpl implements CloudFormationClientWrap
 
 	@Override
 	public Optional<Stack> waitForStackToComplete(String stackName) throws InterruptedException {
-		return waitForStackToComplete(stackName, Collections.emptySet());
-	}
-	
-	@Override
-	public Optional<Stack> waitForStackToComplete(String stackName, Set<WaitConditionHandler> waitConditionHandlers) throws InterruptedException {
 		boolean startedInUpdateRollbackComplete = isStartedInUpdateRollbackComplete(stackName); // Initial state
-		
-		Map<String, WaitConditionHandler> waitConditionHandlerMap = waitConditionHandlers.stream()
-			.collect(Collectors.toMap(WaitConditionHandler::getWaitConditionId, Function.identity()));
 		
 		// To avoid re-processing the same wait condition multiple times we need to keep track of them
 		Set<String> processedWaitConditionSet = new HashSet<>();

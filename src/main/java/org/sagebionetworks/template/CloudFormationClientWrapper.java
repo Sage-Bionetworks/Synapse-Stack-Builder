@@ -1,7 +1,6 @@
 package org.sagebionetworks.template;
 
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import software.amazon.awssdk.services.cloudformation.model.CloudFormationException;
@@ -65,19 +64,6 @@ public interface CloudFormationClientWrapper {
 	 * @throws RuntimeException if the stack operation fails or times out
 	 */
 	Optional<Stack> waitForStackToComplete(String stackName) throws InterruptedException;
-	
-	/**
-	 * Waits for a stack operation to complete while handling CloudFormation wait conditions.
-	 * Each wait condition handler in the provided set will be invoked when its corresponding
-	 * wait condition is triggered during stack creation.
-	 * 
-	 * @param stackName the name of the stack to wait for
-	 * @param waitConditionHandlers a set of handlers for processing CloudFormation wait conditions
-	 * @return an Optional containing the final Stack if it exists, or empty if it doesn't
-	 * @throws InterruptedException if the waiting thread is interrupted
-	 * @throws RuntimeException if the stack operation fails, a wait condition fails, or the operation times out
-	 */
-	Optional<Stack> waitForStackToComplete(String stackName, Set<WaitConditionHandler> waitConditionHandlers) throws InterruptedException;
 
 	/**
 	 * Retrieves the value of a specific output from a CloudFormation stack.

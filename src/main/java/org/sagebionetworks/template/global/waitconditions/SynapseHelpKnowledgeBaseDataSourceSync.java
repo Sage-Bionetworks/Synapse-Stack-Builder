@@ -1,4 +1,4 @@
-package org.sagebionetworks.template.repo.bedrock;
+package org.sagebionetworks.template.global.waitconditions;
 
 import java.util.Optional;
 
@@ -48,9 +48,9 @@ public class SynapseHelpKnowledgeBaseDataSourceSync implements WaitConditionHand
 
 	@Override
 	public Optional<String> handle(StackEvent stackEvent) throws InterruptedException {
-		String stackPrefix = config.getProperty(Constants.PROPERTY_KEY_STACK) + "-" + config.getProperty(Constants.PROPERTY_KEY_INSTANCE);
+		String stack = config.getProperty(Constants.PROPERTY_KEY_STACK);
 		
-		String knowledgeBaseName =  stackPrefix + "-synhelp-knowledge-base";
+		String knowledgeBaseName =  stack + "-synhelp-knowledge-base";
 		String knowledgeBaseId = bedrockAgentClient.listKnowledgeBasesPaginator(req -> {})
 			.knowledgeBaseSummaries().stream()
 			.filter(kb -> kb.name().equals(knowledgeBaseName))
@@ -58,7 +58,7 @@ public class SynapseHelpKnowledgeBaseDataSourceSync implements WaitConditionHand
 			.map(KnowledgeBaseSummary::knowledgeBaseId)
 			.orElseThrow();
 		
-		String dataSourceName = stackPrefix + "-synhelp-datasource";
+		String dataSourceName = stack + "-synhelp-datasource";
 		String dataSourceId = bedrockAgentClient.listDataSourcesPaginator(req -> req.knowledgeBaseId(knowledgeBaseId))
 			.dataSourceSummaries().stream()
 			.filter(dataSource -> dataSource.name().equals(dataSourceName))
