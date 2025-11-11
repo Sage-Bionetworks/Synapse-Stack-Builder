@@ -1,0 +1,132 @@
+{
+	"AndStatement": {
+		"Statements": [
+			{
+				"NotStatement": {
+					"Statement": {
+						"IPSetReferenceStatement": {
+							"Arn": {
+								"Fn::GetAtt": [
+									"${stack}${instance}VpcCidrIpSetIPV4",
+									"Arn"
+								]
+							}
+						}
+					}
+				}
+			},
+			{
+				"NotStatement": {
+					"Statement": {
+						"OrStatement": {
+							"Statements": [
+								{
+									"ByteMatchStatement": {
+										"FieldToMatch": {
+											"SingleHeader": {
+												"Name": "host"
+											}
+										},
+										"PositionalConstraint": "ENDS_WITH",
+										"SearchString": ".synapse.org",
+										"TextTransformations": [
+											{
+												"Priority": 0,
+												"Type": "LOWERCASE"
+											}
+										]
+									}
+								},
+								{
+									"ByteMatchStatement": {
+										"FieldToMatch": {
+											"SingleHeader": {
+												"Name": "host"
+											}
+										},
+										"PositionalConstraint": "ENDS_WITH",
+										"SearchString": ".sagebase.org",
+										"TextTransformations": [
+											{
+												"Priority": 0,
+												"Type": "LOWERCASE"
+											}
+										]
+									}
+								},
+								{
+									"ByteMatchStatement": {
+										"FieldToMatch": {
+											"SingleHeader": {
+												"Name": "host"
+											}
+										},
+										"PositionalConstraint": "EXACTLY",
+										"SearchString": "localhost",
+										"TextTransformations": [
+											{
+												"Priority": 0,
+												"Type": "LOWERCASE"
+											}
+										]
+									}
+								},
+								{
+									"ByteMatchStatement": {
+										"FieldToMatch": {
+											"SingleHeader": {
+												"Name": "host"
+											}
+										},
+										"PositionalConstraint": "STARTS_WITH",
+										"SearchString": "localhost:",
+										"TextTransformations": [
+											{
+												"Priority": 0,
+												"Type": "LOWERCASE"
+											}
+										]
+									}
+								},
+								{
+									"ByteMatchStatement": {
+										"FieldToMatch": {
+											"SingleHeader": {
+												"Name": "host"
+											}
+										},
+										"PositionalConstraint": "EXACTLY",
+										"SearchString": "127.0.0.1",
+										"TextTransformations": [
+											{
+												"Priority": 0,
+												"Type": "NONE"
+											}
+										]
+									}
+								},
+								{
+									"ByteMatchStatement": {
+										"FieldToMatch": {
+											"SingleHeader": {
+												"Name": "host"
+											}
+										},
+										"PositionalConstraint": "STARTS_WITH",
+										"SearchString": "127.0.0.1:",
+										"TextTransformations": [
+											{
+												"Priority": 0,
+												"Type": "NONE"
+											}
+										]
+									}
+								}
+							]
+						}
+					}
+				}
+			}			
+		]
+	}
+}
