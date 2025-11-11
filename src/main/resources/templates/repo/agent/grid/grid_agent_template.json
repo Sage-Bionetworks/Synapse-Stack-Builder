@@ -54,10 +54,21 @@
 								{
 									"Effect": "Allow",
 									"Action": [
-										"s3:ListObject",
 										"s3:GetObject"
 									],
 									"Resource": "*"
+								},
+								{
+									"Action": [
+										"aws-marketplace:Subscribe"
+									],
+									"Resource": "*",
+									"Condition": {
+										"ForAnyValue:StringEquals": {
+											"aws-marketplace:ProductId": "anthropic.claude-haiku-4-5-20251001-v1:0"
+										}
+									},
+									"Effect": "Allow"
 								}
 							]
 						}
