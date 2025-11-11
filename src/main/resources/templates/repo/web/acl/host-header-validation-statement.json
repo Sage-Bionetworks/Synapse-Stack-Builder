@@ -28,7 +28,7 @@
 											}
 										},
 										"PositionalConstraint": "ENDS_WITH",
-										"SearchString": "synapse.org",
+										"SearchString": ".synapse.org",
 										"TextTransformations": [
 											{
 												"Priority": 0,
@@ -45,7 +45,7 @@
 											}
 										},
 										"PositionalConstraint": "ENDS_WITH",
-										"SearchString": "sagebase.org",
+										"SearchString": ".sagebase.org",
 										"TextTransformations": [
 											{
 												"Priority": 0,
