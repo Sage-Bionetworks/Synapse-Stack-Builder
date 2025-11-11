@@ -99,7 +99,7 @@
 				},
 				"AutoPrepare": true,
 				"Description": "The agent tasked with aiding with grid data curation.",
-				"FoundationModel": "us.anthropic.claude-sonnet-4-20250514-v1:0",
+				"FoundationModel": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
 				"IdleSessionTTLInSeconds": 3600,
 				"Instruction": "inserted from the context provider",
 				"SkipResourceInUseCheckOnDelete": true
