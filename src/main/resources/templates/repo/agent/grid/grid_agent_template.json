@@ -67,7 +67,7 @@
 									"Effect": "Allow",
 									"Condition": {
 										"ForAnyValue:StringEquals": {
-											"aws-marketplace:ProductId": "anthropic.claude-haiku-4-5-20251001-v1:0"
+											"aws-marketplace:ProductId": "prod-xdkflymybwmvi"
 										}
 									}
 								}
@@ -111,7 +111,7 @@
 				},
 				"AutoPrepare": true,
 				"Description": "The agent tasked with aiding with grid data curation.",
-				"FoundationModel": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
+				"FoundationModel": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
 				"IdleSessionTTLInSeconds": 3600,
 				"Instruction": "inserted from the context provider",
 				"SkipResourceInUseCheckOnDelete": true
