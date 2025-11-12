@@ -67,7 +67,7 @@
 									"Effect": "Allow",
 									"Condition": {
 										"ForAnyValue:StringEquals": {
-											"aws-marketplace:ProductId": "prod-xdkflymybwmvi"
+											"aws-marketplace:ProductId": "prod-mxcfnwvpd6kb4"
 										}
 									}
 								}
@@ -111,7 +111,7 @@
 				},
 				"AutoPrepare": true,
 				"Description": "The agent tasked with aiding with grid data curation.",
-				"FoundationModel": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+				"FoundationModel": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
 				"IdleSessionTTLInSeconds": 3600,
 				"Instruction": "inserted from the context provider",
 				"SkipResourceInUseCheckOnDelete": true
