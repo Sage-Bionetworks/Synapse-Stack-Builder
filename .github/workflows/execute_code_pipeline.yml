@@ -29,7 +29,7 @@ on:
       ROLE_TO_ASSUME:
         required: true
         type: string
-        description: AWS role to assume to deploy self-hosted runner
+        description: AWS role to assume to set up code pipeline
       STATUS_REPO_OWNER:
         required: false
         type: string
