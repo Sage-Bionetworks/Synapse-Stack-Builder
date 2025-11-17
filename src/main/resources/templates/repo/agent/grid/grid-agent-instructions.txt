@@ -52,27 +52,31 @@
 	  <examples>
 		<update__example>
 		  <description>Set age = 25 for rows where age is currently null.</description>
-		  <update__json>{"updateBatch":[{"set":[{"columnName":"age","value":25}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"age","operator":"IS_NULL"}]}]}</update__json>
+		  <update__json>{"updateBatch":[{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.LiteralSetValue","columnName":"age","value":25}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"age","operator":"IS_NULL"}]}]}</update__json>
 		</update__example>
 		<update__example>
 		  <description>For rows where height > 12, set type = 'tall' and footing = null; cap updates at 10 rows.</description>
-		  <update__json>{"updateBatch":[{"set":[{"columnName":"type","value":"tall"},{"columnName":"footing","value":null}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"height","operator":"GREATER_THAN","value":12}],"limit":10}]}</update__json>
+		  <update__json>{"updateBatch":[{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.LiteralSetValue","columnName":"type","value":"tall"},{"concreteType":"org.sagebionetworks.repo.model.grid.update.LiteralSetValue","columnName":"footing","value":null}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"height","operator":"GREATER_THAN","value":12}],"limit":10}]}</update__json>
 		</update__example>
 		<update__example>
 		  <description>Set name = 'Dave' for all currently selected rows.</description>
-		  <update__json>{"updateBatch":[{"set":[{"columnName":"name","value":"Dave"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter","isSelected":true}]}]}</update__json>
+		  <update__json>{"updateBatch":[{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.LiteralSetValue","columnName":"name","value":"Dave"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter","isSelected":true}]}]}</update__json>
 		</update__example>
 		<update__example>
 		  <description>Set status = true only for rows with IDs r2 and r5 (explicit RowIdFilter targeting previously retrieved IDs).</description>
-		  <update__json>{"updateBatch":[{"set":[{"columnName":"status","value":true}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.RowIdFilter","rowIdsIn":["r2","r5"]}]}]}</update__json>
+		  <update__json>{"updateBatch":[{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.LiteralSetValue","columnName":"status","value":true}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.RowIdFilter","rowIdsIn":["r2","r5"]}]}]}</update__json>
 		</update__example>
 		<update__example>
 		  <description>Set color to undefined for rows where material is null.</description>
-		  <update__json>{"updateBatch":[{"set":[{"columnName":"color"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"material","operator":"IS_NULL"}]}]}</update__json>
+		  <update__json>{"updateBatch":[{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.LiteralSetValue","columnName":"color"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"material","operator":"IS_NULL"}]}]}</update__json>
 		</update__example>
 		<update__example>
 		  <description>Batch update: (1) Set status = 'active' where age > 18, (2) Set category = 'senior' where age >= 65, (3) Set discount = 0.15 for all selected rows.</description>
-		  <update__json>{"updateBatch":[{"set":[{"columnName":"status","value":"active"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"age","operator":"GREATER_THAN","value":18}]},{"set":[{"columnName":"category","value":"senior"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"age","operator":"GREATER_THAN_OR_EQUALS","value":65}]},{"set":[{"columnName":"discount","value":0.15}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter","isSelected":true}]}]}</update__json>
+		  <update__json>{"updateBatch":[{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.LiteralSetValue","columnName":"status","value":"active"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"age","operator":"GREATER_THAN","value":18}]},{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.LiteralSetValue","columnName":"category","value":"senior"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"age","operator":"GREATER_THAN_OR_EQUALS","value":65}]},{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.LiteralSetValue","columnName":"discount","value":0.15}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter","isSelected":true}]}]}</update__json>
+		</update__example>
+		<update__example>
+		  <description>Extract participant ID from fileName column using regex pattern 'participant-(\d+)' and set it to the participantId column. If the pattern doesn't match, set participantId to null.</description>
+		  <update__json>{"updateBatch":[{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.RegexExtractSetValue","columnName":"participantId","sourceColumnName":"fileName","pattern":"participant-(\\d+)","groupIndex":1,"onMatchFailure":"SET_NULL"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"fileName","operator":"IS_NOT_NULL"}]}]}</update__json>
 		</update__example>
 	  </examples>
 	</update__examples>
