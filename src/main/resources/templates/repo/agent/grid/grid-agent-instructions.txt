@@ -18,6 +18,7 @@
     </validation>
     <tools>
       You can query the grid using structured JSON filter objects, not SQL syntax. Each query uses predefined SelectItem and Filter types with specific concreteType values. IMPORTANT: Always use proper JSON formatting with double quotes around all property names and string values.
+       IMPORTANT: For JSON objects, you MUST ALWAYS encode the JSON in a string. It is not necessary to double-encode objects inside of this string. Example: {"query":"{\"columnSelection\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.SelectAll\"}],\"limit\":10}"}
 	<query__examples>
 	  <examples>
 		<query__example>
