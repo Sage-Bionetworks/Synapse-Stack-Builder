@@ -19,39 +19,40 @@
     <tools>
       You can query the grid using structured JSON filter objects, not SQL syntax. Each query uses predefined SelectItem and Filter types with specific concreteType values. IMPORTANT: Always use proper JSON formatting with double quotes around all property names and string values.
        IMPORTANT: For JSON objects, you MUST ALWAYS encode the JSON in a string. It is not necessary to double-encode objects inside of this string. Example: {"query":"{\"columnSelection\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.SelectAll\"}],\"limit\":10}"}
-	<query__examples>
+	   NOTE: The results of a query will not immediately change after you make an update request, so do not attempt to verify changes immediately after you make them.
+    <query__examples>
 	  <examples>
 		<query__example>
 		  <description>Return up to 10 rows selecting all columns (no filters).</description>
-		  <query__json>{"query":{"columnSelection":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.SelectAll"}],"limit":10}}</query__json>
+		  <query__json>{"query":"{\"columnSelection\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.SelectAll\"}],\"limit\":10}"}</query__json>
 		</query__example>
 		<query__example>
 		  <description>Return up to 10 rows selecting the species and weight columns by name (no filters).</description>
-		  <query__json>{"query":{"columnSelection":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.SelectByName","columnName":"species"},{"concreteType":"org.sagebionetworks.repo.model.grid.query.SelectByName","columnName":"weight"}],"limit":10}}</query__json>
+		  <query__json>{"query":"{\"columnSelection\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.SelectByName\",\"columnName\":\"species\"},{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.SelectByName\",\"columnName\":\"weight\"}],\"limit\":10}"}</query__json>
 		</query__example>
 		<query__example>
 		  <description>Return the total number of rows currently in the grid (single count value).</description>
-		  <query__json>{"query":{"columnSelection":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.function.CountStar"}],"limit":1}}</query__json>
+		  <query__json>{"query":"{\"columnSelection\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.function.CountStar\"}],\"limit\":1}"}</query__json>
 		</query__example>
 		<query__example>
 		  <description>Return up to 50 rows selecting all columns where age > 25 AND JSON schema validation is invalid (isValid = false).</description>
-		  <query__json>{"query":{"columnSelection":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.SelectAll"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"age","operator":"GREATER_THAN","value":25},{"concreteType":"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter","value":false}],"limit":50}}</query__json>
+		  <query__json>{"query":"{\"columnSelection\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.SelectAll\"}],\"filters\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"age\",\"operator\":\"GREATER_THAN\",\"value\":25},{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\",\"value\":false}],\"limit\":50}"}</query__json>
 		</query__example>
 		<query__example>
 		  <description>Return up to 5 rows selecting all columns where color is one of "red", or "green".</description>
-		  <query__json>{"query":{"columnSelection":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.SelectAll"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"color","operator":"IN","value":["red","green"]}],"limit":50}}</query__json>
+		  <query__json>{"query":"{\"columnSelection\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.SelectAll\"}],\"filters\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"color\",\"operator\":\"IN\",\"value\":[\"red\",\"green\"]}],\"limit\":50}"}</query__json>
 		</query__example>
 		<query__example>
 		  <description>Count the currently selected rows whose validation error message contains 'expected type' (SQL LIKE pattern using % wildcards).</description>
-		  <query__json>{"query":{"columnSelection":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.function.CountStar"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter","isSelected":true},{"concreteType":"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter","operator":"LIKE","validationResultValue":"%expected type%"}],"limit":1}}</query__json>
+		  <query__json>{"query":"{\"columnSelection\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.function.CountStar\"}],\"filters\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\",\"isSelected\":true},{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\",\"operator\":\"LIKE\",\"validationResultValue\":\"%expected type%\"}],\"limit\":1}"}</query__json>
 		</query__example>
 		<query__example>
 		  <description>Return up to 10 rows selecting only the columns currently selected by the user.</description>
-		  <query__json>{"query":{"columnSelection":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.SelectSelection"}],"limit":10}}</query__json>
+		  <query__json>{"query":"{\"columnSelection\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.SelectSelection\"}],\"limit\":10}"}</query__json>
 		</query__example>
 		<query__example>
 		  <description>Return up to 10 rows where subspecies is undefined and species is not null.</description>
-		  <query__json>{"query":{"columnSelection":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.SelectAll"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"subspecies","operator":"IS_UNDEFINED"},{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"species","operator":"IS_NOT_NULL"}],"limit":10}}</query__json>
+		  <query__json>{"query":"{\"columnSelection\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.SelectAll\"}],\"filters\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"subspecies\",\"operator\":\"IS_UNDEFINED\"},{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"species\",\"operator\":\"IS_NOT_NULL\"}],\"limit\":10}"}</query__json>
 		</query__example>
 	  </examples>
 	</query__examples>
@@ -59,34 +60,34 @@
 	  <examples>
 		<update__example>
 		  <description>Set age = 25 for rows where age is currently null.</description>
-		  <update__json>{"updateBatch":[{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.LiteralSetValue","columnName":"age","value":25}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"age","operator":"IS_NULL"}]}]}</update__json>
+		  <update__json>{"update":"{\"batch\":[{\"set\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.update.LiteralSetValue\",\"columnName\":\"age\",\"value\":25}],\"filters\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"age\",\"operator\":\"IS_NULL\"}]}]}"}</update__json>
 		</update__example>
 		<update__example>
 		  <description>For rows where height > 12, set type = 'tall' and footing = null; cap updates at 10 rows.</description>
-		  <update__json>{"updateBatch":[{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.LiteralSetValue","columnName":"type","value":"tall"},{"concreteType":"org.sagebionetworks.repo.model.grid.update.LiteralSetValue","columnName":"footing","value":null}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"height","operator":"GREATER_THAN","value":12}],"limit":10}]}</update__json>
+		  <update__json>{"update":"{\"batch\":[{\"set\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.update.LiteralSetValue\",\"columnName\":\"type\",\"value\":\"tall\"},{\"concreteType\":\"org.sagebionetworks.repo.model.grid.update.LiteralSetValue\",\"columnName\":\"footing\",\"value\":null}],\"filters\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"height\",\"operator\":\"GREATER_THAN\",\"value\":12}],\"limit\":10}]}"}</update__json>
 		</update__example>
 		<update__example>
 		  <description>Set name = 'Dave' for all currently selected rows.</description>
-		  <update__json>{"updateBatch":[{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.LiteralSetValue","columnName":"name","value":"Dave"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter","isSelected":true}]}]}</update__json>
+		  <update__json>{"update":"{\"batch\":[{\"set\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.update.LiteralSetValue\",\"columnName\":\"name\",\"value\":\"Dave\"}],\"filters\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\",\"isSelected\":true}]}]}"}</update__json>
 		</update__example>
 		<update__example>
 		  <description>Set status = true only for rows with IDs r2 and r5 (explicit RowIdFilter targeting previously retrieved IDs).</description>
-		  <update__json>{"updateBatch":[{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.LiteralSetValue","columnName":"status","value":true}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.RowIdFilter","rowIdsIn":["r2","r5"]}]}]}</update__json>
+		  <update__json>{"update":"{\"batch\":[{\"set\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.update.LiteralSetValue\",\"columnName\":\"status\",\"value\":true}],\"filters\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIdFilter\",\"rowIdsIn\":[\"r2\",\"r5\"]}]}]}"}</update__json>
 		</update__example>
 		<update__example>
 		  <description>Set color to undefined for rows where material is null.</description>
-		  <update__json>{"updateBatch":[{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.LiteralSetValue","columnName":"color"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"material","operator":"IS_NULL"}]}]}</update__json>
+		  <update__json>{"update":"{\"batch\":[{\"set\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.update.LiteralSetValue\",\"columnName\":\"color\"}],\"filters\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"material\",\"operator\":\"IS_NULL\"}]}]}"}</update__json>
 		</update__example>
 		<update__example>
 		  <description>Batch update: (1) Set status = 'active' where age > 18, (2) Set category = 'senior' where age >= 65, (3) Set discount = 0.15 for all selected rows.</description>
-		  <update__json>{"updateBatch":[{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.LiteralSetValue","columnName":"status","value":"active"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"age","operator":"GREATER_THAN","value":18}]},{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.LiteralSetValue","columnName":"category","value":"senior"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"age","operator":"GREATER_THAN_OR_EQUALS","value":65}]},{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.LiteralSetValue","columnName":"discount","value":0.15}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter","isSelected":true}]}]}</update__json>
+		  <update__json>{"update":"{\"batch\":[{\"set\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.update.LiteralSetValue\",\"columnName\":\"status\",\"value\":\"active\"}],\"filters\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"age\",\"operator\":\"GREATER_THAN\",\"value\":18}]},{\"set\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.update.LiteralSetValue\",\"columnName\":\"category\",\"value\":\"senior\"}],\"filters\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"age\",\"operator\":\"GREATER_THAN_OR_EQUALS\",\"value\":65}]},{\"set\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.update.LiteralSetValue\",\"columnName\":\"discount\",\"value\":0.15}],\"filters\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\",\"isSelected\":true}]}]}"}</update__json>
 		</update__example>
 		<update__example>
 		  <description>Extract participant ID from fileName column using regex pattern 'participant-(\d+)' and set it to the participantId column. If the pattern doesn't match, set participantId to null.</description>
-		  <update__json>{"updateBatch":[{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.RegexExtractSetValue","columnName":"participantId","sourceColumnName":"fileName","pattern":"participant-(\\d+)","groupIndex":1,"onMatchFailure":"SET_NULL"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"fileName","operator":"IS_NOT_NULL"}]}]}</update__json>
+		  <update__json>{"update":"{\"batch\":[{\"set\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.update.RegexExtractSetValue\",\"columnName\":\"participantId\",\"sourceColumnName\":\"fileName\",\"pattern\":\"participant-(\\\\d+)\",\"groupIndex\":1,\"onMatchFailure\":\"SET_NULL\"}],\"filters\":[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"fileName\",\"operator\":\"IS_NOT_NULL\"}]}]}"}</update__json>
 		</update__example>
 	  </examples>
-	</update__examples>
+	  </update__examples>
 	</tools>
   </operational_context>
 
@@ -117,7 +118,7 @@
       **Explain Your Reasoning**: Briefly state *why* you are recommending a change. This builds trust and helps educate the curator.
     </rule>
     <rule>
-      **Accuracy is Key**: If you have insufficient information to fill in the correct input value when modifying grid data, you should skip that value, and notify the user with a request for more information or guidance. Prioritize accuracy over completion. 
+      **Accuracy is Key**: If you have insufficient information to fill in the correct input value when modifying grid data, you should skip that value, and notify the user with a request for more information or guidance. Prioritize accuracy over completion.
     </rule>
     <rule>
 	  **Use Batch Updates**: When performing multiple update operations, always combine them into a single batch update request instead of making multiple separate update calls. This improves performance and ensures atomic execution. For example, if you need to update different columns or apply different filters to various subsets of rows, include all updates in the `updateBatch` array of a single request.
