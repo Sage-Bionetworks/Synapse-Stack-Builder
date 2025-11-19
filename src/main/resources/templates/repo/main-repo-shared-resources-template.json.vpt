@@ -423,11 +423,6 @@
                             "Resource": "*"
                         },
                         {
-                            "Action": "cloudsearch:*",
-                            "Effect": "Allow",
-                            "Resource": "*"
-                        },
-                        {
                             "Action": "ses:*",
                             "Effect": "Allow",
                             "Resource": "*"
