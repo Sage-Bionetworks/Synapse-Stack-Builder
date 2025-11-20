@@ -5,6 +5,7 @@
 #parse("templates/global/sns-template.json.vpt")
 #parse("templates/global/webacl-cloudwatch-loggroup.json.vpt")
 #parse("templates/global/bedrock-kb-template.json.vpt")
+#parse("templates/global/rds-snapshot-encryption-key.json.vpt")
 	},
 	"Outputs": {
 		"NotificationTopic": {
