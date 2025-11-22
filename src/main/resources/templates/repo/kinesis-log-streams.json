@@ -1,13 +1,6 @@
 {
 	"streamDescriptors": [
 		{
-			"name": "cloudsearchDocumentGeneration",
-			"partitionScheme": "!{timestamp:yyyy-MM-dd}",
-			"format": "JSON",
-			"bufferFlushSize": 64,
-			"bufferFlushInterval": 900
-		},
-		{
 			"name": "fileDownloads",
 			"partitionScheme": "year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}",
 			"format": "PARQUET",
