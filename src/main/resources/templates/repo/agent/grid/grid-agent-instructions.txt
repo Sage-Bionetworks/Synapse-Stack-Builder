@@ -75,11 +75,29 @@
 		  <update__json>{"updateBatch":[{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.LiteralSetValue","columnName":"status","value":"active"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"age","operator":"GREATER_THAN","value":18}]},{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.LiteralSetValue","columnName":"category","value":"senior"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"age","operator":"GREATER_THAN_OR_EQUALS","value":65}]},{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.LiteralSetValue","columnName":"discount","value":0.15}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter","isSelected":true}]}]}</update__json>
 		</update__example>
 		<update__example>
-		  <description>Extract participant ID from fileName column using regex pattern 'participant-(\d+)' and set it to the participantId column. If the pattern doesn't match, set participantId to null.</description>
-		  <update__json>{"updateBatch":[{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.RegexExtractSetValue","columnName":"participantId","sourceColumnName":"fileName","pattern":"participant-(\\d+)","groupIndex":1,"onMatchFailure":"SET_NULL"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"fileName","operator":"IS_NOT_NULL"}]}]}</update__json>
+		  <description>Use a template to combine firstName and lastName columns into fullName with a space separator.</description>
+		  <update__json>{"updateBatch":[{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.TemplateSetValue","columnName":"fullName","sourceTemplate":"{firstName} {lastName}","onMatchFailure":"SET_NULL"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"firstName","operator":"IS_NOT_NULL"}]}]}</update__json>
+		</update__example>
+		<update__example>
+		  <description>Extract domain from email using regex pattern, treating missing email values as empty strings (which won't match the pattern)</description>
+		  <update__json>{"updateBatch":[{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.TemplateSetValue","columnName":"domain","sourceTemplate":"{email}","pattern":"@(.+)$","onMatchFailure":"SET_NULL","onMissingValue":"USE_EMPTY_STRING"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"email","operator":"IS_NOT_NULL"}]}]}</update__json>
+		</update__example>
+		<update__example>
+		  <description>Build full file path from bucket, folder, and filename columns; skip updating rows where any source column is missing.</description>
+		  <update__json>{"updateBatch":[{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.TemplateSetValue","columnName":"fullPath","sourceTemplate":"{bucket}/{folder}/{filename}","onMissingValue":"SKIP_UPDATE"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"fullPath","operator":"IS_NULL"}]}]}</update__json>
+		</update__example>
+		<update__example>
+		  <description>Reformat phone numbers from '(555) 123-4567' to '555-123-4567' by removing parentheses using regex replacement.  Note: This pattern assumes consistent formatting; rows with different formats will trigger onMatchFailure behavior. </description>
+		  <update__json>{"updateBatch":[{"set":[{"concreteType":"org.sagebionetworks.repo.model.grid.update.TemplateSetValue","columnName":"phone","sourceTemplate":"{phone}","pattern":"\\((\\d{3})\\)\\s*(\\d{3}-\\d{4})","replacement":"$1-$2","onMatchFailure":"SKIP_UPDATE"}],"filters":[{"concreteType":"org.sagebionetworks.repo.model.grid.query.CellValueFilter","columnName":"phone","operator":"LIKE","value":"(%"}]}]}</update__json>
 		</update__example>
 	  </examples>
 	</update__examples>
+	<template_set_value>
+	  TemplateSetValue enables complex data transformations by:
+	  - Interpolating values from multiple columns using {columnName} placeholders
+	  - Applying optional regex patterns for extraction or transformation
+	  - Providing configurable fallback behaviors for missing data or pattern mismatches
+	</template_set_value>
 	</tools>
   </operational_context>
 
