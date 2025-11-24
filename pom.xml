@@ -22,6 +22,15 @@
 			<url>https://sagebionetworks.jfrog.io/sagebionetworks/ext-releases-local
 			</url>
 		</repository>
+		<repository>
+			<id>sagebionetworks</id>
+			<name>github Synapse-Repository-Services</name>
+			<!-- TODO replace brucehoff with Sage-Bionetworks -->
+			<url>https://maven.pkg.github.com/brucehoff/Synapse-Repository-Services</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
 	</repositories>
 	
 	<dependencyManagement>
@@ -177,7 +186,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.sagebionetworks</groupId>
-			<artifactId>synapseJavaClient</artifactId>
+			<artifactId>synapsejavaclient</artifactId>
 			<version>${synapse.version}</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
