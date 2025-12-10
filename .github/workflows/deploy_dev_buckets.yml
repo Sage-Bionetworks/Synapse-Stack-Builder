@@ -1,0 +1,58 @@
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  set-up:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Static Analysis
+        uses: pre-commit/action@v3.0.0
+
+      - id: oidc
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: arn:aws:iam::449435941126:role/sagebase-github-oidc-sage-bionetworks-synapse-build
+          aws-region: us-east-1
+          # eight hours
+          role-duration-seconds: 28800
+
+      - name: Determine Pipeline Parameters
+        id: pipeline-params
+        run: |
+          # capture the current branch as an environment variable
+          BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+          PIPELINE_PARAMETERS=\
+          "Branch=$BRANCH,\
+          RepoOwner=${{ github.repository_owner }},\
+          Repository=Synapse-Stack-Builder"
+          echo "PIPELINE_PARAMETERS=$PIPELINE_PARAMETERS" >> $GITHUB_OUTPUT
+    outputs:
+      PIPELINE_PARAMETERS: ${{ steps.pipeline-params.outputs.PIPELINE_PARAMETERS }}
+
+
+  invoke_workflow:
+    needs: set-up
+    uses: Sage-Bionetworks/Synapse-Code-Pipeline/.github/workflows/execute_code_pipeline.yml@main
+    with:
+      CODE_PIPELINE_CF_TEMPLATE: configuration/build/deploy_buckets_codepipeline_cf_template.yaml
+      PIPELINE_NAME: Stack-Builder-Deploy-Buckets
+      PIPELINE_PARAMETERS: ${{ needs.set-up.outputs.PIPELINE_PARAMETERS }}
+      CODE_PIPELINE_SOURCE_REVISIONS: "actionName=CheckoutStackBuilderRepo,revisionType=COMMIT_ID,revisionValue=${{ github.sha }}"
+      ROLE_TO_ASSUME: arn:aws:iam::449435941126:role/sagebase-github-oidc-sage-bionetworks-synapse-build
+    secrets: inherit
+    permissions:
+      # https://graphite.dev/guides/github-actions-permissions
+      id-token: write
+      contents: read
+      deployments: write
+      security-events: write
+      statuses: write
+      actions: write
+      checks: write
