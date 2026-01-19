@@ -22,6 +22,10 @@
 			      "geo-restriction-response-body": {
                     "ContentType": "APPLICATION_JSON",
                     "Content": "{\"errorCode\": \"GEO_RESTRICTION\", \"reason\":\"Requests originating from this region are blocked. For more information see: https://grants.nih.gov/grants/guide/notice-files/NOT-OD-25-083.html. If you think you see this error message by mistake, please submit a request at https://sagebionetworks.jira.com/servicedesk/customer/portal/9/group/16/create/84.\"}"
+                  },
+			      "host-header-validation-response-body": {
+                    "ContentType": "APPLICATION_JSON",
+                    "Content": "{\"reason\":\"Invalid request\"}"
                   }
 			    },
 				"Rules": [
@@ -44,8 +48,26 @@
 						}
 					},
 					{
+						"Action": { 
+							"Block": {
+								"CustomResponse": {
+                                    "ResponseCode": 403,
+                                    "CustomResponseBodyKey": "host-header-validation-response-body"
+                                }
+							} 
+						},
+						"Name": "${stack}-${instance}-host-header-validation-rule",
+						"Priority": 1,
+						"Statement": #parse("templates/repo/web/acl/host-header-validation-statement.json"),
+						"VisibilityConfig": {
+							"CloudWatchMetricsEnabled": true,
+							"MetricName": "${stack}${instance}HostHeaderValidationRule",
+							"SampledRequestsEnabled": true
+						}
+					},
+					{
 						"Name": "${stack}-${instance}-throttle-file-handle-batch",
-					    "Priority": 1,
+					    "Priority": 2,
 						"Statement": #parse("templates/repo/web/acl/throttle-file-handle-batch-statement.json"),
 						"Action": {
 						  "Block": {
@@ -64,7 +86,7 @@
 					{
 						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-size-restrictions-rule",
-						"Priority": 2,
+						"Priority": 3,
 						"Statement": #parse("templates/repo/web/acl/size-restriction-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
@@ -75,7 +97,7 @@
 					{
 						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-URI-Query-SQL-Injection-Rule",
-						"Priority": 3,
+						"Priority": 4,
 						"Statement": #parse("templates/repo/web/acl/uri-query-sql-injection-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
@@ -86,7 +108,7 @@
 					{
 						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-Body-SQL-Injection-Rule",
-						"Priority": 4,
+						"Priority": 5,
 						"Statement": #parse("templates/repo/web/acl/body-sql-injection-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
@@ -97,7 +119,7 @@
 					{
 						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-Header-SQL-Injection-Rule",
-						"Priority": 5,
+						"Priority": 6,
 						"Statement": #parse("templates/repo/web/acl/header-sql-injection-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
@@ -108,7 +130,7 @@
 					{
 						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-URI-Query-XSS-Rule",
-						"Priority": 6,
+						"Priority": 7,
 						"Statement": #parse("templates/repo/web/acl/uri-query-xss-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
@@ -119,7 +141,7 @@
 					{
 						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-Body-XSS-Rule",
-						"Priority": 7,
+						"Priority": 8,
 						"Statement": #parse("templates/repo/web/acl/body-xss-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
@@ -130,7 +152,7 @@
 					{
 						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-Header-XSS-Rule",
-						"Priority": 8,
+						"Priority": 9,
 						"Statement": #parse("templates/repo/web/acl/header-xss-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
@@ -141,7 +163,7 @@
 					{
 						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-Path-Traversal-Local-Rule",
-						"Priority": 9,
+						"Priority": 10,
 						"Statement": #parse("templates/repo/web/acl/path-traversal-local-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
@@ -152,7 +174,7 @@
 					{
 						"Action": { "Count": {} },
 						"Name": "${stack}-${instance}-Path-Traversal-Remote-Rule",
-						"Priority": 10,
+						"Priority": 11,
 						"Statement": #parse("templates/repo/web/acl/path-traversal-remote-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
@@ -165,7 +187,7 @@
 							${adminRuleAction}
 						},
 						"Name": "${stack}-${instance}-Admin-Access-Rule",
-						"Priority": 11,
+						"Priority": 12,
 						"Statement": #parse("templates/repo/web/acl/admin-access-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
@@ -176,7 +198,8 @@
 				]
 			},
 			"DependsOn": [
-				"${stack}${instance}matchadminremoteipIPV4"
+				"${stack}${instance}matchadminremoteipIPV4",
+				"${stack}${instance}VpcCidrIpSetIPV4"
 			]
 		},
 		"${stack}${instance}matchadminremoteipIPV4": {
@@ -190,6 +213,16 @@
 				"Scope": "REGIONAL",
 				"Description": "Source IP address allowed to make admin calls.",
 				"Name": "${stack}-${instance}-match-admin-remote-ip"
+			}
+		},
+		"${stack}${instance}VpcCidrIpSetIPV4": {
+			"Type": "AWS::WAFv2::IPSet",
+			"Properties": {
+				"Addresses": [{ "Fn::ImportValue": "${vpcExportPrefix}-VpcCidr" }],
+				"IPAddressVersion": "IPV4",
+				"Scope": "REGIONAL",
+				"Description": "VPC CIDR block.",
+				"Name": "${stack}-${instance}-vpc-cidr-ip-set"
 			}
 		},
 		"${stack}${instance}WebAclLoggingConfiguration": {
