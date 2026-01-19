@@ -129,8 +129,6 @@ public class GlobalResourcesBuilderImplTest {
         assertNull(req.getParameters());
         assertNotNull(req.getTemplateBody());
 
-        String expectedJson = new JSONObject(TemplateUtils.loadContentFromFile("global/dev-global-resources.json")).toString();
-        
         JSONObject templateJSON = new JSONObject(req.getTemplateBody());
 //        System.out.println(templateJSON.toString(2));
 
@@ -158,8 +156,6 @@ public class GlobalResourcesBuilderImplTest {
         assertEquals(expectedTags, req.getTags());
         assertNull(req.getParameters());
         assertNotNull(req.getTemplateBody());
-
-        String expectedJson = new JSONObject(TemplateUtils.loadContentFromFile("global/prod-global-resources.json")).toString();
         
         JSONObject templateJSON = new JSONObject(req.getTemplateBody());
 //        System.out.println(templateJSON.toString(2));
