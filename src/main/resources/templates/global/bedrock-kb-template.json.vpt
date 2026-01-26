@@ -176,7 +176,7 @@
                 "WebConfiguration": {
                     "SourceConfiguration": {
                     	"UrlConfiguration": {
-                    		"SeedUrls": [ { "Url": "https://help.synapse.org" } ]
+                    		"SeedUrls": [ { "Url": "https://docs.synapse.org/synapse-docs" } ]
                     	}
                     }
                 }

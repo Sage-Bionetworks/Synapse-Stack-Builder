@@ -217,7 +217,7 @@
         "Description": "The datasource for the synapse help document, the data is crawled from the synapse help website",
         "DataSourceConfiguration": {
           "Type": "WEB",
-          "WebConfiguration": {"SourceConfiguration": {"UrlConfiguration": {"SeedUrls": [{"Url": "https://help.synapse.org"}]}}}
+          "WebConfiguration": {"SourceConfiguration": {"UrlConfiguration": {"SeedUrls": [{"Url": "https://docs.synapse.org/synapse-docs"}]}}}
         }
       }
     },
