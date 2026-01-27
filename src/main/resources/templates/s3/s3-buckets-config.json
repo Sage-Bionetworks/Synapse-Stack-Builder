@@ -78,6 +78,9 @@
 		{
 			"name": "${stack}.grid.patch.sagebase.org",
 			"retentionDays": 120
+		},
+		{
+			"name": "${stack}.grid.snapshot.sagebase.org"
 		}
 	],
 	"inventoryConfig": {
