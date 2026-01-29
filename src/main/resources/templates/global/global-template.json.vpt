@@ -1,6 +1,6 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
-	"Description": "Creates global resources foFix r the Synapse stacks.",
+	"Description": "Creates global resources for the Synapse stacks.",
 	"Resources": {
 #parse("templates/global/sns-template.json.vpt")
 #parse("templates/global/webacl-cloudwatch-loggroup.json.vpt")
