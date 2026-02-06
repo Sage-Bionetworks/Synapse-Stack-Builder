@@ -863,14 +863,7 @@
 								"kms:*"
 							],
 							"Resource": "*"
-						},
-						{
-                          "Sid": "Enable IAM User Permissions",
-                          "Effect": "Allow",
-                          "Principal": { "AWS": { "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:root" } },
-                          "Action": "kms:*",
-                          "Resource": "*"
-                        }
+						}
 					]
 				}
 			}
