@@ -501,6 +501,18 @@
             "subscribedTopicNames": [
             ],
             "messageVisibilityTimeoutSec": 60
+		},
+		{
+			"queueName": "TABLE_SEARCH_INDEX",
+			"subscribedTopicNames": [
+				"TABLE",
+				"ENTITY_VIEW",
+				"MATERIALIZED_VIEW",
+				"TABLE_STATUS_EVENT"
+			],
+			"messageVisibilityTimeoutSec": 120,
+			"deadLetterQueueMaxFailureCount": 5,
+			"messageRetentionPeriodSec": 1209600
 		}
 	]
 }
