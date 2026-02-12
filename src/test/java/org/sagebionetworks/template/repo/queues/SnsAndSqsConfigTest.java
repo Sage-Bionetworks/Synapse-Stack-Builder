@@ -3,10 +3,13 @@ package org.sagebionetworks.template.repo.queues;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
@@ -74,6 +77,38 @@ public class SnsAndSqsConfigTest {
 		SnsTopicDescriptor expectedTopic2Descriptor = new SnsTopicDescriptor(topicName2).addToSubscribedQueues(queueName).addToSubscribedQueues(queueName2);
 
 		assertEquals(Arrays.asList(expectedTopic1Descriptor, expectedTopic2Descriptor), descriptors);
+	}
+
+	@Test
+	public void testSearchIndexRebuildQueueDescriptor() {
+		List<String> allTopics = Arrays.asList("SEARCH_INDEX_DIRTY");
+		List<String> subscribedTopics = Arrays.asList("SEARCH_INDEX_DIRTY");
+
+		SqsQueueDescriptor searchIndexRebuildQueue = new SqsQueueDescriptor(
+				"SEARCH_INDEX_REBUILD",
+				subscribedTopics,
+				120,      // messageVisibilityTimeoutSec
+				null,     // deadLetterQueueMaxFailureCount
+				null,     // oldestMessageInQueueAlarmThresholdSec
+				1209600   // messageRetentionPeriodSec
+		);
+
+		SnsAndSqsConfig config = new SnsAndSqsConfig(allTopics, Collections.emptyList(),
+				Collections.singletonList(searchIndexRebuildQueue));
+
+		// Verify subscribed topic
+		Set<String> expectedTopics = new LinkedHashSet<>(Arrays.asList("SEARCH_INDEX_DIRTY"));
+		assertEquals(expectedTopics, searchIndexRebuildQueue.subscribedTopicNames);
+		assertEquals(1, searchIndexRebuildQueue.subscribedTopicNames.size());
+
+		// Verify configuration values
+		assertEquals(120, searchIndexRebuildQueue.getMessageVisibilityTimeoutSec());
+		assertNull(searchIndexRebuildQueue.getDeadLetterQueueMaxFailureCount());
+		assertEquals(1209600, searchIndexRebuildQueue.getMessageRetentionPeriodSec());
+
+		// Verify processSnsTopicDescriptors succeeds
+		List<SnsTopicDescriptor> descriptors = config.processSnsTopicDescriptors();
+		assertEquals(1, descriptors.size());
 	}
 
 }
