@@ -503,7 +503,7 @@
             "messageVisibilityTimeoutSec": 60
 		},
 		{
-			"queueName": "GRID_VIEW_SYNCHRONIZATION.fifo",
+			"queueName": "GRID_SYNCHRONIZATION.fifo",
             "subscribedTopicNames": [
             ],
 			"messageVisibilityTimeoutSec": 30,
