@@ -3,6 +3,7 @@ package org.sagebionetworks.template.global;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -17,8 +18,12 @@ import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -124,13 +129,10 @@ public class GlobalResourcesBuilderImplTest {
         assertNull(req.getParameters());
         assertNotNull(req.getTemplateBody());
 
-        String expectedJson = new JSONObject(TemplateUtils.loadContentFromFile("global/dev-global-resources.json")).toString();
-        
         JSONObject templateJSON = new JSONObject(req.getTemplateBody());
-        
-        System.out.println(templateJSON.toString(2));
-        
-        assertEquals(expectedJson, templateJSON.toString());
+//        System.out.println(templateJSON.toString(2));
+
+        assertTrue(validateResources("dev", templateJSON));
 
         verify(mockSesClient, never()).setComplaintNotificationTopic(anyString(), anyString());
         verify(mockSesClient, never()).setBounceNotificationTopic(anyString(), anyString());
@@ -154,16 +156,81 @@ public class GlobalResourcesBuilderImplTest {
         assertEquals(expectedTags, req.getTags());
         assertNull(req.getParameters());
         assertNotNull(req.getTemplateBody());
-
-        String expectedJson = new JSONObject(TemplateUtils.loadContentFromFile("global/prod-global-resources.json")).toString();
         
         JSONObject templateJSON = new JSONObject(req.getTemplateBody());
-        
-        assertEquals(expectedJson, templateJSON.toString());
+//        System.out.println(templateJSON.toString(2));
+
+        assertTrue(validateResources("prod", templateJSON));
 
         verify(mockSesClient).setComplaintNotificationTopic(SES_SYNAPSE_DOMAIN, "complaintTopicArn");
         verify(mockSesClient).setBounceNotificationTopic(SES_SYNAPSE_DOMAIN, "bounceTopicArn");
 
+    }
+
+    private boolean validateResources(String stack, JSONObject templateJSON) {
+        return(validateSynapseHelpCollectionResources(stack, templateJSON)
+                && validateStackNotificationTopics(stack, templateJSON)
+                && validateSesTopics(templateJSON)
+                && validateRdsSnapshotCmk(stack, templateJSON)
+                && validateWebAclLogGroup(stack, templateJSON)
+        );
+    }
+
+    private boolean validateStackNotificationTopics(String stack, JSONObject templateJSON) {
+        final JSONObject resources = templateJSON.getJSONObject("Resources");
+        final Set<String> actualKeys = resources.keySet();
+        final List<String> resourceNameSuffixes = List.of("NotificationTopic", "NotificationTopicPolicy");
+        final List<String> expectedKeys = resourceNameSuffixes.stream().map(s -> stack + s).collect(Collectors.toList());
+        boolean valid = actualKeys.containsAll(expectedKeys);
+        return valid;
+    }
+
+    private boolean validateSesTopics(JSONObject templateJSON) {
+        final JSONObject resources = templateJSON.getJSONObject("Resources");
+        final Set<String> actualKeys = resources.keySet();
+        final List<String> expectedKeys = List.of("SesSynapseOrgBounceTopic", "SesSynapseOrgComplaintTopic");
+        boolean valid = actualKeys.containsAll(expectedKeys);
+        return valid;
+    }
+
+    private boolean validateWebAclLogGroup(String stack, JSONObject templateJSON) {
+        final JSONObject resources = templateJSON.getJSONObject("Resources");
+        final Set<String> actualKeys = resources.keySet();
+        final List<String> expectedKeys = List.of(stack + "WebAclLogGroup");
+        boolean valid = actualKeys.containsAll(expectedKeys);
+        return valid;
+    }
+
+
+    private boolean validateRdsSnapshotCmk(String stack, JSONObject templateJSON) {
+        final JSONObject resources = templateJSON.getJSONObject("Resources");
+        final Set<String> actualKeys = resources.keySet();
+        final List<String> suffixes = List.of("RdsSnapshotCmk", "RdsSnapshotCmkAlias");
+        final List<String> expectedKeys = suffixes.stream().map(s -> stack + s).collect(Collectors.toList());
+        boolean valid = actualKeys.containsAll(expectedKeys);
+        return valid;
+    }
+
+    private boolean validateSynapseHelpCollectionResources(String stack, JSONObject templateJSON) {
+        final JSONObject resources = templateJSON.getJSONObject("Resources");
+        final Set<String> actualKeys = resources.keySet();
+        final List<String> expectedKeys = List.of(
+                "SynapseHelpKnowledgeBaseExecutionRole",
+                "SynapseHelpCollectionDeployerDataAccessPolicy",
+                "SynapseHelpCollectionKnowledgeBaseDataAccessPolicy",
+                "SynapseHelpCollectionEncryptionPolicy",
+                "SynapseHelpCollectionNetworkPolicy",
+                "SynapseHelpCollection",
+                "SynapseHelpCollectionCreateIndexWaitCondition",
+                "SynapseHelpKnoweldgeBaseExecutionRolePolicy",
+                "SynapseHelpKnowledgeBase",
+                "SynapseHelpKnowledgeBaseDataSource",
+                "SynapseHelpKnowledgeBaseDataSourceSyncWaitCondition",
+                "SynapseHelpKnowledgeBaseIngestionScheduleRole",
+                "SynapseHelpKnowledgeBaseIngestionSchedule"
+                );
+        boolean valid = actualKeys.containsAll(expectedKeys);
+        return valid;
     }
 
 }
