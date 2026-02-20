@@ -889,7 +889,7 @@
 		${bedrock_grid_agent_resources}
 		#parse("templates/repo/grid/grid-websocket.json.vpt")
 		,
-        "${stack}${instance}CognitoUserPool": {
+        "${stack}CognitoUserPool": {
             "Type": "AWS::Cognito::UserPool",
             "Properties": {
                 "UserPoolName": "${stack}-${instance}-user-pool",
@@ -906,11 +906,11 @@
                 }
             }
         },
-        "${stack}${instance}CognitoUserPoolClient": {
+        "${stack}CognitoUserPoolClient": {
             "Type": "AWS::Cognito::UserPoolClient",
             "Properties": {
                 "ClientName": "${stack}-${instance}-client",
-                "UserPoolId": { "Ref": "${stack}${instance}CognitoUserPool" },
+                "UserPoolId": { "Ref": "${stack}CognitoUserPool" },
                 "GenerateSecret": false
             }
         }
@@ -1053,18 +1053,18 @@
 		}
 		#end
 		,
-		"${stack}${instance}CognitoUserPoolId": {
+		"${stack}CognitoUserPoolId": {
             "Description": "Id of the shared Cognito user pool for this stack/instance.",
-            "Value": { "Ref": "${stack}${instance}CognitoUserPool" },
+            "Value": { "Ref": "${stack}CognitoUserPool" },
             "Export": {
-                "Name": "${stack}${instance}-CognitoUserPoolId"
+                "Name": "${stack}-CognitoUserPoolId"
             }
         },
-        "${stack}${instance}CognitoUserPoolClientId": {
+        "${stack}CognitoUserPoolClientId": {
             "Description": "App client id for the shared Cognito user pool for this stack/instance.",
-            "Value": { "Ref": "${stack}${instance}CognitoUserPoolClient" },
+            "Value": { "Ref": "${stack}CognitoUserPoolClient" },
             "Export": {
-                "Name": "${stack}${instance}-CognitoUserPoolClientId"
+                "Name": "${stack}-CognitoUserPoolClientId"
             }
         }
 	}
