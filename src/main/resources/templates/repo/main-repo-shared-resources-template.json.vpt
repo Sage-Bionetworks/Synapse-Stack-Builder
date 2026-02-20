@@ -888,6 +888,32 @@
 		${bedrock_agent_resouces}
 		${bedrock_grid_agent_resources}
 		#parse("templates/repo/grid/grid-websocket.json.vpt")
+		,
+        "${stack}${instance}CognitoUserPool": {
+            "Type": "AWS::Cognito::UserPool",
+            "Properties": {
+                "UserPoolName": "${stack}-${instance}-user-pool",
+                "AutoVerifiedAttributes": [ "email" ],
+                "UsernameAttributes": [ "email" ],
+                "Policies": {
+                    "PasswordPolicy": {
+                        "MinimumLength": 8,
+                        "RequireUppercase": true,
+                        "RequireLowercase": true,
+                        "RequireNumbers": true,
+                        "RequireSymbols": true
+                    }
+                }
+            }
+        },
+        "${stack}${instance}CognitoUserPoolClient": {
+            "Type": "AWS::Cognito::UserPoolClient",
+            "Properties": {
+                "ClientName": "${stack}-${instance}-client",
+                "UserPoolId": { "Ref": "${stack}${instance}CognitoUserPool" },
+                "GenerateSecret": false
+            }
+        }
 	},
 	"Outputs": {
 		#parse("templates/repo/time-to-live-out.vpt"),
@@ -1026,5 +1052,20 @@
 			}
 		}
 		#end
+		,
+		"${stack}${instance}CognitoUserPoolId": {
+            "Description": "Id of the shared Cognito user pool for this stack/instance.",
+            "Value": { "Ref": "${stack}${instance}CognitoUserPool" },
+            "Export": {
+                "Name": "${stack}${instance}-CognitoUserPoolId"
+            }
+        },
+        "${stack}${instance}CognitoUserPoolClientId": {
+            "Description": "App client id for the shared Cognito user pool for this stack/instance.",
+            "Value": { "Ref": "${stack}${instance}CognitoUserPoolClient" },
+            "Export": {
+                "Name": "${stack}${instance}-CognitoUserPoolClientId"
+            }
+        }
 	}
 }
