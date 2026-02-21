@@ -1,0 +1,46 @@
+,
+"${stack}CognitoUserPool": {
+    "Type": "AWS::Cognito::UserPool",
+    "Properties": {
+        "UserPoolName": "${stack}-user-pool",
+        "AutoVerifiedAttributes": [ "email" ],
+        "UsernameAttributes": [ "email" ],
+        "Policies": {
+            "PasswordPolicy": {
+                "MinimumLength": 8,
+                "RequireUppercase": true,
+                "RequireLowercase": true,
+                "RequireNumbers": true,
+                "RequireSymbols": true
+            }
+        }
+    }
+},
+"${stack}CognitoUserPoolClient": {
+    "Type": "AWS::Cognito::UserPoolClient",
+    "Properties": {
+        "ClientName": "${stack}-client",
+        "UserPoolId": { "Ref": "${stack}CognitoUserPool" },
+        "GenerateSecret": false,
+        "AllowedOAuthFlows": [ "code" ],
+        "AllowedOAuthScopes": [ "openid", "email" ],
+        "AllowedOAuthFlowsUserPoolClient": true,
+        "CallbackURLs": [
+            #if(${stack} == 'dev')
+        	"http://localhost:3000/?provider=SAGE_BIONETWORKS",
+        	"https://dev.accounts.synapse.org/?provider=SAGE_BIONETWORKS"
+            #else
+         	"https://accounts.synapse.org/?provider=SAGE_BIONETWORKS",
+        	"https://staging.accounts.synapse.org/?provider=SAGE_BIONETWORKS",
+            #end
+        ],
+        "SupportedIdentityProviders": [ "COGNITO" ]
+    }
+},
+"${stack}CognitoUserPoolDomain": {
+    "Type": "AWS::Cognito::UserPoolDomain",
+    "Properties": {
+    	"Domain": "${stack}-auth",
+    	"UserPoolId": { "Ref": "${stack}CognitoUserPool" }
+    }
+},

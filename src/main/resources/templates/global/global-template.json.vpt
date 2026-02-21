@@ -6,6 +6,7 @@
 #parse("templates/global/webacl-cloudwatch-loggroup.json.vpt")
 #parse("templates/global/bedrock-kb-template.json.vpt")
 #parse("templates/global/rds-snapshot-encryption-key.json.vpt")
+#parse("templates/global/cognito-user-pool.json.vpt")
 	},
 	"Outputs": {
 		"NotificationTopic": {
@@ -127,6 +128,20 @@
 					]
 		        }
 		    }
-		}
+		},
+		"CognitoUserPoolId": {
+            "Description": "Id of the shared Cognito user pool for this stack/instance.",
+            "Value": { "Ref": "${stack}CognitoUserPool" },
+            "Export": {
+                "Name": "CognitoUserPoolId"
+            }
+        },
+        "CognitoUserPoolClientId": {
+            "Description": "App client id for the shared Cognito user pool for this stack/instance.",
+            "Value": { "Ref": "${stack}CognitoUserPoolClient" },
+            "Export": {
+                "Name": "CognitoUserPoolClientId"
+            }
+        }
 	}
 }
