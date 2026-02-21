@@ -40,7 +40,16 @@
 "${stack}CognitoUserPoolDomain": {
     "Type": "AWS::Cognito::UserPoolDomain",
     "Properties": {
-    	"Domain": "${stack}-auth",
-    	"UserPoolId": { "Ref": "${stack}CognitoUserPool" }
+        "Domain": "${stack}-auth",
+        "UserPoolId": { "Ref": "${stack}CognitoUserPool" }
     }
 },
+"${stack}CognitoUserPoolUICustomization": {
+    "Type": "AWS::Cognito::UserPoolUICustomizationAttachment",
+    "Properties": {
+        "ClientId": { "Ref": "${stack}CognitoUserPoolClient" },
+        "UserPoolId": { "Ref": "${stack}CognitoUserPool" },
+        "CSS": ".banner-customizable { background-color: #123456; }",
+        "LogoImageFile": "https://s3.us-east-1.amazonaws.com/static.synapse.org/images/synapse-logo.svg"
+    }
+}
