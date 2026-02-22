@@ -40,7 +40,7 @@
 "${stack}CognitoUserPoolDomain": {
     "Type": "AWS::Cognito::UserPoolDomain",
     "Properties": {
-        "Domain": "${stack}-auth",
+        "Domain": "${stack}-cognito-doimain.synapse.org",
         "UserPoolId": { "Ref": "${stack}CognitoUserPool" }
     }
 },
