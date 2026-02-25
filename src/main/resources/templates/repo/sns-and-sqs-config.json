@@ -517,6 +517,13 @@
             "subscribedTopicNames": [
             ],
             "messageVisibilityTimeoutSec": 60
+		},
+		{
+			"queueName": "GRID_SYNCHRONIZATION.fifo",
+            "subscribedTopicNames": [
+            ],
+			"messageVisibilityTimeoutSec": 30,
+			"oldestMessageInQueueAlarmThresholdSec": 120
 		}
 	]
 }
