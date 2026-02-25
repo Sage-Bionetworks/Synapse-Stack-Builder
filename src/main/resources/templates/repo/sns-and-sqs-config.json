@@ -166,6 +166,21 @@
 			"messageRetentionPeriodSec": 1209600
 		},
 		{
+			"queueName": "SEARCH_INDEX_LIFECYCLE",
+			"subscribedTopicNames": [
+				"ENTITY"
+			],
+			"messageVisibilityTimeoutSec": 300,
+			"deadLetterQueueMaxFailureCount": 5
+		},
+		{
+			"queueName": "SEARCH_QUERY",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 120,
+			"oldestMessageInQueueAlarmThresholdSec": 30
+		},
+		{
 			"queueName": "TABLE_UPDATE",
 			"subscribedTopicNames": [
 				"TABLE"
@@ -502,21 +517,6 @@
             "subscribedTopicNames": [
             ],
             "messageVisibilityTimeoutSec": 60
-		},
-		{
-			"queueName": "SEARCH_INDEX_LIFECYCLE",
-			"subscribedTopicNames": [
-				"SEARCH_INDEX"
-			],
-			"messageVisibilityTimeoutSec": 120,
-			"messageRetentionPeriodSec": 1209600
-		},
-		{
-			"queueName": "SEARCH_QUERY",
-			"subscribedTopicNames": [
-			],
-			"messageVisibilityTimeoutSec": 120,
-			"oldestMessageInQueueAlarmThresholdSec": 30
 		}
 	]
 }
