@@ -453,11 +453,6 @@
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
-						"OptionName": "org.sagebionetworks.search.enabled",
-						"Value": "true"
-					},
-					{
-						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.id.generator.database.username",
 						"Value": "${stack}idgenuser"
 					},
