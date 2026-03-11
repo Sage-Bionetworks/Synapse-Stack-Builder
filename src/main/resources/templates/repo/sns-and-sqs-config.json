@@ -508,6 +508,13 @@
             ],
 			"messageVisibilityTimeoutSec": 30,
 			"oldestMessageInQueueAlarmThresholdSec": 120
+		},
+		{
+			"queueName": "GRID_SNAPSHOT_COMPACTION",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 120,
+			"oldestMessageInQueueAlarmThresholdSec": 300
 		}
 	]
 }
