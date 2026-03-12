@@ -31,6 +31,7 @@
 		"PROJECT_STORAGE_EVENT",
 		"REPLICATED_EVENT",
 		"GRID_REPLICA_CHANGES",
+		"GRID_SESSION",
 		"SEARCH_INDEX"
 	],
 	"snsGlobalTopicNames": [
@@ -508,22 +509,29 @@
 		},
 		{
 			"queueName": "GRID_EXPORT_RECORDSET",
-            "subscribedTopicNames": [
-            ],
-            "messageVisibilityTimeoutSec": 60
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 60
 		},
 		{
 			"queueName": "GRID_IMPORT_CSV",
-            "subscribedTopicNames": [
-            ],
-            "messageVisibilityTimeoutSec": 60
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 60
 		},
 		{
 			"queueName": "GRID_SYNCHRONIZATION.fifo",
-            "subscribedTopicNames": [
-            ],
+			"subscribedTopicNames": [
+			],
 			"messageVisibilityTimeoutSec": 30,
 			"oldestMessageInQueueAlarmThresholdSec": 120
+		},
+		{
+			"queueName": "GRID_SESSION_INDEX",
+			"subscribedTopicNames": [
+				"GRID_SESSION"
+			],
+			"messageVisibilityTimeoutSec": 120
 		}
 	]
 }

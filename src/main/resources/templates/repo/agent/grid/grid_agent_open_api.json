@@ -202,7 +202,7 @@
                     "allValidationMessages": {
                          "type": "array",
                          "items": {"type": "string"},
-                         "description": "If the object is not valid according to the schema, a the flat list of error messages will be provided with one error message per sub-schema."
+                         "description": "If the object is not valid according to the schema, the flat list of error messages will be provided with one error message per sub-schema. Included only if includeValidationMessages was set to true in the query. Otherwise, this array is omitted to optimize performance."
                     }
                },
                "description": "Results of a grid row against a JSON schema"
@@ -481,46 +481,52 @@
                "description": "Use this filter to find rows that have data quality issues or schema validation errors. This is ideal for requests about finding 'errors', 'invalid data', or 'rows that failed validation'. To find rows with a specific error message, set the 'operator' to 'LIKE' and provide the error text in 'validationResultValue'. For example, for a user request like 'show me all rows with a type error', a good value for 'validationResultValue' would be '%expected type:%'.",
                "required": ["concreteType"]
           },
-          "org.sagebionetworks.repo.model.grid.query.Query": {
-               "type": "object",
-               "properties": {
-                    "columnSelection": {
-                         "type": "array",
-                         "items": {
-                              "$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.SelectItem",
-                              "description": "A generic select item."
-                         },
-                         "description": "One or more SelectItem is required to define the columns that will be returned by this query.  Each SelectItem must be a complete JSON object with the required 'concreteType' property. IMPORTANT: Do not use SQL syntax - use the predefined SelectItem objects. Examples: To select all columns: {\"concreteType\":\"org.sagebionetworks.repo.model.grid..query.SelectAll\"}. To select the count of the number of rows use: {\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.function.CountStar\"}"
-                    },
-                    "filters": {
-                         "type": "array",
-                         "items": {
-                              "$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.Filter",
-                              "description": "All filter objects must use valid JSON syntax with double quotes around all strings. There are five different types of filters that can be applied to a grid query. For example, a filter to find all rows where column named: 'someInt' has a value greater than 12, the following filter would be used:[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"someInt\",\"operator\":\"GREATER_THAN\",\"value\":[12]}]. In order to find all rows with a JSON schema validation error use the following filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\",\"value\":false}].  In order to find all rows with JSON schema validation error message that indicates the wrong type was provided, you could use the filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\",\"operator\":\"LIKE\",\"validationResultValue\":\"%expected type%\"}]. In order to find all rows that are currently selected by the user, you would use the following filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\",\"isSelected\":true}]."
-                         },
-                         "description": "Optional. Each filter must be a complete JSON object with the required 'concreteType' property. IMPORTANT: Do not use SQL syntax - use the predefined filter objects. Examples: To find invalid rows: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\",\"value\":false}]. To find rows where 'age' > 25: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"age\",\"operator\":\"GREATER_THAN\",\"value\":[25]}]. Multiple filters are combined with AND logic."
-                    },
-                    "limit": {
-                         "type": "integer",
-                         "description": "Required. Limit of the number of rows returned to avoid loading more data than needed into your context window.",
-                         "format": "int32"
-                    },
-                    "offset": {
-                         "type": "integer",
-                         "description": "Optional. specifies the offset of the first row to return.",
-                         "format": "int32"
-                    }
-               },
-               "description": "Defines a structured query using JSON SelectItems and Filters objects - NOT SQL syntax. Use the predefined SelectItems and Filters with specific concreteType values."
-          },
-          "org.sagebionetworks.repo.model.grid.query.QueryRequest": {
-               "type": "object",
-               "properties": {"query": {
-                    "$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.Query",
-                    "description": "Defines a structured query using JSON SelectItems and Filters objects - NOT SQL syntax. Use the predefined SelectItems and Filters with specific concreteType values."
-               }},
-               "description": "Request to run a query."
-          },
+			"org.sagebionetworks.repo.model.grid.query.Query": {
+				"type": "object",
+				"properties": {
+					"columnSelection": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.SelectItem",
+							"description": "A generic select item."
+						},
+						"description": "One or more SelectItem is required to define the columns that will be returned by this query.  Each SelectItem must be a complete JSON object with the required 'concreteType' property. IMPORTANT: Do not use SQL syntax - use the predefined SelectItem objects. Examples: To select all columns: {\"concreteType\":\"org.sagebionetworks.repo.model.grid..query.SelectAll\"}. To select the count of the number of rows use: {\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.function.CountStar\"}"
+					},
+					"filters": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.Filter",
+							"description": "All filter objects must use valid JSON syntax with double quotes around all strings. There are five different types of filters that can be applied to a grid query. For example, a filter to find all rows where column named: 'someInt' has a value greater than 12, the following filter would be used:[{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"someInt\",\"operator\":\"GREATER_THAN\",\"value\":[12]}]. In order to find all rows with a JSON schema validation error use the following filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\",\"value\":false}].  In order to find all rows with JSON schema validation error message that indicates the wrong type was provided, you could use the filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowValidationResultFilter\",\"operator\":\"LIKE\",\"validationResultValue\":\"%expected type%\"}]. In order to find all rows that are currently selected by the user, you would use the following filter: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowSelectionFilter\",\"isSelected\":true}]."
+						},
+						"description": "Optional. Each filter must be a complete JSON object with the required 'concreteType' property. IMPORTANT: Do not use SQL syntax - use the predefined filter objects. Examples: To find invalid rows: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.RowIsValidFilter\",\"value\":false}]. To find rows where 'age' > 25: [{\"concreteType\":\"org.sagebionetworks.repo.model.grid.query.CellValueFilter\",\"columnName\":\"age\",\"operator\":\"GREATER_THAN\",\"value\":[25]}]. Multiple filters are combined with AND logic."
+					},
+					"limit": {
+						"type": "integer",
+						"description": "Required. Limit of the number of rows returned to avoid loading more data than needed into your context window.",
+						"format": "int32"
+					},
+					"offset": {
+						"type": "integer",
+						"description": "Optional. specifies the offset of the first row to return.",
+						"format": "int32"
+					},
+					"includeValidationMessages": {
+						"type": "boolean",
+						"description": "When false, the 'allValidationMessages' array in the response will be omitted to save tokens. Defaults to false."
+					}
+				},
+				"description": "Defines a structured query using JSON SelectItems and Filters objects - NOT SQL syntax. Use the predefined SelectItems and Filters with specific concreteType values."
+			},
+			"org.sagebionetworks.repo.model.grid.query.QueryRequest": {
+				"type": "object",
+				"properties": {
+					"query": {
+						"$ref": "#/components/schemas/org.sagebionetworks.repo.model.grid.query.Query",
+						"description": "Defines a structured query using JSON SelectItems and Filters objects - NOT SQL syntax. Use the predefined SelectItems and Filters with specific concreteType values."
+					}
+				},
+				"description": "Defines a structured query using JSON SelectItems and Filters objects - NOT SQL syntax. Use the predefined SelectItems and Filters with specific concreteType values. Set includeValidationMessages to true only when you need detailed validation error messages to diagnose why specific rows are invalid."
+			},
           "org.sagebionetworks.repo.model.grid.update.Update": {
                "type": "object",
                "properties": {
