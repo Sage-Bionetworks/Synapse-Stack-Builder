@@ -4,24 +4,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC;
 import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC;
 import static org.sagebionetworks.template.Constants.IDENTITY_ARN;
 import static org.sagebionetworks.template.Constants.OPS_VPC_EXPORT_PREFIX;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.SES_SYNAPSE_DOMAIN;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX;
+import static software.amazon.awssdk.services.cloudformation.model.StackStatus.CREATE_COMPLETE;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,10 +42,17 @@ import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.SesClientWrapperImpl;
 import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
-import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.Configuration;
 
+import software.amazon.awssdk.services.cloudformation.model.Output;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
 import software.amazon.awssdk.services.cloudformation.model.Tag;
+import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeUserPoolClientRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeUserPoolClientResponse;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.UserPoolClientType;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
 
@@ -62,6 +71,14 @@ public class GlobalResourcesBuilderImplTest {
 	@Mock
 	StsClient mockStsClient;
 	
+	@Mock
+	SecretsManagerClient mockSecretsManager;
+	
+	@Mock
+	CognitoIdentityProviderClient mockCognitoIdentityProviderClient;
+	
+	Stack stack;
+	
     List<Tag> expectedTags;
 
     @Captor
@@ -78,8 +95,14 @@ public class GlobalResourcesBuilderImplTest {
         Tag t = Tag.builder().key("aKey").value("aValue").build();
         expectedTags.add(t);
 
-        builder = new GlobalResourcesBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, mockConfig, mockStackTagsProvider, mockSesClient, mockStsClient);
+        builder = new GlobalResourcesBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, mockConfig, mockStackTagsProvider, mockSesClient, mockStsClient, mockSecretsManager, mockCognitoIdentityProviderClient);
 
+        List<Output> outputs = List.of(
+        		Output.builder().outputKey("CognitoUserPoolClientId").outputValue("client-101").build(),
+        		Output.builder().outputKey("CognitoUserPoolId").outputValue("user-pool-102").build());
+        stack = Stack.builder().
+        		outputs(outputs).stackStatus(CREATE_COMPLETE).
+        		build();
     }
 
     @Test
@@ -119,6 +142,12 @@ public class GlobalResourcesBuilderImplTest {
         when(mockConfig.getProperty(PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX)).thenReturn("us-east-1-vpc");
 		when(mockStsClient.getCallerIdentity()).thenReturn(GetCallerIdentityResponse.builder().arn("currentIdentityArn").build());
         when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
+        when(mockCloudFormationClientWrapper.waitForStackToComplete("synapse-dev-global-resources")).thenReturn(Optional.of(stack));
+        DescribeUserPoolClientResponse userPoolClientResponse = 
+        		DescribeUserPoolClientResponse.builder().userPoolClient(
+        				UserPoolClientType.builder().clientId("client-101").clientSecret("secret-999").build()
+        		).build();
+        when(mockCognitoIdentityProviderClient.describeUserPoolClient(any(DescribeUserPoolClientRequest.class))).thenReturn(userPoolClientResponse);
 
         builder.buildGlobalResources(); // call under test
 
@@ -137,6 +166,8 @@ public class GlobalResourcesBuilderImplTest {
         verify(mockSesClient, never()).setComplaintNotificationTopic(anyString(), anyString());
         verify(mockSesClient, never()).setBounceNotificationTopic(anyString(), anyString());
 
+        verify(mockSecretsManager, times(2)).createSecret(any(CreateSecretRequest.class));
+        // TODO check that the correct secret keys and values are passed
     }
 
     @Test
@@ -147,6 +178,12 @@ public class GlobalResourcesBuilderImplTest {
         when(mockCloudFormationClientWrapper.getOutput("synapse-prod-global-resources", GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC)).thenReturn("complaintTopicArn");
         when(mockCloudFormationClientWrapper.getOutput("synapse-prod-global-resources", GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC)).thenReturn("bounceTopicArn");
         when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
+        when(mockCloudFormationClientWrapper.waitForStackToComplete("synapse-prod-global-resources")).thenReturn(Optional.of(stack));
+        DescribeUserPoolClientResponse userPoolClientResponse = 
+        		DescribeUserPoolClientResponse.builder().userPoolClient(
+        				UserPoolClientType.builder().clientId("client-101").clientSecret("secret-999").build()
+        		).build();
+        when(mockCognitoIdentityProviderClient.describeUserPoolClient(any(DescribeUserPoolClientRequest.class))).thenReturn(userPoolClientResponse);
 
         builder.buildGlobalResources(); // call under test
 
@@ -165,6 +202,8 @@ public class GlobalResourcesBuilderImplTest {
         verify(mockSesClient).setComplaintNotificationTopic(SES_SYNAPSE_DOMAIN, "complaintTopicArn");
         verify(mockSesClient).setBounceNotificationTopic(SES_SYNAPSE_DOMAIN, "bounceTopicArn");
 
+        verify(mockSecretsManager, times(2)).createSecret(any(CreateSecretRequest.class));
+        // TODO check that the correct secret keys and values are passed
     }
 
     private boolean validateResources(String stack, JSONObject templateJSON) {

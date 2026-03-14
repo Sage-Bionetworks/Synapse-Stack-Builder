@@ -14,6 +14,10 @@ import static org.sagebionetworks.template.Constants.TEMPLATE_GLOBAL_RESOURCES;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 
 import java.io.StringWriter;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -30,7 +34,17 @@ import org.sagebionetworks.template.repo.DeletionPolicy;
 import com.google.inject.Inject;
 
 import software.amazon.awssdk.services.cloudformation.model.Capability;
+import software.amazon.awssdk.services.cloudformation.model.Output;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeUserPoolClientRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeUserPoolClientResponse;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest;
+import software.amazon.awssdk.services.secretsmanager.model.PutSecretValueRequest;
 import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.utils.StringUtils;
+
 
 public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
 
@@ -40,6 +54,8 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
     private final StackTagsProvider stackTagsProvider;
     private final SesClientWrapper sesClientWrapper;
 	private final StsClient stsClient;
+	private final SecretsManagerClient secretsManager;
+	private final CognitoIdentityProviderClient cognitoIdentityProviderClient;
 
     @Inject
     public GlobalResourcesBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper,
@@ -47,13 +63,17 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
                                       Configuration config,
                                       StackTagsProvider stackTagsProvider,
                                       SesClientWrapper sesClientWrapper,
-                                      StsClient stsClient) {
+                                      StsClient stsClient,
+                                      SecretsManagerClient secretsManager,
+                                      CognitoIdentityProviderClient cognitoIdentityProviderClient) {
         this.cloudFormationClientWrapper = cloudFormationClientWrapper;
         this.velocityEngine = velocityEngine;
         this.config = config;
         this.stackTagsProvider = stackTagsProvider;
         this.sesClientWrapper = sesClientWrapper;
         this.stsClient = stsClient;
+		this.secretsManager = secretsManager;
+		this.cognitoIdentityProviderClient = cognitoIdentityProviderClient;
     }
 
     @Override
@@ -73,11 +93,66 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
             .withCapabilities(Capability.CAPABILITY_NAMED_IAM)
             .withTags(stackTagsProvider.getStackTags(config))
         );
-        cloudFormationClientWrapper.waitForStackToComplete(stackName);
+        Optional<Stack> stack = cloudFormationClientWrapper.waitForStackToComplete(stackName);
+        
+        // CloudFormation can't get the Cognito application credentials and put them into
+        // Secrets Manager, so we do that as a post-processing step using the AWS client directly
+        copyCognitoSecretsToSecretsManager(config.getProperty(PROPERTY_KEY_STACK), stack.get());
+        
         // setup SES notifications on prod stack
         if ("prod".equalsIgnoreCase(config.getProperty(PROPERTY_KEY_STACK))) {
             setupSesTopics(stackName);
         }
+    }
+    
+    void copyCognitoSecretsToSecretsManager(String stackPrefix, Stack cfStack) {
+    	List<Output> outputs = cfStack.outputs();
+
+    	// Convert outputs to a Map<String, String> for convenience:
+    	Map<String, String> outputMap = outputs.stream()
+    	    .collect(Collectors.toMap(
+    	        software.amazon.awssdk.services.cloudformation.model.Output::outputKey,
+    	        software.amazon.awssdk.services.cloudformation.model.Output::outputValue
+    	));
+
+    	String userPoolId = outputMap.get("CognitoUserPoolId"); // TODO define these as constants
+    	String appClientId = outputMap.get("CognitoUserPoolClientId"); /// TODO
+    	
+    	if (StringUtils.isEmpty(userPoolId)) throw new IllegalStateException("Stack output 'userPoolId' is required."); // TODO
+    	if (StringUtils.isEmpty(appClientId)) throw new IllegalStateException("Stack output 'appClientId' is required."); // TODO
+    	
+    	DescribeUserPoolClientRequest userPoolClientRequest = 
+    			DescribeUserPoolClientRequest.builder().userPoolId(userPoolId).clientId(appClientId).build();
+    	
+    	// Describe the user pool client to get the client id and secret
+    	DescribeUserPoolClientResponse userPoolClientResponse = 
+    			cognitoIdentityProviderClient.describeUserPoolClient(userPoolClientRequest);
+
+    	String cognitoAppClientId = userPoolClientResponse.userPoolClient().clientId();
+    	String cognitoAppClientSecret = userPoolClientResponse.userPoolClient().clientSecret();
+
+    	if (StringUtils.isEmpty(cognitoAppClientId)) throw new IllegalStateException("Cognito app is missing client id.");
+    	if (StringUtils.isEmpty(cognitoAppClientSecret)) throw new IllegalStateException("Cognito app is missing client secret.");
+
+    	String idName = stackPrefix + ".bhoff" + "."+ Constants.SAGEBIO_COGNITO_APP_CLIENT_ID; // TODO remove .bhoff
+    	setSecret(idName, cognitoAppClientId);
+    	String secretName = stackPrefix + ".bhoff" + "."+ Constants.SAGEBIO_COGNITO_APP_CLIENT_SECRET; // TODO remove .bhoff
+    	setSecret(secretName, cognitoAppClientSecret);
+        
+    }
+    
+    void setSecret(String key, String value) {
+    	try {
+    		secretsManager.createSecret(CreateSecretRequest.builder()
+    				.name(key)
+    				.secretString(value)
+    				.build());
+    	} catch (software.amazon.awssdk.services.secretsmanager.model.ResourceExistsException e) {
+    		secretsManager.putSecretValue(PutSecretValueRequest.builder()
+    				.secretId(key)
+    				.secretString(value)
+    				.build());
+    	}
     }
 
     public String createStackName() {
