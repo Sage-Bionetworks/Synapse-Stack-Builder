@@ -21,7 +21,7 @@
     "Properties": {
         "ClientName": "${stack}-client",
         "UserPoolId": { "Ref": "${stack}CognitoUserPool" },
-        "GenerateSecret": false,
+        "GenerateSecret": true,
         "AllowedOAuthFlows": [ "code" ],
         "AllowedOAuthScopes": [ "openid", "email" ],
         "AllowedOAuthFlowsUserPoolClient": true,
