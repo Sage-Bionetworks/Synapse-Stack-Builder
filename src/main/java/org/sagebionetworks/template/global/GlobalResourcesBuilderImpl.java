@@ -136,9 +136,9 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
     	if (StringUtils.isEmpty(cognitoAppClientId)) throw new IllegalStateException("Cognito app is missing client id.");
     	if (StringUtils.isEmpty(cognitoAppClientSecret)) throw new IllegalStateException("Cognito app is missing client secret.");
 
-    	String idName = stackPrefix + ".bhoff" + "."+ SAGEBIO_COGNITO_APP_CLIENT_ID; // TODO remove .bhoff
+    	String idName = stackPrefix + "."+ SAGEBIO_COGNITO_APP_CLIENT_ID;
     	setSecret(idName, cognitoAppClientId);
-    	String secretName = stackPrefix + ".bhoff" + "."+ SAGEBIO_COGNITO_APP_CLIENT_SECRET; // TODO remove .bhoff
+    	String secretName = stackPrefix + "."+ SAGEBIO_COGNITO_APP_CLIENT_SECRET;
     	setSecret(secretName, cognitoAppClientSecret);
         
     }

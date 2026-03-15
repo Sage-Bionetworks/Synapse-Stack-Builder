@@ -172,10 +172,10 @@ public class GlobalResourcesBuilderImplTest {
         // check that the correct secret keys and values are passed
         List<CreateSecretRequest> createSecretRequests = createSecretRequestCaptor.getAllValues();
         CreateSecretRequest csr = createSecretRequests.get(0);
-        assertEquals("dev.bhoff.org.sagebionetworks.oauth2.sagebio.client.id", csr.name());
+        assertEquals("dev.org.sagebionetworks.oauth2.sagebio.client.id", csr.name());
         assertEquals("client-101", csr.secretString());
         csr = createSecretRequests.get(1);
-        assertEquals("dev.bhoff.org.sagebionetworks.oauth2.sagebio.client.secret", csr.name());
+        assertEquals("dev.org.sagebionetworks.oauth2.sagebio.client.secret", csr.name());
         assertEquals("secret-999", csr.secretString());
     }
 
@@ -215,10 +215,10 @@ public class GlobalResourcesBuilderImplTest {
         // check that the correct secret keys and values are passed
         List<CreateSecretRequest> createSecretRequests = createSecretRequestCaptor.getAllValues();
         CreateSecretRequest csr = createSecretRequests.get(0);
-        assertEquals("prod.bhoff.org.sagebionetworks.oauth2.sagebio.client.id", csr.name());
+        assertEquals("prod.org.sagebionetworks.oauth2.sagebio.client.id", csr.name());
         assertEquals("client-101", csr.secretString());
         csr = createSecretRequests.get(1);
-        assertEquals("prod.bhoff.org.sagebionetworks.oauth2.sagebio.client.secret", csr.name());
+        assertEquals("prod.org.sagebionetworks.oauth2.sagebio.client.secret", csr.name());
         assertEquals("secret-999", csr.secretString());
 
     }
