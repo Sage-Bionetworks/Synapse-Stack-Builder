@@ -133,14 +133,14 @@
             "Description": "Id of the shared Cognito user pool for this stack/instance.",
             "Value": { "Ref": "${stack}CognitoUserPool" },
             "Export": {
-                "Name": "CognitoUserPoolId"
+                "Name": "${CognitoUserPoolId}"
             }
         },
         "CognitoUserPoolClientId": {
             "Description": "App client id for the shared Cognito user pool for this stack/instance.",
             "Value": { "Ref": "${stack}CognitoUserPoolClient" },
             "Export": {
-                "Name": "CognitoUserPoolClientId"
+                "Name": "${CognitoUserPoolClientId}"
             }
         }
 	}

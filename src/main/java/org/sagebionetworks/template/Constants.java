@@ -278,6 +278,9 @@ public class Constants {
 
 	public static final String CTXT_ENABLE_ENHANCED_RDS_MONITORING = "EnableRdsEnhancedMonitoring";
 
+	public static final String COGNITO_USER_POOL_CF_OUTPUT_NAME = "CognitoUserPoolId";
+	public static final String COGNITO_USER_POOL_CLIENT_CF_OUTPUT_NAME = "CognitoUserPoolClientId";
+
 	// The secrets manager ids for the key/secret pair for the admin auth
 	public static final String SECRETS_ADMIN_KEY_ID = "org.sagebionetworks.admin.auth.key";
 	public static final String SECRETS_ADMIN_SECRET_ID = "org.sagebionetworks.admin.auth.secret";

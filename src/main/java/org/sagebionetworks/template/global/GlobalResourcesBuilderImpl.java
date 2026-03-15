@@ -11,7 +11,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.SES_SYNAPSE_DOMAIN;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.TEMPLATE_GLOBAL_RESOURCES;
-import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
+import static org.sagebionetworks.template.Constants.*;
 
 import java.io.StringWriter;
 import java.util.List;
@@ -115,11 +115,13 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
     	        software.amazon.awssdk.services.cloudformation.model.Output::outputValue
     	));
 
-    	String userPoolId = outputMap.get("CognitoUserPoolId"); // TODO define these as constants
-    	String appClientId = outputMap.get("CognitoUserPoolClientId"); /// TODO
+    	String userPoolId = outputMap.get(COGNITO_USER_POOL_CF_OUTPUT_NAME);
+    	String appClientId = outputMap.get(COGNITO_USER_POOL_CLIENT_CF_OUTPUT_NAME);
     	
-    	if (StringUtils.isEmpty(userPoolId)) throw new IllegalStateException("Stack output 'userPoolId' is required."); // TODO
-    	if (StringUtils.isEmpty(appClientId)) throw new IllegalStateException("Stack output 'appClientId' is required."); // TODO
+    	if (StringUtils.isEmpty(userPoolId)) 
+    		throw new IllegalStateException("Stack output '"+COGNITO_USER_POOL_CF_OUTPUT_NAME+"' is required.");
+    	if (StringUtils.isEmpty(appClientId)) 
+    		throw new IllegalStateException("Stack output '"+COGNITO_USER_POOL_CLIENT_CF_OUTPUT_NAME+"' is required.");
     	
     	DescribeUserPoolClientRequest userPoolClientRequest = 
     			DescribeUserPoolClientRequest.builder().userPoolId(userPoolId).clientId(appClientId).build();
@@ -134,9 +136,9 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
     	if (StringUtils.isEmpty(cognitoAppClientId)) throw new IllegalStateException("Cognito app is missing client id.");
     	if (StringUtils.isEmpty(cognitoAppClientSecret)) throw new IllegalStateException("Cognito app is missing client secret.");
 
-    	String idName = stackPrefix + ".bhoff" + "."+ Constants.SAGEBIO_COGNITO_APP_CLIENT_ID; // TODO remove .bhoff
+    	String idName = stackPrefix + ".bhoff" + "."+ SAGEBIO_COGNITO_APP_CLIENT_ID; // TODO remove .bhoff
     	setSecret(idName, cognitoAppClientId);
-    	String secretName = stackPrefix + ".bhoff" + "."+ Constants.SAGEBIO_COGNITO_APP_CLIENT_SECRET; // TODO remove .bhoff
+    	String secretName = stackPrefix + ".bhoff" + "."+ SAGEBIO_COGNITO_APP_CLIENT_SECRET; // TODO remove .bhoff
     	setSecret(secretName, cognitoAppClientSecret);
         
     }
@@ -170,6 +172,9 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
         context.put(VPC_EXPORT_PREFIX, Constants.createVpcExportPrefix(stack));
         context.put(OPS_VPC_EXPORT_PREFIX, config.getProperty(Constants.PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX));
         context.put(IDENTITY_ARN, stsClient.getCallerIdentity().arn());
+        
+        context.put(COGNITO_USER_POOL_CF_OUTPUT_NAME, COGNITO_USER_POOL_CF_OUTPUT_NAME);
+        context.put(COGNITO_USER_POOL_CLIENT_CF_OUTPUT_NAME, COGNITO_USER_POOL_CLIENT_CF_OUTPUT_NAME);
         
         return context;
     }

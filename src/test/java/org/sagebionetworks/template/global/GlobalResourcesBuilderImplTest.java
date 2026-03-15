@@ -82,8 +82,10 @@ public class GlobalResourcesBuilderImplTest {
     List<Tag> expectedTags;
 
     @Captor
-    ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
+    ArgumentCaptor<CreateOrUpdateStackRequest> stackRequestCaptor;
 
+    @Captor
+    ArgumentCaptor<CreateSecretRequest> createSecretRequestCaptor;
 
     GlobalResourcesBuilderImpl builder;
 
@@ -151,8 +153,8 @@ public class GlobalResourcesBuilderImplTest {
 
         builder.buildGlobalResources(); // call under test
 
-        verify(mockCloudFormationClientWrapper).createOrUpdateStack(requestCaptor.capture());
-        CreateOrUpdateStackRequest req = requestCaptor.getValue();
+        verify(mockCloudFormationClientWrapper).createOrUpdateStack(stackRequestCaptor.capture());
+        CreateOrUpdateStackRequest req = stackRequestCaptor.getValue();
         assertEquals("synapse-dev-global-resources", req.getStackName());
         assertEquals(expectedTags, req.getTags());
         assertNull(req.getParameters());
@@ -166,8 +168,15 @@ public class GlobalResourcesBuilderImplTest {
         verify(mockSesClient, never()).setComplaintNotificationTopic(anyString(), anyString());
         verify(mockSesClient, never()).setBounceNotificationTopic(anyString(), anyString());
 
-        verify(mockSecretsManager, times(2)).createSecret(any(CreateSecretRequest.class));
-        // TODO check that the correct secret keys and values are passed
+        verify(mockSecretsManager, times(2)).createSecret(createSecretRequestCaptor.capture());
+        // check that the correct secret keys and values are passed
+        List<CreateSecretRequest> createSecretRequests = createSecretRequestCaptor.getAllValues();
+        CreateSecretRequest csr = createSecretRequests.get(0);
+        assertEquals("dev.bhoff.org.sagebionetworks.oauth2.sagebio.client.id", csr.name());
+        assertEquals("client-101", csr.secretString());
+        csr = createSecretRequests.get(1);
+        assertEquals("dev.bhoff.org.sagebionetworks.oauth2.sagebio.client.secret", csr.name());
+        assertEquals("secret-999", csr.secretString());
     }
 
     @Test
@@ -187,8 +196,8 @@ public class GlobalResourcesBuilderImplTest {
 
         builder.buildGlobalResources(); // call under test
 
-        verify(mockCloudFormationClientWrapper).createOrUpdateStack(requestCaptor.capture());
-        CreateOrUpdateStackRequest req = requestCaptor.getValue();
+        verify(mockCloudFormationClientWrapper).createOrUpdateStack(stackRequestCaptor.capture());
+        CreateOrUpdateStackRequest req = stackRequestCaptor.getValue();
         assertEquals("synapse-prod-global-resources", req.getStackName());
         assertEquals(expectedTags, req.getTags());
         assertNull(req.getParameters());
@@ -202,8 +211,16 @@ public class GlobalResourcesBuilderImplTest {
         verify(mockSesClient).setComplaintNotificationTopic(SES_SYNAPSE_DOMAIN, "complaintTopicArn");
         verify(mockSesClient).setBounceNotificationTopic(SES_SYNAPSE_DOMAIN, "bounceTopicArn");
 
-        verify(mockSecretsManager, times(2)).createSecret(any(CreateSecretRequest.class));
-        // TODO check that the correct secret keys and values are passed
+        verify(mockSecretsManager, times(2)).createSecret(createSecretRequestCaptor.capture());
+        // check that the correct secret keys and values are passed
+        List<CreateSecretRequest> createSecretRequests = createSecretRequestCaptor.getAllValues();
+        CreateSecretRequest csr = createSecretRequests.get(0);
+        assertEquals("prod.bhoff.org.sagebionetworks.oauth2.sagebio.client.id", csr.name());
+        assertEquals("client-101", csr.secretString());
+        csr = createSecretRequests.get(1);
+        assertEquals("prod.bhoff.org.sagebionetworks.oauth2.sagebio.client.secret", csr.name());
+        assertEquals("secret-999", csr.secretString());
+
     }
 
     private boolean validateResources(String stack, JSONObject templateJSON) {
