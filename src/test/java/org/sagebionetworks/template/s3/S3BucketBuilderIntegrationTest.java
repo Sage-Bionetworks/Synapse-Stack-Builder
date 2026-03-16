@@ -24,11 +24,13 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 
-import com.amazonaws.services.s3.AmazonS3;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
 import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetBucketLifecycleConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketLifecycleConfigurationResponse;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
@@ -43,7 +45,7 @@ public class S3BucketBuilderIntegrationTest {
     private S3Config mockS3Config;
 
     @Mock
-    private AmazonS3 mockS3Client;
+    private S3Client mockS3Client;
 
     @Mock
     private LambdaClient mockLambdaClient;
@@ -108,6 +110,9 @@ public class S3BucketBuilderIntegrationTest {
 
         when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
         when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
+
+        GetBucketLifecycleConfigurationResponse expectedGetBucketLifecycleConfigurationResponse = GetBucketLifecycleConfigurationResponse.builder().build();
+        when(mockS3Client.getBucketLifecycleConfiguration(any(GetBucketLifecycleConfigurationRequest.class))).thenReturn(expectedGetBucketLifecycleConfigurationResponse);
 
         // Call under test
         builder.buildAllBuckets();

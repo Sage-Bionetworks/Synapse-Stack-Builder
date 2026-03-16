@@ -1,6 +1,5 @@
 package org.sagebionetworks.template.markdownit;
 
-import com.amazonaws.services.s3.AmazonS3;
 import com.google.inject.Inject;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
@@ -16,6 +15,9 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 import software.amazon.awssdk.services.cloudformation.model.Capability;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 import java.io.File;
 import java.io.StringWriter;
@@ -38,14 +40,14 @@ public class MarkDownItLambdaBuilderImpl implements MarkDownItLambdaBuilder {
 
     private StackTagsProvider tagsProvider;
 
-    private AmazonS3 s3Client;
+    private S3Client s3Client;
 
     private VelocityEngine velocityEngine;
 
     @Inject
     public MarkDownItLambdaBuilderImpl(RepoConfiguration config,
                                        ArtifactDownload downloader, CloudFormationClientWrapper cloudFormationClientWrapper,
-                                       StackTagsProvider tagsProvider, AmazonS3 s3Client,
+                                       StackTagsProvider tagsProvider, S3Client s3Client,
                                        VelocityEngine velocityEngine) {
         this.config = config;
         this.downloader = downloader;
@@ -67,7 +69,8 @@ public class MarkDownItLambdaBuilderImpl implements MarkDownItLambdaBuilder {
         // Download from jfrog and upload to S3
         File artifact = downloader.downloadFile(lambdaSourceArtifactUrl);
         try {
-            s3Client.putObject(artifactBucket, lambdaArtifactKey, artifact);
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder().bucket(artifactBucket).key(lambdaArtifactKey).build();
+            PutObjectResponse response = s3Client.putObject(putObjectRequest, artifact.toPath());
         } finally {
             artifact.delete();
         }

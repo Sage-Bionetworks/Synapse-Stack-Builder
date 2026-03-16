@@ -74,7 +74,10 @@ import static org.sagebionetworks.template.Constants.TEMPLATE_BEAN_STALK_ENVIRON
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -119,10 +122,10 @@ import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
 import org.sagebionetworks.template.repo.grid.GridContextProvider;
 import org.sagebionetworks.template.vpc.Color;
 
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.services.cloudformation.model.Output;
 import software.amazon.awssdk.services.cloudformation.model.Parameter;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
@@ -132,6 +135,11 @@ import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersio
 import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsResponse;
 import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformFilter;
 import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformSummary;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
+import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -168,7 +176,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Mock
 	private TimeToLive mockTimeToLive;
 	@Mock
-	private AmazonS3Client mockS3Client;
+	private S3Client mockS3Client;
 	
 	@Captor
 	private ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
@@ -213,10 +221,10 @@ public class RepositoryTemplateBuilderImplTest {
 		
 		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, config, mockLoggerFactory,
 				mockArtifactCopy, mockSecretBuilder,
-				Sets.newHashSet(mockContextProvider1, mockContextProvider2,
+				new LinkedHashSet<>(List.of(mockContextProvider1, mockContextProvider2,
 						new BedrockAgentContextProvider(config, mockS3Client),
 						new BedrockGridAgentContextProvider(config, mockS3Client),
-						new GridContextProvider(gridQueueRef, config)),
+						new GridContextProvider(gridQueueRef, config))),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
                 mockEc2ClientWrapper, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive);
 		
@@ -270,7 +278,7 @@ public class RepositoryTemplateBuilderImplTest {
 	}
 
 	@Test
-	public void testBuildAndDeployProd() throws InterruptedException {
+	public void testBuildAndDeployProd() throws Exception {
 		
 		when(mockStackTagsProvider.getStackTags(config)).thenReturn(expectedTags);
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
@@ -401,13 +409,27 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.has("bedrockGridAgent"));
 		
 		assertTrue(resources.getJSONObject("bedrockAgentRole").toString().contains("arn:aws:s3:::prod-configuration.sagebase.org/chat/openapi/101.json"));
-		
 		JSONObject bedrockAgentProps = resources.getJSONObject("bedrockAgent").getJSONObject("Properties");
-		
 		assertEquals("prod-101-agent", bedrockAgentProps.get("AgentName"));
+
+		assertTrue(resources.getJSONObject("bedrockGridAgentRole").toString().contains("arn:aws:s3:::prod-configuration.sagebase.org/chat/openapi/"));
+		JSONObject bedrockGridAgentProps = resources.getJSONObject("bedrockGridAgent").getJSONObject("Properties");
+		assertEquals("prod-101-grid-agent", bedrockGridAgentProps.get("AgentName"));
+
+		ArgumentCaptor<PutObjectRequest> putObjectRequestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
+		ArgumentCaptor<RequestBody> requestBodyCaptor = ArgumentCaptor.forClass(RequestBody.class);
+		verify(mockS3Client, times(2)).putObject(putObjectRequestCaptor.capture(), requestBodyCaptor.capture());
+
+		List<PutObjectRequest> putObjectRequests = putObjectRequestCaptor.getAllValues();
+		List<RequestBody> requestBodies = requestBodyCaptor.getAllValues();
+		PutObjectRequest putObjectRequest1 = putObjectRequests.get(0);
+		PutObjectRequest putObjectRequest2 = putObjectRequests.get(1);
+		RequestBody requestBody1 = requestBodies.get(0);
+		RequestBody requestBody2 = requestBodies.get(1);
 		
-		validateOpenApiSchema(bedrockAgentProps);
-		
+		validateOpenApiSchemaBedrockAgent(bedrockAgentProps, putObjectRequest1, requestBody1);
+		validateOpenApiSchemaBedrockGridAgent(bedrockGridAgentProps, putObjectRequest2, requestBody2);
+
 		assertTrue(resources.getJSONObject("GridApiGatewaySQSRole").toString().contains(gridQueueRef));
 		assertTrue(resources.getJSONObject("GridWebsocketApi").toString().contains("prod-101-grid-websocket"));
 		
@@ -430,17 +452,38 @@ public class RepositoryTemplateBuilderImplTest {
 	
 	}
 
-	void validateOpenApiSchema(JSONObject bedrockAgentProps) {
+	void validateOpenApiSchemaBedrockAgent(JSONObject bedrockAgentProps, PutObjectRequest putObjectRequest, RequestBody requestBody) throws Exception {
 
+		assertEquals(2, bedrockAgentProps.getJSONArray("ActionGroups").length());
 		JSONObject s3 = bedrockAgentProps.getJSONArray("ActionGroups").getJSONObject(1).getJSONObject("ApiSchema")
 				.getJSONObject("S3");
 		String openApiBucket = s3.getString("S3BucketName");
 		assertEquals("prod-configuration.sagebase.org", openApiBucket);
 		String openApiKey = s3.getString("S3ObjectKey");
 		assertEquals("chat/openapi/101.json",s3.getString("S3ObjectKey"));
-		verify(mockS3Client).putObject(eq(openApiBucket), eq(openApiKey), jsonStringCaptor.capture());
-		
-		JSONObject openApiSchema = new JSONObject(jsonStringCaptor.getValue());
+
+		assertEquals("prod-configuration.sagebase.org", putObjectRequest.bucket());
+		assertEquals("chat/openapi/101.json", putObjectRequest.key());
+		JSONObject openApiSchema = new JSONObject(requestBodyToString(requestBody));
+		assertTrue(openApiSchema.has("openapi"));
+		assertTrue(openApiSchema.has("info"));
+		assertTrue(openApiSchema.has("paths"));
+	}
+
+	void validateOpenApiSchemaBedrockGridAgent(JSONObject bedrockAgentProps, PutObjectRequest putObjectRequest, RequestBody requestBody) throws Exception {
+
+		assertEquals(1, bedrockAgentProps.getJSONArray("ActionGroups").length());
+		JSONObject s3 = bedrockAgentProps.getJSONArray("ActionGroups").getJSONObject(0).getJSONObject("ApiSchema")
+				.getJSONObject("S3");
+		String openApiBucket = s3.getString("S3BucketName");
+		assertEquals("prod-configuration.sagebase.org", openApiBucket);
+		String openApiKey = s3.getString("S3ObjectKey");
+		String expectedS3ObjectKeyPrefix = "chat/openapi/grid/" + instance;
+		assertTrue(openApiKey.startsWith(expectedS3ObjectKeyPrefix));
+
+		assertEquals("prod-configuration.sagebase.org", putObjectRequest.bucket());
+		assertTrue(putObjectRequest.key().startsWith(expectedS3ObjectKeyPrefix));
+		JSONObject openApiSchema = new JSONObject(requestBodyToString(requestBody));
 		assertTrue(openApiSchema.has("openapi"));
 		assertTrue(openApiSchema.has("info"));
 		assertTrue(openApiSchema.has("paths"));
@@ -1600,4 +1643,13 @@ public class RepositoryTemplateBuilderImplTest {
 		ListPlatformVersionsResponse expectedResult = ListPlatformVersionsResponse.builder().platformSummaryList(expectedSummaries).build();
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 	}
+
+	static String requestBodyToString(RequestBody body) throws Exception {
+		// If your SDK exposes an Optional, use .orElseThrow(...)
+		ContentStreamProvider provider = body.contentStreamProvider();
+		try (InputStream in = provider.newStream()) {
+			return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+		}
+	}
+
 }

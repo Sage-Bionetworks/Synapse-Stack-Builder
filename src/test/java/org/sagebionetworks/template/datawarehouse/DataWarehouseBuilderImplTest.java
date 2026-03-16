@@ -1,6 +1,5 @@
 package org.sagebionetworks.template.datawarehouse;
 
-import com.amazonaws.services.s3.AmazonS3;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
@@ -36,14 +35,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.cloudformation.model.Tag;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @ExtendWith(MockitoExtension.class)
 public class DataWarehouseBuilderImplTest {
@@ -53,6 +55,11 @@ public class DataWarehouseBuilderImplTest {
 
 	@Captor
 	ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
+	@Captor
+	ArgumentCaptor<PutObjectRequest> putObjectRequestCaptor;
+	@Captor
+	ArgumentCaptor<RequestBody> requestBodyCaptor;
+
 	@Mock
 	private CloudFormationClientWrapper cloudFormationClientWrapper;
 	private VelocityEngine velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
@@ -69,7 +76,7 @@ public class DataWarehouseBuilderImplTest {
 	@Mock
 	private ArtifactDownload mockDownloader;
 	@Mock
-	private AmazonS3 mockS3Client;
+	private S3Client mockS3Client;
 
 	private DataWarehouseBuilderImpl builder;
 
@@ -115,12 +122,12 @@ public class DataWarehouseBuilderImplTest {
 		GlueTableDescriptor jobTable = new GlueTableDescriptor();
 		jobTable.setName("testTable");
 		jobTable.setDescription("Test table");
-		jobTable.setColumns(Arrays.asList(column));
+		jobTable.setColumns(List.of(column));
 		
 		GlueTableDescriptor anotherTable = new GlueTableDescriptor();
 		anotherTable.setName("anotherTable");
 		anotherTable.setDescription("Another Test table");
-		anotherTable.setColumns(Arrays.asList(column));
+		anotherTable.setColumns(List.of(column));
 		anotherTable.setLocation("s3://${stack}.inventory.sagebase.org/inventory/${stack}data.sagebase.org/defaultInventory/hive/");
 		anotherTable.setInputFormat("org.apache.hadoop.hive.ql.io.SymlinkTextInputFormat");
 		
@@ -147,8 +154,19 @@ public class DataWarehouseBuilderImplTest {
 		builder.buildAndDeploy();
 
 		verify(mockDownloader).downloadFile("https://codeload.github.com/Sage-Bionetworks/repo/zip/refs/tags/v1.0.0");
-		verify(mockS3Client).putObject(eq("dev.aws-glue.sagebase.org"), eq("scripts/v1.0.0/testjob.py"), any(), any());
-		verify(mockS3Client).putObject(eq("dev.aws-glue.sagebase.org"), eq("scripts/v1.0.0/utilities/utils.py"), any(), any());
+		verify(mockS3Client, times(2)).putObject(putObjectRequestCaptor.capture(), requestBodyCaptor.capture());
+		List<PutObjectRequest> putObjectRequests = putObjectRequestCaptor.getAllValues();
+		List<RequestBody> requestBodies = requestBodyCaptor.getAllValues();
+		assertNotNull(putObjectRequests);
+		assertEquals(2, putObjectRequests.size());
+		assertEquals("dev.aws-glue.sagebase.org", putObjectRequests.get(0).bucket());
+		assertEquals("scripts/v1.0.0/testjob.py", putObjectRequests.get(0).key());
+		assertEquals("dev.aws-glue.sagebase.org", putObjectRequests.get(1).bucket());
+		assertEquals("scripts/v1.0.0/utilities/utils.py", putObjectRequests.get(1).key());
+		assertNotNull(requestBodies);
+		assertEquals(2, requestBodies.size());
+		// TODO: Anything else?
+
 		verifyNoMoreInteractions(mockS3Client);
 
 		verify(cloudFormationClientWrapper).createOrUpdateStack(requestCaptor.capture());

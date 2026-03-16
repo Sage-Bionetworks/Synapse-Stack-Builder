@@ -70,17 +70,6 @@
 		</dependency>
 		<!-- The AWS Java SDK Dependencies -->
 		<dependency>
-			<groupId>com.amazonaws</groupId>
-			<artifactId>aws-java-sdk-s3</artifactId>
-			<version>${amazon.sdk.version}</version>
-		</dependency>
-		<!-- Remove v1 CloudFormation if present -->
-		<!-- <dependency>
-			<groupId>com.amazonaws</groupId>
-			<artifactId>aws-java-sdk-cloudformation</artifactId>
-			<version>${amazon.sdk.version}</version>
-		</dependency> -->
-		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>imagebuilder</artifactId>
 		</dependency>
@@ -242,7 +231,10 @@
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>cloudformation</artifactId>
-			<version>${amazon.sdk.v2.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
 		</dependency>
 	</dependencies>
 	<build>

@@ -1,5 +1,6 @@
 package org.sagebionetworks.template.repo.beanstalk;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
@@ -9,6 +10,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_SECRET_KEYS_CSV;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.Base64;
@@ -23,13 +25,14 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sagebionetworks.template.config.Configuration;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.kms.KmsClient;
 import software.amazon.awssdk.services.kms.model.EncryptRequest;
 import software.amazon.awssdk.services.kms.model.EncryptResponse;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
@@ -44,7 +47,7 @@ public class SecretBuilderImplTest {
 	@Mock
 	KmsClient mockKeyManager;
 	@Mock
-	AmazonS3 mockS3Client;
+	S3Client mockS3Client;
 	
 	@Captor
 	ArgumentCaptor<GetSecretValueRequest> secretRequestCaptor;
@@ -148,23 +151,33 @@ public class SecretBuilderImplTest {
 		assertEquals(expectedS3Key, key);
 	}
 	
+	// TODO: Check
 	@Test
-	public void testUploadSecretsToS3() {
+	public void testUploadSecretsToS3() throws IOException {
 		Properties toUpload = new Properties();
 		toUpload.put("keyOne", "cipherOne");
 		byte[] propertyBytes = SecretBuilderImpl.getPropertiesBytes(toUpload);
+
 		// call under test
 		SourceBundle bundle = builder.uploadSecretsToS3(toUpload);
+
 		assertNotNull(bundle);
 		assertEquals(s3Bucket, bundle.getBucket());
 		assertEquals(expectedS3Key, bundle.getKey());
-		verify(mockS3Client).putObject(putObjectRequsetCaptor.capture());
+		ArgumentCaptor<RequestBody> requestBodyCaptor = ArgumentCaptor.forClass(RequestBody.class);
+		verify(mockS3Client).putObject(putObjectRequsetCaptor.capture(), requestBodyCaptor.capture());
+
 		PutObjectRequest request = putObjectRequsetCaptor.getValue();
 		assertNotNull(request);
-		assertEquals(s3Bucket, request.getBucketName());
-		assertEquals(expectedS3Key, request.getKey());
-		assertNotNull(request.getMetadata());
-		assertEquals(propertyBytes.length, request.getMetadata().getContentLength());
+		assertEquals(s3Bucket, request.bucket());
+		assertEquals(expectedS3Key, request.key());
+		assertNotNull(request.contentLength());
+
+		RequestBody requestBody = requestBodyCaptor.getValue();
+		assertNotNull(requestBody);
+		assertArrayEquals("Request body does not match expected properties", propertyBytes, requestBody.contentStreamProvider().newStream().readAllBytes() );
+		assertEquals(propertyBytes.length, (long)request.contentLength());
+
 	}
 	
 	@Test

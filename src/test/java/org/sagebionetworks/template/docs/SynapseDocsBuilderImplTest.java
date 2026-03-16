@@ -3,21 +3,14 @@ package org.sagebionetworks.template.docs;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.function.Consumer;
 
 import org.json.JSONObject;
 
+import static org.mockito.Mockito.*;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DOCS_SOURCE_BUCKET;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DOCS_DESTINATION_BUCKET;
@@ -27,50 +20,27 @@ import static org.sagebionetworks.template.Constants.DOCS_STACK_INSTANCE_JSON_FI
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.config.RepoConfiguration;
-import org.sagebionetworks.template.s3.S3TransferManager;
-import org.sagebionetworks.template.s3.S3TransferManagerFactory;
-
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.amazonaws.services.s3.transfer.Copy;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 
 @ExtendWith(MockitoExtension.class)
 public class SynapseDocsBuilderImplTest {
 	
 	@Mock
-	private S3TransferManagerFactory mockS3TransferManagerFactory;
-	
-	@Mock
-	private S3TransferManager mockS3TransferManager;
-	
-	@Mock
-	private AmazonS3 mockS3Client;
+	private S3Client mockS3Client;
 	
 	@Mock
 	private RepoConfiguration mockConfig;
-	
-	@Mock
-	private ObjectListing mockSourceListing;
 
-	@Mock
-	private ObjectListing mockDestinationListing;
-	
-	@Mock
-	private ListObjectsRequest mockSourceListRequest;
-	
-	@Mock
-	private ListObjectsRequest mockDestinationListRequest;
-	
-	@Mock
-	private Copy mockCopy;
-	
 	private String prodInstance;
 	private String sourceBucket;
 	private String destinationBucket;
@@ -78,8 +48,9 @@ public class SynapseDocsBuilderImplTest {
 	private JSONObject instanceObjectUpToDate;
 	private String jsonOutOfDate;
 	private String jsonUpToDate;
-	private List<S3ObjectSummary> objects;
-	private S3ObjectSummary object;
+	private S3Object object;
+	private List<S3Object> objects;
+	private String objectKey;
 	private String prefix;
 	
 	@InjectMocks
@@ -101,11 +72,13 @@ public class SynapseDocsBuilderImplTest {
 		jsonOutOfDate = instanceObjectOutOfDate.toString();
 		sourceBucket = "sourceBucket";
 		destinationBucket = "destinationBucket";
-		object = new S3ObjectSummary();
-		object.setKey("objectKey");
-		object.setETag("etag");
-		objects = Arrays.asList(object);
-		builder = new SynapseDocsBuilderImpl(mockS3Client, mockConfig, mockS3TransferManagerFactory);
+		objectKey = "objectKey";
+		object = S3Object.builder()
+				.key(objectKey)
+				.eTag("etag")
+				.build();
+		objects = Collections.singletonList(object);
+		builder = new SynapseDocsBuilderImpl(mockS3Client, mockConfig);
 		builderSpy = spy(builder);
 	}
 	
@@ -115,7 +88,10 @@ public class SynapseDocsBuilderImplTest {
 		when(mockConfig.getProperty(PROPERTY_KEY_DOCS_DESTINATION_BUCKET)).thenReturn(destinationBucket);
 		doAnswer(invocation -> true).when(builderSpy).verifyDeployment(destinationBucket);
 		doNothing().when(builderSpy).sync(sourceBucket, destinationBucket);
+
+		// call under test
 		builderSpy.deployDocs();
+
 		verify(builderSpy).verifyDeployment(destinationBucket);
 		verify(builderSpy).sync(sourceBucket, destinationBucket);
 	}
@@ -123,7 +99,10 @@ public class SynapseDocsBuilderImplTest {
 	@Test
 	public void testDeployDocsWithMissingSourceBucketName() {
 		when(mockConfig.getProperty(PROPERTY_KEY_DOCS_SOURCE_BUCKET)).thenThrow(ConfigurationPropertyNotFound.class);
+
+		// call under test
 		builderSpy.deployDocs();
+
 		verify(builderSpy, never()).verifyDeployment(any());
 		verify(builderSpy, never()).sync(any(), any());
 	}
@@ -132,7 +111,10 @@ public class SynapseDocsBuilderImplTest {
 	public void testDeployDocsWithMissingDestinationBucketName() {
 		when(mockConfig.getProperty(PROPERTY_KEY_DOCS_SOURCE_BUCKET)).thenReturn(sourceBucket);
 		when(mockConfig.getProperty(PROPERTY_KEY_DOCS_DESTINATION_BUCKET)).thenThrow(ConfigurationPropertyNotFound.class);
+
+		// call under test
 		builderSpy.deployDocs();
+
 		verify(builderSpy, never()).verifyDeployment(any());
 		verify(builderSpy, never()).sync(any(), any());
 	}
@@ -142,7 +124,10 @@ public class SynapseDocsBuilderImplTest {
 		when(mockConfig.getProperty(PROPERTY_KEY_DOCS_SOURCE_BUCKET)).thenReturn(sourceBucket);
 		when(mockConfig.getProperty(PROPERTY_KEY_DOCS_DESTINATION_BUCKET)).thenReturn(destinationBucket);
 		doAnswer(invocation -> false).when(builderSpy).verifyDeployment(destinationBucket);
+
+		// call under test
 		builderSpy.deployDocs();
+
 		verify(builderSpy).verifyDeployment(destinationBucket);
 		verify(builderSpy, never()).sync(any(), any());
 	}	
@@ -150,6 +135,7 @@ public class SynapseDocsBuilderImplTest {
 	@Test
 	public void testVerifyDeploymentWithFalseFlag() {
 		when(mockConfig.getBooleanProperty(PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG)).thenReturn(false);
+
 		// call under test
 		assertFalse(builder.verifyDeployment(destinationBucket));
 	}
@@ -158,6 +144,7 @@ public class SynapseDocsBuilderImplTest {
 	public void testVerifyDeploymentWithMissingDeploymentFlag() {
 		when(mockConfig.getBooleanProperty(PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG))
 			.thenThrow(ConfigurationPropertyNotFound.class);
+
 		// call under test
 		assertFalse(builder.verifyDeployment(destinationBucket));
 	}
@@ -165,9 +152,14 @@ public class SynapseDocsBuilderImplTest {
 	@Test
 	public void testVerifyDeploymentWithUpToDateDocs() {
 		when(mockConfig.getBooleanProperty(PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG)).thenReturn(true);
-		when(mockS3Client.doesObjectExist(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE)).thenReturn(true);
-		when(mockS3Client.getObjectAsString(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE)).thenReturn(jsonUpToDate);
+		ArgumentCaptor<Consumer<HeadObjectRequest.Builder>> headObjectRequestCaptor = ArgumentCaptor.forClass(Consumer.class);
+		HeadObjectResponse headObjectResponse = HeadObjectResponse.builder().build();
+		when(mockS3Client.headObject(headObjectRequestCaptor.capture())).thenReturn(headObjectResponse);
+		ArgumentCaptor<Consumer<GetObjectRequest.Builder>> getObjectRequestCaptor = ArgumentCaptor.forClass(Consumer.class);
+		ResponseBytes<GetObjectResponse> responseBytes = ResponseBytes.fromByteArray(GetObjectResponse.builder().build(), jsonUpToDate.getBytes());
+		when(mockS3Client.getObjectAsBytes(getObjectRequestCaptor.capture())).thenReturn(responseBytes);
 		when(mockConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(prodInstance);
+
 		// call under test
 		assertFalse(builder.verifyDeployment(destinationBucket));
 	}
@@ -175,10 +167,14 @@ public class SynapseDocsBuilderImplTest {
 	@Test
 	public void testVerifyDeploymentWithOutOfDateDocs() {
 		when(mockConfig.getBooleanProperty(PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG)).thenReturn(true);
-		when(mockS3Client.doesObjectExist(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE)).thenReturn(true);
-		when(mockS3Client.getObjectAsString(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE)).thenReturn(jsonOutOfDate);
-		// JSON tracking of instance < prod instance
+		ArgumentCaptor<Consumer<HeadObjectRequest.Builder>> headObjectRequestCaptor = ArgumentCaptor.forClass(Consumer.class);
+		HeadObjectResponse headObjectResponse = HeadObjectResponse.builder().build();
+		when(mockS3Client.headObject(headObjectRequestCaptor.capture())).thenReturn(headObjectResponse);
+		ArgumentCaptor<Consumer<GetObjectRequest.Builder>> getObjectRequestCaptor = ArgumentCaptor.forClass(Consumer.class);
+		ResponseBytes<GetObjectResponse> responseBytes = ResponseBytes.fromByteArray(GetObjectResponse.builder().build(), jsonOutOfDate.getBytes());
+		when(mockS3Client.getObjectAsBytes(getObjectRequestCaptor.capture())).thenReturn(responseBytes);
 		when(mockConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(prodInstance);
+
 		// call under test
 		assertTrue(builder.verifyDeployment(destinationBucket));
 	}
@@ -186,125 +182,226 @@ public class SynapseDocsBuilderImplTest {
 	@Test
 	public void testVerifyDeploymentWithNoInstanceJsonFile() {
 		when(mockConfig.getBooleanProperty(PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG)).thenReturn(true);
-		when(mockS3Client.doesObjectExist(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE)).thenReturn(false);
+		doAnswer(invocation -> false).when(builderSpy).doesObjectExist(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE);
+
 		// call under test
-		assertTrue(builder.verifyDeployment(destinationBucket));
+		assertTrue(builderSpy.verifyDeployment(destinationBucket));
 	}
 	
 	@Test
 	public void testSyncWithDestinationEmpty() throws Exception {
-		doAnswer(invocation -> mockDestinationListRequest)
-			.when(builderSpy).createListObjectsRequest(destinationBucket, prefix);
-		doAnswer(invocation -> mockSourceListRequest)
-			.when(builderSpy).createListObjectsRequest(sourceBucket, prefix);
-		doAnswer(invocation -> new ArrayList<S3ObjectSummary>())
-			.when(builderSpy).getAllS3Objects(mockDestinationListRequest);
-		doAnswer(invocation -> objects)
-			.when(builderSpy).getAllS3Objects(mockSourceListRequest);
-		when(mockS3TransferManagerFactory.createNewS3TransferManager()).thenReturn(mockS3TransferManager);
-		when(mockS3TransferManager.copy(any(), any(), any(), any())).thenReturn(mockCopy);
+
+		// Source pages
+		ListObjectsV2Response srcPage1 = ListObjectsV2Response.builder()
+		        .isTruncated(true)
+		        .nextContinuationToken("token-2")
+		        .contents(
+		                S3Object.builder().key("a.txt").eTag("etag-a").build(),
+		                S3Object.builder().key("b.txt").eTag("etag-b").build()
+		        ).build();
+
+		ListObjectsV2Response srcPage2 = ListObjectsV2Response.builder()
+		        .isTruncated(false)
+		        .contents(S3Object.builder().key("c.txt").eTag("etag-c").build())
+		        .build();
+
+		// Destination single empty page
+		ListObjectsV2Response dstEmpty = ListObjectsV2Response.builder()
+		        .isTruncated(false)
+		        .contents(java.util.Collections.emptyList())
+		        .build();
+
+		// Return a real paginator; decide which pages via listObjectsV2 stubs
+		when(mockS3Client.listObjectsV2Paginator(any(ListObjectsV2Request.class)))
+		        .thenAnswer(inv -> new ListObjectsV2Iterable(mockS3Client, inv.getArgument(0)));
+
+		// Stub the underlying page fetches with null-safe matchers
+		when(mockS3Client.listObjectsV2(argThat((ListObjectsV2Request r) ->
+		        r != null && sourceBucket.equals(r.bucket()) && r.continuationToken() == null)))
+		        .thenReturn(srcPage1);
+
+		when(mockS3Client.listObjectsV2(argThat((ListObjectsV2Request r) ->
+		        r != null && sourceBucket.equals(r.bucket()) && "token-2".equals(r.continuationToken()))))
+		        .thenReturn(srcPage2);
+
+		when(mockS3Client.listObjectsV2(argThat((ListObjectsV2Request r) ->
+		        r != null && destinationBucket.equals(r.bucket()))))
+		        .thenReturn(dstEmpty);
+
+		when(mockS3Client.copyObject(any(CopyObjectRequest.class))).thenReturn(CopyObjectResponse.builder().build());
+
 		when(mockConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(prodInstance);
+
 		// call under test
 		builderSpy.sync(sourceBucket, destinationBucket);
-		verify(mockS3TransferManager).close();
-		verify(mockS3TransferManager).copy(sourceBucket, object.getKey(), destinationBucket, object.getKey());
-		verify(mockS3Client, never()).deleteObject(any(), any());
-		verify(mockS3Client).putObject(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE, jsonUpToDate);
+		
+		verify(mockS3Client, never()).deleteObject(any(DeleteObjectRequest.class));
+		
+		// Verify putObject is called with the correct parameters
+		ArgumentCaptor<PutObjectRequest> putObjectRequestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
+		ArgumentCaptor<RequestBody> requestBodyCaptor = ArgumentCaptor.forClass(RequestBody.class);
+		verify(mockS3Client).putObject(putObjectRequestCaptor.capture(), requestBodyCaptor.capture());
+		
+		PutObjectRequest capturedPutObjectRequest = putObjectRequestCaptor.getValue();
+		assertEquals(destinationBucket, capturedPutObjectRequest.bucket());
+		assertEquals(DOCS_STACK_INSTANCE_JSON_FILE, capturedPutObjectRequest.key());
 	}
 	
 	@Test
 	public void testSyncWithDestinationSameKeyWithSameETag() throws Exception {
-		doAnswer(invocation -> mockDestinationListRequest)
-			.when(builderSpy).createListObjectsRequest(destinationBucket, prefix);
-		doAnswer(invocation -> mockSourceListRequest)
-			.when(builderSpy).createListObjectsRequest(sourceBucket, prefix);
-		doAnswer(invocation -> objects).when(builderSpy).getAllS3Objects(mockDestinationListRequest);
-		doAnswer(invocation -> objects).when(builderSpy).getAllS3Objects(mockSourceListRequest);
-		when(mockS3TransferManagerFactory.createNewS3TransferManager()).thenReturn(mockS3TransferManager);
+
+		// Source page
+		ListObjectsV2Response srcPage2 = ListObjectsV2Response.builder()
+				.isTruncated(false)
+				.contents(S3Object.builder().key("c.txt").eTag("etag-c").build())
+				.build();
+
+		// Destination single empty page
+		ListObjectsV2Response dstEmpty = ListObjectsV2Response.builder()
+				.isTruncated(false)
+				.contents(S3Object.builder().key("c.txt").eTag("etag-c").build())
+				.build();
+
+		// Return a real paginator; decide which pages via listObjectsV2 stubs
+		when(mockS3Client.listObjectsV2Paginator(any(ListObjectsV2Request.class)))
+				.thenAnswer(inv -> new ListObjectsV2Iterable(mockS3Client, inv.getArgument(0)));
+
+		// Stub the underlying page fetches with null-safe matchers
+		when(mockS3Client.listObjectsV2(argThat((ListObjectsV2Request r) ->
+				r != null && sourceBucket.equals(r.bucket()))))
+				.thenReturn(srcPage2);
+
+		when(mockS3Client.listObjectsV2(argThat((ListObjectsV2Request r) ->
+				r != null && destinationBucket.equals(r.bucket()))))
+				.thenReturn(dstEmpty);
+
 		when(mockConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(prodInstance);
+
 		// call under test
 		builderSpy.sync(sourceBucket, destinationBucket);
-		verify(mockS3TransferManager).close();
-		verify(mockS3TransferManager, never()).copy(any(), any(), any(), any());
-		verify(mockS3Client, never()).deleteObject(any(), any());
-		verify(mockS3Client).putObject(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE, jsonUpToDate);
+
+		verify(mockS3Client, never()).copyObject(any(CopyObjectRequest.class));
+		verify(mockS3Client, never()).deleteObject(any(DeleteObjectRequest.class));
+
+		// Verify putObject is called with the correct parameters
+		ArgumentCaptor<PutObjectRequest> putObjectRequestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
+		ArgumentCaptor<RequestBody> requestBodyCaptor = ArgumentCaptor.forClass(RequestBody.class);
+		verify(mockS3Client).putObject(putObjectRequestCaptor.capture(), requestBodyCaptor.capture());
+
+		PutObjectRequest capturedPutObjectRequest = putObjectRequestCaptor.getValue();
+		assertEquals(destinationBucket, capturedPutObjectRequest.bucket());
+		assertEquals(DOCS_STACK_INSTANCE_JSON_FILE, capturedPutObjectRequest.key());
 	}
 	
 	@Test
 	public void testSyncWithDestinationSameKeyWithDifferentETag() throws Exception {
-		S3ObjectSummary newObject = new S3ObjectSummary();
-		newObject.setETag("different-etag");
-		newObject.setKey(object.getKey());
-		List<S3ObjectSummary> newObjects = Arrays.asList(newObject);
-		doAnswer(invocation -> mockDestinationListRequest)
-			.when(builderSpy).createListObjectsRequest(destinationBucket, prefix);
-		doAnswer(invocation -> mockSourceListRequest)
-			.when(builderSpy).createListObjectsRequest(sourceBucket, prefix);
-		doAnswer(invocation -> newObjects).when(builderSpy).getAllS3Objects(mockDestinationListRequest);
-		doAnswer(invocation -> objects).when(builderSpy).getAllS3Objects(mockSourceListRequest);
-		when(mockS3TransferManagerFactory.createNewS3TransferManager()).thenReturn(mockS3TransferManager);
+		// Source page
+		ListObjectsV2Response srcPage2 = ListObjectsV2Response.builder()
+				.isTruncated(false)
+				.contents(S3Object.builder().key("c.txt").eTag("etag-c").build())
+				.build();
+
+		// Destination single empty page
+		ListObjectsV2Response dstEmpty = ListObjectsV2Response.builder()
+				.isTruncated(false)
+				.contents(S3Object.builder().key("c.txt").eTag("etag-d").build())
+				.build();
+
+		// Return a real paginator; decide which pages via listObjectsV2 stubs
+		when(mockS3Client.listObjectsV2Paginator(any(ListObjectsV2Request.class)))
+				.thenAnswer(inv -> new ListObjectsV2Iterable(mockS3Client, inv.getArgument(0)));
+
+		// Stub the underlying page fetches with null-safe matchers
+		when(mockS3Client.listObjectsV2(argThat((ListObjectsV2Request r) ->
+				r != null && sourceBucket.equals(r.bucket()))))
+				.thenReturn(srcPage2);
+
+		when(mockS3Client.listObjectsV2(argThat((ListObjectsV2Request r) ->
+				r != null && destinationBucket.equals(r.bucket()))))
+				.thenReturn(dstEmpty);
+
 		when(mockConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(prodInstance);
-		when(mockS3TransferManager.copy(any(), any(), any(), any())).thenReturn(mockCopy);
+
+		CopyObjectResponse expectedCopyObjectResponse = CopyObjectResponse.builder().build();
+		when(mockS3Client.copyObject(any(CopyObjectRequest.class))).thenReturn(expectedCopyObjectResponse);
+
 		// call under test
 		builderSpy.sync(sourceBucket, destinationBucket);
-		verify(mockS3TransferManager).close();
-		verify(mockS3TransferManager).copy(sourceBucket, object.getKey(), destinationBucket, object.getKey());
-		verify(mockS3Client, never()).deleteObject(any(), any());
-		verify(mockS3Client).putObject(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE, jsonUpToDate);
+
+		ArgumentCaptor<CopyObjectRequest> copyObjectRequestCaptor = ArgumentCaptor.forClass(CopyObjectRequest.class);
+		verify(mockS3Client).copyObject(copyObjectRequestCaptor.capture());
+		CopyObjectRequest actualCopyObjectRequest = copyObjectRequestCaptor.getValue();
+		assertEquals(destinationBucket, actualCopyObjectRequest.destinationBucket());
+		assertEquals("c.txt", actualCopyObjectRequest.destinationKey());
+
+		verify(mockS3Client, never()).deleteObject(any(DeleteObjectRequest.class));
+
+		// Verify putObject is called with the correct parameters
+		ArgumentCaptor<PutObjectRequest> putObjectRequestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
+		ArgumentCaptor<RequestBody> requestBodyCaptor = ArgumentCaptor.forClass(RequestBody.class);
+		verify(mockS3Client).putObject(putObjectRequestCaptor.capture(), requestBodyCaptor.capture());
+
+		PutObjectRequest capturedPutObjectRequest = putObjectRequestCaptor.getValue();
+		assertEquals(destinationBucket, capturedPutObjectRequest.bucket());
+		assertEquals(DOCS_STACK_INSTANCE_JSON_FILE, capturedPutObjectRequest.key());
 	}
 	
 	@Test
 	public void testSyncWithDestinationDeleteExistingFile() throws Exception {
-		S3ObjectSummary newObject = new S3ObjectSummary();
-		newObject.setKey("someKeyNotInSource");
-		List<S3ObjectSummary> newObjects = Arrays.asList(newObject);
-		doAnswer(invocation -> mockDestinationListRequest)
-			.when(builderSpy).createListObjectsRequest(destinationBucket, prefix);
-		doAnswer(invocation -> mockSourceListRequest)
-			.when(builderSpy).createListObjectsRequest(sourceBucket, prefix);
-		doAnswer(invocation -> newObjects).when(builderSpy).getAllS3Objects(mockDestinationListRequest);
-		doAnswer(invocation -> objects).when(builderSpy).getAllS3Objects(mockSourceListRequest);
-		when(mockS3TransferManagerFactory.createNewS3TransferManager()).thenReturn(mockS3TransferManager);
+		// Source page
+		ListObjectsV2Response srcPage2 = ListObjectsV2Response.builder()
+				.isTruncated(false)
+				.contents(S3Object.builder().key("c.txt").eTag("etag-c").build())
+				.build();
+
+		// Destination page
+		ListObjectsV2Response dstPage = ListObjectsV2Response.builder()
+				.isTruncated(false)
+				.contents(S3Object.builder().key("d.txt").eTag("etag-d").build())
+				.build();
+
+		// Return a real paginator; decide which pages via listObjectsV2 stubs
+		when(mockS3Client.listObjectsV2Paginator(any(ListObjectsV2Request.class)))
+				.thenAnswer(inv -> new ListObjectsV2Iterable(mockS3Client, inv.getArgument(0)));
+
+		// Stub the underlying page fetches with null-safe matchers
+		when(mockS3Client.listObjectsV2(argThat((ListObjectsV2Request r) ->
+				r != null && sourceBucket.equals(r.bucket()))))
+				.thenReturn(srcPage2);
+
+		when(mockS3Client.listObjectsV2(argThat((ListObjectsV2Request r) ->
+				r != null && destinationBucket.equals(r.bucket()))))
+				.thenReturn(dstPage);
+
 		when(mockConfig.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(prodInstance);
-		when(mockS3TransferManager.copy(any(), any(), any(), any())).thenReturn(mockCopy);
+
+		CopyObjectResponse expectedCopyObjectResponse = CopyObjectResponse.builder().build();
+		when(mockS3Client.copyObject(any(CopyObjectRequest.class))).thenReturn(expectedCopyObjectResponse);
+
 		// call under test
 		builderSpy.sync(sourceBucket, destinationBucket);
-		verify(mockS3TransferManager).close();
-		verify(mockS3TransferManager).copy(sourceBucket, object.getKey(), destinationBucket, object.getKey());
-		verify(mockS3Client).deleteObject(destinationBucket, newObject.getKey());
-		verify(mockS3Client).putObject(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE, jsonUpToDate);
+
+		ArgumentCaptor<CopyObjectRequest> copyObjectRequestCaptor = ArgumentCaptor.forClass(CopyObjectRequest.class);
+		verify(mockS3Client).copyObject(copyObjectRequestCaptor.capture());
+		CopyObjectRequest actualCopyObjectRequest = copyObjectRequestCaptor.getValue();
+		assertEquals(destinationBucket, actualCopyObjectRequest.destinationBucket());
+		assertEquals("c.txt", actualCopyObjectRequest.destinationKey());
+
+		ArgumentCaptor<DeleteObjectsRequest> deleteObjectsRequestCaptor = ArgumentCaptor.forClass(DeleteObjectsRequest.class);
+		verify(mockS3Client).deleteObjects(deleteObjectsRequestCaptor.capture());
+		DeleteObjectsRequest actualDeleteObjectsRequest = deleteObjectsRequestCaptor.getValue();
+		assertEquals(destinationBucket, actualDeleteObjectsRequest.bucket());
+		assertEquals(1, actualDeleteObjectsRequest.delete().objects().size());
+		assertEquals("d.txt", actualDeleteObjectsRequest.delete().objects().get(0).key());
+
+		// Verify putObject is called with the correct parameters
+		ArgumentCaptor<PutObjectRequest> putObjectRequestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
+		ArgumentCaptor<RequestBody> requestBodyCaptor = ArgumentCaptor.forClass(RequestBody.class);
+		verify(mockS3Client).putObject(putObjectRequestCaptor.capture(), requestBodyCaptor.capture());
+
+		PutObjectRequest capturedPutObjectRequest = putObjectRequestCaptor.getValue();
+		assertEquals(destinationBucket, capturedPutObjectRequest.bucket());
+		assertEquals(DOCS_STACK_INSTANCE_JSON_FILE, capturedPutObjectRequest.key());
 	}
 	
-	@Test
-	public void testGetAllS3Objects() {
-		when(mockS3Client.listObjects(any(ListObjectsRequest.class))).thenReturn(mockSourceListing);
-		when(mockSourceListing.getObjectSummaries()).thenReturn(objects);
-		when(mockSourceListing.isTruncated()).thenReturn(false);
-		// call under test
-		List<S3ObjectSummary> allObjects = builder.getAllS3Objects(mockSourceListRequest);
-		verify(mockSourceListRequest).setMarker(mockSourceListing.getNextMarker());
-		assertEquals(allObjects, objects);
-	}
-	
-	@Test
-	public void testGetAllS3ObjectsWithTruncatedList() {
-		S3ObjectSummary nextObject = new S3ObjectSummary();
-		List<S3ObjectSummary> nextPageObjects = Arrays.asList(nextObject);
-		when(mockS3Client.listObjects(any(ListObjectsRequest.class))).thenReturn(mockSourceListing);
-		when(mockSourceListing.getObjectSummaries()).thenReturn(objects,nextPageObjects);
-		when(mockSourceListing.isTruncated()).thenReturn(true, false);
-		// call under test
-		List<S3ObjectSummary> allObjects = builder.getAllS3Objects(mockSourceListRequest);
-		List<S3ObjectSummary> expected = Arrays.asList(object, nextObject);
-		verify(mockSourceListRequest, times(2)).setMarker(mockSourceListing.getNextMarker());
-		assertEquals(allObjects, expected);
-	}
-	
-	@Test
-	public void testCreateListObjectsRequest() {
-		// call under test
-		ListObjectsRequest request = builder.createListObjectsRequest(sourceBucket, prefix);
-		assertEquals(request.getBucketName(), sourceBucket);
-		assertEquals(request.getPrefix(), prefix);
-	}
 }

@@ -98,8 +98,6 @@ import org.sagebionetworks.template.s3.S3BucketBuilder;
 import org.sagebionetworks.template.s3.S3BucketBuilderImpl;
 import org.sagebionetworks.template.s3.S3Config;
 import org.sagebionetworks.template.s3.S3ConfigValidator;
-import org.sagebionetworks.template.s3.S3TransferManagerFactory;
-import org.sagebionetworks.template.s3.S3TransferManagerFactoryImpl;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 import org.sagebionetworks.template.utils.ArtifactDownloadImpl;
 import org.sagebionetworks.template.vpc.SubnetTemplateBuilder;
@@ -112,9 +110,6 @@ import org.sagebionetworks.war.WarAppender;
 import org.sagebionetworks.war.WarAppenderImpl;
 
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Named;
@@ -133,6 +128,8 @@ import software.amazon.awssdk.services.imagebuilder.ImagebuilderClientBuilder;
 import software.amazon.awssdk.services.kms.KmsClient;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -217,11 +214,15 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 	
 	@Provides
-	public AmazonS3 provideAmazonS3Client() {
-		AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
+	public S3Client provideAmazonS3Client() {
+		S3Client client = S3Client.builder().region(Region.US_EAST_1).build();
+		return client;
+	}
+
+	@Provides
+	public S3AsyncClient provideAmazonS3AsyncClient() {
+		S3AsyncClient client = S3AsyncClient.builder().region(Region.US_EAST_1).build();
+		return client;
 	}
 	
 	@Provides
@@ -327,18 +328,13 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 	
 	@Provides
-	public LoadBalancerAlarmsConfig loadBalanacerConfigProvider() throws IOException {
+	public LoadBalancerAlarmsConfig loadBalancerConfigProvider() throws IOException {
 		return new LoadBalancerAlarmsConfigValidator(loadFromJsonFile(LOAD_BALANCER_ALARM_CONFIG_FILE, LoadBalancerAlarmsConfig.class)).validate();
 	}
 	
 	@Provides
 	public SynapseAdminClient synapseAdminClient(SynapseAdminClientFactory factory) {
 		return factory.getInstance();
-	}
-	
-	@Provides
-	public S3TransferManagerFactory provideS3TransferManagerFactory(AmazonS3 s3Client) {
-		return new S3TransferManagerFactoryImpl(s3Client);
 	}
 
 	@Provides

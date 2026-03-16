@@ -17,15 +17,15 @@ import java.util.StringJoiner;
 
 import org.sagebionetworks.template.config.Configuration;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.google.inject.Inject;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.kms.KmsClient;
 import software.amazon.awssdk.services.kms.model.EncryptRequest;
 import software.amazon.awssdk.services.kms.model.EncryptResponse;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
@@ -41,10 +41,10 @@ public class SecretBuilderImpl implements SecretBuilder {
 	Configuration config;
 	SecretsManagerClient secretManager;
 	KmsClient keyManager;
-	AmazonS3 s3Client;
+	S3Client s3Client;
 	
 	@Inject
-	public SecretBuilderImpl(RepoConfiguration config, SecretsManagerClient secretManager, KmsClient keyManager, AmazonS3 s3Client) {
+	public SecretBuilderImpl(RepoConfiguration config, SecretsManagerClient secretManager, KmsClient keyManager, S3Client s3Client) {
 		super();
 		this.config = config;
 		this.secretManager = secretManager;
@@ -71,13 +71,11 @@ public class SecretBuilderImpl implements SecretBuilder {
 	 * @return
 	 */
 	SourceBundle uploadSecretsToS3(Properties secrets) {
-			String bucket = config.getConfigurationBucket();
-			String key = createSecretS3Key();
-			byte[] bytes = getPropertiesBytes(secrets);
-			ObjectMetadata metadata = new ObjectMetadata();
-			metadata.setContentLength(bytes.length);
-			s3Client.putObject(new PutObjectRequest(bucket, key, new ByteArrayInputStream(bytes), metadata));
-			return new SourceBundle(bucket, key);
+		String bucket = config.getConfigurationBucket();
+		String key = createSecretS3Key();
+		byte[] bytes = getPropertiesBytes(secrets);
+		s3Client.putObject(PutObjectRequest.builder().bucket(bucket).key(key).contentLength((long)bytes.length).build(), RequestBody.fromBytes(bytes));
+		return new SourceBundle(bucket, key);
 	}
 	
 	/**

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -12,11 +13,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.nio.file.Path;
 
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.LoggerFactory;
@@ -25,13 +28,18 @@ import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtention
 import org.sagebionetworks.template.utils.ArtifactDownload;
 
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.s3.AmazonS3;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @ExtendWith(MockitoExtension.class)
 public class ArtifactCopyImplTest {
 	
 	@Mock
-	AmazonS3 mockS3Client;
+	S3Client mockS3Client;
 	@Mock
 	Configuration mockPropertyProvider;
 	@Mock
@@ -78,18 +86,27 @@ public class ArtifactCopyImplTest {
 		when(mockEbBuilder.copyWarWithExtensions(eq(mockFile), any(EnvironmentType.class))).thenReturn(mockCopy);
 		when(mockPropertyProvider.getConfigurationBucket()).thenReturn(bucket);
 		// setup object does not exist
-		when(mockS3Client.doesObjectExist(any(), any())).thenReturn(false);
+		when(mockS3Client.headObject(any(HeadObjectRequest.class))).thenThrow(NoSuchKeyException.builder().message("does not exist").build());
+		ArgumentCaptor<HeadObjectRequest> headObjectCaptor = ArgumentCaptor.forClass(HeadObjectRequest.class);
+		ArgumentCaptor<PutObjectRequest> putObjectCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
+		ArgumentCaptor<Path> pathCaptor = ArgumentCaptor.forClass(Path.class);
 		
 		// call under test
 		SourceBundle result = copier.copyArtifactIfNeeded(environment, version, beanstalkNumber);
+
 		assertNotNull(result);
 		assertEquals(bucket, result.getBucket());
 		assertEquals(s3Key, result.getKey());
-		
-		verify(mockS3Client).doesObjectExist(bucket, s3Key);
+
+		verify(mockS3Client).headObject(headObjectCaptor.capture());
+		assertEquals(bucket, headObjectCaptor.getValue().bucket());
+		assertEquals(s3Key, headObjectCaptor.getValue().key());
 		verify(mockDownloader).downloadFile(artifactoryUrl);
 		verify(mockEbBuilder).copyWarWithExtensions(eq(mockFile), any(EnvironmentType.class));
-		verify(mockS3Client).putObject(bucket, s3Key, mockCopy);
+		verify(mockS3Client).putObject(putObjectCaptor.capture(), pathCaptor.capture());
+		assertEquals(bucket, putObjectCaptor.getValue().bucket());
+		assertEquals(s3Key, putObjectCaptor.getValue().key());
+		assertEquals(mockCopy.toPath(), pathCaptor.getValue());
 		verify(mockLogger, times(4)).info(any(String.class));
 		// the temp file should get deleted.
 		verify(mockFile).delete();
@@ -101,17 +118,19 @@ public class ArtifactCopyImplTest {
 		when(mockDownloader.downloadFile(any(String.class))).thenReturn(mockFile);
 		when(mockEbBuilder.copyWarWithExtensions(eq(mockFile), any(EnvironmentType.class))).thenReturn(mockCopy);
 		when(mockPropertyProvider.getConfigurationBucket()).thenReturn(bucket);
-		
-		AmazonServiceException exception = new AmazonServiceException("something");
-		when(mockS3Client.putObject(any(), any(), any(File.class))).thenThrow(exception);
-		
+		when(mockCopy.toPath()).thenReturn(Path.of("somePath"));
+
+		AwsServiceException exception = AwsServiceException.builder().message("something").build();
+		when(mockS3Client.putObject(any(PutObjectRequest.class), any(Path.class))).thenThrow(exception);
+
 		// setup object does not exist
-		when(mockS3Client.doesObjectExist(any(), any())).thenReturn(false);
-		
+		when(mockS3Client.headObject(any(HeadObjectRequest.class))).thenThrow(NoSuchKeyException.builder().message("does not exist").build());
+
 		// call under test
-		assertThrows(AmazonServiceException.class, ()->{
+		assertThrows(AwsServiceException.class, ()->{
 			copier.copyArtifactIfNeeded(environment, version, beanstalkNumber);
 		});
+
 		// file should be deleted even for a failure.
 		verify(mockFile).delete();
 	}
@@ -120,18 +139,23 @@ public class ArtifactCopyImplTest {
 	public void testCopyArtifactIfNeededExist() {
 		when(mockPropertyProvider.getConfigurationBucket()).thenReturn(bucket);
 		// setup object exists
-		when(mockS3Client.doesObjectExist(any(), any())).thenReturn(true);
+		when(mockS3Client.headObject(any(HeadObjectRequest.class))).thenReturn(HeadObjectResponse.builder().build());
 		
 		// call under test
 		SourceBundle result = copier.copyArtifactIfNeeded(environment, version, beanstalkNumber);
 		assertNotNull(result);
 		assertEquals(bucket, result.getBucket());
 		assertEquals(s3Key, result.getKey());
-		
-		verify(mockS3Client).doesObjectExist(bucket, s3Key);
+
+		verify(mockS3Client).headObject(
+				argThat((HeadObjectRequest req) -> {
+					return req.bucket().equals(bucket)
+							&& req.key().equals(s3Key);
+				})
+		);
 		verify(mockDownloader, never()).downloadFile(artifactoryUrl);
 		verify(mockEbBuilder, never()).copyWarWithExtensions(eq(mockFile), any(EnvironmentType.class));
-		verify(mockS3Client, never()).putObject(bucket, s3Key, mockFile);
+		verify(mockS3Client, never()).putObject(any(PutObjectRequest.class), any(Path.class));
 		verify(mockFile, never()).delete();
 		verify(mockLogger, times(1)).info(any(String.class));
 	}
