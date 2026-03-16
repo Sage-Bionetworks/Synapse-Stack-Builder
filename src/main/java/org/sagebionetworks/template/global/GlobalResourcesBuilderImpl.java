@@ -1,5 +1,7 @@
 package org.sagebionetworks.template.global;
 
+import static org.sagebionetworks.template.Constants.COGNITO_USER_POOL_CF_OUTPUT_NAME;
+import static org.sagebionetworks.template.Constants.COGNITO_USER_POOL_CLIENT_CF_OUTPUT_NAME;
 import static org.sagebionetworks.template.Constants.DELETION_POLICY;
 import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC;
 import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC;
@@ -8,10 +10,12 @@ import static org.sagebionetworks.template.Constants.IDENTITY_ARN;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.OPS_VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
+import static org.sagebionetworks.template.Constants.SAGEBIO_COGNITO_APP_CLIENT_ID;
+import static org.sagebionetworks.template.Constants.SAGEBIO_COGNITO_APP_CLIENT_SECRET;
 import static org.sagebionetworks.template.Constants.SES_SYNAPSE_DOMAIN;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.TEMPLATE_GLOBAL_RESOURCES;
-import static org.sagebionetworks.template.Constants.*;
+import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 
 import java.io.StringWriter;
 import java.util.List;
