@@ -148,6 +148,10 @@
 					}
 				],
 				"StorageEncrypted": true,
+				"CopyTagsToSnapshot": true,
+				"Tags": [
+					{"Key": "instance", "Value": "${instance}"}
+				],
                 "EnablePerformanceInsights": ${EnableRdsEnhancedMonitoring}
                 #if(${EnableRdsEnhancedMonitoring} == "true")
                 ,
