@@ -50,4 +50,12 @@
         "ClientId": { "Ref": "${stack}CognitoUserPoolClient" },
         "UserPoolId": { "Ref": "${stack}CognitoUserPool" }
     }
+},
+"${stack}CognitoUserPoolResourceServer": {
+    "Type": "AWS::Cognito::UserPoolResourceServer",
+    "Properties": {
+        "Identifier": "https://${stack}.synapse.org",
+        "Name": "Default M2M Resource Server",
+        "UserPoolId": { "Ref": "${stack}CognitoUserPool" }
+    }
 }
