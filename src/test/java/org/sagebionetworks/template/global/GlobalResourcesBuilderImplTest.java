@@ -168,7 +168,7 @@ public class GlobalResourcesBuilderImplTest {
         verify(mockSesClient, never()).setComplaintNotificationTopic(anyString(), anyString());
         verify(mockSesClient, never()).setBounceNotificationTopic(anyString(), anyString());
 
-        verify(mockSecretsManager, times(2)).createSecret(createSecretRequestCaptor.capture());
+        verify(mockSecretsManager, times(3)).createSecret(createSecretRequestCaptor.capture());
         // check that the correct secret keys and values are passed
         List<CreateSecretRequest> createSecretRequests = createSecretRequestCaptor.getAllValues();
         CreateSecretRequest csr = createSecretRequests.get(0);
@@ -177,6 +177,9 @@ public class GlobalResourcesBuilderImplTest {
         csr = createSecretRequests.get(1);
         assertEquals("dev.org.sagebionetworks.oauth2.sagebio.client.secret", csr.name());
         assertEquals("secret-999", csr.secretString());
+        csr = createSecretRequests.get(2);
+        assertEquals("dev.org.sagebionetworks.oauth2.sagebio.discoveryDocument", csr.name());
+        assertEquals("https://cognito-idp.us-east-1.amazonaws.com/user-pool-102/.well-known/openid_configuration", csr.secretString());
     }
 
     @Test
@@ -211,7 +214,7 @@ public class GlobalResourcesBuilderImplTest {
         verify(mockSesClient).setComplaintNotificationTopic(SES_SYNAPSE_DOMAIN, "complaintTopicArn");
         verify(mockSesClient).setBounceNotificationTopic(SES_SYNAPSE_DOMAIN, "bounceTopicArn");
 
-        verify(mockSecretsManager, times(2)).createSecret(createSecretRequestCaptor.capture());
+        verify(mockSecretsManager, times(3)).createSecret(createSecretRequestCaptor.capture());
         // check that the correct secret keys and values are passed
         List<CreateSecretRequest> createSecretRequests = createSecretRequestCaptor.getAllValues();
         CreateSecretRequest csr = createSecretRequests.get(0);
@@ -220,6 +223,9 @@ public class GlobalResourcesBuilderImplTest {
         csr = createSecretRequests.get(1);
         assertEquals("prod.org.sagebionetworks.oauth2.sagebio.client.secret", csr.name());
         assertEquals("secret-999", csr.secretString());
+        csr = createSecretRequests.get(2);
+        assertEquals("prod.org.sagebionetworks.oauth2.sagebio.discoveryDocument", csr.name());
+        assertEquals("https://cognito-idp.us-east-1.amazonaws.com/user-pool-102/.well-known/openid_configuration", csr.secretString());
 
     }
 

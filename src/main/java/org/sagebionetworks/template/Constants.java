@@ -170,6 +170,7 @@ public class Constants {
 	// from Secrets Manager
 	public static final String SAGEBIO_COGNITO_APP_CLIENT_ID = "org.sagebionetworks.oauth2.sagebio.client.id";
 	public static final String SAGEBIO_COGNITO_APP_CLIENT_SECRET = "org.sagebionetworks.oauth2.sagebio.client.secret";
+	public static final String SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT = "org.sagebionetworks.oauth2.sagebio.discoveryDocument";
 
 	// templates
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
