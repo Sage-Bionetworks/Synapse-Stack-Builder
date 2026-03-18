@@ -147,7 +147,7 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
     	setSecret(secretName, cognitoAppClientSecret);
     	
     	String discoveryDocumentName = stackPrefix + "."+ SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT;
-    	String discoveryDocumentUrl = "https://cognito-idp.us-east-1.amazonaws.com/"+userPoolId+"/.well-known/openid_configuration";
+    	String discoveryDocumentUrl = "https://cognito-idp.us-east-1.amazonaws.com/"+userPoolId+"/.well-known/openid-configuration";
     	setSecret(discoveryDocumentName, discoveryDocumentUrl);
         
     }

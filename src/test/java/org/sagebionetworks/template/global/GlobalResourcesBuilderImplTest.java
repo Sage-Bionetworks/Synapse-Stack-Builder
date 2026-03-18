@@ -179,7 +179,7 @@ public class GlobalResourcesBuilderImplTest {
         assertEquals("secret-999", csr.secretString());
         csr = createSecretRequests.get(2);
         assertEquals("dev.org.sagebionetworks.oauth2.sagebio.discoveryDocument", csr.name());
-        assertEquals("https://cognito-idp.us-east-1.amazonaws.com/user-pool-102/.well-known/openid_configuration", csr.secretString());
+        assertEquals("https://cognito-idp.us-east-1.amazonaws.com/user-pool-102/.well-known/openid-configuration", csr.secretString());
     }
 
     @Test
@@ -225,7 +225,7 @@ public class GlobalResourcesBuilderImplTest {
         assertEquals("secret-999", csr.secretString());
         csr = createSecretRequests.get(2);
         assertEquals("prod.org.sagebionetworks.oauth2.sagebio.discoveryDocument", csr.name());
-        assertEquals("https://cognito-idp.us-east-1.amazonaws.com/user-pool-102/.well-known/openid_configuration", csr.secretString());
+        assertEquals("https://cognito-idp.us-east-1.amazonaws.com/user-pool-102/.well-known/openid-configuration", csr.secretString());
 
     }
 
