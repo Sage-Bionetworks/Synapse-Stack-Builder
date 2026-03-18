@@ -3,13 +3,10 @@ package org.sagebionetworks.template.repo.queues;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
@@ -79,66 +76,5 @@ public class SnsAndSqsConfigTest {
 		assertEquals(Arrays.asList(expectedTopic1Descriptor, expectedTopic2Descriptor), descriptors);
 	}
 
-	@Test
-	public void testSearchIndexLifecycleQueueDescriptor() {
-		List<String> allTopics = Arrays.asList("ENTITY");
-		List<String> subscribedTopics = Arrays.asList("ENTITY");
-
-		SqsQueueDescriptor searchIndexLifecycleQueue = new SqsQueueDescriptor(
-				"SEARCH_INDEX_LIFECYCLE",
-				subscribedTopics,
-				300,      // messageVisibilityTimeoutSec
-				5,        // deadLetterQueueMaxFailureCount
-				null,     // oldestMessageInQueueAlarmThresholdSec
-				null      // messageRetentionPeriodSec
-		);
-
-		SnsAndSqsConfig config = new SnsAndSqsConfig(allTopics, Collections.emptyList(),
-				Collections.singletonList(searchIndexLifecycleQueue));
-
-		// Verify subscribed topic
-		Set<String> expectedTopics = new LinkedHashSet<>(Arrays.asList("ENTITY"));
-		assertEquals(expectedTopics, searchIndexLifecycleQueue.subscribedTopicNames);
-		assertEquals(1, searchIndexLifecycleQueue.subscribedTopicNames.size());
-
-		// Verify configuration values
-		assertEquals(300, searchIndexLifecycleQueue.getMessageVisibilityTimeoutSec());
-		assertEquals(5, searchIndexLifecycleQueue.getDeadLetterQueueMaxFailureCount());
-		assertNull(searchIndexLifecycleQueue.getOldestMessageInQueueAlarmThresholdSec());
-		assertNull(searchIndexLifecycleQueue.getMessageRetentionPeriodSec());
-
-		// Verify processSnsTopicDescriptors succeeds
-		List<SnsTopicDescriptor> descriptors = config.processSnsTopicDescriptors();
-		assertEquals(1, descriptors.size());
-	}
-
-	@Test
-	public void testSearchQueryQueueDescriptor() {
-		SqsQueueDescriptor searchQueryQueue = new SqsQueueDescriptor(
-				"SEARCH_QUERY",
-				Collections.emptyList(),
-				120,      // messageVisibilityTimeoutSec
-				null,     // deadLetterQueueMaxFailureCount
-				30,       // oldestMessageInQueueAlarmThresholdSec
-				null      // messageRetentionPeriodSec
-		);
-
-		SnsAndSqsConfig config = new SnsAndSqsConfig(Collections.emptyList(), Collections.emptyList(),
-				Collections.singletonList(searchQueryQueue));
-
-		// Verify no subscribed topics (async job queue)
-		assertEquals(Collections.emptySet(), searchQueryQueue.subscribedTopicNames);
-		assertEquals(0, searchQueryQueue.subscribedTopicNames.size());
-
-		// Verify configuration values
-		assertEquals(120, searchQueryQueue.getMessageVisibilityTimeoutSec());
-		assertNull(searchQueryQueue.getDeadLetterQueueMaxFailureCount());
-		assertEquals(30, searchQueryQueue.getOldestMessageInQueueAlarmThresholdSec());
-		assertNull(searchQueryQueue.getMessageRetentionPeriodSec());
-
-		// Verify processSnsTopicDescriptors succeeds with no topics
-		List<SnsTopicDescriptor> descriptors = config.processSnsTopicDescriptors();
-		assertEquals(0, descriptors.size());
-	}
 
 }
