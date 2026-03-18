@@ -76,5 +76,4 @@ public class SnsAndSqsConfigTest {
 		assertEquals(Arrays.asList(expectedTopic1Descriptor, expectedTopic2Descriptor), descriptors);
 	}
 
-
 }
