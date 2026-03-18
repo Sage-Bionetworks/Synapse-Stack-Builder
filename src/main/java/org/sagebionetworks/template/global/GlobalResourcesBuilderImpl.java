@@ -12,6 +12,7 @@ import static org.sagebionetworks.template.Constants.OPS_VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.SAGEBIO_COGNITO_APP_CLIENT_ID;
 import static org.sagebionetworks.template.Constants.SAGEBIO_COGNITO_APP_CLIENT_SECRET;
+import static org.sagebionetworks.template.Constants.SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT;
 import static org.sagebionetworks.template.Constants.SES_SYNAPSE_DOMAIN;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.TEMPLATE_GLOBAL_RESOURCES;
@@ -144,6 +145,10 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
     	setSecret(idName, cognitoAppClientId);
     	String secretName = stackPrefix + "."+ SAGEBIO_COGNITO_APP_CLIENT_SECRET;
     	setSecret(secretName, cognitoAppClientSecret);
+    	
+    	String discoveryDocumentName = stackPrefix + "."+ SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT;
+    	String discoveryDocumentUrl = "https://cognito-idp.us-east-1.amazonaws.com/"+userPoolId+"/.well-known/openid-configuration";
+    	setSecret(discoveryDocumentName, discoveryDocumentUrl);
         
     }
     
