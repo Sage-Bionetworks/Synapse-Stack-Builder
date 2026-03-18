@@ -165,6 +165,12 @@ public class Constants {
 	public static final String TAG_KEY_PROJECT = "Project";
 	public static final String TAG_KEY_OWNER_EMAIL = "OwnerEmail";
 	public static final String TAG_KEY_EXECUTE_SCRIPT = "execute-script";
+	
+	// Note: These are also defined in repo-defaults.properties as secrets to be retrieved
+	// from Secrets Manager
+	public static final String SAGEBIO_COGNITO_APP_CLIENT_ID = "org.sagebionetworks.oauth2.sagebio.client.id";
+	public static final String SAGEBIO_COGNITO_APP_CLIENT_SECRET = "org.sagebionetworks.oauth2.sagebio.client.secret";
+	public static final String SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT = "org.sagebionetworks.oauth2.sagebio.discoveryDocument";
 
 	// templates
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
@@ -272,6 +278,9 @@ public class Constants {
 	public static final String CTXT_KEY_DATA_CDN_DOMAIN_NAME = "dataCdnDomainName";
 
 	public static final String CTXT_ENABLE_ENHANCED_RDS_MONITORING = "EnableRdsEnhancedMonitoring";
+
+	public static final String COGNITO_USER_POOL_CF_OUTPUT_NAME = "CognitoUserPoolId";
+	public static final String COGNITO_USER_POOL_CLIENT_CF_OUTPUT_NAME = "CognitoUserPoolClientId";
 
 	// The secrets manager ids for the key/secret pair for the admin auth
 	public static final String SECRETS_ADMIN_KEY_ID = "org.sagebionetworks.admin.auth.key";

@@ -1,0 +1,61 @@
+,
+"${stack}CognitoUserPool": {
+    "Type": "AWS::Cognito::UserPool",
+    "Properties": {
+        "UserPoolName": "${stack}-user-pool",
+        "AutoVerifiedAttributes": [ "email" ],
+        "UsernameAttributes": [ ],
+        "Policies": {
+            "PasswordPolicy": {
+                "MinimumLength": 8,
+                "RequireUppercase": true,
+                "RequireLowercase": true,
+                "RequireNumbers": true,
+                "RequireSymbols": true
+            }
+        }
+    }
+},
+"${stack}CognitoUserPoolClient": {
+    "Type": "AWS::Cognito::UserPoolClient",
+    "Properties": {
+        "ClientName": "${stack}-client",
+        "UserPoolId": { "Ref": "${stack}CognitoUserPool" },
+        "GenerateSecret": true,
+        "AllowedOAuthFlows": [ "code" ],
+        "AllowedOAuthScopes": [ "openid", "email" ],
+        "AllowedOAuthFlowsUserPoolClient": true,
+        "CallbackURLs": [
+            #if(${stack} == 'dev')
+        	"http://localhost:3000/?provider=SAGE_BIONETWORKS",
+        	"https://dev.accounts.synapse.org/?provider=SAGE_BIONETWORKS"
+            #else
+         	"https://accounts.synapse.org/?provider=SAGE_BIONETWORKS",
+        	"https://staging.accounts.synapse.org/?provider=SAGE_BIONETWORKS",
+            #end
+        ],
+        "SupportedIdentityProviders": [ "COGNITO" ]
+    }
+},
+"${stack}CognitoUserPoolDomain": {
+    "Type": "AWS::Cognito::UserPoolDomain",
+    "Properties": {
+        "Domain": "${stack}-synapse-org",
+        "UserPoolId": { "Ref": "${stack}CognitoUserPool" }
+    }
+},
+"${stack}CognitoUserPoolUICustomization": {
+    "Type": "AWS::Cognito::UserPoolUICustomizationAttachment",
+    "Properties": {
+        "ClientId": { "Ref": "${stack}CognitoUserPoolClient" },
+        "UserPoolId": { "Ref": "${stack}CognitoUserPool" }
+    }
+},
+"${stack}CognitoUserPoolResourceServer": {
+    "Type": "AWS::Cognito::UserPoolResourceServer",
+    "Properties": {
+        "Identifier": "https://${stack}.synapse.org",
+        "Name": "Default M2M Resource Server",
+        "UserPoolId": { "Ref": "${stack}CognitoUserPool" }
+    }
+}

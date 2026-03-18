@@ -244,6 +244,10 @@
 			<artifactId>cloudformation</artifactId>
 			<version>${amazon.sdk.v2.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>cognitoidentityprovider</artifactId>
+		</dependency>
 	</dependencies>
 	<build>
 		<resources>
