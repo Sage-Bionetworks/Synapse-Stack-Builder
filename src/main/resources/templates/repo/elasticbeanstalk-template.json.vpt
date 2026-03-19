@@ -556,7 +556,12 @@
                          "Namespace": "aws:elasticbeanstalk:application:environment",
                          "OptionName": "org.sagebionetworks.cloudfront.domainname",
                          "Value": "${dataCdnDomainName}"
-                     }
+                     },
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.oauth2.sagebio.discoveryDocument",
+						"Value": "${DiscoveryDocumentUrl}"
+					}
 
 					#end
 				]
