@@ -279,6 +279,7 @@ public class Constants {
 
 	public static final String CTXT_ENABLE_ENHANCED_RDS_MONITORING = "EnableRdsEnhancedMonitoring";
 
+	public static final String CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL = "DiscoveryDocumentUrl";
 	public static final String COGNITO_USER_POOL_CF_OUTPUT_NAME = "CognitoUserPoolId";
 	public static final String COGNITO_USER_POOL_CLIENT_CF_OUTPUT_NAME = "CognitoUserPoolClientId";
 

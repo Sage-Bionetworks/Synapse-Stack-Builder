@@ -19,6 +19,7 @@ import static org.sagebionetworks.template.Constants.ADMIN_RULE_ACTION;
 import static org.sagebionetworks.template.Constants.BEANSTALK_INSTANCES_SUBNETS;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_DOMAIN_NAME;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_KEYPAIR_ID;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.DELETION_POLICY;
@@ -66,6 +67,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_STO
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_THROUGHPUT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_COLOR;
 import static org.sagebionetworks.template.Constants.REPO_BEANSTALK_NUMBER;
+import static org.sagebionetworks.template.Constants.SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT;
 import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.SHARED_RESOUCES_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
@@ -331,6 +333,7 @@ public class RepositoryTemplateBuilderImplTest {
 		stack = "prod";
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
+		when(config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT)).thenReturn("discoveryDocumentUrl");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
 		
 		// call under test
@@ -507,6 +510,7 @@ public class RepositoryTemplateBuilderImplTest {
 		stack = "prod";
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
+		when(config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT)).thenReturn("discoveryDocumentUrl");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
 
 
@@ -630,6 +634,7 @@ public class RepositoryTemplateBuilderImplTest {
 		stack = "dev";
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
+		when(config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT)).thenReturn("discoveryDocumentUrl");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
 
 		
@@ -776,6 +781,7 @@ public class RepositoryTemplateBuilderImplTest {
 		stack = "dev";
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID)).thenReturn("CdnKeyPairId");
+		when(config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT)).thenReturn("discoveryDocumentUrl");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
 
 		
@@ -1272,6 +1278,7 @@ public class RepositoryTemplateBuilderImplTest {
 		ListPlatformVersionsResponse expectedLpvr = ListPlatformVersionsResponse.builder().platformSummaryList(expectedSummaries).build();
 		when(mockBeanstalkClient.listPlatformVersions(any(ListPlatformVersionsRequest.class))).thenReturn(expectedLpvr);
 		when(config.getProperty("org.sagebionetworks.cloudfront.keypair")).thenReturn("dataCdnKeyPairId");
+		when(config.getProperty("org.sagebionetworks.oauth2.sagebio.discoveryDocument")).thenReturn("discoveryDocumentUrl");
 
 		EnvironmentDescriptor environment = new EnvironmentDescriptor().withType(EnvironmentType.REPOSITORY_SERVICES);
 
@@ -1293,6 +1300,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(String.join(",", EXPECTED_SUBNETS), context.get(BEANSTALK_INSTANCES_SUBNETS));
 		assertEquals("data.dev.sagebase.org", context.get(CTXT_KEY_DATA_CDN_DOMAIN_NAME));
 		assertEquals("dataCdnKeyPairId", context.get(CTXT_KEY_DATA_CDN_KEYPAIR_ID));
+		assertEquals("discoveryDocumentUrl", context.get(CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL));
 	}
 
 	@Test
