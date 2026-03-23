@@ -1,0 +1,38 @@
+FROM amazoncorretto:11
+
+# Install Tomcat 9
+ENV CATALINA_HOME=/opt/tomcat
+RUN yum install -y tar gzip && \
+    mkdir -p ${CATALINA_HOME} && \
+    curl -sL https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.98/bin/apache-tomcat-9.0.98.tar.gz \
+      | tar xz --strip-components=1 -C ${CATALINA_HOME} && \
+    rm -rf ${CATALINA_HOME}/webapps/* && \
+    yum clean all
+
+# Tomcat server.xml with HTTPS connector, compression, and ErrorReportValve
+COPY server.xml ${CATALINA_HOME}/conf/server.xml
+
+# Self-signed TLS certificate for HTTPS on container port
+COPY server.crt ${CATALINA_HOME}/conf/server.crt
+COPY server.key ${CATALINA_HOME}/conf/server.key
+
+# Create PKCS12 keystore from cert and key for Tomcat
+RUN yum install -y openssl && \
+    openssl pkcs12 -export \
+      -in ${CATALINA_HOME}/conf/server.crt \
+      -inkey ${CATALINA_HOME}/conf/server.key \
+      -out ${CATALINA_HOME}/conf/server.keystore \
+      -name tomcat \
+      -passout pass:changeit && \
+    yum clean all
+
+# Deploy application WAR
+COPY ${warFileName} ${CATALINA_HOME}/webapps/ROOT.war
+
+# JVM options
+ENV JAVA_OPTS="-Xms2048m -Xmx${taskMemory}m -Dlog4j2.formatMsgNoLookups=true"
+ENV CATALINA_OPTS="${JAVA_OPTS}"
+
+EXPOSE ${containerPort}
+
+CMD ["sh", "-c", "${CATALINA_HOME}/bin/catalina.sh run"]

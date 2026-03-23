@@ -298,6 +298,7 @@
 		#end
 		#end
 		,
+		#if($deploymentTarget == "BEANSTALK")
 		"${stack}${instance}Application": {
 			"Type": "AWS::ElasticBeanstalk::Application",
 			"Properties": {
@@ -305,6 +306,66 @@
 				"Description": "Group of all Synapse-${stack}-${instance} Bean Stalk Environment"
 			}
 		},
+		#end
+		#if($deploymentTarget == "ECS_FARGATE")
+		"${stack}${instance}EcsCluster": {
+			"Type": "AWS::ECS::Cluster",
+			"Properties": {
+				"ClusterName": "synapse-${stack}-${instance}",
+				"CapacityProviders": ["FARGATE"],
+				"DefaultCapacityProviderStrategy": [
+					{
+						"CapacityProvider": "FARGATE",
+						"Weight": 1
+					}
+				],
+				"ClusterSettings": [
+					{
+						"Name": "containerInsights",
+						"Value": "enabled"
+					}
+				]
+			}
+		},
+		"${stack}${instance}EcsTaskSecurityGroup": {
+			"Type": "AWS::EC2::SecurityGroup",
+			"Properties": {
+				"GroupDescription": "Security Group for ECS Fargate tasks in ${stack}${instance}",
+				"VpcId": {
+					"Fn::ImportValue": "${vpcExportPrefix}-VPCId"
+				},
+				"SecurityGroupIngress": [
+					{
+						"Description": "Allow traffic from load balancer on container port",
+						"SourceSecurityGroupId": {
+							"Ref": "${stack}${instance}LoadBalancerSecurityGroup"
+						},
+						"FromPort": "8443",
+						"ToPort": "8443",
+						"IpProtocol": "tcp"
+					}
+				],
+				"SecurityGroupEgress": [{
+					"CidrIp": "0.0.0.0/0",
+					"FromPort": "-1",
+					"ToPort": "-1",
+					"IpProtocol": "-1"
+				}],
+				"Tags": [
+					{
+						"Key": "Application",
+						"Value": {
+							"Ref": "AWS::StackName"
+						}
+					},
+					{
+						"Key": "Name",
+						"Value": "${stack}${instance}EcsTaskSecurityGroup"
+					}
+				]
+			}
+		},
+		#end
 		"${stack}${instance}BeanstalkSecurityGroup": {
             "Type": "AWS::EC2::SecurityGroup",
             "Properties": {
@@ -913,6 +974,7 @@
 				}
 			}
 		},	
+		#if($deploymentTarget == "BEANSTALK")
 		"BeanstalkApplicationId": {
 			"Description": "The elastic bean stalk application ID",
 			"Value": {
@@ -957,6 +1019,119 @@
 				}
 			}
 		},
+		#end
+		#if($deploymentTarget == "ECS_FARGATE")
+		"EcsClusterArn": {
+			"Description": "The ARN of the ECS Cluster",
+			"Value": {
+				"Fn::GetAtt": ["${stack}${instance}EcsCluster", "Arn"]
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"ECS-Cluster-ARN"
+						]
+					]
+				}
+			}
+		},
+		"EcsClusterName": {
+			"Description": "The name of the ECS Cluster",
+			"Value": {
+				"Ref": "${stack}${instance}EcsCluster"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"ECS-Cluster-Name"
+						]
+					]
+				}
+			}
+		},
+		"EcsTaskSecurityGroupId": {
+			"Description": "The ID of the ECS Task security group",
+			"Value": {
+				"Ref": "${stack}${instance}EcsTaskSecurityGroup"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"ECS-Task-Security-Group-ID"
+						]
+					]
+				}
+			}
+		},
+		"RepoWorkersManagedPolicyArn": {
+			"Description": "The ARN of the Repo/Workers managed policy",
+			"Value": {
+				"Ref": "${stack}${instance}SynapesRepoWorkersServiceManagedPolicy"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"SynapesRepoWorkersInstanceProfile-Managed-Policy-ARN"
+						]
+					]
+				}
+			}
+		},
+		"PortalManagedPolicyArn": {
+			"Description": "The ARN of the Portal managed policy",
+			"Value": {
+				"Ref": "${stack}${instance}SynapesPortalServiceManagedPolicy"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"SynapesPortalInstanceProfile-Managed-Policy-ARN"
+						]
+					]
+				}
+			}
+		},
+		#end
 		"LoadBalancerSecurityGroup": {
 			"Description": "The ID of the Load Balancer Security Group",
 			"Value": {

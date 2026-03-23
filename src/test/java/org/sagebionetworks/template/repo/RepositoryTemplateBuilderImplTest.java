@@ -114,8 +114,10 @@ import org.sagebionetworks.template.repo.beanstalk.ElasticBeanstalkSolutionStack
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
+import org.sagebionetworks.template.repo.beanstalk.LoadBalancerAlarmsConfig;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
+import org.sagebionetworks.template.repo.ecs.DockerImageBuilder;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogDescriptor;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
 import org.sagebionetworks.template.repo.grid.GridContextProvider;
@@ -171,6 +173,10 @@ public class RepositoryTemplateBuilderImplTest {
 	private TimeToLive mockTimeToLive;
 	@Mock
 	private AmazonS3Client mockS3Client;
+	@Mock
+	private DockerImageBuilder mockDockerImageBuilder;
+	@Mock
+	private LoadBalancerAlarmsConfig mockLoadBalancerAlarmsConfig;
 	
 	@Captor
 	private ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
@@ -220,7 +226,8 @@ public class RepositoryTemplateBuilderImplTest {
 						new BedrockGridAgentContextProvider(config, mockS3Client),
 						new GridContextProvider(gridQueueRef, config)),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
-                mockEc2ClientWrapper, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive);
+                mockEc2ClientWrapper, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive,
+                mockDockerImageBuilder, mockLoadBalancerAlarmsConfig);
 		
 		builderSpy = Mockito.spy(builder);
 
@@ -273,7 +280,8 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testBuildAndDeployProd() throws InterruptedException {
-		
+
+		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_TARGET)).thenReturn("BEANSTALK");
 		when(mockStackTagsProvider.getStackTags(config)).thenReturn(expectedTags);
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
@@ -451,7 +459,8 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testBuildAndDeployProdNoMonitoring() throws InterruptedException {
-		
+
+		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_TARGET)).thenReturn("BEANSTALK");
 		when(mockStackTagsProvider.getStackTags(config)).thenReturn(expectedTags);
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
@@ -572,7 +581,8 @@ public class RepositoryTemplateBuilderImplTest {
 	
 	@Test
 	public void testBuildAndDeployDev() throws InterruptedException {
-		
+
+		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_TARGET)).thenReturn("BEANSTALK");
 		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(
 				Optional.of(Parameter.builder().parameterKey(PARAM_KEY_TIME_TO_LIVE).parameterValue("NONE").build()));
 		
@@ -721,7 +731,8 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testBuildAndDeployDevFromSnapshot() throws InterruptedException {
-	
+
+		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_TARGET)).thenReturn("BEANSTALK");
 		when(mockStackTagsProvider.getStackTags(config)).thenReturn(expectedTags);
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
@@ -998,7 +1009,8 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testCreateContext() {
-		
+
+		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_TARGET)).thenReturn("BEANSTALK");
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
 		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
@@ -1082,6 +1094,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Test
 	public void testCreateContextProd() {
 		stack = "prod";
+		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_TARGET)).thenReturn("BEANSTALK");
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
 		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
@@ -1545,6 +1558,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Test
 	public void testBuildEnvironmentsWithoutTTL() {
 
+		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_TARGET)).thenReturn("BEANSTALK");
 		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
 		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(Optional.empty());
 
@@ -1567,10 +1581,11 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(builderSpy).buildAndDeployStack(mockContext, e1.getName(), TEMPLATE_BEAN_STALK_ENVIRONMENT, null);
 		verify(builderSpy).buildAndDeployStack(mockContext, e2.getName(), TEMPLATE_BEAN_STALK_ENVIRONMENT, null);
 	}
-	
+
 	@Test
 	public void testBuildEnvironmentsWithTTL() {
 
+		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_TARGET)).thenReturn("BEANSTALK");
 		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
 		Parameter ttl = Parameter.builder().parameterKey("ttl").parameterValue("value").build();
 		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(Optional.of(ttl));

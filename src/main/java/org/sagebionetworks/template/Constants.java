@@ -296,6 +296,24 @@ public class Constants {
 	public static final String PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG = "org.sagebionetworks.docs.deploy";
 	public static final String PROPERTY_KEY_DOCS_SOURCE_BUCKET = "org.sagebionetworks.docs.source";
 	public static final String PROPERTY_KEY_DOCS_DESTINATION_BUCKET = "org.sagebionetworks.docs.destination";
+
+	// ECS Fargate deployment properties
+	public static final String PROPERTY_KEY_DEPLOYMENT_TARGET = "org.sagebionetworks.deployment.target";
+	public static final String PROPERTY_KEY_ECS_TASK_CPU = "org.sagebionetworks.ecs.task.cpu";
+	public static final String PROPERTY_KEY_ECS_TASK_MEMORY = "org.sagebionetworks.ecs.task.memory";
+	public static final String PROPERTY_KEY_ECS_CONTAINER_PORT = "org.sagebionetworks.ecs.container.port";
+
+	// ECS template
+	public static final String TEMPLATE_ECS_FARGATE_ENVIRONMENT = "templates/repo/ecs-fargate-template.json.vpt";
+
+	// ECS context keys
+	public static final String ECS_CLUSTER_NAME = "ecsClusterName";
+	public static final String ECS_TASK_CPU = "ecsTaskCpu";
+	public static final String ECS_TASK_MEMORY = "ecsTaskMemory";
+	public static final String ECS_CONTAINER_PORT = "ecsContainerPort";
+	public static final String DEPLOYMENT_TARGET = "deploymentTarget";
+	public static final String ECS_SUBNETS = "ecsSubnets";
+
 	public static final String MACHINE_TYPES = "machineTypes";
 	public static final String POOL_TYPES = "poolTypes";
 

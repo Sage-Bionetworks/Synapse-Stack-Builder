@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Server port="8005" shutdown="SHUTDOWN">
+  <Listener className="org.apache.catalina.startup.VersionLoggerListener" />
+  <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on" />
+  <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
+  <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
+  <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
+
+  <Service name="Catalina">
+    <Connector port="${containerPort}"
+               protocol="org.apache.coyote.http11.Http11NioProtocol"
+               maxThreads="200"
+               SSLEnabled="true"
+               scheme="https"
+               secure="true"
+               keystoreFile="/opt/tomcat/conf/server.keystore"
+               keystorePass="changeit"
+               clientAuth="false"
+               sslProtocol="TLS"
+               compression="on"
+               compressionMinSize="2048"
+               compressibleMimeType="text/plain,application/json,text/xml,application/xml" />
+
+    <Engine name="Catalina" defaultHost="localhost">
+      <Host name="localhost" appBase="webapps" unpackWARs="true" autoDeploy="true">
+        <Valve className="org.apache.catalina.valves.ErrorReportValve" showReport="false" showServerInfo="false" />
+      </Host>
+    </Engine>
+  </Service>
+</Server>
