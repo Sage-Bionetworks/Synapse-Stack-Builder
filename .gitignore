@@ -9,3 +9,5 @@
 /.idea
 /.vscode
 **/.DS_Store
+.claude/*
+!.claude/skills/
