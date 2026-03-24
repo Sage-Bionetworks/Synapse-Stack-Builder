@@ -1556,7 +1556,7 @@ public class RepositoryTemplateBuilderImplTest {
 	}
 	
 	@Test
-	public void testBuildEnvironmentsWithoutTTL() {
+	public void testBuildEnvironmentsWithoutTTL() throws InterruptedException {
 
 		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_TARGET)).thenReturn("BEANSTALK");
 		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
@@ -1583,7 +1583,7 @@ public class RepositoryTemplateBuilderImplTest {
 	}
 
 	@Test
-	public void testBuildEnvironmentsWithTTL() {
+	public void testBuildEnvironmentsWithTTL() throws InterruptedException {
 
 		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_TARGET)).thenReturn("BEANSTALK");
 		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);

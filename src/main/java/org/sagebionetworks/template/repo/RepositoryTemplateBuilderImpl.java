@@ -221,7 +221,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 * Build all of the environments
 	 * @param sharedStackResults
 	 */
-	public List<String> buildEnvironments(Stack sharedStackResults) {
+	public List<String> buildEnvironments(Stack sharedStackResults) throws InterruptedException {
 		// Create the repo/worker secrets
 		SourceBundle secretsSouce = secretBuilder.createSecrets();
 
@@ -251,16 +251,22 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	}
 
 	/**
-	 * Build ECS Fargate environments.
+	 * Build ECS Fargate environments and wait for all to complete.
 	 */
-	List<String> buildEcsEnvironments(Stack sharedStackResults, SourceBundle secrets) {
+	List<String> buildEcsEnvironments(Stack sharedStackResults, SourceBundle secrets) throws InterruptedException {
 		Parameter ttl = timeToLive.createTimeToLiveParameter().orElse(null);
 
 		List<String> environmentNames = new LinkedList<>();
+		// Submit all environment stacks
 		for (EcsEnvironmentDescriptor environment : createEcsEnvironments(secrets)) {
 			VelocityContext context = createEcsEnvironmentContext(sharedStackResults, environment);
 			environmentNames.add(environment.getName());
 			buildAndDeployStack(context, environment.getName(), TEMPLATE_ECS_FARGATE_ENVIRONMENT, ttl);
+		}
+		// Wait for all environment stacks to complete
+		for (String stackName : environmentNames) {
+			cloudFormationClientWrapper.waitForStackToComplete(stackName)
+					.orElseThrow(() -> new IllegalStateException("Stack does not exist: " + stackName));
 		}
 		return environmentNames;
 	}
