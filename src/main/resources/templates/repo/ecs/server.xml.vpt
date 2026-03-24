@@ -15,6 +15,7 @@
                secure="true"
                keystoreFile="/opt/tomcat/conf/server.keystore"
                keystorePass="changeit"
+               keystoreType="PKCS12"
                clientAuth="false"
                sslProtocol="TLS"
                compression="on"
