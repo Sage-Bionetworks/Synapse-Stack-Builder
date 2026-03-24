@@ -46,6 +46,18 @@
 						"ToPort": "3306",
 						"IpProtocol": "tcp"
 					}
+					#if($deploymentTarget == "ECS_FARGATE")
+					,
+					{
+						"Description": "Allow ECS Fargate tasks access to MySQL",
+						"SourceSecurityGroupId": {
+							"Ref": "${stack}${instance}EcsTaskSecurityGroup"
+						},
+						"FromPort": "3306",
+						"ToPort": "3306",
+						"IpProtocol": "tcp"
+					}
+					#end
 				],
 				"Tags": [
 					{
