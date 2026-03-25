@@ -1,4 +1,4 @@
-#!/bin/bash
+#[[#!/bin/bash
 # Convert org.sagebionetworks.* environment variables to JVM -D system properties.
 # Elastic Beanstalk passes these as JVM system properties automatically;
 # ECS sets them as container environment variables. The application reads
@@ -13,3 +13,4 @@ done < <(env)
 
 export CATALINA_OPTS="$JAVA_OPTS $SYSPROPS"
 exec "$CATALINA_HOME/bin/catalina.sh" run
+]]#
