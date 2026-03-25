@@ -3,14 +3,20 @@
 # Elastic Beanstalk passes these as JVM system properties automatically;
 # ECS sets them as container environment variables. The application reads
 # them via System.getProperty(), so we convert them here.
+#
+# catalina.sh uses: eval exec "$_RUNJAVA" ... "$JAVA_OPTS" ...
+# The eval re-parses the expanded string, so each -D flag must be
+# individually quoted to survive the eval expansion.
 
 SYSPROPS=""
 while IFS='=' read -r name value; do
     if [[ "$name" == org.sagebionetworks.* ]]; then
-        SYSPROPS="$SYSPROPS -D$name=$value"
+        # Escape single quotes in values and wrap each -D in single quotes for eval
+        escaped_value="${value//\'/\'\\\'\'}"
+        SYSPROPS="$SYSPROPS '-D$name=$escaped_value'"
     fi
 done < <(env)
 
-export CATALINA_OPTS="$JAVA_OPTS $SYSPROPS"
+export JAVA_OPTS="$JAVA_OPTS $SYSPROPS"
 exec "$CATALINA_HOME/bin/catalina.sh" run
 ]]#
