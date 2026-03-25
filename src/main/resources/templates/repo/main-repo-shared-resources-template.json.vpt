@@ -453,7 +453,17 @@
 						"FromPort": "443",
 						"ToPort": "443",
 						"IpProtocol": "tcp"
-					},
+					}
+					#if($deploymentTarget == "ECS_FARGATE")
+					,
+					{
+						"Description": "Allow traffic to ECS containers on port 8443",
+						"CidrIp": "0.0.0.0/0",
+						"FromPort": "8443",
+						"ToPort": "8443",
+						"IpProtocol": "tcp"
+					}
+					#end
                 ],
                 "Tags": [
 					{
