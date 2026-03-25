@@ -1147,6 +1147,28 @@
 				}
 			}
 		},
+		"RepoWorkersBedrockManagedPolicyArn": {
+			"Description": "The ARN of the Repo/Workers Bedrock managed policy",
+			"Value": {
+				"Ref": "${stack}${instance}SynapesRepoWorkersBedrockManagedPolicy"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"RepoWorkers-Bedrock-Managed-Policy-ARN"
+						]
+					]
+				}
+			}
+		},
 		#end
 		"LoadBalancerSecurityGroup": {
 			"Description": "The ID of the Load Balancer Security Group",
