@@ -196,6 +196,13 @@
 						"Name": "${environment.name}",
 						"Image": "${environment.dockerImageUri}",
 						"Essential": true,
+						"HealthCheck": {
+							"Command": ["CMD-SHELL", "curl -fk https://localhost:${environment.containerPort}${environment.healthCheckUrl} || exit 1"],
+							"Interval": 30,
+							"Timeout": 5,
+							"Retries": 3,
+							"StartPeriod": 600
+						},
 						"PortMappings": [
 							{
 								"ContainerPort": ${environment.containerPort},
@@ -389,7 +396,7 @@
 						}
 					}
 				],
-				"HealthCheckGracePeriodSeconds": 120
+				"HealthCheckGracePeriodSeconds": 600
 			}
 		},
 		"${environment.refName}ScalableTarget": {

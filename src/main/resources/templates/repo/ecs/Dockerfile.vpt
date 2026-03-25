@@ -2,7 +2,7 @@ FROM amazoncorretto:11
 
 # Install Tomcat 9
 ENV CATALINA_HOME=/opt/tomcat
-RUN yum install -y tar gzip && \
+RUN yum install -y tar gzip curl && \
     mkdir -p #[[${CATALINA_HOME}]]# && \
     curl -sL https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.98/bin/apache-tomcat-9.0.98.tar.gz \
       | tar xz --strip-components=1 -C #[[${CATALINA_HOME}]]# && \
