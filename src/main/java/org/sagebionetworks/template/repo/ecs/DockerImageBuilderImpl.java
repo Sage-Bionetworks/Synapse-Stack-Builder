@@ -26,6 +26,7 @@ public class DockerImageBuilderImpl implements DockerImageBuilder {
 
 	static final String TEMPLATE_DOCKERFILE = "templates/repo/ecs/Dockerfile.vpt";
 	static final String TEMPLATE_SERVER_XML = "templates/repo/ecs/server.xml.vpt";
+	static final String TEMPLATE_STARTUP_SH = "templates/repo/ecs/startup.sh.vpt";
 
 	private final ArtifactDownload downloader;
 	private final CertificateBuilder certificateBuilder;
@@ -99,6 +100,9 @@ public class DockerImageBuilderImpl implements DockerImageBuilder {
 			VelocityContext context = new VelocityContext();
 			context.put("containerPort", containerPort);
 			renderTemplate(TEMPLATE_SERVER_XML, context, new File(buildDir, "server.xml"));
+
+			// Render startup script (converts env vars to JVM -D flags)
+			renderTemplate(TEMPLATE_STARTUP_SH, context, new File(buildDir, "startup.sh"));
 
 			// Render Dockerfile template
 			int taskMemory = config.getIntegerProperty(PROPERTY_KEY_ECS_TASK_MEMORY);

@@ -1,0 +1,15 @@
+#!/bin/bash
+# Convert org.sagebionetworks.* environment variables to JVM -D system properties.
+# Elastic Beanstalk passes these as JVM system properties automatically;
+# ECS sets them as container environment variables. The application reads
+# them via System.getProperty(), so we convert them here.
+
+SYSPROPS=""
+while IFS='=' read -r name value; do
+    if [[ "$name" == org.sagebionetworks.* ]]; then
+        SYSPROPS="$SYSPROPS -D$name=$value"
+    fi
+done < <(env)
+
+export CATALINA_OPTS="$JAVA_OPTS $SYSPROPS"
+exec "$CATALINA_HOME/bin/catalina.sh" run
