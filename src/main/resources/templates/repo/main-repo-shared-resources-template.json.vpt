@@ -916,6 +916,10 @@
                                         { "Fn::ImportValue": "us-east-1-synapse-${stack}-cmk-SynapseDeploymentRoleArn"},
                                         { "Fn::GetAtt": [ "${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"] },
                                         { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/Deployment-Pipeline-CodeBuildServiceRole" },
+                                        #if($deploymentTarget == "ECS_FARGATE")
+                                        { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/repo-${stack}-${instance}-*-ecs-task-role" },
+                                        { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/workers-${stack}-${instance}-*-ecs-task-role" },
+                                        #end
                                         #if(${stack} == 'prod')
                                         { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Administrator_6620166dd0e7f1b6" }
                                         #else
