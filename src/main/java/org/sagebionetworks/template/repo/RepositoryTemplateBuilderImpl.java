@@ -354,8 +354,11 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		TargetGroup targetGroup = new TargetGroup(environment.getEnvironmentType(), stack, instance, number);
 		context.put("targetGroup", targetGroup);
 
-		// Load balancer alarms
+		// CloudWatch log descriptors for sidecar containers
 		EnvironmentType envType = environment.getEnvironmentType();
+		context.put(CLOUDWATCH_LOGS_DESCRIPTORS, cwlContextProvider.getLogDescriptors(envType));
+
+		// Load balancer alarms
 		java.util.List<LoadBalancerAlarm> alarms = loadBalancerAlarmsConfig.getOrDefault(envType, java.util.Collections.emptyList());
 		context.put(LOAD_BALANCER_ALARMS, alarms);
 

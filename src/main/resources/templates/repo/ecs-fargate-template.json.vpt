@@ -133,6 +133,15 @@
 				"RetentionInDays": 14
 			}
 		},
+		#foreach($logDesc in $logDescriptors)
+		"${environment.refName}${logDesc.logType}LogGroup": {
+			"Type": "AWS::Logs::LogGroup",
+			"Properties": {
+				"LogGroupName": "/ecs/${environment.name}/${logDesc.logType}",
+				"RetentionInDays": 30
+			}
+		},
+		#end
 		"${environment.refName}TaskExecutionRole": {
 			"Type": "AWS::IAM::Role",
 			"Properties": {
@@ -197,6 +206,11 @@
 				"TaskRoleArn": {
 					"Fn::GetAtt": ["${environment.refName}TaskRole", "Arn"]
 				},
+				"Volumes": [
+					{
+						"Name": "app-logs"
+					}
+				],
 				"ContainerDefinitions": [
 					{
 						"Name": "${environment.name}",
@@ -209,6 +223,13 @@
 							"Retries": 3,
 							"StartPeriod": 300
 						},
+						"MountPoints": [
+							{
+								"SourceVolume": "app-logs",
+								"ContainerPath": "/tmp",
+								"ReadOnly": false
+							}
+						],
 						"PortMappings": [
 							{
 								"ContainerPort": ${environment.containerPort},
@@ -355,6 +376,38 @@
 							#end
 						]
 					}
+					#foreach($logDesc in $logDescriptors)
+					,
+					{
+						"Name": "${environment.name}-log-${logDesc.logType.toString().toLowerCase()}",
+						"Image": "public.ecr.aws/amazonlinux/amazonlinux:2023-minimal",
+						"Essential": false,
+						"Command": ["sh", "-c", "while [ ! -f $LOG_FILE ]; do sleep 2; done; tail -F $LOG_FILE"],
+						"Environment": [
+							{
+								"Name": "LOG_FILE",
+								"Value": "$logDesc.logPath.replace('/var/cache/tomcat9/temp/', '/logs/')"
+							}
+						],
+						"MountPoints": [
+							{
+								"SourceVolume": "app-logs",
+								"ContainerPath": "/logs",
+								"ReadOnly": true
+							}
+						],
+						"LogConfiguration": {
+							"LogDriver": "awslogs",
+							"Options": {
+								"awslogs-group": {
+									"Ref": "${environment.refName}${logDesc.logType}LogGroup"
+								},
+								"awslogs-region": "us-east-1",
+								"awslogs-stream-prefix": "ecs"
+							}
+						}
+					}
+					#end
 				]
 			}
 		},
