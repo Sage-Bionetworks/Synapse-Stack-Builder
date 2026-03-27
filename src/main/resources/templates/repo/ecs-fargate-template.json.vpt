@@ -189,6 +189,26 @@
 						"Fn::ImportValue": "${sharedExportPrefix}-RepoWorkers-Bedrock-Managed-Policy-ARN"
 					}
 					#end
+				],
+				"Policies": [
+					{
+						"PolicyName": "${environment.name}-ecs-exec-policy",
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [
+								{
+									"Effect": "Allow",
+									"Action": [
+										"ssmmessages:CreateControlChannel",
+										"ssmmessages:CreateDataChannel",
+										"ssmmessages:OpenControlChannel",
+										"ssmmessages:OpenDataChannel"
+									],
+									"Resource": "*"
+								}
+							]
+						}
+					}
 				]
 			}
 		},
@@ -413,6 +433,7 @@
 				"${environment.refName}HttpListener"
 			],
 			"Properties": {
+				"EnableExecuteCommand": true,
 				"ServiceName": "${environment.name}",
 				"Cluster": {
 					"Fn::ImportValue": "${sharedExportPrefix}-ECS-Cluster-ARN"
