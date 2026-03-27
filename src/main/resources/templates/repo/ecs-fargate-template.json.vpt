@@ -379,16 +379,11 @@
 					#foreach($logDesc in $logDescriptors)
 					,
 					{
+						#set($ecsLogPath = $logDesc.logPath.replace("/var/cache/tomcat9/temp/", "/logs/"))
 						"Name": "${environment.name}-log-${logDesc.logType.toString().toLowerCase()}",
 						"Image": "public.ecr.aws/amazonlinux/amazonlinux:2023-minimal",
 						"Essential": false,
-						"Command": ["sh", "-c", "while [ ! -f $LOG_FILE ]; do sleep 2; done; tail -F $LOG_FILE"],
-						"Environment": [
-							{
-								"Name": "LOG_FILE",
-								"Value": "$logDesc.logPath.replace('/var/cache/tomcat9/temp/', '/logs/')"
-							}
-						],
+						"Command": ["sh", "-c", "while [ ! -f ${ecsLogPath} ]; do sleep 2; done; tail -F ${ecsLogPath}"],
 						"MountPoints": [
 							{
 								"SourceVolume": "app-logs",
