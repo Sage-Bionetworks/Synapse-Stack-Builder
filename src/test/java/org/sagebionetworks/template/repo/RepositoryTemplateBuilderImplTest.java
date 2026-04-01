@@ -69,7 +69,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_COL
 import static org.sagebionetworks.template.Constants.REPO_BEANSTALK_NUMBER;
 import static org.sagebionetworks.template.Constants.SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT;
 import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.SHARED_RESOUCES_STACK_NAME;
+import static org.sagebionetworks.template.Constants.SHARED_RESOURCES_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
 import static org.sagebionetworks.template.Constants.TEMPLATE_BEAN_STALK_ENVIRONMENT;
@@ -1043,7 +1043,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("dev", context.get(STACK));
 		assertEquals("101", context.get(INSTANCE));
 		assertEquals("Green", context.get(VPC_SUBNET_COLOR));
-		assertEquals("dev-101-shared-resources", context.get(SHARED_RESOUCES_STACK_NAME));
+		assertEquals("dev-101-shared-resources", context.get(SHARED_RESOURCES_STACK_NAME));
 		assertEquals("us-east-1-synapse-dev-vpc-2", context.get(VPC_EXPORT_PREFIX));
 		
 		assertEquals("Count:{}", context.get(ADMIN_RULE_ACTION));
@@ -1127,7 +1127,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("prod", context.get(STACK));
 		assertEquals("101", context.get(INSTANCE));
 		assertEquals("Green", context.get(VPC_SUBNET_COLOR));
-		assertEquals("prod-101-shared-resources", context.get(SHARED_RESOUCES_STACK_NAME));
+		assertEquals("prod-101-shared-resources", context.get(SHARED_RESOURCES_STACK_NAME));
 		assertEquals("us-east-1-synapse-prod-vpc-2", context.get(VPC_EXPORT_PREFIX));
 		
 		assertEquals("Block:{}", context.get(ADMIN_RULE_ACTION));

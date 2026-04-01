@@ -249,7 +249,7 @@
 						"MountPoints": [
 							{
 								"SourceVolume": "app-logs",
-								"ContainerPath": "/opt/tomcat/temp",
+								"ContainerPath": "/usr/local/tomcat/temp",
 								"ReadOnly": false
 							}
 						],

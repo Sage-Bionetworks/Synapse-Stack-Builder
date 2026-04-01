@@ -1,16 +1,7 @@
-#
-# Previously we used tomcat:9-jdk11-corretto
-#
-FROM amazoncorretto:11
+FROM tomcat:9-jdk11-corretto
 
-# Install Tomcat 9
-ENV CATALINA_HOME=/opt/tomcat
-RUN yum install -y tar gzip curl && \
-    mkdir -p #[[${CATALINA_HOME}]]# && \
-    curl -sL https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.98/bin/apache-tomcat-9.0.98.tar.gz \
-      | tar xz --strip-components=1 -C #[[${CATALINA_HOME}]]# && \
-    rm -rf #[[${CATALINA_HOME}]]#/webapps/* && \
-    yum clean all
+# Remove default webapps
+RUN rm -rf #[[${CATALINA_HOME}]]#/webapps/*
 
 # Tomcat server.xml with HTTPS connector, compression, and ErrorReportValve
 COPY server.xml #[[${CATALINA_HOME}]]#/conf/server.xml
@@ -20,14 +11,12 @@ COPY server.crt #[[${CATALINA_HOME}]]#/conf/server.crt
 COPY server.key #[[${CATALINA_HOME}]]#/conf/server.key
 
 # Create PKCS12 keystore from cert and key for Tomcat
-RUN yum install -y openssl && \
-    openssl pkcs12 -export \
+RUN openssl pkcs12 -export \
       -in #[[${CATALINA_HOME}]]#/conf/server.crt \
       -inkey #[[${CATALINA_HOME}]]#/conf/server.key \
       -out #[[${CATALINA_HOME}]]#/conf/server.keystore \
       -name tomcat \
-      -passout pass:changeit && \
-    yum clean all
+      -passout pass:changeit
 
 # Deploy application WAR
 COPY ${warFileName} #[[${CATALINA_HOME}]]#/webapps/ROOT.war

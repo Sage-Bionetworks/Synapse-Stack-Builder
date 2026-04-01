@@ -176,7 +176,7 @@ public class Constants {
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
 	public static final String TEMPLATES_VPC_PUBLIC_SUBNETS_JSON_VTP = "templates/vpc/public-subnets-resources.json.vtp";
 	public static final String TEMPLATES_VPC_PRIVATE_SUBNET_JSON_VTP = "templates/vpc/private-subnet-resources.json.vtp";
-	public static final String TEMPLATE_SHARED_RESOUCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";
+	public static final String TEMPLATE_SHARED_RESOURCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";
 	public static final String TEMPLATE_BEAN_STALK_ENVIRONMENT = "templates/repo/elasticbeanstalk-template.json.vpt";
 	public static final String TEMPLATE_ID_GENERATOR = "templates/repo/id-generator-template.json.vpt";
 	public static final String TEMPLATE_GLOBAL_RESOURCES = "templates/global/global-template.json.vpt";
@@ -212,7 +212,7 @@ public class Constants {
 	public static final String VPC_SUBNET_COLOR = "subnetGroupColor";
 	public static final String STACK = "stack";
 	public static final String INSTANCE = "instance";
-	public static final String SHARED_RESOUCES_STACK_NAME = "sharedRresourcesStackName";
+	public static final String SHARED_RESOURCES_STACK_NAME = "sharedRresourcesStackName";
 	public static final String VPC_EXPORT_PREFIX = "vpcExportPrefix";
 	public static final String SHARED_EXPORT_PREFIX = "sharedExportPrefix";
 	public static final String GLOBAL_RESOURCES_EXPORT_PREFIX = "globalResourcesExportPrefix";

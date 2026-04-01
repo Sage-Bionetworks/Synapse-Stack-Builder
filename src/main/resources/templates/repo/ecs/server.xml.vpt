@@ -13,7 +13,7 @@
                SSLEnabled="true"
                scheme="https"
                secure="true"
-               keystoreFile="/opt/tomcat/conf/server.keystore"
+               keystoreFile="${catalina.home}/conf/server.keystore"
                keystorePass="changeit"
                keystoreType="PKCS12"
                clientAuth="false"

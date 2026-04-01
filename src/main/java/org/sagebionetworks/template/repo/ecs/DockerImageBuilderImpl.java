@@ -145,6 +145,8 @@ public class DockerImageBuilderImpl implements DockerImageBuilder {
 	}
 
 	void ecrLogin(String accountId, String region) {
+		// Since we can't avoid shelling out for Docker operations anyway, switching just the ECR auth 
+		// to a Java client would add complexity without eliminating the CLI dependency.
 		executeCommand("aws", "ecr", "get-login-password", "--region", region,
 				"|", "docker", "login", "--username", "AWS", "--password-stdin",
 				accountId + ".dkr.ecr." + region + ".amazonaws.com");

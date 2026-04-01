@@ -69,13 +69,13 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_COL
 import static org.sagebionetworks.template.Constants.REPO_BEANSTALK_NUMBER;
 import static org.sagebionetworks.template.Constants.SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT;
 import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.SHARED_RESOUCES_STACK_NAME;
+import static org.sagebionetworks.template.Constants.SHARED_RESOURCES_STACK_NAME;
 import static org.sagebionetworks.template.Constants.SOLUTION_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
 import static org.sagebionetworks.template.Constants.TEMPLATE_BEAN_STALK_ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.TEMPLATE_ECS_FARGATE_ENVIRONMENT;
-import static org.sagebionetworks.template.Constants.TEMPLATE_SHARED_RESOUCES_MAIN_JSON_VTP;
+import static org.sagebionetworks.template.Constants.TEMPLATE_SHARED_RESOURCES_MAIN_JSON_VTP;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
@@ -208,7 +208,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		// Create the shared-resource stack
 		String sharedResourceStackName = createSharedResourcesStackName();
 
-		buildAndDeployStack(context, sharedResourceStackName, TEMPLATE_SHARED_RESOUCES_MAIN_JSON_VTP, sharedParameters);
+		buildAndDeployStack(context, sharedResourceStackName, TEMPLATE_SHARED_RESOURCES_MAIN_JSON_VTP, sharedParameters);
 		// Wait for the shared resources to complete
 		Stack sharedStackResults = cloudFormationClientWrapper.waitForStackToComplete(sharedResourceStackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+sharedResourceStackName));
 				
@@ -222,15 +222,15 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 */
 	public List<String> buildEnvironments(Stack sharedStackResults) throws InterruptedException {
 		// Create the repo/worker secrets
-		SourceBundle secretsSouce = secretBuilder.createSecrets();
+		SourceBundle secretsSource = secretBuilder.createSecrets();
 
 		DeploymentTarget target = DeploymentTarget.valueOf(
 				config.getProperty(PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS));
 
 		if (target == DeploymentTarget.ECS_FARGATE) {
-			return buildEcsEnvironments(sharedStackResults, secretsSouce);
+			return buildEcsEnvironments(sharedStackResults, secretsSource);
 		} else {
-			return buildBeanstalkEnvironments(sharedStackResults, secretsSouce);
+			return buildBeanstalkEnvironments(sharedStackResults, secretsSource);
 		}
 	}
 
@@ -469,7 +469,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		context.put(MACHINE_TYPES, MACHINE_TYPE_LIST);
 		context.put(POOL_TYPES, POOL_TYPE_LIST);
 		context.put(VPC_SUBNET_COLOR, config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR));
-		context.put(SHARED_RESOUCES_STACK_NAME, createSharedResourcesStackName());
+		context.put(SHARED_RESOURCES_STACK_NAME, createSharedResourcesStackName());
 		context.put(GLOBAL_RESOURCES_EXPORT_PREFIX, Constants.createGlobalResourcesExportPrefix(stack));
 		context.put(VPC_EXPORT_PREFIX, Constants.createVpcExportPrefix(stack));
 		context.put(SHARED_EXPORT_PREFIX, createSharedExportPrefix());
@@ -659,15 +659,15 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	
 	/**
 	 * Extract the database end point suffix from the shared resources output.
-	 * @param sharedResouces
+	 * @param sharedResources
 	 * @return
 	 */
-	String extractDatabaseSuffix(Stack sharedResouces) {
+	String extractDatabaseSuffix(Stack sharedResources) {
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
 		String instance = config.getProperty(PROPERTY_KEY_INSTANCE);
 		String outputName = stack+instance+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
 		// find the database end point suffix
-		for(Output output: sharedResouces.outputs()) {
+		for(Output output: sharedResources.outputs()) {
 			if(outputName.equals(output.outputKey())){
 				String[] split = output.outputValue().split(stack+"-"+instance+"-db.");
 				return split[1];
