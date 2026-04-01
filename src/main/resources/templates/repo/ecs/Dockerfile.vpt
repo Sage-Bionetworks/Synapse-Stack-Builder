@@ -11,7 +11,8 @@ COPY server.crt #[[${CATALINA_HOME}]]#/conf/server.crt
 COPY server.key #[[${CATALINA_HOME}]]#/conf/server.key
 
 # Create PKCS12 keystore from cert and key for Tomcat
-RUN openssl pkcs12 -export \
+RUN yum install -y openssl && yum clean all && \
+    openssl pkcs12 -export \
       -in #[[${CATALINA_HOME}]]#/conf/server.crt \
       -inkey #[[${CATALINA_HOME}]]#/conf/server.key \
       -out #[[${CATALINA_HOME}]]#/conf/server.keystore \
