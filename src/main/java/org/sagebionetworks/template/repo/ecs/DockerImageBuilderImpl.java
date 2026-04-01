@@ -91,7 +91,8 @@ public class DockerImageBuilderImpl implements DockerImageBuilder {
 			writeFile(new File(buildDir, "server.key"), certPair.getPrivateKeyPEM());
 
 			// Copy WAR file
-			String warFileName = environment.getShortName() + ".war";
+			String s3Key = environment.createS3Key(version, number);
+			String warFileName = s3Key.substring(s3Key.lastIndexOf('/') + 1);
 			File destWar = new File(buildDir, warFileName);
 			Files.copy(warFile.toPath(), destWar.toPath());
 

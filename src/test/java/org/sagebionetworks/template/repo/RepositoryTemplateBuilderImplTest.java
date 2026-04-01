@@ -281,7 +281,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Test
 	public void testBuildAndDeployProd() throws InterruptedException {
 
-		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_TARGET)).thenReturn("BEANSTALK");
+		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS)).thenReturn("BEANSTALK");
 		when(mockStackTagsProvider.getStackTags(config)).thenReturn(expectedTags);
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
@@ -460,7 +460,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Test
 	public void testBuildAndDeployProdNoMonitoring() throws InterruptedException {
 
-		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_TARGET)).thenReturn("BEANSTALK");
+		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS)).thenReturn("BEANSTALK");
 		when(mockStackTagsProvider.getStackTags(config)).thenReturn(expectedTags);
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
@@ -582,7 +582,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Test
 	public void testBuildAndDeployDev() throws InterruptedException {
 
-		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_TARGET)).thenReturn("BEANSTALK");
+		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS)).thenReturn("BEANSTALK");
 		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(
 				Optional.of(Parameter.builder().parameterKey(PARAM_KEY_TIME_TO_LIVE).parameterValue("NONE").build()));
 		
@@ -732,7 +732,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Test
 	public void testBuildAndDeployDevFromSnapshot() throws InterruptedException {
 
-		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_TARGET)).thenReturn("BEANSTALK");
+		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS)).thenReturn("BEANSTALK");
 		when(mockStackTagsProvider.getStackTags(config)).thenReturn(expectedTags);
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
@@ -1010,7 +1010,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Test
 	public void testCreateContext() {
 
-		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_TARGET)).thenReturn("BEANSTALK");
+		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS)).thenReturn("BEANSTALK");
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
 		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
@@ -1094,7 +1094,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Test
 	public void testCreateContextProd() {
 		stack = "prod";
-		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_TARGET)).thenReturn("BEANSTALK");
+		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS)).thenReturn("BEANSTALK");
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
 		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
@@ -1558,7 +1558,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Test
 	public void testBuildEnvironmentsWithoutTTL() throws InterruptedException {
 
-		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_TARGET)).thenReturn("BEANSTALK");
+		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS)).thenReturn("BEANSTALK");
 		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
 		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(Optional.empty());
 
@@ -1585,7 +1585,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Test
 	public void testBuildEnvironmentsWithTTL() throws InterruptedException {
 
-		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_TARGET)).thenReturn("BEANSTALK");
+		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS)).thenReturn("BEANSTALK");
 		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
 		Parameter ttl = Parameter.builder().parameterKey("ttl").parameterValue("value").build();
 		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(Optional.of(ttl));

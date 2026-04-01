@@ -12,6 +12,7 @@ import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DATA_CDN_DOMAIN_NAME_FMT;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.DELETION_POLICY;
+import static org.sagebionetworks.template.Constants.DEPLOYMENT_TARGET;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_MEMORY;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
@@ -19,6 +20,7 @@ import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
 import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
+import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARMS;
 import static org.sagebionetworks.template.Constants.MACHINE_TYPES;
 import static org.sagebionetworks.template.Constants.NOSNAPSHOT;
 import static org.sagebionetworks.template.Constants.OAUTH_ENDPOINT;
@@ -32,8 +34,12 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_NUMB
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERSION;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_KEYPAIR_ID;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_MEMORY;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_TYPE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_CONTAINER_PORT;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_TASK_CPU;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_TASK_MEMORY;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT;
@@ -72,13 +78,6 @@ import static org.sagebionetworks.template.Constants.TEMPLATE_ECS_FARGATE_ENVIRO
 import static org.sagebionetworks.template.Constants.TEMPLATE_SHARED_RESOUCES_MAIN_JSON_VTP;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
-import static org.sagebionetworks.template.Constants.DEPLOYMENT_TARGET;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DEPLOYMENT_TARGET;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_TASK_CPU;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_TASK_MEMORY;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_CONTAINER_PORT;
-import static org.sagebionetworks.template.Constants.ECS_SUBNETS;
-import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARMS;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -226,7 +225,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		SourceBundle secretsSouce = secretBuilder.createSecrets();
 
 		DeploymentTarget target = DeploymentTarget.valueOf(
-				config.getProperty(PROPERTY_KEY_DEPLOYMENT_TARGET));
+				config.getProperty(PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS));
 
 		if (target == DeploymentTarget.ECS_FARGATE) {
 			return buildEcsEnvironments(sharedStackResults, secretsSouce);
@@ -490,7 +489,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		RegularExpressions.bindRegexToContext(context);
 
 		// Deployment target for conditional resources in shared template
-		String deploymentTarget = config.getProperty(PROPERTY_KEY_DEPLOYMENT_TARGET);
+		String deploymentTarget = config.getProperty(PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS);
 		context.put(DEPLOYMENT_TARGET, deploymentTarget);
 
 		return context;

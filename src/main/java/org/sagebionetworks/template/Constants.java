@@ -298,7 +298,7 @@ public class Constants {
 	public static final String PROPERTY_KEY_DOCS_DESTINATION_BUCKET = "org.sagebionetworks.docs.destination";
 
 	// ECS Fargate deployment properties
-	public static final String PROPERTY_KEY_DEPLOYMENT_TARGET = "org.sagebionetworks.deployment.target";
+	public static final String PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS = "org.sagebionetworks.deployment.target";
 	public static final String PROPERTY_KEY_ECS_TASK_CPU = "org.sagebionetworks.ecs.task.cpu";
 	public static final String PROPERTY_KEY_ECS_TASK_MEMORY = "org.sagebionetworks.ecs.task.memory";
 	public static final String PROPERTY_KEY_ECS_CONTAINER_PORT = "org.sagebionetworks.ecs.container.port";

@@ -220,6 +220,9 @@
 				"Memory": "${environment.memory}",
 				"NetworkMode": "awsvpc",
 				"RequiresCompatibilities": ["FARGATE"],
+				"EphemeralStorage": {
+					"SizeInGiB": 160
+				},
 				"ExecutionRoleArn": {
 					"Fn::GetAtt": ["${environment.refName}TaskExecutionRole", "Arn"]
 				},
