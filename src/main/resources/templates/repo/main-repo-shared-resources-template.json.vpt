@@ -334,7 +334,7 @@
 				"ClusterSettings": [
 					{
 						"Name": "containerInsights",
-						"Value": "enabled"
+						"Value": "enhanced"
 					}
 				]
 			}
