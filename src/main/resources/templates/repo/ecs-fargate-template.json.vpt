@@ -459,7 +459,7 @@
 						"AssignPublicIp": "DISABLED",
 						"SecurityGroups": [
 							{
-								"Fn::ImportValue": "${sharedExportPrefix}-ECS-Task-Security-Group-ID"
+								"Fn::ImportValue": "${sharedExportPrefix}-Beanstalk-Security-Group-ID"
 							}
 						],
 						"Subnets": [ #foreach($subnet in $ecsSubnetsList)"${subnet}"#if($foreach.hasNext),#end#end ]

@@ -72,7 +72,7 @@ import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.SHARED_RESOURCES_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
-import static org.sagebionetworks.template.Constants.TEMPLATE_BEAN_STALK_ENVIRONMENT;
+import static org.sagebionetworks.template.Constants.TEMPLATE_BEANSTALK_ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
@@ -1578,8 +1578,8 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(mockTimeToLive).createTimeToLiveParameter();
 		verify(builderSpy).createEnvironments(secretsSouce);
 		verify(builderSpy, times(2)).buildAndDeployStack(any(), any(), any(), any());
-		verify(builderSpy).buildAndDeployStack(mockContext, e1.getName(), TEMPLATE_BEAN_STALK_ENVIRONMENT, null);
-		verify(builderSpy).buildAndDeployStack(mockContext, e2.getName(), TEMPLATE_BEAN_STALK_ENVIRONMENT, null);
+		verify(builderSpy).buildAndDeployStack(mockContext, e1.getName(), TEMPLATE_BEANSTALK_ENVIRONMENT, null);
+		verify(builderSpy).buildAndDeployStack(mockContext, e2.getName(), TEMPLATE_BEANSTALK_ENVIRONMENT, null);
 	}
 
 	@Test
@@ -1606,8 +1606,8 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(mockTimeToLive).createTimeToLiveParameter();
 		verify(builderSpy).createEnvironments(secretsSouce);
 		verify(builderSpy, times(2)).buildAndDeployStack(any(), any(), any(), any());
-		verify(builderSpy).buildAndDeployStack(mockContext, e1.getName(), TEMPLATE_BEAN_STALK_ENVIRONMENT, ttl);
-		verify(builderSpy).buildAndDeployStack(mockContext, e2.getName(), TEMPLATE_BEAN_STALK_ENVIRONMENT, ttl);
+		verify(builderSpy).buildAndDeployStack(mockContext, e1.getName(), TEMPLATE_BEANSTALK_ENVIRONMENT, ttl);
+		verify(builderSpy).buildAndDeployStack(mockContext, e2.getName(), TEMPLATE_BEANSTALK_ENVIRONMENT, ttl);
 	}
 	
 	private void setupValidBeanstalkConfig() {

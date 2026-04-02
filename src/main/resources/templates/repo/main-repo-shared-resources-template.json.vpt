@@ -51,7 +51,7 @@
 					{
 						"Description": "Allow ECS Fargate tasks access to MySQL",
 						"SourceSecurityGroupId": {
-							"Ref": "${stack}${instance}EcsTaskSecurityGroup"
+							"Ref": "${stack}${instance}BeanstalkSecurityGroup"
 						},
 						"FromPort": "3306",
 						"ToPort": "3306",
@@ -339,44 +339,6 @@
 				]
 			}
 		},
-		"${stack}${instance}EcsTaskSecurityGroup": {
-			"Type": "AWS::EC2::SecurityGroup",
-			"Properties": {
-				"GroupDescription": "Security Group for ECS Fargate tasks in ${stack}${instance}",
-				"VpcId": {
-					"Fn::ImportValue": "${vpcExportPrefix}-VPCId"
-				},
-				"SecurityGroupIngress": [
-					{
-						"Description": "Allow traffic from load balancer on container port",
-						"SourceSecurityGroupId": {
-							"Ref": "${stack}${instance}LoadBalancerSecurityGroup"
-						},
-						"FromPort": "8443",
-						"ToPort": "8443",
-						"IpProtocol": "tcp"
-					}
-				],
-				"SecurityGroupEgress": [{
-					"CidrIp": "0.0.0.0/0",
-					"FromPort": "-1",
-					"ToPort": "-1",
-					"IpProtocol": "-1"
-				}],
-				"Tags": [
-					{
-						"Key": "Application",
-						"Value": {
-							"Ref": "AWS::StackName"
-						}
-					},
-					{
-						"Key": "Name",
-						"Value": "${stack}${instance}EcsTaskSecurityGroup"
-					}
-				]
-			}
-		},
 		#end
 		"${stack}${instance}BeanstalkSecurityGroup": {
             "Type": "AWS::EC2::SecurityGroup",
@@ -454,16 +416,6 @@
 						"ToPort": "443",
 						"IpProtocol": "tcp"
 					}
-					#if($deploymentTarget == "ECS_FARGATE")
-					,
-					{
-						"Description": "Allow traffic to ECS containers on port 8443",
-						"CidrIp": "0.0.0.0/0",
-						"FromPort": "8443",
-						"ToPort": "8443",
-						"IpProtocol": "tcp"
-					}
-					#end
                 ],
                 "Tags": [
 					{
@@ -1086,28 +1038,6 @@
 								"Ref": "AWS::StackName"
 							},
 							"ECS-Cluster-Name"
-						]
-					]
-				}
-			}
-		},
-		"EcsTaskSecurityGroupId": {
-			"Description": "The ID of the ECS Task security group",
-			"Value": {
-				"Ref": "${stack}${instance}EcsTaskSecurityGroup"
-			},
-			"Export": {
-				"Name": {
-					"Fn::Join": [
-						"-",
-						[
-							{
-								"Ref": "AWS::Region"
-							},
-							{
-								"Ref": "AWS::StackName"
-							},
-							"ECS-Task-Security-Group-ID"
 						]
 					]
 				}

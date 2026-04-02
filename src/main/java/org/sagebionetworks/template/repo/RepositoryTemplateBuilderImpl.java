@@ -73,7 +73,7 @@ import static org.sagebionetworks.template.Constants.SHARED_RESOURCES_STACK_NAME
 import static org.sagebionetworks.template.Constants.SOLUTION_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
-import static org.sagebionetworks.template.Constants.TEMPLATE_BEAN_STALK_ENVIRONMENT;
+import static org.sagebionetworks.template.Constants.TEMPLATE_BEANSTALK_ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.TEMPLATE_ECS_FARGATE_ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.TEMPLATE_SHARED_RESOURCES_MAIN_JSON_VTP;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
@@ -244,7 +244,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		for (EnvironmentDescriptor environment : createEnvironments(secrets)) {
 			VelocityContext context = createEnvironmentContext(sharedStackResults, environment);
 			environmentNames.add(environment.getName());
-			buildAndDeployStack(context, environment.getName(), TEMPLATE_BEAN_STALK_ENVIRONMENT, ttl);
+			buildAndDeployStack(context, environment.getName(), TEMPLATE_BEANSTALK_ENVIRONMENT, ttl);
 		}
 		return environmentNames;
 	}
