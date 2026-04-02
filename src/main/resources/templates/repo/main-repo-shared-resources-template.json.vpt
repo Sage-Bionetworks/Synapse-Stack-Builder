@@ -975,6 +975,7 @@
 				}
 			}
 		},
+		#end
 		"BeanstalkSecurityGroupId": {
 			"Description": "The ID of the Beanstalk security group",
 			"Value": {
@@ -997,7 +998,6 @@
 				}
 			}
 		},
-		#end
 		#if($deploymentTarget == "ECS_FARGATE")
 		"EcsClusterArn": {
 			"Description": "The ARN of the ECS Cluster",
