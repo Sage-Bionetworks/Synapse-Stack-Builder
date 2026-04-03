@@ -24,6 +24,7 @@
 
     <Engine name="Catalina" defaultHost="localhost">
       <Host name="localhost" appBase="webapps" unpackWARs="true" autoDeploy="true">
+        <Context docBase="${warFileName}" path="" />
         <Valve className="org.apache.catalina.valves.ErrorReportValve" showReport="false" showServerInfo="false" />
       </Host>
     </Engine>

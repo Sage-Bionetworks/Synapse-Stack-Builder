@@ -100,6 +100,7 @@ public class DockerImageBuilderImpl implements DockerImageBuilder {
 			int containerPort = config.getIntegerProperty(PROPERTY_KEY_ECS_CONTAINER_PORT);
 			VelocityContext context = new VelocityContext();
 			context.put("containerPort", containerPort);
+			context.put("warFileName", warFileName);
 			renderTemplate(TEMPLATE_SERVER_XML, context, new File(buildDir, "server.xml"));
 
 			// Render startup script (converts env vars to JVM -D flags)
@@ -107,7 +108,6 @@ public class DockerImageBuilderImpl implements DockerImageBuilder {
 
 			// Render Dockerfile template
 			int taskMemory = config.getIntegerProperty(PROPERTY_KEY_ECS_TASK_MEMORY);
-			context.put("warFileName", warFileName);
 			context.put("taskMemory", taskMemory);
 			renderTemplate(TEMPLATE_DOCKERFILE, context, new File(buildDir, "Dockerfile"));
 

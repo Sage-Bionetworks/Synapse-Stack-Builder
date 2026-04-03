@@ -20,7 +20,7 @@ RUN yum install -y openssl && yum clean all && \
       -passout pass:changeit
 
 # Deploy application WAR
-COPY ${warFileName} #[[${CATALINA_HOME}]]#/webapps/ROOT.war
+COPY ${warFileName} #[[${CATALINA_HOME}]]#/webapps/${warFileName}
 
 # Startup script that converts org.sagebionetworks.* environment variables to JVM -D flags
 # Beanstalk passes these as JVM system properties; ECS sets them as env vars.
