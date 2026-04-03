@@ -46,10 +46,9 @@
 						"ToPort": "3306",
 						"IpProtocol": "tcp"
 					}
-					#if($deploymentTarget == "ECS_FARGATE")
 					,
 					{
-						"Description": "Allow ECS Fargate tasks access to MySQL",
+						"Description": "Allow instances in BeanstalkSecurityGroup access to MySQL",
 						"SourceSecurityGroupId": {
 							"Ref": "${stack}${instance}BeanstalkSecurityGroup"
 						},
@@ -57,7 +56,6 @@
 						"ToPort": "3306",
 						"IpProtocol": "tcp"
 					}
-					#end
 				],
 				"Tags": [
 					{
