@@ -928,6 +928,133 @@ public class S3BucketBuilderImplTest {
 	}
 	
 	@Test
+	public void testBuildAllBucketsWithNoRetentionDaysAndExistingRetentionRule() throws InterruptedException {
+
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		bucket.setName("${stack}.bucket");
+		// No retention days set (null)
+		
+		String expectedBucketName = stack + ".bucket";
+		
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = Stack.builder().build();
+
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
+		
+		// Mimics an existing life cycle with a retention rule already present that should be removed
+		when(mockS3Client.getBucketLifecycleConfiguration(anyString())).thenReturn(new BucketLifecycleConfiguration()
+			.withRules(
+				allBucketRule(S3BucketBuilderImpl.RULE_ID_ABORT_MULTIPART_UPLOADS).withAbortIncompleteMultipartUpload(new AbortIncompleteMultipartUpload().withDaysAfterInitiation(S3BucketBuilderImpl.ABORT_MULTIPART_UPLOAD_DAYS)),
+				allBucketRule(S3BucketBuilderImpl.RULE_ID_RETENTION).withExpirationInDays(30)
+			)
+		);
+
+		// Call under test
+		builder.buildAllBuckets();
+
+		verify(mockS3Client).createBucket(expectedBucketName);
+		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
+		
+		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
+		
+		verify(mockS3Client).setBucketLifecycleConfiguration(eq(expectedBucketName), bucketLifeCycleConfigurationCaptor.capture());
+		
+		BucketLifecycleConfiguration config = bucketLifeCycleConfigurationCaptor.getValue();
+		
+		// Should only have 1 rule now (abort multipart), retention rule should be removed
+		assertEquals(1, config.getRules().size());
+		
+		Rule rule = config.getRules().get(0);
+		
+		assertEquals(S3BucketBuilderImpl.RULE_ID_ABORT_MULTIPART_UPLOADS, rule.getId());
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
+	}
+	
+	@Test
+	public void testBuildAllBucketsWithNoRetentionDaysAndNoExistingRetentionRule() throws InterruptedException {
+
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		bucket.setName("${stack}.bucket");
+		// No retention days set (null)
+		
+		String expectedBucketName = stack + ".bucket";
+		
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		Stack bucketPolicyStack = Stack.builder().build();
+
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
+		
+		// Mimics an existing life cycle with no retention rule present
+		when(mockS3Client.getBucketLifecycleConfiguration(anyString())).thenReturn(new BucketLifecycleConfiguration()
+			.withRules(
+				allBucketRule(S3BucketBuilderImpl.RULE_ID_ABORT_MULTIPART_UPLOADS).withAbortIncompleteMultipartUpload(new AbortIncompleteMultipartUpload().withDaysAfterInitiation(S3BucketBuilderImpl.ABORT_MULTIPART_UPLOAD_DAYS))
+			)
+		);
+
+		// Call under test
+		builder.buildAllBuckets();
+
+		verify(mockS3Client).createBucket(expectedBucketName);
+		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
+		
+		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
+		
+		// Should not update lifecycle configuration since no changes are needed
+		verify(mockS3Client, never()).setBucketLifecycleConfiguration(any(), any());
+
+		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
+
+		VelocityContext context = velocityContextCaptor.getValue();
+
+		assertEquals(context.get(Constants.STACK), stack);
+
+		String expectedStackName = stack + "-synapse-bucket-policies";
+
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(new CreateOrUpdateStackRequest()
+				.withStackName(expectedStackName)
+				.withTemplateBody("{}")
+				.withTags(Collections.emptyList()));
+
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete(expectedStackName);
+		verify(mockCloudFormationClientWrapper).describeStack(expectedStackName);
+	}
+	
+	@Test
 	public void testBuildAllBucketsWithTransitionRule() throws InterruptedException {
 
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
