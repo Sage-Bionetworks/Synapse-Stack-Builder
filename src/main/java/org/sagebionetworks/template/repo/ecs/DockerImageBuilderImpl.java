@@ -98,7 +98,7 @@ public class DockerImageBuilderImpl implements DockerImageBuilder {
 			executeCommand(
 				"yum install -y openssl",
 				"&& yum clean all",
-				"&& openssl openssl pkcs12 -export ",
+				"&& openssl pkcs12 -export",
 				"-in", serverCrt.getAbsolutePath(),
 				"-inkey", serverKey.getAbsolutePath(),
 				"-out", serverKeystore.getAbsolutePath(),
