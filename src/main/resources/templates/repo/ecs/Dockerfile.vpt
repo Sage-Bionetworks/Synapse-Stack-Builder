@@ -9,15 +9,7 @@ COPY server.xml #[[${CATALINA_HOME}]]#/conf/server.xml
 # Self-signed TLS certificate for HTTPS on container port
 COPY server.crt #[[${CATALINA_HOME}]]#/conf/server.crt
 COPY server.key #[[${CATALINA_HOME}]]#/conf/server.key
-
-# Create PKCS12 keystore from cert and key for Tomcat
-RUN yum install -y openssl && yum clean all && \
-    openssl pkcs12 -export \
-      -in #[[${CATALINA_HOME}]]#/conf/server.crt \
-      -inkey #[[${CATALINA_HOME}]]#/conf/server.key \
-      -out #[[${CATALINA_HOME}]]#/conf/server.keystore \
-      -name tomcat \
-      -passout pass:changeit
+COPY server.keystore #[[${CATALINA_HOME}]]#/conf/server.keystore
 
 # Deploy application WAR
 COPY ${warFileName} #[[${CATALINA_HOME}]]#/webapps/${warFileName}
@@ -29,7 +21,7 @@ COPY startup.sh #[[${CATALINA_HOME}]]#/bin/startup.sh
 RUN chmod +x #[[${CATALINA_HOME}]]#/bin/startup.sh
 
 # Base JVM options
-ENV JAVA_OPTS="-Xms2048m -Xmx${taskMemory}m -Dlog4j2.formatMsgNoLookups=true"
+ENV JAVA_OPTS="-Xms2048m -Xmx${jvmMemory}m -Dlog4j2.formatMsgNoLookups=true"
 
 EXPOSE ${containerPort}
 

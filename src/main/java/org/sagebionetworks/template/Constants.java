@@ -21,16 +21,7 @@ public class Constants {
 	public static final String LOAD_BALANCER_ALARM_CONFIG_FILE = "templates/repo/elasticbeanstalk-alarms-config.json";
 	public static final String ATHENA_QUERIES_CONFIG_FILE = "templates/repo/athena-queries-config.json";
 
-	public static final String ROUTE53_DEV_SAGEBASE_ORG_DNS_CONFIG_FILE = "templates/dns/dev_sagebase_org_dns.json";
-	public static final String ROUTE53_PROD_SAGEBASE_ORG_DNS_CONFIG_FILE = "templates/dns/prod_sagebase_org_dns.json";
-	public static final String ROUTE53_PROD_SYNAPSE_ORG_DNS_CONFIG_FILE = "templates/dns/prod_synapse_org_dns.json";
-
-	public static final String ROUTE53_PROD_PORTALS_DNS_CONFIG_FILE = "templates/dns/prod_portals_dns.json";
-	public static final String ROUTE53_PROD_DOCS_CLIENT_DNS_CONFIG_FILE = "templates/dns/prod_docs_clients_dns.json";
-	public static final String TEMPLATE_RESOURCE_PATH = "templates/dns/%s_dns.json";
-
 	public static final String DATAWAREHOUSE_CONFIG_FILE = "templates/datawarehouse/datawarehouse-config.json";
-	public static final String GITHUB_CONFIG_FILE = "templates/repo/github-path-config.json";
 	/**
 	 * A VPC peering role ARN must start with this prefix.
 	 */
@@ -50,18 +41,12 @@ public class Constants {
 
 	// CloudFormation Parameter names.
 	// VPC
-	public static final String PARAMETER_VPN_CIDR = "VpnCidr";
 	public static final String PARAMETER_VPN_CIDR_NEW = "VpnCidrNew";
-	public static final String PARAMETER_VPC_SUBNET_PREFIX = "VpcSubnetPrefix";
 	// repo
 	public static final String PARAMETER_MYSQL_PASSWORD = "MySQLDatabaseMasterPassword";
-	public static final String PARAMETER_ENCRYPTION_KEY = "EncryptionKey";
-	public static final String PARAMETER_AWS_SECRET = "AwsSecret";
-	public static final String PARAMETER_AWS_KEY = "AwsKey";
 	
 	// input property keys
 	// vpc
-	public static final String PROPERTY_KEY_VPC_VPN_CIDR = "org.sagebionetworks.vpc.vpn.cidr";
 	public static final String PROPERTY_KEY_VPC_VPN_CIDR_NEW = "org.sagebionetworks.vpc.vpn.cidr.new";
 	public static final String PROPERTY_KEY_VPC_AVAILABILITY_ZONES = "org.sagebionetworks.vpc.availability.zones";
 	public static final String PROPERTY_KEY_VPC_SUBNET_PREFIX = "org.sagebionetworks.vpc.subnet.prefix";
@@ -69,7 +54,6 @@ public class Constants {
 	public static final String PROPERTY_KEY_VPC_ENDPOINTS_COLOR = "org.sagebionetworks.vpc.endpoints.color";
 	public static final String PROPERTY_KEY_VPC_ENDPOINTS_AZ = "org.sagebionetworks.vpc.endpoints.availability.zones";
 	public static final String PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN = "org.sagebionetworks.vpc.peering.accept.role.arn";
-	public static final String PROPERTY_KEY_OLD_VPC_CIDR = "org.sagebionetworks.vpc.old.vpc.cidr";
 	public static final String PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX = "org.sagebionetworks.vpc.ops.export.prefix";
 	
 	// repo
@@ -97,9 +81,6 @@ public class Constants {
 	public static final String PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS = "org.sagebionetworks.tables.rds.instance.class";
 	public static final String PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE = "org.sagebionetworks.tables.rds.allocated.storage";
 	public static final String PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE = "org.sagebionetworks.tables.rds.max.allocated.storage";
-	public static final String PROPERTY_KEY_BEANSTALK_ENCRYPTION_KEY = "org.sagebionetworks.beanstalk.encryption.key";
-	public static final String PROPERTY_KEY_AWS_SECRET_KEY = "aws.secretKey";
-	public static final String PROPERTY_KEY_AWS_ACCESS_KEY_ID = "aws.accessKeyId";
 	public static final String PROPERTY_KEY_BEANSTALK_MAX_INSTANCES = "org.sagebionetworks.beanstalk.max.instances.";
 	public static final String PROPERTY_KEY_BEANSTALK_MIN_INSTANCES = "org.sagebionetworks.beanstalk.min.instances.";
 	public static final String PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL = "org.sagebionetworks.beanstalk.health.check.url.";
@@ -216,12 +197,10 @@ public class Constants {
 	public static final String VPC_EXPORT_PREFIX = "vpcExportPrefix";
 	public static final String SHARED_EXPORT_PREFIX = "sharedExportPrefix";
 	public static final String GLOBAL_RESOURCES_EXPORT_PREFIX = "globalResourcesExportPrefix";
-	public static final String PROPS = "props";
 	public static final String PEER_ROLE_ARN = "peerRoleArn";
 	public static final String AVAILABILITY_ZONES = "availabilityZones";
 	public static final String DATABASE_DESCRIPTORS = "databaseDescriptors";
 	public static final String ENVIRONMENT = "environment";
-	public static final String REPO_NUMBER = "repoNumber";
 	public static final String DB_ENDPOINT_SUFFIX = "dbEndpointSuffix";
 	public static final String REPO_BEANSTALK_NUMBER = "repoBeanstalkNumber";
 	public static final String STACK_CMK_ALIAS = "stackCMKAlias";
@@ -307,12 +286,8 @@ public class Constants {
 	public static final String TEMPLATE_ECS_FARGATE_ENVIRONMENT = "templates/repo/ecs-fargate-template.json.vpt";
 
 	// ECS context keys
-	public static final String ECS_CLUSTER_NAME = "ecsClusterName";
-	public static final String ECS_TASK_CPU = "ecsTaskCpu";
-	public static final String ECS_TASK_MEMORY = "ecsTaskMemory";
-	public static final String ECS_CONTAINER_PORT = "ecsContainerPort";
+	public static final double ECS_JVM_MEMORY_FRACTION = 0.85;
 	public static final String DEPLOYMENT_TARGET = "deploymentTarget";
-	public static final String ECS_SUBNETS = "ecsSubnets";
 
 	public static final String MACHINE_TYPES = "machineTypes";
 	public static final String POOL_TYPES = "poolTypes";

@@ -19,6 +19,7 @@ import org.sagebionetworks.template.utils.ArtifactDownload;
 
 import com.google.inject.Inject;
 
+import static org.sagebionetworks.template.Constants.ECS_JVM_MEMORY_FRACTION;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_CONTAINER_PORT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_TASK_MEMORY;
 
@@ -53,7 +54,7 @@ public class DockerImageBuilderImpl implements DockerImageBuilder {
 		try {
 			buildContext = createBuildContext(warFile, environment, version, number);
 			String imageTag = stack + "-" + instance + "-" + version + "-" + number;
-			String ecrRepoName = getEcrRepositoryName(environment);
+			String ecrRepoName = getEcrRepositoryName(environment, stack);
 
 			// Get the AWS account ID and region for the ECR URI
 			String accountId = getAwsAccountId();
@@ -87,8 +88,23 @@ public class DockerImageBuilderImpl implements DockerImageBuilder {
 			CertificatePair certPair = certificateBuilder.buildNewX509CertificatePair();
 
 			// Write certificate and key files
-			writeFile(new File(buildDir, "server.crt"), certPair.getX509CertificatePEM());
-			writeFile(new File(buildDir, "server.key"), certPair.getPrivateKeyPEM());
+			File serverCrt = new File(buildDir, "server.crt");
+			File serverKey = new File(buildDir, "server.key");
+			writeFile(serverCrt, certPair.getX509CertificatePEM());
+			writeFile(serverKey, certPair.getPrivateKeyPEM());
+			
+			// create the server.keystore file from the server.crt and server.key files
+			File serverKeystore = new File(buildDir, "server.keystore");
+			executeCommand(
+				"yum install -y openssl",
+				"&& yum clean all",
+				"&& openssl openssl pkcs12 -export ",
+				"-in", serverCrt.getAbsolutePath(),
+				"-inkey", serverKey.getAbsolutePath(),
+				"-out", serverKeystore.getAbsolutePath(),
+				"-name tomcat",
+				"-passout pass:changeit"
+			);
 
 			// Copy WAR file
 			String s3Key = environment.createS3Key(version, number);
@@ -108,7 +124,8 @@ public class DockerImageBuilderImpl implements DockerImageBuilder {
 
 			// Render Dockerfile template
 			int taskMemory = config.getIntegerProperty(PROPERTY_KEY_ECS_TASK_MEMORY);
-			context.put("taskMemory", taskMemory);
+			int jvmMemory = (int) (taskMemory * ECS_JVM_MEMORY_FRACTION);
+			context.put("jvmMemory", jvmMemory);
 			renderTemplate(TEMPLATE_DOCKERFILE, context, new File(buildDir, "Dockerfile"));
 
 			return buildDir;
@@ -124,8 +141,8 @@ public class DockerImageBuilderImpl implements DockerImageBuilder {
 		writeFile(outputFile, writer.toString());
 	}
 
-	String getEcrRepositoryName(EnvironmentType environment) {
-		return "synapse-" + environment.getShortName();
+	String getEcrRepositoryName(EnvironmentType environment, String stack) {
+		return stack+"-synapse-" + environment.getShortName();
 	}
 
 	String getAwsAccountId() {

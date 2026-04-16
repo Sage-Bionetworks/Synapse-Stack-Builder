@@ -227,10 +227,13 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		DeploymentTarget target = DeploymentTarget.valueOf(
 				config.getProperty(PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS));
 
-		if (target == DeploymentTarget.ECS_FARGATE) {
-			return buildEcsEnvironments(sharedStackResults, secretsSource);
-		} else {
-			return buildBeanstalkEnvironments(sharedStackResults, secretsSource);
+		switch (target) {
+			case ECS_FARGATE:
+				return buildEcsEnvironments(sharedStackResults, secretsSource);
+			case BEANSTALK:
+				return buildBeanstalkEnvironments(sharedStackResults, secretsSource);
+			default:
+				throw new IllegalArgumentException("Unknown deployment target: " + target);
 		}
 	}
 

@@ -46,16 +46,6 @@
 						"ToPort": "3306",
 						"IpProtocol": "tcp"
 					}
-					,
-					{
-						"Description": "Allow instances in BeanstalkSecurityGroup access to MySQL",
-						"SourceSecurityGroupId": {
-							"Ref": "${stack}${instance}BeanstalkSecurityGroup"
-						},
-						"FromPort": "3306",
-						"ToPort": "3306",
-						"IpProtocol": "tcp"
-					}
 				],
 				"Tags": [
 					{
@@ -338,10 +328,10 @@
 			}
 		},
 		#end
-		"${stack}${instance}BeanstalkSecurityGroup": {
+		"${stack}${instance}ServiceSecurityGroup": {
             "Type": "AWS::EC2::SecurityGroup",
             "Properties": {
-                "GroupDescription": "Security Group for all Bean Stalk EC2 instances in ${stack}${instance}",
+                "GroupDescription": "Security Group for Beanstalk and ECS service instances in ${stack}${instance}",
                 "VpcId": {
                     "Fn::ImportValue": "${vpcExportPrefix}-VPCId"
                 },
@@ -371,7 +361,7 @@
 					},
 					{
 						"Key": "Name",
-						"Value": "${stack}${instance}BeanstalkSecurityGroup"
+						"Value": "${stack}${instance}ServiceSecurityGroup"
 					}
 				]
             }
@@ -874,17 +864,18 @@
 								    "aws:PrincipalArn": [
                                         { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:root" },
                                         { "Fn::ImportValue": "us-east-1-synapse-${stack}-cmk-SynapseDeploymentRoleArn"},
-                                        { "Fn::GetAtt": [ "${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"] },
                                         { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/Deployment-Pipeline-CodeBuildServiceRole" },
                                         #if($deploymentTarget == "ECS_FARGATE")
                                         { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/repo-${stack}-${instance}-*-ecs-task-role" },
                                         { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/workers-${stack}-${instance}-*-ecs-task-role" },
+                                        #else
+                                        { "Fn::GetAtt": [ "${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"] },
                                         #end
                                         #if(${stack} == 'prod')
                                         { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Administrator_6620166dd0e7f1b6" }
                                         #else
                                         { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Administrator_693a85eb20cd5043" },
-                                        { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/Synapse-Build-${instance}-CodeBuildServiceRole" },
+                                        { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/Synapse-Build-${instance}-CodeBuildServiceRole" }
                                         #end
                                     ]
                                 }
@@ -974,10 +965,10 @@
 			}
 		},
 		#end
-		"BeanstalkSecurityGroupId": {
-			"Description": "The ID of the Beanstalk security group",
+		"ServiceSecurityGroupId": {
+			"Description": "The ID of the service security group",
 			"Value": {
-				"Ref": "${stack}${instance}BeanstalkSecurityGroup"
+				"Ref": "${stack}${instance}ServiceSecurityGroup"
 			},
 			"Export": {
 				"Name": {
@@ -990,7 +981,7 @@
 							{
 								"Ref": "AWS::StackName"
 							},
-							"Beanstalk-Security-Group-ID"
+							"Service-Security-Group-ID"
 						]
 					]
 				}

@@ -2,7 +2,7 @@
 		"SynapseRepoEcrRepository": {
 			"Type": "AWS::ECR::Repository",
 			"Properties": {
-				"RepositoryName": "synapse-repo",
+				"RepositoryName": "${stack}-synapse-repo",
 				"ImageScanningConfiguration": {
 					"ScanOnPush": true
 				},
@@ -14,7 +14,7 @@
 		"SynapseWorkersEcrRepository": {
 			"Type": "AWS::ECR::Repository",
 			"Properties": {
-				"RepositoryName": "synapse-workers",
+				"RepositoryName": "${stack}-synapse-workers",
 				"ImageScanningConfiguration": {
 					"ScanOnPush": true
 				},
@@ -26,7 +26,7 @@
 		"SynapsePortalEcrRepository": {
 			"Type": "AWS::ECR::Repository",
 			"Properties": {
-				"RepositoryName": "synapse-portal",
+				"RepositoryName": "${stack}-synapse-portal",
 				"ImageScanningConfiguration": {
 					"ScanOnPush": true
 				},

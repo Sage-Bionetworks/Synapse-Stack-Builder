@@ -72,7 +72,15 @@ import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.SHARED_RESOURCES_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
+import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_DESCRIPTORS;
+import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PREFIX;
+import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARMS;
+import static org.sagebionetworks.template.Constants.OAUTH_ENDPOINT;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_CONTAINER_PORT;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_TASK_CPU;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_TASK_MEMORY;
 import static org.sagebionetworks.template.Constants.TEMPLATE_BEANSTALK_ENVIRONMENT;
+import static org.sagebionetworks.template.Constants.TEMPLATE_ECS_FARGATE_ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
@@ -118,6 +126,7 @@ import org.sagebionetworks.template.repo.beanstalk.LoadBalancerAlarmsConfig;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
 import org.sagebionetworks.template.repo.ecs.DockerImageBuilder;
+import org.sagebionetworks.template.repo.ecs.EcsEnvironmentDescriptor;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogDescriptor;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
 import org.sagebionetworks.template.repo.grid.GridContextProvider;
@@ -1610,6 +1619,184 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(builderSpy).buildAndDeployStack(mockContext, e2.getName(), TEMPLATE_BEANSTALK_ENVIRONMENT, ttl);
 	}
 	
+	@Test
+	public void testCreateEcsEnvironments() {
+
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
+		when(config.getIntegerProperty(PROPERTY_KEY_ECS_TASK_CPU)).thenReturn(1024);
+		when(config.getIntegerProperty(PROPERTY_KEY_ECS_TASK_MEMORY)).thenReturn(4096);
+		when(config.getIntegerProperty(PROPERTY_KEY_ECS_CONTAINER_PORT)).thenReturn(8443);
+
+		for (EnvironmentType type : EnvironmentType.values()) {
+			String version = "version-" + type.getShortName();
+			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + type.getShortName())).thenReturn(0);
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName())).thenReturn(version);
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL + type.getShortName()))
+					.thenReturn("url-" + type.getShortName());
+			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MIN_INSTANCES + type.getShortName())).thenReturn(1);
+			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MAX_INSTANCES + type.getShortName())).thenReturn(2);
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN + type.getShortName())).thenReturn("the:ssl:arn");
+			when(config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE + type.getShortName())).thenReturn("synapes.org");
+		}
+
+		when(mockDockerImageBuilder.buildAndPushImage(any(), any(), anyInt(), any(), any())).thenReturn("123456.dkr.ecr.us-east-1.amazonaws.com/dev-synapse-repo:dev-101-version-repo-0");
+
+		// call under test
+		List<EcsEnvironmentDescriptor> descriptors = builder.createEcsEnvironments(secretsSouce);
+		assertNotNull(descriptors);
+		assertEquals(3, descriptors.size());
+		// repo
+		EcsEnvironmentDescriptor desc = descriptors.get(0);
+		assertEquals("repo", desc.getType());
+		assertEquals("repo-dev-101-0", desc.getName());
+		assertEquals("RepoDev1010", desc.getRefName());
+		assertEquals("url-repo", desc.getHealthCheckUrl());
+		assertEquals(1, desc.getMinTasks());
+		assertEquals(2, desc.getMaxTasks());
+		assertEquals(1024, desc.getCpu());
+		assertEquals(4096, desc.getMemory());
+		assertEquals(8443, desc.getContainerPort());
+		assertEquals("synapes.org", desc.getHostedZone());
+		assertEquals("the:ssl:arn", desc.getSslCertificateARN());
+		// secrets should be passed to repo
+		assertEquals(secretsSouce, desc.getSecretsSource());
+
+		// workers
+		desc = descriptors.get(1);
+		assertEquals("workers", desc.getType());
+		assertEquals("workers-dev-101-0", desc.getName());
+		assertEquals("WorkersDev1010", desc.getRefName());
+		assertEquals("url-workers", desc.getHealthCheckUrl());
+		// secrets should be passed to workers
+		assertEquals(secretsSouce, desc.getSecretsSource());
+
+		// portal
+		desc = descriptors.get(2);
+		assertEquals("portal", desc.getType());
+		assertEquals("portal-dev-101-0", desc.getName());
+		assertEquals("PortalDev1010", desc.getRefName());
+		assertEquals("url-portal", desc.getHealthCheckUrl());
+		// empty secrets should be passed to portal
+		assertEquals(null, desc.getSecretsSource());
+	}
+
+	@Test
+	public void testCreateEcsEnvironmentContext() {
+
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
+		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
+
+		when(config.getProperty((PROPERTY_KEY_OAUTH_ENDPOINT))).thenReturn("https://oauthendpoint");
+
+		when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + EnvironmentType.REPOSITORY_SERVICES.getShortName())).thenReturn(0);
+
+		when(mockSecretBuilder.getCMKAlias()).thenReturn(keyAlias);
+
+		when(mockCwlContextProvider.getLogDescriptors(any(EnvironmentType.class))).thenReturn(logDescriptors);
+
+		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
+		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
+				.thenReturn(String.join(",", EXPECTED_SUBNETS));
+		when(config.getProperty("org.sagebionetworks.cloudfront.keypair")).thenReturn("dataCdnKeyPairId");
+		when(config.getProperty("org.sagebionetworks.oauth2.sagebio.discoveryDocument")).thenReturn("discoveryDocumentUrl");
+		when(mockLoadBalancerAlarmsConfig.getOrDefault(any(), any())).thenReturn(java.util.Collections.emptyList());
+
+		EcsEnvironmentDescriptor environment = new EcsEnvironmentDescriptor()
+				.withType(EnvironmentType.REPOSITORY_SERVICES)
+				.withName("repo-dev-101-0")
+				.withRefName("RepoDev1010")
+				.withNumber(0)
+				.withCpu(1024).withMemory(4096).withContainerPort(8443);
+
+		// call under test
+		VelocityContext context = builder.createEcsEnvironmentContext(sharedResouces, environment);
+
+		assertNotNull(context);
+		assertEquals("dev", context.get(STACK));
+		assertEquals("101", context.get(INSTANCE));
+		assertEquals("Green", context.get(VPC_SUBNET_COLOR));
+		assertEquals("us-east-1-synapse-dev-vpc-2", context.get(VPC_EXPORT_PREFIX));
+		assertEquals("us-east-1-dev-101-shared-resources", context.get(SHARED_EXPORT_PREFIX));
+		assertEquals("us-east-1-synapse-dev-global-resources", context.get(GLOBAL_RESOURCES_EXPORT_PREFIX));
+		assertEquals(environment, context.get(ENVIRONMENT));
+		assertEquals(0, context.get(REPO_BEANSTALK_NUMBER));
+		assertEquals(keyAlias, context.get(STACK_CMK_ALIAS));
+		assertEquals(databaseEndpointSuffix, context.get(DB_ENDPOINT_SUFFIX));
+		assertEquals("https://oauthendpoint", context.get(OAUTH_ENDPOINT));
+		assertEquals("data.dev.sagebase.org", context.get(CTXT_KEY_DATA_CDN_DOMAIN_NAME));
+		assertEquals("dataCdnKeyPairId", context.get(CTXT_KEY_DATA_CDN_KEYPAIR_ID));
+		assertEquals("discoveryDocumentUrl", context.get(CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL));
+		assertEquals(EXPECTED_SUBNETS, context.get("ecsSubnetsList"));
+		assertNotNull(context.get("targetGroup"));
+		assertNotNull(context.get(CLOUDWATCH_LOGS_DESCRIPTORS));
+		assertNotNull(context.get(LOAD_BALANCER_ALARMS));
+	}
+
+	@Test
+	public void testBuildEcsEnvironmentsWithoutTTL() throws InterruptedException {
+
+		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS)).thenReturn("ECS_FARGATE");
+		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
+		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(Optional.empty());
+
+		EcsEnvironmentDescriptor e1 = new EcsEnvironmentDescriptor().withName("repo");
+		EcsEnvironmentDescriptor e2 = new EcsEnvironmentDescriptor().withName("portal");
+		doReturn(List.of(e1, e2)).when(builderSpy).createEcsEnvironments(any());
+
+		VelocityContext mockContext = Mockito.mock(VelocityContext.class);
+		doReturn(mockContext).when(builderSpy).createEcsEnvironmentContext(any(), any());
+
+		doNothing().when(builderSpy).buildAndDeployStack(any(), any(), any(), any());
+		when(mockCloudFormationClientWrapper.waitForStackToComplete(anyString())).thenReturn(Optional.of(sharedResouces));
+
+		// call under test
+		builderSpy.buildEnvironments(sharedResouces);
+
+		verify(mockSecretBuilder).createSecrets();
+		verify(mockTimeToLive).createTimeToLiveParameter();
+		verify(builderSpy).createEcsEnvironments(secretsSouce);
+		verify(builderSpy, times(2)).buildAndDeployStack(any(), any(), any(), any());
+		verify(builderSpy).buildAndDeployStack(mockContext, e1.getName(), TEMPLATE_ECS_FARGATE_ENVIRONMENT, null);
+		verify(builderSpy).buildAndDeployStack(mockContext, e2.getName(), TEMPLATE_ECS_FARGATE_ENVIRONMENT, null);
+		// ECS waits for stacks to complete
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete("repo");
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete("portal");
+	}
+
+	@Test
+	public void testBuildEcsEnvironmentsWithTTL() throws InterruptedException {
+
+		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS)).thenReturn("ECS_FARGATE");
+		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
+		Parameter ttl = Parameter.builder().parameterKey("ttl").parameterValue("value").build();
+		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(Optional.of(ttl));
+
+		EcsEnvironmentDescriptor e1 = new EcsEnvironmentDescriptor().withName("repo");
+		EcsEnvironmentDescriptor e2 = new EcsEnvironmentDescriptor().withName("portal");
+		doReturn(List.of(e1, e2)).when(builderSpy).createEcsEnvironments(any());
+
+		VelocityContext mockContext = Mockito.mock(VelocityContext.class);
+		doReturn(mockContext).when(builderSpy).createEcsEnvironmentContext(any(), any());
+
+		doNothing().when(builderSpy).buildAndDeployStack(any(), any(), any(), any());
+		when(mockCloudFormationClientWrapper.waitForStackToComplete(anyString())).thenReturn(Optional.of(sharedResouces));
+
+		// call under test
+		builderSpy.buildEnvironments(sharedResouces);
+
+		verify(mockSecretBuilder).createSecrets();
+		verify(mockTimeToLive).createTimeToLiveParameter();
+		verify(builderSpy).createEcsEnvironments(secretsSouce);
+		verify(builderSpy, times(2)).buildAndDeployStack(any(), any(), any(), any());
+		verify(builderSpy).buildAndDeployStack(mockContext, e1.getName(), TEMPLATE_ECS_FARGATE_ENVIRONMENT, ttl);
+		verify(builderSpy).buildAndDeployStack(mockContext, e2.getName(), TEMPLATE_ECS_FARGATE_ENVIRONMENT, ttl);
+		// ECS waits for stacks to complete
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete("repo");
+		verify(mockCloudFormationClientWrapper).waitForStackToComplete("portal");
+	}
+
 	private void setupValidBeanstalkConfig() {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA)).thenReturn("11");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
