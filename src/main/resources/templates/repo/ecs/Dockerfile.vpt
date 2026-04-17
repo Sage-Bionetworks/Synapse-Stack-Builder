@@ -1,0 +1,28 @@
+FROM tomcat:9-jdk11-corretto
+
+# Remove default webapps
+RUN rm -rf #[[${CATALINA_HOME}]]#/webapps/*
+
+# Tomcat server.xml with HTTPS connector, compression, and ErrorReportValve
+COPY server.xml #[[${CATALINA_HOME}]]#/conf/server.xml
+
+# Self-signed TLS certificate for HTTPS on container port
+COPY server.crt #[[${CATALINA_HOME}]]#/conf/server.crt
+COPY server.key #[[${CATALINA_HOME}]]#/conf/server.key
+COPY server.keystore #[[${CATALINA_HOME}]]#/conf/server.keystore
+
+# Deploy application WAR
+COPY ${warFileName} #[[${CATALINA_HOME}]]#/webapps/${warFileName}
+
+# Startup script that converts org.sagebionetworks.* environment variables to JVM -D flags
+# Beanstalk passes these as JVM system properties; ECS sets them as env vars.
+# The application reads them via System.getProperty(), so we must bridge the gap.
+COPY startup.sh #[[${CATALINA_HOME}]]#/bin/startup.sh
+RUN chmod +x #[[${CATALINA_HOME}]]#/bin/startup.sh
+
+# Base JVM options
+ENV JAVA_OPTS="-Xms2048m -Xmx${jvmMemory}m -Dlog4j2.formatMsgNoLookups=true"
+
+EXPOSE ${containerPort}
+
+CMD ["sh", "-c", "#[[${CATALINA_HOME}]]#/bin/startup.sh"]

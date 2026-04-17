@@ -12,6 +12,7 @@ import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DATA_CDN_DOMAIN_NAME_FMT;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.DELETION_POLICY;
+import static org.sagebionetworks.template.Constants.DEPLOYMENT_TARGET;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_MEMORY;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
@@ -19,6 +20,7 @@ import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
 import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
+import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARMS;
 import static org.sagebionetworks.template.Constants.MACHINE_TYPES;
 import static org.sagebionetworks.template.Constants.NOSNAPSHOT;
 import static org.sagebionetworks.template.Constants.OAUTH_ENDPOINT;
@@ -32,8 +34,12 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_NUMB
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERSION;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_KEYPAIR_ID;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_MEMORY;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_TYPE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_CONTAINER_PORT;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_TASK_CPU;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_TASK_MEMORY;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT;
@@ -63,12 +69,13 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_COL
 import static org.sagebionetworks.template.Constants.REPO_BEANSTALK_NUMBER;
 import static org.sagebionetworks.template.Constants.SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT;
 import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.SHARED_RESOUCES_STACK_NAME;
+import static org.sagebionetworks.template.Constants.SHARED_RESOURCES_STACK_NAME;
 import static org.sagebionetworks.template.Constants.SOLUTION_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
-import static org.sagebionetworks.template.Constants.TEMPLATE_BEAN_STALK_ENVIRONMENT;
-import static org.sagebionetworks.template.Constants.TEMPLATE_SHARED_RESOUCES_MAIN_JSON_VTP;
+import static org.sagebionetworks.template.Constants.TEMPLATE_BEANSTALK_ENVIRONMENT;
+import static org.sagebionetworks.template.Constants.TEMPLATE_ECS_FARGATE_ENVIRONMENT;
+import static org.sagebionetworks.template.Constants.TEMPLATE_SHARED_RESOURCES_MAIN_JSON_VTP;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
@@ -101,9 +108,14 @@ import org.sagebionetworks.template.repo.beanstalk.BeanstalkUtils;
 import org.sagebionetworks.template.repo.beanstalk.ElasticBeanstalkSolutionStackNameProvider;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
+import org.sagebionetworks.template.repo.beanstalk.LoadBalancerAlarm;
+import org.sagebionetworks.template.repo.beanstalk.LoadBalancerAlarmsConfig;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
+import org.sagebionetworks.template.repo.beanstalk.ssl.TargetGroup;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
+import org.sagebionetworks.template.repo.ecs.DockerImageBuilder;
+import org.sagebionetworks.template.repo.ecs.EcsEnvironmentDescriptor;
 
 import com.google.inject.Inject;
 
@@ -135,6 +147,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	private final ElasticBeanstalkClient beanstalkClient;
 	private final ImageBuilderClient imageBuilderClient;
 	private final TimeToLive timeToLive;
+	private final DockerImageBuilder dockerImageBuilder;
+	private final LoadBalancerAlarmsConfig loadBalancerAlarmsConfig;
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper, VelocityEngine velocityEngine,
@@ -142,7 +156,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
                                          SecretBuilder secretBuilder, Set<VelocityContextProvider> contextProviders,
                                          ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkDefaultAMIEncrypter,
                                          StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
-                                         Ec2ClientWrapper ec2ClientWrapper, ElasticBeanstalkClient beanstalkClient, ImageBuilderClient imageBuilderClient, TimeToLive ttl) {
+                                         Ec2ClientWrapper ec2ClientWrapper, ElasticBeanstalkClient beanstalkClient, ImageBuilderClient imageBuilderClient, TimeToLive ttl,
+                                         DockerImageBuilder dockerImageBuilder, LoadBalancerAlarmsConfig loadBalancerAlarmsConfig) {
 		super();
 		this.cloudFormationClientWrapper = cloudFormationClientWrapper;
 		this.ec2ClientWrapper = ec2ClientWrapper;
@@ -158,6 +173,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.beanstalkClient = beanstalkClient;
 		this.imageBuilderClient = imageBuilderClient;
 		this.timeToLive = ttl;
+		this.dockerImageBuilder = dockerImageBuilder;
+		this.loadBalancerAlarmsConfig = loadBalancerAlarmsConfig;
 	}
 
 	public String getActualBeanstalkAmazonLinuxPlatform() {
@@ -191,7 +208,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		// Create the shared-resource stack
 		String sharedResourceStackName = createSharedResourcesStackName();
 
-		buildAndDeployStack(context, sharedResourceStackName, TEMPLATE_SHARED_RESOUCES_MAIN_JSON_VTP, sharedParameters);
+		buildAndDeployStack(context, sharedResourceStackName, TEMPLATE_SHARED_RESOURCES_MAIN_JSON_VTP, sharedParameters);
 		// Wait for the shared resources to complete
 		Stack sharedStackResults = cloudFormationClientWrapper.waitForStackToComplete(sharedResourceStackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+sharedResourceStackName));
 				
@@ -203,21 +220,151 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 * Build all of the environments
 	 * @param sharedStackResults
 	 */
-	public List<String> buildEnvironments(Stack sharedStackResults) {
+	public List<String> buildEnvironments(Stack sharedStackResults) throws InterruptedException {
 		// Create the repo/worker secrets
-		SourceBundle secretsSouce = secretBuilder.createSecrets();
-		
+		SourceBundle secretsSource = secretBuilder.createSecrets();
+
+		DeploymentTarget target = DeploymentTarget.valueOf(
+				config.getProperty(PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS));
+
+		switch (target) {
+			case ECS_FARGATE:
+				return buildEcsEnvironments(sharedStackResults, secretsSource);
+			case BEANSTALK:
+				return buildBeanstalkEnvironments(sharedStackResults, secretsSource);
+			default:
+				throw new IllegalArgumentException("Unknown deployment target: " + target);
+		}
+	}
+
+	/**
+	 * Build Beanstalk environments (existing behavior).
+	 */
+	List<String> buildBeanstalkEnvironments(Stack sharedStackResults, SourceBundle secrets) {
 		Parameter ttl = timeToLive.createTimeToLiveParameter().orElse(null);
 
 		List<String> environmentNames = new LinkedList<>();
-		// each environment is treated as its own stack.
-		for (EnvironmentDescriptor environment : createEnvironments(secretsSouce)) {
+		for (EnvironmentDescriptor environment : createEnvironments(secrets)) {
 			VelocityContext context = createEnvironmentContext(sharedStackResults, environment);
 			environmentNames.add(environment.getName());
-			// build this type.
-			buildAndDeployStack(context, environment.getName(), TEMPLATE_BEAN_STALK_ENVIRONMENT, ttl);
+			buildAndDeployStack(context, environment.getName(), TEMPLATE_BEANSTALK_ENVIRONMENT, ttl);
 		}
 		return environmentNames;
+	}
+
+	/**
+	 * Build ECS Fargate environments and wait for all to complete.
+	 */
+	List<String> buildEcsEnvironments(Stack sharedStackResults, SourceBundle secrets) throws InterruptedException {
+		Parameter ttl = timeToLive.createTimeToLiveParameter().orElse(null);
+
+		List<String> environmentNames = new LinkedList<>();
+		// Submit all environment stacks
+		for (EcsEnvironmentDescriptor environment : createEcsEnvironments(secrets)) {
+			VelocityContext context = createEcsEnvironmentContext(sharedStackResults, environment);
+			environmentNames.add(environment.getName());
+			buildAndDeployStack(context, environment.getName(), TEMPLATE_ECS_FARGATE_ENVIRONMENT, ttl);
+		}
+		// Wait for all environment stacks to complete
+		for (String stackName : environmentNames) {
+			cloudFormationClientWrapper.waitForStackToComplete(stackName)
+					.orElseThrow(() -> new IllegalStateException("Stack does not exist: " + stackName));
+		}
+		return environmentNames;
+	}
+
+	/**
+	 * Create ECS environment descriptors for repo, workers, and portal.
+	 */
+	public List<EcsEnvironmentDescriptor> createEcsEnvironments(SourceBundle secrets) {
+		String stack = config.getProperty(PROPERTY_KEY_STACK);
+		String instance = config.getProperty(PROPERTY_KEY_INSTANCE);
+		int cpu = config.getIntegerProperty(PROPERTY_KEY_ECS_TASK_CPU);
+		int memory = config.getIntegerProperty(PROPERTY_KEY_ECS_TASK_MEMORY);
+		int containerPort = config.getIntegerProperty(PROPERTY_KEY_ECS_CONTAINER_PORT);
+
+		List<EcsEnvironmentDescriptor> descriptors = new LinkedList<>();
+		for (EnvironmentType type : EnvironmentType.values()) {
+			try {
+				int number = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + type.getShortName());
+				String name = new StringJoiner("-").add(type.getShortName()).add(stack).add(instance).add("" + number)
+						.toString();
+				String refName = Constants.createCamelCaseName(name, "-");
+				String version = config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName());
+				String healthCheckUrl = config.getProperty(PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL + type.getShortName());
+				int minTasks = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MIN_INSTANCES + type.getShortName());
+				int maxTasks = config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MAX_INSTANCES + type.getShortName());
+				String sslCertificateARN = config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN + type.getShortName());
+				String hostedZone = config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE + type.getShortName());
+
+				// Build and push Docker image
+				String dockerImageUri = dockerImageBuilder.buildAndPushImage(type, version, number, stack, instance);
+
+				// Environment secrets
+				SourceBundle environmentSecrets = type.shouldIncludeSecrets() ? secrets : null;
+
+				descriptors.add(new EcsEnvironmentDescriptor()
+						.withName(name).withRefName(refName).withNumber(number)
+						.withType(type)
+						.withDockerImageUri(dockerImageUri)
+						.withHealthCheckUrl(healthCheckUrl)
+						.withMinTasks(minTasks).withMaxTasks(maxTasks)
+						.withCpu(cpu).withMemory(memory).withContainerPort(containerPort)
+						.withSslCertificateARN(sslCertificateARN)
+						.withHostedZone(hostedZone)
+						.withSecretsSource(environmentSecrets));
+			} catch (ConfigurationPropertyNotFound e) {
+				logger.warn("The ECS Environment " + type + " was not created because " + e.getMissingKey() + " was not found");
+			}
+		}
+		return descriptors;
+	}
+
+	/**
+	 * Create the Velocity context for an ECS Fargate environment.
+	 */
+	VelocityContext createEcsEnvironmentContext(Stack sharedStackResults, EcsEnvironmentDescriptor environment) {
+		VelocityContext context = new VelocityContext();
+		String stack = config.getProperty(PROPERTY_KEY_STACK);
+		String instance = config.getProperty(PROPERTY_KEY_INSTANCE);
+		context.put(STACK, stack);
+		context.put(INSTANCE, instance);
+		context.put(VPC_SUBNET_COLOR, config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR));
+		context.put(GLOBAL_RESOURCES_EXPORT_PREFIX, Constants.createGlobalResourcesExportPrefix(stack));
+		context.put(VPC_EXPORT_PREFIX, Constants.createVpcExportPrefix(stack));
+		context.put(SHARED_EXPORT_PREFIX, createSharedExportPrefix());
+		context.put(REPO_BEANSTALK_NUMBER, config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + EnvironmentType.REPOSITORY_SERVICES.getShortName()));
+		context.put(DB_ENDPOINT_SUFFIX, extractDatabaseSuffix(sharedStackResults));
+		context.put(ENVIRONMENT, environment);
+		context.put(STACK_CMK_ALIAS, secretBuilder.getCMKAlias());
+
+		// oauth
+		context.put(OAUTH_ENDPOINT, config.getProperty(PROPERTY_KEY_OAUTH_ENDPOINT));
+
+		// Data CDN props
+		String cdnKeyPairId = config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID);
+		context.put(CTXT_KEY_DATA_CDN_KEYPAIR_ID, cdnKeyPairId);
+		context.put(CTXT_KEY_DATA_CDN_DOMAIN_NAME, String.format(DATA_CDN_DOMAIN_NAME_FMT, stack));
+		context.put(CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL, config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT));
+
+		// Subnets for ECS tasks and ALB
+		List<String> vpcSubnets = getPrivateSubnets(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR));
+		context.put("ecsSubnetsList", vpcSubnets);
+
+		// Target group for ALB ARN export (must match the naming used by dns-record-to-stack-mapping)
+		int number = environment.getNumber();
+		TargetGroup targetGroup = new TargetGroup(environment.getEnvironmentType(), stack, instance, number);
+		context.put("targetGroup", targetGroup);
+
+		// CloudWatch log descriptors for sidecar containers
+		EnvironmentType envType = environment.getEnvironmentType();
+		context.put(CLOUDWATCH_LOGS_DESCRIPTORS, cwlContextProvider.getLogDescriptors(envType));
+
+		// Load balancer alarms
+		java.util.List<LoadBalancerAlarm> alarms = loadBalancerAlarmsConfig.getOrDefault(envType, java.util.Collections.emptyList());
+		context.put(LOAD_BALANCER_ALARMS, alarms);
+
+		return context;
 	}
 	
 
@@ -325,7 +472,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		context.put(MACHINE_TYPES, MACHINE_TYPE_LIST);
 		context.put(POOL_TYPES, POOL_TYPE_LIST);
 		context.put(VPC_SUBNET_COLOR, config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR));
-		context.put(SHARED_RESOUCES_STACK_NAME, createSharedResourcesStackName());
+		context.put(SHARED_RESOURCES_STACK_NAME, createSharedResourcesStackName());
 		context.put(GLOBAL_RESOURCES_EXPORT_PREFIX, Constants.createGlobalResourcesExportPrefix(stack));
 		context.put(VPC_EXPORT_PREFIX, Constants.createVpcExportPrefix(stack));
 		context.put(SHARED_EXPORT_PREFIX, createSharedExportPrefix());
@@ -343,6 +490,10 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		}
 		
 		RegularExpressions.bindRegexToContext(context);
+
+		// Deployment target for conditional resources in shared template
+		String deploymentTarget = config.getProperty(PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS);
+		context.put(DEPLOYMENT_TARGET, deploymentTarget);
 
 		return context;
 	}
@@ -511,15 +662,15 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	
 	/**
 	 * Extract the database end point suffix from the shared resources output.
-	 * @param sharedResouces
+	 * @param sharedResources
 	 * @return
 	 */
-	String extractDatabaseSuffix(Stack sharedResouces) {
+	String extractDatabaseSuffix(Stack sharedResources) {
 		String stack = config.getProperty(PROPERTY_KEY_STACK);
 		String instance = config.getProperty(PROPERTY_KEY_INSTANCE);
 		String outputName = stack+instance+OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
 		// find the database end point suffix
-		for(Output output: sharedResouces.outputs()) {
+		for(Output output: sharedResources.outputs()) {
 			if(outputName.equals(output.outputKey())){
 				String[] split = output.outputValue().split(stack+"-"+instance+"-db.");
 				return split[1];
