@@ -3,8 +3,10 @@ package org.sagebionetworks.template.repo.ecs;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
@@ -28,6 +30,7 @@ public class DockerImageBuilderImpl implements DockerImageBuilder {
 	static final String TEMPLATE_DOCKERFILE = "templates/repo/ecs/Dockerfile.vpt";
 	static final String TEMPLATE_SERVER_XML = "templates/repo/ecs/server.xml.vpt";
 	static final String TEMPLATE_STARTUP_SH = "templates/repo/ecs/startup.sh.vpt";
+	static final String RESOURCE_REWRITE_CONFIG = "/templates/repo/ecs/rewrite.config";
 
 	private final ArtifactDownload downloader;
 	private final CertificateBuilder certificateBuilder;
@@ -122,6 +125,9 @@ public class DockerImageBuilderImpl implements DockerImageBuilder {
 			// Render startup script (converts env vars to JVM -D flags)
 			renderTemplate(TEMPLATE_STARTUP_SH, context, new File(buildDir, "startup.sh"));
 
+			// Static rewrite rule that collapses leading "//" to "/" for Tomcat's RewriteValve
+			copyResource(RESOURCE_REWRITE_CONFIG, new File(buildDir, "rewrite.config"));
+
 			// Render Dockerfile template
 			int taskMemory = config.getIntegerProperty(PROPERTY_KEY_ECS_TASK_MEMORY);
 			int jvmMemory = (int) (taskMemory * ECS_JVM_MEMORY_FRACTION);
@@ -139,6 +145,17 @@ public class DockerImageBuilderImpl implements DockerImageBuilder {
 		StringWriter writer = new StringWriter();
 		template.merge(context, writer);
 		writeFile(outputFile, writer.toString());
+	}
+
+	void copyResource(String classpathResource, File outputFile) {
+		try (InputStream in = getClass().getResourceAsStream(classpathResource)) {
+			if (in == null) {
+				throw new RuntimeException("Classpath resource not found: " + classpathResource);
+			}
+			Files.copy(in, outputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to copy resource: " + classpathResource, e);
+		}
 	}
 
 	String getEcrRepositoryName(EnvironmentType environment, String stack) {

@@ -6,6 +6,12 @@ RUN rm -rf #[[${CATALINA_HOME}]]#/webapps/*
 # Tomcat server.xml with HTTPS connector, compression, and ErrorReportValve
 COPY server.xml #[[${CATALINA_HOME}]]#/conf/server.xml
 
+# Collapse multiple leading slashes in the request path (e.g. //Portal -> /Portal)
+# so Tomcat's mapper matches them. The Beanstalk deployment gets this for free
+# from Apache's ProxyPass; ECS has no front proxy.
+RUN mkdir -p #[[${CATALINA_HOME}]]#/conf/Catalina/localhost
+COPY rewrite.config #[[${CATALINA_HOME}]]#/conf/Catalina/localhost/rewrite.config
+
 # Self-signed TLS certificate for HTTPS on container port
 COPY server.crt #[[${CATALINA_HOME}]]#/conf/server.crt
 COPY server.key #[[${CATALINA_HOME}]]#/conf/server.key

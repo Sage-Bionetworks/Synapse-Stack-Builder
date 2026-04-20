@@ -422,6 +422,13 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			if (addOrUpdateRule(rules, bucket.getName(), RULE_ID_RETENTION, bucket, this::createRetentionRule, this::updateRetentionRule)) {
 				update = true;
 			}
+		} else {
+			Optional<Rule> rule = findRule(RULE_ID_RETENTION, rules);
+			if (rule.isPresent()) {
+				LOG.info("The {} rule was found on bucket {}, removing.", RULE_ID_RETENTION, bucket.getName());
+				rules.remove(rule.get());
+				update = true;
+			}
 		}
 
 		if (bucket.getStorageClassTransitions() != null) {
