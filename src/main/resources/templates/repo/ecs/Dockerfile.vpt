@@ -1,28 +1,30 @@
 FROM tomcat:9-jdk11-corretto
 
+# nginx sits in front of Tomcat as an in-container reverse proxy:
+# ALB -> nginx (TLS on ${containerPort}) -> Tomcat (HTTP on 127.0.0.1:8080).
+# This mirrors the Beanstalk architecture (Apache in front of Tomcat) and gets
+# us URL normalization (e.g. // -> /) that Tomcat's RewriteValve runs too late
+# to perform.
+RUN amazon-linux-extras install -y nginx1 && yum clean all
+
 # Remove default webapps
 RUN rm -rf #[[${CATALINA_HOME}]]#/webapps/*
 
-# Tomcat server.xml with HTTPS connector, compression, and ErrorReportValve
+# Tomcat server.xml: plain HTTP connector on 127.0.0.1:8080, no TLS
 COPY server.xml #[[${CATALINA_HOME}]]#/conf/server.xml
 
-# Collapse multiple leading slashes in the request path (e.g. //Portal -> /Portal)
-# so Tomcat's mapper matches them. The Beanstalk deployment gets this for free
-# from Apache's ProxyPass; ECS has no front proxy.
-RUN mkdir -p #[[${CATALINA_HOME}]]#/conf/Catalina/localhost
-COPY rewrite.config #[[${CATALINA_HOME}]]#/conf/Catalina/localhost/rewrite.config
-
-# Self-signed TLS certificate for HTTPS on container port
-COPY server.crt #[[${CATALINA_HOME}]]#/conf/server.crt
-COPY server.key #[[${CATALINA_HOME}]]#/conf/server.key
-COPY server.keystore #[[${CATALINA_HOME}]]#/conf/server.keystore
+# nginx reverse-proxy config + self-signed TLS cert used on the public listener
+COPY nginx.conf /etc/nginx/nginx.conf
+RUN mkdir -p /etc/nginx/ssl
+COPY server.crt /etc/nginx/ssl/server.crt
+COPY server.key /etc/nginx/ssl/server.key
 
 # Deploy application WAR
 COPY ${warFileName} #[[${CATALINA_HOME}]]#/webapps/${warFileName}
 
-# Startup script that converts org.sagebionetworks.* environment variables to JVM -D flags
-# Beanstalk passes these as JVM system properties; ECS sets them as env vars.
-# The application reads them via System.getProperty(), so we must bridge the gap.
+# Startup script: launches nginx in daemon mode, then execs catalina.sh run.
+# Also converts org.sagebionetworks.* environment variables to JVM -D flags
+# (Beanstalk passes these as JVM system properties; ECS sets them as env vars).
 COPY startup.sh #[[${CATALINA_HOME}]]#/bin/startup.sh
 RUN chmod +x #[[${CATALINA_HOME}]]#/bin/startup.sh
 

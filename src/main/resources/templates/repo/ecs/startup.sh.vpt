@@ -18,5 +18,11 @@ while IFS='=' read -r name value; do
 done < <(env)
 
 export JAVA_OPTS="$JAVA_OPTS $SYSPROPS"
+
+# Start nginx in daemon mode (forks and returns). nginx handles TLS and
+# reverse-proxies to Tomcat on 127.0.0.1:8080. Tomcat becomes PID 1 so that
+# ECS signal handling and graceful shutdown target the JVM.
+nginx
+
 exec "$CATALINA_HOME/bin/catalina.sh" run
 ]]#

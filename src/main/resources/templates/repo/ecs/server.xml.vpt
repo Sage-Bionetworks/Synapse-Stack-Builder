@@ -8,17 +8,11 @@
   <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
 
   <Service name="Catalina">
-    <Connector port="${containerPort}"
+    <Connector port="8080"
+               address="127.0.0.1"
                protocol="org.apache.coyote.http11.Http11NioProtocol"
                maxThreads="200"
-               SSLEnabled="true"
-               scheme="https"
-               secure="true"
-               keystoreFile="#[[${catalina.home}]]#/conf/server.keystore"
-               keystorePass="changeit"
-               keystoreType="PKCS12"
-               clientAuth="false"
-               sslProtocol="TLS"
+               connectionTimeout="20000"
                compression="on"
                compressionMinSize="2048"
                compressibleMimeType="text/plain,application/json,text/xml,application/xml" />
@@ -26,7 +20,6 @@
     <Engine name="Catalina" defaultHost="localhost">
       <Host name="localhost" appBase="webapps" unpackWARs="true" autoDeploy="true">
         <Context docBase="${warFileName}" path="" />
-        <Valve className="org.apache.catalina.valves.rewrite.RewriteValve" />
         <Valve className="org.apache.catalina.valves.ErrorReportValve" showReport="false" showServerInfo="false" />
       </Host>
     </Engine>
