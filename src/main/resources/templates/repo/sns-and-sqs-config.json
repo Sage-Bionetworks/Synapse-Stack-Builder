@@ -530,6 +530,14 @@
 				"GRID_SESSION"
 			],
 			"messageVisibilityTimeoutSec": 120
+		},
+		{
+			"queueName": "SEARCH_INDEX_LIFECYCLE",
+			"subscribedTopicNames": [
+				"ENTITY"
+			],
+			"messageVisibilityTimeoutSec": 300,
+			"deadLetterQueueMaxFailureCount": 5
 		}
 	]
 }
