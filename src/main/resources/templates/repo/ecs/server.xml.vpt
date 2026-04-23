@@ -20,6 +20,11 @@
     <Engine name="Catalina" defaultHost="localhost">
       <Host name="localhost" appBase="webapps" unpackWARs="true" autoDeploy="true">
         <Context docBase="${warFileName}" path="" />
+        <Valve className="org.apache.catalina.valves.RemoteIpValve"
+               internalProxies="127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+|169\.254\.\d+\.\d+"
+               remoteIpHeader="x-forwarded-for"
+               protocolHeader="x-forwarded-proto"
+               protocolHeaderHttpsValue="https" />
         <Valve className="org.apache.catalina.valves.ErrorReportValve" showReport="false" showServerInfo="false" />
       </Host>
     </Engine>
