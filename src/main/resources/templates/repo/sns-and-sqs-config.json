@@ -540,7 +540,7 @@
 			"deadLetterQueueMaxFailureCount": 5
 		},
 		{
-			"queueName": "SEARCH_QUERY",
+			"queueName": "SEARCH_QUERY.fifo",
 			"subscribedTopicNames": [
 			],
 			"messageVisibilityTimeoutSec": 120,
