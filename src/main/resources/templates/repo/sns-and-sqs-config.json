@@ -538,6 +538,13 @@
 			],
 			"messageVisibilityTimeoutSec": 300,
 			"deadLetterQueueMaxFailureCount": 5
+		},
+		{
+			"queueName": "SEARCH_QUERY",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 120,
+			"oldestMessageInQueueAlarmThresholdSec": 30
 		}
 	]
 }
