@@ -385,6 +385,10 @@
 								"Value": {"Fn::ImportValue": "${sharedExportPrefix}-Temp-Credentials-Service-Role-Arn"}
 							},
 							{
+								"Name": "org.sagebionetworks.sts.duration.seconds",
+								"Value": "3600"
+							},
+							{
 								"Name": "org.sagebionetworks.cloudfront.keypair",
 								"Value": "${dataCdnKeyPairId}"
 							},
