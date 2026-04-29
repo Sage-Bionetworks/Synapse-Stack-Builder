@@ -793,13 +793,15 @@
 								"AWS":
 									#if(${stack} == 'dev')
 										{ "Ref": "AWS::AccountId" }
-									#elseif($deploymentTarget == "ECS_FARGATE")
-										[
-											{ "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/repo-${stack}-${instance}-0-ecs-task-role" },
-											{ "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/workers-${stack}-${instance}-0-ecs-task-role" }
-										]
 									#else
-										{ "Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"] }
+										#if($deploymentTarget == "ECS_FARGATE")
+											[
+												{ "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/repo-${stack}-${instance}-${repoBeanstalkNumber}-ecs-task-role" },
+												{ "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/workers-${stack}-${instance}-${workersBeanstalkNumber}-ecs-task-role" }
+											]
+										#else
+											{ "Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"] }
+										#end
 									#end
 							},
 							"Action": [

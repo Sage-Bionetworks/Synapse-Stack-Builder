@@ -67,6 +67,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_STO
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_THROUGHPUT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_COLOR;
 import static org.sagebionetworks.template.Constants.REPO_BEANSTALK_NUMBER;
+import static org.sagebionetworks.template.Constants.WORKERS_BEANSTALK_NUMBER;
 import static org.sagebionetworks.template.Constants.SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT;
 import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.SHARED_RESOURCES_STACK_NAME;
@@ -494,6 +495,14 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		// Deployment target for conditional resources in shared template
 		String deploymentTarget = config.getProperty(PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS);
 		context.put(DEPLOYMENT_TARGET, deploymentTarget);
+
+		// Per-environment numbers needed by shared resources (e.g. AOSS data access policy
+		// and STS Temp Credentials trust policy must reference ECS task role names that
+		// include the env number).
+		context.put(REPO_BEANSTALK_NUMBER,
+				config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + EnvironmentType.REPOSITORY_SERVICES.getShortName()));
+		context.put(WORKERS_BEANSTALK_NUMBER,
+				config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + EnvironmentType.REPOSITORY_WORKERS.getShortName()));
 
 		return context;
 	}

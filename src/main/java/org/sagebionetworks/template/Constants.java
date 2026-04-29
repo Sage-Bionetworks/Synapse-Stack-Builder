@@ -203,6 +203,7 @@ public class Constants {
 	public static final String ENVIRONMENT = "environment";
 	public static final String DB_ENDPOINT_SUFFIX = "dbEndpointSuffix";
 	public static final String REPO_BEANSTALK_NUMBER = "repoBeanstalkNumber";
+	public static final String WORKERS_BEANSTALK_NUMBER = "workersBeanstalkNumber";
 	public static final String STACK_CMK_ALIAS = "stackCMKAlias";
 	public static final String DATABASE_IDENTIFIER = "databaseIdentifier";
 	public static final String EXCEPTION_THROWER = "exceptionThrower";
