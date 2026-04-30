@@ -14,6 +14,6 @@ phases:
       - export AWS_ACCESS_KEY_ID=$(echo $STS_CREDENTIALS | jq -r '.AccessKeyId')
       - export AWS_SECRET_KEY=$(echo $STS_CREDENTIALS | jq -r '.SecretAccessKey')
       - export AWS_SESSION_TOKEN=$(echo $STS_CREDENTIALS | jq -r '.Token')
-      - export CMD_PROPS="-Dorg.sagebionetworks.stack=dev -Dorg.sagebionetworks.instance=${user} -Dorg.sagebionetworks.vpc.subnet.color=Green"
+      - export CMD_PROPS="-Dorg.sagebionetworks.stack=dev -Dorg.sagebionetworks.instance=${user} -Dorg.sagebionetworks.vpc.subnet.color=Green -Dorg.sagebionetworks.beanstalk.number.repo=0 -Dorg.sagebionetworks.beanstalk.number.workers=0"
       - mvn clean install
       - java -Xms256m -Xmx2g -cp ./target/stack-builder-0.2.0-SNAPSHOT-jar-with-dependencies.jar $CMD_PROPS org.sagebionetworks.template.repo.RepositoryBuilderMain
