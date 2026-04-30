@@ -790,13 +790,19 @@
 						{
 							"Effect": "Allow",
 							"Principal": {
-								"AWS": {
+								"AWS":
 									#if(${stack} == 'dev')
-										"Ref": "AWS::AccountId"
+										{ "Ref": "AWS::AccountId" }
 									#else
-										"Fn::GetAtt" : ["${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"]
+										#if($deploymentTarget == "ECS_FARGATE")
+											[
+												{ "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/repo-${stack}-${instance}-${repoBeanstalkNumber}-ecs-task-role" },
+												{ "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/workers-${stack}-${instance}-${workersBeanstalkNumber}-ecs-task-role" }
+											]
+										#else
+											{ "Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"] }
+										#end
 									#end
-								}
 							},
 							"Action": [
 								"sts:AssumeRole"
