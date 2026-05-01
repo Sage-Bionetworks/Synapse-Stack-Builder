@@ -13,7 +13,7 @@
                 			{"Fn::Sub": "\"arn:aws:iam::#[[${AWS::AccountId}]]#:root\""}
                 		#else
                 			#if ($deploymentTarget == "ECS_FARGATE")
-                				{"Fn::Sub": "\"arn:aws:iam::#[[${AWS::AccountId}]]#:role/repo-${stack}-${instance}-${repoBeanstalkNumber}-ecs-task-role\",\"arn:aws:iam::#[[${AWS::AccountId}]]#:role/workers-${stack}-${instance}-${workersBeanstalkNumber}-ecs-task-role\""}
+                				{"Fn::Sub": ["\"#[[${roleArn}]]#\"", {"roleArn": {"Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersEcsTaskRole", "Arn"]}}]}
                 			#else
                 				{"Fn::Sub": ["\"#[[${roleArn}]]#\"", {"roleArn": {"Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"]}}]}
                 			#end
