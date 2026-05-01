@@ -266,7 +266,8 @@
 									"Ref": "${environment.refName}LogGroup"
 								},
 								"awslogs-region": "us-east-1",
-								"awslogs-stream-prefix": "ecs"
+								"awslogs-stream-prefix": "ecs",
+								"awslogs-multiline-pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}"
 							}
 						},
 						"Environment": [
@@ -425,7 +426,8 @@
 									"Ref": "${environment.refName}${logDesc.logType}LogGroup"
 								},
 								"awslogs-region": "us-east-1",
-								"awslogs-stream-prefix": "ecs"
+								"awslogs-stream-prefix": "ecs",
+								"awslogs-multiline-pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}"
 							}
 						}
 					}
