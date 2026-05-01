@@ -142,76 +142,6 @@
 			}
 		},
 		#end
-		"${environment.refName}TaskExecutionRole": {
-			"Type": "AWS::IAM::Role",
-			"Properties": {
-				"RoleName": "${environment.name}-ecs-execution-role",
-				"AssumeRolePolicyDocument": {
-					"Version": "2012-10-17",
-					"Statement": [
-						{
-							"Effect": "Allow",
-							"Principal": {
-								"Service": "ecs-tasks.amazonaws.com"
-							},
-							"Action": "sts:AssumeRole"
-						}
-					]
-				},
-				"ManagedPolicyArns": [
-					"arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-				]
-			}
-		},
-		"${environment.refName}TaskRole": {
-			"Type": "AWS::IAM::Role",
-			"Properties": {
-				"RoleName": "${environment.name}-ecs-task-role",
-				"AssumeRolePolicyDocument": {
-					"Version": "2012-10-17",
-					"Statement": [
-						{
-							"Effect": "Allow",
-							"Principal": {
-								"Service": "ecs-tasks.amazonaws.com"
-							},
-							"Action": "sts:AssumeRole"
-						}
-					]
-				},
-				"ManagedPolicyArns": [
-					{
-						"Fn::ImportValue": "${sharedExportPrefix}-${environment.instanceProfileSuffix}-Managed-Policy-ARN"
-					}
-					#if ($environment.isTypeRepositoryOrWorkers())
-					,
-					{
-						"Fn::ImportValue": "${sharedExportPrefix}-RepoWorkers-Bedrock-Managed-Policy-ARN"
-					}
-					#end
-				],
-				"Policies": [
-					{
-						"PolicyName": "${environment.name}-ecs-exec-policy",
-						"PolicyDocument": {
-							"Version": "2012-10-17",
-							"Statement": [
-								{
-									"Effect": "Allow",
-									"Action": [
-										"ssmmessages:CreateControlChannel",
-										"ssmmessages:CreateDataChannel",
-										"ssmmessages:OpenControlChannel",
-										"ssmmessages:OpenDataChannel"
-									],
-									"Resource": "*"
-								}
-							]
-						}
-					}
-				]
-			}
-		},
 		"${environment.refName}TaskDefinition": {
 			"Type": "AWS::ECS::TaskDefinition",
 			"Properties": {
@@ -224,10 +154,10 @@
 					"SizeInGiB": 160
 				},
 				"ExecutionRoleArn": {
-					"Fn::GetAtt": ["${environment.refName}TaskExecutionRole", "Arn"]
+					"Fn::ImportValue": "${sharedExportPrefix}-ECS-Task-Execution-Role-ARN"
 				},
 				"TaskRoleArn": {
-					"Fn::GetAtt": ["${environment.refName}TaskRole", "Arn"]
+					"Fn::ImportValue": "${sharedExportPrefix}-${environment.instanceProfileSuffix}-ECS-Task-Role-ARN"
 				},
 				"Volumes": [
 					{
