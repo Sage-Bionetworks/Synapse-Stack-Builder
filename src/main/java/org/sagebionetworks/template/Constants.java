@@ -287,7 +287,7 @@ public class Constants {
 	public static final String TEMPLATE_ECS_FARGATE_ENVIRONMENT = "templates/repo/ecs-fargate-template.json.vpt";
 
 	// ECS context keys
-	public static final double ECS_JVM_MEMORY_FRACTION = 0.85;
+	public static final double ECS_JVM_MEMORY_FRACTION = 0.50;
 	public static final String DEPLOYMENT_TARGET = "deploymentTarget";
 
 	public static final String MACHINE_TYPES = "machineTypes";
