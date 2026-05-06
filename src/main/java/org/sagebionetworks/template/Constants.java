@@ -231,6 +231,12 @@ public class Constants {
 	public static final String KINESIS_FIREHOSE_BUCKETS = "kinesisBuckets";
 
 	public static final String CLOUDWATCH_LOGS_DESCRIPTORS = "logDescriptors";
+
+	// Centralized retention for ALL CloudWatch LogGroups in this repo (security audit).
+	// Builders that construct a VelocityContext for a template containing a LogGroup
+	// must context.put(CLOUDWATCH_LOG_RETENTION_DAYS, LOG_RETENTION_IN_DAYS).
+	public static final int LOG_RETENTION_IN_DAYS = 180;
+	public static final String CLOUDWATCH_LOG_RETENTION_DAYS = "cloudwatchLogRetentionInDays";
 	
 	public static final String ATHENA_QUERY_DESCRIPTORS = "athenaQueryDescriptors";
 	public static final String ATHENA_QUERY_DATA_BUCKETS = "athenaQueryDataBuckets";
