@@ -3,6 +3,6 @@
 			"DeletionPolicy": "${deletionPolicy}",
 			"Properties": {
 				"LogGroupName": "aws-waf-logs-${stack}",
-				"RetentionInDays": 30
+				"RetentionInDays": ${cloudwatchLogRetentionInDays}
 			}
 		}

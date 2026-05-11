@@ -87,6 +87,8 @@ import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsConfig;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsConfigValidator;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProviderImpl;
+import org.sagebionetworks.template.repo.ecs.DockerImageBuilder;
+import org.sagebionetworks.template.repo.ecs.DockerImageBuilderImpl;
 import org.sagebionetworks.template.repo.grid.GridContextProvider;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfig;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfigValidator;
@@ -190,6 +192,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(MarkDownItLambdaBuilder.class).to(MarkDownItLambdaBuilderImpl.class);
 		bind(ImageBuilderClient.class).to(ImageBuilderClientImpl.class);
 		bind(CdnWebAclBuilder.class).to(CdnWebAclBuilderImpl.class);
+		bind(DockerImageBuilder.class).to(DockerImageBuilderImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 

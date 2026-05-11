@@ -1,5 +1,6 @@
 package org.sagebionetworks.template.global;
 
+import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOG_RETENTION_DAYS;
 import static org.sagebionetworks.template.Constants.COGNITO_USER_POOL_CF_OUTPUT_NAME;
 import static org.sagebionetworks.template.Constants.COGNITO_USER_POOL_CLIENT_CF_OUTPUT_NAME;
 import static org.sagebionetworks.template.Constants.DELETION_POLICY;
@@ -8,6 +9,7 @@ import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_S
 import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_STACK_NAME_FORMAT;
 import static org.sagebionetworks.template.Constants.IDENTITY_ARN;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
+import static org.sagebionetworks.template.Constants.LOG_RETENTION_IN_DAYS;
 import static org.sagebionetworks.template.Constants.OPS_VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 import static org.sagebionetworks.template.Constants.SAGEBIO_COGNITO_APP_CLIENT_ID;
@@ -184,7 +186,9 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
         
         context.put(COGNITO_USER_POOL_CF_OUTPUT_NAME, COGNITO_USER_POOL_CF_OUTPUT_NAME);
         context.put(COGNITO_USER_POOL_CLIENT_CF_OUTPUT_NAME, COGNITO_USER_POOL_CLIENT_CF_OUTPUT_NAME);
-        
+
+        context.put(CLOUDWATCH_LOG_RETENTION_DAYS, LOG_RETENTION_IN_DAYS);
+
         return context;
     }
 

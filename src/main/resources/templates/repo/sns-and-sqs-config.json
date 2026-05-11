@@ -504,6 +504,20 @@
 			"messageVisibilityTimeoutSec": 60
 		},
 		{
+			"queueName": "GRID_QUERY.fifo",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 30,
+			"oldestMessageInQueueAlarmThresholdSec": 120
+		},
+		{
+			"queueName": "GRID_UPDATE.fifo",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 30,
+			"oldestMessageInQueueAlarmThresholdSec": 120
+		},
+		{
 			"queueName": "GRID_SYNCHRONIZATION.fifo",
 			"subscribedTopicNames": [
 			],
@@ -516,6 +530,21 @@
 				"GRID_SESSION"
 			],
 			"messageVisibilityTimeoutSec": 120
+		},
+		{
+			"queueName": "SEARCH_INDEX_LIFECYCLE",
+			"subscribedTopicNames": [
+				"ENTITY"
+			],
+			"messageVisibilityTimeoutSec": 300,
+			"deadLetterQueueMaxFailureCount": 5
+		},
+		{
+			"queueName": "SEARCH_QUERY",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 120,
+			"oldestMessageInQueueAlarmThresholdSec": 30
 		}
 	]
 }

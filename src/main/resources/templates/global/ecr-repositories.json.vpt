@@ -1,0 +1,37 @@
+		,
+		"SynapseRepoEcrRepository": {
+			"Type": "AWS::ECR::Repository",
+			"Properties": {
+				"RepositoryName": "${stack}-synapse-repo",
+				"ImageScanningConfiguration": {
+					"ScanOnPush": true
+				},
+				"LifecyclePolicy": {
+					"LifecyclePolicyText": "{\"rules\":[{\"rulePriority\":1,\"description\":\"Keep last 30 images\",\"selection\":{\"tagStatus\":\"any\",\"countType\":\"imageCountMoreThan\",\"countNumber\":30},\"action\":{\"type\":\"expire\"}}]}"
+				}
+			}
+		},
+		"SynapseWorkersEcrRepository": {
+			"Type": "AWS::ECR::Repository",
+			"Properties": {
+				"RepositoryName": "${stack}-synapse-workers",
+				"ImageScanningConfiguration": {
+					"ScanOnPush": true
+				},
+				"LifecyclePolicy": {
+					"LifecyclePolicyText": "{\"rules\":[{\"rulePriority\":1,\"description\":\"Keep last 30 images\",\"selection\":{\"tagStatus\":\"any\",\"countType\":\"imageCountMoreThan\",\"countNumber\":30},\"action\":{\"type\":\"expire\"}}]}"
+				}
+			}
+		},
+		"SynapsePortalEcrRepository": {
+			"Type": "AWS::ECR::Repository",
+			"Properties": {
+				"RepositoryName": "${stack}-synapse-portal",
+				"ImageScanningConfiguration": {
+					"ScanOnPush": true
+				},
+				"LifecyclePolicy": {
+					"LifecyclePolicyText": "{\"rules\":[{\"rulePriority\":1,\"description\":\"Keep last 30 images\",\"selection\":{\"tagStatus\":\"any\",\"countType\":\"imageCountMoreThan\",\"countNumber\":30},\"action\":{\"type\":\"expire\"}}]}"
+				}
+			}
+		}

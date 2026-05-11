@@ -376,7 +376,7 @@
 			"LogGroupName": {
 				"Fn::Sub": "/aws/apigateway/${D}{GridWebsocketApi}"
 			},
-			"RetentionInDays": 7
+			"RetentionInDays": ${cloudwatchLogRetentionInDays}
 		}
 	},
 	"GridApiGatewayCloudWatchRole": {
