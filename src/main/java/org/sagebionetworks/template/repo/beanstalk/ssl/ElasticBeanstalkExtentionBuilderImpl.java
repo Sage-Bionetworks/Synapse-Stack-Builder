@@ -1,8 +1,10 @@
 package org.sagebionetworks.template.repo.beanstalk.ssl;
 
 import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_DESCRIPTORS;
+import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOG_RETENTION_DAYS;
 import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARMS;
+import static org.sagebionetworks.template.Constants.LOG_RETENTION_IN_DAYS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_NUMBER;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
@@ -103,6 +105,7 @@ public class ElasticBeanstalkExtentionBuilderImpl implements ElasticBeanstalkExt
 		context.put("envType", envType);
 		// CloudwatchLog descriptors
 		context.put(CLOUDWATCH_LOGS_DESCRIPTORS, cwlContextprovider.getLogDescriptors(envType));
+		context.put(CLOUDWATCH_LOG_RETENTION_DAYS, LOG_RETENTION_IN_DAYS);
 		
 		String stack = configuration.getProperty(PROPERTY_KEY_STACK);
 		String instance = configuration.getProperty(PROPERTY_KEY_INSTANCE);
