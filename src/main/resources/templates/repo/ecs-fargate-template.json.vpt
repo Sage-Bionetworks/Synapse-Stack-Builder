@@ -149,9 +149,9 @@
 				"Cpu": "${environment.cpu}",
 				"Memory": "${environment.memory}",
 				"RuntimePlatform": {
-    				"CpuArchitecture": "ARM64",
-    				"OperatingSystemFamily": "LINUX"
-  				},
+					"CpuArchitecture": "ARM64",
+					"OperatingSystemFamily": "LINUX"
+				},
 				"NetworkMode": "awsvpc",
 				"RequiresCompatibilities": ["FARGATE"],
 				"EphemeralStorage": {
