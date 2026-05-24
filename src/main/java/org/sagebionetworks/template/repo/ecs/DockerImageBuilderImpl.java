@@ -157,7 +157,10 @@ public class DockerImageBuilderImpl implements DockerImageBuilder {
 	}
 
 	void dockerBuild(File buildContext, String imageUri) {
-		executeCommand("docker", "build", "-t", imageUri, buildContext.getAbsolutePath());
+		// Fargate task definition declares runtimePlatform ARM64, so the image must be ARM64
+		// regardless of the build host's architecture.
+		executeCommand("docker", "buildx", "build", "--platform", "linux/arm64",
+				"--load", "-t", imageUri, buildContext.getAbsolutePath());
 	}
 
 	void dockerPush(String imageUri) {
