@@ -536,8 +536,8 @@
 			"subscribedTopicNames": [
 				"ENTITY"
 			],
-			"messageVisibilityTimeoutSec": 300,
-			"deadLetterQueueMaxFailureCount": 5
+			"messageVisibilityTimeoutSec": 600,
+			"deadLetterQueueMaxFailureCount": 10
 		},
 		{
 			"queueName": "SEARCH_QUERY",
