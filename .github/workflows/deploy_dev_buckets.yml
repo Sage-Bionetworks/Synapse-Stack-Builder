@@ -28,11 +28,12 @@ jobs:
         run: |
           # capture the current branch as an environment variable
           BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+          # Note: CodeConnectionsArn is intentionally not in this list. The CFN template
+          # defaults it to the upstream connection ARN (it is non-sensitive and account-scoped).
           PIPELINE_PARAMETERS=\
           "Branch=$BRANCH,\
           RepoOwner=${{ github.repository_owner }},\
-          Repository=Synapse-Stack-Builder,\
-          CodeStarConnectionArn=${{ secrets.CODESTAR_CONNECTION_ARN }}"
+          Repository=Synapse-Stack-Builder"
           echo "PIPELINE_PARAMETERS=$PIPELINE_PARAMETERS" >> $GITHUB_OUTPUT
     outputs:
       PIPELINE_PARAMETERS: ${{ steps.pipeline-params.outputs.PIPELINE_PARAMETERS }}

@@ -54,9 +54,10 @@ Parameters:
     Default: sg-0818ba0f1872103d4
     AllowedPattern: ".+"
     ConstraintDescription: Parameter cannot be empty.
-  CodeStarConnectionArn:
+  CodeConnectionsArn:
     Type: String
-    Description: ARN of the CodeStar/CodeConnections GitHub connection used by the source action.
+    Description: ARN of the AWS CodeConnections GitHub connection used by the source action. The ARN is not sensitive; it is an opaque AWS identifier and grants nothing without IAM permissions.
+    Default: arn:aws:codeconnections:us-east-1:449435941126:connection/0d3d9ad4-5dfd-4294-80a5-20774dda8409
     AllowedPattern: "arn:aws:codeconnections:.+"
     ConstraintDescription: Must be a CodeConnections ARN.
 Outputs:
@@ -102,7 +103,7 @@ Resources:
                 Action:
                   - codestar-connections:UseConnection
                   - codeconnections:UseConnection
-                Resource: !Ref CodeStarConnectionArn
+                Resource: !Ref CodeConnectionsArn
   CodeBuildServiceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -149,7 +150,7 @@ Resources:
               OutputArtifacts:
                 - Name: StackBuilderRepoSource
               Configuration:
-                ConnectionArn: !Ref CodeStarConnectionArn
+                ConnectionArn: !Ref CodeConnectionsArn
                 FullRepositoryId: !Sub "${RepoOwner}/${Repository}"
                 BranchName: !Ref Branch
                 # Pipeline is started explicitly by the GitHub workflow via start-pipeline-execution.
