@@ -100,5 +100,30 @@
 			"Threshold" : 1,
 			"TreatMissingData": "notBreaching"
 		}
+	},
+	"${stack}${instance}SemaphoreLockAutoIncrementHighWaterMarkAlarm": {
+		"Type" : "AWS::CloudWatch::Alarm",
+		"Properties" : {
+			"ActionsEnabled" : true,
+			"AlarmActions" : [
+				{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
+			],
+			"AlarmDescription" : "Alert when SEMAPHORE_LOCK AUTO_INCREMENT approaches INT max (2,147,483,647). Threshold at 1B gives ~47% headroom.",
+			"AlarmName" : "${stack}-${instance}-Semaphore-Lock-AutoIncrement-High-Water-Mark",
+			"ComparisonOperator" : "GreaterThanThreshold",
+			"Dimensions" : [
+				{
+					"Name" : "workerClass",
+					"Value" : "SemaphoreGarbageCollection"
+				}
+			],
+			"EvaluationPeriods" : 1,
+			"Period" : 3600,
+			"MetricName" : "SemaphoreLockAutoIncrement",
+			"Namespace" : "Asynchronous Workers - ${instance}",
+			"Statistic" : "Maximum",
+			"Threshold" : 1000000000,
+			"TreatMissingData": "notBreaching"
+		}
 	}
 #end
