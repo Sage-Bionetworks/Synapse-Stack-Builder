@@ -231,6 +231,12 @@ public class Constants {
 	public static final String KINESIS_FIREHOSE_BUCKETS = "kinesisBuckets";
 
 	public static final String CLOUDWATCH_LOGS_DESCRIPTORS = "logDescriptors";
+
+	// Centralized retention for ALL CloudWatch LogGroups in this repo (security audit).
+	// Builders that construct a VelocityContext for a template containing a LogGroup
+	// must context.put(CLOUDWATCH_LOG_RETENTION_DAYS, LOG_RETENTION_IN_DAYS).
+	public static final int LOG_RETENTION_IN_DAYS = 180;
+	public static final String CLOUDWATCH_LOG_RETENTION_DAYS = "cloudwatchLogRetentionInDays";
 	
 	public static final String ATHENA_QUERY_DESCRIPTORS = "athenaQueryDescriptors";
 	public static final String ATHENA_QUERY_DATA_BUCKETS = "athenaQueryDataBuckets";
@@ -286,7 +292,7 @@ public class Constants {
 	public static final String TEMPLATE_ECS_FARGATE_ENVIRONMENT = "templates/repo/ecs-fargate-template.json.vpt";
 
 	// ECS context keys
-	public static final double ECS_JVM_MEMORY_FRACTION = 0.85;
+	public static final double ECS_JVM_MEMORY_FRACTION = 0.50;
 	public static final String DEPLOYMENT_TARGET = "deploymentTarget";
 
 	public static final String MACHINE_TYPES = "machineTypes";

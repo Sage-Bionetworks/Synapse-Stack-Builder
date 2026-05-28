@@ -6,13 +6,17 @@
             "Type":"data",
             "Description":"Access policy for the stack role",
             "Policy": {
-               "Fn::Sub": ["[{\"Rules\":[{\"ResourceType\":\"index\",\"Resource\":[\"index/${stack}-${instance}-synsearch/*\"],\"Permission\":[\"aoss:CreateIndex\",\"aoss:DeleteIndex\",\"aoss:UpdateIndex\",\"aoss:DescribeIndex\",\"aoss:ReadDocument\",\"aoss:WriteDocument\"]},{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synsearch\"],\"Permission\":[\"aoss:DescribeCollectionItems\",\"aoss:CreateCollectionItems\",\"aoss:UpdateCollectionItems\"]}],\"Principal\":[\"#[[${executionRoleArn}]]#\"]}]",
+               "Fn::Sub": ["[{\"Rules\":[{\"ResourceType\":\"index\",\"Resource\":[\"index/${stack}-${instance}-synsearch/*\"],\"Permission\":[\"aoss:CreateIndex\",\"aoss:DeleteIndex\",\"aoss:UpdateIndex\",\"aoss:DescribeIndex\",\"aoss:ReadDocument\",\"aoss:WriteDocument\"]},{\"ResourceType\":\"collection\",\"Resource\":[\"collection/${stack}-${instance}-synsearch\"],\"Permission\":[\"aoss:DescribeCollectionItems\",\"aoss:CreateCollectionItems\",\"aoss:UpdateCollectionItems\"]}],\"Principal\":[#[[${executionRoleArn}]]#]}]",
                 	{
-                		"executionRoleArn": 
+                		"executionRoleArn":
                 		#if (${stack} == 'dev')
-                			{"Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:root"}
+                			{"Fn::Sub": "\"arn:aws:iam::#[[${AWS::AccountId}]]#:root\""}
                 		#else
-                			{"Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"]}
+                			#if ($deploymentTarget == "ECS_FARGATE")
+                				{"Fn::Sub": ["\"#[[${roleArn}]]#\"", {"roleArn": {"Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersEcsTaskRole", "Arn"]}}]}
+                			#else
+                				{"Fn::Sub": ["\"#[[${roleArn}]]#\"", {"roleArn": {"Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"]}}]}
+                			#end
                 		#end
 					}
                 ]

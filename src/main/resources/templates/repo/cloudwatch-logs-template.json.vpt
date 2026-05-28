@@ -4,7 +4,7 @@
         "DeletionPolicy" : "${logDesc.deletionPolicy}",
         "Properties": {
             "LogGroupName": "/aws/elasticbeanstalk/${environment.name}/${logDesc.logType}",
-            "RetentionInDays": 30
+            "RetentionInDays": ${cloudwatchLogRetentionInDays}
         }
     }
     #end

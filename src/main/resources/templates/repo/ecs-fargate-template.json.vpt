@@ -130,7 +130,7 @@
 			"Type": "AWS::Logs::LogGroup",
 			"Properties": {
 				"LogGroupName": "/ecs/${environment.name}/application",
-				"RetentionInDays": 14
+				"RetentionInDays": ${cloudwatchLogRetentionInDays}
 			}
 		},
 		#foreach($logDesc in $logDescriptors)
@@ -138,96 +138,30 @@
 			"Type": "AWS::Logs::LogGroup",
 			"Properties": {
 				"LogGroupName": "/ecs/${environment.name}/${logDesc.logType}",
-				"RetentionInDays": 30
+				"RetentionInDays": ${cloudwatchLogRetentionInDays}
 			}
 		},
 		#end
-		"${environment.refName}TaskExecutionRole": {
-			"Type": "AWS::IAM::Role",
-			"Properties": {
-				"RoleName": "${environment.name}-ecs-execution-role",
-				"AssumeRolePolicyDocument": {
-					"Version": "2012-10-17",
-					"Statement": [
-						{
-							"Effect": "Allow",
-							"Principal": {
-								"Service": "ecs-tasks.amazonaws.com"
-							},
-							"Action": "sts:AssumeRole"
-						}
-					]
-				},
-				"ManagedPolicyArns": [
-					"arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-				]
-			}
-		},
-		"${environment.refName}TaskRole": {
-			"Type": "AWS::IAM::Role",
-			"Properties": {
-				"RoleName": "${environment.name}-ecs-task-role",
-				"AssumeRolePolicyDocument": {
-					"Version": "2012-10-17",
-					"Statement": [
-						{
-							"Effect": "Allow",
-							"Principal": {
-								"Service": "ecs-tasks.amazonaws.com"
-							},
-							"Action": "sts:AssumeRole"
-						}
-					]
-				},
-				"ManagedPolicyArns": [
-					{
-						"Fn::ImportValue": "${sharedExportPrefix}-${environment.instanceProfileSuffix}-Managed-Policy-ARN"
-					}
-					#if ($environment.isTypeRepositoryOrWorkers())
-					,
-					{
-						"Fn::ImportValue": "${sharedExportPrefix}-RepoWorkers-Bedrock-Managed-Policy-ARN"
-					}
-					#end
-				],
-				"Policies": [
-					{
-						"PolicyName": "${environment.name}-ecs-exec-policy",
-						"PolicyDocument": {
-							"Version": "2012-10-17",
-							"Statement": [
-								{
-									"Effect": "Allow",
-									"Action": [
-										"ssmmessages:CreateControlChannel",
-										"ssmmessages:CreateDataChannel",
-										"ssmmessages:OpenControlChannel",
-										"ssmmessages:OpenDataChannel"
-									],
-									"Resource": "*"
-								}
-							]
-						}
-					}
-				]
-			}
-		},
 		"${environment.refName}TaskDefinition": {
 			"Type": "AWS::ECS::TaskDefinition",
 			"Properties": {
 				"Family": "${environment.name}",
 				"Cpu": "${environment.cpu}",
 				"Memory": "${environment.memory}",
+				"RuntimePlatform": {
+					"CpuArchitecture": "ARM64",
+					"OperatingSystemFamily": "LINUX"
+				},
 				"NetworkMode": "awsvpc",
 				"RequiresCompatibilities": ["FARGATE"],
 				"EphemeralStorage": {
 					"SizeInGiB": 160
 				},
 				"ExecutionRoleArn": {
-					"Fn::GetAtt": ["${environment.refName}TaskExecutionRole", "Arn"]
+					"Fn::ImportValue": "${sharedExportPrefix}-ECS-Task-Execution-Role-ARN"
 				},
 				"TaskRoleArn": {
-					"Fn::GetAtt": ["${environment.refName}TaskRole", "Arn"]
+					"Fn::ImportValue": "${sharedExportPrefix}-${environment.instanceProfileSuffix}-ECS-Task-Role-ARN"
 				},
 				"Volumes": [
 					{
@@ -266,7 +200,8 @@
 									"Ref": "${environment.refName}LogGroup"
 								},
 								"awslogs-region": "us-east-1",
-								"awslogs-stream-prefix": "ecs"
+								"awslogs-stream-prefix": "ecs",
+								"awslogs-multiline-pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}"
 							}
 						},
 						"Environment": [
@@ -385,6 +320,10 @@
 								"Value": {"Fn::ImportValue": "${sharedExportPrefix}-Temp-Credentials-Service-Role-Arn"}
 							},
 							{
+								"Name": "org.sagebionetworks.sts.duration.seconds",
+								"Value": "3600"
+							},
+							{
 								"Name": "org.sagebionetworks.cloudfront.keypair",
 								"Value": "${dataCdnKeyPairId}"
 							},
@@ -421,7 +360,8 @@
 									"Ref": "${environment.refName}${logDesc.logType}LogGroup"
 								},
 								"awslogs-region": "us-east-1",
-								"awslogs-stream-prefix": "ecs"
+								"awslogs-stream-prefix": "ecs",
+								"awslogs-multiline-pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}"
 							}
 						}
 					}

@@ -4,6 +4,8 @@ package org.sagebionetworks.template.repo;
 import static org.sagebionetworks.template.Constants.ADMIN_RULE_ACTION;
 import static org.sagebionetworks.template.Constants.BEANSTALK_INSTANCES_SUBNETS;
 import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_DESCRIPTORS;
+import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOG_RETENTION_DAYS;
+import static org.sagebionetworks.template.Constants.LOG_RETENTION_IN_DAYS;
 import static org.sagebionetworks.template.Constants.CTXT_ENABLE_ENHANCED_RDS_MONITORING;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_DOMAIN_NAME;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_KEYPAIR_ID;
@@ -359,6 +361,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		// CloudWatch log descriptors for sidecar containers
 		EnvironmentType envType = environment.getEnvironmentType();
 		context.put(CLOUDWATCH_LOGS_DESCRIPTORS, cwlContextProvider.getLogDescriptors(envType));
+		context.put(CLOUDWATCH_LOG_RETENTION_DAYS, LOG_RETENTION_IN_DAYS);
 
 		// Load balancer alarms
 		java.util.List<LoadBalancerAlarm> alarms = loadBalancerAlarmsConfig.getOrDefault(envType, java.util.Collections.emptyList());
@@ -402,6 +405,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 
 		// CloudwatchLogs
 		context.put(CLOUDWATCH_LOGS_DESCRIPTORS, cwlContextProvider.getLogDescriptors(EnvironmentType.valueOfPrefix(environment.getType())));
+		context.put(CLOUDWATCH_LOG_RETENTION_DAYS, LOG_RETENTION_IN_DAYS);
 
 		// EC2 instance type and memory
 		String ec2InstanceType = config.getProperty(PROPERTY_KEY_EC2_INSTANCE_TYPE);
@@ -484,6 +488,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		
 		// Create the descriptors for all of the database.
 		context.put(DATABASE_DESCRIPTORS, createDatabaseDescriptors());
+
+		context.put(CLOUDWATCH_LOG_RETENTION_DAYS, LOG_RETENTION_IN_DAYS);
 
 		for(VelocityContextProvider provider : contextProviders){
 			provider.addToContext(context);
