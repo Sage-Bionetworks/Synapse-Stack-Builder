@@ -54,6 +54,11 @@ Parameters:
     Default: sg-0818ba0f1872103d4
     AllowedPattern: ".+"
     ConstraintDescription: Parameter cannot be empty.
+  CodeStarConnectionArn:
+    Type: String
+    Description: ARN of the CodeStar/CodeConnections GitHub connection used by the source action.
+    AllowedPattern: "arn:aws:codeconnections:.+"
+    ConstraintDescription: Must be a CodeConnections ARN.
 Outputs:
   PipelineName:
     Value: !Ref CodePipeline
@@ -92,6 +97,12 @@ Resources:
                   - codebuild:BatchGetBuilds
                   - codebuild:StartBuild
                 Resource: !GetAtt CodeBuildProject.Arn
+              # Permission to use the CodeConnections GitHub connection from the source action
+              - Effect: Allow
+                Action:
+                  - codestar-connections:UseConnection
+                  - codeconnections:UseConnection
+                Resource: !Ref CodeStarConnectionArn
   CodeBuildServiceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -132,17 +143,18 @@ Resources:
             - Name: CheckoutStackBuilderRepo
               ActionTypeId:
                 Category: Source
-                Owner: ThirdParty
-                Provider: GitHub
+                Owner: AWS
+                Provider: CodeStarSourceConnection
                 Version: 1
               OutputArtifacts:
                 - Name: StackBuilderRepoSource
               Configuration:
-                Owner: !Ref RepoOwner
-                Repo: !Ref Repository
-                Branch: !Ref Branch
-                OAuthToken: !Ref GitHubToken
-                PollForSourceChanges: false # instead we will trigger from GitHub workflow
+                ConnectionArn: !Ref CodeStarConnectionArn
+                FullRepositoryId: !Sub "${RepoOwner}/${Repository}"
+                BranchName: !Ref Branch
+                # Pipeline is started explicitly by the GitHub workflow via start-pipeline-execution.
+                # Leaving this true would let the connection auto-fire on every push the App sees.
+                DetectChanges: false
         - Name: DeployBuckets
           Actions:
             - Name: DeployBuckets

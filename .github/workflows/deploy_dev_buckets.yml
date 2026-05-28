@@ -31,7 +31,8 @@ jobs:
           PIPELINE_PARAMETERS=\
           "Branch=$BRANCH,\
           RepoOwner=${{ github.repository_owner }},\
-          Repository=Synapse-Stack-Builder"
+          Repository=Synapse-Stack-Builder,\
+          CodeStarConnectionArn=${{ secrets.CODESTAR_CONNECTION_ARN }}"
           echo "PIPELINE_PARAMETERS=$PIPELINE_PARAMETERS" >> $GITHUB_OUTPUT
     outputs:
       PIPELINE_PARAMETERS: ${{ steps.pipeline-params.outputs.PIPELINE_PARAMETERS }}
