@@ -300,8 +300,13 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	private void createBucket(String bucketName) {
 		LOG.info("Creating bucket: {}.", bucketName);
 		
-		// This is idempotent
-		s3Client.createBucket(bucketName);
+		try {
+			s3Client.createBucket(bucketName);
+		} catch (AmazonS3Exception e) {
+			if (!"BucketAlreadyOwnedByYou".equals(e.getErrorCode())) {
+				throw e;
+			}
+		}
 	}
 	
 	private void configurePublicAccessBlock(String bucketName) {

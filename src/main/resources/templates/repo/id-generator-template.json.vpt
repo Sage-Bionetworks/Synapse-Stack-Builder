@@ -68,12 +68,11 @@
 			"Type": "AWS::RDS::DBParameterGroup",
 			"Properties": {
 				"Description": "Shared MySQL database parameters",
-				"Family": "mysql8.0",
+				"Family": "mysql8.4",
 				"Parameters": {
 					"slow_query_log": "1",
 					"long_query_time": "1",
-					"max_allowed_packet": "16777216",
-					"log_bin_trust_function_creators": "1"
+					"max_allowed_packet": "16777216"
 				}
 			}
 		},
@@ -95,7 +94,7 @@
 					"Ref": "${stack}IdGeneratorDBSubnetGroup"
 				},
 				"Engine": "MySQL",
-				"EngineVersion": "8.0.40",
+				"EngineVersion": "8.4.8",
 				"LicenseModel": "general-public-license",
 				"MasterUsername": "${stack}idgenuser",
 				"MasterUserPassword": {
