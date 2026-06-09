@@ -387,7 +387,7 @@
 					{
 						"Namespace": "aws:elasticbeanstalk:container:tomcat:jvmoptions",
 						"OptionName": "JVM options",
-						"Value": "-Dlog4j2.formatMsgNoLookups=true"
+						"Value": "-Dlog4j2.formatMsgNoLookups=true --add-opens java.base/java.util=ALL-UNNAMED"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
