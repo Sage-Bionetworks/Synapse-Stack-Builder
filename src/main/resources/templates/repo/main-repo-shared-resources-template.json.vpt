@@ -69,6 +69,7 @@
 				"Parameters": {
 					"slow_query_log": "1",
 					"long_query_time": "1",
+					"log_bin_trust_function_creators": "1",
 					"max_allowed_packet": "16777216"
 				}
 			}
