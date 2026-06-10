@@ -1546,7 +1546,7 @@ public class RepositoryTemplateBuilderImplTest {
 		DatabaseDescriptor[] results = builder.createDatabaseDescriptors();
 		DatabaseDescriptor[] expected = new DatabaseDescriptor[] {
 				// repo
-				new DatabaseDescriptor().withAllocatedStorage(4).withBackupRetentionPeriodDays(0)
+				new DatabaseDescriptor().withAllocatedStorage(4).withBackupRetentionPeriodDays(7)
 						.withDbIops(-1).withDbThroughput(-1)
 						.withDbName("dev101").withDbStorageType(DatabaseStorageType.standard.name())
 						.withInstanceClass("db.t2.small").withInstanceIdentifier("dev-101-db")

@@ -528,7 +528,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				.withDbThroughput(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_THROUGHPUT))
 				.withMultiAZ(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ))
 				// 0 indicates no automated backups will be created.
-				.withBackupRetentionPeriodDays(Constants.isProd(stack) ? 7 : 0)
+				.withBackupRetentionPeriodDays(7)
 				.withDeletionPolicy(Constants.isProd(stack)? DeletionPolicy.Snapshot: DeletionPolicy.Delete);
 		
 
