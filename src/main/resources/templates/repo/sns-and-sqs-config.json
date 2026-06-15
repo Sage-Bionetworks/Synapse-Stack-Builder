@@ -23,6 +23,7 @@
 		"JSON_SCHEMA_DEPENDANT",
 		"THREAD_VIEW",
 		"MATERIALIZED_VIEW",
+		"RECORDSET",
 		"TABLE_STATUS_EVENT",
 		"DATA_ACCESS_SUBMISSION_EVENT",
 		"FILE_EVENT",
@@ -362,6 +363,14 @@
 				"MATERIALIZED_VIEW"
 			],
 			"messageVisibilityTimeoutSec": 120,
+			"messageRetentionPeriodSec": 1209600
+		},
+		{
+			"queueName": "RECORDSET_UPDATE",
+			"subscribedTopicNames": [
+				"RECORDSET"
+			],
+			"messageVisibilityTimeoutSec": 1200,
 			"messageRetentionPeriodSec": 1209600
 		},
 		{
