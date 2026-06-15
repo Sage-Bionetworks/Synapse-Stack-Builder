@@ -17,7 +17,7 @@ while IFS='=' read -r name value; do
     fi
 done < <(env)
 
-export JAVA_OPTS="$JAVA_OPTS $SYSPROPS"
+export JAVA_OPTS="$JAVA_OPTS $SYSPROPS --add-opens java.base/java.util=ALL-UNNAMED"
 
 # Start nginx in daemon mode (forks and returns). nginx handles TLS and
 # reverse-proxies to Tomcat on 127.0.0.1:8080. Tomcat becomes PID 1 so that
