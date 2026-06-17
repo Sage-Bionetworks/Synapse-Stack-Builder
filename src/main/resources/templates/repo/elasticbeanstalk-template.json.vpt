@@ -549,7 +549,7 @@
 					},
                     {
                         "Namespace": "aws:elasticbeanstalk:application:environment",
-                        "OptionName": "org.sagebionetworks.cloudfront.keypair",
+                        "OptionName": "org.sagebionetworks.cloudfront.private.key.id",
                         "Value": "${dataCdnKeyPairId}"
                     },
                     {
