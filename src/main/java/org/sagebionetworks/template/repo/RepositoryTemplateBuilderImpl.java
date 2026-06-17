@@ -5,10 +5,9 @@ import static org.sagebionetworks.template.Constants.ADMIN_RULE_ACTION;
 import static org.sagebionetworks.template.Constants.BEANSTALK_INSTANCES_SUBNETS;
 import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOG_RETENTION_DAYS;
-import static org.sagebionetworks.template.Constants.LOG_RETENTION_IN_DAYS;
 import static org.sagebionetworks.template.Constants.CTXT_ENABLE_ENHANCED_RDS_MONITORING;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_DOMAIN_NAME;
-import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_KEYPAIR_ID;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_PRIVATE_KEY_ID;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DATA_CDN_DOMAIN_NAME_FMT;
@@ -23,6 +22,7 @@ import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PRE
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARMS;
+import static org.sagebionetworks.template.Constants.LOG_RETENTION_IN_DAYS;
 import static org.sagebionetworks.template.Constants.MACHINE_TYPES;
 import static org.sagebionetworks.template.Constants.NOSNAPSHOT;
 import static org.sagebionetworks.template.Constants.OAUTH_ENDPOINT;
@@ -35,7 +35,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_MIN_
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_NUMBER;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERSION;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_KEYPAIR_ID;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_MEMORY;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_TYPE;
@@ -344,8 +344,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		context.put(OAUTH_ENDPOINT, config.getProperty(PROPERTY_KEY_OAUTH_ENDPOINT));
 
 		// Data CDN props
-		String cdnKeyPairId = config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID);
-		context.put(CTXT_KEY_DATA_CDN_KEYPAIR_ID, cdnKeyPairId);
+		String cdnPrivateKeyId = config.getProperty(PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID);
+		context.put(CTXT_KEY_DATA_CDN_PRIVATE_KEY_ID, cdnPrivateKeyId);
 		context.put(CTXT_KEY_DATA_CDN_DOMAIN_NAME, String.format(DATA_CDN_DOMAIN_NAME_FMT, stack));
 		context.put(CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL, config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT));
 
@@ -419,8 +419,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		context.put(BEANSTALK_INSTANCES_SUBNETS, beanstalkSubnetsAsString);
 
 		// Data CDN props (
-		String cdnKeyPairId = config.getProperty(PROPERTY_KEY_DATA_CDN_KEYPAIR_ID);
-		context.put(CTXT_KEY_DATA_CDN_KEYPAIR_ID, cdnKeyPairId);
+		String cdnPrivateKeyId = config.getProperty(PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID);
+		context.put(CTXT_KEY_DATA_CDN_PRIVATE_KEY_ID, cdnPrivateKeyId);
 		context.put(CTXT_KEY_DATA_CDN_DOMAIN_NAME, String.format(DATA_CDN_DOMAIN_NAME_FMT, stack));
 
 		context.put(CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL, config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT));
