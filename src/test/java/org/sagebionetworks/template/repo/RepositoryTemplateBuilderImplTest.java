@@ -18,7 +18,7 @@ import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.ADMIN_RULE_ACTION;
 import static org.sagebionetworks.template.Constants.BEANSTALK_INSTANCES_SUBNETS;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_DOMAIN_NAME;
-import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_KEYPAIR_ID;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_PRIVATE_KEY_ID;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
@@ -349,7 +349,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		stack = "prod";
 		configureStack(stack);
-		when(config.getProperty(PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID)).thenReturn("CdnKeyPairId");
+		when(config.getProperty(PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID)).thenReturn("CdnPrivateKeyId");
 		when(config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT)).thenReturn("discoveryDocumentUrl");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
 		
@@ -527,7 +527,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		stack = "prod";
 		configureStack(stack);
-		when(config.getProperty(PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID)).thenReturn("CdnKeyPairId");
+		when(config.getProperty(PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID)).thenReturn("CdnPrivateKeyId");
 		when(config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT)).thenReturn("discoveryDocumentUrl");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
 
@@ -652,7 +652,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		stack = "dev";
 		configureStack(stack);
-		when(config.getProperty(PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID)).thenReturn("CdnKeyPairId");
+		when(config.getProperty(PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID)).thenReturn("CdnPrivateKeyId");
 		when(config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT)).thenReturn("discoveryDocumentUrl");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
 
@@ -800,7 +800,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("false");
 		stack = "dev";
 		configureStack(stack);
-		when(config.getProperty(PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID)).thenReturn("CdnKeyPairId");
+		when(config.getProperty(PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID)).thenReturn("CdnPrivateKeyId");
 		when(config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT)).thenReturn("discoveryDocumentUrl");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
 
@@ -1299,7 +1299,7 @@ public class RepositoryTemplateBuilderImplTest {
 		List<PlatformSummary> expectedSummaries = Arrays.asList(expectedSummary);
 		ListPlatformVersionsResponse expectedLpvr = ListPlatformVersionsResponse.builder().platformSummaryList(expectedSummaries).build();
 		when(mockBeanstalkClient.listPlatformVersions(any(ListPlatformVersionsRequest.class))).thenReturn(expectedLpvr);
-		when(config.getProperty("org.sagebionetworks.cloudfront.private.key.id")).thenReturn("dataCdnKeyPairId");
+		when(config.getProperty("org.sagebionetworks.cloudfront.private.key.id")).thenReturn("dataCdnPrivateKeyId");
 		when(config.getProperty("org.sagebionetworks.oauth2.sagebio.discoveryDocument")).thenReturn("discoveryDocumentUrl");
 
 		EnvironmentDescriptor environment = new EnvironmentDescriptor().withType(EnvironmentType.REPOSITORY_SERVICES);
@@ -1321,7 +1321,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(2048, context.get(EC2_INSTANCE_MEMORY));
 		assertEquals(String.join(",", EXPECTED_SUBNETS), context.get(BEANSTALK_INSTANCES_SUBNETS));
 		assertEquals("data.dev.sagebase.org", context.get(CTXT_KEY_DATA_CDN_DOMAIN_NAME));
-		assertEquals("dataCdnKeyPairId", context.get(CTXT_KEY_DATA_CDN_KEYPAIR_ID));
+		assertEquals("dataCdnPrivateKeyId", context.get(CTXT_KEY_DATA_CDN_PRIVATE_KEY_ID));
 		assertEquals("discoveryDocumentUrl", context.get(CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL));
 	}
 
@@ -1699,7 +1699,7 @@ public class RepositoryTemplateBuilderImplTest {
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
 		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
 				.thenReturn(String.join(",", EXPECTED_SUBNETS));
-		when(config.getProperty("org.sagebionetworks.cloudfront.private.key.id")).thenReturn("dataCdnKeyPairId");
+		when(config.getProperty("org.sagebionetworks.cloudfront.private.key.id")).thenReturn("dataCdnPrivateKeyId");
 		when(config.getProperty("org.sagebionetworks.oauth2.sagebio.discoveryDocument")).thenReturn("discoveryDocumentUrl");
 		when(mockLoadBalancerAlarmsConfig.getOrDefault(any(), any())).thenReturn(java.util.Collections.emptyList());
 
@@ -1726,7 +1726,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(databaseEndpointSuffix, context.get(DB_ENDPOINT_SUFFIX));
 		assertEquals("https://oauthendpoint", context.get(OAUTH_ENDPOINT));
 		assertEquals("data.dev.sagebase.org", context.get(CTXT_KEY_DATA_CDN_DOMAIN_NAME));
-		assertEquals("dataCdnKeyPairId", context.get(CTXT_KEY_DATA_CDN_KEYPAIR_ID));
+		assertEquals("dataCdnPrivateKeyId", context.get(CTXT_KEY_DATA_CDN_PRIVATE_KEY_ID));
 		assertEquals("discoveryDocumentUrl", context.get(CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL));
 		assertEquals(EXPECTED_SUBNETS, context.get("ecsSubnetsList"));
 		assertNotNull(context.get("targetGroup"));

@@ -259,7 +259,7 @@ public class Constants {
 	public static final String CTXT_KEY_DOMAIN_NAME = "DomainName";
 	public static final String CTXT_KEY_PUBLIC_KEY = "DataCdnPublicKey";
 	public static final String CTXT_KEY_PUBLIC_KEY_HASH = "PublicKeyHash";
-	public static final String CTXT_KEY_DATA_CDN_KEYPAIR_ID = "dataCdnKeyPairId";
+	public static final String CTXT_KEY_DATA_CDN_PRIVATE_KEY_ID = "dataCdnPrivateKeyId";
 	public static final String CTXT_KEY_DATA_CDN_DOMAIN_NAME = "dataCdnDomainName";
 
 	public static final String CTXT_ENABLE_ENHANCED_RDS_MONITORING = "EnableRdsEnhancedMonitoring";

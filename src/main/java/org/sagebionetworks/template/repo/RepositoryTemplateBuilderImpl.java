@@ -5,7 +5,6 @@ import static org.sagebionetworks.template.Constants.ADMIN_RULE_ACTION;
 import static org.sagebionetworks.template.Constants.BEANSTALK_INSTANCES_SUBNETS;
 import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOG_RETENTION_DAYS;
-import static org.sagebionetworks.template.Constants.LOG_RETENTION_IN_DAYS;
 import static org.sagebionetworks.template.Constants.CTXT_ENABLE_ENHANCED_RDS_MONITORING;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_DOMAIN_NAME;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_PRIVATE_KEY_ID;
@@ -23,6 +22,7 @@ import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PRE
 import static org.sagebionetworks.template.Constants.INSTANCE;
 import static org.sagebionetworks.template.Constants.JSON_INDENT;
 import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARMS;
+import static org.sagebionetworks.template.Constants.LOG_RETENTION_IN_DAYS;
 import static org.sagebionetworks.template.Constants.MACHINE_TYPES;
 import static org.sagebionetworks.template.Constants.NOSNAPSHOT;
 import static org.sagebionetworks.template.Constants.OAUTH_ENDPOINT;
