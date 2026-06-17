@@ -324,8 +324,8 @@
 								"Value": "3600"
 							},
 							{
-								"Name": "org.sagebionetworks.cloudfront.keypair",
-								"Value": "${dataCdnKeyPairId}"
+								"Name": "org.sagebionetworks.cloudfront.private.key.id",
+								"Value": "${dataCdnPrivateKeyId}"
 							},
 							{
 								"Name": "org.sagebionetworks.cloudfront.domainname",
