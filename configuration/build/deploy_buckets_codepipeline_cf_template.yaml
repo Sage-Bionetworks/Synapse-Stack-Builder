@@ -1,28 +1,14 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: CloudFormation template to create AWS CodeBuild project
 Parameters:
-  GitHubToken:
+  SourceBucket:
     Type: String
-    Description: Token to authorize GitHub requests
-    NoEcho: true
+    Description: S3 bucket containing source archive uploaded by GitHub Actions
     AllowedPattern: ".+"
     ConstraintDescription: Parameter cannot be empty.
-  Repository:
+  SourceKey:
     Type: String
-    Default: Synapse-Stack-Builder
-    Description: Repository name
-    AllowedPattern: ".+"
-    ConstraintDescription: Parameter cannot be empty.
-  Branch:
-    Type: String
-    Description: Branch of the repository to build
-    Default: develop
-    AllowedPattern: ".+"
-    ConstraintDescription: Parameter cannot be empty.
-  RepoOwner:
-    Type: String
-    Description: Owner of the repository to build
-    Default: Sage-Bionetworks
+    Description: S3 key of the Stack Builder source archive
     AllowedPattern: ".+"
     ConstraintDescription: Parameter cannot be empty.
   BuildImage:
@@ -87,6 +73,15 @@ Resources:
                 Resource:
                   - !Sub "${PipelineOutputBucket.Arn}/*"
                   - !GetAtt PipelineOutputBucket.Arn
+              # Permission to read from the source upload bucket
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:GetBucketVersioning
+                Resource:
+                  - !Sub "arn:aws:s3:::${SourceBucket}/*"
+                  - !Sub "arn:aws:s3:::${SourceBucket}"
               # Permission to invoke CodeBuild
               - Effect: Allow
                 Action:
@@ -133,17 +128,15 @@ Resources:
             - Name: CheckoutStackBuilderRepo
               ActionTypeId:
                 Category: Source
-                Owner: ThirdParty
-                Provider: GitHub
+                Owner: AWS
+                Provider: S3
                 Version: 1
               OutputArtifacts:
                 - Name: StackBuilderRepoSource
               Configuration:
-                Owner: !Ref RepoOwner
-                Repo: !Ref Repository
-                Branch: !Ref Branch
-                OAuthToken: !Ref GitHubToken
-                PollForSourceChanges: false # instead we will trigger from GitHub workflow
+                S3Bucket: !Ref SourceBucket
+                S3ObjectKey: !Ref SourceKey
+                PollForSourceChanges: false
         - Name: DeployBuckets
           Actions:
             - Name: DeployBuckets
