@@ -6,7 +6,6 @@ jobs:
   set-up:
     permissions:
       contents: read
-      id-token: write
     runs-on: ubuntu-latest
 
     steps:
@@ -15,40 +14,61 @@ jobs:
       - name: Static Analysis
         uses: pre-commit/action@v3.0.0
 
-      - id: oidc
+  upload_source:
+    needs: set-up
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: arn:aws:iam::449435941126:role/sagebase-github-oidc-sage-bionetworks-synapse-build
           aws-region: us-east-1
-          # eight hours
-          role-duration-seconds: 28800
 
-      - name: Determine Pipeline Parameters
-        id: pipeline-params
+      - name: Upload Source to S3
+        id: upload
         run: |
-          # capture the current branch as an environment variable
-          BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
-          PIPELINE_PARAMETERS=\
-          "Branch=$BRANCH,\
-          RepoOwner=${{ github.repository_owner }},\
-          Repository=Synapse-Stack-Builder"
-          echo "PIPELINE_PARAMETERS=$PIPELINE_PARAMETERS" >> $GITHUB_OUTPUT
-    outputs:
-      PIPELINE_PARAMETERS: ${{ steps.pipeline-params.outputs.PIPELINE_PARAMETERS }}
+          BUCKET="synapse-build-source-dev-buckets"
 
+          # Ensure bucket exists with versioning and lifecycle policy
+          if ! aws s3api head-bucket --bucket "$BUCKET" 2>/dev/null; then
+            aws s3api create-bucket --bucket "$BUCKET" --region us-east-1
+            aws s3api put-public-access-block --bucket "$BUCKET" \
+              --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+            aws s3api put-bucket-versioning --bucket "$BUCKET" \
+              --versioning-configuration Status=Enabled
+            aws s3api put-bucket-lifecycle-configuration --bucket "$BUCKET" \
+              --lifecycle-configuration '{"Rules":[{"ID":"PurgeOldUploads","Status":"Enabled","Expiration":{"Days":7},"Filter":{"Prefix":""}}]}'
+          fi
+
+          SOURCE_KEY="${{ github.repository_owner }}/Synapse-Stack-Builder/${{ github.sha }}/Synapse-Stack-Builder.zip"
+
+          # Zip and upload repo (exclude .git directory)
+          zip -qr /tmp/stack-builder.zip . -x '.git/*'
+          aws s3 cp /tmp/stack-builder.zip "s3://${BUCKET}/${SOURCE_KEY}"
+
+          echo "SOURCE_BUCKET=$BUCKET" >> $GITHUB_OUTPUT
+          echo "SOURCE_KEY=$SOURCE_KEY" >> $GITHUB_OUTPUT
+
+    outputs:
+      SOURCE_BUCKET: ${{ steps.upload.outputs.SOURCE_BUCKET }}
+      SOURCE_KEY: ${{ steps.upload.outputs.SOURCE_KEY }}
 
   invoke_workflow:
-    needs: set-up
-    uses: Sage-Bionetworks/Synapse-Code-Pipeline/.github/workflows/execute_code_pipeline.yml@main
+    needs: upload_source
+    uses: Sage-Bionetworks/Synapse-Code-Pipeline/.github/workflows/execute_code_pipeline_v2.yml@main
     with:
       CODE_PIPELINE_CF_TEMPLATE: configuration/build/deploy_buckets_codepipeline_cf_template.yaml
       PIPELINE_NAME: Stack-Builder-Deploy-Buckets
-      PIPELINE_PARAMETERS: ${{ needs.set-up.outputs.PIPELINE_PARAMETERS }}
-      CODE_PIPELINE_SOURCE_REVISIONS: "actionName=CheckoutStackBuilderRepo,revisionType=COMMIT_ID,revisionValue=${{ github.sha }}"
+      PIPELINE_PARAMETERS: "SourceBucket=${{ needs.upload_source.outputs.SOURCE_BUCKET }},SourceKey=${{ needs.upload_source.outputs.SOURCE_KEY }}"
       ROLE_TO_ASSUME: arn:aws:iam::449435941126:role/sagebase-github-oidc-sage-bionetworks-synapse-build
     secrets: inherit
     permissions:
-      # https://graphite.dev/guides/github-actions-permissions
       id-token: write
       contents: read
       deployments: write
