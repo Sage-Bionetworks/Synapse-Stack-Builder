@@ -62,9 +62,6 @@
 				"VolumeType": "gp3",
 				"VolumeSize": #if (${stack} == 'prod') 100 #else 20 #end
 			},
-			"AutoTuneOptions": {
-				"DesiredState": #if (${stack} == 'prod') "ENABLED" #else "DISABLED" #end
-			},
 			"EncryptionAtRestOptions": {
 				"Enabled": true
 			},
