@@ -71,6 +71,9 @@
 			"DomainEndpointOptions": {
 				"EnforceHTTPS": true
 			},
+			"SoftwareUpdateOptions": {
+				"AutoSoftwareUpdateEnabled": true
+			},
 			"VPCOptions": {
 				"SecurityGroupIds": [
 					{ "Ref": "${stack}${instance}SynapseSearchIndexSecurityGroup" }

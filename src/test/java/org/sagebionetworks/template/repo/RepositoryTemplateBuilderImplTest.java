@@ -459,6 +459,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(3, prodClusterConfig.getInt("DedicatedMasterCount"));
 		assertTrue(prodClusterConfig.getBoolean("ZoneAwarenessEnabled"));
 		assertEquals("Retain", resources.getJSONObject("SynapseSearchIndexDomain").getString("DeletionPolicy"));
+		assertTrue(prodDomainProps.getJSONObject("SoftwareUpdateOptions").getBoolean("AutoSoftwareUpdateEnabled"));
 		assertTrue(
 			prodDomainProps.getJSONObject("AccessPolicies").toString().contains("prod101SynapesRepoWorkersServiceRole")
 		);
@@ -763,6 +764,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(20, devDomainProps.getJSONObject("EBSOptions").getInt("VolumeSize"));
 		assertFalse(devClusterConfig.getBoolean("ZoneAwarenessEnabled"));
 		assertEquals("Delete", resources.getJSONObject("SynapseSearchIndexDomain").getString("DeletionPolicy"));
+		assertTrue(devDomainProps.getJSONObject("SoftwareUpdateOptions").getBoolean("AutoSoftwareUpdateEnabled"));
 		assertTrue(
 			devDomainProps.getJSONObject("AccessPolicies").toString().contains("arn:aws:iam::${AWS::AccountId}:root")
 		);
