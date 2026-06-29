@@ -758,7 +758,9 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("OpenSearch_3.5", devDomainProps.getString("EngineVersion"));
 		JSONObject devClusterConfig = devDomainProps.getJSONObject("ClusterConfig");
 		assertEquals(1, devClusterConfig.getInt("InstanceCount"));
+		assertEquals("t3.small.search", devClusterConfig.getString("InstanceType"));
 		assertFalse(devClusterConfig.getBoolean("DedicatedMasterEnabled"));
+		assertEquals(20, devDomainProps.getJSONObject("EBSOptions").getInt("VolumeSize"));
 		assertFalse(devClusterConfig.getBoolean("ZoneAwarenessEnabled"));
 		assertEquals("Delete", resources.getJSONObject("SynapseSearchIndexDomain").getString("DeletionPolicy"));
 		assertTrue(

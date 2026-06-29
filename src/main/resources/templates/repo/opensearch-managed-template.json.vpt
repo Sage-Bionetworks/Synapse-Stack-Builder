@@ -50,7 +50,7 @@
 				}
 				#else
 				{
-					"InstanceType": "m6g.large.search",
+					"InstanceType": "t3.small.search",
 					"InstanceCount": 1,
 					"ZoneAwarenessEnabled": false,
 					"DedicatedMasterEnabled": false
@@ -60,7 +60,7 @@
 			"EBSOptions": {
 				"EBSEnabled": true,
 				"VolumeType": "gp3",
-				"VolumeSize": 100
+				"VolumeSize": #if (${stack} == 'prod') 100 #else 20 #end
 			},
 			"EncryptionAtRestOptions": {
 				"Enabled": true

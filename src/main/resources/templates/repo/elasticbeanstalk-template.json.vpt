@@ -499,6 +499,11 @@
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.search.index.opensearch.domain.endpoint",
+						"Value": {"Fn::ImportValue": "${sharedExportPrefix}-synidx-endpoint"}
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.table.cluster.database.count",
 						"Value": "1"
 					},

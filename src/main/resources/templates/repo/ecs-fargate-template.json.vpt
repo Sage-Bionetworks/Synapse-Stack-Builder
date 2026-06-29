@@ -280,6 +280,10 @@
 								"Value": "${stack}-${instance}-table-0.${dbEndpointSuffix}"
 							},
 							{
+								"Name": "org.sagebionetworks.search.index.opensearch.domain.endpoint",
+								"Value": {"Fn::ImportValue": "${sharedExportPrefix}-synidx-endpoint"}
+							},
+							{
 								"Name": "org.sagebionetworks.table.cluster.database.count",
 								"Value": "1"
 							},
