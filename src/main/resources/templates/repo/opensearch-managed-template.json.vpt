@@ -1,0 +1,125 @@
+	,
+	"${stack}${instance}SynapseSearchIndexSecurityGroup": {
+		"Type": "AWS::EC2::SecurityGroup",
+		"Properties": {
+			"GroupDescription": "Security group for the per-entity SearchIndex managed OpenSearch domain ENIs in ${stack}${instance}",
+			"VpcId": {
+				"Fn::ImportValue": "${vpcExportPrefix}-VPCId"
+			},
+			"SecurityGroupIngress": [
+				{
+					"Description": "Allow ${subnetGroupColor} subnet HTTPS access from the workers",
+					"CidrIp": {
+						"Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-CIDR"
+					},
+					"FromPort": "443",
+					"ToPort": "443",
+					"IpProtocol": "tcp"
+				}
+			],
+			"Tags": [
+				{
+					"Key": "Application",
+					"Value": {
+						"Ref": "AWS::StackName"
+					}
+				},
+				{
+					"Key": "Name",
+					"Value": "${stack}${instance}SynapseSearchIndexSecurityGroup"
+				}
+			]
+		}
+	},
+	"SynapseSearchIndexDomain": {
+		"Type": "AWS::OpenSearchService::Domain",
+		"DeletionPolicy": "${deletionPolicy}",
+		"Properties": {
+			"DomainName": "${stack}-${instance}-synidx",
+			"EngineVersion": "OpenSearch_3.5",
+			"ClusterConfig":
+				#if (${stack} == 'prod')
+				{
+					"InstanceType": "r6g.xlarge.search",
+					"InstanceCount": 2,
+					"ZoneAwarenessEnabled": true,
+					"ZoneAwarenessConfig": { "AvailabilityZoneCount": 2 },
+					"DedicatedMasterEnabled": true,
+					"DedicatedMasterType": "m6g.large.search",
+					"DedicatedMasterCount": 3
+				}
+				#else
+				{
+					"InstanceType": "m6g.large.search",
+					"InstanceCount": 1,
+					"ZoneAwarenessEnabled": false,
+					"DedicatedMasterEnabled": false
+				}
+				#end
+			,
+			"EBSOptions": {
+				"EBSEnabled": true,
+				"VolumeType": "gp3",
+				"VolumeSize": 100
+			},
+			"EncryptionAtRestOptions": {
+				"Enabled": true
+			},
+			"NodeToNodeEncryptionOptions": {
+				"Enabled": true
+			},
+			"DomainEndpointOptions": {
+				"EnforceHTTPS": true
+			},
+			"VPCOptions": {
+				"SecurityGroupIds": [
+					{ "Ref": "${stack}${instance}SynapseSearchIndexSecurityGroup" }
+				],
+				"SubnetIds":
+					#if (${stack} == 'prod')
+					[
+						{ "Fn::Select": [ 0, { "Fn::Split": [ ",", { "Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-Private-Subnets" } ] } ] },
+						{ "Fn::Select": [ 1, { "Fn::Split": [ ",", { "Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-Private-Subnets" } ] } ] }
+					]
+					#else
+					[
+						{ "Fn::Select": [ 0, { "Fn::Split": [ ",", { "Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-Private-Subnets" } ] } ] }
+					]
+					#end
+			},
+			"AccessPolicies": {
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Principal": {
+							"AWS":
+								#if (${stack} == 'dev')
+									{"Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:root"}
+								#else
+									#if ($deploymentTarget == "ECS_FARGATE")
+										{"Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersEcsTaskRole", "Arn"]}
+									#else
+										{"Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"]}
+									#end
+								#end
+						},
+						"Action": "es:ESHttp*",
+						"Resource": {"Fn::Sub": "arn:aws:es:#[[${AWS::Region}]]#:#[[${AWS::AccountId}]]#:domain/${stack}-${instance}-synidx/*"}
+					}
+				]
+			},
+			"Tags": [
+				{
+					"Key": "Application",
+					"Value": {
+						"Ref": "AWS::StackName"
+					}
+				},
+				{
+					"Key": "Name",
+					"Value": "${stack}-${instance}-synidx"
+				}
+			]
+		}
+	}
