@@ -458,6 +458,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(prodClusterConfig.getBoolean("DedicatedMasterEnabled"));
 		assertEquals(3, prodClusterConfig.getInt("DedicatedMasterCount"));
 		assertTrue(prodClusterConfig.getBoolean("ZoneAwarenessEnabled"));
+		assertEquals("ENABLED", prodDomainProps.getJSONObject("AutoTuneOptions").getString("DesiredState"));
 		assertEquals("Retain", resources.getJSONObject("SynapseSearchIndexDomain").getString("DeletionPolicy"));
 		assertTrue(
 			prodDomainProps.getJSONObject("AccessPolicies").toString().contains("prod101SynapesRepoWorkersServiceRole")
@@ -761,6 +762,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("t3.small.search", devClusterConfig.getString("InstanceType"));
 		assertFalse(devClusterConfig.getBoolean("DedicatedMasterEnabled"));
 		assertEquals(20, devDomainProps.getJSONObject("EBSOptions").getInt("VolumeSize"));
+		// Auto-Tune is unsupported on t2/t3 instance types, so it must be disabled on dev.
+		assertEquals("DISABLED", devDomainProps.getJSONObject("AutoTuneOptions").getString("DesiredState"));
 		assertFalse(devClusterConfig.getBoolean("ZoneAwarenessEnabled"));
 		assertEquals("Delete", resources.getJSONObject("SynapseSearchIndexDomain").getString("DeletionPolicy"));
 		assertTrue(

@@ -1129,7 +1129,7 @@
 		"SynapseSearchIndexDomainEndpoint": {
 			"Description": "The endpoint of the per-entity SearchIndex managed OpenSearch domain",
 			"Value": {
-				"Fn::GetAtt": ["SynapseSearchIndexDomain", "DomainEndpoint"]
+				"Fn::GetAtt": ["SynapseSearchIndexDomain", "DomainEndpoints.vpc"]
 			},
 			"Export": {
 				"Name": {
