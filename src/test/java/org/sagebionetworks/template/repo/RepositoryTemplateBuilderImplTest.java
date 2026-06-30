@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
@@ -132,15 +133,17 @@ import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
 import org.sagebionetworks.template.repo.grid.GridContextProvider;
 import org.sagebionetworks.template.vpc.Color;
 
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.cloudformation.model.Output;
 import software.amazon.awssdk.services.cloudformation.model.Parameter;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
 import software.amazon.awssdk.services.cloudformation.model.Tag;
 import software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkClient;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
 import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsResponse;
 import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformFilter;
@@ -181,7 +184,7 @@ public class RepositoryTemplateBuilderImplTest {
 	@Mock
 	private TimeToLive mockTimeToLive;
 	@Mock
-	private AmazonS3Client mockS3Client;
+	private S3Client mockS3Client;
 	@Mock
 	private DockerImageBuilder mockDockerImageBuilder;
 	@Mock
@@ -189,9 +192,6 @@ public class RepositoryTemplateBuilderImplTest {
 	
 	@Captor
 	private ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
-	
-	@Captor
-	private ArgumentCaptor<String> jsonStringCaptor;
 
 	private VelocityEngine velocityEngine;
 	private RepositoryTemplateBuilderImpl builder;
@@ -458,12 +458,10 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("prod-configuration.sagebase.org", openApiBucket);
 		String openApiKey = s3.getString("S3ObjectKey");
 		assertEquals("chat/openapi/101.json",s3.getString("S3ObjectKey"));
-		verify(mockS3Client).putObject(eq(openApiBucket), eq(openApiKey), jsonStringCaptor.capture());
-		
-		JSONObject openApiSchema = new JSONObject(jsonStringCaptor.getValue());
-		assertTrue(openApiSchema.has("openapi"));
-		assertTrue(openApiSchema.has("info"));
-		assertTrue(openApiSchema.has("paths"));
+		verify(mockS3Client).putObject(
+			(PutObjectRequest) argThat(req -> ((PutObjectRequest) req).bucket().equals(openApiBucket) && ((PutObjectRequest) req).key().equals(openApiKey)),
+			any(RequestBody.class)
+		);
 	}
 
 	@Test

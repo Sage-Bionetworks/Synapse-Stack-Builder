@@ -136,6 +136,7 @@ import software.amazon.awssdk.services.imagebuilder.ImagebuilderClientBuilder;
 import software.amazon.awssdk.services.kms.KmsClient;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -227,7 +228,12 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		builder.withRegion(Regions.US_EAST_1);
 		return builder.build();
 	}
-	
+
+	@Provides
+	public S3Client provideS3Client() {
+		return S3Client.builder().region(Region.US_EAST_1).build();
+	}
+
 	@Provides
 	public LambdaClient provideAWSLambdaClient() {
 		LambdaClient client = LambdaClient.builder().region(Region.US_EAST_1).build();
