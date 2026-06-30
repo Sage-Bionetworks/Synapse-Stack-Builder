@@ -1,0 +1,156 @@
+
+#if(${stack} == 'prod')
+	,
+	"${stack}${instance}StagingAlarmMuteLambdaRole": {
+		"Type": "AWS::IAM::Role",
+		"Properties": {
+			"AssumeRolePolicyDocument": {
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Principal": {
+							"Service": "lambda.amazonaws.com"
+						},
+						"Action": "sts:AssumeRole"
+					}
+				]
+			},
+			"Path": "/",
+			"Policies": [
+				{
+					"PolicyName": "staging-alarm-mute-policy",
+					"PolicyDocument": {
+						"Version": "2012-10-17",
+						"Statement": [
+							{
+								"Effect": "Allow",
+								"Action": [
+									"logs:CreateLogGroup",
+									"logs:CreateLogStream",
+									"logs:PutLogEvents"
+								],
+								"Resource": {
+									"Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:log-group:/aws/lambda/${stack}-${instance}-staging-alarm-mute:*"
+								}
+							},
+							{
+								"Effect": "Allow",
+								"Action": [
+									"cloudwatch:DescribeAlarms",
+									"cloudwatch:PutAlarmMuteRule",
+									"cloudwatch:DeleteAlarmMuteRules"
+								],
+								"Resource": "*"
+							}
+						]
+					}
+				}
+			]
+		}
+	},
+	"${stack}${instance}StagingAlarmMuteLambda": {
+		"Type": "AWS::Lambda::Function",
+		"Properties": {
+			"FunctionName": "${stack}-${instance}-staging-alarm-mute",
+			"Handler": "index.handler",
+			"Role": {"Fn::GetAtt": ["${stack}${instance}StagingAlarmMuteLambdaRole", "Arn"]},
+			"Runtime": "python3.12",
+			"Timeout": 60,
+			"Environment": {
+				"Variables": {
+					"STACK_INSTANCE": "${instance}",
+					"STACK_NAME": "${stack}"
+				}
+			},
+			"Code": {
+				"ZipFile": {
+					"Fn::Join": [
+						"\n",
+						[
+							"import json, os, boto3",
+							"from datetime import datetime, timezone, timedelta",
+							"from urllib.request import urlopen, Request",
+							"",
+							"STAGING_URL = 'https://repo-staging.prod.sagebase.org/repo/v1/version'",
+							"",
+							"def handler(event, context):",
+							"    instance = os.environ['STACK_INSTANCE']",
+							"    stack = os.environ['STACK_NAME']",
+							"    rule_name = f'{stack}-{instance}-staging-alarm-mute'",
+							"",
+							"    try:",
+							"        with urlopen(Request(STAGING_URL), timeout=10) as resp:",
+							"            staging_instance = json.loads(resp.read()).get('stackInstance', '')",
+							"    except Exception as e:",
+							"        print(f'Cannot reach staging endpoint: {e}')",
+							"        return",
+							"",
+							"    is_staging = str(staging_instance) == str(instance)",
+							"    cw = boto3.client('cloudwatch')",
+							"",
+							"    if not is_staging:",
+							"        try:",
+							"            cw.delete_alarm_mute_rules(Names=[rule_name])",
+							"        except Exception:",
+							"            pass",
+							"        return",
+							"",
+							"    alarm_names = []",
+							"    paginator = cw.get_paginator('describe_alarms')",
+							"    for page in paginator.paginate(AlarmTypes=['MetricAlarm', 'CompositeAlarm']):",
+							"        for alarm in page.get('MetricAlarms', []) + page.get('CompositeAlarms', []):",
+							"            name = alarm['AlarmName']",
+							"            if f'-{instance}-' in name or name.startswith(f'repo{instance}'):",
+							"                alarm_names.append(name)",
+							"",
+							"    if not alarm_names:",
+							"        return",
+							"",
+							"    now = datetime.now(timezone.utc) + timedelta(minutes=1)",
+							"    at_expr = f\"at({now.strftime('%Y-%m-%dT%H:%M')})\"",
+							"",
+							"    cw.put_alarm_mute_rule(",
+							"        Name=rule_name,",
+							"        MuteTargets={'AlarmNames': alarm_names[:100]},",
+							"        Rule={'Schedule': {'Expression': at_expr, 'Duration': 'PT10M', 'Timezone': 'UTC'}}",
+							"    )",
+							"    print(f'Mute rule set for {len(alarm_names)} alarms (instance {instance})')"
+						]
+					]
+				}
+			}
+		}
+	},
+	"${stack}${instance}StagingAlarmMuteSchedule": {
+		"Type": "AWS::Events::Rule",
+		"Properties": {
+			"ScheduleExpression": "rate(5 minutes)",
+			"Targets": [
+				{
+					"Arn": {
+						"Fn::GetAtt": ["${stack}${instance}StagingAlarmMuteLambda", "Arn"]
+					},
+					"Id": "staging-alarm-mute-5min"
+				}
+			]
+		}
+	},
+	"${stack}${instance}StagingAlarmMuteLambdaPermission": {
+		"Type": "AWS::Lambda::Permission",
+		"DependsOn": [
+			"${stack}${instance}StagingAlarmMuteLambda",
+			"${stack}${instance}StagingAlarmMuteSchedule"
+		],
+		"Properties": {
+			"FunctionName": {
+				"Fn::GetAtt": ["${stack}${instance}StagingAlarmMuteLambda", "Arn"]
+			},
+			"Action": "lambda:invokeFunction",
+			"Principal": "events.amazonaws.com",
+			"SourceArn": {
+				"Fn::GetAtt": ["${stack}${instance}StagingAlarmMuteSchedule", "Arn"]
+			}
+		}
+	}
+#end
