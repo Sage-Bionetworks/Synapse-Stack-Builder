@@ -71,6 +71,11 @@
 			"DomainEndpointOptions": {
 				"EnforceHTTPS": true
 			},
+			## AutoSoftwareUpdateEnabled applies MINOR service software updates automatically
+			## during the domain's off-peak maintenance window, using a blue/green deployment
+			## (one node at a time, no connectivity loss on a multi-node prod domain). MAJOR
+			## engine upgrades (e.g. 3.x -> 4.0) are NOT auto-applied and still require an
+			## explicit EngineVersion change.
 			"SoftwareUpdateOptions": {
 				"AutoSoftwareUpdateEnabled": true
 			},
