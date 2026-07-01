@@ -1,4 +1,8 @@
 	,
+	## In dev the domain is public (no VPCOptions, gated by the IAM AccessPolicies below),
+	## so it has no ENIs and this security group would be unused. Only create it for the
+	## VPC-attached prod domain.
+	#if (${stack} != 'dev')
 	"${stack}${instance}SynapseSearchIndexSecurityGroup": {
 		"Type": "AWS::EC2::SecurityGroup",
 		"Properties": {
@@ -31,6 +35,7 @@
 			]
 		}
 	},
+	#end
 	"SynapseSearchIndexDomain": {
 		"Type": "AWS::OpenSearchService::Domain",
 		"DeletionPolicy": "${deletionPolicy}",
@@ -79,22 +84,22 @@
 			"SoftwareUpdateOptions": {
 				"AutoSoftwareUpdateEnabled": true
 			},
+			## Dev omits VPCOptions so the domain gets a public endpoint reachable outside the
+			## VPC, gated only by the IAM AccessPolicies below (equivalent to the AOSS dev
+			## collection's AllowFromPublic:true). Prod attaches the domain to the private
+			## subnets.
+			#if (${stack} != 'dev')
 			"VPCOptions": {
 				"SecurityGroupIds": [
 					{ "Ref": "${stack}${instance}SynapseSearchIndexSecurityGroup" }
 				],
 				"SubnetIds":
-					#if (${stack} == 'prod')
 					[
-						{ "Fn::Select": [ 0, { "Fn::Split": [ ",", { "Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-Private-Subnets" } ] } ] },
-						{ "Fn::Select": [ 1, { "Fn::Split": [ ",", { "Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-Private-Subnets" } ] } ] }
+						{ "Fn::Select": [ 0, { "Fn::Split": [ ", ", { "Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-Private-Subnets" } ] } ] },
+						{ "Fn::Select": [ 1, { "Fn::Split": [ ", ", { "Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-Private-Subnets" } ] } ] }
 					]
-					#else
-					[
-						{ "Fn::Select": [ 0, { "Fn::Split": [ ",", { "Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-Private-Subnets" } ] } ] }
-					]
-					#end
 			},
+			#end
 			"AccessPolicies": {
 				"Version": "2012-10-17",
 				"Statement": [

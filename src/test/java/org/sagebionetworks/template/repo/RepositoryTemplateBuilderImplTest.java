@@ -768,7 +768,10 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(
 			devDomainProps.getJSONObject("AccessPolicies").toString().contains("arn:aws:iam::${AWS::AccountId}:root")
 		);
-		assertTrue(resources.has("dev101SynapseSearchIndexSecurityGroup"));
+		// Dev renders a public domain (no VPCOptions, gated by the IAM AccessPolicies), so it
+		// has no ENIs and the security group is not created.
+		assertFalse(devDomainProps.has("VPCOptions"));
+		assertFalse(resources.has("dev101SynapseSearchIndexSecurityGroup"));
 
 	}
 
