@@ -369,7 +369,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(bodyJSONString);
 		
 		JSONObject templateJson = new JSONObject(bodyJSONString);
-		
+
 		JSONObject resources = templateJson.getJSONObject("Resources");
 		assertNotNull(resources);
 		// database group
@@ -447,7 +447,24 @@ public class RepositoryTemplateBuilderImplTest {
 			resources.getJSONObject("SynapseSearchCollectionDataAccessPolicy")
 				.getJSONObject("Properties").getJSONObject("Policy").toString(2).contains("prod101SynapesRepoWorkersServiceRole")
 		);
-	
+
+		assertTrue(resources.has("SynapseSearchIndexDomain"));
+		JSONObject prodDomainProps = resources.getJSONObject("SynapseSearchIndexDomain").getJSONObject("Properties");
+		assertEquals("prod-101-synidx", prodDomainProps.getString("DomainName"));
+		assertEquals("OpenSearch_3.5", prodDomainProps.getString("EngineVersion"));
+		JSONObject prodClusterConfig = prodDomainProps.getJSONObject("ClusterConfig");
+		assertEquals(2, prodClusterConfig.getInt("InstanceCount"));
+		assertEquals("r6g.xlarge.search", prodClusterConfig.getString("InstanceType"));
+		assertTrue(prodClusterConfig.getBoolean("DedicatedMasterEnabled"));
+		assertEquals(3, prodClusterConfig.getInt("DedicatedMasterCount"));
+		assertTrue(prodClusterConfig.getBoolean("ZoneAwarenessEnabled"));
+		assertEquals("Retain", resources.getJSONObject("SynapseSearchIndexDomain").getString("DeletionPolicy"));
+		assertTrue(prodDomainProps.getJSONObject("SoftwareUpdateOptions").getBoolean("AutoSoftwareUpdateEnabled"));
+		assertTrue(
+			prodDomainProps.getJSONObject("AccessPolicies").toString().contains("prod101SynapesRepoWorkersServiceRole")
+		);
+		assertTrue(resources.has("prod101SynapseSearchIndexSecurityGroup"));
+
 	}
 
 	void validateOpenApiSchema(JSONObject bedrockAgentProps) {
@@ -733,7 +750,27 @@ public class RepositoryTemplateBuilderImplTest {
 			resources.getJSONObject("SynapseSearchCollectionDataAccessPolicy")
 				.getJSONObject("Properties").getJSONObject("Policy").toString(2).contains("arn:aws:iam::${AWS::AccountId}:root")
 		);
-		
+
+		assertTrue(resources.has("SynapseSearchIndexDomain"));
+		JSONObject devDomainProps = resources.getJSONObject("SynapseSearchIndexDomain").getJSONObject("Properties");
+		assertEquals("dev-101-synidx", devDomainProps.getString("DomainName"));
+		assertEquals("OpenSearch_3.5", devDomainProps.getString("EngineVersion"));
+		JSONObject devClusterConfig = devDomainProps.getJSONObject("ClusterConfig");
+		assertEquals(1, devClusterConfig.getInt("InstanceCount"));
+		assertEquals("t3.small.search", devClusterConfig.getString("InstanceType"));
+		assertFalse(devClusterConfig.getBoolean("DedicatedMasterEnabled"));
+		assertEquals(20, devDomainProps.getJSONObject("EBSOptions").getInt("VolumeSize"));
+		assertFalse(devClusterConfig.getBoolean("ZoneAwarenessEnabled"));
+		assertEquals("Delete", resources.getJSONObject("SynapseSearchIndexDomain").getString("DeletionPolicy"));
+		assertTrue(devDomainProps.getJSONObject("SoftwareUpdateOptions").getBoolean("AutoSoftwareUpdateEnabled"));
+		assertTrue(
+			devDomainProps.getJSONObject("AccessPolicies").toString().contains("arn:aws:iam::${AWS::AccountId}:root")
+		);
+		// Dev renders a public domain (no VPCOptions, gated by the IAM AccessPolicies), so it
+		// has no ENIs and the security group is not created.
+		assertFalse(devDomainProps.has("VPCOptions"));
+		assertFalse(resources.has("dev101SynapseSearchIndexSecurityGroup"));
+
 	}
 
 	@Test
