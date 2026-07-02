@@ -1,0 +1,55 @@
+,"${stack}${instance}CodeInterpreterExecutionRole": {
+	"Type": "AWS::IAM::Role",
+	"Properties": {
+		"RoleName": "${stack}-${instance}-code-interpreter-role",
+		"AssumeRolePolicyDocument": {
+			"Version": "2012-10-17",
+			"Statement": [
+				{
+					"Effect": "Allow",
+					"Principal": {
+						"Service": "bedrock-agentcore.amazonaws.com"
+					},
+					"Action": "sts:AssumeRole",
+					"Condition": {
+						"StringEquals": {
+							"aws:SourceAccount": {
+								"Ref": "AWS::AccountId"
+							}
+						}
+					}
+				}
+			]
+		},
+		"Policies": [
+			{
+				"PolicyName": "StagingBucketHeadOnly",
+				"PolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Action": "s3:HeadObject",
+							"Resource": {
+								"Fn::Sub": "arn:aws:s3:::${stack}.code-interpreter.staging.sagebase.org/*"
+							}
+						}
+					]
+				}
+			}
+		]
+	}
+},
+"${stack}${instance}CustomCodeInterpreter": {
+	"Type": "AWS::BedrockAgentCore::CodeInterpreterCustom",
+	"Properties": {
+		"Name": "${stack}-${instance}-code-interpreter",
+		"Description": "Code interpreter with SANDBOX network for pre-signed URL access to staging bucket",
+		"ExecutionRoleArn": {
+			"Fn::GetAtt": ["${stack}${instance}CodeInterpreterExecutionRole", "Arn"]
+		},
+		"NetworkConfiguration": {
+			"NetworkMode": "SANDBOX"
+		}
+	}
+}
