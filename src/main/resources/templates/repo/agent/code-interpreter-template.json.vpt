@@ -43,7 +43,7 @@
 "${stack}${instance}CustomCodeInterpreter": {
 	"Type": "AWS::BedrockAgentCore::CodeInterpreterCustom",
 	"Properties": {
-		"Name": "${stack}-${instance}-code-interpreter",
+		"Name": "${stack}_${instance}_code_interpreter",
 		"Description": "Code interpreter with SANDBOX network for pre-signed URL access to staging bucket",
 		"ExecutionRoleArn": {
 			"Fn::GetAtt": ["${stack}${instance}CodeInterpreterExecutionRole", "Arn"]
