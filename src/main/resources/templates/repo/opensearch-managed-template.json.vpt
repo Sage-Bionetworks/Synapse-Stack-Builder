@@ -42,13 +42,19 @@
 		"Properties": {
 			"DomainName": "${stack}-${instance}-synidx",
 			"EngineVersion": "OpenSearch_3.5",
+			## AvailabilityZoneCount drives both ZoneAwarenessConfig below and the number of
+			## subnets selected in VPCOptions.SubnetIds further down - change it in one place.
+			#set($availabilityZoneCount = 1)
+			#if (${stack} == 'prod')
+			#set($availabilityZoneCount = 2)
+			#end
 			"ClusterConfig":
 				#if (${stack} == 'prod')
 				{
 					"InstanceType": "r6g.xlarge.search",
 					"InstanceCount": 2,
 					"ZoneAwarenessEnabled": true,
-					"ZoneAwarenessConfig": { "AvailabilityZoneCount": 2 },
+					"ZoneAwarenessConfig": { "AvailabilityZoneCount": $availabilityZoneCount },
 					"DedicatedMasterEnabled": true,
 					"DedicatedMasterType": "m6g.large.search",
 					"DedicatedMasterCount": 3
@@ -95,8 +101,11 @@
 				],
 				"SubnetIds":
 					[
-						{ "Fn::Select": [ 0, { "Fn::Split": [ ", ", { "Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-Private-Subnets" } ] } ] },
-						{ "Fn::Select": [ 1, { "Fn::Split": [ ", ", { "Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-Private-Subnets" } ] } ] }
+						#set($lastAvailabilityZoneIndex = $availabilityZoneCount - 1)
+						#foreach($availabilityZoneIndex in [0..$lastAvailabilityZoneIndex])
+						#if($foreach.count > 1),#end
+						{ "Fn::Select": [ $availabilityZoneIndex, { "Fn::Split": [ ", ", { "Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-Private-Subnets" } ] } ] }
+						#end
 					]
 			},
 			#end
