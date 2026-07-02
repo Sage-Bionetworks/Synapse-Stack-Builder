@@ -25,15 +25,11 @@ import java.nio.file.Files;
 import java.util.Collections;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_ARTIFACT_BUCKET;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_URL;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
@@ -102,7 +98,7 @@ public class MarkDownItLambdaBuilderImplTest {
         ArgumentCaptor<PutObjectRequest> putRequestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
         ArgumentCaptor<RequestBody> requestBodyCaptor = ArgumentCaptor.forClass(RequestBody.class);
         verify(mockS3Client).putObject(putRequestCaptor.capture(), requestBodyCaptor.capture());
-
+        assertNotNull(requestBodyCaptor.getValue());
         PutObjectRequest capturedRequest = putRequestCaptor.getValue();
         assertEquals(expectedBucket, capturedRequest.bucket());
         assertEquals(expectedKey, capturedRequest.key());
@@ -131,6 +127,8 @@ public class MarkDownItLambdaBuilderImplTest {
 
         assertEquals("dev-markdown-it-function", argCaptorWaitForStack.getValue());
         assertEquals("dev-markdown-it-function", argCaptorDescribeStack.getValue());
+
+        assertFalse(testFile.exists());
 
     }
 
