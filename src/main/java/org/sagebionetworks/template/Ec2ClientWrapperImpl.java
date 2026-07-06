@@ -15,9 +15,11 @@ import software.amazon.awssdk.services.ec2.model.Subnet;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Ec2ClientWrapperImpl implements Ec2ClientWrapper {
@@ -57,11 +59,25 @@ public class Ec2ClientWrapperImpl implements Ec2ClientWrapper {
 
 	@Override
 	public List<String> getAvailableSubnetsForInstanceType(String instanceType, List<String> subnets) {
+		return getAvailableSubnetsForInstanceTypes(List.of(instanceType), subnets, 2);
+	}
+
+	@Override
+	public List<String> getAvailableSubnetsForInstanceTypes(List<String> instanceTypes, List<String> subnets, int minCount) {
 		Map<String, String> zoneToSubnetMap = getAvailabityZoneToSubnetMap(subnets);
-		List<String> availableZones = getAvailabilityZonesForInstanceType(instanceType);
-		List<String> availableSubnets = availableZones.stream().map(z -> zoneToSubnetMap.get(z)).filter(Objects::nonNull).sorted().collect(Collectors.toList());
-		if (availableSubnets.size() < 2) {
-			throw new IllegalArgumentException(String.format("Could not find 2 available subnets for type %s in %s ", instanceType, subnets));
+		// Availability zones that offer every requested instance type.
+		Set<String> commonZones = null;
+		for (String instanceType : instanceTypes) {
+			List<String> zones = getAvailabilityZonesForInstanceType(instanceType);
+			if (commonZones == null) {
+				commonZones = new HashSet<>(zones);
+			} else {
+				commonZones.retainAll(zones);
+			}
+		}
+		List<String> availableSubnets = commonZones.stream().map(zoneToSubnetMap::get).filter(Objects::nonNull).sorted().collect(Collectors.toList());
+		if (availableSubnets.size() < minCount) {
+			throw new IllegalArgumentException(String.format("Could not find %d available subnets for types %s in %s ", minCount, instanceTypes, subnets));
 		}
 		return availableSubnets;
 	}
