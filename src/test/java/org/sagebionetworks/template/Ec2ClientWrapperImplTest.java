@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -121,8 +123,60 @@ class Ec2ClientWrapperImplTest {
 		// Call under test
 		IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> {
 			ec2ClientWrapper.getAvailableSubnetsForInstanceType(INSTANCE_TYPE, subnets);});
-		assertEquals(String.format("Could not find 2 available subnets for type %s in %s ", INSTANCE_TYPE, subnets), e.getMessage());
+		assertEquals(String.format("Could not find 2 available subnets for types %s in %s ", List.of(INSTANCE_TYPE), subnets), e.getMessage());
 
+	}
+
+	@Test
+	void getAvailableSubnetsForInstanceTypes() {
+		String dataType = "r6g.xlarge";
+		String masterType = "m6g.large";
+		when(mockEC2.describeSubnets(any(DescribeSubnetsRequest.class)))
+				.thenReturn(DescribeSubnetsResponse.builder().subnets(generateSubnets(6)).build());
+		// dataType offered in 1a,1b,1d,1e ; masterType offered in 1a,1d,1e,1f
+		when(mockEC2.describeInstanceTypeOfferings(argThat(offeringRequestForType(dataType))))
+				.thenReturn(offeringsResponse(dataType, "us-east-1a", "us-east-1b", "us-east-1d", "us-east-1e"));
+		when(mockEC2.describeInstanceTypeOfferings(argThat(offeringRequestForType(masterType))))
+				.thenReturn(offeringsResponse(masterType, "us-east-1a", "us-east-1d", "us-east-1e", "us-east-1f"));
+		List<String> subnets = Arrays.asList("subnet1", "subnet2", "subnet3", "subnet4", "subnet5", "subnet6");
+
+		// Call under test
+		List<String> availableSubnets = ec2ClientWrapper.getAvailableSubnetsForInstanceTypes(Arrays.asList(dataType, masterType), subnets, 2);
+
+		// Intersection of AZs {1a,1d,1e} maps to subnet1, subnet4, subnet5, sorted by subnet id
+		assertEquals(Arrays.asList("subnet1", "subnet4", "subnet5"), availableSubnets);
+	}
+
+	@Test
+	void getAvailableSubnetsForInstanceTypesTooSmall() {
+		String dataType = "r6g.xlarge";
+		String masterType = "m6g.large";
+		when(mockEC2.describeSubnets(any(DescribeSubnetsRequest.class)))
+				.thenReturn(DescribeSubnetsResponse.builder().subnets(generateSubnets(6)).build());
+		// The two types share only us-east-1a, so the intersection is a single subnet.
+		when(mockEC2.describeInstanceTypeOfferings(argThat(offeringRequestForType(dataType))))
+				.thenReturn(offeringsResponse(dataType, "us-east-1a", "us-east-1b"));
+		when(mockEC2.describeInstanceTypeOfferings(argThat(offeringRequestForType(masterType))))
+				.thenReturn(offeringsResponse(masterType, "us-east-1a", "us-east-1c"));
+		List<String> subnets = Arrays.asList("subnet1", "subnet2", "subnet3", "subnet4", "subnet5", "subnet6");
+		List<String> types = Arrays.asList(dataType, masterType);
+
+		// Call under test
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> {
+			ec2ClientWrapper.getAvailableSubnetsForInstanceTypes(types, subnets, 2);});
+		assertEquals(String.format("Could not find 2 available subnets for types %s in %s ", types, subnets), e.getMessage());
+	}
+
+	private static ArgumentMatcher<DescribeInstanceTypeOfferingsRequest> offeringRequestForType(String instanceType) {
+		return req -> req != null && req.filters().get(0).values().contains(instanceType);
+	}
+
+	private static DescribeInstanceTypeOfferingsResponse offeringsResponse(String instanceType, String... azs) {
+		List<InstanceTypeOffering> offerings = new ArrayList<>();
+		for (String az : azs) {
+			offerings.add(InstanceTypeOffering.builder().instanceType(instanceType).location(az).build());
+		}
+		return DescribeInstanceTypeOfferingsResponse.builder().instanceTypeOfferings(offerings).build();
 	}
 
 	/**

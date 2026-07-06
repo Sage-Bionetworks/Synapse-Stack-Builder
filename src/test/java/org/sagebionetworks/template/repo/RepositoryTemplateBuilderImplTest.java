@@ -41,6 +41,9 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERS
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_MEMORY;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_TYPE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPENSEARCH_INSTANCE_TYPE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPENSEARCH_MASTER_INSTANCE_TYPE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPENSEARCH_AVAILABILITY_ZONE_COUNT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT;
@@ -349,6 +352,11 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		stack = "prod";
 		configureStack(stack);
+		when(config.getProperty(PROPERTY_KEY_OPENSEARCH_INSTANCE_TYPE)).thenReturn("r6g.xlarge");
+		when(config.getProperty(PROPERTY_KEY_OPENSEARCH_MASTER_INSTANCE_TYPE)).thenReturn("m6g.large");
+		when(config.getIntegerProperty(PROPERTY_KEY_OPENSEARCH_AVAILABILITY_ZONE_COUNT)).thenReturn(2);
+		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceTypes(eq(List.of("r6g.xlarge", "m6g.large")), any(), eq(2)))
+				.thenReturn(EXPECTED_SUBNETS);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID)).thenReturn("CdnPrivateKeyId");
 		when(config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT)).thenReturn("discoveryDocumentUrl");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
@@ -456,8 +464,14 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(2, prodClusterConfig.getInt("InstanceCount"));
 		assertEquals("r6g.xlarge.search", prodClusterConfig.getString("InstanceType"));
 		assertTrue(prodClusterConfig.getBoolean("DedicatedMasterEnabled"));
+		assertEquals("m6g.large.search", prodClusterConfig.getString("DedicatedMasterType"));
 		assertEquals(3, prodClusterConfig.getInt("DedicatedMasterCount"));
 		assertTrue(prodClusterConfig.getBoolean("ZoneAwarenessEnabled"));
+		assertEquals(2, prodClusterConfig.getJSONObject("ZoneAwarenessConfig").getInt("AvailabilityZoneCount"));
+		JSONArray prodSubnetIds = prodDomainProps.getJSONObject("VPCOptions").getJSONArray("SubnetIds");
+		assertEquals(2, prodSubnetIds.length());
+		assertEquals("subnet1", prodSubnetIds.getString(0));
+		assertEquals("subnet2", prodSubnetIds.getString(1));
 		assertEquals("Retain", resources.getJSONObject("SynapseSearchIndexDomain").getString("DeletionPolicy"));
 		assertTrue(prodDomainProps.getJSONObject("SoftwareUpdateOptions").getBoolean("AutoSoftwareUpdateEnabled"));
 		assertTrue(
@@ -542,6 +556,11 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		stack = "prod";
 		configureStack(stack);
+		when(config.getProperty(PROPERTY_KEY_OPENSEARCH_INSTANCE_TYPE)).thenReturn("r6g.xlarge");
+		when(config.getProperty(PROPERTY_KEY_OPENSEARCH_MASTER_INSTANCE_TYPE)).thenReturn("m6g.large");
+		when(config.getIntegerProperty(PROPERTY_KEY_OPENSEARCH_AVAILABILITY_ZONE_COUNT)).thenReturn(2);
+		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceTypes(eq(List.of("r6g.xlarge", "m6g.large")), any(), eq(2)))
+				.thenReturn(EXPECTED_SUBNETS);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID)).thenReturn("CdnPrivateKeyId");
 		when(config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT)).thenReturn("discoveryDocumentUrl");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
@@ -1142,6 +1161,14 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
 		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
+		when(config.getProperty(PROPERTY_KEY_OPENSEARCH_INSTANCE_TYPE)).thenReturn("r6g.xlarge");
+		when(config.getProperty(PROPERTY_KEY_OPENSEARCH_MASTER_INSTANCE_TYPE)).thenReturn("m6g.large");
+		when(config.getIntegerProperty(PROPERTY_KEY_OPENSEARCH_AVAILABILITY_ZONE_COUNT)).thenReturn(2);
+		List<String> openSearchSubnets = Arrays.asList("subnet-1a", "subnet-1c");
+		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
+				.thenReturn(String.join(",", openSearchSubnets));
+		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceTypes(eq(List.of("r6g.xlarge", "m6g.large")), any(), eq(2)))
+				.thenReturn(openSearchSubnets);
 
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE)).thenReturn(4);
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(8);
@@ -1176,6 +1203,10 @@ public class RepositoryTemplateBuilderImplTest {
 		
 		assertEquals("Block:{}", context.get(ADMIN_RULE_ACTION));
 		assertEquals("Retain", context.get(DELETION_POLICY));
+		assertEquals("r6g.xlarge", context.get(Constants.OPENSEARCH_INSTANCE_TYPE));
+		assertEquals("m6g.large", context.get(Constants.OPENSEARCH_MASTER_INSTANCE_TYPE));
+		assertEquals(2, context.get(Constants.OPENSEARCH_AVAILABILITY_ZONE_COUNT));
+		assertEquals(openSearchSubnets, context.get(Constants.OPENSEARCH_SUBNETS));
 	}
 
 

@@ -95,6 +95,9 @@ public class Constants {
 	public static final String PROPERTY_KEY_ID_GENERATOR_HOSTED_ZONE_ID = "org.sagebionetworks.id.generator.hosted.zone.id";
 	public static final String PROPERTY_KEY_EC2_INSTANCE_TYPE = "org.sagebionetworks.beanstalk.instance.type";
 	public static final String PROPERTY_KEY_EC2_INSTANCE_MEMORY = "org.sagebionetworks.beanstalk.instance.memory";
+	public static final String PROPERTY_KEY_OPENSEARCH_INSTANCE_TYPE = "org.sagebionetworks.opensearch.instance.type";
+	public static final String PROPERTY_KEY_OPENSEARCH_MASTER_INSTANCE_TYPE = "org.sagebionetworks.opensearch.master.instance.type";
+	public static final String PROPERTY_KEY_OPENSEARCH_AVAILABILITY_ZONE_COUNT = "org.sagebionetworks.opensearch.availability.zone.count";
 	public static final String PROPERTY_KEY_TIME_TO_LIVE_HOURS = "org.sagebionetworks.repo.time.to.live.hours";
 
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX = "org.sagebionetworks.beanstalk.image.version.";
@@ -189,6 +192,10 @@ public class Constants {
 
 	// context keys
 	public static final String SUBNETS = "subnets";
+	public static final String OPENSEARCH_SUBNETS = "openSearchSubnets";
+	public static final String OPENSEARCH_INSTANCE_TYPE = "openSearchInstanceType";
+	public static final String OPENSEARCH_MASTER_INSTANCE_TYPE = "openSearchMasterInstanceType";
+	public static final String OPENSEARCH_AVAILABILITY_ZONE_COUNT = "openSearchAvailabilityZoneCount";
 	public static final String VPC_CIDR = "vpcCidr";
 	public static final String VPC_SUBNET_COLOR = "subnetGroupColor";
 	public static final String STACK = "stack";
