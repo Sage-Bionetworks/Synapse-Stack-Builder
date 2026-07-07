@@ -80,7 +80,11 @@
 		},
 		{
 			"name": "${stack}.grid.snapshot.sagebase.org"
+		},
+		{
+			"name": "${stack}.artifacts.sagebase.org"
 		}
+
 	],
 	"inventoryConfig": {
 		"bucket": "${stack}.datawarehouse.sagebase.org",
