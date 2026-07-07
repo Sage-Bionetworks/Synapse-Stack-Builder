@@ -1013,6 +1013,7 @@
                                         { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Administrator_6620166dd0e7f1b6" }
                                         #else
                                         { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Administrator_693a85eb20cd5043" },
+                                        { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Developer_1513da6c8161f765" },
                                         { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/Synapse-Build-${instance}-CodeBuildServiceRole" }
                                         #end
                                     ]
