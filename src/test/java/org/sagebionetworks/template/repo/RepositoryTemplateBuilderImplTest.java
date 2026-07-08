@@ -9,7 +9,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
@@ -18,6 +17,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.ADMIN_RULE_ACTION;
 import static org.sagebionetworks.template.Constants.BEANSTALK_INSTANCES_SUBNETS;
+import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_DOMAIN_NAME;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_PRIVATE_KEY_ID;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL;
@@ -27,8 +27,11 @@ import static org.sagebionetworks.template.Constants.DELETION_POLICY;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_MEMORY;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
+import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.INSTANCE;
+import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARMS;
 import static org.sagebionetworks.template.Constants.NOSNAPSHOT;
+import static org.sagebionetworks.template.Constants.OAUTH_ENDPOINT;
 import static org.sagebionetworks.template.Constants.OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT;
 import static org.sagebionetworks.template.Constants.PARAMETER_MYSQL_PASSWORD;
 import static org.sagebionetworks.template.Constants.PARAM_KEY_TIME_TO_LIVE;
@@ -41,6 +44,9 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERS
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_MEMORY;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_TYPE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_CONTAINER_PORT;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_TASK_CPU;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_TASK_MEMORY;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT;
@@ -73,13 +79,6 @@ import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.SHARED_RESOURCES_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
-import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_DESCRIPTORS;
-import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PREFIX;
-import static org.sagebionetworks.template.Constants.LOAD_BALANCER_ALARMS;
-import static org.sagebionetworks.template.Constants.OAUTH_ENDPOINT;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_CONTAINER_PORT;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_TASK_CPU;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_TASK_MEMORY;
 import static org.sagebionetworks.template.Constants.TEMPLATE_BEANSTALK_ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.TEMPLATE_ECS_FARGATE_ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
@@ -122,14 +121,14 @@ import org.sagebionetworks.template.repo.beanstalk.ArtifactCopy;
 import org.sagebionetworks.template.repo.beanstalk.ElasticBeanstalkSolutionStackNameProvider;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentDescriptor;
 import org.sagebionetworks.template.repo.beanstalk.EnvironmentType;
-import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.LoadBalancerAlarmsConfig;
+import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 import org.sagebionetworks.template.repo.beanstalk.SourceBundle;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
-import org.sagebionetworks.template.repo.ecs.DockerImageBuilder;
-import org.sagebionetworks.template.repo.ecs.EcsEnvironmentDescriptor;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogDescriptor;
 import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
+import org.sagebionetworks.template.repo.ecs.DockerImageBuilder;
+import org.sagebionetworks.template.repo.ecs.EcsEnvironmentDescriptor;
 import org.sagebionetworks.template.repo.grid.GridContextProvider;
 import org.sagebionetworks.template.vpc.Color;
 
@@ -142,12 +141,12 @@ import software.amazon.awssdk.services.cloudformation.model.Parameter;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
 import software.amazon.awssdk.services.cloudformation.model.Tag;
 import software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkClient;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsRequest;
 import software.amazon.awssdk.services.elasticbeanstalk.model.ListPlatformVersionsResponse;
 import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformFilter;
 import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformSummary;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -421,12 +420,18 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.has("bedrockGridAgent"));
 		
 		assertTrue(resources.getJSONObject("bedrockAgentRole").toString().contains("arn:aws:s3:::prod-configuration.sagebase.org/chat/openapi/101.json"));
-		
+
 		JSONObject bedrockAgentProps = resources.getJSONObject("bedrockAgent").getJSONObject("Properties");
-		
+
 		assertEquals("prod-101-agent", bedrockAgentProps.get("AgentName"));
-		
+
 		validateOpenApiSchema(bedrockAgentProps);
+
+		assertTrue(resources.has("prod101CodeInterpreterExecutionRole"));
+		assertTrue(resources.has("prod101CustomCodeInterpreter"));
+		JSONObject codeInterpreterProps = resources.getJSONObject("prod101CustomCodeInterpreter").getJSONObject("Properties");
+		assertEquals("prod_101_code_interpreter", codeInterpreterProps.getString("Name"));
+		assertEquals("SANDBOX", codeInterpreterProps.getJSONObject("NetworkConfiguration").getString("NetworkMode"));
 		
 		assertTrue(resources.getJSONObject("GridApiGatewaySQSRole").toString().contains(gridQueueRef));
 		assertTrue(resources.getJSONObject("GridWebsocketApi").toString().contains("prod-101-grid-websocket"));
