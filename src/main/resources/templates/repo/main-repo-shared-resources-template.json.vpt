@@ -788,6 +788,18 @@
                                 }
                             ],
                             "Effect": "Allow"
+                        },
+                        {
+                            "Action": [
+                                "bedrockagentcore:InvokeCodeInterpreter",
+                                "bedrockagentcore:ListCodeInterpreters"
+                            ],
+                            "Resource": [
+                                {
+                                  "Fn::Sub": "arn:aws:bedrockagentcore:#[[${AWS::Region}:${AWS::AccountId}]]#:code-interpreter/*"
+                                }
+                            ],
+                            "Effect": "Allow"
                         }
                      ]
                 }
@@ -1055,6 +1067,7 @@
 		#parse("templates/repo/opensearch-managed-template.json.vpt")
 		${bedrock_agent_resouces}
 		${bedrock_grid_agent_resources}
+		#parse("templates/repo/agent/code-interpreter-template.json.vpt")
 		#parse("templates/repo/grid/grid-websocket.json.vpt")
 	},
 	"Outputs": {
@@ -1344,6 +1357,28 @@
 								"Ref": "AWS::StackName"
 							},
 							"Temp-Credentials-Service-Role-Arn"
+						]
+					]
+				}
+			}
+		}
+		,"${stack}${instance}CodeInterpreterId": {
+			"Description": "The ID of the custom code interpreter for agent sessions.",
+			"Value": {
+				"Fn::GetAtt": ["${stack}${instance}CustomCodeInterpreter", "CodeInterpreterId"]
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"Code-Interpreter-Id"
 						]
 					]
 				}
