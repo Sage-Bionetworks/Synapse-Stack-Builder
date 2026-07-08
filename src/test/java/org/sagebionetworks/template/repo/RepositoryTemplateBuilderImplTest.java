@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
@@ -47,6 +48,9 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_T
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_CONTAINER_PORT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_TASK_CPU;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_TASK_MEMORY;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPENSEARCH_INSTANCE_TYPE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPENSEARCH_MASTER_INSTANCE_TYPE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPENSEARCH_AVAILABILITY_ZONE_COUNT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_JAVA;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT;
@@ -148,7 +152,6 @@ import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformSummary;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-
 @ExtendWith(MockitoExtension.class)
 public class RepositoryTemplateBuilderImplTest {
 
@@ -188,7 +191,7 @@ public class RepositoryTemplateBuilderImplTest {
 	private DockerImageBuilder mockDockerImageBuilder;
 	@Mock
 	private LoadBalancerAlarmsConfig mockLoadBalancerAlarmsConfig;
-	
+
 	@Captor
 	private ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
 
@@ -201,7 +204,7 @@ public class RepositoryTemplateBuilderImplTest {
 	private String vpcSubnetColor;
 	private String imagePipelineArn;
 	private String imageId;
-	
+
 	private List<LogDescriptor> logDescriptors;
 
 	private Stack sharedResouces;
@@ -213,7 +216,6 @@ public class RepositoryTemplateBuilderImplTest {
 	private List<Tag> expectedTags;
 	private String gridQueueRef;
 
-
 	@BeforeEach
 	public void before() throws InterruptedException {
 		// use a real velocity engine
@@ -224,42 +226,38 @@ public class RepositoryTemplateBuilderImplTest {
 		expectedTags.add(t);
 
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
-		
+
 		gridQueueRef = "GridQueueRefQueue";
-		
-		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, config, mockLoggerFactory,
-				mockArtifactCopy, mockSecretBuilder,
+
+		builder = new RepositoryTemplateBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, config,
+				mockLoggerFactory, mockArtifactCopy, mockSecretBuilder,
 				Sets.newHashSet(mockContextProvider1, mockContextProvider2,
 						new BedrockAgentContextProvider(config, mockS3Client),
 						new BedrockGridAgentContextProvider(config, mockS3Client),
 						new GridContextProvider(gridQueueRef, config)),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
-                mockEc2ClientWrapper, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive,
-                mockDockerImageBuilder, mockLoadBalancerAlarmsConfig);
-		
+				mockEc2ClientWrapper, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive,
+				mockDockerImageBuilder, mockLoadBalancerAlarmsConfig);
+
 		builderSpy = Mockito.spy(builder);
 
 		stack = "dev";
 		instance = "101";
 		vpcSubnetColor = Color.Green.name();
-		imagePipelineArn="arn:aws:imagebuilder:us-east-1:867686887310:image/cis-for-eb";
+		imagePipelineArn = "arn:aws:imagebuilder:us-east-1:867686887310:image/cis-for-eb";
 		imageId = "ami-0123456789";
 
 		databaseEndpointSuffix = "something.amazon.com";
 		sharedResouces = Stack.builder().build();
-		Output dbOut = Output.builder()
-				.outputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
-				.outputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix)
-				.build();
+		Output dbOut = Output.builder().outputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
+				.outputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix).build();
 		// TableDB output
 		Output tableDBOutput1 = Output.builder()
 				.outputKey(stack + instance + "Table0" + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
-				.outputValue(stack + "-" + instance + "-table-0." + databaseEndpointSuffix)
-				.build();
+				.outputValue(stack + "-" + instance + "-table-0." + databaseEndpointSuffix).build();
 		Output tableDBOutput2 = Output.builder()
 				.outputKey(stack + instance + "Table1" + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
-				.outputValue(stack + "-" + instance + "-table-1." + databaseEndpointSuffix)
-				.build();
+				.outputValue(stack + "-" + instance + "-table-1." + databaseEndpointSuffix).build();
 		sharedResouces = Stack.builder().outputs(dbOut, tableDBOutput1, tableDBOutput2).build();
 
 		secretsSouce = new SourceBundle("secretBucket", "secretKey");
@@ -271,19 +269,18 @@ public class RepositoryTemplateBuilderImplTest {
 
 	private void configureStack(String inputStack) throws InterruptedException {
 		stack = inputStack;
-		
+
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
-		
+
 		databaseEndpointSuffix = "something.amazon.com";
 
-		sharedResouces = Stack.builder().outputs(
-			Output.builder()
-				.outputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
-				.outputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix)
-				.build()
-		).build();
-		when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(sharedResouces));
-		
+		sharedResouces = Stack.builder()
+				.outputs(Output.builder().outputKey(stack + instance + OUTPUT_NAME_SUFFIX_REPOSITORY_DB_ENDPOINT)
+						.outputValue(stack + "-" + instance + "-db." + databaseEndpointSuffix).build())
+				.build();
+		when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class)))
+				.thenReturn(Optional.of(sharedResouces));
+
 	}
 
 	@Test
@@ -312,7 +309,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(15000);
 		when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(imagePipelineArn);
-		
+
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
 			when(config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName())).thenReturn(version);
@@ -335,7 +332,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockElasticBeanstalkSolutionStackNameProvider.getSolutionStackName(anyString(), anyString(), anyString()))
 				.thenReturn("fake stack");
 		when(mockCwlContextProvider.getLogDescriptors(any(EnvironmentType.class))).thenReturn(logDescriptors);
-		
+
 		/////
 		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("true");
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
@@ -348,16 +345,21 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		stack = "prod";
 		configureStack(stack);
+		when(config.getProperty(PROPERTY_KEY_OPENSEARCH_INSTANCE_TYPE)).thenReturn("r6g.xlarge");
+		when(config.getProperty(PROPERTY_KEY_OPENSEARCH_MASTER_INSTANCE_TYPE)).thenReturn("m6g.large");
+		when(config.getIntegerProperty(PROPERTY_KEY_OPENSEARCH_AVAILABILITY_ZONE_COUNT)).thenReturn(2);
+		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceTypes(eq(List.of("r6g.xlarge", "m6g.large")), any(),
+				eq(2))).thenReturn(EXPECTED_SUBNETS);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID)).thenReturn("CdnPrivateKeyId");
 		when(config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT)).thenReturn("discoveryDocumentUrl");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
-		
+
 		// call under test
 		builder.buildAndDeploy();
 
 		verify(mockCloudFormationClientWrapper, times(4)).createOrUpdateStack(requestCaptor.capture());
 		verify(mockCloudFormationClientWrapper).waitForStackToComplete("prod-101-shared-resources");
-		
+
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
 		assertEquals("prod-101-shared-resources", request.getStackName());
@@ -366,7 +368,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(request.getParameters());
 		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);
-		
+
 		JSONObject templateJson = new JSONObject(bodyJSONString);
 
 		JSONObject resources = templateJson.getJSONObject("Resources");
@@ -411,15 +413,16 @@ public class RepositoryTemplateBuilderImplTest {
 		assertFalse(tDbProps.has("DBSnapshotIdentifier"));
 		assertTrue(tDbProps.has("DBName"));
 		assertEquals(15000, tDbProps.getInt("StorageThroughput"));
-		
+
 		assertFalse(resources.has("WebhookTestApi"));
 		assertTrue(resources.has("SynapseSearchCollection"));
 		assertTrue(resources.has("bedrockAgentRole"));
 		assertTrue(resources.has("bedrockAgent"));
 		assertTrue(resources.has("bedrockGridAgentRole"));
 		assertTrue(resources.has("bedrockGridAgent"));
-		
-		assertTrue(resources.getJSONObject("bedrockAgentRole").toString().contains("arn:aws:s3:::prod-configuration.sagebase.org/chat/openapi/101.json"));
+
+		assertTrue(resources.getJSONObject("bedrockAgentRole").toString()
+				.contains("arn:aws:s3:::prod-configuration.sagebase.org/chat/openapi/101.json"));
 
 		JSONObject bedrockAgentProps = resources.getJSONObject("bedrockAgent").getJSONObject("Properties");
 
@@ -429,29 +432,25 @@ public class RepositoryTemplateBuilderImplTest {
 
 		assertTrue(resources.has("prod101CodeInterpreterExecutionRole"));
 		assertTrue(resources.has("prod101CustomCodeInterpreter"));
-		JSONObject codeInterpreterProps = resources.getJSONObject("prod101CustomCodeInterpreter").getJSONObject("Properties");
+		JSONObject codeInterpreterProps = resources.getJSONObject("prod101CustomCodeInterpreter")
+				.getJSONObject("Properties");
 		assertEquals("prod_101_code_interpreter", codeInterpreterProps.getString("Name"));
 		assertEquals("SANDBOX", codeInterpreterProps.getJSONObject("NetworkConfiguration").getString("NetworkMode"));
-		
+
 		assertTrue(resources.getJSONObject("GridApiGatewaySQSRole").toString().contains(gridQueueRef));
 		assertTrue(resources.getJSONObject("GridWebsocketApi").toString().contains("prod-101-grid-websocket"));
-		
-		assertEquals("prod", resources.getJSONObject("GridWebsocketStage").getJSONObject("Properties").get("StageName"));
-		
-		assertEquals("ENABLED", resources.getJSONObject("SynapseSearchCollection")
-			.getJSONObject("Properties")
-			.getString("StandbyReplicas")
-		);
-		
-		assertTrue(
-			resources.getJSONObject("SynapseSearchCollectionNetworkPolicy")
-				.getJSONObject("Properties").getJSONObject("Policy").toString(2).contains("\\\"AllowFromPublic\\\": false")
-		);
-		
-		assertTrue(
-			resources.getJSONObject("SynapseSearchCollectionDataAccessPolicy")
-				.getJSONObject("Properties").getJSONObject("Policy").toString(2).contains("prod101SynapesRepoWorkersServiceRole")
-		);
+
+		assertEquals("prod",
+				resources.getJSONObject("GridWebsocketStage").getJSONObject("Properties").get("StageName"));
+
+		assertEquals("ENABLED", resources.getJSONObject("SynapseSearchCollection").getJSONObject("Properties")
+				.getString("StandbyReplicas"));
+
+		assertTrue(resources.getJSONObject("SynapseSearchCollectionNetworkPolicy").getJSONObject("Properties")
+				.getJSONObject("Policy").toString(2).contains("\\\"AllowFromPublic\\\": false"));
+
+		assertTrue(resources.getJSONObject("SynapseSearchCollectionDataAccessPolicy").getJSONObject("Properties")
+				.getJSONObject("Policy").toString(2).contains("prod101SynapesRepoWorkersServiceRole"));
 
 		assertTrue(resources.has("SynapseSearchIndexDomain"));
 		JSONObject prodDomainProps = resources.getJSONObject("SynapseSearchIndexDomain").getJSONObject("Properties");
@@ -461,13 +460,18 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(2, prodClusterConfig.getInt("InstanceCount"));
 		assertEquals("r6g.xlarge.search", prodClusterConfig.getString("InstanceType"));
 		assertTrue(prodClusterConfig.getBoolean("DedicatedMasterEnabled"));
+		assertEquals("m6g.large.search", prodClusterConfig.getString("DedicatedMasterType"));
 		assertEquals(3, prodClusterConfig.getInt("DedicatedMasterCount"));
 		assertTrue(prodClusterConfig.getBoolean("ZoneAwarenessEnabled"));
+		assertEquals(2, prodClusterConfig.getJSONObject("ZoneAwarenessConfig").getInt("AvailabilityZoneCount"));
+		JSONArray prodSubnetIds = prodDomainProps.getJSONObject("VPCOptions").getJSONArray("SubnetIds");
+		assertEquals(2, prodSubnetIds.length());
+		assertEquals("subnet1", prodSubnetIds.getString(0));
+		assertEquals("subnet2", prodSubnetIds.getString(1));
 		assertEquals("Retain", resources.getJSONObject("SynapseSearchIndexDomain").getString("DeletionPolicy"));
 		assertTrue(prodDomainProps.getJSONObject("SoftwareUpdateOptions").getBoolean("AutoSoftwareUpdateEnabled"));
-		assertTrue(
-			prodDomainProps.getJSONObject("AccessPolicies").toString().contains("prod101SynapesRepoWorkersServiceRole")
-		);
+		assertTrue(prodDomainProps.getJSONObject("AccessPolicies").toString()
+				.contains("prod101SynapesRepoWorkersServiceRole"));
 		assertTrue(resources.has("prod101SynapseSearchIndexSecurityGroup"));
 
 	}
@@ -479,11 +483,10 @@ public class RepositoryTemplateBuilderImplTest {
 		String openApiBucket = s3.getString("S3BucketName");
 		assertEquals("prod-configuration.sagebase.org", openApiBucket);
 		String openApiKey = s3.getString("S3ObjectKey");
-		assertEquals("chat/openapi/101.json",s3.getString("S3ObjectKey"));
-		verify(mockS3Client).putObject(
-			(PutObjectRequest) argThat(req -> ((PutObjectRequest) req).bucket().equals(openApiBucket) && ((PutObjectRequest) req).key().equals(openApiKey)),
-			any(RequestBody.class)
-		);
+		assertEquals("chat/openapi/101.json", s3.getString("S3ObjectKey"));
+		verify(mockS3Client)
+				.putObject((PutObjectRequest) argThat(req -> ((PutObjectRequest) req).bucket().equals(openApiBucket)
+						&& ((PutObjectRequest) req).key().equals(openApiKey)), any(RequestBody.class));
 	}
 
 	@Test
@@ -512,7 +515,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(-1);
 		when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(imagePipelineArn);
-		
+
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
 			when(config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName())).thenReturn(version);
@@ -535,7 +538,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockElasticBeanstalkSolutionStackNameProvider.getSolutionStackName(anyString(), anyString(), anyString()))
 				.thenReturn("fake stack");
 		when(mockCwlContextProvider.getLogDescriptors(any(EnvironmentType.class))).thenReturn(logDescriptors);
-		
+
 		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("false");
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
@@ -547,10 +550,14 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
 		stack = "prod";
 		configureStack(stack);
+		when(config.getProperty(PROPERTY_KEY_OPENSEARCH_INSTANCE_TYPE)).thenReturn("r6g.xlarge");
+		when(config.getProperty(PROPERTY_KEY_OPENSEARCH_MASTER_INSTANCE_TYPE)).thenReturn("m6g.large");
+		when(config.getIntegerProperty(PROPERTY_KEY_OPENSEARCH_AVAILABILITY_ZONE_COUNT)).thenReturn(2);
+		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceTypes(eq(List.of("r6g.xlarge", "m6g.large")), any(),
+				eq(2))).thenReturn(EXPECTED_SUBNETS);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID)).thenReturn("CdnPrivateKeyId");
 		when(config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT)).thenReturn("discoveryDocumentUrl");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
-
 
 		// call under test
 		builder.buildAndDeploy();
@@ -607,14 +614,14 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(tDbProps.has("DBName"));
 		assertFalse(dbProps.has("StorageThroughput"));
 	}
-	
+
 	@Test
 	public void testBuildAndDeployDev() throws InterruptedException {
 
 		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS)).thenReturn("BEANSTALK");
 		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(
 				Optional.of(Parameter.builder().parameterKey(PARAM_KEY_TIME_TO_LIVE).parameterValue("NONE").build()));
-		
+
 		when(mockStackTagsProvider.getStackTags(config)).thenReturn(expectedTags);
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
@@ -637,7 +644,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(15000);
 		when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(imagePipelineArn);
-		
+
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
 			when(config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName())).thenReturn(version);
@@ -659,7 +666,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		when(mockElasticBeanstalkSolutionStackNameProvider.getSolutionStackName(anyString(), anyString(), anyString()))
 				.thenReturn("fake stack");
-		when(mockCwlContextProvider.getLogDescriptors(any(EnvironmentType.class))).thenReturn(logDescriptors);	
+		when(mockCwlContextProvider.getLogDescriptors(any(EnvironmentType.class))).thenReturn(logDescriptors);
 		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("true"); // does not matter if
 																									// dev
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
@@ -676,13 +683,12 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT)).thenReturn("discoveryDocumentUrl");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
 
-		
 		// call under test
 		builder.buildAndDeploy();
 
 		verify(mockCloudFormationClientWrapper, times(4)).createOrUpdateStack(requestCaptor.capture());
 		verify(mockCloudFormationClientWrapper).waitForStackToComplete("dev-101-shared-resources");
-		
+
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
 		assertEquals("dev-101-shared-resources", request.getStackName());
@@ -694,11 +700,11 @@ public class RepositoryTemplateBuilderImplTest {
 		String bodyJSONString = request.getTemplateBody();
 		assertNotNull(bodyJSONString);
 		JSONObject templateJson = new JSONObject(bodyJSONString);
-		
+
 		assertEquals("NONE", templateJson.getJSONObject("Parameters").getJSONObject("TimeToLive").get("Default"));
-				
+
 		JSONObject resources = templateJson.getJSONObject("Resources");
-		
+
 		assertNotNull(resources);
 
 		verify(mockCwlContextProvider).getLogDescriptors(EnvironmentType.REPOSITORY_SERVICES);
@@ -738,23 +744,18 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.has("SynapseSearchCollection"));
 		assertTrue(resources.has("bedrockAgentRole"));
 		assertTrue(resources.has("bedrockAgent"));
-		
-		assertEquals("dev-101-agent", resources.getJSONObject("bedrockAgent").getJSONObject("Properties").get("AgentName"));
 
-		assertEquals("DISABLED", resources.getJSONObject("SynapseSearchCollection")
-			.getJSONObject("Properties")
-			.getString("StandbyReplicas")
-		);
-		
-		assertTrue(
-			resources.getJSONObject("SynapseSearchCollectionNetworkPolicy")
-				.getJSONObject("Properties").getString("Policy").contains("\"AllowFromPublic\": true")
-		);
-		
-		assertTrue(
-			resources.getJSONObject("SynapseSearchCollectionDataAccessPolicy")
-				.getJSONObject("Properties").getJSONObject("Policy").toString(2).contains("arn:aws:iam::${AWS::AccountId}:root")
-		);
+		assertEquals("dev-101-agent",
+				resources.getJSONObject("bedrockAgent").getJSONObject("Properties").get("AgentName"));
+
+		assertEquals("DISABLED", resources.getJSONObject("SynapseSearchCollection").getJSONObject("Properties")
+				.getString("StandbyReplicas"));
+
+		assertTrue(resources.getJSONObject("SynapseSearchCollectionNetworkPolicy").getJSONObject("Properties")
+				.getString("Policy").contains("\"AllowFromPublic\": true"));
+
+		assertTrue(resources.getJSONObject("SynapseSearchCollectionDataAccessPolicy").getJSONObject("Properties")
+				.getJSONObject("Policy").toString(2).contains("arn:aws:iam::${AWS::AccountId}:root"));
 
 		assertTrue(resources.has("SynapseSearchIndexDomain"));
 		JSONObject devDomainProps = resources.getJSONObject("SynapseSearchIndexDomain").getJSONObject("Properties");
@@ -768,10 +769,10 @@ public class RepositoryTemplateBuilderImplTest {
 		assertFalse(devClusterConfig.getBoolean("ZoneAwarenessEnabled"));
 		assertEquals("Delete", resources.getJSONObject("SynapseSearchIndexDomain").getString("DeletionPolicy"));
 		assertTrue(devDomainProps.getJSONObject("SoftwareUpdateOptions").getBoolean("AutoSoftwareUpdateEnabled"));
-		assertTrue(
-			devDomainProps.getJSONObject("AccessPolicies").toString().contains("arn:aws:iam::${AWS::AccountId}:root")
-		);
-		// Dev renders a public domain (no VPCOptions, gated by the IAM AccessPolicies), so it
+		assertTrue(devDomainProps.getJSONObject("AccessPolicies").toString()
+				.contains("arn:aws:iam::${AWS::AccountId}:root"));
+		// Dev renders a public domain (no VPCOptions, gated by the IAM AccessPolicies),
+		// so it
 		// has no ENIs and the security group is not created.
 		assertFalse(devDomainProps.has("VPCOptions"));
 		assertFalse(resources.has("dev101SynapseSearchIndexSecurityGroup"));
@@ -804,7 +805,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(1000);
 		when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(imagePipelineArn);
-		
+
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
 			when(config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName())).thenReturn(version);
@@ -844,7 +845,6 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT)).thenReturn("discoveryDocumentUrl");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
 
-		
 		// call under test
 		builder.buildAndDeploy();
 
@@ -908,7 +908,7 @@ public class RepositoryTemplateBuilderImplTest {
 	public void validateResouceDatabaseInstance(JSONObject resources, String stack, String enableEnhancedMonitoring) {
 		JSONObject instance = resources.getJSONObject(stack + "101RepositoryDB");
 		assertNotNull(instance);
-		DeletionPolicy expectedPolicy = Constants.isProd(stack)? DeletionPolicy.Snapshot: DeletionPolicy.Delete;
+		DeletionPolicy expectedPolicy = Constants.isProd(stack) ? DeletionPolicy.Snapshot : DeletionPolicy.Delete;
 		assertEquals(expectedPolicy.name(), instance.get("DeletionPolicy"));
 		JSONObject properties = instance.getJSONObject("Properties");
 		assertEquals("4", properties.get("AllocatedStorage"));
@@ -927,7 +927,7 @@ public class RepositoryTemplateBuilderImplTest {
 	public void validateResouceTablesDatabase(JSONObject resources, String stack, String enableEnhancedMonitoring) {
 		// zero
 		JSONObject instance = resources.getJSONObject(stack + "101Table0RepositoryDB");
-		DeletionPolicy expectedPolicy = Constants.isProd(stack)? DeletionPolicy.Snapshot: DeletionPolicy.Delete;
+		DeletionPolicy expectedPolicy = Constants.isProd(stack) ? DeletionPolicy.Snapshot : DeletionPolicy.Delete;
 		assertEquals(expectedPolicy.name(), instance.get("DeletionPolicy"));
 		assertNotNull(instance);
 		JSONObject properties = instance.getJSONObject("Properties");
@@ -957,10 +957,10 @@ public class RepositoryTemplateBuilderImplTest {
 		JSONObject props = webAcl.getJSONObject("Properties");
 		JSONArray rules = props.getJSONArray("Rules");
 		assertEquals(13, rules.length());
-			
+
 		JSONObject adminRule = rules.getJSONObject(12);
-		assertEquals("prod-101-Admin-Access-Rule",adminRule.get("Name"));
-		assertEquals("{\"Block\":{}}",adminRule.getJSONObject("Action").toString());
+		assertEquals("prod-101-Admin-Access-Rule", adminRule.get("Name"));
+		assertEquals("{\"Block\":{}}", adminRule.getJSONObject("Action").toString());
 
 		JSONObject sizeRestrictionsRule = rules.getJSONObject(3);
 		assertEquals("prod-101-size-restrictions-rule", sizeRestrictionsRule.get("Name"));
@@ -977,7 +977,6 @@ public class RepositoryTemplateBuilderImplTest {
 		String configVal = config.getString("Fn::ImportValue");
 		assertEquals("us-east-1-synapse-prod-global-resources-WebAclCloudWatchLogGroupArn", configVal);
 	}
-
 
 	public void validateEnhancedMonitoring(JSONObject props, String enableEnhancedMonitoring) {
 		assertTrue(props.has("EnablePerformanceInsights"));
@@ -1007,7 +1006,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 		verify(mockTimeToLive).createTimeToLiveParameter();
 	}
-	
+
 	@Test
 	public void testGetParamtersWithTimeToLive() {
 
@@ -1034,7 +1033,7 @@ public class RepositoryTemplateBuilderImplTest {
 	public void testcreateSharedResourcesStackName() {
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
-	
+
 		// call under test
 		String name = builder.createSharedResourcesStackName();
 		assertEquals("dev-101-shared-resources", name);
@@ -1042,7 +1041,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testCreateContextInvalidSnapshotState() {
-		
+
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
 		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
@@ -1050,7 +1049,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE)).thenReturn(4);
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(8);
 		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_INSTANCE_COUNT)).thenReturn(2);
-		assertThrows(IllegalArgumentException.class, ()->{
+		assertThrows(IllegalArgumentException.class, () -> {
 			// call under test
 			builder.createSharedContext();
 		});
@@ -1084,7 +1083,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
 		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
-		
+
 		// call under test
 		VelocityContext context = builder.createSharedContext();
 
@@ -1094,7 +1093,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("Green", context.get(VPC_SUBNET_COLOR));
 		assertEquals("dev-101-shared-resources", context.get(SHARED_RESOURCES_STACK_NAME));
 		assertEquals("us-east-1-synapse-dev-vpc-2", context.get(VPC_EXPORT_PREFIX));
-		
+
 		assertEquals("Count:{}", context.get(ADMIN_RULE_ACTION));
 		assertEquals("Delete", context.get(DELETION_POLICY));
 
@@ -1139,7 +1138,7 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(mockContextProvider1).addToContext(context);
 		verify(mockContextProvider2).addToContext(context);
 	}
-	
+
 	@Test
 	public void testCreateContextProd() {
 		stack = "prod";
@@ -1147,6 +1146,14 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
 		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
+		when(config.getProperty(PROPERTY_KEY_OPENSEARCH_INSTANCE_TYPE)).thenReturn("r6g.xlarge");
+		when(config.getProperty(PROPERTY_KEY_OPENSEARCH_MASTER_INSTANCE_TYPE)).thenReturn("m6g.large");
+		when(config.getIntegerProperty(PROPERTY_KEY_OPENSEARCH_AVAILABILITY_ZONE_COUNT)).thenReturn(2);
+		List<String> openSearchSubnets = Arrays.asList("subnet-1a", "subnet-1c");
+		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
+				.thenReturn(String.join(",", openSearchSubnets));
+		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceTypes(eq(List.of("r6g.xlarge", "m6g.large")), any(),
+				eq(2))).thenReturn(openSearchSubnets);
 
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE)).thenReturn(4);
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(8);
@@ -1168,7 +1175,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
 		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
-		
+
 		// call under test
 		VelocityContext context = builder.createSharedContext();
 
@@ -1178,19 +1185,22 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("Green", context.get(VPC_SUBNET_COLOR));
 		assertEquals("prod-101-shared-resources", context.get(SHARED_RESOURCES_STACK_NAME));
 		assertEquals("us-east-1-synapse-prod-vpc-2", context.get(VPC_EXPORT_PREFIX));
-		
+
 		assertEquals("Block:{}", context.get(ADMIN_RULE_ACTION));
 		assertEquals("Retain", context.get(DELETION_POLICY));
+		assertEquals("r6g.xlarge", context.get(Constants.OPENSEARCH_INSTANCE_TYPE));
+		assertEquals("m6g.large", context.get(Constants.OPENSEARCH_MASTER_INSTANCE_TYPE));
+		assertEquals(2, context.get(Constants.OPENSEARCH_AVAILABILITY_ZONE_COUNT));
+		assertEquals(openSearchSubnets, context.get(Constants.OPENSEARCH_SUBNETS));
 	}
-
 
 	@Test
 	public void testCreateEnvironments() {
-		
+
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
 		when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(imagePipelineArn);
-		
+
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
 			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + type.getShortName())).thenReturn(0);
@@ -1206,7 +1216,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockArtifactCopy.copyArtifactIfNeeded(any(), any(), anyInt()))
 				.thenReturn(new SourceBundle("bucket", "key-one"));
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
-		
+
 		// call under test
 		List<EnvironmentDescriptor> descriptors = builder.createEnvironments(secretsSouce);
 		assertNotNull(descriptors);
@@ -1248,7 +1258,7 @@ public class RepositoryTemplateBuilderImplTest {
 		// secrets should be passed to workers
 		assertEquals(secretsSouce, desc.getSecretsSource());
 		assertEquals(imageId, desc.getImageId());
-		
+
 		// portal
 		desc = descriptors.get(2);
 		assertEquals("portal", desc.getType());
@@ -1271,31 +1281,35 @@ public class RepositoryTemplateBuilderImplTest {
 	public void testCreateEnvironments__missingPropertiesForEnvironment() {
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
-		
+
 		for (EnvironmentType type : EnvironmentType.values()) {
 			String version = "version-" + type.getShortName();
 			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + type.getShortName())).thenReturn(0);
 			when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(null);
-			
+
 			if (EnvironmentType.REPOSITORY_WORKERS.equals(type)) {
 				// do not include the "workers" environment by making the config throw an
 				// exception
 				when(config.getProperty(
 						PROPERTY_KEY_BEANSTALK_VERSION + EnvironmentType.REPOSITORY_WORKERS.getShortName()))
-								.thenThrow(new ConfigurationPropertyNotFound("test.key"));
+						.thenThrow(new ConfigurationPropertyNotFound("test.key"));
 			} else {
 				when(config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName())).thenReturn(version);
 				when(config.getProperty(PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL + type.getShortName()))
 						.thenReturn("url-" + type.getShortName());
-				when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MIN_INSTANCES + type.getShortName())).thenReturn(1);
-				when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MAX_INSTANCES + type.getShortName())).thenReturn(2);
-				when(config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN + type.getShortName())).thenReturn("the:ssl:arn");
-				when(config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE + type.getShortName())).thenReturn("synapes.org");
+				when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MIN_INSTANCES + type.getShortName()))
+						.thenReturn(1);
+				when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MAX_INSTANCES + type.getShortName()))
+						.thenReturn(2);
+				when(config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN + type.getShortName()))
+						.thenReturn("the:ssl:arn");
+				when(config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE + type.getShortName()))
+						.thenReturn("synapes.org");
 			}
 		}
 
 		when(mockArtifactCopy.copyArtifactIfNeeded(any(), any(), anyInt()))
-				.thenReturn(new SourceBundle("bucket", "key-one"));	
+				.thenReturn(new SourceBundle("bucket", "key-one"));
 
 		// method under test
 		List<EnvironmentDescriptor> descriptors = builder.createEnvironments(secretsSouce);
@@ -1309,7 +1323,7 @@ public class RepositoryTemplateBuilderImplTest {
 
 	@Test
 	public void testCreateEnvironmentContext() {
-		
+
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
 		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
@@ -1318,7 +1332,9 @@ public class RepositoryTemplateBuilderImplTest {
 
 		when(config.getProperty(PROPERTY_KEY_EC2_INSTANCE_TYPE)).thenReturn("t2.medium");
 		when(config.getIntegerProperty(PROPERTY_KEY_EC2_INSTANCE_MEMORY)).thenReturn(2048);
-		when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + EnvironmentType.REPOSITORY_SERVICES.getShortName())).thenReturn(0);
+		when(config
+				.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + EnvironmentType.REPOSITORY_SERVICES.getShortName()))
+				.thenReturn(0);
 
 		when(mockSecretBuilder.getCMKAlias()).thenReturn(keyAlias);
 
@@ -1337,10 +1353,12 @@ public class RepositoryTemplateBuilderImplTest {
 		// This will make the call to getActualBeanstalkLinuxPlatform() return 3.4.7
 		PlatformSummary expectedSummary = PlatformSummary.builder().platformVersion("3.4.7").build();
 		List<PlatformSummary> expectedSummaries = Arrays.asList(expectedSummary);
-		ListPlatformVersionsResponse expectedLpvr = ListPlatformVersionsResponse.builder().platformSummaryList(expectedSummaries).build();
+		ListPlatformVersionsResponse expectedLpvr = ListPlatformVersionsResponse.builder()
+				.platformSummaryList(expectedSummaries).build();
 		when(mockBeanstalkClient.listPlatformVersions(any(ListPlatformVersionsRequest.class))).thenReturn(expectedLpvr);
 		when(config.getProperty("org.sagebionetworks.cloudfront.private.key.id")).thenReturn("dataCdnPrivateKeyId");
-		when(config.getProperty("org.sagebionetworks.oauth2.sagebio.discoveryDocument")).thenReturn("discoveryDocumentUrl");
+		when(config.getProperty("org.sagebionetworks.oauth2.sagebio.discoveryDocument"))
+				.thenReturn("discoveryDocumentUrl");
 
 		EnvironmentDescriptor environment = new EnvironmentDescriptor().withType(EnvironmentType.REPOSITORY_SERVICES);
 
@@ -1369,7 +1387,7 @@ public class RepositoryTemplateBuilderImplTest {
 	public void testExtractDatabaseSuffix() {
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
-	
+
 		// call under test
 		String suffix = builder.extractDatabaseSuffix(sharedResouces);
 
@@ -1396,15 +1414,18 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("4.5.6");
 		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2023";
-		PlatformFilter expectedFilter = PlatformFilter.builder().type("PlatformName").operator("=").values(expectedPlatformName).build();
-		ListPlatformVersionsRequest expectedRequest = ListPlatformVersionsRequest.builder().filters(expectedFilter).build();
+		PlatformFilter expectedFilter = PlatformFilter.builder().type("PlatformName").operator("=")
+				.values(expectedPlatformName).build();
+		ListPlatformVersionsRequest expectedRequest = ListPlatformVersionsRequest.builder().filters(expectedFilter)
+				.build();
 
 		// No platform found with that name
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
-		ListPlatformVersionsResponse expectedResult = ListPlatformVersionsResponse.builder().platformSummaryList(expectedSummaries).build();
+		ListPlatformVersionsResponse expectedResult = ListPlatformVersionsResponse.builder()
+				.platformSummaryList(expectedSummaries).build();
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 
-		assertThrows(IllegalArgumentException.class, ()->{
+		assertThrows(IllegalArgumentException.class, () -> {
 			// call under test
 			builder.getActualBeanstalkAmazonLinuxPlatform();
 		});
@@ -1419,20 +1440,15 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("3.4.6");
 		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2023";
-		PlatformFilter expectedFilter = PlatformFilter.builder()
-				.type("PlatformName")
-				.operator("=")
-				.values(expectedPlatformName)
-				.build();
-		ListPlatformVersionsRequest expectedRequest = ListPlatformVersionsRequest.builder()
-				.filters(expectedFilter)
+		PlatformFilter expectedFilter = PlatformFilter.builder().type("PlatformName").operator("=")
+				.values(expectedPlatformName).build();
+		ListPlatformVersionsRequest expectedRequest = ListPlatformVersionsRequest.builder().filters(expectedFilter)
 				.build();
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
 		expectedSummaries.add(PlatformSummary.builder().platformVersion("3.4.6").build());
 		expectedSummaries.add(PlatformSummary.builder().platformVersion("3.4.7").build());
 		ListPlatformVersionsResponse expectedResult = ListPlatformVersionsResponse.builder()
-				.platformSummaryList(expectedSummaries)
-				.build();
+				.platformSummaryList(expectedSummaries).build();
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 
 		// call under test
@@ -1449,20 +1465,15 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("3.4.6");
 		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2023";
-		PlatformFilter expectedFilter = PlatformFilter.builder()
-				.type("PlatformName")
-				.operator("=")
-				.values(expectedPlatformName)
-				.build();
-		ListPlatformVersionsRequest expectedRequest = ListPlatformVersionsRequest.builder()
-				.filters(expectedFilter)
+		PlatformFilter expectedFilter = PlatformFilter.builder().type("PlatformName").operator("=")
+				.values(expectedPlatformName).build();
+		ListPlatformVersionsRequest expectedRequest = ListPlatformVersionsRequest.builder().filters(expectedFilter)
 				.build();
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
 		expectedSummaries.add(PlatformSummary.builder().platformVersion("3.4.5").build());
 		expectedSummaries.add(PlatformSummary.builder().platformVersion("3.4.6").build());
 		ListPlatformVersionsResponse expectedResult = ListPlatformVersionsResponse.builder()
-				.platformSummaryList(expectedSummaries)
-				.build();
+				.platformSummaryList(expectedSummaries).build();
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 
 		// call under test
@@ -1478,13 +1489,9 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("latest");
 		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2023";
-		PlatformFilter expectedFilter = PlatformFilter.builder()
-				.type("PlatformName")
-				.operator("=")
-				.values(expectedPlatformName)
-				.build();
-		ListPlatformVersionsRequest expectedRequest = ListPlatformVersionsRequest.builder()
-				.filters(expectedFilter)
+		PlatformFilter expectedFilter = PlatformFilter.builder().type("PlatformName").operator("=")
+				.values(expectedPlatformName).build();
+		ListPlatformVersionsRequest expectedRequest = ListPlatformVersionsRequest.builder().filters(expectedFilter)
 				.build();
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
 		PlatformSummary summary = PlatformSummary.builder().platformVersion("3.4.5").build();
@@ -1492,8 +1499,7 @@ public class RepositoryTemplateBuilderImplTest {
 		summary = PlatformSummary.builder().platformVersion("3.4.6").build();
 		expectedSummaries.add(summary);
 		ListPlatformVersionsResponse expectedResult = ListPlatformVersionsResponse.builder()
-				.platformSummaryList(expectedSummaries)
-				.build();
+				.platformSummaryList(expectedSummaries).build();
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 
 		// call under test
@@ -1538,25 +1544,23 @@ public class RepositoryTemplateBuilderImplTest {
 		DatabaseDescriptor[] results = builder.createDatabaseDescriptors();
 		DatabaseDescriptor[] expected = new DatabaseDescriptor[] {
 				// repo
-				new DatabaseDescriptor().withAllocatedStorage(4).withBackupRetentionPeriodDays(7)
-						.withDbIops(-1).withDbThroughput(-1)
-						.withDbName("prod101").withDbStorageType(DatabaseStorageType.standard.name())
-						.withInstanceClass("db.t2.small").withInstanceIdentifier("prod-101-db")
-						.withMaxAllocatedStorage(8).withMultiAZ(true).withResourceName("prod101RepositoryDB")
-						.withSnapshotIdentifier(null).withDeletionPolicy(DeletionPolicy.Snapshot),
+				new DatabaseDescriptor().withAllocatedStorage(4).withBackupRetentionPeriodDays(7).withDbIops(-1)
+						.withDbThroughput(-1).withDbName("prod101")
+						.withDbStorageType(DatabaseStorageType.standard.name()).withInstanceClass("db.t2.small")
+						.withInstanceIdentifier("prod-101-db").withMaxAllocatedStorage(8).withMultiAZ(true)
+						.withResourceName("prod101RepositoryDB").withSnapshotIdentifier(null)
+						.withDeletionPolicy(DeletionPolicy.Snapshot),
 				// tables
-				new DatabaseDescriptor().withAllocatedStorage(3).withBackupRetentionPeriodDays(1)
-						.withDbIops(1000).withDbThroughput(1000)
-						.withDbName("prod101").withDbStorageType(DatabaseStorageType.gp3.name())
+				new DatabaseDescriptor().withAllocatedStorage(3).withBackupRetentionPeriodDays(1).withDbIops(1000)
+						.withDbThroughput(1000).withDbName("prod101").withDbStorageType(DatabaseStorageType.gp3.name())
 						.withInstanceClass("db.t2.micro").withInstanceIdentifier("prod-101-table-0")
 						.withMaxAllocatedStorage(6).withMultiAZ(false).withResourceName("prod101Table0RepositoryDB")
-						.withSnapshotIdentifier(null).withDeletionPolicy(DeletionPolicy.Snapshot)
-		};
+						.withSnapshotIdentifier(null).withDeletionPolicy(DeletionPolicy.Snapshot) };
 		assertEquals(2, results.length);
 		assertEquals(expected[0], results[0]);
 		assertEquals(expected[1], results[1]);
 	}
-	
+
 	@Test
 	public void testCreateDatabaseDescriptorsWithDev() {
 		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn("dev");
@@ -1586,16 +1590,15 @@ public class RepositoryTemplateBuilderImplTest {
 		DatabaseDescriptor[] results = builder.createDatabaseDescriptors();
 		DatabaseDescriptor[] expected = new DatabaseDescriptor[] {
 				// repo
-				new DatabaseDescriptor().withAllocatedStorage(4).withBackupRetentionPeriodDays(7)
-						.withDbIops(-1).withDbThroughput(-1)
-						.withDbName("dev101").withDbStorageType(DatabaseStorageType.standard.name())
-						.withInstanceClass("db.t2.small").withInstanceIdentifier("dev-101-db")
-						.withMaxAllocatedStorage(8).withMultiAZ(true).withResourceName("dev101RepositoryDB")
-						.withSnapshotIdentifier(null).withDeletionPolicy(DeletionPolicy.Delete),
+				new DatabaseDescriptor().withAllocatedStorage(4).withBackupRetentionPeriodDays(7).withDbIops(-1)
+						.withDbThroughput(-1).withDbName("dev101")
+						.withDbStorageType(DatabaseStorageType.standard.name()).withInstanceClass("db.t2.small")
+						.withInstanceIdentifier("dev-101-db").withMaxAllocatedStorage(8).withMultiAZ(true)
+						.withResourceName("dev101RepositoryDB").withSnapshotIdentifier(null)
+						.withDeletionPolicy(DeletionPolicy.Delete),
 				// tables
-				new DatabaseDescriptor().withAllocatedStorage(3).withBackupRetentionPeriodDays(0)
-						.withDbIops(1000).withDbThroughput(1000)
-						.withDbName("dev101").withDbStorageType(DatabaseStorageType.gp3.name())
+				new DatabaseDescriptor().withAllocatedStorage(3).withBackupRetentionPeriodDays(0).withDbIops(1000)
+						.withDbThroughput(1000).withDbName("dev101").withDbStorageType(DatabaseStorageType.gp3.name())
 						.withInstanceClass("db.t2.micro").withInstanceIdentifier("dev-101-table-0")
 						.withMaxAllocatedStorage(6).withMultiAZ(false).withResourceName("dev101Table0RepositoryDB")
 						.withSnapshotIdentifier(null).withDeletionPolicy(DeletionPolicy.Delete) };
@@ -1603,7 +1606,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(expected[0], results[0]);
 		assertEquals(expected[1], results[1]);
 	}
-	
+
 	@Test
 	public void testBuildEnvironmentsWithoutTTL() throws InterruptedException {
 
@@ -1658,7 +1661,7 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(builderSpy).buildAndDeployStack(mockContext, e1.getName(), TEMPLATE_BEANSTALK_ENVIRONMENT, ttl);
 		verify(builderSpy).buildAndDeployStack(mockContext, e2.getName(), TEMPLATE_BEANSTALK_ENVIRONMENT, ttl);
 	}
-	
+
 	@Test
 	public void testCreateEcsEnvironments() {
 
@@ -1680,7 +1683,8 @@ public class RepositoryTemplateBuilderImplTest {
 			when(config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE + type.getShortName())).thenReturn("synapes.org");
 		}
 
-		when(mockDockerImageBuilder.buildAndPushImage(any(), any(), anyInt(), any(), any())).thenReturn("123456.dkr.ecr.us-east-1.amazonaws.com/dev-synapse-repo:dev-101-version-repo-0");
+		when(mockDockerImageBuilder.buildAndPushImage(any(), any(), anyInt(), any(), any()))
+				.thenReturn("123456.dkr.ecr.us-east-1.amazonaws.com/dev-synapse-repo:dev-101-version-repo-0");
 
 		// call under test
 		List<EcsEnvironmentDescriptor> descriptors = builder.createEcsEnvironments(secretsSouce);
@@ -1730,7 +1734,9 @@ public class RepositoryTemplateBuilderImplTest {
 
 		when(config.getProperty((PROPERTY_KEY_OAUTH_ENDPOINT))).thenReturn("https://oauthendpoint");
 
-		when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + EnvironmentType.REPOSITORY_SERVICES.getShortName())).thenReturn(0);
+		when(config
+				.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + EnvironmentType.REPOSITORY_SERVICES.getShortName()))
+				.thenReturn(0);
 
 		when(mockSecretBuilder.getCMKAlias()).thenReturn(keyAlias);
 
@@ -1740,15 +1746,13 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
 				.thenReturn(String.join(",", EXPECTED_SUBNETS));
 		when(config.getProperty("org.sagebionetworks.cloudfront.private.key.id")).thenReturn("dataCdnPrivateKeyId");
-		when(config.getProperty("org.sagebionetworks.oauth2.sagebio.discoveryDocument")).thenReturn("discoveryDocumentUrl");
+		when(config.getProperty("org.sagebionetworks.oauth2.sagebio.discoveryDocument"))
+				.thenReturn("discoveryDocumentUrl");
 		when(mockLoadBalancerAlarmsConfig.getOrDefault(any(), any())).thenReturn(java.util.Collections.emptyList());
 
 		EcsEnvironmentDescriptor environment = new EcsEnvironmentDescriptor()
-				.withType(EnvironmentType.REPOSITORY_SERVICES)
-				.withName("repo-dev-101-0")
-				.withRefName("RepoDev1010")
-				.withNumber(0)
-				.withCpu(1024).withMemory(4096).withContainerPort(8443);
+				.withType(EnvironmentType.REPOSITORY_SERVICES).withName("repo-dev-101-0").withRefName("RepoDev1010")
+				.withNumber(0).withCpu(1024).withMemory(4096).withContainerPort(8443);
 
 		// call under test
 		VelocityContext context = builder.createEcsEnvironmentContext(sharedResouces, environment);
@@ -1789,7 +1793,8 @@ public class RepositoryTemplateBuilderImplTest {
 		doReturn(mockContext).when(builderSpy).createEcsEnvironmentContext(any(), any());
 
 		doNothing().when(builderSpy).buildAndDeployStack(any(), any(), any(), any());
-		when(mockCloudFormationClientWrapper.waitForStackToComplete(anyString())).thenReturn(Optional.of(sharedResouces));
+		when(mockCloudFormationClientWrapper.waitForStackToComplete(anyString()))
+				.thenReturn(Optional.of(sharedResouces));
 
 		// call under test
 		builderSpy.buildEnvironments(sharedResouces);
@@ -1821,7 +1826,8 @@ public class RepositoryTemplateBuilderImplTest {
 		doReturn(mockContext).when(builderSpy).createEcsEnvironmentContext(any(), any());
 
 		doNothing().when(builderSpy).buildAndDeployStack(any(), any(), any(), any());
-		when(mockCloudFormationClientWrapper.waitForStackToComplete(anyString())).thenReturn(Optional.of(sharedResouces));
+		when(mockCloudFormationClientWrapper.waitForStackToComplete(anyString()))
+				.thenReturn(Optional.of(sharedResouces));
 
 		// call under test
 		builderSpy.buildEnvironments(sharedResouces);
@@ -1842,12 +1848,15 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_TOMCAT)).thenReturn("9.0");
 		when(config.getProperty(PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_AMAZONLINUX)).thenReturn("3.4.7");
 		String expectedPlatformName = "Tomcat 9.0 with Corretto 11 running on 64bit Amazon Linux 2023";
-		PlatformFilter expectedFilter = PlatformFilter.builder().type("PlatformName").operator("=").values(expectedPlatformName).build();
-		ListPlatformVersionsRequest expectedRequest = ListPlatformVersionsRequest.builder().filters(expectedFilter).build();
+		PlatformFilter expectedFilter = PlatformFilter.builder().type("PlatformName").operator("=")
+				.values(expectedPlatformName).build();
+		ListPlatformVersionsRequest expectedRequest = ListPlatformVersionsRequest.builder().filters(expectedFilter)
+				.build();
 		List<PlatformSummary> expectedSummaries = new LinkedList<>();
 		PlatformSummary summary = PlatformSummary.builder().platformVersion("3.4.7").build();
 		expectedSummaries.add(summary);
-		ListPlatformVersionsResponse expectedResult = ListPlatformVersionsResponse.builder().platformSummaryList(expectedSummaries).build();
+		ListPlatformVersionsResponse expectedResult = ListPlatformVersionsResponse.builder()
+				.platformSummaryList(expectedSummaries).build();
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
 	}
 }

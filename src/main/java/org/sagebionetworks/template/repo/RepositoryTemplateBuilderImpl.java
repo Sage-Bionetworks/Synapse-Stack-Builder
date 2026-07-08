@@ -39,6 +39,9 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_PRIVA
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_MEMORY;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_TYPE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPENSEARCH_INSTANCE_TYPE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPENSEARCH_MASTER_INSTANCE_TYPE;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OPENSEARCH_AVAILABILITY_ZONE_COUNT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_CONTAINER_PORT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_TASK_CPU;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_TASK_MEMORY;
@@ -500,6 +503,23 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		// Deployment target for conditional resources in shared template
 		String deploymentTarget = config.getProperty(PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS);
 		context.put(DEPLOYMENT_TARGET, deploymentTarget);
+
+		// The prod OpenSearch domain is VPC-attached and pinned to specific data and dedicated
+		// master instance types, which are not offered in every AZ. Resolve the color's private
+		// subnets and keep only those in AZs that offer both types, so the domain is never placed
+		// in an AZ that cannot host one of its node types.
+		if (Constants.isProd(stack)) {
+			String openSearchInstanceType = config.getProperty(PROPERTY_KEY_OPENSEARCH_INSTANCE_TYPE);
+			String openSearchMasterInstanceType = config.getProperty(PROPERTY_KEY_OPENSEARCH_MASTER_INSTANCE_TYPE);
+			int openSearchAvailabilityZoneCount = config.getIntegerProperty(PROPERTY_KEY_OPENSEARCH_AVAILABILITY_ZONE_COUNT);
+			context.put(Constants.OPENSEARCH_INSTANCE_TYPE, openSearchInstanceType);
+			context.put(Constants.OPENSEARCH_MASTER_INSTANCE_TYPE, openSearchMasterInstanceType);
+			context.put(Constants.OPENSEARCH_AVAILABILITY_ZONE_COUNT, openSearchAvailabilityZoneCount);
+			List<String> vpcSubnets = getPrivateSubnets(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR));
+			List<String> availableSubnets = ec2ClientWrapper.getAvailableSubnetsForInstanceTypes(
+					List.of(openSearchInstanceType, openSearchMasterInstanceType), vpcSubnets, openSearchAvailabilityZoneCount);
+			context.put(Constants.OPENSEARCH_SUBNETS, availableSubnets.subList(0, openSearchAvailabilityZoneCount));
+		}
 
 		return context;
 	}

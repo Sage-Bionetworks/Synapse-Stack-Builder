@@ -42,21 +42,19 @@
 		"Properties": {
 			"DomainName": "${stack}-${instance}-synidx",
 			"EngineVersion": "OpenSearch_3.5",
-			## AvailabilityZoneCount drives both ZoneAwarenessConfig below and the number of
-			## subnets selected in VPCOptions.SubnetIds further down - change it in one place.
-			#set($availabilityZoneCount = 1)
-			#if (${stack} == 'prod')
-			#set($availabilityZoneCount = 2)
-			#end
+			## For prod, openSearchInstanceType / openSearchMasterInstanceType /
+			## openSearchAvailabilityZoneCount and the pruned openSearchSubnets list are all injected
+			## from RepositoryTemplateBuilderImpl. The AZ count drives ZoneAwarenessConfig here and
+			## bounds the subnet list length there.
 			"ClusterConfig":
 				#if (${stack} == 'prod')
 				{
-					"InstanceType": "r6g.xlarge.search",
+					"InstanceType": "${openSearchInstanceType}.search",
 					"InstanceCount": 2,
 					"ZoneAwarenessEnabled": true,
-					"ZoneAwarenessConfig": { "AvailabilityZoneCount": $availabilityZoneCount },
+					"ZoneAwarenessConfig": { "AvailabilityZoneCount": $openSearchAvailabilityZoneCount },
 					"DedicatedMasterEnabled": true,
-					"DedicatedMasterType": "m6g.large.search",
+					"DedicatedMasterType": "${openSearchMasterInstanceType}.search",
 					"DedicatedMasterCount": 3
 				}
 				#else
@@ -99,14 +97,11 @@
 				"SecurityGroupIds": [
 					{ "Ref": "${stack}${instance}SynapseSearchIndexSecurityGroup" }
 				],
-				"SubnetIds":
-					[
-						#set($lastAvailabilityZoneIndex = $availabilityZoneCount - 1)
-						#foreach($availabilityZoneIndex in [0..$lastAvailabilityZoneIndex])
-						#if($foreach.count > 1),#end
-						{ "Fn::Select": [ $availabilityZoneIndex, { "Fn::Split": [ ", ", { "Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-Private-Subnets" } ] } ] }
-						#end
-					]
+				"SubnetIds": [
+					#foreach($subnetId in $openSearchSubnets)
+						"$subnetId"#if($foreach.hasNext),#end
+					#end
+				]
 			},
 			#end
 			"AccessPolicies": {
