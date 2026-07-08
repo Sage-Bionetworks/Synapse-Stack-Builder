@@ -26,13 +26,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_ARTIFACT_BUCKET;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_URL;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
+import static org.mockito.Mockito.*;
+import static org.sagebionetworks.template.Constants.*;
+import static org.sagebionetworks.template.markdownit.MarkDownItLambdaBuilderImpl.markdownitArtifactKeyFromVersion;
 
 @ExtendWith(MockitoExtension.class)
 public class MarkDownItLambdaBuilderImplTest {
@@ -63,8 +59,9 @@ public class MarkDownItLambdaBuilderImplTest {
     public void before() {
         stack = "dev";
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
-        when(mockConfig.getProperty(PROPERTY_KEY_LAMBDA_ARTIFACT_BUCKET)).thenReturn("lambda.sagebase.org");
-        when(mockConfig.getProperty(PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_URL)).thenReturn("https://sagebionetworks.jfrog.io/lambda/org/sagebase/markdownit/markdownit.zip");
+        when(mockConfig.getProperty(PROPERTY_KEY_LAMBDA_MARKDOWNIT_VERSION)).thenReturn("v0.0.1");
+        when(mockConfig.getProperty(PROPERTY_KEY_LAMBDA_MARKDOWN_IT_SUBDOMAIN)).thenReturn("md2html");
+        when(mockConfig.getProperty(PROPERTY_KEY_LAMBDA_MARKDOWNIT_CERTIFICATE_ARN)).thenReturn("arn:123456789012:cert");
     }
 
     @Test
@@ -89,13 +86,13 @@ public class MarkDownItLambdaBuilderImplTest {
 
         when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(markdownItLambdaStack));
 
-        String expectedBucket = "lambda.sagebase.org";
-        String expectedKey = "artifacts/markdown-it/markdownit.zip";
+        String expectedBucket = "dev.artifacts.sagebase.org";
+        String expectedKey = "markdown-it-v0.0.1.zip";
 
         // call under test
         builder.buildMarkDownItLambda();
 
-        verify(mockDownloader).downloadFile("https://sagebionetworks.jfrog.io/lambda/org/sagebase/markdownit/markdownit.zip");
+        verify(mockDownloader).downloadFile("https://github.com/Sage-Bionetworks/synapse-markdown-it-lambda/releases/download/v0.0.1/markdown-it-v0.0.1.zip");
         verify(mockS3Client).putObject(expectedBucket, expectedKey, mockFile);
 
         verify(mockFile).delete();
@@ -120,7 +117,13 @@ public class MarkDownItLambdaBuilderImplTest {
         JSONObject resources = templateJson.getJSONObject("Resources");
         assertTrue(resources.has("mdlambdaServiceRole"));
         assertTrue(resources.has("mdlambda"));
-        assertTrue(resources.has("mdlambdaFunctionUrl"));
+        assertTrue(resources.has("MarkdownItApi"));
+        assertTrue(resources.has("MarkdownItApiPostMethod"));
+        assertTrue(resources.has("MarkdownItApiPermission"));
+        assertTrue(resources.has("MarkdownItApiDeployment"));
+        assertTrue(resources.has("MarkdownItApiStage"));
+        assertTrue(resources.has("CustomDomain"));
+        assertTrue(resources.has("BasePathMapping"));
 
         assertEquals("dev-markdown-it-function", argCaptorWaitForStack.getValue());
         assertEquals("dev-markdown-it-function", argCaptorDescribeStack.getValue());

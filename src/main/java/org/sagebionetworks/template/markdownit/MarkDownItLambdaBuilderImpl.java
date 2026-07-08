@@ -21,10 +21,7 @@ import java.io.File;
 import java.io.StringWriter;
 import java.util.Optional;
 
-import static org.sagebionetworks.template.Constants.CAPABILITY_NAMED_IAM;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_ARTIFACT_BUCKET;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_URL;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
+import static org.sagebionetworks.template.Constants.*;
 
 public class MarkDownItLambdaBuilderImpl implements MarkDownItLambdaBuilder {
 
@@ -60,30 +57,48 @@ public class MarkDownItLambdaBuilderImpl implements MarkDownItLambdaBuilder {
     public void buildMarkDownItLambda() {
 
         String stack = config.getProperty(PROPERTY_KEY_STACK);
-        String artifactBucket = config.getProperty(PROPERTY_KEY_LAMBDA_ARTIFACT_BUCKET);
-        String lambdaSourceArtifactUrl = config.getProperty(PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_URL);
-        String lambdaArtifactKey = String.format("artifacts/markdown-it/%s", FilenameUtils.getName(lambdaSourceArtifactUrl));
+        String artifactBucket = String.format("%s.artifacts.sagebase.org", stack);
+        String markdownitVersion = config.getProperty(PROPERTY_KEY_LAMBDA_MARKDOWNIT_VERSION);
+        String markdownitArtifactUrl = markdownitArtifactUrlFromVersion(markdownitVersion);
+        String lambdaArtifactKey = markdownitArtifactKeyFromVersion(markdownitVersion);
+        String markdownitSubDomain = config.getProperty(PROPERTY_KEY_LAMBDA_MARKDOWN_IT_SUBDOMAIN);
+        // Should cover *.[dev|prod].sagebase.org
+        String certificateArn = config.getProperty(PROPERTY_KEY_LAMBDA_MARKDOWNIT_CERTIFICATE_ARN);
 
-        // Download from jfrog and upload to S3
-        File artifact = downloader.downloadFile(lambdaSourceArtifactUrl);
+        // copy artifact to S3
+        File artifact = downloader.downloadFile(markdownitArtifactUrl);
         try {
             s3Client.putObject(artifactBucket, lambdaArtifactKey, artifact);
         } finally {
             artifact.delete();
         }
 
-        buildMarkDownItLambdaStack(stack, artifactBucket, lambdaArtifactKey);
+        buildMarkDownItLambdaStack(stack, lambdaArtifactKey, markdownitSubDomain, certificateArn);
 
     }
 
-    private Optional<Stack> buildMarkDownItLambdaStack(String stack, String artifactBucket, String artifactKey) {
+    static String markdownitArtifactKeyFromVersion(String version) {
+        return String.format("markdown-it-%s.zip", version);
+    }
+    static String markdownitArtifactUrlFromVersion(String version) {
+        final String urfFormat = "https://github.com/Sage-Bionetworks/synapse-markdown-it-lambda/releases/download/%s/%s";
+        return String.format(urfFormat, version, markdownitArtifactKeyFromVersion(version));
+    }
+
+    private Optional<Stack> buildMarkDownItLambdaStack(
+            String stack,
+            String artifactKey,
+            String markdownitSubdomain,
+            String certificateArn) {
 
         String stackName = String.format("%s-markdown-it-function", stack);
 
         // Setup context
         VelocityContext context = new VelocityContext();
-        context.put("lambdaArtifactBucket", artifactBucket);
+        context.put("stack", stack);
         context.put("lambdaArtifactKey", artifactKey);
+        context.put("markdownitSubDomain", markdownitSubdomain);
+        context.put("certificateArn", certificateArn);
 
         // Generate template
         Template template = velocityEngine.getTemplate(Constants.TEMPLATE_MARKDOWNIT_API_VTP);
