@@ -788,6 +788,18 @@
                                 }
                             ],
                             "Effect": "Allow"
+                        },
+                        {
+                            "Action": [
+                                "bedrockagentcore:InvokeCodeInterpreter",
+                                "bedrockagentcore:ListCodeInterpreters"
+                            ],
+                            "Resource": [
+                                {
+                                  "Fn::Sub": "arn:aws:bedrockagentcore:#[[${AWS::Region}:${AWS::AccountId}]]#:code-interpreter/*"
+                                }
+                            ],
+                            "Effect": "Allow"
                         }
                      ]
                 }
