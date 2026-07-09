@@ -21,7 +21,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -29,7 +28,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.sagebionetworks.template.Constants.*;
-import static org.sagebionetworks.template.markdownit.MarkDownItLambdaBuilderImpl.markdownitArtifactKeyFromVersion;
 
 @ExtendWith(MockitoExtension.class)
 public class MarkDownItLambdaBuilderImplTest {
@@ -65,6 +63,7 @@ public class MarkDownItLambdaBuilderImplTest {
     @Test
     public void testBuildMarkDownItLambda() throws Exception {
 
+        testFile = File.createTempFile("markdown-it-v0.0.1", "zip");
         velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
 
         MarkDownItLambdaBuilder builder = new MarkDownItLambdaBuilderImpl(
@@ -91,7 +90,6 @@ public class MarkDownItLambdaBuilderImplTest {
         builder.buildMarkDownItLambda();
 
         verify(mockDownloader).downloadFile("https://github.com/Sage-Bionetworks/synapse-markdown-it-lambda/releases/download/v0.0.1/markdown-it-v0.0.1.zip");
-        verify(mockS3Client).putObject(expectedBucket, expectedKey, mockFile);
 
         ArgumentCaptor<PutObjectRequest> putRequestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
         ArgumentCaptor<RequestBody> requestBodyCaptor = ArgumentCaptor.forClass(RequestBody.class);
