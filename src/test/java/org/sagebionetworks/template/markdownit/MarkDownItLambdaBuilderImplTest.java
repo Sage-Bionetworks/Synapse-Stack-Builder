@@ -1,6 +1,5 @@
 package org.sagebionetworks.template.markdownit;
 
-import com.amazonaws.services.s3.AmazonS3;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,16 +14,18 @@ import org.sagebionetworks.template.StackTagsProvider;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.utils.ArtifactDownload;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.cloudformation.model.Capability;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.sagebionetworks.template.Constants.*;
@@ -45,18 +46,15 @@ public class MarkDownItLambdaBuilderImplTest {
     StackTagsProvider mockTagsProvider;
 
     @Mock
-    AmazonS3 mockS3Client;
+    S3Client mockS3Client;
 
     VelocityEngine velocityEngine;
 
-    @Mock
-    File mockFile;
-
-
     private String stack;
+    private File testFile;
 
     @BeforeEach
-    public void before() {
+    public void before() throws Exception {
         stack = "dev";
         when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
         when(mockConfig.getProperty(PROPERTY_KEY_LAMBDA_MARKDOWNIT_VERSION)).thenReturn("v0.0.1");
@@ -78,7 +76,7 @@ public class MarkDownItLambdaBuilderImplTest {
                 velocityEngine);
 
 
-        when(mockDownloader.downloadFile(any())).thenReturn(mockFile);
+        when(mockDownloader.downloadFile(any())).thenReturn(testFile);
 
         when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
@@ -95,7 +93,13 @@ public class MarkDownItLambdaBuilderImplTest {
         verify(mockDownloader).downloadFile("https://github.com/Sage-Bionetworks/synapse-markdown-it-lambda/releases/download/v0.0.1/markdown-it-v0.0.1.zip");
         verify(mockS3Client).putObject(expectedBucket, expectedKey, mockFile);
 
-        verify(mockFile).delete();
+        ArgumentCaptor<PutObjectRequest> putRequestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
+        ArgumentCaptor<RequestBody> requestBodyCaptor = ArgumentCaptor.forClass(RequestBody.class);
+        verify(mockS3Client).putObject(putRequestCaptor.capture(), requestBodyCaptor.capture());
+        assertNotNull(requestBodyCaptor.getValue());
+        PutObjectRequest capturedRequest = putRequestCaptor.getValue();
+        assertEquals(expectedBucket, capturedRequest.bucket());
+        assertEquals(expectedKey, capturedRequest.key());
 
         ArgumentCaptor<CreateOrUpdateStackRequest> argCaptorCreateOrUpdateStack = ArgumentCaptor.forClass(CreateOrUpdateStackRequest.class);
         ArgumentCaptor<String> argCaptorWaitForStack = ArgumentCaptor.forClass(String.class);
@@ -127,6 +131,8 @@ public class MarkDownItLambdaBuilderImplTest {
 
         assertEquals("dev-markdown-it-function", argCaptorWaitForStack.getValue());
         assertEquals("dev-markdown-it-function", argCaptorDescribeStack.getValue());
+
+        assertFalse(testFile.exists());
 
     }
 
