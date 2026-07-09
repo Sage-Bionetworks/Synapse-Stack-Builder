@@ -83,6 +83,10 @@
 		},
 		{
 			"name": "${stack}.artifacts.sagebase.org"
+		},
+		{
+			"name": "${stack}.code-interpreter.staging.sagebase.org",
+			"retentionDays": 1
 		}
 
 	],
