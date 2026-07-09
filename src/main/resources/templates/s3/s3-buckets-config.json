@@ -82,9 +82,13 @@
 			"name": "${stack}.grid.snapshot.sagebase.org"
 		},
 		{
+			"name": "${stack}.artifacts.sagebase.org"
+		},
+		{
 			"name": "${stack}.code-interpreter.staging.sagebase.org",
 			"retentionDays": 1
 		}
+
 	],
 	"inventoryConfig": {
 		"bucket": "${stack}.datawarehouse.sagebase.org",
