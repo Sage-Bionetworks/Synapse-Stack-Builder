@@ -83,6 +83,16 @@ Test files follow `*Test.java` naming. Integration tests use `*IntegrationTest.j
 
 - **AWS SDK v2 for new code.** New/edited AWS client code uses `software.amazon.awssdk` v2 clients (e.g. `S3Client`, `PutObjectRequest`, `RequestBody`). A v1→v2 migration is in progress, so both are bound in `TemplateGuiceModule` today — do not add new `com.amazonaws...AmazonS3Client` (v1) usage.
 - **Adding simple buckets/queues is config-only.** New S3 buckets and SNS/SQS queues are added via config entries (`s3/s3-buckets-config.json`, `repo/sns-and-sqs-config.json`); no Java/builder changes needed for a plain bucket or queue.
+- **Two config interfaces — inject the right one.** `RepoConfigurationImpl` auto-loads `templates/repo/repo-defaults.properties` on construction; plain `ConfigurationImpl` loads no defaults. Guice binds them to `RepoConfiguration` vs `Configuration`; repo-scoped builders need `RepoConfiguration` or required defaults are silently absent.
+- **`SnsAndSqsConfig` deserializes with Jackson, not GSON** (its class comment says "GSON" but the annotations are `@JsonCreator`/`@JsonProperty`). Don't "fix" the annotations to match the comment. Queue FIFO-ness is inferred purely from a `.fifo` suffix on the queue name.
+- **`repo/athena` recurrent queries** require their `destinationQueue` to exist in `SnsAndSqsConfig`, and default their query database to the firehose `GLUE_DB_SUFFIX` constant; the query string is loaded from a file under `athena/` and re-evaluated as a Velocity template.
+- **`repo/cloudwatchlogs` config** requires exactly 2 `LogDescriptor`s per `EnvironmentType`, all environment types present, and no duplicate `LogType` — the validator throws otherwise.
+- **`docs/` deploys via a custom ETag-diff S3 sync**, gated by a `docs-stack-instance.json` marker with an `instance` counter (only syncs when the configured instance is newer). Do not replace it with a plain `s3 sync`-style copy — it would break the idempotency/versioning gate.
+
+## Subsystem guides
+
+Deeper, package-local conventions live in child `CLAUDE.md` files — read the relevant one before working in that area:
+`template/` (top-level — CFN client wrapper & Guice module gotchas), `repo/`, `repo/beanstalk/`, `repo/ecs/`, `repo/agent/`, `repo/grid/`, `repo/kinesis/firehose/`, `s3/`, `vpc/`, `cdn/`, `nlb/`, `global/`, `datawarehouse/`.
 
 ## Anti-Patterns — Do NOT
 
