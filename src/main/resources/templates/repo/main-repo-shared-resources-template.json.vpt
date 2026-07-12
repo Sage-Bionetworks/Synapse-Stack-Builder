@@ -791,12 +791,12 @@
                         },
                         {
                             "Action": [
-                                "bedrockagentcore:InvokeCodeInterpreter",
-                                "bedrockagentcore:ListCodeInterpreters"
+                                "bedrock-agentcore:InvokeCodeInterpreter",
+                                "bedrock-agentcore:ListCodeInterpreters"
                             ],
                             "Resource": [
                                 {
-                                  "Fn::Sub": "arn:aws:bedrockagentcore:#[[${AWS::Region}:${AWS::AccountId}]]#:code-interpreter/*"
+                                  "Fn::Sub": "arn:aws:bedrock-agentcore:#[[${AWS::Region}:${AWS::AccountId}]]#:code-interpreter-custom/*"
                                 }
                             ],
                             "Effect": "Allow"
