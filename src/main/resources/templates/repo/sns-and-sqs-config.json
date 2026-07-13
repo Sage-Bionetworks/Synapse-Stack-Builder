@@ -557,6 +557,12 @@
 			"oldestMessageInQueueAlarmThresholdSec": 30
 		},
 		{
+			"queueName": "COMPUTE_TASK_EXECUTION",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 600
+		},
+		{
 			"queueName": "SEARCH_INDEX_SOURCE_UPDATE",
 			"subscribedTopicNames": [
 				"TABLE_STATUS_EVENT"
