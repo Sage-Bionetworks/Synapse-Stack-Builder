@@ -89,7 +89,7 @@ public class MarkDownItLambdaBuilderImplTest {
         // call under test
         builder.buildMarkDownItLambda();
 
-        verify(mockDownloader).downloadFile("https://github.com/Sage-Bionetworks/synapse-markdown-it-lambda/releases/download/v0.0.1/markdown-it-v0.0.1.zip");
+        verify(mockDownloader).downloadFile("https://sagebionetworks.jfrog.io/lambda/org/sagebase/markdownit/markdown-it-v0.0.1.zip");
 
         ArgumentCaptor<PutObjectRequest> putRequestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
         ArgumentCaptor<RequestBody> requestBodyCaptor = ArgumentCaptor.forClass(RequestBody.class);

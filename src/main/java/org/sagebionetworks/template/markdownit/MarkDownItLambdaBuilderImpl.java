@@ -89,8 +89,8 @@ public class MarkDownItLambdaBuilderImpl implements MarkDownItLambdaBuilder {
         return String.format("markdown-it-%s.zip", version);
     }
     static String markdownitArtifactUrlFromVersion(String version) {
-        final String urfFormat = "https://github.com/Sage-Bionetworks/synapse-markdown-it-lambda/releases/download/%s/%s";
-        return String.format(urfFormat, version, markdownitArtifactKeyFromVersion(version));
+        final String urlfFormat = "https://sagebionetworks.jfrog.io/artifactory/lambda-artifacts/org/sagebionetworks/markdown-it/%s";
+        return String.format(urlfFormat, markdownitArtifactKeyFromVersion(version));
     }
 
     private Optional<Stack> buildMarkDownItLambdaStack(
