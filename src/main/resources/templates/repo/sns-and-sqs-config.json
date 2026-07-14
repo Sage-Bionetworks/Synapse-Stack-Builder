@@ -32,7 +32,8 @@
 		"PROJECT_STORAGE_EVENT",
 		"REPLICATED_EVENT",
 		"GRID_REPLICA_CHANGES",
-		"GRID_SESSION"
+		"GRID_SESSION",
+		"SEARCH_INDEX_REBUILD"
 	],
 	"snsGlobalTopicNames": [
 		"SES_SYNAPSE_ORG_BOUNCE",
@@ -374,7 +375,7 @@
 			"messageRetentionPeriodSec": 1209600
 		},
 		{
-			"queueName": "MATERIALIZED_VIEW_SOURCE_UPDATE",
+			"queueName": "DEFINING_SQL_SOURCE_UPDATE",
 			"subscribedTopicNames": [
 				"TABLE_STATUS_EVENT"
 			],
@@ -547,6 +548,14 @@
 			],
 			"messageVisibilityTimeoutSec": 300,
 			"deadLetterQueueMaxFailureCount": 5
+		},
+		{
+			"queueName": "SEARCH_INDEX_REBUILD",
+			"subscribedTopicNames": [
+				"SEARCH_INDEX_REBUILD"
+			],
+			"messageVisibilityTimeoutSec": 60,
+			"messageRetentionPeriodSec": 1209600
 		},
 		{
 			"queueName": "SEARCH_QUERY",
