@@ -14,6 +14,7 @@ import static org.sagebionetworks.template.TemplateUtils.loadFromJsonFile;
 import java.io.IOException;
 
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
@@ -259,8 +260,15 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
  	@Provides
 	public HttpClient provideHttpClient() {
-		HttpClientBuilder builder = HttpClientBuilder.create();
-		return builder.build();
+		RequestConfig requestConfig = RequestConfig.custom()
+				.setConnectTimeout(30_000)
+				.setSocketTimeout(60_000)
+				.setConnectionRequestTimeout(30_000)
+				.build();
+		return HttpClientBuilder.create()
+				.useSystemProperties()
+				.setDefaultRequestConfig(requestConfig)
+				.build();
 	}
 	
 	@Provides
