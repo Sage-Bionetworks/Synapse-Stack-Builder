@@ -1,9 +1,5 @@
 package org.sagebionetworks.template.datawarehouse.backfill;
 
-import com.amazonaws.internal.ReleasableInputStream;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ListObjectsV2Request;
-import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import org.apache.logging.log4j.Logger;
@@ -20,6 +16,7 @@ import org.sagebionetworks.template.datawarehouse.DataWarehouseBuilderImpl;
 import org.sagebionetworks.template.repo.VelocityExceptionThrower;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 import org.sagebionetworks.util.ValidateArgument;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.athena.AthenaClient;
 import software.amazon.awssdk.services.athena.model.Datum;
 import software.amazon.awssdk.services.athena.model.GetQueryExecutionRequest;
@@ -40,6 +37,11 @@ import software.amazon.awssdk.services.glue.model.GetTableResponse;
 import software.amazon.awssdk.services.glue.model.PartitionInput;
 import software.amazon.awssdk.services.glue.model.StartJobRunRequest;
 import software.amazon.awssdk.services.glue.model.StorageDescriptor;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CommonPrefix;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.File;
 import java.io.IOException;
@@ -88,7 +90,7 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
     private Configuration config;
     private Logger logger;
     private VelocityEngine velocityEngine;
-    private AmazonS3 s3Client;
+    private S3Client s3Client;
     private CloudFormationClientWrapper cloudFormationClientWrapper;
     private StackTagsProvider tagsProvider;
     private GlueClient awsGlue;
@@ -98,7 +100,7 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
     public BackfillDataWarehouseBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper, VelocityEngine velocityEngine,
                                             Configuration config, LoggerFactory loggerFactory,
                                             StackTagsProvider tagsProvider, ArtifactDownload downloader,
-                                            AmazonS3 s3Client, GlueClient awsGlue, AthenaClient athena) {
+                                            S3Client s3Client, GlueClient awsGlue, AthenaClient athena) {
         this.cloudFormationClientWrapper = cloudFormationClientWrapper;
         this.velocityEngine = velocityEngine;
         this.config = config;
@@ -196,8 +198,9 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
                     String scriptFile = entry.getName();
                     String s3Key = s3ScriptsPath + scriptFile.replace(scriptPath, "");
                     logger.info("Uploading " + scriptFile + " to " + s3Key);
-                    // Uses a stream with close disabled so that the s3 sdk does not close it for us
-                    s3Client.putObject(bucket, s3Key, ReleasableInputStream.wrap(zipInputStream).disableClose(), null);
+                    // Read the current zip entry into memory so the upload does not close the shared zip stream
+                    byte[] bytes = zipInputStream.readAllBytes();
+                    s3Client.putObject(PutObjectRequest.builder().bucket(bucket).key(s3Key).build(), RequestBody.fromBytes(bytes));
                 }
             }
         } catch (IOException e) {
@@ -209,13 +212,14 @@ public class BackfillDataWarehouseBuilderImpl implements BackfillDataWarehouseBu
     }
 
     private void createGluePartitionForOldData(String prefix, String bucketName, String databaseName) {
-        ListObjectsV2Request listObjectsV2Request = new ListObjectsV2Request().withPrefix(prefix).withBucketName(bucketName).withDelimiter("/");
-        ListObjectsV2Result s3ObjectResult = s3Client.listObjectsV2(listObjectsV2Request);
-        if (s3ObjectResult == null || s3ObjectResult.getCommonPrefixes().size() == 0) {
+        ListObjectsV2Request listObjectsV2Request = ListObjectsV2Request.builder().prefix(prefix).bucket(bucketName).delimiter("/").build();
+        ListObjectsV2Response s3ObjectResult = s3Client.listObjectsV2(listObjectsV2Request);
+        if (s3ObjectResult.commonPrefixes().isEmpty()) {
             getBatchPartitionParametersAndCreateGluePartition(prefix, databaseName, bucketName);
             return;
         }
-        for (String newPath : s3ObjectResult.getCommonPrefixes()) {
+        for (CommonPrefix commonPrefix : s3ObjectResult.commonPrefixes()) {
+            String newPath = commonPrefix.prefix();
             if (checkToIterate(prefix, newPath)) {
                 createGluePartitionForOldData(newPath, bucketName, databaseName);
             }
