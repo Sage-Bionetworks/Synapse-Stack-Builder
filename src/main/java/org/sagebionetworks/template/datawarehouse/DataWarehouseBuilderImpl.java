@@ -1,7 +1,5 @@
 package org.sagebionetworks.template.datawarehouse;
 
-import com.amazonaws.internal.ReleasableInputStream;
-import com.amazonaws.services.s3.AmazonS3;
 import com.google.inject.Inject;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
@@ -17,7 +15,10 @@ import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.repo.VelocityExceptionThrower;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 import org.sagebionetworks.util.ValidateArgument;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.cloudformation.model.Capability;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,12 +56,12 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
     private StackTagsProvider tagsProvider;
     private DataWarehouseConfig dataWarehouseConfig;
     private ArtifactDownload downloader;
-    private AmazonS3 s3Client;
+    private S3Client s3Client;
 
     @Inject
     public DataWarehouseBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper, VelocityEngine velocityEngine,
                                     Configuration config, LoggerFactory loggerFactory,
-                                    StackTagsProvider tagsProvider, DataWarehouseConfig dataWarehouseConfig, ArtifactDownload downloader, AmazonS3 s3Client) {
+                                    StackTagsProvider tagsProvider, DataWarehouseConfig dataWarehouseConfig, ArtifactDownload downloader, S3Client s3Client) {
         this.cloudFormationClientWrapper = cloudFormationClientWrapper;
         this.velocityEngine = velocityEngine;
         this.config = config;
@@ -143,8 +144,9 @@ public class DataWarehouseBuilderImpl implements DataWarehouseBuilder {
 					String scriptFile = entry.getName();
 					String s3Key = s3ScriptsPath + scriptFile.replace(scriptPath, "");
 					logger.info("Uploading " + scriptFile + " to " + s3Key);
-					// Uses a stream with close disabled so that the s3 sdk does not close it for us
-					s3Client.putObject(bucket, s3Key, ReleasableInputStream.wrap(zipInputStream).disableClose(), null);
+					// Read the current zip entry into memory so the upload does not close the shared zip stream
+					byte[] bytes = zipInputStream.readAllBytes();
+					s3Client.putObject(PutObjectRequest.builder().bucket(bucket).key(s3Key).build(), RequestBody.fromBytes(bytes));
 				}
 			}
 		} catch (IOException e) {

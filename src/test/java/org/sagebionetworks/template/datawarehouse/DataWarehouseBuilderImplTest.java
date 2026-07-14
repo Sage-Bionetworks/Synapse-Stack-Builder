@@ -1,6 +1,5 @@
 package org.sagebionetworks.template.datawarehouse;
 
-import com.amazonaws.services.s3.AmazonS3;
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
@@ -29,6 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -36,14 +36,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
 
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.cloudformation.model.Tag;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @ExtendWith(MockitoExtension.class)
 public class DataWarehouseBuilderImplTest {
@@ -69,7 +72,9 @@ public class DataWarehouseBuilderImplTest {
 	@Mock
 	private ArtifactDownload mockDownloader;
 	@Mock
-	private AmazonS3 mockS3Client;
+	private S3Client mockS3Client;
+	@Captor
+	ArgumentCaptor<PutObjectRequest> putObjectRequestCaptor;
 
 	private DataWarehouseBuilderImpl builder;
 
@@ -147,8 +152,12 @@ public class DataWarehouseBuilderImplTest {
 		builder.buildAndDeploy();
 
 		verify(mockDownloader).downloadFile("https://codeload.github.com/Sage-Bionetworks/repo/zip/refs/tags/v1.0.0");
-		verify(mockS3Client).putObject(eq("dev.aws-glue.sagebase.org"), eq("scripts/v1.0.0/testjob.py"), any(), any());
-		verify(mockS3Client).putObject(eq("dev.aws-glue.sagebase.org"), eq("scripts/v1.0.0/utilities/utils.py"), any(), any());
+		verify(mockS3Client, times(2)).putObject(putObjectRequestCaptor.capture(), any(RequestBody.class));
+		List<PutObjectRequest> putRequests = putObjectRequestCaptor.getAllValues();
+		assertEquals(List.of("dev.aws-glue.sagebase.org", "dev.aws-glue.sagebase.org"),
+				putRequests.stream().map(PutObjectRequest::bucket).collect(Collectors.toList()));
+		assertEquals(List.of("scripts/v1.0.0/testjob.py", "scripts/v1.0.0/utilities/utils.py"),
+				putRequests.stream().map(PutObjectRequest::key).collect(Collectors.toList()));
 		verifyNoMoreInteractions(mockS3Client);
 
 		verify(cloudFormationClientWrapper).createOrUpdateStack(requestCaptor.capture());
