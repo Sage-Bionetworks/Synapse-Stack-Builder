@@ -6,7 +6,6 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DOCS_SOURCE_BU
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DOCS_DESTINATION_BUCKET;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -16,32 +15,33 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.sagebionetworks.template.config.RepoConfiguration;
-import org.sagebionetworks.template.s3.S3TransferManager;
-import org.sagebionetworks.template.s3.S3TransferManagerFactory;
-
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.amazonaws.services.s3.transfer.Copy;
 import com.google.inject.Inject;
+
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 
 	private static final Logger LOG = LogManager.getLogger(SynapseDocsBuilderImpl.class);
-	
-	private final S3TransferManagerFactory transferManagerFactory;
-	private final AmazonS3 s3Client;
+
+	private final S3Client s3Client;
 	private final RepoConfiguration config;
-	
+
 	@Inject
-	SynapseDocsBuilderImpl(AmazonS3 s3Client, RepoConfiguration config, 
-			S3TransferManagerFactory transferManagerFactory) {
+	SynapseDocsBuilderImpl(S3Client s3Client, RepoConfiguration config) {
 		this.s3Client = s3Client;
 		this.config = config;
-		this.transferManagerFactory = transferManagerFactory;
 	}
-	
+
 	boolean verifyDeployment(String destinationBucket) {
 		try {
 			if (!config.getBooleanProperty(PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG)) {
@@ -52,8 +52,9 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 			LOG.info("Docs deployment flag is missing, will not deploy docs.");
 			return false;
 		}
-		if (s3Client.doesObjectExist(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE)) {
-			String json = s3Client.getObjectAsString(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE);
+		if (doesObjectExist(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE)) {
+			String json = s3Client.getObjectAsBytes(GetObjectRequest.builder()
+					.bucket(destinationBucket).key(DOCS_STACK_INSTANCE_JSON_FILE).build()).asUtf8String();
 			JSONObject obj = new JSONObject(json);
 			int instance = obj.getInt(PROPERTY_KEY_INSTANCE);
 			if (instance >= Integer.parseInt(config.getProperty(PROPERTY_KEY_INSTANCE))) {
@@ -63,64 +64,75 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 		}
 		return true;
 	}
-	
+
 	void sync(String sourceBucket, String destinationBucket) {
 		// deployment is a sync
 		String prefix = "";
 		Map<String, String> destinationKeyToETag = new HashMap<>();
 		// build a map of destination object keys to their etags
 		getAllS3Objects(createListObjectsRequest(destinationBucket, prefix))
-			.forEach(obj -> destinationKeyToETag.put(obj.getKey(), obj.getETag()));
+			.forEach(obj -> destinationKeyToETag.put(obj.key(), obj.eTag()));
 		// do the sync
-		List<S3ObjectSummary> sourceObjects = getAllS3Objects(createListObjectsRequest(sourceBucket, prefix));
-		try (S3TransferManager s3TransferManager = transferManagerFactory.createNewS3TransferManager()) {
-			for (S3ObjectSummary sourceObject : sourceObjects) {
-				// make the destination map contain all objects to be removed (not updated) in the sync
-				String destinationETag = destinationKeyToETag.remove(sourceObject.getKey());
-				if (destinationETag != null && sourceObject.getETag().equals(destinationETag)) {
-					continue;
-				}
-				Copy cpy = s3TransferManager.copy(sourceBucket, sourceObject.getKey(), 
-						destinationBucket, sourceObject.getKey());
-				try {
-					LOG.info("Waiting to copy " + sourceObject.getKey() + "...");
-					cpy.waitForCompletion();
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
+		List<S3Object> sourceObjects = getAllS3Objects(createListObjectsRequest(sourceBucket, prefix));
+		for (S3Object sourceObject : sourceObjects) {
+			// make the destination map contain all objects to be removed (not updated) in the sync
+			String destinationETag = destinationKeyToETag.remove(sourceObject.key());
+			if (destinationETag != null && sourceObject.eTag().equals(destinationETag)) {
+				continue;
 			}
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+			LOG.info("Copying " + sourceObject.key() + "...");
+			s3Client.copyObject(CopyObjectRequest.builder()
+					.sourceBucket(sourceBucket).sourceKey(sourceObject.key())
+					.destinationBucket(destinationBucket).destinationKey(sourceObject.key())
+					.build());
 		}
 
 		// remove objects in the sync
 		for (String destinationObjectKey : destinationKeyToETag.keySet()) {
-			s3Client.deleteObject(destinationBucket, destinationObjectKey);
+			s3Client.deleteObject(DeleteObjectRequest.builder()
+					.bucket(destinationBucket).key(destinationObjectKey).build());
 		}
-		
+
 		// Write the instance to the bucket
 		JSONObject obj = new JSONObject();
 		obj.put(PROPERTY_KEY_INSTANCE, Integer.parseInt(config.getProperty(PROPERTY_KEY_INSTANCE)));
 		String json = obj.toString();
-		s3Client.putObject(destinationBucket, DOCS_STACK_INSTANCE_JSON_FILE, json);
+		s3Client.putObject(PutObjectRequest.builder()
+				.bucket(destinationBucket).key(DOCS_STACK_INSTANCE_JSON_FILE).build(),
+				RequestBody.fromString(json));
 		LOG.info("Done with sync");
 	}
-	
-	List<S3ObjectSummary> getAllS3Objects(ListObjectsRequest listRequest) {
-		List<S3ObjectSummary> objects = new LinkedList<>();
-		ObjectListing listing;
+
+	List<S3Object> getAllS3Objects(ListObjectsV2Request listRequest) {
+		List<S3Object> objects = new LinkedList<>();
+		ListObjectsV2Response listing;
+		ListObjectsV2Request request = listRequest;
 		do {
-			listing = s3Client.listObjects(listRequest);
-			objects.addAll(listing.getObjectSummaries());
-			listRequest.setMarker(listing.getNextMarker());
+			listing = s3Client.listObjectsV2(request);
+			objects.addAll(listing.contents());
+			request = listRequest.toBuilder().continuationToken(listing.nextContinuationToken()).build();
 		} while (listing.isTruncated());
 		return objects;
 	}
-	
-	ListObjectsRequest createListObjectsRequest(String bucket, String prefix) {
-		return new ListObjectsRequest().withBucketName(bucket).withPrefix(prefix);
+
+	ListObjectsV2Request createListObjectsRequest(String bucket, String prefix) {
+		return ListObjectsV2Request.builder().bucket(bucket).prefix(prefix).build();
 	}
-	
+
+	/**
+	 * Does the given object already exist in S3? The v2 SDK has no direct equivalent of the v1
+	 * doesObjectExist(), so a headObject is issued and a missing object is signaled by a
+	 * NoSuchKeyException.
+	 */
+	boolean doesObjectExist(String bucket, String key) {
+		try {
+			s3Client.headObject(HeadObjectRequest.builder().bucket(bucket).key(key).build());
+			return true;
+		} catch (NoSuchKeyException e) {
+			return false;
+		}
+	}
+
 	@Override
 	public void deployDocs(){
 		String sourceBucket;
@@ -136,5 +148,5 @@ public class SynapseDocsBuilderImpl implements SynapseDocsBuilder {
 			sync(sourceBucket, destinationBucket);
 		}
 	}
-	
+
 }
