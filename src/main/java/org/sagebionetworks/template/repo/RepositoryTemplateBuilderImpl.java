@@ -9,6 +9,8 @@ import static org.sagebionetworks.template.Constants.CTXT_ENABLE_ENHANCED_RDS_MO
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_DOMAIN_NAME;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_PRIVATE_KEY_ID;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_DOCUSIGN_API_BASE_PATH;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_DOCUSIGN_OAUTH_BASE_PATH;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DATA_CDN_DOMAIN_NAME_FMT;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
@@ -36,6 +38,8 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_NUMB
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERSION;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DOCUSIGN_API_BASE_PATH;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DOCUSIGN_OAUTH_BASE_PATH;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_MEMORY;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_TYPE;
@@ -352,6 +356,10 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		context.put(CTXT_KEY_DATA_CDN_DOMAIN_NAME, String.format(DATA_CDN_DOMAIN_NAME_FMT, stack));
 		context.put(CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL, config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT));
 
+		// DocuSign base paths
+		context.put(CTXT_KEY_DOCUSIGN_API_BASE_PATH, config.getProperty(PROPERTY_KEY_DOCUSIGN_API_BASE_PATH));
+		context.put(CTXT_KEY_DOCUSIGN_OAUTH_BASE_PATH, config.getProperty(PROPERTY_KEY_DOCUSIGN_OAUTH_BASE_PATH));
+
 		// Subnets for ECS tasks and ALB
 		List<String> vpcSubnets = getPrivateSubnets(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR));
 		context.put("ecsSubnetsList", vpcSubnets);
@@ -427,6 +435,10 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		context.put(CTXT_KEY_DATA_CDN_DOMAIN_NAME, String.format(DATA_CDN_DOMAIN_NAME_FMT, stack));
 
 		context.put(CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL, config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT));
+
+		// DocuSign base paths
+		context.put(CTXT_KEY_DOCUSIGN_API_BASE_PATH, config.getProperty(PROPERTY_KEY_DOCUSIGN_API_BASE_PATH));
+		context.put(CTXT_KEY_DOCUSIGN_OAUTH_BASE_PATH, config.getProperty(PROPERTY_KEY_DOCUSIGN_OAUTH_BASE_PATH));
 
 		return context;
 	}

@@ -561,6 +561,16 @@
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.oauth2.sagebio.discoveryDocument",
 						"Value": "${DiscoveryDocumentUrl}"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.docusign.api.base.path",
+						"Value": "${docusignApiBasePath}"
+					},
+					{
+						"Namespace": "aws:elasticbeanstalk:application:environment",
+						"OptionName": "org.sagebionetworks.docusign.oauth.base.path",
+						"Value": "${docusignOauthBasePath}"
 					}
 
 					#end

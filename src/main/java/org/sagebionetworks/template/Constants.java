@@ -161,6 +161,10 @@ public class Constants {
 	public static final String SAGEBIO_COGNITO_APP_CLIENT_SECRET = "org.sagebionetworks.oauth2.sagebio.client.secret";
 	public static final String SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT = "org.sagebionetworks.oauth2.sagebio.discoveryDocument";
 
+	// DocuSign base path URLs passed through to the running application
+	public static final String PROPERTY_KEY_DOCUSIGN_API_BASE_PATH = "org.sagebionetworks.docusign.api.base.path";
+	public static final String PROPERTY_KEY_DOCUSIGN_OAUTH_BASE_PATH = "org.sagebionetworks.docusign.oauth.base.path";
+
 	// templates
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
 	public static final String TEMPLATES_VPC_PUBLIC_SUBNETS_JSON_VTP = "templates/vpc/public-subnets-resources.json.vtp";
@@ -277,6 +281,8 @@ public class Constants {
 	public static final String CTXT_ENABLE_ENHANCED_RDS_MONITORING = "EnableRdsEnhancedMonitoring";
 
 	public static final String CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL = "DiscoveryDocumentUrl";
+	public static final String CTXT_KEY_DOCUSIGN_API_BASE_PATH = "docusignApiBasePath";
+	public static final String CTXT_KEY_DOCUSIGN_OAUTH_BASE_PATH = "docusignOauthBasePath";
 	public static final String COGNITO_USER_POOL_CF_OUTPUT_NAME = "CognitoUserPoolId";
 	public static final String COGNITO_USER_POOL_CLIENT_CF_OUTPUT_NAME = "CognitoUserPoolClientId";
 
