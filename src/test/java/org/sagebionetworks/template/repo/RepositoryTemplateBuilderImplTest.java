@@ -22,6 +22,8 @@ import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_DESCRIPTORS
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_DOMAIN_NAME;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_PRIVATE_KEY_ID;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_DOCUSIGN_API_BASE_PATH;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_DOCUSIGN_OAUTH_BASE_PATH;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.DELETION_POLICY;
@@ -43,6 +45,8 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_NUMB
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_VERSION;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DOCUSIGN_API_BASE_PATH;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DOCUSIGN_OAUTH_BASE_PATH;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_MEMORY;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_EC2_INSTANCE_TYPE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ECS_CONTAINER_PORT;
@@ -352,6 +356,8 @@ public class RepositoryTemplateBuilderImplTest {
 				eq(2))).thenReturn(EXPECTED_SUBNETS);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID)).thenReturn("CdnPrivateKeyId");
 		when(config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT)).thenReturn("discoveryDocumentUrl");
+		when(config.getProperty(PROPERTY_KEY_DOCUSIGN_API_BASE_PATH)).thenReturn("docusignApiBasePath");
+		when(config.getProperty(PROPERTY_KEY_DOCUSIGN_OAUTH_BASE_PATH)).thenReturn("docusignOauthBasePath");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
 
 		// call under test
@@ -557,6 +563,8 @@ public class RepositoryTemplateBuilderImplTest {
 				eq(2))).thenReturn(EXPECTED_SUBNETS);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID)).thenReturn("CdnPrivateKeyId");
 		when(config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT)).thenReturn("discoveryDocumentUrl");
+		when(config.getProperty(PROPERTY_KEY_DOCUSIGN_API_BASE_PATH)).thenReturn("docusignApiBasePath");
+		when(config.getProperty(PROPERTY_KEY_DOCUSIGN_OAUTH_BASE_PATH)).thenReturn("docusignOauthBasePath");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
 
 		// call under test
@@ -681,6 +689,8 @@ public class RepositoryTemplateBuilderImplTest {
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID)).thenReturn("CdnPrivateKeyId");
 		when(config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT)).thenReturn("discoveryDocumentUrl");
+		when(config.getProperty(PROPERTY_KEY_DOCUSIGN_API_BASE_PATH)).thenReturn("docusignApiBasePath");
+		when(config.getProperty(PROPERTY_KEY_DOCUSIGN_OAUTH_BASE_PATH)).thenReturn("docusignOauthBasePath");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
 
 		// call under test
@@ -843,6 +853,8 @@ public class RepositoryTemplateBuilderImplTest {
 		configureStack(stack);
 		when(config.getProperty(PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID)).thenReturn("CdnPrivateKeyId");
 		when(config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT)).thenReturn("discoveryDocumentUrl");
+		when(config.getProperty(PROPERTY_KEY_DOCUSIGN_API_BASE_PATH)).thenReturn("docusignApiBasePath");
+		when(config.getProperty(PROPERTY_KEY_DOCUSIGN_OAUTH_BASE_PATH)).thenReturn("docusignOauthBasePath");
 		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
 
 		// call under test
@@ -1359,6 +1371,8 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty("org.sagebionetworks.cloudfront.private.key.id")).thenReturn("dataCdnPrivateKeyId");
 		when(config.getProperty("org.sagebionetworks.oauth2.sagebio.discoveryDocument"))
 				.thenReturn("discoveryDocumentUrl");
+		when(config.getProperty(PROPERTY_KEY_DOCUSIGN_API_BASE_PATH)).thenReturn("docusignApiBasePath");
+		when(config.getProperty(PROPERTY_KEY_DOCUSIGN_OAUTH_BASE_PATH)).thenReturn("docusignOauthBasePath");
 
 		EnvironmentDescriptor environment = new EnvironmentDescriptor().withType(EnvironmentType.REPOSITORY_SERVICES);
 
@@ -1381,6 +1395,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("data.dev.sagebase.org", context.get(CTXT_KEY_DATA_CDN_DOMAIN_NAME));
 		assertEquals("dataCdnPrivateKeyId", context.get(CTXT_KEY_DATA_CDN_PRIVATE_KEY_ID));
 		assertEquals("discoveryDocumentUrl", context.get(CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL));
+		assertEquals("docusignApiBasePath", context.get(CTXT_KEY_DOCUSIGN_API_BASE_PATH));
+		assertEquals("docusignOauthBasePath", context.get(CTXT_KEY_DOCUSIGN_OAUTH_BASE_PATH));
 	}
 
 	@Test
@@ -1748,6 +1764,8 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty("org.sagebionetworks.cloudfront.private.key.id")).thenReturn("dataCdnPrivateKeyId");
 		when(config.getProperty("org.sagebionetworks.oauth2.sagebio.discoveryDocument"))
 				.thenReturn("discoveryDocumentUrl");
+		when(config.getProperty(PROPERTY_KEY_DOCUSIGN_API_BASE_PATH)).thenReturn("docusignApiBasePath");
+		when(config.getProperty(PROPERTY_KEY_DOCUSIGN_OAUTH_BASE_PATH)).thenReturn("docusignOauthBasePath");
 		when(mockLoadBalancerAlarmsConfig.getOrDefault(any(), any())).thenReturn(java.util.Collections.emptyList());
 
 		EcsEnvironmentDescriptor environment = new EcsEnvironmentDescriptor()
@@ -1772,6 +1790,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("data.dev.sagebase.org", context.get(CTXT_KEY_DATA_CDN_DOMAIN_NAME));
 		assertEquals("dataCdnPrivateKeyId", context.get(CTXT_KEY_DATA_CDN_PRIVATE_KEY_ID));
 		assertEquals("discoveryDocumentUrl", context.get(CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL));
+		assertEquals("docusignApiBasePath", context.get(CTXT_KEY_DOCUSIGN_API_BASE_PATH));
+		assertEquals("docusignOauthBasePath", context.get(CTXT_KEY_DOCUSIGN_OAUTH_BASE_PATH));
 		assertEquals(EXPECTED_SUBNETS, context.get("ecsSubnetsList"));
 		assertNotNull(context.get("targetGroup"));
 		assertNotNull(context.get(CLOUDWATCH_LOGS_DESCRIPTORS));
