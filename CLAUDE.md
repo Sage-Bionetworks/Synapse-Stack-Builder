@@ -24,7 +24,7 @@ Synapse Stack Builder is a Java application that generates and deploys AWS Cloud
 ### Key Patterns
 
 - **Guice DI**: `TemplateGuiceModule` is the central wiring point — all builders, AWS clients, config objects, and Velocity engine are bound here.
-- **Velocity templates**: `.vpt` files in `src/main/resources/templates/` are merged with context to produce CloudFormation JSON. The Velocity engine loads templates from both classpath and filesystem.
+- **Velocity templates**: Template files in `src/main/resources/templates/` are merged with context to produce CloudFormation JSON. Both `.vpt` (most templates) and `.vtp` (vpc, cdn, markdownit, redirectors) extensions are in use — there is no functional difference; each is loaded by its literal path, so match whatever extension the sibling files in a package already use. The Velocity engine loads templates from both classpath and filesystem.
 - **VelocityContextProvider**: Pluggable interface (registered via Guice Multibinder) that contributes variables to template contexts. This is the main extensibility point — new resource types add a provider implementation and bind it in the module.
 - **Descriptor/Builder pattern**: Resources are defined as descriptor objects (e.g., `EnvironmentDescriptor`, `S3BucketDescriptor`) with builder-style methods, then transformed into CloudFormation resources via templates.
 - **Configuration-driven**: JSON config files (`src/main/resources/templates/`) define S3 buckets, SNS/SQS queues, Kinesis streams, AppConfig, Athena queries, etc. These are deserialized into typed config objects and validated by corresponding `*Validator` classes.
