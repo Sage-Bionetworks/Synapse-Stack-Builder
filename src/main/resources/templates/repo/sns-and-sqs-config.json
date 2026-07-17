@@ -23,7 +23,6 @@
 		"JSON_SCHEMA_DEPENDANT",
 		"THREAD_VIEW",
 		"MATERIALIZED_VIEW",
-		"SEARCH_INDEX",
 		"RECORDSET",
 		"TABLE_STATUS_EVENT",
 		"DATA_ACCESS_SUBMISSION_EVENT",
@@ -547,7 +546,6 @@
 			"queueName": "SEARCH_INDEX_LIFECYCLE",
 			"subscribedTopicNames": [
 				"ENTITY",
-				"SEARCH_INDEX",
 				"SOURCE_DEPENDENCY_EVENT"
 			],
 			"messageVisibilityTimeoutSec": 300,
