@@ -23,7 +23,7 @@
 		"JSON_SCHEMA_DEPENDANT",
 		"THREAD_VIEW",
 		"MATERIALIZED_VIEW",
-		"SOURCE_DEPENDENCY_EVENT",
+		"SEARCH_INDEX",
 		"RECORDSET",
 		"TABLE_STATUS_EVENT",
 		"DATA_ACCESS_SUBMISSION_EVENT",
@@ -33,7 +33,8 @@
 		"PROJECT_STORAGE_EVENT",
 		"REPLICATED_EVENT",
 		"GRID_REPLICA_CHANGES",
-		"GRID_SESSION"
+		"GRID_SESSION",
+		"SOURCE_DEPENDENCY_EVENT"
 	],
 	"snsGlobalTopicNames": [
 		"SES_SYNAPSE_ORG_BOUNCE",
@@ -545,18 +546,12 @@
 		{
 			"queueName": "SEARCH_INDEX_LIFECYCLE",
 			"subscribedTopicNames": [
-				"ENTITY"
+				"ENTITY",
+				"SEARCH_INDEX",
+				"SOURCE_DEPENDENCY_EVENT"
 			],
 			"messageVisibilityTimeoutSec": 300,
 			"deadLetterQueueMaxFailureCount": 5
-		},
-		{
-			"queueName": "SEARCH_INDEX_REBUILD",
-			"subscribedTopicNames": [
-				"SOURCE_DEPENDENCY_EVENT"
-			],
-			"messageVisibilityTimeoutSec": 60,
-			"messageRetentionPeriodSec": 1209600
 		},
 		{
 			"queueName": "SEARCH_QUERY",
