@@ -32,7 +32,8 @@
 		"PROJECT_STORAGE_EVENT",
 		"REPLICATED_EVENT",
 		"GRID_REPLICA_CHANGES",
-		"GRID_SESSION"
+		"GRID_SESSION",
+		"SOURCE_DEPENDENCY_EVENT"
 	],
 	"snsGlobalTopicNames": [
 		"SES_SYNAPSE_ORG_BOUNCE",
@@ -360,7 +361,8 @@
 		{
 			"queueName": "MATERIALIZED_VIEW_UPDATE",
 			"subscribedTopicNames": [
-				"MATERIALIZED_VIEW"
+				"MATERIALIZED_VIEW",
+				"SOURCE_DEPENDENCY_EVENT"
 			],
 			"messageVisibilityTimeoutSec": 120,
 			"messageRetentionPeriodSec": 1209600
@@ -374,7 +376,7 @@
 			"messageRetentionPeriodSec": 1209600
 		},
 		{
-			"queueName": "MATERIALIZED_VIEW_SOURCE_UPDATE",
+			"queueName": "DEFINING_SQL_SOURCE_UPDATE",
 			"subscribedTopicNames": [
 				"TABLE_STATUS_EVENT"
 			],
@@ -543,7 +545,8 @@
 		{
 			"queueName": "SEARCH_INDEX_LIFECYCLE",
 			"subscribedTopicNames": [
-				"ENTITY"
+				"ENTITY",
+				"SOURCE_DEPENDENCY_EVENT"
 			],
 			"messageVisibilityTimeoutSec": 300,
 			"deadLetterQueueMaxFailureCount": 5
