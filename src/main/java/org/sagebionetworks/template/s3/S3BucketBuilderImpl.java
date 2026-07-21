@@ -40,17 +40,8 @@ import com.amazonaws.services.s3.model.BucketLifecycleConfiguration;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Rule;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Transition;
 import com.amazonaws.services.s3.model.BucketNotificationConfiguration;
-import com.amazonaws.services.s3.model.GetPublicAccessBlockRequest;
-import com.amazonaws.services.s3.model.GetPublicAccessBlockResult;
 import com.amazonaws.services.s3.model.NotificationConfiguration;
-import com.amazonaws.services.s3.model.PublicAccessBlockConfiguration;
 import com.amazonaws.services.s3.model.S3Event;
-import com.amazonaws.services.s3.model.SSEAlgorithm;
-import com.amazonaws.services.s3.model.ServerSideEncryptionByDefault;
-import com.amazonaws.services.s3.model.ServerSideEncryptionConfiguration;
-import com.amazonaws.services.s3.model.ServerSideEncryptionRule;
-import com.amazonaws.services.s3.model.SetBucketEncryptionRequest;
-import com.amazonaws.services.s3.model.SetPublicAccessBlockRequest;
 import com.amazonaws.services.s3.model.Tag;
 import com.amazonaws.services.s3.model.TopicConfiguration;
 import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringAccessTier;
@@ -67,6 +58,22 @@ import com.amazonaws.services.s3.model.inventory.InventoryS3BucketDestination;
 import com.amazonaws.services.s3.model.inventory.InventorySchedule;
 import com.amazonaws.services.s3.model.lifecycle.LifecycleFilter;
 import com.google.inject.Inject;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.BucketAlreadyOwnedByYouException;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketEncryptionRequest;
+import software.amazon.awssdk.services.s3.model.GetPublicAccessBlockRequest;
+import software.amazon.awssdk.services.s3.model.GetPublicAccessBlockResponse;
+import software.amazon.awssdk.services.s3.model.PublicAccessBlockConfiguration;
+import software.amazon.awssdk.services.s3.model.PutBucketEncryptionRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutPublicAccessBlockRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
+import software.amazon.awssdk.services.s3.model.ServerSideEncryptionByDefault;
+import software.amazon.awssdk.services.s3.model.ServerSideEncryptionConfiguration;
+import software.amazon.awssdk.services.s3.model.ServerSideEncryptionRule;
 import software.amazon.awssdk.services.cloudformation.model.Capability;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
 import software.amazon.awssdk.services.lambda.LambdaClient;
@@ -115,6 +122,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	}
 	
 	private AmazonS3 s3Client;
+	private S3Client s3ClientV2;
 	private StsClient stsClient;
 	private LambdaClient lambdaClient;
 	private RepoConfiguration config;
@@ -123,10 +131,11 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	private CloudFormationClientWrapper cloudFormationClientWrapper;
 	private StackTagsProvider tagsProvider;
 	private ArtifactDownload downloader;
-	
+
 	@Inject
-	public S3BucketBuilderImpl(AmazonS3 s3Client, StsClient stsClient, LambdaClient lambdaClient, RepoConfiguration config, S3Config s3Config, VelocityEngine velocity, CloudFormationClientWrapper cloudFormationClientWrapper, StackTagsProvider tagsProvider, ArtifactDownload downloader) {
+	public S3BucketBuilderImpl(AmazonS3 s3Client, S3Client s3ClientV2, StsClient stsClient, LambdaClient lambdaClient, RepoConfiguration config, S3Config s3Config, VelocityEngine velocity, CloudFormationClientWrapper cloudFormationClientWrapper, StackTagsProvider tagsProvider, ArtifactDownload downloader) {
 		this.s3Client = s3Client;
+		this.s3ClientV2 = s3ClientV2;
 		this.stsClient = stsClient;
 		this.lambdaClient = lambdaClient;
 		this.config = config;
@@ -254,7 +263,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		File artifact = downloader.downloadFile(lambdaSourceArtifactUrl);
 		
 		try {
-			s3Client.putObject(lambdaArtifactBucket, lambdaArtifactKey, artifact);
+			s3ClientV2.putObject(PutObjectRequest.builder().bucket(lambdaArtifactBucket).key(lambdaArtifactKey).build(), RequestBody.fromFile(artifact));
 		} finally {
 			artifact.delete();
 		}
@@ -299,71 +308,73 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		
 	private void createBucket(String bucketName) {
 		LOG.info("Creating bucket: {}.", bucketName);
-		
+
 		try {
-			s3Client.createBucket(bucketName);
-		} catch (AmazonS3Exception e) {
-			if (!"BucketAlreadyOwnedByYou".equals(e.getErrorCode())) {
-				throw e;
-			}
+			s3ClientV2.createBucket(CreateBucketRequest.builder().bucket(bucketName).build());
+		} catch (BucketAlreadyOwnedByYouException e) {
+			// The bucket already exists and is owned by us, nothing to do.
 		}
 	}
-	
+
 	private void configurePublicAccessBlock(String bucketName) {
-		
+
 		PublicAccessBlockConfiguration config = null;
-		
+
 		try {
-			GetPublicAccessBlockResult result = s3Client.getPublicAccessBlock(new GetPublicAccessBlockRequest().withBucketName(bucketName));
-			
+			GetPublicAccessBlockResponse result = s3ClientV2.getPublicAccessBlock(GetPublicAccessBlockRequest.builder().bucket(bucketName).build());
+
 			if (result != null) {
-				config = result.getPublicAccessBlockConfiguration();
+				config = result.publicAccessBlockConfiguration();
 			}
-			
-		} catch (AmazonServiceException e) {
-			if (e.getStatusCode() == 404) {
+
+		} catch (S3Exception e) {
+			if (e.statusCode() == 404) {
 				LOG.info("No public access block configuration found for bucket {}.", bucketName);
 			} else {
 				throw e;
 			}
 		}
-		
+
 		if (config != null) {
 			LOG.info("Public access block configuration already exists for bucket {}, will not update.", bucketName);
 			return;
 		}
-		
-		config = new PublicAccessBlockConfiguration()
-			.withBlockPublicAcls(true)
-			.withIgnorePublicAcls(true)
-			.withBlockPublicPolicy(true)
-			.withRestrictPublicBuckets(true);
-		
-		s3Client.setPublicAccessBlock(new SetPublicAccessBlockRequest()
-			.withBucketName(bucketName)
-			.withPublicAccessBlockConfiguration(config)
+
+		config = PublicAccessBlockConfiguration.builder()
+			.blockPublicAcls(true)
+			.ignorePublicAcls(true)
+			.blockPublicPolicy(true)
+			.restrictPublicBuckets(true)
+			.build();
+
+		s3ClientV2.putPublicAccessBlock(PutPublicAccessBlockRequest.builder()
+			.bucket(bucketName)
+			.publicAccessBlockConfiguration(config)
+			.build()
 		);
-		
+
 		LOG.info("Public access block configured for bucket {}: {}", bucketName, config);
 	}
-	
+
 	private void configureEncryption(String bucketName) {
 		try {
 			// If server side encryption is not currently set this call with throw a 404
-			s3Client.getBucketEncryption(bucketName);
-		} catch (AmazonServiceException e) {
-			if(e.getStatusCode() == 404) {
+			s3ClientV2.getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(bucketName).build());
+		} catch (S3Exception e) {
+			if(e.statusCode() == 404) {
 				// The bucket is not currently encrypted so configure it for encryption.
 				LOG.info("Setting server side encryption for bucket: {}.", bucketName);
-				
-				s3Client.setBucketEncryption(new SetBucketEncryptionRequest().withBucketName(bucketName)
-						.withServerSideEncryptionConfiguration(new ServerSideEncryptionConfiguration()
-								.withRules(new ServerSideEncryptionRule().withApplyServerSideEncryptionByDefault(
-										new ServerSideEncryptionByDefault().withSSEAlgorithm(SSEAlgorithm.AES256)))));
+
+				s3ClientV2.putBucketEncryption(PutBucketEncryptionRequest.builder().bucket(bucketName)
+						.serverSideEncryptionConfiguration(ServerSideEncryptionConfiguration.builder()
+								.rules(ServerSideEncryptionRule.builder().applyServerSideEncryptionByDefault(
+										ServerSideEncryptionByDefault.builder().sseAlgorithm(ServerSideEncryption.AES256).build()).build())
+								.build())
+						.build());
 			} else {
 				throw e;
 			}
-		} 
+		}
 	}
 	
 	private void configureInventory(String stack, String bucketName, String accountId, S3InventoryConfig inventoryConfig, boolean enabled) {

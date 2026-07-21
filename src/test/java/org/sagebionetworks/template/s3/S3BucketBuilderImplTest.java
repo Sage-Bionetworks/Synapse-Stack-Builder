@@ -56,15 +56,8 @@ import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Transition;
 import com.amazonaws.services.s3.model.BucketNotificationConfiguration;
 import com.amazonaws.services.s3.model.GetBucketIntelligentTieringConfigurationResult;
 import com.amazonaws.services.s3.model.GetBucketInventoryConfigurationResult;
-import com.amazonaws.services.s3.model.GetPublicAccessBlockRequest;
-import com.amazonaws.services.s3.model.GetPublicAccessBlockResult;
-import com.amazonaws.services.s3.model.PublicAccessBlockConfiguration;
 import com.amazonaws.services.s3.model.QueueConfiguration;
 import com.amazonaws.services.s3.model.S3Event;
-import com.amazonaws.services.s3.model.SSEAlgorithm;
-import com.amazonaws.services.s3.model.ServerSideEncryptionRule;
-import com.amazonaws.services.s3.model.SetBucketEncryptionRequest;
-import com.amazonaws.services.s3.model.SetPublicAccessBlockRequest;
 import com.amazonaws.services.s3.model.StorageClass;
 import com.amazonaws.services.s3.model.Tag;
 import com.amazonaws.services.s3.model.TopicConfiguration;
@@ -76,6 +69,19 @@ import com.amazonaws.services.s3.model.inventory.InventoryConfiguration;
 import com.amazonaws.services.s3.model.inventory.InventoryFrequency;
 import com.amazonaws.services.s3.model.inventory.InventoryS3BucketDestination;
 import com.amazonaws.services.s3.model.lifecycle.LifecycleFilter;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketEncryptionRequest;
+import software.amazon.awssdk.services.s3.model.GetPublicAccessBlockRequest;
+import software.amazon.awssdk.services.s3.model.GetPublicAccessBlockResponse;
+import software.amazon.awssdk.services.s3.model.PublicAccessBlockConfiguration;
+import software.amazon.awssdk.services.s3.model.PutBucketEncryptionRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutPublicAccessBlockRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
+import software.amazon.awssdk.services.s3.model.ServerSideEncryptionRule;
 import software.amazon.awssdk.services.cloudformation.model.Capability;
 import software.amazon.awssdk.services.cloudformation.model.Output;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
@@ -97,6 +103,9 @@ public class S3BucketBuilderImplTest {
 
 	@Mock
 	private AmazonS3 mockS3Client;
+
+	@Mock
+	private S3Client mockS3ClientV2;
 
 	@Mock
 	private StsClient mockStsClient;
@@ -126,7 +135,7 @@ public class S3BucketBuilderImplTest {
 	private File mockFile;
 
 	@Captor
-	private ArgumentCaptor<SetBucketEncryptionRequest> encryptionRequestCaptor;
+	private ArgumentCaptor<PutBucketEncryptionRequest> encryptionRequestCaptor;
 	
 	@Captor
 	private ArgumentCaptor<InventoryConfiguration> inventoryConfigurationCaptor;
@@ -177,17 +186,19 @@ public class S3BucketBuilderImplTest {
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockS3Client).createBucket(expectedBucketName);
-		verify(mockS3Client).getPublicAccessBlock(new GetPublicAccessBlockRequest().withBucketName(expectedBucketName));
-		verify(mockS3Client).setPublicAccessBlock(new SetPublicAccessBlockRequest().withBucketName(expectedBucketName)
-			.withPublicAccessBlockConfiguration(new PublicAccessBlockConfiguration()
-				.withBlockPublicAcls(true)
-				.withBlockPublicPolicy(true)
-				.withIgnorePublicAcls(true)
-				.withRestrictPublicBuckets(true)
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedBucketName).build());
+		verify(mockS3ClientV2).getPublicAccessBlock(GetPublicAccessBlockRequest.builder().bucket(expectedBucketName).build());
+		verify(mockS3ClientV2).putPublicAccessBlock(PutPublicAccessBlockRequest.builder().bucket(expectedBucketName)
+			.publicAccessBlockConfiguration(PublicAccessBlockConfiguration.builder()
+				.blockPublicAcls(true)
+				.blockPublicPolicy(true)
+				.ignorePublicAcls(true)
+				.restrictPublicBuckets(true)
+				.build()
 			)
+			.build()
 		);
-		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedBucketName).build());
 		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
 		verify(mockS3Client).setBucketLifecycleConfiguration(eq(expectedBucketName), bucketLifeCycleConfigurationCaptor.capture());
 		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
@@ -219,7 +230,7 @@ public class S3BucketBuilderImplTest {
 		assertNotNull(rule.getFilter());
 		assertNull(rule.getFilter().getPredicate());
 
-		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3ClientV2, never()).putBucketEncryption(any(PutBucketEncryptionRequest.class));
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		verify(mockS3Client, never()).deleteBucketInventoryConfiguration(any(), any());
 		verify(mockS3Client, never()).setBucketPolicy(any(), any());
@@ -256,11 +267,11 @@ public class S3BucketBuilderImplTest {
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockS3Client).createBucket(expectedBucketName);
-		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedBucketName).build());
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedBucketName).build());
 		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
 		
-		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3ClientV2, never()).putBucketEncryption(any(PutBucketEncryptionRequest.class));
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		verify(mockS3Client, never()).deleteBucketInventoryConfiguration(any(), any());
 		verify(mockS3Client, never()).setBucketPolicy(any(), any());
@@ -313,8 +324,8 @@ public class S3BucketBuilderImplTest {
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockS3Client).createBucket(expectedBucketName);
-		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedBucketName).build());
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedBucketName).build());
 		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
 		
 		verify(mockS3Client).setBucketLifecycleConfiguration(eq(expectedBucketName), bucketLifeCycleConfigurationCaptor.capture());
@@ -332,7 +343,7 @@ public class S3BucketBuilderImplTest {
 		assertNotNull(rule.getFilter());
 		assertNull(rule.getFilter().getPredicate());
 		
-		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3ClientV2, never()).putBucketEncryption(any(PutBucketEncryptionRequest.class));
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		verify(mockS3Client, never()).deleteBucketInventoryConfiguration(any(), any());
 		verify(mockS3Client, never()).setBucketPolicy(any(), any());
@@ -372,31 +383,30 @@ public class S3BucketBuilderImplTest {
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 
-		AmazonServiceException notFound = new AmazonServiceException("NotFound");
-		notFound.setStatusCode(404);
+		S3Exception notFound = (S3Exception) S3Exception.builder().statusCode(404).message("NotFound").build();
 
-		doThrow(notFound).when(mockS3Client).getBucketEncryption(anyString());
+		doThrow(notFound).when(mockS3ClientV2).getBucketEncryption(any(GetBucketEncryptionRequest.class));
 
 		String expectedBucketName = stack + ".bucket";
 
 		// call under test
 		builder.buildAllBuckets();
 
-		verify(mockS3Client).createBucket(expectedBucketName);
-		verify(mockS3Client).getBucketEncryption(expectedBucketName);
-		verify(mockS3Client).setBucketEncryption(encryptionRequestCaptor.capture());
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedBucketName).build());
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedBucketName).build());
+		verify(mockS3ClientV2).putBucketEncryption(encryptionRequestCaptor.capture());
 		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
 
-		SetBucketEncryptionRequest request = encryptionRequestCaptor.getValue();
+		PutBucketEncryptionRequest request = encryptionRequestCaptor.getValue();
 
 		assertNotNull(request);
-		assertEquals(expectedBucketName, request.getBucketName());
-		assertNotNull(request.getServerSideEncryptionConfiguration());
-		assertNotNull(request.getServerSideEncryptionConfiguration().getRules());
-		assertEquals(1, request.getServerSideEncryptionConfiguration().getRules().size());
-		ServerSideEncryptionRule rule = request.getServerSideEncryptionConfiguration().getRules().get(0);
-		assertNotNull(rule.getApplyServerSideEncryptionByDefault());
-		assertEquals(SSEAlgorithm.AES256.name(), rule.getApplyServerSideEncryptionByDefault().getSSEAlgorithm());
+		assertEquals(expectedBucketName, request.bucket());
+		assertNotNull(request.serverSideEncryptionConfiguration());
+		assertNotNull(request.serverSideEncryptionConfiguration().rules());
+		assertEquals(1, request.serverSideEncryptionConfiguration().rules().size());
+		ServerSideEncryptionRule rule = request.serverSideEncryptionConfiguration().rules().get(0);
+		assertNotNull(rule.applyServerSideEncryptionByDefault());
+		assertEquals(ServerSideEncryption.AES256.toString(), rule.applyServerSideEncryptionByDefault().sseAlgorithmAsString());
 		
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		verify(mockS3Client, never()).deleteBucketInventoryConfiguration(any(), any());
@@ -478,15 +488,15 @@ public class S3BucketBuilderImplTest {
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockS3Client).createBucket(expectedInventoryBucketName);
-		verify(mockS3Client).createBucket(expectedBucketName);
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedInventoryBucketName).build());
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedBucketName).build());
 		
-		verify(mockS3Client).getBucketEncryption(expectedInventoryBucketName);
-		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedInventoryBucketName).build());
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedBucketName).build());
 		
 		verify(mockS3Client).getBucketInventoryConfiguration(expectedBucketName, S3BucketBuilderImpl.INVENTORY_ID);
 		
-		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3ClientV2, never()).putBucketEncryption(any(PutBucketEncryptionRequest.class));
 		
 		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
 
@@ -560,15 +570,15 @@ public class S3BucketBuilderImplTest {
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockS3Client).createBucket(expectedInventoryBucketName);
-		verify(mockS3Client).createBucket(expectedBucketName);
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedInventoryBucketName).build());
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedBucketName).build());
 		
-		verify(mockS3Client).getBucketEncryption(expectedInventoryBucketName);
-		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedInventoryBucketName).build());
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedBucketName).build());
 		
 		verify(mockS3Client).getBucketInventoryConfiguration(expectedBucketName, S3BucketBuilderImpl.INVENTORY_ID);
 		
-		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3ClientV2, never()).putBucketEncryption(any(PutBucketEncryptionRequest.class));
 
 		verify(mockS3Client).setBucketInventoryConfiguration(eq(expectedBucketName), inventoryConfigurationCaptor.capture());
 		
@@ -639,15 +649,15 @@ public class S3BucketBuilderImplTest {
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockS3Client).createBucket(expectedInventoryBucketName);
-		verify(mockS3Client).createBucket(expectedBucketName);
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedInventoryBucketName).build());
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedBucketName).build());
 		
-		verify(mockS3Client).getBucketEncryption(expectedInventoryBucketName);
-		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedInventoryBucketName).build());
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedBucketName).build());
 		
 		verify(mockS3Client).getBucketInventoryConfiguration(expectedBucketName, S3BucketBuilderImpl.INVENTORY_ID);
 		
-		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3ClientV2, never()).putBucketEncryption(any(PutBucketEncryptionRequest.class));
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 
 		verify(mockTemplate).merge(velocityContextCaptor.capture(), any());
@@ -705,15 +715,15 @@ public class S3BucketBuilderImplTest {
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockS3Client).createBucket(expectedInventoryBucketName);
-		verify(mockS3Client).createBucket(expectedBucketName);
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedInventoryBucketName).build());
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedBucketName).build());
 		
-		verify(mockS3Client).getBucketEncryption(expectedInventoryBucketName);
-		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedInventoryBucketName).build());
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedBucketName).build());
 		
 		verify(mockS3Client).getBucketInventoryConfiguration(expectedBucketName, S3BucketBuilderImpl.INVENTORY_ID);
 		
-		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3ClientV2, never()).putBucketEncryption(any(PutBucketEncryptionRequest.class));
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		verify(mockS3Client).deleteBucketInventoryConfiguration(expectedBucketName, S3BucketBuilderImpl.INVENTORY_ID);
 
@@ -756,11 +766,11 @@ public class S3BucketBuilderImplTest {
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockS3Client).createBucket(expectedBucketName);
-		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedBucketName).build());
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedBucketName).build());
 		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
 		
-		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3ClientV2, never()).putBucketEncryption(any(PutBucketEncryptionRequest.class));
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		
 		verify(mockS3Client).setBucketLifecycleConfiguration(eq(expectedBucketName), bucketLifeCycleConfigurationCaptor.capture());
@@ -829,11 +839,11 @@ public class S3BucketBuilderImplTest {
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockS3Client).createBucket(expectedBucketName);
-		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedBucketName).build());
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedBucketName).build());
 		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
 		
-		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3ClientV2, never()).putBucketEncryption(any(PutBucketEncryptionRequest.class));
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		
 		verify(mockS3Client, never()).setBucketLifecycleConfiguration(any(), any());
@@ -888,11 +898,11 @@ public class S3BucketBuilderImplTest {
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockS3Client).createBucket(expectedBucketName);
-		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedBucketName).build());
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedBucketName).build());
 		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
 		
-		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3ClientV2, never()).putBucketEncryption(any(PutBucketEncryptionRequest.class));
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		
 		verify(mockS3Client).setBucketLifecycleConfiguration(eq(expectedBucketName), bucketLifeCycleConfigurationCaptor.capture());
@@ -960,11 +970,11 @@ public class S3BucketBuilderImplTest {
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockS3Client).createBucket(expectedBucketName);
-		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedBucketName).build());
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedBucketName).build());
 		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
 		
-		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3ClientV2, never()).putBucketEncryption(any(PutBucketEncryptionRequest.class));
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		
 		verify(mockS3Client).setBucketLifecycleConfiguration(eq(expectedBucketName), bucketLifeCycleConfigurationCaptor.capture());
@@ -1027,11 +1037,11 @@ public class S3BucketBuilderImplTest {
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockS3Client).createBucket(expectedBucketName);
-		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedBucketName).build());
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedBucketName).build());
 		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
 		
-		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3ClientV2, never()).putBucketEncryption(any(PutBucketEncryptionRequest.class));
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		
 		// Should not update lifecycle configuration since no changes are needed
@@ -1083,11 +1093,11 @@ public class S3BucketBuilderImplTest {
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockS3Client).createBucket(expectedBucketName);
-		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedBucketName).build());
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedBucketName).build());
 		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
 		
-		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3ClientV2, never()).putBucketEncryption(any(PutBucketEncryptionRequest.class));
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		
 		verify(mockS3Client).setBucketLifecycleConfiguration(eq(expectedBucketName), bucketLifeCycleConfigurationCaptor.capture());
@@ -1161,11 +1171,11 @@ public class S3BucketBuilderImplTest {
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockS3Client).createBucket(expectedBucketName);
-		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedBucketName).build());
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedBucketName).build());
 		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
 		
-		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3ClientV2, never()).putBucketEncryption(any(PutBucketEncryptionRequest.class));
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		
 		verify(mockS3Client, never()).setBucketLifecycleConfiguration(any(), any());
@@ -1223,11 +1233,11 @@ public class S3BucketBuilderImplTest {
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockS3Client).createBucket(expectedBucketName);
-		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedBucketName).build());
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedBucketName).build());
 		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
 		
-		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3ClientV2, never()).putBucketEncryption(any(PutBucketEncryptionRequest.class));
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		
 		verify(mockS3Client).setBucketLifecycleConfiguration(eq(expectedBucketName), bucketLifeCycleConfigurationCaptor.capture());
@@ -1307,11 +1317,11 @@ public class S3BucketBuilderImplTest {
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockS3Client).createBucket(expectedBucketName);
-		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedBucketName).build());
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedBucketName).build());
 		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
 		
-		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3ClientV2, never()).putBucketEncryption(any(PutBucketEncryptionRequest.class));
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		
 		verify(mockS3Client).setBucketLifecycleConfiguration(eq(expectedBucketName), bucketLifeCycleConfigurationCaptor.capture());
@@ -1400,11 +1410,11 @@ public class S3BucketBuilderImplTest {
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockS3Client).createBucket(expectedBucketName);
-		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedBucketName).build());
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedBucketName).build());
 		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
 		
-		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3ClientV2, never()).putBucketEncryption(any(PutBucketEncryptionRequest.class));
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		
 		verify(mockS3Client).setBucketLifecycleConfiguration(eq(expectedBucketName), bucketLifeCycleConfigurationCaptor.capture());
@@ -1479,11 +1489,11 @@ public class S3BucketBuilderImplTest {
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockS3Client).createBucket(expectedBucketName);
-		verify(mockS3Client).getBucketEncryption(expectedBucketName);
+		verify(mockS3ClientV2).createBucket(CreateBucketRequest.builder().bucket(expectedBucketName).build());
+		verify(mockS3ClientV2).getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(expectedBucketName).build());
 		verify(mockS3Client).getBucketLifecycleConfiguration(expectedBucketName);
 
-		verify(mockS3Client, never()).setBucketEncryption(any());
+		verify(mockS3ClientV2, never()).putBucketEncryption(any(PutBucketEncryptionRequest.class));
 		verify(mockS3Client, never()).setBucketInventoryConfiguration(any(), any());
 		verify(mockS3Client, never()).deleteBucketInventoryConfiguration(any(), any());
 		verify(mockS3Client, never()).setBucketPolicy(any(), any());
@@ -2324,20 +2334,25 @@ public class S3BucketBuilderImplTest {
 	}
 	
 	@Test
-	public void testBuildAllBucketsWithVirusScannerConfiguration() throws InterruptedException {
+	public void testBuildAllBucketsWithVirusScannerConfiguration() throws Exception {
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
-		
+
 		bucket.setName("bucket");
 		bucket.setVirusScanEnabled(true);
-		
+
 		when(mockConfig.getProperty(Constants.PROPERTY_KEY_LAMBDA_VIRUS_SCANNER_ARTIFACT_URL)).thenReturn("https://some-url/lambda-name.zip");
 		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
-		
+
 		S3VirusScannerConfig virusScannerConfig = new S3VirusScannerConfig();
-		
+
 		virusScannerConfig.setLambdaArtifactBucket("${stack}-lambda-bucket");
 		virusScannerConfig.setNotificationEmail("notification@sagebase.org");
-		
+
+		// The downloaded artifact is uploaded via RequestBody.fromFile, which reads the underlying path
+		File artifact = File.createTempFile("virus-scanner-artifact", ".zip");
+		artifact.deleteOnExit();
+		when(mockFile.toPath()).thenReturn(artifact.toPath());
+
 		when(mockS3Config.getVirusScannerConfig()).thenReturn(virusScannerConfig);
 		when(mockDownloader.downloadFile(any())).thenReturn(mockFile);
 		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
@@ -2364,7 +2379,10 @@ public class S3BucketBuilderImplTest {
 		builder.buildAllBuckets();
 		
 		verify(mockDownloader).downloadFile("https://some-url/lambda-name.zip");
-		verify(mockS3Client).putObject(expectedBucket, expectedKey, mockFile);
+		ArgumentCaptor<PutObjectRequest> putRequestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
+		verify(mockS3ClientV2).putObject(putRequestCaptor.capture(), any(RequestBody.class));
+		assertEquals(expectedBucket, putRequestCaptor.getValue().bucket());
+		assertEquals(expectedKey, putRequestCaptor.getValue().key());
 		verify(mockFile).delete();
 		verify(mockTemplate, times(2)).merge(velocityContextCaptor.capture(), any());
 		
@@ -2432,7 +2450,7 @@ public class S3BucketBuilderImplTest {
 		);	}
 		
 	@Test
-	public void testBuildAllBucketsWithVirusScannerConfigurationAndBucketNotificationRemoval() throws InterruptedException {
+	public void testBuildAllBucketsWithVirusScannerConfigurationAndBucketNotificationRemoval() throws Exception {
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 		
 		bucket.setName("bucket");
@@ -2447,7 +2465,9 @@ public class S3BucketBuilderImplTest {
 		virusScannerConfig.setNotificationEmail("notification@sagebase.org");
 		
 		when(mockS3Config.getVirusScannerConfig()).thenReturn(virusScannerConfig);
-		when(mockDownloader.downloadFile(any())).thenReturn(new File("tmpFile"));
+		File artifact = File.createTempFile("virus-scanner-artifact", ".zip");
+		artifact.deleteOnExit();
+		when(mockDownloader.downloadFile(any())).thenReturn(artifact);
 		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
 		
 		doAnswer(invocation -> {
@@ -2603,22 +2623,23 @@ public class S3BucketBuilderImplTest {
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
 		
-		AmazonS3Exception exception = new AmazonS3Exception("Nope");
-		exception.setStatusCode(404);
-		
-		when(mockS3Client.getPublicAccessBlock(any())).thenThrow(exception);
+		S3Exception exception = (S3Exception) S3Exception.builder().statusCode(404).message("Nope").build();
+
+		when(mockS3ClientV2.getPublicAccessBlock(any(GetPublicAccessBlockRequest.class))).thenThrow(exception);
 
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockS3Client).getPublicAccessBlock(new GetPublicAccessBlockRequest().withBucketName(expectedBucketName));
-		verify(mockS3Client).setPublicAccessBlock(new SetPublicAccessBlockRequest().withBucketName(expectedBucketName)
-			.withPublicAccessBlockConfiguration(new PublicAccessBlockConfiguration()
-				.withBlockPublicAcls(true)
-				.withBlockPublicPolicy(true)
-				.withIgnorePublicAcls(true)
-				.withRestrictPublicBuckets(true)
+		verify(mockS3ClientV2).getPublicAccessBlock(GetPublicAccessBlockRequest.builder().bucket(expectedBucketName).build());
+		verify(mockS3ClientV2).putPublicAccessBlock(PutPublicAccessBlockRequest.builder().bucket(expectedBucketName)
+			.publicAccessBlockConfiguration(PublicAccessBlockConfiguration.builder()
+				.blockPublicAcls(true)
+				.blockPublicPolicy(true)
+				.ignorePublicAcls(true)
+				.restrictPublicBuckets(true)
+				.build()
 			)
+			.build()
 		);
 
 	}
@@ -2643,20 +2664,22 @@ public class S3BucketBuilderImplTest {
 
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(bucketPolicyStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
-		when(mockS3Client.getPublicAccessBlock(any())).thenReturn(new GetPublicAccessBlockResult()
-			.withPublicAccessBlockConfiguration(new PublicAccessBlockConfiguration()
-				.withBlockPublicAcls(false)
-				.withBlockPublicPolicy(false)
-				.withIgnorePublicAcls(false)
-				.withRestrictPublicBuckets(false)
+		when(mockS3ClientV2.getPublicAccessBlock(any(GetPublicAccessBlockRequest.class))).thenReturn(GetPublicAccessBlockResponse.builder()
+			.publicAccessBlockConfiguration(PublicAccessBlockConfiguration.builder()
+				.blockPublicAcls(false)
+				.blockPublicPolicy(false)
+				.ignorePublicAcls(false)
+				.restrictPublicBuckets(false)
+				.build()
 			)
+			.build()
 		);
 
 		// Call under test
 		builder.buildAllBuckets();
 
-		verify(mockS3Client).getPublicAccessBlock(new GetPublicAccessBlockRequest().withBucketName(expectedBucketName));
-		verify(mockS3Client, never()).setPublicAccessBlock(any());
+		verify(mockS3ClientV2).getPublicAccessBlock(GetPublicAccessBlockRequest.builder().bucket(expectedBucketName).build());
+		verify(mockS3ClientV2, never()).putPublicAccessBlock(any(PutPublicAccessBlockRequest.class));
 
 	}
 	

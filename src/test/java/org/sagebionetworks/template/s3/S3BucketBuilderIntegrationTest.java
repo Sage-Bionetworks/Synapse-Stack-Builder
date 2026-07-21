@@ -27,6 +27,7 @@ import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import com.amazonaws.services.s3.AmazonS3;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -44,6 +45,9 @@ public class S3BucketBuilderIntegrationTest {
 
     @Mock
     private AmazonS3 mockS3Client;
+
+    @Mock
+    private S3Client mockS3ClientV2;
 
     @Mock
     private LambdaClient mockLambdaClient;
@@ -72,7 +76,7 @@ public class S3BucketBuilderIntegrationTest {
         // Validate the real S3Config
         injector.getInstance(S3Config.class);
 
-        builder = new S3BucketBuilderImpl(mockS3Client, mockStsClient, mockLambdaClient, mockConfig, mockS3Config, velocityEngine, mockCloudFormationClientWrapper, mockTagsProvider, mockDownloader);
+        builder = new S3BucketBuilderImpl(mockS3Client, mockS3ClientV2, mockStsClient, mockLambdaClient, mockConfig, mockS3Config, velocityEngine, mockCloudFormationClientWrapper, mockTagsProvider, mockDownloader);
 
         stack = "dev";
         accountId = "12345";
