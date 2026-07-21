@@ -13,8 +13,8 @@ import com.google.inject.Inject;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.S3Exception;
 
 public class ArtifactCopyImpl implements ArtifactCopy {
 
@@ -72,20 +72,15 @@ public class ArtifactCopyImpl implements ArtifactCopy {
 
 	/**
 	 * Does the given object already exist in S3? The v2 SDK has no direct equivalent of the v1
-	 * doesObjectExist(), so a headObject is issued. A HEAD response has no body, so the SDK cannot
-	 * read the error code and a missing object surfaces as a generic S3Exception with a 404 status
-	 * rather than the typed NoSuchKeyException. Treat 404 as "absent" and rethrow anything else
-	 * (e.g. a 403 AccessDenied must not be mistaken for a missing object).
+	 * doesObjectExist(), so a headObject is issued and a missing object is signaled by a
+	 * NoSuchKeyException.
 	 */
 	private boolean doesObjectExist(String bucket, String key) {
 		try {
 			s3Client.headObject(HeadObjectRequest.builder().bucket(bucket).key(key).build());
 			return true;
-		} catch (S3Exception e) {
-			if (e.statusCode() == 404) {
-				return false;
-			}
-			throw e;
+		} catch (NoSuchKeyException e) {
+			return false;
 		}
 	}
 

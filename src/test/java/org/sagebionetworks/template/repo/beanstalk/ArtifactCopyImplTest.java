@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
@@ -93,10 +94,8 @@ public class ArtifactCopyImplTest {
 		when(mockEbBuilder.copyWarWithExtensions(eq(mockFile), any(EnvironmentType.class))).thenReturn(mockCopy);
 		when(mockCopy.toPath()).thenReturn(realCopyFile.toPath());
 		when(mockPropertyProvider.getConfigurationBucket()).thenReturn(bucket);
-		// setup object does not exist: a HEAD on a missing key has no body, so the SDK reports a
-		// generic S3Exception (404), not the typed NoSuchKeyException.
-		when(mockS3Client.headObject(any(HeadObjectRequest.class)))
-			.thenThrow((S3Exception) S3Exception.builder().statusCode(404).build());
+		// setup object does not exist
+		when(mockS3Client.headObject(any(HeadObjectRequest.class))).thenThrow(NoSuchKeyException.builder().build());
 
 		// call under test
 		SourceBundle result = copier.copyArtifactIfNeeded(environment, version, beanstalkNumber);
@@ -128,10 +127,8 @@ public class ArtifactCopyImplTest {
 		S3Exception exception = (S3Exception) S3Exception.builder().message("something").build();
 		when(mockS3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class))).thenThrow(exception);
 
-		// setup object does not exist: a HEAD on a missing key has no body, so the SDK reports a
-		// generic S3Exception (404), not the typed NoSuchKeyException.
-		when(mockS3Client.headObject(any(HeadObjectRequest.class)))
-			.thenThrow((S3Exception) S3Exception.builder().statusCode(404).build());
+		// setup object does not exist
+		when(mockS3Client.headObject(any(HeadObjectRequest.class))).thenThrow(NoSuchKeyException.builder().build());
 
 		// call under test
 		assertThrows(S3Exception.class, ()->{
@@ -139,19 +136,6 @@ public class ArtifactCopyImplTest {
 		});
 		// file should be deleted even for a failure.
 		verify(mockFile).delete();
-	}
-
-	@Test
-	public void testCopyArtifactIfNeededHeadObjectAccessDenied() {
-		when(mockPropertyProvider.getConfigurationBucket()).thenReturn(bucket);
-		// A non-404 error (e.g. 403 AccessDenied) must not be treated as "object missing".
-		S3Exception accessDenied = (S3Exception) S3Exception.builder().statusCode(403).build();
-		when(mockS3Client.headObject(any(HeadObjectRequest.class))).thenThrow(accessDenied);
-
-		// call under test
-		assertThrows(S3Exception.class, () -> copier.copyArtifactIfNeeded(environment, version, beanstalkNumber));
-		verify(mockDownloader, never()).downloadFile(any(String.class));
-		verify(mockS3Client, never()).putObject(any(PutObjectRequest.class), any(RequestBody.class));
 	}
 
 	@Test

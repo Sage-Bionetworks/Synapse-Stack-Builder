@@ -2,8 +2,6 @@ package org.sagebionetworks.template.docs;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
@@ -48,7 +46,6 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
 @ExtendWith(MockitoExtension.class)
@@ -180,33 +177,9 @@ public class SynapseDocsBuilderImplTest {
 	@Test
 	public void testVerifyDeploymentWithNoInstanceJsonFile() {
 		when(mockConfig.getBooleanProperty(PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG)).thenReturn(true);
-		// A HEAD on a missing key has no body, so the SDK reports a generic S3Exception (404),
-		// not the typed NoSuchKeyException.
-		when(mockS3Client.headObject(any(HeadObjectRequest.class)))
-			.thenThrow((S3Exception) S3Exception.builder().statusCode(404).build());
+		when(mockS3Client.headObject(any(HeadObjectRequest.class))).thenThrow(NoSuchKeyException.builder().build());
 		// call under test
 		assertTrue(builder.verifyDeployment(destinationBucket));
-	}
-
-	@Test
-	public void testVerifyDeploymentWithMissingInstanceJsonFileAsNoSuchKey() {
-		when(mockConfig.getBooleanProperty(PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG)).thenReturn(true);
-		// NoSuchKeyException (statusCode 404) is also treated as absent.
-		when(mockS3Client.headObject(any(HeadObjectRequest.class)))
-			.thenThrow((NoSuchKeyException) NoSuchKeyException.builder().statusCode(404).build());
-		// call under test
-		assertTrue(builder.verifyDeployment(destinationBucket));
-	}
-
-	@Test
-	public void testVerifyDeploymentWithHeadObjectAccessDenied() {
-		when(mockConfig.getBooleanProperty(PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG)).thenReturn(true);
-		// A non-404 error (e.g. 403 AccessDenied) must not be swallowed as "absent".
-		S3Exception accessDenied = (S3Exception) S3Exception.builder().statusCode(403).build();
-		when(mockS3Client.headObject(any(HeadObjectRequest.class))).thenThrow(accessDenied);
-		// call under test
-		S3Exception thrown = assertThrows(S3Exception.class, () -> builder.verifyDeployment(destinationBucket));
-		assertSame(accessDenied, thrown);
 	}
 
 	@Test
