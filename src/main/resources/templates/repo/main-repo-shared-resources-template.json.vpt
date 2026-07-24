@@ -792,7 +792,11 @@
                         {
                             "Action": [
                                 "bedrock-agentcore:InvokeCodeInterpreter",
-                                "bedrock-agentcore:ListCodeInterpreters"
+                                "bedrock-agentcore:ListCodeInterpreters",
+                                "bedrock-agentcore:StartCodeInterpreterSession",
+                                "bedrock-agentcore:GetCodeInterpreterSession",
+                                "bedrock-agentcore:StopCodeInterpreterSession",
+                                "bedrock-agentcore:ListCodeInterpreterSessions"
                             ],
                             "Resource": [
                                 {
