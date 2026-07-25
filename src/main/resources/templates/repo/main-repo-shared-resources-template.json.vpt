@@ -718,7 +718,7 @@
                             ],
                             "Resource": [
                                 {
-                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}]]#::foundation-model/*"
+                                  "Fn::Sub": "arn:aws:bedrock:*::foundation-model/*"
                                 },
                                 {
                                   "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:async-invoke/*"
