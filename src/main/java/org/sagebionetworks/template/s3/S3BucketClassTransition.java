@@ -2,7 +2,7 @@ package org.sagebionetworks.template.s3;
 
 import java.util.Objects;
 
-import com.amazonaws.services.s3.model.StorageClass;
+import software.amazon.awssdk.services.s3.model.StorageClass;
 
 /**
  * Transition rule for a bucket 

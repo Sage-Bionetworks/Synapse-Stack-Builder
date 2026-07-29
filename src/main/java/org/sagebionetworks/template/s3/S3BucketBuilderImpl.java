@@ -10,11 +10,12 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
@@ -34,11 +35,7 @@ import org.sagebionetworks.template.utils.ArtifactDownload;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AbortIncompleteMultipartUpload;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.BucketLifecycleConfiguration;
-import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Rule;
-import com.amazonaws.services.s3.model.BucketLifecycleConfiguration.Transition;
 import com.amazonaws.services.s3.model.BucketNotificationConfiguration;
 import com.amazonaws.services.s3.model.NotificationConfiguration;
 import com.amazonaws.services.s3.model.S3Event;
@@ -56,17 +53,25 @@ import com.amazonaws.services.s3.model.inventory.InventoryFrequency;
 import com.amazonaws.services.s3.model.inventory.InventoryIncludedObjectVersions;
 import com.amazonaws.services.s3.model.inventory.InventoryS3BucketDestination;
 import com.amazonaws.services.s3.model.inventory.InventorySchedule;
-import com.amazonaws.services.s3.model.lifecycle.LifecycleFilter;
 import com.google.inject.Inject;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.AbortIncompleteMultipartUpload;
 import software.amazon.awssdk.services.s3.model.BucketAlreadyOwnedByYouException;
+import software.amazon.awssdk.services.s3.model.BucketLifecycleConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.ExpirationStatus;
 import software.amazon.awssdk.services.s3.model.GetBucketEncryptionRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketLifecycleConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketLifecycleConfigurationResponse;
 import software.amazon.awssdk.services.s3.model.GetPublicAccessBlockRequest;
 import software.amazon.awssdk.services.s3.model.GetPublicAccessBlockResponse;
+import software.amazon.awssdk.services.s3.model.LifecycleExpiration;
+import software.amazon.awssdk.services.s3.model.LifecycleRule;
+import software.amazon.awssdk.services.s3.model.LifecycleRuleFilter;
 import software.amazon.awssdk.services.s3.model.PublicAccessBlockConfiguration;
 import software.amazon.awssdk.services.s3.model.PutBucketEncryptionRequest;
+import software.amazon.awssdk.services.s3.model.PutBucketLifecycleConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutPublicAccessBlockRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -74,6 +79,7 @@ import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryptionByDefault;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryptionConfiguration;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryptionRule;
+import software.amazon.awssdk.services.s3.model.Transition;
 import software.amazon.awssdk.services.cloudformation.model.Capability;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
 import software.amazon.awssdk.services.lambda.LambdaClient;
@@ -422,27 +428,26 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	}
 	
 	private void configureBucketLifeCycle(S3BucketDescriptor bucket) {
-		
-		// Returns null if no life cycle configuration was found
-		BucketLifecycleConfiguration config = s3Client.getBucketLifecycleConfiguration(bucket.getName());
-		
-		if (config == null) {
-			config = new BucketLifecycleConfiguration();
+
+		// v2 throws when no life cycle configuration exists, treat as an empty set of rules
+		List<LifecycleRule> existingRules = getBucketLifecycleRules(bucket.getName());
+
+		// Keyed by rule id, preserving the existing order and allowing lookup/replacement
+		LinkedHashMap<String, LifecycleRule> rules = new LinkedHashMap<>();
+
+		for (LifecycleRule rule : existingRules) {
+			rules.put(rule.id(), rule);
 		}
-		
+
 		boolean update = false;
-		
-		List<Rule> rules = config.getRules() == null ? new ArrayList<>() : new ArrayList<>(config.getRules());
 
 		if (bucket.getRetentionDays() != null) {
-			if (addOrUpdateRule(rules, bucket.getName(), RULE_ID_RETENTION, bucket, this::createRetentionRule, this::updateRetentionRule)) {
+			if (addOrUpdateRule(rules, bucket.getName(), RULE_ID_RETENTION, bucket, this::createRetentionRule, this::isRetentionRuleUpToDate)) {
 				update = true;
 			}
 		} else {
-			Optional<Rule> rule = findRule(RULE_ID_RETENTION, rules);
-			if (rule.isPresent()) {
+			if (rules.remove(RULE_ID_RETENTION) != null) {
 				LOG.info("The {} rule was found on bucket {}, removing.", RULE_ID_RETENTION, bucket.getName());
-				rules.remove(rule.get());
 				update = true;
 			}
 		}
@@ -451,29 +456,50 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			for (S3BucketClassTransition transition : bucket.getStorageClassTransitions()) {
 				String transitionRuleName = transition.getStorageClass().name() + RULE_ID_CLASS_TRANSITION;
 
-				if (addOrUpdateRule(rules, bucket.getName(), transitionRuleName, transition, this::createClassTransitionRule, this::updateClassTransitionRule)) {
+				if (addOrUpdateRule(rules, bucket.getName(), transitionRuleName, transition, this::createClassTransitionRule, this::isClassTransitionRuleUpToDate)) {
 					update = true;
 				}
 			}
 		}
-		
+
 		// Always checks for a default multipart upload cleanup rule
-		if (addOrUpdateRule(rules, bucket.getName(), RULE_ID_ABORT_MULTIPART_UPLOADS, bucket, this::createAbortMultipartRule, this::updateAbortMultipartRule)) {
+		if (addOrUpdateRule(rules, bucket.getName(), RULE_ID_ABORT_MULTIPART_UPLOADS, bucket, this::createAbortMultipartRule, this::isAbortMultipartRuleUpToDate)) {
 			update = true;
 		}
-		
+
 		if (!rules.isEmpty() && update) {
-			config.setRules(rules);
-			
+
 			LOG.info("Updating bucket {} lifecycle, rules: ", bucket.getName());
-			
-			for (Rule rule : rules) {
-				LOG.info("	{}", rule.getId());
+
+			for (String ruleId : rules.keySet()) {
+				LOG.info("	{}", ruleId);
 			}
-			
-			s3Client.setBucketLifecycleConfiguration(bucket.getName(), config);
+
+			s3ClientV2.putBucketLifecycleConfiguration(PutBucketLifecycleConfigurationRequest.builder()
+					.bucket(bucket.getName())
+					.lifecycleConfiguration(BucketLifecycleConfiguration.builder().rules(new ArrayList<>(rules.values())).build())
+					.build());
 		}
-		
+
+	}
+
+	private List<LifecycleRule> getBucketLifecycleRules(String bucketName) {
+		try {
+			GetBucketLifecycleConfigurationResponse response = s3ClientV2.getBucketLifecycleConfiguration(
+					GetBucketLifecycleConfigurationRequest.builder().bucket(bucketName).build());
+
+			if (response == null || response.rules() == null) {
+				return new ArrayList<>();
+			}
+
+			return new ArrayList<>(response.rules());
+		} catch (S3Exception e) {
+			// v2 throws a 404 (NoSuchLifecycleConfiguration) when no configuration exists
+			if (e.statusCode() == 404) {
+				return new ArrayList<>();
+			}
+			throw e;
+		}
 	}
 	
 	void configureIntelligentTieringArchive(S3BucketDescriptor bucket) {
@@ -534,91 +560,85 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		return intConfig;
 	}
 	
-	private Rule createAbortMultipartRule(S3BucketDescriptor bucket) {
-		return new Rule()
-				.withAbortIncompleteMultipartUpload(new AbortIncompleteMultipartUpload().withDaysAfterInitiation(ABORT_MULTIPART_UPLOAD_DAYS))
-				.withFilter(allBucketLifecycletFilter());
+	private LifecycleRule createAbortMultipartRule(String ruleName, S3BucketDescriptor bucket) {
+		return baseRule(ruleName)
+				.abortIncompleteMultipartUpload(AbortIncompleteMultipartUpload.builder().daysAfterInitiation(ABORT_MULTIPART_UPLOAD_DAYS).build())
+				.build();
 	}
-	
-	private boolean updateAbortMultipartRule(Rule rule, S3BucketDescriptor bucket) {
-		if (rule.getAbortIncompleteMultipartUpload() == null || ABORT_MULTIPART_UPLOAD_DAYS != rule.getAbortIncompleteMultipartUpload().getDaysAfterInitiation() || rule.getFilter() == null) {
-			rule.withAbortIncompleteMultipartUpload(new AbortIncompleteMultipartUpload().withDaysAfterInitiation(ABORT_MULTIPART_UPLOAD_DAYS)).withFilter(allBucketLifecycletFilter());
-			return true;
-		} else {
+
+	private boolean isAbortMultipartRuleUpToDate(LifecycleRule rule, S3BucketDescriptor bucket) {
+		return rule.filter() != null
+				&& rule.abortIncompleteMultipartUpload() != null
+				&& Integer.valueOf(ABORT_MULTIPART_UPLOAD_DAYS).equals(rule.abortIncompleteMultipartUpload().daysAfterInitiation());
+	}
+
+	private LifecycleRule createRetentionRule(String ruleName, S3BucketDescriptor bucket) {
+		return baseRule(ruleName)
+				.expiration(LifecycleExpiration.builder().days(bucket.getRetentionDays()).build())
+				.build();
+	}
+
+	private boolean isRetentionRuleUpToDate(LifecycleRule rule, S3BucketDescriptor bucket) {
+		return rule.filter() != null
+				&& rule.expiration() != null
+				&& bucket.getRetentionDays().equals(rule.expiration().days());
+	}
+
+	private LifecycleRule createClassTransitionRule(String ruleName, S3BucketClassTransition transition) {
+		return baseRule(ruleName)
+				.transitions(Transition.builder()
+						.storageClass(transition.getStorageClass().toString())
+						.days(transition.getDays())
+						.build())
+				.build();
+	}
+
+	private boolean isClassTransitionRuleUpToDate(LifecycleRule rule, S3BucketClassTransition transition) {
+		if (rule.filter() == null || rule.transitions() == null || rule.transitions().isEmpty()) {
 			return false;
 		}
+
+		Transition existingTransition = rule.transitions().get(0);
+
+		return transition.getStorageClass().toString().equals(existingTransition.storageClassAsString())
+				&& transition.getDays().equals(existingTransition.days());
 	}
-	
-	private Rule createRetentionRule(S3BucketDescriptor bucket) {
-		return new Rule().withExpirationInDays(bucket.getRetentionDays()).withFilter(allBucketLifecycletFilter());
+
+	private static LifecycleRule.Builder baseRule(String ruleName) {
+		return LifecycleRule.builder()
+				.id(ruleName)
+				.status(ExpirationStatus.ENABLED)
+				.filter(allBucketLifecycleFilter());
 	}
-	
-	private boolean updateRetentionRule(Rule rule, S3BucketDescriptor bucket) {
-		if (!bucket.getRetentionDays().equals(rule.getExpirationInDays()) || rule.getFilter() == null) {
-			rule.withExpirationInDays(bucket.getRetentionDays())
-				.withFilter(allBucketLifecycletFilter());
+
+	private static LifecycleRuleFilter allBucketLifecycleFilter() {
+		// An empty filter applies the rule to all the objects in the bucket
+		return LifecycleRuleFilter.builder().build();
+	}
+
+	private static <T> boolean addOrUpdateRule(LinkedHashMap<String, LifecycleRule> rules, String bucket, String ruleName, T definition, BiFunction<String, T, LifecycleRule> ruleCreator, BiPredicate<LifecycleRule, T> ruleUpToDate) {
+		LifecycleRule existingRule = rules.get(ruleName);
+
+		if (existingRule != null) {
+			boolean upToDate = ruleUpToDate.test(existingRule, definition);
+
+			LOG.info("The {} rule was found on bucket {} and was {}", ruleName, bucket, upToDate ? "up to date." : "outdated, will update.");
+
+			if (upToDate) {
+				return false;
+			}
+
+			// Re-putting an existing key preserves the rule position in the insertion order
+			rules.put(ruleName, ruleCreator.apply(ruleName, definition));
+
 			return true;
 		} else {
-			return false;
-		}
-	}
-	
-	private Rule createClassTransitionRule(S3BucketClassTransition transition) {
-		return new Rule()
-			.addTransition(new Transition().withStorageClass(transition.getStorageClass()).withDays(transition.getDays()))
-			.withFilter(allBucketLifecycletFilter());
-	}
-	
-	private boolean updateClassTransitionRule(Rule rule, S3BucketClassTransition transition) {
-		Transition existingTransition = null;
-		
-		if (rule.getTransitions() != null && !rule.getTransitions().isEmpty()) {
-			existingTransition = rule.getTransitions().get(0);
-		} else {
-			existingTransition = new Transition();
-			rule.addTransition(existingTransition);
-		}
-		
-		if (!transition.getStorageClass().toString().equals(existingTransition.getStorageClassAsString()) || !transition.getDays().equals(existingTransition.getDays()) || rule.getFilter() == null) {
-			existingTransition.withStorageClass(transition.getStorageClass()).withDays(transition.getDays());
-			rule.withFilter(allBucketLifecycletFilter());
-			return true;
-		} else {
-			return false;
-		}
-	}
-	
-	private static LifecycleFilter allBucketLifecycletFilter() {
-		return new LifecycleFilter(null);
-	}
-	
-	private static <T> boolean addOrUpdateRule(List<Rule> rules, String bucket, String ruleName, T definition, Function<T, Rule> ruleCreator, BiFunction<Rule, T, Boolean> ruleUpdate) {
-		Optional<Rule> rule = findRule(ruleName, rules);
-		
-		boolean updateLifecycle = false;
-		
-		if (rule.isPresent()) {
-			Rule existingRule = rule.get().withPrefix(null);
-			
-			updateLifecycle = ruleUpdate.apply(existingRule, definition);
-			
-			LOG.info("The {} rule was found on bucket {} and was {}", ruleName, bucket, updateLifecycle ? "outdated, will update." : "up to date.");
-		} else {
-			Rule newRule = ruleCreator.apply(definition).withId(ruleName).withStatus(BucketLifecycleConfiguration.ENABLED).withPrefix(null);
-			
-			rules.add(newRule);
-			
+			rules.put(ruleName, ruleCreator.apply(ruleName, definition));
+
 			LOG.info("The {} rule was not found on bucket {}, will be added.", ruleName, bucket);
-			
-			updateLifecycle = true;
+
+			return true;
 		}
-		
-		return updateLifecycle;
-		
-	}
-	
-	private static Optional<Rule> findRule(String ruleName, List<Rule> rules) {
-		return rules.stream().filter(rule -> rule.getId().equals(ruleName)).findFirst();
 	}
 	
 	private void configureBucketNotifications(S3BucketDescriptor bucket, String stack) {

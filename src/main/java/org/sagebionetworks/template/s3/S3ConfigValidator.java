@@ -6,7 +6,8 @@ import java.util.Set;
 import org.sagebionetworks.util.ValidateArgument;
 
 import com.amazonaws.services.s3.model.S3Event;
-import com.amazonaws.services.s3.model.StorageClass;
+
+import software.amazon.awssdk.services.s3.model.StorageClass;
 
 public class S3ConfigValidator {
 	
