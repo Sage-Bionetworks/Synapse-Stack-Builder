@@ -804,6 +804,24 @@
                                 }
                             ],
                             "Effect": "Allow"
+                        },
+                        {
+                            "Action": [
+                                "bedrock-agentcore:CreateEvent",
+                                "bedrock-agentcore:GetEvent",
+                                "bedrock-agentcore:ListEvents",
+                                "bedrock-agentcore:DeleteEvent",
+                                "bedrock-agentcore:ListActors",
+                                "bedrock-agentcore:ListSessions",
+                                "bedrock-agentcore:GetMemory",
+                                "bedrock-agentcore:ListMemories"
+                            ],
+                            "Resource": [
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock-agentcore:#[[${AWS::Region}:${AWS::AccountId}]]#:memory/*"
+                                }
+                            ],
+                            "Effect": "Allow"
                         }
                      ]
                 }
@@ -1072,6 +1090,7 @@
 		${bedrock_agent_resouces}
 		${bedrock_grid_agent_resources}
 		#parse("templates/repo/agent/code-interpreter-template.json.vpt")
+		#parse("templates/repo/agent/curie-memory-template.json.vpt")
 		#parse("templates/repo/grid/grid-websocket.json.vpt")
 	},
 	"Outputs": {
@@ -1383,6 +1402,28 @@
 								"Ref": "AWS::StackName"
 							},
 							"Code-Interpreter-Id"
+						]
+					]
+				}
+			}
+		}
+		,"${stack}${instance}CurieMemoryId": {
+			"Description": "The ID of the AgentCore Memory resource backing Curie's durable chat memory.",
+			"Value": {
+				"Fn::GetAtt": ["${stack}${instance}CurieMemory", "MemoryId"]
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"Curie-Memory-Id"
 						]
 					]
 				}

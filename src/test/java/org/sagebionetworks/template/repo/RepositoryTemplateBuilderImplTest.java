@@ -443,6 +443,13 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("prod_101_code_interpreter", codeInterpreterProps.getString("Name"));
 		assertEquals("SANDBOX", codeInterpreterProps.getJSONObject("NetworkConfiguration").getString("NetworkMode"));
 
+		assertTrue(resources.has("prod101CurieMemory"));
+		JSONObject curieMemory = resources.getJSONObject("prod101CurieMemory");
+		assertEquals("AWS::BedrockAgentCore::Memory", curieMemory.getString("Type"));
+		JSONObject curieMemoryProps = curieMemory.getJSONObject("Properties");
+		assertEquals("prod_101_curie_memory", curieMemoryProps.getString("Name"));
+		assertEquals(30, curieMemoryProps.getInt("EventExpiryDuration"));
+
 		assertTrue(resources.getJSONObject("GridApiGatewaySQSRole").toString().contains(gridQueueRef));
 		assertTrue(resources.getJSONObject("GridWebsocketApi").toString().contains("prod-101-grid-websocket"));
 
