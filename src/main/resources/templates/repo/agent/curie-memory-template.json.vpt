@@ -1,0 +1,8 @@
+,"${stack}${instance}CurieMemory": {
+	"Type": "AWS::BedrockAgentCore::Memory",
+	"Properties": {
+		"Name": "${stack}_${instance}_curie_memory",
+		"Description": "Short-term conversation memory for the Curie grid-curation agent. Provides durable, cross-machine chat continuity for async chat jobs, keyed by actorId:sessionId events.",
+		"EventExpiryDuration": 30
+	}
+}
