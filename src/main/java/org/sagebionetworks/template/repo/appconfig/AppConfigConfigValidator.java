@@ -15,7 +15,7 @@ public class AppConfigConfigValidator {
     public void validateConfig(AppConfigDescriptor configDescriptor){
         ValidateArgument.requiredNotBlank(configDescriptor.appConfigName, "The appConfig name");
         ValidateArgument.requiredNotBlank(configDescriptor.appConfigDescription, "The appConfig description");
-        ValidateArgument.requiredNotBlank(configDescriptor.appConfigDefaultConfiguration, "The appConfig default configuration");
+        ValidateArgument.required(configDescriptor.appConfigDefaultConfiguration, "The appConfig default configuration");
     }
 
 }

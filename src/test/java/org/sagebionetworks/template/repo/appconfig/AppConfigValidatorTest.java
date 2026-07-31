@@ -1,5 +1,6 @@
 package org.sagebionetworks.template.repo.appconfig;
 
+import com.fasterxml.jackson.databind.node.TextNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,7 +25,7 @@ public class AppConfigValidatorTest {
         config.setAppConfigDescriptors(Collections.singletonList(new AppConfigDescriptor(
                 "",
                 "",
-                ""
+                null
         )));
         when(mockConfig.getAppConfigDescriptors()).thenReturn(config.getAppConfigDescriptors());
         String errorMessage = assertThrows(IllegalArgumentException.class, () -> {
@@ -39,7 +40,7 @@ public class AppConfigValidatorTest {
         config.setAppConfigDescriptors(Collections.singletonList(new AppConfigDescriptor(
                 "",
                 "appConfigDescription",
-                "appConfigDefaultConfiguration"
+                TextNode.valueOf("appConfigDefaultConfiguration")
         )));
         when(mockConfig.getAppConfigDescriptors()).thenReturn(config.getAppConfigDescriptors());
         String errorMessage = assertThrows(IllegalArgumentException.class, () -> {
@@ -54,7 +55,7 @@ public class AppConfigValidatorTest {
         config.setAppConfigDescriptors(Collections.singletonList(new AppConfigDescriptor(
                 "appConfigName",
                 "",
-                "appConfigDefaultConfiguration"
+                TextNode.valueOf("appConfigDefaultConfiguration")
         )));
         when(mockConfig.getAppConfigDescriptors()).thenReturn(config.getAppConfigDescriptors());
         String errorMessage = assertThrows(IllegalArgumentException.class, () -> {
@@ -69,14 +70,14 @@ public class AppConfigValidatorTest {
         config.setAppConfigDescriptors(Collections.singletonList(new AppConfigDescriptor(
                 "appConfigName",
                 "appConfigDescription",
-                ""
+                null
         )));
         when(mockConfig.getAppConfigDescriptors()).thenReturn(config.getAppConfigDescriptors());
         String errorMessage = assertThrows(IllegalArgumentException.class, () -> {
             // Call under test
             validator.validate();
         }).getMessage();
-        assertEquals("The appConfig default configuration is required and must not be the empty string.", errorMessage);
+        assertEquals("The appConfig default configuration is required.", errorMessage);
     }
     @Test
     public void testValidateConfigInputIsValid() {
@@ -84,7 +85,7 @@ public class AppConfigValidatorTest {
         config.setAppConfigDescriptors(Collections.singletonList(new AppConfigDescriptor(
                 "appConfigName",
                 "appConfigDescription",
-                "DefaultConfigurations"
+                TextNode.valueOf("DefaultConfigurations")
         )));
 
         when(mockConfig.getAppConfigDescriptors()).thenReturn(config.getAppConfigDescriptors());
