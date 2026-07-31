@@ -9,7 +9,9 @@ import java.io.File;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
@@ -33,26 +35,6 @@ import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.BucketNotificationConfiguration;
-import com.amazonaws.services.s3.model.NotificationConfiguration;
-import com.amazonaws.services.s3.model.S3Event;
-import com.amazonaws.services.s3.model.Tag;
-import com.amazonaws.services.s3.model.TopicConfiguration;
-import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringAccessTier;
-import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringConfiguration;
-import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringFilter;
-import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringStatus;
-import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringTagPredicate;
-import com.amazonaws.services.s3.model.intelligenttiering.Tiering;
-import com.amazonaws.services.s3.model.inventory.InventoryConfiguration;
-import com.amazonaws.services.s3.model.inventory.InventoryDestination;
-import com.amazonaws.services.s3.model.inventory.InventoryFrequency;
-import com.amazonaws.services.s3.model.inventory.InventoryIncludedObjectVersions;
-import com.amazonaws.services.s3.model.inventory.InventoryS3BucketDestination;
-import com.amazonaws.services.s3.model.inventory.InventorySchedule;
 import com.google.inject.Inject;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -60,18 +42,38 @@ import software.amazon.awssdk.services.s3.model.AbortIncompleteMultipartUpload;
 import software.amazon.awssdk.services.s3.model.BucketAlreadyOwnedByYouException;
 import software.amazon.awssdk.services.s3.model.BucketLifecycleConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.DeleteBucketInventoryConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.Event;
 import software.amazon.awssdk.services.s3.model.ExpirationStatus;
 import software.amazon.awssdk.services.s3.model.GetBucketEncryptionRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketIntelligentTieringConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketInventoryConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketLifecycleConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketLifecycleConfigurationResponse;
+import software.amazon.awssdk.services.s3.model.GetBucketNotificationConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketNotificationConfigurationResponse;
 import software.amazon.awssdk.services.s3.model.GetPublicAccessBlockRequest;
 import software.amazon.awssdk.services.s3.model.GetPublicAccessBlockResponse;
+import software.amazon.awssdk.services.s3.model.IntelligentTieringAccessTier;
+import software.amazon.awssdk.services.s3.model.IntelligentTieringConfiguration;
+import software.amazon.awssdk.services.s3.model.IntelligentTieringFilter;
+import software.amazon.awssdk.services.s3.model.IntelligentTieringStatus;
+import software.amazon.awssdk.services.s3.model.InventoryConfiguration;
+import software.amazon.awssdk.services.s3.model.InventoryDestination;
+import software.amazon.awssdk.services.s3.model.InventoryFrequency;
+import software.amazon.awssdk.services.s3.model.InventoryIncludedObjectVersions;
+import software.amazon.awssdk.services.s3.model.InventoryS3BucketDestination;
+import software.amazon.awssdk.services.s3.model.InventorySchedule;
 import software.amazon.awssdk.services.s3.model.LifecycleExpiration;
 import software.amazon.awssdk.services.s3.model.LifecycleRule;
 import software.amazon.awssdk.services.s3.model.LifecycleRuleFilter;
+import software.amazon.awssdk.services.s3.model.NotificationConfiguration;
 import software.amazon.awssdk.services.s3.model.PublicAccessBlockConfiguration;
 import software.amazon.awssdk.services.s3.model.PutBucketEncryptionRequest;
+import software.amazon.awssdk.services.s3.model.PutBucketIntelligentTieringConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.PutBucketInventoryConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketLifecycleConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.PutBucketNotificationConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutPublicAccessBlockRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -79,6 +81,9 @@ import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryptionByDefault;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryptionConfiguration;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryptionRule;
+import software.amazon.awssdk.services.s3.model.Tag;
+import software.amazon.awssdk.services.s3.model.Tiering;
+import software.amazon.awssdk.services.s3.model.TopicConfiguration;
 import software.amazon.awssdk.services.s3.model.Transition;
 import software.amazon.awssdk.services.cloudformation.model.Capability;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
@@ -127,8 +132,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		.outputValue();
 	}
 	
-	private AmazonS3 s3Client;
-	private S3Client s3ClientV2;
+	private S3Client s3Client;
 	private StsClient stsClient;
 	private LambdaClient lambdaClient;
 	private RepoConfiguration config;
@@ -139,9 +143,8 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	private ArtifactDownload downloader;
 
 	@Inject
-	public S3BucketBuilderImpl(AmazonS3 s3Client, S3Client s3ClientV2, StsClient stsClient, LambdaClient lambdaClient, RepoConfiguration config, S3Config s3Config, VelocityEngine velocity, CloudFormationClientWrapper cloudFormationClientWrapper, StackTagsProvider tagsProvider, ArtifactDownload downloader) {
+	public S3BucketBuilderImpl(S3Client s3Client, StsClient stsClient, LambdaClient lambdaClient, RepoConfiguration config, S3Config s3Config, VelocityEngine velocity, CloudFormationClientWrapper cloudFormationClientWrapper, StackTagsProvider tagsProvider, ArtifactDownload downloader) {
 		this.s3Client = s3Client;
-		this.s3ClientV2 = s3ClientV2;
 		this.stsClient = stsClient;
 		this.lambdaClient = lambdaClient;
 		this.config = config;
@@ -197,7 +200,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			String virusScannerTopicArn = getStackOutput(virusScannerStack, CF_OUTPUT_VIRUS_TRIGGER_TOPIC);
 			
 			virusScanEnabledBuckets.forEach( bucket -> {
-				configureBucketNotification(bucket, VIRUS_SCANNER_NOTIFICATION_CONFIG_NAME, virusScannerTopicArn, Collections.singleton(S3Event.ObjectCreatedByCompleteMultipartUpload.toString()));
+				configureBucketNotification(bucket, VIRUS_SCANNER_NOTIFICATION_CONFIG_NAME, virusScannerTopicArn, Collections.singleton(Event.S3_OBJECT_CREATED_COMPLETE_MULTIPART_UPLOAD.toString()));
 			});
 
 			// Makes sure to remove the existing bucket configurations
@@ -269,7 +272,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		File artifact = downloader.downloadFile(lambdaSourceArtifactUrl);
 		
 		try {
-			s3ClientV2.putObject(PutObjectRequest.builder().bucket(lambdaArtifactBucket).key(lambdaArtifactKey).build(), RequestBody.fromFile(artifact));
+			s3Client.putObject(PutObjectRequest.builder().bucket(lambdaArtifactBucket).key(lambdaArtifactKey).build(), RequestBody.fromFile(artifact));
 		} finally {
 			artifact.delete();
 		}
@@ -316,7 +319,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		LOG.info("Creating bucket: {}.", bucketName);
 
 		try {
-			s3ClientV2.createBucket(CreateBucketRequest.builder().bucket(bucketName).build());
+			s3Client.createBucket(CreateBucketRequest.builder().bucket(bucketName).build());
 		} catch (BucketAlreadyOwnedByYouException e) {
 			// The bucket already exists and is owned by us, nothing to do.
 		}
@@ -327,7 +330,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		PublicAccessBlockConfiguration config = null;
 
 		try {
-			GetPublicAccessBlockResponse result = s3ClientV2.getPublicAccessBlock(GetPublicAccessBlockRequest.builder().bucket(bucketName).build());
+			GetPublicAccessBlockResponse result = s3Client.getPublicAccessBlock(GetPublicAccessBlockRequest.builder().bucket(bucketName).build());
 
 			if (result != null) {
 				config = result.publicAccessBlockConfiguration();
@@ -353,7 +356,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			.restrictPublicBuckets(true)
 			.build();
 
-		s3ClientV2.putPublicAccessBlock(PutPublicAccessBlockRequest.builder()
+		s3Client.putPublicAccessBlock(PutPublicAccessBlockRequest.builder()
 			.bucket(bucketName)
 			.publicAccessBlockConfiguration(config)
 			.build()
@@ -365,13 +368,13 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	private void configureEncryption(String bucketName) {
 		try {
 			// If server side encryption is not currently set this call with throw a 404
-			s3ClientV2.getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(bucketName).build());
+			s3Client.getBucketEncryption(GetBucketEncryptionRequest.builder().bucket(bucketName).build());
 		} catch (S3Exception e) {
 			if(e.statusCode() == 404) {
 				// The bucket is not currently encrypted so configure it for encryption.
 				LOG.info("Setting server side encryption for bucket: {}.", bucketName);
 
-				s3ClientV2.putBucketEncryption(PutBucketEncryptionRequest.builder().bucket(bucketName)
+				s3Client.putBucketEncryption(PutBucketEncryptionRequest.builder().bucket(bucketName)
 						.serverSideEncryptionConfiguration(ServerSideEncryptionConfiguration.builder()
 								.rules(ServerSideEncryptionRule.builder().applyServerSideEncryptionByDefault(
 										ServerSideEncryptionByDefault.builder().sseAlgorithm(ServerSideEncryption.AES256).build()).build())
@@ -389,42 +392,49 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		}
 		
 		boolean configurationExists = true;
-		
+
 		try {
-			s3Client.getBucketInventoryConfiguration(bucketName, INVENTORY_ID);
-		} catch (AmazonServiceException e) {
-			if (e.getStatusCode() == 404) {
+			// v2 throws a 404 when no inventory configuration exists (v1 returned null)
+			s3Client.getBucketInventoryConfiguration(GetBucketInventoryConfigurationRequest.builder().bucket(bucketName).id(INVENTORY_ID).build());
+		} catch (S3Exception e) {
+			if (e.statusCode() == 404) {
 				configurationExists = false;
 			} else {
 				throw e;
 			}
 		}
-		
+
 		if (enabled) {
 			LOG.info("Configuring inventory configuration for bucket {}.", bucketName);
-			InventoryConfiguration config = new InventoryConfiguration()
-					.withId(INVENTORY_ID)
-					.withDestination(
-							new InventoryDestination()
-								.withS3BucketDestination(
-										new InventoryS3BucketDestination()
-											.withBucketArn("arn:aws:s3:::" + TemplateUtils.replaceStackVariable(inventoryConfig.getBucket(), stack))
-											.withAccountId(accountId)
-											.withPrefix(inventoryConfig.getPrefix())
-											.withFormat(INVENTORY_FORMAT)
-								)
-					)
-					.withOptionalFields(INVENTORY_FIELDS)
-					.withSchedule(new InventorySchedule().withFrequency(InventoryFrequency.Weekly))
-					.withEnabled(true)
-					.withIncludedObjectVersions(InventoryIncludedObjectVersions.All);
-			
-			s3Client.setBucketInventoryConfiguration(bucketName, config);			
+			InventoryConfiguration config = InventoryConfiguration.builder()
+					.id(INVENTORY_ID)
+					.destination(InventoryDestination.builder()
+							.s3BucketDestination(InventoryS3BucketDestination.builder()
+									.bucket("arn:aws:s3:::" + TemplateUtils.replaceStackVariable(inventoryConfig.getBucket(), stack))
+									.accountId(accountId)
+									.prefix(inventoryConfig.getPrefix())
+									.format(INVENTORY_FORMAT)
+									.build())
+							.build())
+					.optionalFieldsWithStrings(INVENTORY_FIELDS)
+					.schedule(InventorySchedule.builder().frequency(InventoryFrequency.WEEKLY).build())
+					.isEnabled(true)
+					.includedObjectVersions(InventoryIncludedObjectVersions.ALL)
+					.build();
+
+			s3Client.putBucketInventoryConfiguration(PutBucketInventoryConfigurationRequest.builder()
+					.bucket(bucketName)
+					.id(INVENTORY_ID)
+					.inventoryConfiguration(config)
+					.build());
 		} else if (configurationExists) {
 			LOG.info("Removing inventory configuration for bucket {}.", bucketName);
-			s3Client.deleteBucketInventoryConfiguration(bucketName, INVENTORY_ID);
+			s3Client.deleteBucketInventoryConfiguration(DeleteBucketInventoryConfigurationRequest.builder()
+					.bucket(bucketName)
+					.id(INVENTORY_ID)
+					.build());
 		}
-		
+
 	}
 	
 	private void configureBucketLifeCycle(S3BucketDescriptor bucket) {
@@ -475,7 +485,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 				LOG.info("	{}", ruleId);
 			}
 
-			s3ClientV2.putBucketLifecycleConfiguration(PutBucketLifecycleConfigurationRequest.builder()
+			s3Client.putBucketLifecycleConfiguration(PutBucketLifecycleConfigurationRequest.builder()
 					.bucket(bucket.getName())
 					.lifecycleConfiguration(BucketLifecycleConfiguration.builder().rules(new ArrayList<>(rules.values())).build())
 					.build());
@@ -485,7 +495,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 
 	private List<LifecycleRule> getBucketLifecycleRules(String bucketName) {
 		try {
-			GetBucketLifecycleConfigurationResponse response = s3ClientV2.getBucketLifecycleConfiguration(
+			GetBucketLifecycleConfigurationResponse response = s3Client.getBucketLifecycleConfiguration(
 					GetBucketLifecycleConfigurationRequest.builder().bucket(bucketName).build());
 
 			if (response == null || response.rules() == null) {
@@ -509,55 +519,67 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		}
 				
 		IntelligentTieringConfiguration intConfig;
-		
+
 		try {
-			intConfig = s3Client.getBucketIntelligentTieringConfiguration(bucket.getName(), INT_ARCHIVE_ID).getIntelligentTieringConfiguration();
-		} catch (AmazonS3Exception e) {
-			if (404 == e.getStatusCode() && "NoSuchConfiguration".equals(e.getErrorCode())) {
+			intConfig = s3Client.getBucketIntelligentTieringConfiguration(GetBucketIntelligentTieringConfigurationRequest.builder()
+					.bucket(bucket.getName())
+					.id(INT_ARCHIVE_ID)
+					.build()
+			).intelligentTieringConfiguration();
+		} catch (S3Exception e) {
+			// v2 throws when no configuration exists for the given id (v1 returned null)
+			if (404 == e.statusCode() && "NoSuchConfiguration".equals(errorCode(e))) {
 				intConfig = null;
 			} else {
 				throw e;
 			}
 		}
-		
+
 		if (intConfig != null) {
 			LOG.warn("The {} intelligent tiering configuration already exists for bucket {}, will not update.", INT_ARCHIVE_ID, bucket.getName());
 			return;
 		}
-		
-		intConfig = createIntArchiveConfiguration(bucket.getIntArchiveConfiguration());
-		
-		LOG.info("Setting {} intelligent tiering configuration on bucket {}.", INT_ARCHIVE_ID, bucket.getName());
-		
-		s3Client.setBucketIntelligentTieringConfiguration(bucket.getName(), intConfig);
-		
-	}
-	
-	private IntelligentTieringConfiguration createIntArchiveConfiguration(S3IntArchiveConfiguration config) {
-		IntelligentTieringConfiguration intConfig = new IntelligentTieringConfiguration().withId(INT_ARCHIVE_ID);
-		intConfig.withStatus(IntelligentTieringStatus.Enabled);
 
+		intConfig = createIntArchiveConfiguration(bucket.getIntArchiveConfiguration());
+
+		LOG.info("Setting {} intelligent tiering configuration on bucket {}.", INT_ARCHIVE_ID, bucket.getName());
+
+		s3Client.putBucketIntelligentTieringConfiguration(PutBucketIntelligentTieringConfigurationRequest.builder()
+				.bucket(bucket.getName())
+				.id(INT_ARCHIVE_ID)
+				.intelligentTieringConfiguration(intConfig)
+				.build()
+		);
+
+	}
+
+	private IntelligentTieringConfiguration createIntArchiveConfiguration(S3IntArchiveConfiguration config) {
 		List<Tiering> tiers = new ArrayList<>();
-		
+
 		if (config.getArchiveAccessDays() != null) {
-			tiers.add(new Tiering().withIntelligentTieringAccessTier(IntelligentTieringAccessTier.ARCHIVE_ACCESS).withDays(config.getArchiveAccessDays()));
+			tiers.add(Tiering.builder().accessTier(IntelligentTieringAccessTier.ARCHIVE_ACCESS).days(config.getArchiveAccessDays()).build());
 		}
-		
+
 		if (config.getDeepArchiveAccessDays() != null) {
-			tiers.add(new Tiering().withIntelligentTieringAccessTier(IntelligentTieringAccessTier.DEEP_ARCHIVE_ACCESS).withDays(config.getDeepArchiveAccessDays()));
+			tiers.add(Tiering.builder().accessTier(IntelligentTieringAccessTier.DEEP_ARCHIVE_ACCESS).days(config.getDeepArchiveAccessDays()).build());
 		}
-		
-		intConfig.withTierings(tiers);
-		
-		IntelligentTieringFilter filter = new IntelligentTieringFilter();
+
+		IntelligentTieringFilter.Builder filter = IntelligentTieringFilter.builder();
 
 		if (config.getTagFilter() != null) {
-			filter.withPredicate(new IntelligentTieringTagPredicate(new Tag(config.getTagFilter().getName(), config.getTagFilter().getValue())));
+			filter.tag(Tag.builder().key(config.getTagFilter().getName()).value(config.getTagFilter().getValue()).build());
 		}
-		
-		intConfig.setFilter(filter);
-		
-		return intConfig;
+
+		return IntelligentTieringConfiguration.builder()
+				.id(INT_ARCHIVE_ID)
+				.status(IntelligentTieringStatus.ENABLED)
+				.tierings(tiers)
+				.filter(filter.build())
+				.build();
+	}
+
+	private static String errorCode(S3Exception e) {
+		return e.awsErrorDetails() == null ? null : e.awsErrorDetails().errorCode();
 	}
 	
 	private LifecycleRule createAbortMultipartRule(String ruleName, S3BucketDescriptor bucket) {
@@ -659,65 +681,79 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	}
 	
 	private void configureBucketNotification(String bucketName, String configName, String topicArn, Set<String> events) {
-		
-		BucketNotificationConfiguration bucketConfig = s3Client.getBucketNotificationConfiguration(bucketName);
-		
-		boolean update = false;
-		
-		if (bucketConfig == null || bucketConfig.getConfigurations() == null || bucketConfig.getConfigurations().isEmpty()) {
-			bucketConfig = new BucketNotificationConfiguration();
-			update = true;
-		}
-		
-		NotificationConfiguration notificationConfig = bucketConfig.getConfigurationByName(configName);
-		
-		if (notificationConfig == null) {
-			notificationConfig = new TopicConfiguration(topicArn, events.toArray(new String[events.size()]));
-			bucketConfig.addConfiguration(configName, notificationConfig);
-			update = true;
-		}
-		
-		if (notificationConfig instanceof TopicConfiguration) {
-			TopicConfiguration topicConfig = (TopicConfiguration) notificationConfig;
-			
-			if (!topicConfig.getTopicARN().equals(topicArn)) {
-				topicConfig.setTopicARN(topicArn);
-				update = true;
-			}
-			
-			if (!topicConfig.getEvents().equals(events)) {
-				topicConfig.setEvents(events);
-				update = true;
-			}
-		} else {
+
+		GetBucketNotificationConfigurationResponse bucketConfig = getBucketNotificationConfiguration(bucketName);
+
+		// In v2 each configuration type has its own list and the configuration name is the id of the configuration
+		if (bucketConfig.queueConfigurations().stream().anyMatch(queueConfig -> configName.equals(queueConfig.id()))
+				|| bucketConfig.lambdaFunctionConfigurations().stream().anyMatch(lambdaConfig -> configName.equals(lambdaConfig.id()))) {
 			throw new IllegalStateException("The notification configuration " + configName + " was found but was not a TopicConfiguration");
 		}
-		
+
+		// Keyed by configuration id, preserving the existing order and allowing lookup/replacement
+		LinkedHashMap<String, TopicConfiguration> topicConfigs = new LinkedHashMap<>();
+
+		for (TopicConfiguration topicConfig : bucketConfig.topicConfigurations()) {
+			topicConfigs.put(topicConfig.id(), topicConfig);
+		}
+
+		TopicConfiguration existingConfig = topicConfigs.get(configName);
+
+		boolean update = existingConfig == null
+				|| !topicArn.equals(existingConfig.topicArn())
+				|| !events.equals(new HashSet<>(existingConfig.eventsAsStrings()));
+
 		if (update) {
 			LOG.info("Updating {} bucket notification configuration {} (Topic ARN: {}).", bucketName, configName, topicArn);
-			s3Client.setBucketNotificationConfiguration(bucketName, bucketConfig);
+
+			// Re-putting an existing key preserves the configuration position in the insertion order
+			topicConfigs.put(configName, TopicConfiguration.builder()
+					.id(configName)
+					.topicArn(topicArn)
+					.eventsWithStrings(events)
+					.build()
+			);
+
+			putBucketNotificationConfiguration(bucketName, bucketConfig, topicConfigs.values());
 		} else {
 			LOG.info("The {} bucket notification configuration {} was up to date (Topic ARN: {}).", bucketName, configName, topicArn);
 		}
 	}
 
 	private void removeBucketNotification(String bucketName, String configName) {
-		BucketNotificationConfiguration bucketConfig = s3Client.getBucketNotificationConfiguration(bucketName);
-		
-		if (bucketConfig == null || bucketConfig.getConfigurations() == null || bucketConfig.getConfigurations().isEmpty()) {
+		GetBucketNotificationConfigurationResponse bucketConfig = getBucketNotificationConfiguration(bucketName);
+
+		List<TopicConfiguration> remainingConfigs = bucketConfig.topicConfigurations().stream()
+				.filter(topicConfig -> !configName.equals(topicConfig.id()))
+				.collect(Collectors.toList());
+
+		if (remainingConfigs.size() == bucketConfig.topicConfigurations().size()) {
 			return;
 		}
-		
-		NotificationConfiguration notificationConfig = bucketConfig.getConfigurationByName(configName);
-		
-		if (notificationConfig == null) {
-			return;
-		}
-		
-		bucketConfig.removeConfiguration(configName);
-		
+
 		LOG.info("Removing {} bucket notification configuration {}.", bucketName, configName);
-		
-		s3Client.setBucketNotificationConfiguration(bucketName, bucketConfig);		
+
+		putBucketNotificationConfiguration(bucketName, bucketConfig, remainingConfigs);
+	}
+
+	private GetBucketNotificationConfigurationResponse getBucketNotificationConfiguration(String bucketName) {
+		return s3Client.getBucketNotificationConfiguration(GetBucketNotificationConfigurationRequest.builder().bucket(bucketName).build());
+	}
+
+	/**
+	 * Replaces the topic configurations of the given bucket, leaving the configurations of the other types untouched.
+	 */
+	private void putBucketNotificationConfiguration(String bucketName, GetBucketNotificationConfigurationResponse existingConfig, Collection<TopicConfiguration> topicConfigs) {
+		s3Client.putBucketNotificationConfiguration(PutBucketNotificationConfigurationRequest.builder()
+				.bucket(bucketName)
+				.notificationConfiguration(NotificationConfiguration.builder()
+						.topicConfigurations(topicConfigs)
+						.queueConfigurations(existingConfig.queueConfigurations())
+						.lambdaFunctionConfigurations(existingConfig.lambdaFunctionConfigurations())
+						.eventBridgeConfiguration(existingConfig.eventBridgeConfiguration())
+						.build()
+				)
+				.build()
+		);
 	}
 }

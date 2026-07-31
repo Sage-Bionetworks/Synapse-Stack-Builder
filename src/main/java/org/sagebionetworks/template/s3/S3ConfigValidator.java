@@ -5,8 +5,7 @@ import java.util.Set;
 
 import org.sagebionetworks.util.ValidateArgument;
 
-import com.amazonaws.services.s3.model.S3Event;
-
+import software.amazon.awssdk.services.s3.model.Event;
 import software.amazon.awssdk.services.s3.model.StorageClass;
 
 public class S3ConfigValidator {
@@ -91,10 +90,10 @@ public class S3ConfigValidator {
 		ValidateArgument.requiredNotEmpty(config.getEvents(), "The events");
 		
 		config.getEvents().forEach(event -> {
-			
-			try {
-				S3Event.fromValue(event);
-			} catch (IllegalArgumentException ex) {
+			// Unlike v1, v2 does not throw for an unknown value, it maps it to null or UNKNOWN_TO_SDK_VERSION
+			Event parsedEvent = Event.fromValue(event);
+
+			if (parsedEvent == null || Event.UNKNOWN_TO_SDK_VERSION == parsedEvent) {
 				throw new IllegalArgumentException("Unsupported event type: " + event);
 			}
 		});
