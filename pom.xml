@@ -82,6 +82,10 @@
 		</dependency> -->
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>imagebuilder</artifactId>
 		</dependency>
 		<dependency>
@@ -113,7 +117,7 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.13.4.1</version>
+			<version>2.22.0</version>
 		</dependency>
 		<!-- Testing -->
 		<dependency>
@@ -250,6 +254,10 @@
 			<artifactId>cloudformation</artifactId>
 			<version>${amazon.sdk.v2.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>cognitoidentityprovider</artifactId>
+		</dependency>
 	</dependencies>
 	<build>
 		<resources>
@@ -298,7 +306,7 @@
 		</plugins>
 	</build>
 	<properties>
-		<bouncycastle.version>1.78.1</bouncycastle.version>
+		<bouncycastle.version>1.84</bouncycastle.version>
 		<amazon.sdk.version>1.12.296</amazon.sdk.version>
 		<amazon.sdk.v2.version>2.29.34</amazon.sdk.v2.version>
 		<log4j.version>2.17.1</log4j.version>

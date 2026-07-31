@@ -1,0 +1,199 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create AWS CodeBuild project
+Parameters:
+  SourceBucket:
+    Type: String
+    Description: S3 bucket containing source archive uploaded by GitHub Actions
+    AllowedPattern: ".+"
+    ConstraintDescription: Parameter cannot be empty.
+  SourceKey:
+    Type: String
+    Description: S3 key of the Stack Builder source archive
+    AllowedPattern: ".+"
+    ConstraintDescription: Parameter cannot be empty.
+  BuildImage:
+    Type: String
+    Description: CodeBuild image to use for the build
+    Default: aws/codebuild/amazonlinux-x86_64-standard:5.0
+    AllowedPattern: ".+"
+    ConstraintDescription: Parameter cannot be empty.
+  BuildComputeType:
+    Type: String
+    Description: CodeBuild compute type
+    Default: BUILD_GENERAL1_MEDIUM
+    AllowedPattern: ".+"
+    ConstraintDescription: Parameter cannot be empty.
+  VpcId:
+    Type: String
+    Description: VPC ID for CodeBuild to use. Default is the VPC for synapse-dev
+    Default: vpc-0f126dc4dd46853a6
+    AllowedPattern: ".+"
+    ConstraintDescription: Parameter cannot be empty.
+  Subnets:
+    Type: CommaDelimitedList
+    Description: Subnets for CodeBuild to use.  Default is a list of subnets for synapse-dev
+    Default: subnet-0bbca9690202e2605,subnet-0e76448649e0636b4,subnet-08d6e58487e45e94f,subnet-0a05b9d8a855b3936,subnet-0ad4945b93afc68f4,subnet-094fb1d1838d905a3
+    AllowedPattern: ".+"
+    ConstraintDescription: Parameter cannot be empty.
+  SecurityGroupIds:
+    Type: CommaDelimitedList
+    Description: Security group IDs for CodeBuild to use.  Default is a security group for synapse-dev.
+    Default: sg-0818ba0f1872103d4
+    AllowedPattern: ".+"
+    ConstraintDescription: Parameter cannot be empty.
+Outputs:
+  PipelineName:
+    Value: !Ref CodePipeline
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-pipeline-name
+Resources:
+  CodePipelineServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      MaxSessionDuration: 28800
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CodePipelinePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # Permission to use S3 artifact store
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:GetBucketVersioning
+                Resource:
+                  - !Sub "${PipelineOutputBucket.Arn}/*"
+                  - !GetAtt PipelineOutputBucket.Arn
+              # Permission to read from the source upload bucket
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:GetBucketVersioning
+                Resource:
+                  - !Sub "arn:aws:s3:::${SourceBucket}/*"
+                  - !Sub "arn:aws:s3:::${SourceBucket}"
+              # Permission to invoke CodeBuild
+              - Effect: Allow
+                Action:
+                  - codebuild:BatchGetBuilds
+                  - codebuild:StartBuild
+                Resource: !GetAtt CodeBuildProject.Arn
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      MaxSessionDuration: 28800
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+  PipelineOutputBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldLogs
+            Status: Enabled
+            ExpirationInDays: 180
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      RoleArn: !GetAtt CodePipelineServiceRole.Arn
+      ArtifactStore:
+        Type: S3
+        Location: !Ref PipelineOutputBucket
+      PipelineType: V2
+      Stages:
+        - Name: CheckoutRepos
+          Actions:
+            - Name: CheckoutStackBuilderRepo
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: S3
+                Version: 1
+              OutputArtifacts:
+                - Name: StackBuilderRepoSource
+              Configuration:
+                S3Bucket: !Ref SourceBucket
+                S3ObjectKey: !Ref SourceKey
+                PollForSourceChanges: false
+        - Name: DeployBuckets
+          Actions:
+            - Name: DeployBuckets
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              InputArtifacts:
+                - Name: StackBuilderRepoSource
+              OutputArtifacts:
+                - Name: StackBuilderRepoBuildOutput
+              Configuration:
+                ProjectName: !Ref CodeBuildProject
+                BuildspecOverride: |
+                  version: 0.2
+                  phases:
+                    build:
+                      commands: |
+                        mvn clean install
+                        # We fetch the latest version of the lambda artifact for the virus scanner using the artifactory API
+                        VIRUS_SCANNER_REPO_API=https://sagebionetworks.jfrog.io/artifactory/api/storage/lambda-artifacts/org/sagebionetworks/virus-scanner/
+                        VIRUS_SCANNER_LATEST_SPEC=$(curl -s "$VIRUS_SCANNER_REPO_API?lastModified" | tr -d "[:blank:]" | grep -oP '(?<="uri":")[^"]*')
+                        VIRUS_SCANNER_LATEST_URL=$(curl -s "$VIRUS_SCANNER_LATEST_SPEC" | tr -d "[:blank:]" | grep -oP '(?<="downloadUri":")[^"]*')
+                        export CMD_PROPS=\
+                        " -Dorg.sagebionetworks.stack=dev"\
+                        " -Dorg.sagebionetworks.lambda.virusscanner.artifactUrl=$VIRUS_SCANNER_LATEST_URL"
+                        java -Xms256m -Xmx2g -cp ./target/stack-builder-0.2.0-SNAPSHOT-jar-with-dependencies.jar $CMD_PROPS org.sagebionetworks.template.s3.S3BuilderMain
+
+  # A CodeBuild project that can be used to run the stack builder or to build the Synapse back-end
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Source:
+        Type: CODEPIPELINE
+      Artifacts:
+        Type: CODEPIPELINE
+      Cache:
+        Type: NO_CACHE
+      Environment:
+        Type: LINUX_CONTAINER
+        Image: !Ref BuildImage
+        ComputeType: !Ref BuildComputeType
+        PrivilegedMode: true
+        ImagePullCredentialsType: CODEBUILD
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+      TimeoutInMinutes: 600
+      QueuedTimeoutInMinutes: 480
+      VpcConfig:
+        VpcId: !Ref VpcId
+        Subnets: !Ref Subnets
+        SecurityGroupIds: !Ref SecurityGroupIds
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+        S3Logs:
+          Status: DISABLED
+          EncryptionDisabled: false
+      BadgeEnabled: false
+      Visibility: PRIVATE

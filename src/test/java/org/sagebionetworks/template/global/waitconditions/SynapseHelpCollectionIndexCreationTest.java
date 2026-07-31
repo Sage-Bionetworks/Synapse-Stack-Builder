@@ -1,4 +1,4 @@
-package org.sagebionetworks.template.repo.bedrock;
+package org.sagebionetworks.template.global.waitconditions;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -94,8 +94,7 @@ public class SynapseHelpCollectionIndexCreationTest {
 	@Test
 	public void testHandleWithActiveCollection() throws IOException, InterruptedException {
 		
-		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
-		when(mockConfig.getProperty(Constants.PROPERTY_KEY_INSTANCE)).thenReturn("101");
+		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");		
 		
 		when(mockOssManagementClient.batchGetCollection(getCollectionRequestCaptor.capture())).thenReturn(BatchGetCollectionResponse.builder()
 			.collectionDetails(CollectionDetail.builder().status(CollectionStatus.ACTIVE).collectionEndpoint(COLLECTION_ENDPOINT).build()).build()
@@ -117,7 +116,7 @@ public class SynapseHelpCollectionIndexCreationTest {
 		assertEquals(Optional.of("index-creation-complete"), handler.handle(stackEvent));
 		
 		assertEquals(
-			BatchGetCollectionRequest.builder().names("dev-101-synhelp").build(), 
+			BatchGetCollectionRequest.builder().names("dev-synhelp").build(), 
 			BatchGetCollectionRequest.builder().applyMutation(getCollectionRequestCaptor.getValue()).build()
 		);
 		
@@ -145,8 +144,7 @@ public class SynapseHelpCollectionIndexCreationTest {
 	@Test
 	public void testHandleWithInactiveCollection() throws IOException, InterruptedException {
 		
-		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
-		when(mockConfig.getProperty(Constants.PROPERTY_KEY_INSTANCE)).thenReturn("101");
+		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");		
 		
 		when(mockOssManagementClient.batchGetCollection(getCollectionRequestCaptor.capture())).thenReturn(BatchGetCollectionResponse.builder()
 			.collectionDetails(CollectionDetail.builder().status(CollectionStatus.CREATING).collectionEndpoint(COLLECTION_ENDPOINT).build()).build()
@@ -163,8 +161,7 @@ public class SynapseHelpCollectionIndexCreationTest {
 	@Test
 	public void testHandleWithCollectionNotFound() throws IOException, InterruptedException {
 		
-		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
-		when(mockConfig.getProperty(Constants.PROPERTY_KEY_INSTANCE)).thenReturn("101");
+		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");		
 		
 		when(mockOssManagementClient.batchGetCollection(getCollectionRequestCaptor.capture())).thenReturn(BatchGetCollectionResponse.builder()
 			.collectionDetails(Collections.emptyList()).build()
@@ -183,8 +180,7 @@ public class SynapseHelpCollectionIndexCreationTest {
 	@Test
 	public void testHandleWithExistingIndex() throws IOException, InterruptedException {
 		
-		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
-		when(mockConfig.getProperty(Constants.PROPERTY_KEY_INSTANCE)).thenReturn("101");
+		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");		
 		
 		when(mockOssManagementClient.batchGetCollection(getCollectionRequestCaptor.capture())).thenReturn(BatchGetCollectionResponse.builder()
 			.collectionDetails(CollectionDetail.builder().status(CollectionStatus.ACTIVE).collectionEndpoint(COLLECTION_ENDPOINT).build()).build()
@@ -199,7 +195,7 @@ public class SynapseHelpCollectionIndexCreationTest {
 		assertEquals(Optional.of("index-already-exists"), handler.handle(stackEvent));
 		
 		assertEquals(
-			BatchGetCollectionRequest.builder().names("dev-101-synhelp").build(), 
+			BatchGetCollectionRequest.builder().names("dev-synhelp").build(), 
 			BatchGetCollectionRequest.builder().applyMutation(getCollectionRequestCaptor.getValue()).build()
 		);
 		
@@ -214,8 +210,7 @@ public class SynapseHelpCollectionIndexCreationTest {
 	@Test
 	public void testHandleWithIOException() throws IOException {
 		
-		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
-		when(mockConfig.getProperty(Constants.PROPERTY_KEY_INSTANCE)).thenReturn("101");
+		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");		
 		
 		when(mockOssManagementClient.batchGetCollection(getCollectionRequestCaptor.capture())).thenReturn(BatchGetCollectionResponse.builder()
 			.collectionDetails(CollectionDetail.builder().status(CollectionStatus.ACTIVE).collectionEndpoint(COLLECTION_ENDPOINT).build()).build()
@@ -237,7 +232,7 @@ public class SynapseHelpCollectionIndexCreationTest {
 		assertEquals(ex, result.getCause());
 		
 		assertEquals(
-			BatchGetCollectionRequest.builder().names("dev-101-synhelp").build(), 
+			BatchGetCollectionRequest.builder().names("dev-synhelp").build(), 
 			BatchGetCollectionRequest.builder().applyMutation(getCollectionRequestCaptor.getValue()).build()
 		);
 		
@@ -253,8 +248,7 @@ public class SynapseHelpCollectionIndexCreationTest {
 	public void testHandleWithRetryOnOpenSearchException() throws IOException, InterruptedException {
 		StackEvent stackEvent = StackEvent.builder().build();
 
-		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
-		when(mockConfig.getProperty(Constants.PROPERTY_KEY_INSTANCE)).thenReturn("101");
+		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");		
 		
 		when(mockOssManagementClient.batchGetCollection(getCollectionRequestCaptor.capture())).thenReturn(BatchGetCollectionResponse.builder()
 			.collectionDetails(CollectionDetail.builder().status(CollectionStatus.ACTIVE).collectionEndpoint(COLLECTION_ENDPOINT).build()).build()
@@ -281,8 +275,7 @@ public class SynapseHelpCollectionIndexCreationTest {
 	@Test
 	public void testHandleWithRetryOnOpenSearchExceptionAndSuccess() throws IOException, InterruptedException {
 		StackEvent stackEvent = StackEvent.builder().build();
-		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
-		when(mockConfig.getProperty(Constants.PROPERTY_KEY_INSTANCE)).thenReturn("101");
+		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");		
 		
 		when(mockOssManagementClient.batchGetCollection(getCollectionRequestCaptor.capture())).thenReturn(BatchGetCollectionResponse.builder()
 			.collectionDetails(CollectionDetail.builder().status(CollectionStatus.ACTIVE).collectionEndpoint(COLLECTION_ENDPOINT).build()).build()
@@ -298,7 +291,6 @@ public class SynapseHelpCollectionIndexCreationTest {
 		assertEquals(Optional.of("index-already-exists"), handler.handle(stackEvent));
 				
 		verifyNoMoreInteractions(mockOpenSearchIndicesClient);
-	}
-	
+	}	
 
 }

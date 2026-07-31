@@ -339,7 +339,11 @@
                               "logs:CreateLogStream",
                               "logs:PutLogEvents"
                            ],
-                           "Resource":"*"
+                           "Resource":[
+                                {
+                                    "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:/aws/lambda/${stack}-synapse-virus-*"
+                                }
+                           ]
                         },
                         {
                            "Action":[
@@ -417,7 +421,11 @@
                               "logs:CreateLogStream",
                               "logs:PutLogEvents"
                            ],
-                           "Resource":"*"
+                           "Resource":[
+                                {
+                                    "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:/aws/lambda/${stack}-synapse-virus-*"
+                                }
+                           ]
                         },
                         {
                            "Action":[

@@ -1,0 +1,142 @@
+	,
+	## In dev the domain is public (no VPCOptions, gated by the IAM AccessPolicies below),
+	## so it has no ENIs and this security group would be unused. Only create it for the
+	## VPC-attached prod domain.
+	#if (${stack} != 'dev')
+	"${stack}${instance}SynapseSearchIndexSecurityGroup": {
+		"Type": "AWS::EC2::SecurityGroup",
+		"Properties": {
+			"GroupDescription": "Security group for the per-entity SearchIndex managed OpenSearch domain ENIs in ${stack}${instance}",
+			"VpcId": {
+				"Fn::ImportValue": "${vpcExportPrefix}-VPCId"
+			},
+			"SecurityGroupIngress": [
+				{
+					"Description": "Allow ${subnetGroupColor} subnet HTTPS access from the workers",
+					"CidrIp": {
+						"Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-CIDR"
+					},
+					"FromPort": "443",
+					"ToPort": "443",
+					"IpProtocol": "tcp"
+				}
+			],
+			"Tags": [
+				{
+					"Key": "Application",
+					"Value": {
+						"Ref": "AWS::StackName"
+					}
+				},
+				{
+					"Key": "Name",
+					"Value": "${stack}${instance}SynapseSearchIndexSecurityGroup"
+				}
+			]
+		}
+	},
+	#end
+	"SynapseSearchIndexDomain": {
+		"Type": "AWS::OpenSearchService::Domain",
+		"DeletionPolicy": "${deletionPolicy}",
+		"Properties": {
+			"DomainName": "${stack}-${instance}-synidx",
+			"EngineVersion": "OpenSearch_3.5",
+			## For prod, openSearchInstanceType / openSearchMasterInstanceType /
+			## openSearchAvailabilityZoneCount and the pruned openSearchSubnets list are all injected
+			## from RepositoryTemplateBuilderImpl. The AZ count drives ZoneAwarenessConfig here and
+			## bounds the subnet list length there.
+			"ClusterConfig":
+				#if (${stack} == 'prod')
+				{
+					"InstanceType": "${openSearchInstanceType}.search",
+					"InstanceCount": 2,
+					"ZoneAwarenessEnabled": true,
+					"ZoneAwarenessConfig": { "AvailabilityZoneCount": $openSearchAvailabilityZoneCount },
+					"DedicatedMasterEnabled": true,
+					"DedicatedMasterType": "${openSearchMasterInstanceType}.search",
+					"DedicatedMasterCount": 3
+				}
+				#else
+				{
+					"InstanceType": "t3.small.search",
+					"InstanceCount": 1,
+					"ZoneAwarenessEnabled": false,
+					"DedicatedMasterEnabled": false
+				}
+				#end
+			,
+			"EBSOptions": {
+				"EBSEnabled": true,
+				"VolumeType": "gp3",
+				"VolumeSize": #if (${stack} == 'prod') 100 #else 20 #end
+			},
+			"EncryptionAtRestOptions": {
+				"Enabled": true
+			},
+			"NodeToNodeEncryptionOptions": {
+				"Enabled": true
+			},
+			"DomainEndpointOptions": {
+				"EnforceHTTPS": true
+			},
+			## AutoSoftwareUpdateEnabled applies MINOR service software updates automatically
+			## during the domain's off-peak maintenance window, using a blue/green deployment
+			## (one node at a time, no connectivity loss on a multi-node prod domain). MAJOR
+			## engine upgrades (e.g. 3.x -> 4.0) are NOT auto-applied and still require an
+			## explicit EngineVersion change.
+			"SoftwareUpdateOptions": {
+				"AutoSoftwareUpdateEnabled": true
+			},
+			## Dev omits VPCOptions so the domain gets a public endpoint reachable outside the
+			## VPC, gated only by the IAM AccessPolicies below (equivalent to the AOSS dev
+			## collection's AllowFromPublic:true). Prod attaches the domain to the private
+			## subnets.
+			#if (${stack} != 'dev')
+			"VPCOptions": {
+				"SecurityGroupIds": [
+					{ "Ref": "${stack}${instance}SynapseSearchIndexSecurityGroup" }
+				],
+				"SubnetIds": [
+					#foreach($subnetId in $openSearchSubnets)
+						"$subnetId"#if($foreach.hasNext),#end
+					#end
+				]
+			},
+			#end
+			"AccessPolicies": {
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Principal": {
+							"AWS":
+								#if (${stack} == 'dev')
+									{"Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:root"}
+								#else
+									#if ($deploymentTarget == "ECS_FARGATE")
+										{"Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersEcsTaskRole", "Arn"]}
+									#else
+										{"Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"]}
+									#end
+								#end
+						},
+						"Action": "es:ESHttp*",
+						"Resource": {"Fn::Sub": "arn:aws:es:#[[${AWS::Region}]]#:#[[${AWS::AccountId}]]#:domain/${stack}-${instance}-synidx/*"}
+					}
+				]
+			},
+			"Tags": [
+				{
+					"Key": "Application",
+					"Value": {
+						"Ref": "AWS::StackName"
+					}
+				},
+				{
+					"Key": "Name",
+					"Value": "${stack}-${instance}-synidx"
+				}
+			]
+		}
+	}

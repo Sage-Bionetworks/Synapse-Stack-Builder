@@ -1,4 +1,4 @@
-package org.sagebionetworks.template.repo.bedrock;
+package org.sagebionetworks.template.global.waitconditions;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -95,9 +95,8 @@ public class SynapseHelpKnowledgeBaseDataSourceSyncTest {
 	@Test
 	public void testHandle() throws InterruptedException {
 		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
-		when(mockConfig.getProperty(Constants.PROPERTY_KEY_INSTANCE)).thenReturn("101");
 		
-		String knowledgeBaseName = "dev-101-synhelp-knowledge-base";
+		String knowledgeBaseName = "dev-synhelp-knowledge-base";
 		
 		when(mockBedrockAgentClient.listKnowledgeBases(any(ListKnowledgeBasesRequest.class))).thenReturn(
 			ListKnowledgeBasesResponse.builder().knowledgeBaseSummaries(List.of(
@@ -109,7 +108,7 @@ public class SynapseHelpKnowledgeBaseDataSourceSyncTest {
 			new ListKnowledgeBasesIterable(mockBedrockAgentClient, ListKnowledgeBasesRequest.builder().build())
 		);
 		
-		String dataSourceName = "dev-101-synhelp-datasource";
+		String dataSourceName = "dev-synhelp-datasource";
 		
 		when(mockBedrockAgentClient.listDataSources(any(ListDataSourcesRequest.class))).thenReturn(
 			ListDataSourcesResponse.builder().dataSourceSummaries(List.of(
@@ -179,7 +178,6 @@ public class SynapseHelpKnowledgeBaseDataSourceSyncTest {
 	@Test
 	public void testHandleWithKnowledgeBaseNotFound() throws InterruptedException {
 		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
-		when(mockConfig.getProperty(Constants.PROPERTY_KEY_INSTANCE)).thenReturn("101");
 		
 		when(mockBedrockAgentClient.listKnowledgeBases(any(ListKnowledgeBasesRequest.class))).thenReturn(
 			ListKnowledgeBasesResponse.builder().knowledgeBaseSummaries(Collections.emptyList()).build()
@@ -207,9 +205,8 @@ public class SynapseHelpKnowledgeBaseDataSourceSyncTest {
 	@Test
 	public void testHandleWithDataSourceNotFound() throws InterruptedException {
 		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
-		when(mockConfig.getProperty(Constants.PROPERTY_KEY_INSTANCE)).thenReturn("101");
 		
-		String knowledgeBaseName = "dev-101-synhelp-knowledge-base";
+		String knowledgeBaseName = "dev-synhelp-knowledge-base";
 		
 		when(mockBedrockAgentClient.listKnowledgeBases(any(ListKnowledgeBasesRequest.class))).thenReturn(
 			ListKnowledgeBasesResponse.builder().knowledgeBaseSummaries(List.of(
@@ -252,9 +249,8 @@ public class SynapseHelpKnowledgeBaseDataSourceSyncTest {
 	@Test
 	public void testHandleWithJobAlreadyStarted() throws InterruptedException {
 		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
-		when(mockConfig.getProperty(Constants.PROPERTY_KEY_INSTANCE)).thenReturn("101");
 		
-		String knowledgeBaseName = "dev-101-synhelp-knowledge-base";
+		String knowledgeBaseName = "dev-synhelp-knowledge-base";
 		
 		when(mockBedrockAgentClient.listKnowledgeBases(any(ListKnowledgeBasesRequest.class))).thenReturn(
 			ListKnowledgeBasesResponse.builder().knowledgeBaseSummaries(List.of(
@@ -266,7 +262,7 @@ public class SynapseHelpKnowledgeBaseDataSourceSyncTest {
 			new ListKnowledgeBasesIterable(mockBedrockAgentClient, ListKnowledgeBasesRequest.builder().build())
 		);
 		
-		String dataSourceName = "dev-101-synhelp-datasource";
+		String dataSourceName = "dev-synhelp-datasource";
 		
 		when(mockBedrockAgentClient.listDataSources(any(ListDataSourcesRequest.class))).thenReturn(
 			ListDataSourcesResponse.builder().dataSourceSummaries(List.of(
@@ -310,9 +306,8 @@ public class SynapseHelpKnowledgeBaseDataSourceSyncTest {
 	@Test
 	public void testHandleWithJobFailure() throws InterruptedException {
 		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn("dev");
-		when(mockConfig.getProperty(Constants.PROPERTY_KEY_INSTANCE)).thenReturn("101");
 		
-		String knowledgeBaseName = "dev-101-synhelp-knowledge-base";
+		String knowledgeBaseName = "dev-synhelp-knowledge-base";
 		
 		when(mockBedrockAgentClient.listKnowledgeBases(any(ListKnowledgeBasesRequest.class))).thenReturn(
 			ListKnowledgeBasesResponse.builder().knowledgeBaseSummaries(List.of(
@@ -324,7 +319,7 @@ public class SynapseHelpKnowledgeBaseDataSourceSyncTest {
 			new ListKnowledgeBasesIterable(mockBedrockAgentClient, ListKnowledgeBasesRequest.builder().build())
 		);
 		
-		String dataSourceName = "dev-101-synhelp-datasource";
+		String dataSourceName = "dev-synhelp-datasource";
 		
 		when(mockBedrockAgentClient.listDataSources(any(ListDataSourcesRequest.class))).thenReturn(
 			ListDataSourcesResponse.builder().dataSourceSummaries(List.of(

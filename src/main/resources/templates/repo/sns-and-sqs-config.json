@@ -23,6 +23,7 @@
 		"JSON_SCHEMA_DEPENDANT",
 		"THREAD_VIEW",
 		"MATERIALIZED_VIEW",
+		"RECORDSET",
 		"TABLE_STATUS_EVENT",
 		"DATA_ACCESS_SUBMISSION_EVENT",
 		"FILE_EVENT",
@@ -30,7 +31,9 @@
 		"ACCESS_REQUIREMENT",
 		"PROJECT_STORAGE_EVENT",
 		"REPLICATED_EVENT",
-		"GRID_REPLICA_CHANGES"
+		"GRID_REPLICA_CHANGES",
+		"GRID_SESSION",
+		"SOURCE_DEPENDENCY_EVENT"
 	],
 	"snsGlobalTopicNames": [
 		"SES_SYNAPSE_ORG_BOUNCE",
@@ -153,16 +156,6 @@
 				"TABLE"
 			],
 			"messageVisibilityTimeoutSec": 60
-		},
-		{
-			"queueName": "SEARCH_UPDATE",
-			"subscribedTopicNames": [
-				"ENTITY",
-				"WIKI"
-			],
-			"messageVisibilityTimeoutSec": 600,
-			"deadLetterQueueMaxFailureCount": 250,
-			"messageRetentionPeriodSec": 1209600
 		},
 		{
 			"queueName": "SEARCH_INDEX",
@@ -302,6 +295,12 @@
 			"messageVisibilityTimeoutSec": 300
 		},
 		{
+			"queueName": "ADD_TO_DOWNLOAD_LIST_STATS",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 300
+		},
+		{
 			"queueName": "DOWNLOAD_LIST_PACKAGE",
 			"subscribedTopicNames": [
 			],
@@ -362,13 +361,22 @@
 		{
 			"queueName": "MATERIALIZED_VIEW_UPDATE",
 			"subscribedTopicNames": [
-				"MATERIALIZED_VIEW"
+				"MATERIALIZED_VIEW",
+				"SOURCE_DEPENDENCY_EVENT"
 			],
 			"messageVisibilityTimeoutSec": 120,
 			"messageRetentionPeriodSec": 1209600
 		},
 		{
-			"queueName": "MATERIALIZED_VIEW_SOURCE_UPDATE",
+			"queueName": "RECORDSET_UPDATE",
+			"subscribedTopicNames": [
+				"RECORDSET"
+			],
+			"messageVisibilityTimeoutSec": 1200,
+			"messageRetentionPeriodSec": 1209600
+		},
+		{
+			"queueName": "DEFINING_SQL_SOURCE_UPDATE",
 			"subscribedTopicNames": [
 				"TABLE_STATUS_EVENT"
 			],
@@ -453,12 +461,11 @@
 			"messageVisibilityTimeoutSec": 60
 		},
 		{
-			"queueName": "GRID_WEBSOCKET_MESSAGE",
+			"queueName": "GRID_WEBSOCKET_MESSAGE.fifo",
 			"subscribedTopicNames": [
 			],
 			"messageVisibilityTimeoutSec": 30,
-			"oldestMessageInQueueAlarmThresholdSec": 10,
-			"deadLetterQueueMaxFailureCount": 3
+			"oldestMessageInQueueAlarmThresholdSec": 10
 		},
 		{
 			"queueName": "GRID_CREATE",
@@ -468,7 +475,7 @@
 			"oldestMessageInQueueAlarmThresholdSec": 30
 		},
 		{
-			"queueName": "GRID_INTERNAL_EVENT",
+			"queueName": "GRID_INTERNAL_EVENT.fifo",
 			"subscribedTopicNames": [
 			],
 			"messageVisibilityTimeoutSec": 30,
@@ -494,6 +501,68 @@
 			"subscribedTopicNames": [
 			],
 			"messageVisibilityTimeoutSec": 60
+		},
+		{
+			"queueName": "GRID_EXPORT_RECORDSET",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 60
+		},
+		{
+			"queueName": "GRID_IMPORT_CSV",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 60
+		},
+		{
+			"queueName": "GRID_QUERY.fifo",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 30,
+			"oldestMessageInQueueAlarmThresholdSec": 120
+		},
+		{
+			"queueName": "GRID_UPDATE.fifo",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 30,
+			"oldestMessageInQueueAlarmThresholdSec": 120
+		},
+		{
+			"queueName": "GRID_SYNCHRONIZATION.fifo",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 30,
+			"oldestMessageInQueueAlarmThresholdSec": 120
+		},
+		{
+			"queueName": "GRID_SESSION_INDEX",
+			"subscribedTopicNames": [
+				"GRID_SESSION"
+			],
+			"messageVisibilityTimeoutSec": 120
+		},
+		{
+			"queueName": "SEARCH_INDEX_LIFECYCLE",
+			"subscribedTopicNames": [
+				"ENTITY",
+				"SOURCE_DEPENDENCY_EVENT"
+			],
+			"messageVisibilityTimeoutSec": 300,
+			"deadLetterQueueMaxFailureCount": 5
+		},
+		{
+			"queueName": "SEARCH_QUERY",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 120,
+			"oldestMessageInQueueAlarmThresholdSec": 30
+		},
+		{
+			"queueName": "COMPUTE_TASK_EXECUTION",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 600
 		}
 	]
 }

@@ -7,5 +7,7 @@
 /velocity.log
 *.iml
 /.idea
-
+/.vscode
 **/.DS_Store
+.claude/*
+!.claude/skills/

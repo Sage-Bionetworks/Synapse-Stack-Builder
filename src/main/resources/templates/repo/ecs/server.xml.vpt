@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Server port="8005" shutdown="SHUTDOWN">
+  <Listener className="org.apache.catalina.startup.VersionLoggerListener"
+            logArgs="false" logEnv="false" logProps="false" />
+  <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on" />
+  <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
+  <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
+  <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
+
+  <Service name="Catalina">
+    <Connector port="8080"
+               address="127.0.0.1"
+               protocol="org.apache.coyote.http11.Http11NioProtocol"
+               maxThreads="200"
+               connectionTimeout="20000"
+               compression="on"
+               compressionMinSize="2048"
+               compressibleMimeType="text/plain,application/json,text/xml,application/xml" />
+
+    <Engine name="Catalina" defaultHost="localhost">
+      <Host name="localhost" appBase="webapps" unpackWARs="true" autoDeploy="true">
+        <Context docBase="${warFileName}" path="" />
+        <Valve className="org.apache.catalina.valves.RemoteIpValve"
+               internalProxies="127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+|169\.254\.\d+\.\d+"
+               remoteIpHeader="x-forwarded-for"
+               protocolHeader="x-forwarded-proto"
+               protocolHeaderHttpsValue="https" />
+        <Valve className="org.apache.catalina.valves.ErrorReportValve" showReport="false" showServerInfo="false" />
+      </Host>
+    </Engine>
+  </Service>
+</Server>

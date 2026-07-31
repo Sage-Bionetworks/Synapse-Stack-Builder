@@ -19,6 +19,7 @@ import static org.sagebionetworks.template.Constants.CTXT_KEY_ACM_CERT_ARN;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DOMAIN_NAME;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_SUBDOMAIN_NAME;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_DOCS_SSL_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK_INSTANCE_ALIAS;
 
 public class UserDocsRedirectorBuilderImpl implements  UserDocsRedirectorBuilder {
@@ -49,7 +50,7 @@ public class UserDocsRedirectorBuilderImpl implements  UserDocsRedirectorBuilder
 	VelocityContext createContext() {
 		VelocityContext ctxt = new VelocityContext();
 		// The ACM ARN is the same as the one used for portal
-		String acmCertificateArn = config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN+"portal");
+		String acmCertificateArn = config.getProperty(PROPERTY_KEY_DOCS_SSL_ARN);
 		ctxt.put(CTXT_KEY_ACM_CERT_ARN, acmCertificateArn);
 		String stackInstanceAlias = config.getProperty(PROPERTY_KEY_STACK_INSTANCE_ALIAS);
 		ctxt.put(CTXT_KEY_SUBDOMAIN_NAME, stackInstanceAlias);

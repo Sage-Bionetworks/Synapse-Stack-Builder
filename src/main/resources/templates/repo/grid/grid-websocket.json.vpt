@@ -376,7 +376,7 @@
 			"LogGroupName": {
 				"Fn::Sub": "/aws/apigateway/${D}{GridWebsocketApi}"
 			},
-			"RetentionInDays": 7
+			"RetentionInDays": ${cloudwatchLogRetentionInDays}
 		}
 	},
 	"GridApiGatewayCloudWatchRole": {
@@ -397,8 +397,33 @@
 				]
 			},
 			"Path": "/",
-			"ManagedPolicyArns": [
-				"arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+			"Policies": [{
+			    "PolicyName": "APIGatewayPushToCloudWatchLogs",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [{
+                        "Effect": "Allow",
+                        "Action": [
+                            "logs:CreateLogGroup",
+                            "logs:CreateLogStream",
+                            "logs:DescribeLogGroups",
+                            "logs:DescribeLogStreams",
+                            "logs:PutLogEvents",
+                            "logs:GetLogEvents",
+                            "logs:FilterLogEvents"
+                        ],
+                        "Resource": [
+                            {
+                                "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:log-group:API-Gateway-Execution-Logs*"
+                            },
+                            {
+                                "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:log-group:/aws/apigateway/*"
+                            }
+                        ]
+                    }
+                    ]
+			    }
+			}
 			]
 		}
 	},

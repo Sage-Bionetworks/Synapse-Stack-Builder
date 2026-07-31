@@ -1,0 +1,142 @@
+{
+  "Resources": {
+    "mdlambdaServiceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": { "Service": "lambda.amazonaws.com" },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "LambdaBasicExecutionRole",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": [
+                    { "Fn::Sub": "arn:aws:logs:#[[${AWS::Region}:${AWS::AccountId}]]#:log-group:/aws/lambda/*" }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "mdlambda": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": "${stack}.artifacts.sagebase.org",
+          "S3Key": "${lambdaArtifactKey}"
+        },
+        "Handler": "index.handler",
+        "Role": { "Fn::GetAtt": [ "mdlambdaServiceRole", "Arn" ] },
+        "Runtime": "nodejs24.x",
+        "Timeout": 10
+      }
+    },
+    "mdlambdaLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "LogGroupName": { "Fn::Sub": "/aws/lambda/#[[${mdlambda}]]#" },
+        "RetentionInDays": 731
+      }
+    },
+    "MarkdownItApi": {
+      "Type": "AWS::ApiGateway::RestApi",
+      "Properties": {
+        "Name": "MarkdownItApi"
+      }
+    },
+    "MarkdownItApiPostMethod": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "AWS_IAM",
+        "HttpMethod": "POST",
+        "ResourceId": { "Fn::GetAtt": [ "MarkdownItApi", "RootResourceId" ] },
+        "RestApiId": { "Ref": "MarkdownItApi" },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:aws:apigateway:#[[${AWS::Region}]]#:lambda:path/2015-03-31/functions/#[[${mdlambda.Arn}]]#/invocations"
+          }
+        }
+      }
+    },
+    "MarkdownItApiPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": ["MarkdownItApiPostMethod"],
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": { "Fn::GetAtt": [ "mdlambda", "Arn" ] },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:#[[${AWS::Partition}]]#:execute-api:#[[${AWS::Region}]]#:#[[${AWS::AccountId}]]#:#[[${MarkdownItApi}]]#/*/POST/"
+        }
+      }
+    },
+    "MarkdownItApiDeployment": {
+      "Type": "AWS::ApiGateway::Deployment",
+      "DependsOn": ["MarkdownItApiPostMethod"],
+      "Properties": {
+        "RestApiId": { "Ref": "MarkdownItApi" },
+        "Description": "Deployment for the markdown-it API"
+      }
+    },
+    "MarkdownItApiStage": {
+      "Type": "AWS::ApiGateway::Stage",
+      "Properties": {
+        "RestApiId": { "Ref": "MarkdownItApi" },
+        "DeploymentId": { "Ref": "MarkdownItApiDeployment" },
+        "StageName": "prod"
+      }
+    },
+    "CustomDomain": {
+      "Type": "AWS::ApiGateway::DomainName",
+      "Properties": {
+        "DomainName": "${markdownitSubDomain}.${stack}.sagebase.org",
+        "EndpointConfiguration": { "Types": ["REGIONAL"] },
+        "RegionalCertificateArn": "${certificateArn}"
+      }
+    },
+    "BasePathMapping": {
+      "Type": "AWS::ApiGateway::BasePathMapping",
+      "Properties": {
+        "BasePath": "md2html",
+        "DomainName": { "Ref": "CustomDomain" },
+        "RestApiId": { "Ref": "MarkdownItApi" },
+        "Stage": { "Ref": "MarkdownItApiStage" }
+      }
+    }
+  },
+  "Outputs": {
+    "ApiGatewayUrl": {
+      "Description": "The API Gateway endpoint for the markdown-it Lambda function",
+      "Value": {
+        "Fn::Sub": "https://#[[${MarkdownItApi}]]#.execute-api.#[[${AWS::Region}]]#.#[[${AWS::URLSuffix}]]#/#[[${MarkdownItApiStage}]]#/"
+      }
+    },
+    "CustomDomainAlias": {
+      "Description": "Create a CNAME record pointing your custom domain to this value",
+      "Value": { "Fn::GetAtt": [ "CustomDomain", "RegionalDomainName" ] }
+    }
+  }
+}

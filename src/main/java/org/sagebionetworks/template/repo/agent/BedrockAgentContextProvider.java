@@ -8,23 +8,26 @@ import java.util.StringJoiner;
 import org.apache.velocity.VelocityContext;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.TemplateUtils;
 import org.sagebionetworks.template.config.RepoConfiguration;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
 
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.google.inject.Inject;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class BedrockAgentContextProvider implements VelocityContextProvider {
-	
+
 	private final RepoConfiguration repoConfig;
-	private final AmazonS3Client s3Cient;
+	private final S3Client s3Client;
 
 	@Inject
-	public BedrockAgentContextProvider(RepoConfiguration repoConfig, AmazonS3Client s3Client) {
+	public BedrockAgentContextProvider(RepoConfiguration repoConfig, S3Client s3Client) {
 		super();
 		this.repoConfig = repoConfig;
-		this.s3Cient = s3Client;
+		this.s3Client = s3Client;
 	}
 
 	@Override
@@ -32,12 +35,19 @@ public class BedrockAgentContextProvider implements VelocityContextProvider {
 		String stack = repoConfig.getProperty(PROPERTY_KEY_STACK);
 		String instance = repoConfig.getProperty(PROPERTY_KEY_INSTANCE);
 		String agentName = new StringJoiner("-").add(stack).add(instance).add("agent").toString();
+		String globalStackPrefix = Constants.createGlobalResourcesExportPrefix(stack);
 		
 		String openApiSchemaBucket = String.format("%s-configuration.sagebase.org", stack);
 		String openApiSchemakey = String.format("chat/openapi/%s.json", instance);
-		
+
 		String openApiSchemJsonString = TemplateUtils.loadContentFromFile("templates/repo/agent/agent_open_api.json");
-		s3Cient.putObject(openApiSchemaBucket, openApiSchemakey, openApiSchemJsonString);
+		s3Client.putObject(
+			PutObjectRequest.builder()
+				.bucket(openApiSchemaBucket)
+				.key(openApiSchemakey)
+				.build(),
+			RequestBody.fromString(openApiSchemJsonString)
+		);
 		
 		String openApiSchemaS3Arn = String.format("arn:aws:s3:::%s/%s", openApiSchemaBucket, openApiSchemakey);
 
@@ -60,7 +70,7 @@ public class BedrockAgentContextProvider implements VelocityContextProvider {
 			.getJSONObject(1)
 			.getJSONArray("Resource");
 		
-		bedrockAgentRoleKbResource.put(0, new JSONObject("{ \"Fn::GetAtt\": [\"SynapseHelpKnowledgeBase\", \"KnowledgeBaseArn\"] }"));
+		bedrockAgentRoleKbResource.put(0, new JSONObject().put("Fn::ImportValue", globalStackPrefix + "-SynapseHelpKnowledgeBaseArn"));
 		
 		JSONObject bedrockAgentProps = resources.getJSONObject("bedrockAgent").getJSONObject("Properties");
 		
@@ -69,8 +79,8 @@ public class BedrockAgentContextProvider implements VelocityContextProvider {
 			.getJSONArray("Fn::If")
 			.getJSONArray(1)
 			.getJSONObject(0);
-			
-		kbProperty.getJSONObject("KnowledgeBaseId").put("Ref", "SynapseHelpKnowledgeBase");
+		
+		kbProperty.put("KnowledgeBaseId", new JSONObject().put("Fn::ImportValue", globalStackPrefix  + "-SynapseHelpKnowledgeBaseId"));
 		kbProperty.put("Description", baseTemplate.getJSONObject("Parameters").getJSONObject("knowledgeBaseDescription").getString("Default"));
 		
 		

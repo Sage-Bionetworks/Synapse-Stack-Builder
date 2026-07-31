@@ -14,6 +14,7 @@ import static org.sagebionetworks.template.TemplateUtils.loadFromJsonFile;
 import java.io.IOException;
 
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
@@ -44,6 +45,8 @@ import org.sagebionetworks.template.docs.SynapseDocsBuilder;
 import org.sagebionetworks.template.docs.SynapseDocsBuilderImpl;
 import org.sagebionetworks.template.global.GlobalResourcesBuilder;
 import org.sagebionetworks.template.global.GlobalResourcesBuilderImpl;
+import org.sagebionetworks.template.global.waitconditions.SynapseHelpCollectionIndexCreation;
+import org.sagebionetworks.template.global.waitconditions.SynapseHelpKnowledgeBaseDataSourceSync;
 import org.sagebionetworks.template.ip.address.IpAddressPoolBuilder;
 import org.sagebionetworks.template.ip.address.IpAddressPoolBuilderImpl;
 import org.sagebionetworks.template.jobs.AsynchAdminJobExecutor;
@@ -62,6 +65,7 @@ import org.sagebionetworks.template.repo.RepositoryTemplateBuilder;
 import org.sagebionetworks.template.repo.RepositoryTemplateBuilderImpl;
 import org.sagebionetworks.template.repo.VelocityContextProvider;
 import org.sagebionetworks.template.repo.agent.BedrockAgentContextProvider;
+import org.sagebionetworks.template.repo.agent.BedrockGridAgentContextProvider;
 import org.sagebionetworks.template.repo.appconfig.AppConfigConfig;
 import org.sagebionetworks.template.repo.appconfig.AppConfigConfigValidator;
 import org.sagebionetworks.template.repo.appconfig.AppConfigVelocityContextProvider;
@@ -80,12 +84,12 @@ import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateBuilder;
 import org.sagebionetworks.template.repo.beanstalk.ssl.CertificateBuilderImpl;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilder;
 import org.sagebionetworks.template.repo.beanstalk.ssl.ElasticBeanstalkExtentionBuilderImpl;
-import org.sagebionetworks.template.repo.bedrock.SynapseHelpCollectionIndexCreation;
-import org.sagebionetworks.template.repo.bedrock.SynapseHelpKnowledgeBaseDataSourceSync;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsConfig;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsConfigValidator;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProviderImpl;
+import org.sagebionetworks.template.repo.ecs.DockerImageBuilder;
+import org.sagebionetworks.template.repo.ecs.DockerImageBuilderImpl;
 import org.sagebionetworks.template.repo.grid.GridContextProvider;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfig;
 import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseConfigValidator;
@@ -97,8 +101,6 @@ import org.sagebionetworks.template.s3.S3BucketBuilder;
 import org.sagebionetworks.template.s3.S3BucketBuilderImpl;
 import org.sagebionetworks.template.s3.S3Config;
 import org.sagebionetworks.template.s3.S3ConfigValidator;
-import org.sagebionetworks.template.s3.S3TransferManagerFactory;
-import org.sagebionetworks.template.s3.S3TransferManagerFactoryImpl;
 import org.sagebionetworks.template.utils.ArtifactDownload;
 import org.sagebionetworks.template.utils.ArtifactDownloadImpl;
 import org.sagebionetworks.template.vpc.SubnetTemplateBuilder;
@@ -124,6 +126,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.athena.AthenaClient;
 import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
+import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkClient;
 import software.amazon.awssdk.services.glue.GlueClient;
@@ -132,6 +135,7 @@ import software.amazon.awssdk.services.imagebuilder.ImagebuilderClientBuilder;
 import software.amazon.awssdk.services.kms.KmsClient;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.opensearchserverless.OpenSearchServerlessClient;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -188,6 +192,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(MarkDownItLambdaBuilder.class).to(MarkDownItLambdaBuilderImpl.class);
 		bind(ImageBuilderClient.class).to(ImageBuilderClientImpl.class);
 		bind(CdnWebAclBuilder.class).to(CdnWebAclBuilderImpl.class);
+		bind(DockerImageBuilder.class).to(DockerImageBuilderImpl.class);
 
 		Multibinder<VelocityContextProvider> velocityContextProviderMultibinder = Multibinder.newSetBinder(binder(), VelocityContextProvider.class);
 
@@ -196,6 +201,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		velocityContextProviderMultibinder.addBinding().to(KinesisFirehoseVelocityContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(RecurrentAthenaQueryContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(BedrockAgentContextProvider.class);
+		velocityContextProviderMultibinder.addBinding().to(BedrockGridAgentContextProvider.class);
 		velocityContextProviderMultibinder.addBinding().to(GridContextProvider.class);
 		
 		Multibinder<WaitConditionHandler> waitConditionHandlerBinder = Multibinder.newSetBinder(binder(), WaitConditionHandler.class);
@@ -221,7 +227,12 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		builder.withRegion(Regions.US_EAST_1);
 		return builder.build();
 	}
-	
+
+	@Provides
+	public S3Client provideS3Client() {
+		return S3Client.builder().region(Region.US_EAST_1).build();
+	}
+
 	@Provides
 	public LambdaClient provideAWSLambdaClient() {
 		LambdaClient client = LambdaClient.builder().region(Region.US_EAST_1).build();
@@ -247,8 +258,15 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
  	@Provides
 	public HttpClient provideHttpClient() {
-		HttpClientBuilder builder = HttpClientBuilder.create();
-		return builder.build();
+		RequestConfig requestConfig = RequestConfig.custom()
+				.setConnectTimeout(30_000)
+				.setSocketTimeout(60_000)
+				.setConnectionRequestTimeout(30_000)
+				.build();
+		return HttpClientBuilder.create()
+				.useSystemProperties()
+				.setDefaultRequestConfig(requestConfig)
+				.build();
 	}
 	
 	@Provides
@@ -295,7 +313,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Named("GridQueueReferenceName")
 	public String getGridQueueRef(SnsAndSqsConfig config) {
 		SqsQueueDescriptor des = config.getQueueDescriptors().stream()
-				.filter(d -> "GRID_WEBSOCKET_MESSAGE".equals(d.getQueueName())).findFirst().get();
+				.filter(d -> "GRID_WEBSOCKET_MESSAGE.fifo".equals(d.getQueueName())).findFirst().get();
 		return des.getQueueReferenceName() + "Queue";
 	}
 
@@ -334,11 +352,6 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		return factory.getInstance();
 	}
 	
-	@Provides
-	public S3TransferManagerFactory provideS3TransferManagerFactory(AmazonS3 s3Client) {
-		return new S3TransferManagerFactoryImpl(s3Client);
-	}
-
 	@Provides
 	public DataWarehouseConfig dataWarehouseConfigProvider() throws IOException {
 		return new DataWarehouseConfigValidator(loadFromJsonFile(DATAWAREHOUSE_CONFIG_FILE, DataWarehouseConfig.class)).validate();
@@ -391,4 +404,11 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		return imageBuilderClientBuilder.build();
 	}
 	
+	@Provides
+	public CognitoIdentityProviderClient provideCognitoIdentityProvider() {
+		CognitoIdentityProviderClient client = CognitoIdentityProviderClient.builder().region(Region.US_EAST_1).build();
+		return client;
+	}
+
+
 }

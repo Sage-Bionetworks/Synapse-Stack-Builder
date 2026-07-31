@@ -47,7 +47,7 @@ public class UserDocsRedirectorBuilderImplTemplateTest {
 
 	@BeforeEach
 	void setUp() {
-		when(mockConfig.getProperty("org.sagebionetworks.beanstalk.ssl.arn.portal")).thenReturn("acmarn");
+		when(mockConfig.getProperty("org.sagebionetworks.docs.ssl.arn")).thenReturn("acmarn");
 		when(mockConfig.getProperty("org.sagebionetworks.stack.instance.alias")).thenReturn("tst");
 		velocityEngine = new TemplateGuiceModule().velocityEngineProvider();
 		builder = new UserDocsRedirectorBuilderImpl(mockConfig, mockCloudFormationClientWrapper, mockStackTagsProvider, velocityEngine);

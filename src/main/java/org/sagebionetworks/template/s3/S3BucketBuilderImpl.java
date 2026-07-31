@@ -300,8 +300,13 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	private void createBucket(String bucketName) {
 		LOG.info("Creating bucket: {}.", bucketName);
 		
-		// This is idempotent
-		s3Client.createBucket(bucketName);
+		try {
+			s3Client.createBucket(bucketName);
+		} catch (AmazonS3Exception e) {
+			if (!"BucketAlreadyOwnedByYou".equals(e.getErrorCode())) {
+				throw e;
+			}
+		}
 	}
 	
 	private void configurePublicAccessBlock(String bucketName) {
@@ -420,6 +425,13 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 
 		if (bucket.getRetentionDays() != null) {
 			if (addOrUpdateRule(rules, bucket.getName(), RULE_ID_RETENTION, bucket, this::createRetentionRule, this::updateRetentionRule)) {
+				update = true;
+			}
+		} else {
+			Optional<Rule> rule = findRule(RULE_ID_RETENTION, rules);
+			if (rule.isPresent()) {
+				LOG.info("The {} rule was found on bucket {}, removing.", RULE_ID_RETENTION, bucket.getName());
+				rules.remove(rule.get());
 				update = true;
 			}
 		}

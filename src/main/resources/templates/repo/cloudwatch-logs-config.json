@@ -1,16 +1,16 @@
 {
   "logDescriptors": {
     "REPOSITORY_SERVICES": [
-      {"logType": "SERVICE", "logPath": "/var/cache/tomcat9/temp/synapse/logs/repo-services.log", "dateFormat":  "%Y-%m-%dT%H:%M:%S"},
-      {"logType": "TRACE", "logPath": "/var/cache/tomcat9/temp/synapse/logs/repo-trace-profile.log", "dateFormat":  "%Y-%m-%dT%H:%M:%S"}
+      {"logType": "SERVICE", "logPath": "/var/cache/tomcat10/temp/synapse/logs/repo-services.log", "dateFormat":  "%Y-%m-%dT%H:%M:%S"},
+      {"logType": "TRACE", "logPath": "/var/cache/tomcat10/temp/synapse/logs/repo-trace-profile.log", "dateFormat":  "%Y-%m-%dT%H:%M:%S"}
     ],
     "REPOSITORY_WORKERS": [
-      {"logType": "SERVICE", "logPath": "/var/cache/tomcat9/temp/repo-workers/logs/repo-workers.log", "dateFormat":  "%Y-%m-%dT%H:%M:%S"},
-      {"logType": "TRACE", "logPath": "/var/cache/tomcat9/temp/repo-workers/logs/worker-trace-profile.log", "dateFormat":  "%Y-%m-%dT%H:%M:%S"}
+      {"logType": "SERVICE", "logPath": "/var/cache/tomcat10/temp/repo-workers/logs/repo-workers.log", "dateFormat":  "%Y-%m-%dT%H:%M:%S"},
+      {"logType": "TRACE", "logPath": "/var/cache/tomcat10/temp/repo-workers/logs/worker-trace-profile.log", "dateFormat":  "%Y-%m-%dT%H:%M:%S"}
     ],
     "PORTAL": [
-      {"logType": "SERVICE", "logPath": "/var/cache/tomcat9/temp/portal/logs/portal.log", "dateFormat":  "%Y-%m-%dT%H:%M:%S"},
-      {"logType": "TRACE", "logPath": "/var/cache/tomcat9/temp/portal/logs/portal-profile.log", "dateFormat":  "%Y-%m-%dT%H:%M:%S"}
+      {"logType": "SERVICE", "logPath": "/var/cache/tomcat10/temp/portal/logs/portal.log", "dateFormat":  "%Y-%m-%dT%H:%M:%S"},
+      {"logType": "TRACE", "logPath": "/var/cache/tomcat10/temp/portal/logs/portal-profile.log", "dateFormat":  "%Y-%m-%dT%H:%M:%S"}
     ]
   }
 }

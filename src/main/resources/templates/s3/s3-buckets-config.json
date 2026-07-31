@@ -76,9 +76,19 @@
 			"name": "${stack}.aws-glue.sagebase.org"
 		},
 		{
-			"name": "${stack}.grid.patch.sagebase.org",
-			"retentionDays": 120
+			"name": "${stack}.grid.patch.sagebase.org"
+		},
+		{
+			"name": "${stack}.grid.snapshot.sagebase.org"
+		},
+		{
+			"name": "${stack}.artifacts.sagebase.org"
+		},
+		{
+			"name": "${stack}.code-interpreter.staging.sagebase.org",
+			"retentionDays": 1
 		}
+
 	],
 	"inventoryConfig": {
 		"bucket": "${stack}.datawarehouse.sagebase.org",

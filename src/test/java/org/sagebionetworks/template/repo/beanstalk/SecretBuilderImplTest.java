@@ -2,7 +2,7 @@ package org.sagebionetworks.template.repo.beanstalk;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
@@ -21,15 +21,15 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sagebionetworks.template.config.Configuration;
-
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 import org.sagebionetworks.template.config.RepoConfiguration;
+
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.kms.KmsClient;
 import software.amazon.awssdk.services.kms.model.EncryptRequest;
 import software.amazon.awssdk.services.kms.model.EncryptResponse;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
@@ -44,14 +44,16 @@ public class SecretBuilderImplTest {
 	@Mock
 	KmsClient mockKeyManager;
 	@Mock
-	AmazonS3 mockS3Client;
-	
+	S3Client mockS3Client;
+
 	@Captor
 	ArgumentCaptor<GetSecretValueRequest> secretRequestCaptor;
 	@Captor
 	ArgumentCaptor<EncryptRequest> encryptRequestCaptor;
 	@Captor
 	ArgumentCaptor<PutObjectRequest> putObjectRequsetCaptor;
+	@Captor
+	ArgumentCaptor<RequestBody> requestBodyCaptor;
 	
 	String stack;
 	String instance;
@@ -158,13 +160,14 @@ public class SecretBuilderImplTest {
 		assertNotNull(bundle);
 		assertEquals(s3Bucket, bundle.getBucket());
 		assertEquals(expectedS3Key, bundle.getKey());
-		verify(mockS3Client).putObject(putObjectRequsetCaptor.capture());
+		verify(mockS3Client).putObject(putObjectRequsetCaptor.capture(), requestBodyCaptor.capture());
 		PutObjectRequest request = putObjectRequsetCaptor.getValue();
 		assertNotNull(request);
-		assertEquals(s3Bucket, request.getBucketName());
-		assertEquals(expectedS3Key, request.getKey());
-		assertNotNull(request.getMetadata());
-		assertEquals(propertyBytes.length, request.getMetadata().getContentLength());
+		assertEquals(s3Bucket, request.bucket());
+		assertEquals(expectedS3Key, request.key());
+		RequestBody requestBody = requestBodyCaptor.getValue();
+		assertNotNull(requestBody);
+		assertEquals(propertyBytes.length, requestBody.optionalContentLength().orElse(-1L).longValue());
 	}
 	
 	@Test

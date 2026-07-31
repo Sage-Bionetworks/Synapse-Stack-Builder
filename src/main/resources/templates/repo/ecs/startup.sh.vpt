@@ -1,0 +1,28 @@
+#[[#!/bin/bash
+# Convert org.sagebionetworks.* environment variables to JVM -D system properties.
+# Elastic Beanstalk passes these as JVM system properties automatically;
+# ECS sets them as container environment variables. The application reads
+# them via System.getProperty(), so we convert them here.
+#
+# catalina.sh uses: eval exec "$_RUNJAVA" ... "$JAVA_OPTS" ...
+# The eval re-parses the expanded string, so each -D flag must be
+# individually quoted to survive the eval expansion.
+
+SYSPROPS=""
+while IFS='=' read -r name value; do
+    if [[ "$name" == org.sagebionetworks.* ]]; then
+        # Escape single quotes in values and wrap each -D in single quotes for eval
+        escaped_value="${value//\'/\'\\\'\'}"
+        SYSPROPS="$SYSPROPS '-D$name=$escaped_value'"
+    fi
+done < <(env)
+
+export JAVA_OPTS="$JAVA_OPTS $SYSPROPS --add-opens java.base/java.util=ALL-UNNAMED"
+
+# Start nginx in daemon mode (forks and returns). nginx handles TLS and
+# reverse-proxies to Tomcat on 127.0.0.1:8080. Tomcat becomes PID 1 so that
+# ECS signal handling and graceful shutdown target the JVM.
+nginx
+
+exec "$CATALINA_HOME/bin/catalina.sh" run
+]]#

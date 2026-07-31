@@ -65,12 +65,12 @@
 			"Type": "AWS::RDS::DBParameterGroup",
 			"Properties": {
 				"Description": "Shared MySQL database parameters",
-				"Family": "mysql8.0",
+				"Family": "mysql8.4",
 				"Parameters": {
 					"slow_query_log": "1",
 					"long_query_time": "1",
-					"max_allowed_packet": "16777216",
-					"log_bin_trust_function_creators": "1"
+					"log_bin_trust_function_creators": "1",
+					"max_allowed_packet": "16777216"
 				}
 			}
 		},
@@ -124,7 +124,7 @@
 					"Ref": "${stack}${instance}DBSubnetGroup"
 				},
 				"Engine": "MySQL",
-				"EngineVersion": "8.0.40",
+				"EngineVersion": "8.4.8",
 				"LicenseModel": "general-public-license",
 				"MasterUsername": "${stack}${instance}user",
 				"MasterUserPassword": {
@@ -148,6 +148,10 @@
 					}
 				],
 				"StorageEncrypted": true,
+				"CopyTagsToSnapshot": true,
+				"Tags": [
+					{"Key": "instance", "Value": "${instance}"}
+				],
                 "EnablePerformanceInsights": ${EnableRdsEnhancedMonitoring}
                 #if(${EnableRdsEnhancedMonitoring} == "true")
                 ,
@@ -298,6 +302,7 @@
 		#end
 		#end
 		,
+		#if($deploymentTarget == "BEANSTALK")
 		"${stack}${instance}Application": {
 			"Type": "AWS::ElasticBeanstalk::Application",
 			"Properties": {
@@ -305,10 +310,144 @@
 				"Description": "Group of all Synapse-${stack}-${instance} Bean Stalk Environment"
 			}
 		},
-		"${stack}${instance}BeanstalkSecurityGroup": {
+		#end
+		#if($deploymentTarget == "ECS_FARGATE")
+		"${stack}${instance}EcsCluster": {
+			"Type": "AWS::ECS::Cluster",
+			"Properties": {
+				"ClusterName": "synapse-${stack}-${instance}",
+				"CapacityProviders": ["FARGATE"],
+				"DefaultCapacityProviderStrategy": [
+					{
+						"CapacityProvider": "FARGATE",
+						"Weight": 1
+					}
+				],
+				"ClusterSettings": [
+					{
+						"Name": "containerInsights",
+						"Value": "enhanced"
+					}
+				]
+			}
+		},
+		"${stack}${instance}SynapesRepoWorkersEcsTaskRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"RoleName": "${stack}-${instance}-repo-workers-ecs-task-role",
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Principal": {
+								"Service": "ecs-tasks.amazonaws.com"
+							},
+							"Action": "sts:AssumeRole"
+						}
+					]
+				},
+				"ManagedPolicyArns": [
+					"arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+					{
+						"Ref": "${stack}${instance}SynapesRepoWorkersServiceManagedPolicy"
+					},
+					{
+						"Ref": "${stack}${instance}SynapesRepoWorkersBedrockManagedPolicy"
+					}
+				],
+				"Policies": [
+					{
+						"PolicyName": "${stack}-${instance}-repo-workers-ecs-exec-policy",
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [
+								{
+									"Effect": "Allow",
+									"Action": [
+										"ssmmessages:CreateControlChannel",
+										"ssmmessages:CreateDataChannel",
+										"ssmmessages:OpenControlChannel",
+										"ssmmessages:OpenDataChannel"
+									],
+									"Resource": "*"
+								}
+							]
+						}
+					}
+				]
+			}
+		},
+		"${stack}${instance}SynapesPortalEcsTaskRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"RoleName": "${stack}-${instance}-portal-ecs-task-role",
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Principal": {
+								"Service": "ecs-tasks.amazonaws.com"
+							},
+							"Action": "sts:AssumeRole"
+						}
+					]
+				},
+				"ManagedPolicyArns": [
+					"arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+					{
+						"Ref": "${stack}${instance}SynapesPortalServiceManagedPolicy"
+					}
+				],
+				"Policies": [
+					{
+						"PolicyName": "${stack}-${instance}-portal-ecs-exec-policy",
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [
+								{
+									"Effect": "Allow",
+									"Action": [
+										"ssmmessages:CreateControlChannel",
+										"ssmmessages:CreateDataChannel",
+										"ssmmessages:OpenControlChannel",
+										"ssmmessages:OpenDataChannel"
+									],
+									"Resource": "*"
+								}
+							]
+						}
+					}
+				]
+			}
+		},
+		"${stack}${instance}SynapesEcsTaskExecutionRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"RoleName": "${stack}-${instance}-ecs-execution-role",
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Principal": {
+								"Service": "ecs-tasks.amazonaws.com"
+							},
+							"Action": "sts:AssumeRole"
+						}
+					]
+				},
+				"ManagedPolicyArns": [
+					"arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+				]
+			}
+		},
+		#end
+		"${stack}${instance}ServiceSecurityGroup": {
             "Type": "AWS::EC2::SecurityGroup",
             "Properties": {
-                "GroupDescription": "Security Group for all Bean Stalk EC2 instances in ${stack}${instance}",
+                "GroupDescription": "Security Group for Beanstalk and ECS service instances in ${stack}${instance}",
                 "VpcId": {
                     "Fn::ImportValue": "${vpcExportPrefix}-VPCId"
                 },
@@ -338,7 +477,7 @@
 					},
 					{
 						"Key": "Name",
-						"Value": "${stack}${instance}BeanstalkSecurityGroup"
+						"Value": "${stack}${instance}ServiceSecurityGroup"
 					}
 				]
             }
@@ -380,7 +519,7 @@
 						"FromPort": "443",
 						"ToPort": "443",
 						"IpProtocol": "tcp"
-					},
+					}
                 ],
                 "Tags": [
 					{
@@ -419,11 +558,6 @@
                         },
                         {
                             "Action": "cloudwatch:*",
-                            "Effect": "Allow",
-                            "Resource": "*"
-                        },
-                        {
-                            "Action": "cloudsearch:*",
                             "Effect": "Allow",
                             "Resource": "*"
                         },
@@ -488,13 +622,6 @@
                             "Action": "elasticbeanstalk:*",
                             "Resource": "*"
                         },
-                        {
-                             "Effect": "Allow",
-                             "Action": [
-                                 "bedrock:*"
-                             ],
-                             "Resource": "*"
-                         },
                          {
                              "Effect": "Allow",
                              "Action": [
@@ -512,6 +639,25 @@
                          {
                              "Effect": "Allow",
                              "Action": [
+                                 "es:ESHttpGet",
+                                 "es:ESHttpPut",
+                                 "es:ESHttpPost",
+                                 "es:ESHttpDelete",
+                                 "es:ESHttpHead"
+                             ],
+                             "Resource": {"Fn::Sub": "arn:aws:es:#[[${AWS::Region}]]#:#[[${AWS::AccountId}]]#:domain/${stack}-${instance}-synidx/*"}
+                         },
+                         {
+                             "Effect": "Allow",
+                             "Action": [
+                                 "es:DescribeDomain",
+                                 "es:DescribeDomainConfig"
+                             ],
+                             "Resource": {"Fn::Sub": "arn:aws:es:#[[${AWS::Region}]]#:#[[${AWS::AccountId}]]#:domain/${stack}-${instance}-synidx"}
+                         },
+                         {
+                             "Effect": "Allow",
+                             "Action": [
                                  "execute-api:*"
                              ],
                              "Resource": "*"
@@ -520,6 +666,167 @@
 		        }
 		    }
         },
+        "${stack}${instance}SynapesRepoWorkersBedrockManagedPolicy": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": [
+                                "bedrock:AssociateAgentKnowledgeBase",
+                                "bedrock:AssociateAgentKnowledgeBase",
+                                "bedrock:CreateAgent",
+                                "bedrock:CreateAgentActionGroup",
+                                "bedrock:CreateDataSource",
+                                "bedrock:CreateKnowledgeBase",
+                                "bedrock:CreateSession",
+                                "bedrock:DeleteAgent",
+                                "bedrock:DeleteAgentActionGroup",
+                                "bedrock:DeleteDataSource",
+                                "bedrock:DeleteKnowledgeBase",
+                                "bedrock:DeleteSession",
+                                "bedrock:DisassociateAgentKnowledgeBase",
+                                "bedrock:EndSession",
+                                "bedrock:GetAgent",
+                                "bedrock:GetAgentActionGroup",
+                                "bedrock:GetAgentKnowledgeBase",
+                                "bedrock:GetDataSource",
+                                "bedrock:GetKnowledgeBase",
+                                "bedrock:GetSession",
+                                "bedrock:InvokeAgent",
+                                "bedrock:InvokeModel",
+                                "bedrock:ListAgentActionGroups",
+                                "bedrock:ListAgentKnowledgeBases",
+                                "bedrock:ListAgents",
+                                "bedrock:ListDataSources",
+                                "bedrock:ListIngestionJobs",
+                                "bedrock:ListKnowledgeBases",
+                                "bedrock:ListSessions",
+                                "bedrock:ListTagsForResource",
+                                "bedrock:PrepareAgent",
+                                "bedrock:StartIngestionJob",
+                                "bedrock:StopIngestionJob",
+                                "bedrock:TagResource",
+                                "bedrock:UntagResource",
+                                "bedrock:UpdateAgent",
+                                "bedrock:UpdateAgentActionGroup",
+                                "bedrock:UpdateAgentKnowledgeBase",
+                                "bedrock:UpdateDataSource",
+                                "bedrock:UpdateKnowledgeBase",
+                                "bedrock:UpdateSession"
+                            ],
+                            "Resource": [
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:*::foundation-model/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:async-invoke/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:inference-profile/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:default-prompt-router/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:prompt-router/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:application-inference-profile/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:custom-model/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:provisioned-model/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:agent/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:agent-alias/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:knowledge-base/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:model*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:evaluation-job/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:guardrail*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:automated*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:flow*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:prompt/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:imported-model/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:marketplace/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:data-automation*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:blueprint/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:session/*"
+                                },
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}:${AWS::AccountId}]]#:custom-model/*"
+                                }
+                            ],
+                            "Effect": "Allow"
+                        },
+                        {
+                            "Action": [
+                                "bedrock-agentcore:InvokeCodeInterpreter",
+                                "bedrock-agentcore:ListCodeInterpreters",
+                                "bedrock-agentcore:StartCodeInterpreterSession",
+                                "bedrock-agentcore:GetCodeInterpreterSession",
+                                "bedrock-agentcore:StopCodeInterpreterSession",
+                                "bedrock-agentcore:ListCodeInterpreterSessions"
+                            ],
+                            "Resource": [
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock-agentcore:#[[${AWS::Region}:${AWS::AccountId}]]#:code-interpreter-custom/*"
+                                }
+                            ],
+                            "Effect": "Allow"
+                        },
+                        {
+                            "Action": [
+                                "bedrock-agentcore:CreateEvent",
+                                "bedrock-agentcore:GetEvent",
+                                "bedrock-agentcore:ListEvents",
+                                "bedrock-agentcore:DeleteEvent",
+                                "bedrock-agentcore:ListActors",
+                                "bedrock-agentcore:ListSessions",
+                                "bedrock-agentcore:GetMemory",
+                                "bedrock-agentcore:ListMemories"
+                            ],
+                            "Resource": [
+                                {
+                                  "Fn::Sub": "arn:aws:bedrock-agentcore:#[[${AWS::Region}:${AWS::AccountId}]]#:memory/*"
+                                }
+                            ],
+                            "Effect": "Allow"
+                        }
+                     ]
+                }
+            }
+         },
         "${stack}${instance}SynapesRepoWorkersServiceRole": {
 			"Type": "AWS::IAM::Role",
 			"Properties": {
@@ -545,6 +852,9 @@
                     "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
                     {
                         "Ref": "${stack}${instance}SynapesRepoWorkersServiceManagedPolicy"
+                    },
+                    {
+                        "Ref": "${stack}${instance}SynapesRepoWorkersBedrockManagedPolicy"
                     }
 				]
 			}
@@ -585,7 +895,11 @@
                         {
                             "Effect": "Allow",
                             "Action": ["appconfig:StartConfigurationSession", "appconfig:GetLatestConfiguration"],
-                            "Resource": "*"
+                            "Resource": [
+                                {
+                                    "Fn::Sub": "arn:aws:appconfig:#[[${AWS::Region}:${AWS::AccountId}]]#:application/*/environment/*/configuration/*"
+                                }
+                            ]
                         }
                     ]
 		        }
@@ -641,13 +955,16 @@
 						{
 							"Effect": "Allow",
 							"Principal": {
-								"AWS": {
+								"AWS":
 									#if(${stack} == 'dev')
-										"Ref": "AWS::AccountId"
+										{ "Ref": "AWS::AccountId" }
 									#else
-										"Fn::GetAtt" : ["${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"]
+										#if($deploymentTarget == "ECS_FARGATE")
+											{ "Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersEcsTaskRole", "Arn"] }
+										#else
+											{ "Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"] }
+										#end
 									#end
-								}
 							},
 							"Action": [
 								"sts:AssumeRole"
@@ -696,7 +1013,7 @@
 		},
 		"${stack}${instance}CMK": {
 			"Type": "AWS::KMS::Key",
-			"DependsOn":["${stack}${instance}SynapesRepoWorkersServiceRole"],
+			"DependsOn":[#if($deploymentTarget == "ECS_FARGATE")"${stack}${instance}SynapesRepoWorkersEcsTaskRole"#else"${stack}${instance}SynapesRepoWorkersServiceRole"#end],
 			"Properties": {
 				"Description": "The master encryption key for ${stack}-${instance}",
 				"EnableKeyRotation": true,
@@ -719,11 +1036,19 @@
 								    "aws:PrincipalArn": [
                                         { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:root" },
                                         { "Fn::ImportValue": "us-east-1-synapse-${stack}-cmk-SynapseDeploymentRoleArn"},
+                                        { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/Deployment-Pipeline-CodeBuildServiceRole" },
+                                        #if($deploymentTarget == "ECS_FARGATE")
+                                        { "Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersEcsTaskRole", "Arn"] },
+                                        { "Fn::GetAtt": ["${stack}${instance}SynapesPortalEcsTaskRole", "Arn"] },
+                                        #else
                                         { "Fn::GetAtt": [ "${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"] },
+                                        #end
                                         #if(${stack} == 'prod')
                                         { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Administrator_6620166dd0e7f1b6" }
                                         #else
-                                        { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Administrator_693a85eb20cd5043" }
+                                        { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Administrator_693a85eb20cd5043" },
+                                        { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Developer_1513da6c8161f765" },
+                                        { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/Synapse-Build-${instance}-CodeBuildServiceRole" }
                                         #end
                                     ]
                                 }
@@ -733,16 +1058,7 @@
 							"Sid": "Allow root administration of the key",
 							"Effect": "Allow",
 							"Principal": {
-								"AWS": [
-								    { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:root" },
-                                    { "Fn::ImportValue": "us-east-1-synapse-${stack}-cmk-SynapseDeploymentRoleArn"},
-                                    { "Fn::GetAtt": [ "${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"] },
-                                    #if(${stack} == 'prod')
-                                    { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Administrator_6620166dd0e7f1b6" }
-                                    #else
-                                    { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Administrator_693a85eb20cd5043" }
-                                    #end
-								]
+								"AWS":  "*"
 							},
 							"Action": [
 								"kms:*"
@@ -770,8 +1086,11 @@
 		#parse("templates/repo/appconfig-template.json.vpt")
 		#parse("templates/repo/api-gateway-template.json.vpt")
 		#parse("templates/repo/opensearch-template.json.vpt")
-		#parse("templates/repo/bedrock-knowledge-base-template.json.vpt")
+		#parse("templates/repo/opensearch-managed-template.json.vpt")
 		${bedrock_agent_resouces}
+		${bedrock_grid_agent_resources}
+		#parse("templates/repo/agent/code-interpreter-template.json.vpt")
+		#parse("templates/repo/agent/curie-memory-template.json.vpt")
 		#parse("templates/repo/grid/grid-websocket.json.vpt")
 	},
 	"Outputs": {
@@ -798,6 +1117,7 @@
 				}
 			}
 		},	
+		#if($deploymentTarget == "BEANSTALK")
 		"BeanstalkApplicationId": {
 			"Description": "The elastic bean stalk application ID",
 			"Value": {
@@ -820,10 +1140,11 @@
 				}
 			}
 		},
-		"BeanstalkSecurityGroupId": {
-			"Description": "The ID of the Beanstalk security group",
+		#end
+		"ServiceSecurityGroupId": {
+			"Description": "The ID of the service security group",
 			"Value": {
-				"Ref": "${stack}${instance}BeanstalkSecurityGroup"
+				"Ref": "${stack}${instance}ServiceSecurityGroup"
 			},
 			"Export": {
 				"Name": {
@@ -836,12 +1157,190 @@
 							{
 								"Ref": "AWS::StackName"
 							},
-							"Beanstalk-Security-Group-ID"
+							"Service-Security-Group-ID"
 						]
 					]
 				}
 			}
 		},
+		#if($deploymentTarget == "ECS_FARGATE")
+		"EcsClusterArn": {
+			"Description": "The ARN of the ECS Cluster",
+			"Value": {
+				"Fn::GetAtt": ["${stack}${instance}EcsCluster", "Arn"]
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"ECS-Cluster-ARN"
+						]
+					]
+				}
+			}
+		},
+		"EcsClusterName": {
+			"Description": "The name of the ECS Cluster",
+			"Value": {
+				"Ref": "${stack}${instance}EcsCluster"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"ECS-Cluster-Name"
+						]
+					]
+				}
+			}
+		},
+		"RepoWorkersManagedPolicyArn": {
+			"Description": "The ARN of the Repo/Workers managed policy",
+			"Value": {
+				"Ref": "${stack}${instance}SynapesRepoWorkersServiceManagedPolicy"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"SynapesRepoWorkersInstanceProfile-Managed-Policy-ARN"
+						]
+					]
+				}
+			}
+		},
+		"PortalManagedPolicyArn": {
+			"Description": "The ARN of the Portal managed policy",
+			"Value": {
+				"Ref": "${stack}${instance}SynapesPortalServiceManagedPolicy"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"SynapesPortalInstanceProfile-Managed-Policy-ARN"
+						]
+					]
+				}
+			}
+		},
+		"RepoWorkersBedrockManagedPolicyArn": {
+			"Description": "The ARN of the Repo/Workers Bedrock managed policy",
+			"Value": {
+				"Ref": "${stack}${instance}SynapesRepoWorkersBedrockManagedPolicy"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"RepoWorkers-Bedrock-Managed-Policy-ARN"
+						]
+					]
+				}
+			}
+		},
+		"RepoWorkersEcsTaskRoleArn": {
+			"Description": "The ARN of the Repo/Workers ECS task role",
+			"Value": {
+				"Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersEcsTaskRole", "Arn"]
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"SynapesRepoWorkersInstanceProfile-ECS-Task-Role-ARN"
+						]
+					]
+				}
+			}
+		},
+		"PortalEcsTaskRoleArn": {
+			"Description": "The ARN of the Portal ECS task role",
+			"Value": {
+				"Fn::GetAtt": ["${stack}${instance}SynapesPortalEcsTaskRole", "Arn"]
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"SynapesPortalInstanceProfile-ECS-Task-Role-ARN"
+						]
+					]
+				}
+			}
+		},
+		"EcsTaskExecutionRoleArn": {
+			"Description": "The ARN of the shared ECS task execution role",
+			"Value": {
+				"Fn::GetAtt": ["${stack}${instance}SynapesEcsTaskExecutionRole", "Arn"]
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"ECS-Task-Execution-Role-ARN"
+						]
+					]
+				}
+			}
+		},
+		#end
 		"LoadBalancerSecurityGroup": {
 			"Description": "The ID of the Load Balancer Security Group",
 			"Value": {
@@ -885,10 +1384,11 @@
 					]
 				}
 			}
-		},
-		"SynapseHelpCollectionEndpoint": {
+		}
+		,"${stack}${instance}CodeInterpreterId": {
+			"Description": "The ID of the custom code interpreter for agent sessions.",
 			"Value": {
-				"Fn::GetAtt" : ["SynapseHelpCollection", "CollectionEndpoint"]
+				"Fn::GetAtt": ["${stack}${instance}CustomCodeInterpreter", "CodeInterpreterId"]
 			},
 			"Export": {
 				"Name": {
@@ -901,7 +1401,29 @@
 							{
 								"Ref": "AWS::StackName"
 							},
-							"Synapse-Help-Collection-Endpoint"
+							"Code-Interpreter-Id"
+						]
+					]
+				}
+			}
+		}
+		,"${stack}${instance}CurieMemoryId": {
+			"Description": "The ID of the AgentCore Memory resource backing Curie's durable chat memory.",
+			"Value": {
+				"Fn::GetAtt": ["${stack}${instance}CurieMemory", "MemoryId"]
+			},
+			"Export": {
+				"Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"Curie-Memory-Id"
 						]
 					]
 				}

@@ -21,16 +21,7 @@ public class Constants {
 	public static final String LOAD_BALANCER_ALARM_CONFIG_FILE = "templates/repo/elasticbeanstalk-alarms-config.json";
 	public static final String ATHENA_QUERIES_CONFIG_FILE = "templates/repo/athena-queries-config.json";
 
-	public static final String ROUTE53_DEV_SAGEBASE_ORG_DNS_CONFIG_FILE = "templates/dns/dev_sagebase_org_dns.json";
-	public static final String ROUTE53_PROD_SAGEBASE_ORG_DNS_CONFIG_FILE = "templates/dns/prod_sagebase_org_dns.json";
-	public static final String ROUTE53_PROD_SYNAPSE_ORG_DNS_CONFIG_FILE = "templates/dns/prod_synapse_org_dns.json";
-
-	public static final String ROUTE53_PROD_PORTALS_DNS_CONFIG_FILE = "templates/dns/prod_portals_dns.json";
-	public static final String ROUTE53_PROD_DOCS_CLIENT_DNS_CONFIG_FILE = "templates/dns/prod_docs_clients_dns.json";
-	public static final String TEMPLATE_RESOURCE_PATH = "templates/dns/%s_dns.json";
-
 	public static final String DATAWAREHOUSE_CONFIG_FILE = "templates/datawarehouse/datawarehouse-config.json";
-	public static final String GITHUB_CONFIG_FILE = "templates/repo/github-path-config.json";
 	/**
 	 * A VPC peering role ARN must start with this prefix.
 	 */
@@ -50,18 +41,12 @@ public class Constants {
 
 	// CloudFormation Parameter names.
 	// VPC
-	public static final String PARAMETER_VPN_CIDR = "VpnCidr";
 	public static final String PARAMETER_VPN_CIDR_NEW = "VpnCidrNew";
-	public static final String PARAMETER_VPC_SUBNET_PREFIX = "VpcSubnetPrefix";
 	// repo
 	public static final String PARAMETER_MYSQL_PASSWORD = "MySQLDatabaseMasterPassword";
-	public static final String PARAMETER_ENCRYPTION_KEY = "EncryptionKey";
-	public static final String PARAMETER_AWS_SECRET = "AwsSecret";
-	public static final String PARAMETER_AWS_KEY = "AwsKey";
 	
 	// input property keys
 	// vpc
-	public static final String PROPERTY_KEY_VPC_VPN_CIDR = "org.sagebionetworks.vpc.vpn.cidr";
 	public static final String PROPERTY_KEY_VPC_VPN_CIDR_NEW = "org.sagebionetworks.vpc.vpn.cidr.new";
 	public static final String PROPERTY_KEY_VPC_AVAILABILITY_ZONES = "org.sagebionetworks.vpc.availability.zones";
 	public static final String PROPERTY_KEY_VPC_SUBNET_PREFIX = "org.sagebionetworks.vpc.subnet.prefix";
@@ -69,8 +54,8 @@ public class Constants {
 	public static final String PROPERTY_KEY_VPC_ENDPOINTS_COLOR = "org.sagebionetworks.vpc.endpoints.color";
 	public static final String PROPERTY_KEY_VPC_ENDPOINTS_AZ = "org.sagebionetworks.vpc.endpoints.availability.zones";
 	public static final String PROPERTY_KEY_VPC_PEERING_ACCEPT_ROLE_ARN = "org.sagebionetworks.vpc.peering.accept.role.arn";
-	public static final String PROPERTY_KEY_OLD_VPC_CIDR = "org.sagebionetworks.vpc.old.vpc.cidr";
 	public static final String PROPERTY_KEY_OPS_VPC_EXPORT_PREFIX = "org.sagebionetworks.vpc.ops.export.prefix";
+	
 	// repo
 	public static final String PROPERTY_KEY_STACK = "org.sagebionetworks.stack";
 	public static final String PROPERTY_KEY_INSTANCE = "org.sagebionetworks.instance";
@@ -96,15 +81,13 @@ public class Constants {
 	public static final String PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS = "org.sagebionetworks.tables.rds.instance.class";
 	public static final String PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE = "org.sagebionetworks.tables.rds.allocated.storage";
 	public static final String PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE = "org.sagebionetworks.tables.rds.max.allocated.storage";
-	public static final String PROPERTY_KEY_BEANSTALK_ENCRYPTION_KEY = "org.sagebionetworks.beanstalk.encryption.key";
-	public static final String PROPERTY_KEY_AWS_SECRET_KEY = "aws.secretKey";
-	public static final String PROPERTY_KEY_AWS_ACCESS_KEY_ID = "aws.accessKeyId";
 	public static final String PROPERTY_KEY_BEANSTALK_MAX_INSTANCES = "org.sagebionetworks.beanstalk.max.instances.";
 	public static final String PROPERTY_KEY_BEANSTALK_MIN_INSTANCES = "org.sagebionetworks.beanstalk.min.instances.";
 	public static final String PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL = "org.sagebionetworks.beanstalk.health.check.url.";
 	public static final String PROPERTY_KEY_BEANSTALK_VERSION = "org.sagebionetworks.beanstalk.version.";
 	public static final String PROPERTY_KEY_BEANSTALK_NUMBER = "org.sagebionetworks.beanstalk.number.";
 	public static final String PROPERTY_KEY_BEANSTALK_SSL_ARN = "org.sagebionetworks.beanstalk.ssl.arn.";
+	public static final String PROPERTY_KEY_DOCS_SSL_ARN = "org.sagebionetworks.docs.ssl.arn";
 	public static final String PROPERTY_KEY_ROUTE_53_HOSTED_ZONE = "org.sagebionetworks.route.53.hosted.zone.";
 	public static final String PROPERTY_KEY_SECRET_KEYS_CSV = "org.sagebionetworks.secret.keys.csv";
 	public static final String PROPERTY_KEY_REPOSITORY_DATABASE_PASSWORD = "org.sagebionetworks.repository.database.password";
@@ -112,6 +95,9 @@ public class Constants {
 	public static final String PROPERTY_KEY_ID_GENERATOR_HOSTED_ZONE_ID = "org.sagebionetworks.id.generator.hosted.zone.id";
 	public static final String PROPERTY_KEY_EC2_INSTANCE_TYPE = "org.sagebionetworks.beanstalk.instance.type";
 	public static final String PROPERTY_KEY_EC2_INSTANCE_MEMORY = "org.sagebionetworks.beanstalk.instance.memory";
+	public static final String PROPERTY_KEY_OPENSEARCH_INSTANCE_TYPE = "org.sagebionetworks.opensearch.instance.type";
+	public static final String PROPERTY_KEY_OPENSEARCH_MASTER_INSTANCE_TYPE = "org.sagebionetworks.opensearch.master.instance.type";
+	public static final String PROPERTY_KEY_OPENSEARCH_AVAILABILITY_ZONE_COUNT = "org.sagebionetworks.opensearch.availability.zone.count";
 	public static final String PROPERTY_KEY_TIME_TO_LIVE_HOURS = "org.sagebionetworks.repo.time.to.live.hours";
 
 	public static final String PROPERTY_KEY_ELASTICBEANSTALK_IMAGE_VERSION_PREFIX = "org.sagebionetworks.beanstalk.image.version.";
@@ -124,8 +110,13 @@ public class Constants {
 	public static final String PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER = "org.sagebionetworks.repo.snapshot.identifier";
 	public static final String PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS = "org.sagebionetworks.tables.snapshot.identifiers";
 	public static final String PROPERTY_KEY_LAMBDA_VIRUS_SCANNER_ARTIFACT_URL = "org.sagebionetworks.lambda.virusscanner.artifactUrl";
-	public static final String PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_URL = "org.sagebionetworks.lambda.markdownit.artifactUrl";
 	public static final String PROPERTY_KEY_LAMBDA_ARTIFACT_BUCKET = "org.sagebionetworks.lambda.artifact.bucket";
+
+	public static final String PROPERTY_KEY_LAMBDA_MARKDOWNIT_ARTIFACT_URL = "org.sagebionetworks.lambda.markdownit.artifactUrl";
+	public static final String PROPERTY_KEY_LAMBDA_MARKDOWN_IT_SUBDOMAIN = "org.sagebionetworks.lambda.markdownit.subdomain";
+	public static final String PROPERTY_KEY_LAMBDA_MARKDOWNIT_VERSION = "org.sagebionetworks.lambda.markdownit.version";
+	public static final String PROPERTY_KEY_LAMBDA_MARKDOWNIT_CERTIFICATE_ARN = "org.sagebionetworks.lambda.markdownit.cerificatearn";
+
 	public static final String NOSNAPSHOT = "NOSNAPSHOT"; // value to indicate a snapshot is not used to init a stack
 
 	public static final String PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING = "org.sagebionetworks.enable.rds.enhanced.monitoring";
@@ -146,7 +137,7 @@ public class Constants {
 	// ARN for the SSL Certificate for CloudFront
 	public static final String PROPERTY_KEY_DATA_CDN_CERTIFICATE_ARN = "org.sagebionetworks.cloudfront.certificate.arn";
 
-	public static final String PROPERTY_KEY_DATA_CDN_KEYPAIR_ID = "org.sagebionetworks.cloudfront.keypair";
+	public static final String PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID = "org.sagebionetworks.cloudfront.private.key.id";
 	public static final String DATA_CDN_DOMAIN_NAME_FMT = "data.%s.sagebase.org";
 
 	// Etl jobs needs database name to create separate stack
@@ -163,20 +154,30 @@ public class Constants {
 	public static final String TAG_KEY_PROJECT = "Project";
 	public static final String TAG_KEY_OWNER_EMAIL = "OwnerEmail";
 	public static final String TAG_KEY_EXECUTE_SCRIPT = "execute-script";
+	
+	// Note: These are also defined in repo-defaults.properties as secrets to be retrieved
+	// from Secrets Manager
+	public static final String SAGEBIO_COGNITO_APP_CLIENT_ID = "org.sagebionetworks.oauth2.sagebio.client.id";
+	public static final String SAGEBIO_COGNITO_APP_CLIENT_SECRET = "org.sagebionetworks.oauth2.sagebio.client.secret";
+	public static final String SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT = "org.sagebionetworks.oauth2.sagebio.discoveryDocument";
+
+	// DocuSign base path URLs passed through to the running application
+	public static final String PROPERTY_KEY_DOCUSIGN_API_BASE_PATH = "org.sagebionetworks.docusign.api.base.path";
+	public static final String PROPERTY_KEY_DOCUSIGN_OAUTH_BASE_PATH = "org.sagebionetworks.docusign.oauth.base.path";
 
 	// templates
 	public static final String TEMPLATES_VPC_MAIN_VPC_JSON_VTP = "templates/vpc/main-vpc.json.vtp";
 	public static final String TEMPLATES_VPC_PUBLIC_SUBNETS_JSON_VTP = "templates/vpc/public-subnets-resources.json.vtp";
 	public static final String TEMPLATES_VPC_PRIVATE_SUBNET_JSON_VTP = "templates/vpc/private-subnet-resources.json.vtp";
-	public static final String TEMPLATE_SHARED_RESOUCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";
-	public static final String TEMPLATE_BEAN_STALK_ENVIRONMENT = "templates/repo/elasticbeanstalk-template.json.vpt";
+	public static final String TEMPLATE_SHARED_RESOURCES_MAIN_JSON_VTP = "templates/repo/main-repo-shared-resources-template.json.vpt";
+	public static final String TEMPLATE_BEANSTALK_ENVIRONMENT = "templates/repo/elasticbeanstalk-template.json.vpt";
 	public static final String TEMPLATE_ID_GENERATOR = "templates/repo/id-generator-template.json.vpt";
 	public static final String TEMPLATE_GLOBAL_RESOURCES = "templates/global/global-template.json.vpt";
 	public static final String TEMPLATE_S3_VIRUS_SCANNER = "templates/s3/s3-virus-scanner-template.json.vpt";
 	public static final String TEMPLATE_DATAWAREHOUSE = "templates/datawarehouse/datawarehouse-template.json.vpt";
 	public static final String TEMPLATE_S3_BUCKET_POLICY = "templates/s3/s3-bucket-policy.json.vpt";
 
-	public static final String TEMPLATE_MARKDOWNIT_API_VTP = "templates/markdownit/markdown-it-api.json.vtp";
+	public static final String TEMPLATE_MARKDOWNIT_API_VTP = "templates/markdownit/synapse-markdownit-lambda-infra.json.vtp";
 
 	public static final int JSON_INDENT = 5;
 
@@ -200,20 +201,22 @@ public class Constants {
 
 	// context keys
 	public static final String SUBNETS = "subnets";
+	public static final String OPENSEARCH_SUBNETS = "openSearchSubnets";
+	public static final String OPENSEARCH_INSTANCE_TYPE = "openSearchInstanceType";
+	public static final String OPENSEARCH_MASTER_INSTANCE_TYPE = "openSearchMasterInstanceType";
+	public static final String OPENSEARCH_AVAILABILITY_ZONE_COUNT = "openSearchAvailabilityZoneCount";
 	public static final String VPC_CIDR = "vpcCidr";
 	public static final String VPC_SUBNET_COLOR = "subnetGroupColor";
 	public static final String STACK = "stack";
 	public static final String INSTANCE = "instance";
-	public static final String SHARED_RESOUCES_STACK_NAME = "sharedRresourcesStackName";
+	public static final String SHARED_RESOURCES_STACK_NAME = "sharedRresourcesStackName";
 	public static final String VPC_EXPORT_PREFIX = "vpcExportPrefix";
 	public static final String SHARED_EXPORT_PREFIX = "sharedExportPrefix";
 	public static final String GLOBAL_RESOURCES_EXPORT_PREFIX = "globalResourcesExportPrefix";
-	public static final String PROPS = "props";
 	public static final String PEER_ROLE_ARN = "peerRoleArn";
 	public static final String AVAILABILITY_ZONES = "availabilityZones";
 	public static final String DATABASE_DESCRIPTORS = "databaseDescriptors";
 	public static final String ENVIRONMENT = "environment";
-	public static final String REPO_NUMBER = "repoNumber";
 	public static final String DB_ENDPOINT_SUFFIX = "dbEndpointSuffix";
 	public static final String REPO_BEANSTALK_NUMBER = "repoBeanstalkNumber";
 	public static final String STACK_CMK_ALIAS = "stackCMKAlias";
@@ -244,6 +247,12 @@ public class Constants {
 	public static final String KINESIS_FIREHOSE_BUCKETS = "kinesisBuckets";
 
 	public static final String CLOUDWATCH_LOGS_DESCRIPTORS = "logDescriptors";
+
+	// Centralized retention for ALL CloudWatch LogGroups in this repo (security audit).
+	// Builders that construct a VelocityContext for a template containing a LogGroup
+	// must context.put(CLOUDWATCH_LOG_RETENTION_DAYS, LOG_RETENTION_IN_DAYS).
+	public static final int LOG_RETENTION_IN_DAYS = 180;
+	public static final String CLOUDWATCH_LOG_RETENTION_DAYS = "cloudwatchLogRetentionInDays";
 	
 	public static final String ATHENA_QUERY_DESCRIPTORS = "athenaQueryDescriptors";
 	public static final String ATHENA_QUERY_DATA_BUCKETS = "athenaQueryDataBuckets";
@@ -268,10 +277,16 @@ public class Constants {
 	public static final String CTXT_KEY_ORIGIN = "Origin";
 	public static final String CTXT_KEY_PUBLIC_KEY = "DataCdnPublicKey";
 	public static final String CTXT_KEY_PUBLIC_KEY_HASH = "PublicKeyHash";
-	public static final String CTXT_KEY_DATA_CDN_KEYPAIR_ID = "dataCdnKeyPairId";
+	public static final String CTXT_KEY_DATA_CDN_PRIVATE_KEY_ID = "dataCdnPrivateKeyId";
 	public static final String CTXT_KEY_DATA_CDN_DOMAIN_NAME = "dataCdnDomainName";
 
 	public static final String CTXT_ENABLE_ENHANCED_RDS_MONITORING = "EnableRdsEnhancedMonitoring";
+
+	public static final String CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL = "DiscoveryDocumentUrl";
+	public static final String CTXT_KEY_DOCUSIGN_API_BASE_PATH = "docusignApiBasePath";
+	public static final String CTXT_KEY_DOCUSIGN_OAUTH_BASE_PATH = "docusignOauthBasePath";
+	public static final String COGNITO_USER_POOL_CF_OUTPUT_NAME = "CognitoUserPoolId";
+	public static final String COGNITO_USER_POOL_CLIENT_CF_OUTPUT_NAME = "CognitoUserPoolClientId";
 
 	// The secrets manager ids for the key/secret pair for the admin auth
 	public static final String SECRETS_ADMIN_KEY_ID = "org.sagebionetworks.admin.auth.key";
@@ -286,6 +301,20 @@ public class Constants {
 	public static final String PROPERTY_KEY_DOCS_DEPLOYMENT_FLAG = "org.sagebionetworks.docs.deploy";
 	public static final String PROPERTY_KEY_DOCS_SOURCE_BUCKET = "org.sagebionetworks.docs.source";
 	public static final String PROPERTY_KEY_DOCS_DESTINATION_BUCKET = "org.sagebionetworks.docs.destination";
+
+	// ECS Fargate deployment properties
+	public static final String PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS = "org.sagebionetworks.deployment.target";
+	public static final String PROPERTY_KEY_ECS_TASK_CPU = "org.sagebionetworks.ecs.task.cpu";
+	public static final String PROPERTY_KEY_ECS_TASK_MEMORY = "org.sagebionetworks.ecs.task.memory";
+	public static final String PROPERTY_KEY_ECS_CONTAINER_PORT = "org.sagebionetworks.ecs.container.port";
+
+	// ECS template
+	public static final String TEMPLATE_ECS_FARGATE_ENVIRONMENT = "templates/repo/ecs-fargate-template.json.vpt";
+
+	// ECS context keys
+	public static final double ECS_JVM_MEMORY_FRACTION = 0.50;
+	public static final String DEPLOYMENT_TARGET = "deploymentTarget";
+
 	public static final String MACHINE_TYPES = "machineTypes";
 	public static final String POOL_TYPES = "poolTypes";
 
