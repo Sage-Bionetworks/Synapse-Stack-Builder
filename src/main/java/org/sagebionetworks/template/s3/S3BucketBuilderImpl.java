@@ -11,9 +11,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -81,6 +83,7 @@ import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryptionByDefault;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryptionConfiguration;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryptionRule;
+import software.amazon.awssdk.services.s3.model.StorageClass;
 import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.services.s3.model.Tiering;
 import software.amazon.awssdk.services.s3.model.TopicConfiguration;
@@ -107,7 +110,30 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	static final String RULE_ID_CLASS_TRANSITION = "ClassTransitionRule";
 	static final String RULE_ID_ABORT_MULTIPART_UPLOADS = "abortMultipartUploadsRule";
 	static final int ABORT_MULTIPART_UPLOAD_DAYS = 60;
-	
+
+	/**
+	 * The class transition rule ids are persisted in S3 and were originally built from the java name of the SDK v1
+	 * StorageClass enum constants, which do not match the SDK v2 names (e.g. IntelligentTiering vs INTELLIGENT_TIERING).
+	 * We keep the original labels so that the rules already present on the buckets are still matched.
+	 */
+	private static final Map<StorageClass, String> STORAGE_CLASS_RULE_LABELS;
+
+	static {
+		Map<StorageClass, String> labels = new EnumMap<>(StorageClass.class);
+
+		labels.put(StorageClass.STANDARD, "Standard");
+		labels.put(StorageClass.REDUCED_REDUNDANCY, "ReducedRedundancy");
+		labels.put(StorageClass.GLACIER, "Glacier");
+		labels.put(StorageClass.STANDARD_IA, "StandardInfrequentAccess");
+		labels.put(StorageClass.ONEZONE_IA, "OneZoneInfrequentAccess");
+		labels.put(StorageClass.INTELLIGENT_TIERING, "IntelligentTiering");
+		labels.put(StorageClass.DEEP_ARCHIVE, "DeepArchive");
+		labels.put(StorageClass.OUTPOSTS, "Outposts");
+		labels.put(StorageClass.GLACIER_IR, "GlacierInstantRetrieval");
+
+		STORAGE_CLASS_RULE_LABELS = Collections.unmodifiableMap(labels);
+	}
+
 	static final String INT_ARCHIVE_ID = "intArchiveAccessConfiguration";
 	
 	static final String CF_OUTPUT_VIRUS_TRIGGER_TOPIC = "ScanTriggerSNSTopic";
@@ -123,6 +149,19 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	static final String VIRUS_SCANNER_KEY_TEMPLATE = "artifacts/virus-scanner/%s";
 	static final String BUCKET_POLICY_STACK_NAME = "${stack}-synapse-bucket-policies";
 	
+
+	/**
+	 * @return The id of the life cycle rule that transitions the objects of a bucket to the given storage class
+	 */
+	static String classTransitionRuleId(StorageClass storageClass) {
+		String label = STORAGE_CLASS_RULE_LABELS.get(storageClass);
+
+		if (label == null) {
+			throw new IllegalArgumentException("Unsupported storage class for a class transition rule: " + storageClass);
+		}
+
+		return label + RULE_ID_CLASS_TRANSITION;
+	}
 
 	private static String getStackOutput(Stack stack, String key) {
 		return stack.outputs().stream()
@@ -464,7 +503,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 
 		if (bucket.getStorageClassTransitions() != null) {
 			for (S3BucketClassTransition transition : bucket.getStorageClassTransitions()) {
-				String transitionRuleName = transition.getStorageClass().name() + RULE_ID_CLASS_TRANSITION;
+				String transitionRuleName = classTransitionRuleId(transition.getStorageClass());
 
 				if (addOrUpdateRule(rules, bucket.getName(), transitionRuleName, transition, this::createClassTransitionRule, this::isClassTransitionRuleUpToDate)) {
 					update = true;

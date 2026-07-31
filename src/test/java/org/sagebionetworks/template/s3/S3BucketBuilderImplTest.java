@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -67,7 +68,9 @@ import software.amazon.awssdk.services.s3.model.IntelligentTieringAccessTier;
 import software.amazon.awssdk.services.s3.model.IntelligentTieringConfiguration;
 import software.amazon.awssdk.services.s3.model.InventoryConfiguration;
 import software.amazon.awssdk.services.s3.model.InventoryFrequency;
+import software.amazon.awssdk.services.s3.model.EventBridgeConfiguration;
 import software.amazon.awssdk.services.s3.model.InventoryS3BucketDestination;
+import software.amazon.awssdk.services.s3.model.LambdaFunctionConfiguration;
 import software.amazon.awssdk.services.s3.model.LifecycleExpiration;
 import software.amazon.awssdk.services.s3.model.LifecycleRule;
 import software.amazon.awssdk.services.s3.model.LifecycleRuleFilter;
@@ -102,6 +105,16 @@ import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
 
 @ExtendWith(MockitoExtension.class)
 public class S3BucketBuilderImplTest {
+
+	/**
+	 * The rule id as it is persisted on the existing buckets, it is deliberately hard-coded: deriving it from the SDK
+	 * StorageClass enum would let an SDK change silently rename the rule on every bucket.
+	 */
+	private static final String INT_TIERING_TRANSITION_RULE_ID = "IntelligentTieringClassTransitionRule";
+
+	private static final String DEEP_ARCHIVE_TRANSITION_RULE_ID = "DeepArchiveClassTransitionRule";
+
+	private static final String STANDARD_IA_TRANSITION_RULE_ID = "StandardInfrequentAccessClassTransitionRule";
 
 	@Mock
 	private RepoConfiguration mockConfig;
@@ -154,6 +167,9 @@ public class S3BucketBuilderImplTest {
 	@Captor
 	private ArgumentCaptor<PutBucketIntelligentTieringConfigurationRequest> intConfigurationCaptor;
 
+	@Captor
+	private ArgumentCaptor<PutBucketNotificationConfigurationRequest> bucketNotificationConfigurationCaptor;
+
 	private String stack;
 	private String accountId;
 
@@ -162,9 +178,10 @@ public class S3BucketBuilderImplTest {
 		stack = "dev";
 		accountId = "12345";
 
-		when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		// Lenient since the tests for the static helpers do not go through the builder
+		lenient().when(mockConfig.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
 		GetCallerIdentityResponse expectedGetCallerIdentityResponse = GetCallerIdentityResponse.builder().account(accountId).build();
-		when(mockStsClient.getCallerIdentity(any(GetCallerIdentityRequest.class))).thenReturn(expectedGetCallerIdentityResponse);
+		lenient().when(mockStsClient.getCallerIdentity(any(GetCallerIdentityRequest.class))).thenReturn(expectedGetCallerIdentityResponse);
 	}
 
 	@Test
@@ -843,7 +860,7 @@ public class S3BucketBuilderImplTest {
 		// Mimics an existing life cycle with a retention rule already present
 		when(mockS3Client.getBucketLifecycleConfiguration(any(GetBucketLifecycleConfigurationRequest.class))).thenReturn(GetBucketLifecycleConfigurationResponse.builder()
 			.rules(
-				allBucketRule(StorageClass.INTELLIGENT_TIERING.name() + S3BucketBuilderImpl.RULE_ID_CLASS_TRANSITION).transitions(Transition.builder().storageClass(StorageClass.INTELLIGENT_TIERING.toString()).days(30).build()).build(),
+				allBucketRule(INT_TIERING_TRANSITION_RULE_ID).transitions(Transition.builder().storageClass(StorageClass.INTELLIGENT_TIERING.toString()).days(30).build()).build(),
 				allBucketRule(S3BucketBuilderImpl.RULE_ID_ABORT_MULTIPART_UPLOADS).abortIncompleteMultipartUpload(AbortIncompleteMultipartUpload.builder().daysAfterInitiation(S3BucketBuilderImpl.ABORT_MULTIPART_UPLOAD_DAYS).build()).build(),
 				allBucketRule(S3BucketBuilderImpl.RULE_ID_RETENTION).expiration(LifecycleExpiration.builder().days(30).build()).build()
 			).build()
@@ -1123,7 +1140,7 @@ public class S3BucketBuilderImplTest {
 		
 		assertEquals(1, rule.transitions().size());
 		
-		assertEquals(StorageClass.INTELLIGENT_TIERING.name() + S3BucketBuilderImpl.RULE_ID_CLASS_TRANSITION, rule.id());
+		assertEquals(INT_TIERING_TRANSITION_RULE_ID, rule.id());
 		assertEquals(30, rule.transitions().get(0).days().intValue());
 		assertEquals(StorageClass.INTELLIGENT_TIERING.toString(), rule.transitions().get(0).storageClassAsString());
 		assertEquals(ExpirationStatus.ENABLED, rule.status());
@@ -1177,7 +1194,7 @@ public class S3BucketBuilderImplTest {
 		// Mimics an existing life cycle with a transition rule already present
 		when(mockS3Client.getBucketLifecycleConfiguration(any(GetBucketLifecycleConfigurationRequest.class))).thenReturn(GetBucketLifecycleConfigurationResponse.builder()
 				.rules(
-						allBucketRule(StorageClass.INTELLIGENT_TIERING.name() + S3BucketBuilderImpl.RULE_ID_CLASS_TRANSITION).transitions(Transition.builder().storageClass(StorageClass.INTELLIGENT_TIERING.toString()).days(30).build()).build(),
+						allBucketRule(INT_TIERING_TRANSITION_RULE_ID).transitions(Transition.builder().storageClass(StorageClass.INTELLIGENT_TIERING.toString()).days(30).build()).build(),
 						allBucketRule(S3BucketBuilderImpl.RULE_ID_ABORT_MULTIPART_UPLOADS).abortIncompleteMultipartUpload(AbortIncompleteMultipartUpload.builder().daysAfterInitiation(S3BucketBuilderImpl.ABORT_MULTIPART_UPLOAD_DAYS).build()).build()
 				).build());
 				
@@ -1239,7 +1256,7 @@ public class S3BucketBuilderImplTest {
 		// Mimics an existing life cycle with a transition rule already present
 		when(mockS3Client.getBucketLifecycleConfiguration(any(GetBucketLifecycleConfigurationRequest.class))).thenReturn(GetBucketLifecycleConfigurationResponse.builder()
 				.rules(
-						allBucketRule(StorageClass.INTELLIGENT_TIERING.name() + S3BucketBuilderImpl.RULE_ID_CLASS_TRANSITION).transitions(Transition.builder().storageClass(StorageClass.INTELLIGENT_TIERING.toString()).days(35).build()).build(),
+						allBucketRule(INT_TIERING_TRANSITION_RULE_ID).transitions(Transition.builder().storageClass(StorageClass.INTELLIGENT_TIERING.toString()).days(35).build()).build(),
 						allBucketRule(S3BucketBuilderImpl.RULE_ID_ABORT_MULTIPART_UPLOADS).abortIncompleteMultipartUpload(AbortIncompleteMultipartUpload.builder().daysAfterInitiation(S3BucketBuilderImpl.ABORT_MULTIPART_UPLOAD_DAYS).build()).build()
 				).build());
 				
@@ -1261,7 +1278,7 @@ public class S3BucketBuilderImplTest {
 		
 		LifecycleRule intRule = config.rules().get(0);
 		
-		assertEquals(StorageClass.INTELLIGENT_TIERING.name() + S3BucketBuilderImpl.RULE_ID_CLASS_TRANSITION, intRule.id());
+		assertEquals(INT_TIERING_TRANSITION_RULE_ID, intRule.id());
 		assertEquals(30, intRule.transitions().get(0).days().intValue());
 		assertEquals(StorageClass.INTELLIGENT_TIERING.toString(), intRule.transitions().get(0).storageClassAsString());
 		assertNull(intRule.prefix());
@@ -1322,9 +1339,9 @@ public class S3BucketBuilderImplTest {
 			.rules(
 					// The infrequent access is not there
 					// The intelligent tiering should be updated
-					allBucketRule(StorageClass.INTELLIGENT_TIERING.name() + S3BucketBuilderImpl.RULE_ID_CLASS_TRANSITION).transitions(Transition.builder().storageClass(StorageClass.INTELLIGENT_TIERING.toString()).days(35).build()).build(),
+					allBucketRule(INT_TIERING_TRANSITION_RULE_ID).transitions(Transition.builder().storageClass(StorageClass.INTELLIGENT_TIERING.toString()).days(35).build()).build(),
 					// This is the same
-					allBucketRule(StorageClass.DEEP_ARCHIVE.name() + S3BucketBuilderImpl.RULE_ID_CLASS_TRANSITION).transitions(Transition.builder().storageClass(StorageClass.DEEP_ARCHIVE.toString()).days(90).build()).build()
+					allBucketRule(DEEP_ARCHIVE_TRANSITION_RULE_ID).transitions(Transition.builder().storageClass(StorageClass.DEEP_ARCHIVE.toString()).days(90).build()).build()
 			).build());
 				
 		// Call under test
@@ -1345,7 +1362,7 @@ public class S3BucketBuilderImplTest {
 		
 		LifecycleRule intRule = config.rules().get(0);
 		
-		assertEquals(StorageClass.INTELLIGENT_TIERING.name() + S3BucketBuilderImpl.RULE_ID_CLASS_TRANSITION, intRule.id());
+		assertEquals(INT_TIERING_TRANSITION_RULE_ID, intRule.id());
 		assertEquals(30, intRule.transitions().get(0).days().intValue());
 		assertEquals(StorageClass.INTELLIGENT_TIERING.toString(), intRule.transitions().get(0).storageClassAsString());
 		assertEquals(ExpirationStatus.ENABLED, intRule.status());
@@ -1355,7 +1372,7 @@ public class S3BucketBuilderImplTest {
 		
 		LifecycleRule arcRule = config.rules().get(1);
 		
-		assertEquals(StorageClass.DEEP_ARCHIVE.name() + S3BucketBuilderImpl.RULE_ID_CLASS_TRANSITION, arcRule.id());
+		assertEquals(DEEP_ARCHIVE_TRANSITION_RULE_ID, arcRule.id());
 		assertEquals(90, arcRule.transitions().get(0).days().intValue());
 		assertEquals(StorageClass.DEEP_ARCHIVE.toString(), arcRule.transitions().get(0).storageClassAsString());
 		assertEquals(ExpirationStatus.ENABLED, arcRule.status());
@@ -1365,7 +1382,7 @@ public class S3BucketBuilderImplTest {
 		
 		LifecycleRule iaRule = config.rules().get(2);
 		
-		assertEquals(StorageClass.STANDARD_IA.name() + S3BucketBuilderImpl.RULE_ID_CLASS_TRANSITION, iaRule.id());
+		assertEquals(STANDARD_IA_TRANSITION_RULE_ID, iaRule.id());
 		assertEquals(15, iaRule.transitions().get(0).days().intValue());
 		assertEquals(StorageClass.STANDARD_IA.toString(), iaRule.transitions().get(0).storageClassAsString());
 		assertEquals(ExpirationStatus.ENABLED, iaRule.status());
@@ -1438,7 +1455,7 @@ public class S3BucketBuilderImplTest {
 		
 		LifecycleRule intRule = config.rules().get(0);
 		
-		assertEquals(StorageClass.INTELLIGENT_TIERING.name() + S3BucketBuilderImpl.RULE_ID_CLASS_TRANSITION, intRule.id());
+		assertEquals(INT_TIERING_TRANSITION_RULE_ID, intRule.id());
 		assertEquals(30, intRule.transitions().get(0).days().intValue());
 		assertEquals(StorageClass.INTELLIGENT_TIERING.toString(), intRule.transitions().get(0).storageClassAsString());
 		assertEquals(ExpirationStatus.ENABLED, intRule.status());
@@ -1448,7 +1465,7 @@ public class S3BucketBuilderImplTest {
 		
 		LifecycleRule arcRule = config.rules().get(1);
 		
-		assertEquals(StorageClass.DEEP_ARCHIVE.name() + S3BucketBuilderImpl.RULE_ID_CLASS_TRANSITION, arcRule.id());
+		assertEquals(DEEP_ARCHIVE_TRANSITION_RULE_ID, arcRule.id());
 		assertEquals(90, arcRule.transitions().get(0).days().intValue());
 		assertEquals(StorageClass.DEEP_ARCHIVE.toString(), arcRule.transitions().get(0).storageClassAsString());
 		assertEquals(ExpirationStatus.ENABLED, arcRule.status());
@@ -2369,7 +2386,91 @@ public class S3BucketBuilderImplTest {
 		verify(mockS3Client).getBucketNotificationConfiguration(GetBucketNotificationConfigurationRequest.builder().bucket(expectedBucketName).build());
 		verify(mockS3Client, never()).putBucketNotificationConfiguration(any(PutBucketNotificationConfigurationRequest.class));
 	}
-	
+
+	@Test
+	public void testBuildAllBucketsWithNotificationsConfigurationAndOtherConfigurationTypes() throws InterruptedException {
+
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		String topic = "GlobalTopic";
+		Set<String> events = new HashSet<>(Arrays.asList("s3:ObjectRestore:Completed", "s3:ObjectRestore:Post"));
+
+		bucket.setName("${stack}.bucket");
+		bucket.setNotificationsConfiguration(new S3NotificationsConfiguration()
+				.withTopic(topic)
+				.WithEvents(events)
+		);
+
+		String expectedBucketName = stack + ".bucket";
+		String expectedTopicArn = "topicArn";
+		String expectedConfigName = topic + "Configuration";
+
+		// Configurations of other types, with ids that do not collide, must be left untouched since in v2 the whole
+		// notification configuration is replaced
+		QueueConfiguration existingQueueConfig = QueueConfiguration.builder().id("someQueueConfiguration").queueArn("queueArn").eventsWithStrings(events).build();
+		LambdaFunctionConfiguration existingLambdaConfig = LambdaFunctionConfiguration.builder().id("someLambdaConfiguration").lambdaFunctionArn("lambdaArn").eventsWithStrings(events).build();
+		EventBridgeConfiguration existingEventBridgeConfig = EventBridgeConfiguration.builder().build();
+
+		GetBucketNotificationConfigurationResponse existingConfig = GetBucketNotificationConfigurationResponse.builder()
+			.queueConfigurations(existingQueueConfig)
+			.lambdaFunctionConfigurations(existingLambdaConfig)
+			.eventBridgeConfiguration(existingEventBridgeConfig)
+			.build();
+
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		when(mockCloudFormationClientWrapper.getOutput(any(), any())).thenReturn(expectedTopicArn);
+		when(mockS3Client.getBucketNotificationConfiguration(any(GetBucketNotificationConfigurationRequest.class))).thenReturn(existingConfig);
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(Stack.builder().build()));
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
+
+		// Call under test
+		builder.buildAllBuckets();
+
+		verify(mockS3Client).getBucketNotificationConfiguration(GetBucketNotificationConfigurationRequest.builder().bucket(expectedBucketName).build());
+		verify(mockS3Client).putBucketNotificationConfiguration(bucketNotificationConfigurationCaptor.capture());
+
+		PutBucketNotificationConfigurationRequest request = bucketNotificationConfigurationCaptor.getValue();
+
+		assertEquals(expectedBucketName, request.bucket());
+
+		NotificationConfiguration notificationConfig = request.notificationConfiguration();
+
+		assertEquals(Arrays.asList(TopicConfiguration.builder().id(expectedConfigName).topicArn(expectedTopicArn).eventsWithStrings(events).build()), notificationConfig.topicConfigurations());
+		assertEquals(Arrays.asList(existingQueueConfig), notificationConfig.queueConfigurations());
+		assertEquals(Arrays.asList(existingLambdaConfig), notificationConfig.lambdaFunctionConfigurations());
+		assertEquals(existingEventBridgeConfig, notificationConfig.eventBridgeConfiguration());
+	}
+
+	@Test
+	public void testClassTransitionRuleId() {
+		// The ids are persisted in S3, they must keep matching the labels the rules were originally created with
+		assertEquals("StandardClassTransitionRule", S3BucketBuilderImpl.classTransitionRuleId(StorageClass.STANDARD));
+		assertEquals("ReducedRedundancyClassTransitionRule", S3BucketBuilderImpl.classTransitionRuleId(StorageClass.REDUCED_REDUNDANCY));
+		assertEquals("GlacierClassTransitionRule", S3BucketBuilderImpl.classTransitionRuleId(StorageClass.GLACIER));
+		assertEquals(STANDARD_IA_TRANSITION_RULE_ID, S3BucketBuilderImpl.classTransitionRuleId(StorageClass.STANDARD_IA));
+		assertEquals("OneZoneInfrequentAccessClassTransitionRule", S3BucketBuilderImpl.classTransitionRuleId(StorageClass.ONEZONE_IA));
+		assertEquals(INT_TIERING_TRANSITION_RULE_ID, S3BucketBuilderImpl.classTransitionRuleId(StorageClass.INTELLIGENT_TIERING));
+		assertEquals(DEEP_ARCHIVE_TRANSITION_RULE_ID, S3BucketBuilderImpl.classTransitionRuleId(StorageClass.DEEP_ARCHIVE));
+		assertEquals("OutpostsClassTransitionRule", S3BucketBuilderImpl.classTransitionRuleId(StorageClass.OUTPOSTS));
+		assertEquals("GlacierInstantRetrievalClassTransitionRule", S3BucketBuilderImpl.classTransitionRuleId(StorageClass.GLACIER_IR));
+	}
+
+	@Test
+	public void testClassTransitionRuleIdWithUnsupportedStorageClass() {
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+			// Call under test
+			S3BucketBuilderImpl.classTransitionRuleId(StorageClass.EXPRESS_ONEZONE);
+		});
+
+		assertEquals("Unsupported storage class for a class transition rule: EXPRESS_ONEZONE", ex.getMessage());
+	}
+
 	@Test
 	public void testBuildAllBucketsWithVirusScannerConfiguration() throws Exception {
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
