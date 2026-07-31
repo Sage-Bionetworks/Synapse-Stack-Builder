@@ -19,7 +19,9 @@
         "UPLOADER_V2": true,
         "SEARCHV2_ENABLED": true,
         "METADATA_TAB": true,
-        "CURATOR_LINK_TASK_TO_GRID_SESSION": true
+        "CURATOR_LINK_TASK_TO_GRID_SESSION": true,
+        "ENABLE_RECORDSET_SYNCHRONIZATION": true,
+        "GRID_AGENT_V2": true
       }
     }
   ]
