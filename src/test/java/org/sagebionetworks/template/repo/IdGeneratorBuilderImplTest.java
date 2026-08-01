@@ -76,7 +76,7 @@ public class IdGeneratorBuilderImplTest {
 		builder.buildAndDeploy();
 		verify(mockCloudFormationClientWrapper).createOrUpdateStack(requestCaptor.capture());
 		CreateOrUpdateStackRequest request = requestCaptor.getValue();
-		assertEquals("prod-id-generator-3-green", request.getStackName());
+		assertEquals("prod-id-generator-4-green", request.getStackName());
 		JSONObject template = new JSONObject(request.getTemplateBody());
 		JSONObject resources = template.getJSONObject("Resources");
 		assertTrue(resources.has("prodIdGeneratorDBSubnetGroup"));
@@ -104,7 +104,7 @@ public class IdGeneratorBuilderImplTest {
 		builder.buildAndDeploy();
 		verify(mockCloudFormationClientWrapper).createOrUpdateStack(requestCaptor.capture());
 		CreateOrUpdateStackRequest request = requestCaptor.getValue();
-		assertEquals("dev-id-generator-3-green", request.getStackName());
+		assertEquals("dev-id-generator-4-green", request.getStackName());
 		JSONObject template = new JSONObject(request.getTemplateBody());
 		JSONObject resources = template.getJSONObject("Resources");
 		assertTrue(resources.has("devIdGeneratorDBSubnetGroup"));
