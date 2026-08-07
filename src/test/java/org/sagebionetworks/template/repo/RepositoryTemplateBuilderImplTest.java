@@ -481,7 +481,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(2, prodSubnetIds.length());
 		assertEquals("subnet1", prodSubnetIds.getString(0));
 		assertEquals("subnet2", prodSubnetIds.getString(1));
-		assertEquals("Retain", resources.getJSONObject("SynapseSearchIndexDomain").getString("DeletionPolicy"));
+		assertEquals("Delete", resources.getJSONObject("SynapseSearchIndexDomain").getString("DeletionPolicy"));
 		assertTrue(prodDomainProps.getJSONObject("SoftwareUpdateOptions").getBoolean("AutoSoftwareUpdateEnabled"));
 		assertTrue(prodDomainProps.getJSONObject("AccessPolicies").toString()
 				.contains("prod101SynapesRepoWorkersServiceRole"));
