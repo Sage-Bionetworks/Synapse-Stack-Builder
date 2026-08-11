@@ -70,17 +70,6 @@
 		</dependency>
 		<!-- The AWS Java SDK Dependencies -->
 		<dependency>
-			<groupId>com.amazonaws</groupId>
-			<artifactId>aws-java-sdk-s3</artifactId>
-			<version>${amazon.sdk.version}</version>
-		</dependency>
-		<!-- Remove v1 CloudFormation if present -->
-		<!-- <dependency>
-			<groupId>com.amazonaws</groupId>
-			<artifactId>aws-java-sdk-cloudformation</artifactId>
-			<version>${amazon.sdk.version}</version>
-		</dependency> -->
-		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>s3</artifactId>
 		</dependency>
@@ -301,7 +290,6 @@
 	</build>
 	<properties>
 		<bouncycastle.version>1.84</bouncycastle.version>
-		<amazon.sdk.version>1.12.296</amazon.sdk.version>
 		<amazon.sdk.v2.version>2.29.34</amazon.sdk.v2.version>
 		<log4j.version>2.26.1</log4j.version>
 		<junit.jupiter.version>5.4.1</junit.jupiter.version>

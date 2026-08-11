@@ -112,10 +112,6 @@ import org.sagebionetworks.util.DefaultClock;
 import org.sagebionetworks.war.WarAppender;
 import org.sagebionetworks.war.WarAppenderImpl;
 
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Named;
@@ -211,7 +207,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	}
 	
 	/**
-	 * Create a AmazonCloudFormation client that uses the  {@link DefaultAWSCredentialsProviderChain}.
+	 * Create a CloudFormation client that uses the {@link DefaultCredentialsProvider}.
 	 * @return
 	 */
 	@Provides
@@ -220,14 +216,6 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		return client;
 	}
 	
-	@Provides
-	public AmazonS3 provideAmazonS3Client() {
-		AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
-		builder.withCredentials(new DefaultAWSCredentialsProviderChain());
-		builder.withRegion(Regions.US_EAST_1);
-		return builder.build();
-	}
-
 	@Provides
 	public S3Client provideS3Client() {
 		return S3Client.builder().region(Region.US_EAST_1).build();
