@@ -37,10 +37,10 @@ public class GridTemplatesTest {
 	public void before() {
 
 		Properties p = new Properties();
-		p.setProperty(RuntimeConstants.RESOURCE_LOADER, "string");
-		p.setProperty("string.resource.loader.class", StringResourceLoader.class.getName());
-		p.setProperty("string.resource.loader.repository.static", "false");
-		p.setProperty("runtime.references.strict", "true");
+		p.setProperty(RuntimeConstants.RESOURCE_LOADERS, "string");
+		p.setProperty("resource.loader.string.class", StringResourceLoader.class.getName());
+		p.setProperty("resource.loader.string.repository.static", "false");
+		p.setProperty("runtime.strict_mode.enable", "true");
 
 		engine = new VelocityEngine(p);
 		engine.init();

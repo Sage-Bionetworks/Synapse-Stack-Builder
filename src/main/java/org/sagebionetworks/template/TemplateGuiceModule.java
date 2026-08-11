@@ -145,10 +145,10 @@ import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 
 public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
-	private static final String RUNTIME_REFERENCES_STRICT = "runtime.references.strict";
+	private static final String RUNTIME_REFERENCES_STRICT = "runtime.strict_mode.enable";
 	private static final String CLASSPATH_AND_FILE = "classpath,file";
-	private static final String CLASSPATH_RESOURCE_LOADER_CLASS = "classpath.resource.loader.class";
-	private static final String FILE_RESOURCE_LOADER_CLASS = "file.resource.loader.class";
+	private static final String CLASSPATH_RESOURCE_LOADER_CLASS = "resource.loader.classpath.class";
+	private static final String FILE_RESOURCE_LOADER_CLASS = "resource.loader.file.class";
 	private static final String IMAGE_CENTRAL_SESSION_NAME = "image-central-session";
 
 	@Override
@@ -297,7 +297,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public VelocityEngine velocityEngineProvider() {
 		VelocityEngine engine = new VelocityEngine();
-		engine.setProperty(RuntimeConstants.RESOURCE_LOADER, CLASSPATH_AND_FILE); 
+		engine.setProperty(RuntimeConstants.RESOURCE_LOADERS, CLASSPATH_AND_FILE);
 		engine.setProperty(CLASSPATH_RESOURCE_LOADER_CLASS, ClasspathResourceLoader.class.getName());
 		engine.setProperty(FILE_RESOURCE_LOADER_CLASS, FileResourceLoader.class.getName());
 		engine.setProperty(RUNTIME_REFERENCES_STRICT, true);
