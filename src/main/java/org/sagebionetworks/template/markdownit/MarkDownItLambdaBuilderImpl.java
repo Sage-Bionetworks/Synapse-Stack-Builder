@@ -99,7 +99,7 @@ public class MarkDownItLambdaBuilderImpl implements MarkDownItLambdaBuilder {
             String markdownitSubdomain,
             String certificateArn) {
 
-        String stackName = String.format("%s-markdown-it-function", stack);
+        String stackName = String.format("%s-markdown-it-function-signed", stack);
 
         // Setup context
         VelocityContext context = new VelocityContext();

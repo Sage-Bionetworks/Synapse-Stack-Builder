@@ -108,7 +108,7 @@ public class MarkDownItLambdaBuilderImplTest {
         verify(mockCloudFormationClientWrapper, times(1)).describeStack(argCaptorDescribeStack.capture());
 
         CreateOrUpdateStackRequest request = argCaptorCreateOrUpdateStack.getValue();
-        assertEquals("dev-markdown-it-function", request.getStackName());
+        assertEquals("dev-markdown-it-function-signed", request.getStackName());
         assertTrue(request.getTags().isEmpty());
         assertEquals(1, request.getCapabilities().length);
         assertEquals(Capability.CAPABILITY_NAMED_IAM, request.getCapabilities()[0]);
@@ -127,8 +127,8 @@ public class MarkDownItLambdaBuilderImplTest {
         assertTrue(resources.has("CustomDomain"));
         assertTrue(resources.has("BasePathMapping"));
 
-        assertEquals("dev-markdown-it-function", argCaptorWaitForStack.getValue());
-        assertEquals("dev-markdown-it-function", argCaptorDescribeStack.getValue());
+        assertEquals("dev-markdown-it-function-signed", argCaptorWaitForStack.getValue());
+        assertEquals("dev-markdown-it-function-signed", argCaptorDescribeStack.getValue());
 
         assertFalse(testFile.exists());
 
@@ -184,7 +184,7 @@ public class MarkDownItLambdaBuilderImplTest {
         verify(mockCloudFormationClientWrapper, times(1)).describeStack(argCaptorDescribeStack.capture());
 
         CreateOrUpdateStackRequest request = argCaptorCreateOrUpdateStack.getValue();
-        assertEquals("prod-markdown-it-function", request.getStackName());
+        assertEquals("prod-markdown-it-function-signed", request.getStackName());
         assertTrue(request.getTags().isEmpty());
         assertEquals(1, request.getCapabilities().length);
         assertEquals(Capability.CAPABILITY_NAMED_IAM, request.getCapabilities()[0]);
@@ -203,8 +203,8 @@ public class MarkDownItLambdaBuilderImplTest {
         assertTrue(resources.has("CustomDomain"));
         assertTrue(resources.has("BasePathMapping"));
 
-        assertEquals("prod-markdown-it-function", argCaptorWaitForStack.getValue());
-        assertEquals("prod-markdown-it-function", argCaptorDescribeStack.getValue());
+        assertEquals("prod-markdown-it-function-signed", argCaptorWaitForStack.getValue());
+        assertEquals("prod-markdown-it-function-signed", argCaptorDescribeStack.getValue());
 
         assertFalse(testFile.exists());
 
