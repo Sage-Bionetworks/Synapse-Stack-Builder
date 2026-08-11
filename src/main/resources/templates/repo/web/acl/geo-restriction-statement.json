@@ -11,7 +11,7 @@
                     "CountryCodes": [ "CN", "HK", "MO", "RU", "IR", "KP", "CU", "VE" ],
 					"ForwardedIPConfig": {
 					    "HeaderName": "X-Forwarded-For",
-						"FallbackBehavior": "MATCH"	
+						"FallbackBehavior": "NO_MATCH"
 					}					
                 }
 			}
