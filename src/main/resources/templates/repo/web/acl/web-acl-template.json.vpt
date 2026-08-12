@@ -199,8 +199,23 @@
 			},
 			"DependsOn": [
 				"${stack}${instance}matchadminremoteipIPV4",
-				"${stack}${instance}VpcCidrIpSetIPV4"
+				"${stack}${instance}VpcCidrIpSetIPV4",
+				"${stack}${instance}Rfc1918PrivateIpSetIPV4"
 			]
+		},
+		"${stack}${instance}Rfc1918PrivateIpSetIPV4": {
+			"Type": "AWS::WAFv2::IPSet",
+			"Properties": {
+				"Addresses": [
+					"10.0.0.0/8",
+					"172.16.0.0/12",
+					"192.168.0.0/16"
+				],
+				"IPAddressVersion": "IPV4",
+				"Scope": "REGIONAL",
+				"Description": "RFC1918 private address ranges, used to exclude requests where an intermediate proxy has rewritten X-Forwarded-For to a private IP from the geo-restriction rule's forwarded-IP check.",
+				"Name": "${stack}-${instance}-rfc1918-private-ip-set"
+			}
 		},
 		"${stack}${instance}matchadminremoteipIPV4": {
 			"Type": "AWS::WAFv2::IPSet",

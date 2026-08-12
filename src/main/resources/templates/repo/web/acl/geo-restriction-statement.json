@@ -7,14 +7,39 @@
                 }
             },
 			{
-				"GeoMatchStatement": {
-                    "CountryCodes": [ "CN", "HK", "MO", "RU", "IR", "KP", "CU", "VE" ],
-					"ForwardedIPConfig": {
-					    "HeaderName": "X-Forwarded-For",
-						"FallbackBehavior": "NO_MATCH"
-					}					
-                }
+				"AndStatement": {
+					"Statements": [
+						{
+							"GeoMatchStatement": {
+								"CountryCodes": [ "CN", "HK", "MO", "RU", "IR", "KP", "CU", "VE" ],
+								"ForwardedIPConfig": {
+									"HeaderName": "X-Forwarded-For",
+									"FallbackBehavior": "MATCH"
+								}
+							}
+						},
+						{
+							"NotStatement": {
+								"Statement": {
+									"IPSetReferenceStatement": {
+										"Arn": {
+											"Fn::GetAtt": [
+												"${stack}${instance}Rfc1918PrivateIpSetIPV4",
+												"Arn"
+											]
+										},
+										"IPSetForwardedIPConfig": {
+											"HeaderName": "X-Forwarded-For",
+											"FallbackBehavior": "NO_MATCH",
+											"Position": "ANY"
+										}
+									}
+								}
+							}
+						}
+					]
+				}
 			}
         ]
-    }	
+    }
 }
