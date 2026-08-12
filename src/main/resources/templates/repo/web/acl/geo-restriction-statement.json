@@ -24,7 +24,7 @@
 									"IPSetReferenceStatement": {
 										"Arn": {
 											"Fn::GetAtt": [
-												"${stack}${instance}Rfc1918PrivateIpSetIPV4",
+												"${stack}${instance}NonRoutableIpSetIPV4",
 												"Arn"
 											]
 										},
