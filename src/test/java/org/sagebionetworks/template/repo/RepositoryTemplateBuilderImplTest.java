@@ -981,6 +981,31 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("prod-101-Admin-Access-Rule", adminRule.get("Name"));
 		assertEquals("{\"Block\":{}}", adminRule.getJSONObject("Action").toString());
 
+		JSONObject geoRestrictionRule = rules.getJSONObject(0);
+		assertEquals("prod-101-geo-restriction-rule", geoRestrictionRule.get("Name"));
+		JSONArray geoOrStatements = geoRestrictionRule.getJSONObject("Statement").getJSONObject("OrStatement")
+				.getJSONArray("Statements");
+		assertEquals(2, geoOrStatements.length());
+		assertTrue(geoOrStatements.getJSONObject(0).has("GeoMatchStatement"));
+		JSONArray forwardedIpAndStatements = geoOrStatements.getJSONObject(1).getJSONObject("AndStatement")
+				.getJSONArray("Statements");
+		assertEquals("MATCH", forwardedIpAndStatements.getJSONObject(0).getJSONObject("GeoMatchStatement")
+				.getJSONObject("ForwardedIPConfig").getString("FallbackBehavior"));
+		JSONObject rfc1918IpSetReference = forwardedIpAndStatements.getJSONObject(1).getJSONObject("NotStatement")
+				.getJSONObject("Statement").getJSONObject("IPSetReferenceStatement");
+		assertEquals("prod101Rfc1918PrivateIpSetIPV4",
+				rfc1918IpSetReference.getJSONObject("Arn").getJSONArray("Fn::GetAtt").getString(0));
+		assertEquals("NO_MATCH", rfc1918IpSetReference.getJSONObject("IPSetForwardedIPConfig")
+				.getString("FallbackBehavior"));
+
+		JSONObject rfc1918IpSet = resources.getJSONObject("prod101Rfc1918PrivateIpSetIPV4");
+		assertEquals("AWS::WAFv2::IPSet", rfc1918IpSet.get("Type"));
+		JSONArray rfc1918Addresses = rfc1918IpSet.getJSONObject("Properties").getJSONArray("Addresses");
+		assertEquals(3, rfc1918Addresses.length());
+		assertEquals("10.0.0.0/8", rfc1918Addresses.getString(0));
+		assertEquals("172.16.0.0/12", rfc1918Addresses.getString(1));
+		assertEquals("192.168.0.0/16", rfc1918Addresses.getString(2));
+
 		JSONObject sizeRestrictionsRule = rules.getJSONObject(3);
 		assertEquals("prod-101-size-restrictions-rule", sizeRestrictionsRule.get("Name"));
 		JSONObject statement = sizeRestrictionsRule.getJSONObject("Statement");
