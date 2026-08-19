@@ -31,7 +31,7 @@
 										"IPSetForwardedIPConfig": {
 											"HeaderName": "X-Forwarded-For",
 											"FallbackBehavior": "NO_MATCH",
-											"Position": "ANY"
+											"Position": "FIRST"
 										}
 									}
 								}
