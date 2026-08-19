@@ -997,6 +997,8 @@ public class RepositoryTemplateBuilderImplTest {
 				nonRoutableIpSetReference.getJSONObject("Arn").getJSONArray("Fn::GetAtt").getString(0));
 		assertEquals("NO_MATCH", nonRoutableIpSetReference.getJSONObject("IPSetForwardedIPConfig")
 				.getString("FallbackBehavior"));
+		assertEquals("FIRST", nonRoutableIpSetReference.getJSONObject("IPSetForwardedIPConfig")
+				.getString("Position"));
 
 		JSONObject nonRoutableIpSet = resources.getJSONObject("prod101NonRoutableIpSetIPV4");
 		assertEquals("AWS::WAFv2::IPSet", nonRoutableIpSet.get("Type"));
