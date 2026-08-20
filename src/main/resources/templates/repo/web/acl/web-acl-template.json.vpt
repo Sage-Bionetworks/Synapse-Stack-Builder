@@ -214,7 +214,7 @@
 				],
 				"IPAddressVersion": "IPV4",
 				"Scope": "REGIONAL",
-				"Description": "RFC1918 private address ranges and the IPv4 loopback range (RFC1122 3.2.1.3), used to exclude requests where an intermediate proxy has rewritten X-Forwarded-For to a non-geolocatable address from the geo-restriction rule's forwarded-IP check.",
+				"Description": "RFC1918 private address ranges and the IPv4 loopback range RFC1122 3.2.1.3, used to exclude requests where an intermediate proxy has rewritten X-Forwarded-For to a non-geolocatable address from the geo-restriction rule forwarded-IP check.",
 				"Name": "${stack}-${instance}-non-routable-ip-set"
 			}
 		},
