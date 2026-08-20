@@ -38,7 +38,7 @@
 	#end
 	"SynapseSearchIndexDomain": {
 		"Type": "AWS::OpenSearchService::Domain",
-		"DeletionPolicy": "${deletionPolicy}",
+		"DeletionPolicy": "Delete",
 		"Properties": {
 			"DomainName": "${stack}-${instance}-synidx",
 			"EngineVersion": "OpenSearch_3.5",
