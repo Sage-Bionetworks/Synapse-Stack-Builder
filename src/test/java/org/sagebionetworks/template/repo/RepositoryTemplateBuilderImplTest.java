@@ -981,6 +981,34 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("prod-101-Admin-Access-Rule", adminRule.get("Name"));
 		assertEquals("{\"Block\":{}}", adminRule.getJSONObject("Action").toString());
 
+		JSONObject geoRestrictionRule = rules.getJSONObject(0);
+		assertEquals("prod-101-geo-restriction-rule", geoRestrictionRule.get("Name"));
+		JSONArray geoOrStatements = geoRestrictionRule.getJSONObject("Statement").getJSONObject("OrStatement")
+				.getJSONArray("Statements");
+		assertEquals(2, geoOrStatements.length());
+		assertTrue(geoOrStatements.getJSONObject(0).has("GeoMatchStatement"));
+		JSONArray forwardedIpAndStatements = geoOrStatements.getJSONObject(1).getJSONObject("AndStatement")
+				.getJSONArray("Statements");
+		assertEquals("MATCH", forwardedIpAndStatements.getJSONObject(0).getJSONObject("GeoMatchStatement")
+				.getJSONObject("ForwardedIPConfig").getString("FallbackBehavior"));
+		JSONObject nonRoutableIpSetReference = forwardedIpAndStatements.getJSONObject(1).getJSONObject("NotStatement")
+				.getJSONObject("Statement").getJSONObject("IPSetReferenceStatement");
+		assertEquals("prod101NonRoutableIpSetIPV4",
+				nonRoutableIpSetReference.getJSONObject("Arn").getJSONArray("Fn::GetAtt").getString(0));
+		assertEquals("NO_MATCH", nonRoutableIpSetReference.getJSONObject("IPSetForwardedIPConfig")
+				.getString("FallbackBehavior"));
+		assertEquals("FIRST", nonRoutableIpSetReference.getJSONObject("IPSetForwardedIPConfig")
+				.getString("Position"));
+
+		JSONObject nonRoutableIpSet = resources.getJSONObject("prod101NonRoutableIpSetIPV4");
+		assertEquals("AWS::WAFv2::IPSet", nonRoutableIpSet.get("Type"));
+		JSONArray nonRoutableAddresses = nonRoutableIpSet.getJSONObject("Properties").getJSONArray("Addresses");
+		assertEquals(4, nonRoutableAddresses.length());
+		assertEquals("10.0.0.0/8", nonRoutableAddresses.getString(0));
+		assertEquals("172.16.0.0/12", nonRoutableAddresses.getString(1));
+		assertEquals("192.168.0.0/16", nonRoutableAddresses.getString(2));
+		assertEquals("127.0.0.0/8", nonRoutableAddresses.getString(3));
+
 		JSONObject sizeRestrictionsRule = rules.getJSONObject(3);
 		assertEquals("prod-101-size-restrictions-rule", sizeRestrictionsRule.get("Name"));
 		JSONObject statement = sizeRestrictionsRule.getJSONObject("Statement");
