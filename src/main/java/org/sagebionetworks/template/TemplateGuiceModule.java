@@ -289,6 +289,10 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		engine.setProperty(CLASSPATH_RESOURCE_LOADER_CLASS, ClasspathResourceLoader.class.getName());
 		engine.setProperty(FILE_RESOURCE_LOADER_CLASS, FileResourceLoader.class.getName());
 		engine.setProperty(RUNTIME_REFERENCES_STRICT, true);
+		// Velocity 2.x defaults parser.space_gobbling to 'lines', which strips the whitespace
+		// preceding a lone directive. Our templates rely on the 1.7 behavior ('bc') to keep
+		// indentation of directive-generated output (e.g. YAML/JSON separators) aligned.
+		engine.setProperty(RuntimeConstants.SPACE_GOBBLING, "bc");
 		return engine;
 	}
 
