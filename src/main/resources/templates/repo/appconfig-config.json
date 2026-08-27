@@ -5,7 +5,9 @@
       "appConfigDescription": "Freeform config for toggling experimental mode features",
       "appConfigDefaultConfiguration": {
         "ADD_WIKI_WIDGETS": null,
-        "HOMEPAGE_CHATBOT": null
+        "HOMEPAGE_CHATBOT": null,
+        "PORTAL_CHAT": true,
+        "CURIE_CHAT_WIDGET": true
       }
     }
   ]
