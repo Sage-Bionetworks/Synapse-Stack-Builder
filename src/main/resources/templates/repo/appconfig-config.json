@@ -21,9 +21,7 @@
         "METADATA_TAB": true,
         "CURATOR_LINK_TASK_TO_GRID_SESSION": true,
         "ENABLE_RECORDSET_SYNCHRONIZATION": true,
-        "GRID_AGENT_V2": true,
-        "PORTAL_CHAT": true,
-        "CURIE_CHAT_WIDGET": true
+        "GRID_AGENT_V2": true
       }
     }
   ]
