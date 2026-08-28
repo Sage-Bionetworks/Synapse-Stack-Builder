@@ -31,7 +31,7 @@
       "ApplicationId": { "Ref": "dev101portalAppConfigApp" },
       "ConfigurationProfileId": { "Ref": "dev101portalAppConfigConfigProfile" },
       "Description": "Freeform config for toggling experimental mode features",
-      "Content": "{\"ADD_WIKI_WIDGETS\":null,\"HOMEPAGE_CHATBOT\":null,\"PORTAL_CHAT\":true,\"CURIE_CHAT_WIDGET\":true}",
+      "Content": "{\"ADD_WIKI_WIDGETS\":null,\"HOMEPAGE_CHATBOT\":null}",
       "ContentType": "application/json"
     }
   },
