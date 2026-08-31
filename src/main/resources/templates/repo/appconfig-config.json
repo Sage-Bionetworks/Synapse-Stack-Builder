@@ -4,24 +4,8 @@
       "appConfigName": "portal",
       "appConfigDescription": "Freeform config for toggling experimental mode features",
       "appConfigDefaultConfiguration": {
-        "GOOGLE_MAP": null,
-        "VIEW_ASSOCIATED_PROJECTS": null,
-        "PROVENANCE_DOCKER_IMAGES": null,
-        "DESCRIPTION_FIELD": null,
         "ADD_WIKI_WIDGETS": null,
-        "CUSTOM_STORAGE_LOCATION_SETTINGS": null,
-        "CHALLENGE_SUBMISSION_SETTINGS": null,
-        "PROVENANCE_V2_VISUALIZATION": true,
-        "VIRTUALTABLE_SUPPORT": null,
-        "REACT_ENTITY_ACL_EDITOR": true,
-        "HOMEPAGE_CHATBOT": null,
-        "PORTALS_DROPDOWN": null,
-        "UPLOADER_V2": true,
-        "SEARCHV2_ENABLED": true,
-        "METADATA_TAB": true,
-        "CURATOR_LINK_TASK_TO_GRID_SESSION": true,
-        "ENABLE_RECORDSET_SYNCHRONIZATION": true,
-        "GRID_AGENT_V2": true
+        "HOMEPAGE_CHATBOT": null
       }
     }
   ]
