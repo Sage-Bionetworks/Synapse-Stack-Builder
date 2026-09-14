@@ -1066,7 +1066,13 @@
 							"Resource": "*"
 						}
 					]
-				}
+				},
+				"Tags": [
+					{
+						"Key": "SecHubSuppressCis3.8",
+						"Value": "true"
+					}
+				]
 			}
 		},
 		"${stack}${instance}CMKAlias": {
