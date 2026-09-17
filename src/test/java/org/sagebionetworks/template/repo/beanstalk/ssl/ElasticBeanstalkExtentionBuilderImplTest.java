@@ -147,6 +147,15 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		assertEquals("{\"command\":\"sh /tmp/update_tomcat_server_xml.sh\"}",
 				configJson.getJSONObject("container_commands").getJSONObject("00").toString());
 
+		// SAGL-593: Beanstalk's platform bootstrap installs the unfixable log4j RPM at
+		// instance launch, so we remove it here, guarded on nothing depending on it.
+		JSONObject removeLog4j = configJson.getJSONObject("commands")
+				.getJSONObject("00_remove_log4j_cve_2026_34480");
+		assertEquals("rpm -q log4j > /dev/null 2>&1 && rpm -e --test log4j > /dev/null 2>&1",
+				removeLog4j.getString("test"));
+		assertEquals("dnf -y remove log4j", removeLog4j.getString("command"));
+		assertEquals("true", removeLog4j.getString("ignoreErrors"));
+
 		assertTrue(httpConfigJson.contains(x509CertificatePem));
 		assertTrue(httpConfigJson.contains(privateKeyPem));
 		// SSL conf
