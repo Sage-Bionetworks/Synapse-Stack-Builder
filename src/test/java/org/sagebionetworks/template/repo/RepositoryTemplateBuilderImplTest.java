@@ -25,6 +25,7 @@ import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_DISCOVERY_DOC
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DOCUSIGN_API_BASE_PATH;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DOCUSIGN_OAUTH_BASE_PATH;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
+import static org.sagebionetworks.template.Constants.DATABASE_SUBNETS;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.DELETION_POLICY;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_MEMORY;
@@ -81,6 +82,9 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_MAX
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_THROUGHPUT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_COLOR;
+import static org.sagebionetworks.template.Constants.RDS_ENGINE;
+import static org.sagebionetworks.template.Constants.RDS_ENGINE_VERSION;
+import static org.sagebionetworks.template.Constants.RDS_MINIMUM_SUBNET_COUNT;
 import static org.sagebionetworks.template.Constants.REPO_BEANSTALK_NUMBER;
 import static org.sagebionetworks.template.Constants.SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT;
 import static org.sagebionetworks.template.Constants.SHARED_EXPORT_PREFIX;
@@ -117,6 +121,7 @@ import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.Ec2ClientWrapper;
+import org.sagebionetworks.template.RdsClientWrapper;
 import org.sagebionetworks.template.ImageBuilderClient;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
@@ -159,10 +164,23 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 @ExtendWith(MockitoExtension.class)
 public class RepositoryTemplateBuilderImplTest {
 
+	/**
+	 * The subset of the color's private subnets that can host every DB instance class of the stack.
+	 */
+	private static final List<String> EXPECTED_DATABASE_SUBNETS = Arrays.asList("subnet1", "subnet4");
+
+	/**
+	 * The subnets are passed to the context as a single string, already quoted and comma separated so
+	 * the template can substitute it as the elements of the DB subnet group's SubnetIds array.
+	 */
+	private static final String EXPECTED_DATABASE_SUBNETS_STRING = "\"subnet1\",\"subnet4\"";
+
 	@Mock
 	private CloudFormationClientWrapper mockCloudFormationClientWrapper;
 	@Mock
 	private Ec2ClientWrapper mockEc2ClientWrapper;
+	@Mock
+	private RdsClientWrapper mockRdsClientWrapper;
 	@Mock
 	private ElasticBeanstalkClient mockBeanstalkClient;
 	@Mock
@@ -240,7 +258,7 @@ public class RepositoryTemplateBuilderImplTest {
 						new BedrockGridAgentContextProvider(config, mockS3Client),
 						new GridContextProvider(gridQueueRef, config)),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
-				mockEc2ClientWrapper, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive,
+				mockEc2ClientWrapper, mockRdsClientWrapper, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive,
 				mockDockerImageBuilder, mockLoadBalancerAlarmsConfig);
 
 		builderSpy = Mockito.spy(builder);
@@ -269,6 +287,15 @@ public class RepositoryTemplateBuilderImplTest {
 
 		// CloudwatchLogs
 		logDescriptors = this.generateLogDescriptors();
+	}
+
+	/**
+	 * The DB subnet group is built from the zones that offer every DB instance class, so every test
+	 * that creates the shared context needs the RDS lookup stubbed.
+	 */
+	private void setupDatabaseSubnets() {
+		when(mockRdsClientWrapper.getAvailableSubnetsForDBInstanceClasses(anyString(), anyString(), any(), any(),
+				anyInt())).thenReturn(EXPECTED_DATABASE_SUBNETS);
 	}
 
 	private void configureStack(String inputStack) throws InterruptedException {
@@ -343,6 +370,7 @@ public class RepositoryTemplateBuilderImplTest {
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
 		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 		setupValidBeanstalkConfig();
+		setupDatabaseSubnets();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
 		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
 				.thenReturn(String.join(",", EXPECTED_SUBNETS));
@@ -365,6 +393,10 @@ public class RepositoryTemplateBuilderImplTest {
 
 		verify(mockCloudFormationClientWrapper, times(4)).createOrUpdateStack(requestCaptor.capture());
 		verify(mockCloudFormationClientWrapper).waitForStackToComplete("prod-101-shared-resources");
+		// A completed stack does not guarantee the databases match the template (PLFM-9965).
+		verify(mockRdsClientWrapper).validateMultiAZ("prod-101-db", true);
+		verify(mockRdsClientWrapper).validateMultiAZ("prod-101-table-0", false);
+		verify(mockRdsClientWrapper).validateMultiAZ("prod-101-table-1", false);
 
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
@@ -557,6 +589,7 @@ public class RepositoryTemplateBuilderImplTest {
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
 		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 		setupValidBeanstalkConfig();
+		setupDatabaseSubnets();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
 		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
 				.thenReturn(String.join(",", EXPECTED_SUBNETS));
@@ -688,6 +721,7 @@ public class RepositoryTemplateBuilderImplTest {
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
 		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
 		setupValidBeanstalkConfig();
+		setupDatabaseSubnets();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
 		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
 				.thenReturn(String.join(",", EXPECTED_SUBNETS));
@@ -847,6 +881,7 @@ public class RepositoryTemplateBuilderImplTest {
 		when(mockCwlContextProvider.getLogDescriptors(any(EnvironmentType.class))).thenReturn(logDescriptors);
 
 		setupValidBeanstalkConfig();
+		setupDatabaseSubnets();
 		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
 		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
 				.thenReturn(String.join(",", EXPECTED_SUBNETS));
@@ -917,6 +952,12 @@ public class RepositoryTemplateBuilderImplTest {
 		assertNotNull(subnetGroup);
 		JSONObject properties = subnetGroup.getJSONObject("Properties");
 		assertTrue(properties.has("SubnetIds"));
+		/*
+		 * Only the zones that offer every DB instance class, not the whole private subnet export.
+		 * Including a zone that cannot host a class lets RDS silently drop a Multi-AZ standby
+		 * (PLFM-9965).
+		 */
+		assertEquals(EXPECTED_DATABASE_SUBNETS, properties.getJSONArray("SubnetIds").toList());
 	}
 
 	/**
@@ -935,7 +976,19 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("db.t2.small", properties.get("DBInstanceClass"));
 		assertEquals(Boolean.TRUE, properties.get("MultiAZ"));
 		assertNotNull(properties.get("BackupRetentionPeriod"));
+		validateEngineMatchesConstants(properties);
 		validateEnhancedMonitoring(properties, enableEnhancedMonitoring);
+	}
+
+	/**
+	 * The zones a DB instance class is offered in are looked up with Constants.RDS_ENGINE and
+	 * Constants.RDS_ENGINE_VERSION, so those must agree with what the template deploys. "Engine" is an
+	 * immutable CloudFormation property, so the template hardcodes it rather than being driven from the
+	 * constants (PLFM-9965).
+	 */
+	public void validateEngineMatchesConstants(JSONObject properties) {
+		assertEquals(RDS_ENGINE, properties.getString("Engine").toLowerCase());
+		assertEquals(RDS_ENGINE_VERSION, properties.getString("EngineVersion"));
 	}
 
 	/**
@@ -957,6 +1010,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(stack + "-101-table-0", properties.get("DBInstanceIdentifier"));
 		assertEquals(stack + "101", properties.get("DBName"));
 		assertEquals(1, properties.get("BackupRetentionPeriod"));
+		validateEngineMatchesConstants(properties);
 		validateEnhancedMonitoring(properties, enableEnhancedMonitoring);
 		// one
 		instance = resources.getJSONObject(stack + "101Table1RepositoryDB");
@@ -968,6 +1022,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(Boolean.FALSE, properties.get("MultiAZ"));
 		assertEquals(stack + "-101-table-1", properties.get("DBInstanceIdentifier"));
 		assertEquals(stack + "101", properties.get("DBName"));
+		validateEngineMatchesConstants(properties);
 		validateEnhancedMonitoring(properties, enableEnhancedMonitoring);
 	}
 
@@ -1130,6 +1185,9 @@ public class RepositoryTemplateBuilderImplTest {
 		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
 		String[] noSnapshots = new String[] { NOSNAPSHOT };
 		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
+		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
+				.thenReturn("subnet1, subnet2, subnet4");
+		setupDatabaseSubnets();
 
 		// call under test
 		VelocityContext context = builder.createSharedContext();
@@ -1182,6 +1240,12 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(1000, desc.getDbIops());
 		assertEquals(1000, desc.getDbThroughput());
 
+		// the subnet group is limited to the zones that offer both DB instance classes (PLFM-9965)
+		assertEquals(EXPECTED_DATABASE_SUBNETS_STRING, context.get(DATABASE_SUBNETS));
+		verify(mockRdsClientWrapper).getAvailableSubnetsForDBInstanceClasses(RDS_ENGINE, RDS_ENGINE_VERSION,
+				List.of("db.t2.small", "db.t2.micro"), List.of("subnet1", "subnet2", "subnet4"),
+				RDS_MINIMUM_SUBNET_COUNT);
+
 		verify(mockContextProvider1).addToContext(context);
 		verify(mockContextProvider2).addToContext(context);
 	}
@@ -1201,6 +1265,7 @@ public class RepositoryTemplateBuilderImplTest {
 				.thenReturn(String.join(",", openSearchSubnets));
 		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceTypes(eq(List.of("r6g.xlarge", "m6g.large")), any(),
 				eq(2))).thenReturn(openSearchSubnets);
+		setupDatabaseSubnets();
 
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE)).thenReturn(4);
 		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(8);
@@ -1239,6 +1304,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("m6g.large", context.get(Constants.OPENSEARCH_MASTER_INSTANCE_TYPE));
 		assertEquals(2, context.get(Constants.OPENSEARCH_AVAILABILITY_ZONE_COUNT));
 		assertEquals(openSearchSubnets, context.get(Constants.OPENSEARCH_SUBNETS));
+		assertEquals(EXPECTED_DATABASE_SUBNETS_STRING, context.get(DATABASE_SUBNETS));
 	}
 
 	@Test
@@ -1656,6 +1722,49 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(2, results.length);
 		assertEquals(expected[0], results[0]);
 		assertEquals(expected[1], results[1]);
+	}
+
+	/**
+	 * The subnet group is shared by every database of the stack, so the zones must be resolved from the
+	 * distinct set of DB instance classes (PLFM-9965).
+	 */
+	@Test
+	public void testGetDatabaseSubnets() {
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
+		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
+				.thenReturn("subnet1, subnet2, subnet4");
+		setupDatabaseSubnets();
+		// the two table databases share an instance class, which must not be looked up twice
+		DatabaseDescriptor[] descriptors = new DatabaseDescriptor[] {
+				new DatabaseDescriptor().withInstanceClass("db.t2.small"),
+				new DatabaseDescriptor().withInstanceClass("db.t2.micro"),
+				new DatabaseDescriptor().withInstanceClass("db.t2.micro") };
+
+		// call under test
+		String subnets = builder.getDatabaseSubnets(descriptors);
+
+		assertEquals(EXPECTED_DATABASE_SUBNETS_STRING, subnets);
+		verify(mockRdsClientWrapper).getAvailableSubnetsForDBInstanceClasses(RDS_ENGINE, RDS_ENGINE_VERSION,
+				List.of("db.t2.small", "db.t2.micro"), List.of("subnet1", "subnet2", "subnet4"),
+				RDS_MINIMUM_SUBNET_COUNT);
+	}
+
+	/**
+	 * A completed stack does not guarantee the databases match the template, so every descriptor is
+	 * checked against the deployed instance (PLFM-9965).
+	 */
+	@Test
+	public void testValidateDatabases() {
+		DatabaseDescriptor[] descriptors = new DatabaseDescriptor[] {
+				new DatabaseDescriptor().withInstanceIdentifier("dev-101-db").withMultiAZ(true),
+				new DatabaseDescriptor().withInstanceIdentifier("dev-101-table-0").withMultiAZ(false) };
+
+		// call under test
+		builder.validateDatabases(descriptors);
+
+		verify(mockRdsClientWrapper).validateMultiAZ("dev-101-db", true);
+		verify(mockRdsClientWrapper).validateMultiAZ("dev-101-table-0", false);
 	}
 
 	@Test

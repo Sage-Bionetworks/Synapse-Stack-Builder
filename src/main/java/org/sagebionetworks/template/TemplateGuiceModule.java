@@ -124,6 +124,7 @@ import software.amazon.awssdk.services.bedrockagent.BedrockAgentClient;
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.rds.RdsClient;
 import software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkClient;
 import software.amazon.awssdk.services.glue.GlueClient;
 import software.amazon.awssdk.services.imagebuilder.ImagebuilderClient;
@@ -172,6 +173,7 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 		bind(GlobalResourcesBuilder.class).to(GlobalResourcesBuilderImpl.class);
 		bind(CloudwatchLogsVelocityContextProvider.class).to(CloudwatchLogsVelocityContextProviderImpl.class);
 		bind(Ec2ClientWrapper.class).to(Ec2ClientWrapperImpl.class);
+		bind(RdsClientWrapper.class).to(RdsClientWrapperImpl.class);
 		bind(SynapseAdminClientFactory.class).to(SynapseAdminClientFactoryImpl.class);
 		bind(AsynchAdminJobExecutor.class).to(AsynchAdminJobExecutorImpl.class);
 		bind(SynapseDocsBuilder.class).to(SynapseDocsBuilderImpl.class);
@@ -272,6 +274,12 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public Ec2Client provideAmazonEc2(){
 		Ec2Client client = Ec2Client.builder().region(Region.US_EAST_1).build();
+		return client;
+	}
+
+	@Provides
+	public RdsClient provideAmazonRds(){
+		RdsClient client = RdsClient.builder().region(Region.US_EAST_1).build();
 		return client;
 	}
 
