@@ -12,6 +12,7 @@ import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_DISCOVERY_DOC
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DOCUSIGN_API_BASE_PATH;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DOCUSIGN_OAUTH_BASE_PATH;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
+import static org.sagebionetworks.template.Constants.DATABASE_SUBNETS;
 import static org.sagebionetworks.template.Constants.DATA_CDN_DOMAIN_NAME_FMT;
 import static org.sagebionetworks.template.Constants.DB_ENDPOINT_SUFFIX;
 import static org.sagebionetworks.template.Constants.DELETION_POLICY;
@@ -107,6 +108,7 @@ import org.sagebionetworks.template.ConfigurationPropertyNotFound;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.Ec2ClientWrapper;
+import org.sagebionetworks.template.RdsClientWrapper;
 import org.sagebionetworks.template.ImageBuilderClient;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.StackTagsProvider;
@@ -144,6 +146,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 
 	private final CloudFormationClientWrapper cloudFormationClientWrapper;
 	private final Ec2ClientWrapper ec2ClientWrapper;
+	private final RdsClientWrapper rdsClientWrapper;
 	private final VelocityEngine velocityEngine;
 	private final RepoConfiguration config;
 	private final Logger logger;
@@ -165,11 +168,13 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
                                          SecretBuilder secretBuilder, Set<VelocityContextProvider> contextProviders,
                                          ElasticBeanstalkSolutionStackNameProvider elasticBeanstalkDefaultAMIEncrypter,
                                          StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
-                                         Ec2ClientWrapper ec2ClientWrapper, ElasticBeanstalkClient beanstalkClient, ImageBuilderClient imageBuilderClient, TimeToLive ttl,
+                                         Ec2ClientWrapper ec2ClientWrapper, RdsClientWrapper rdsClientWrapper,
+                                         ElasticBeanstalkClient beanstalkClient, ImageBuilderClient imageBuilderClient, TimeToLive ttl,
                                          DockerImageBuilder dockerImageBuilder, LoadBalancerAlarmsConfig loadBalancerAlarmsConfig) {
 		super();
 		this.cloudFormationClientWrapper = cloudFormationClientWrapper;
 		this.ec2ClientWrapper = ec2ClientWrapper;
+		this.rdsClientWrapper = rdsClientWrapper;
 		this.velocityEngine = velocityEngine;
 		this.config = configuration;
 		this.logger = loggerFactory.getLogger(RepositoryTemplateBuilderImpl.class);
@@ -220,7 +225,10 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		buildAndDeployStack(context, sharedResourceStackName, TEMPLATE_SHARED_RESOURCES_MAIN_JSON_VTP, sharedParameters);
 		// Wait for the shared resources to complete
 		Stack sharedStackResults = cloudFormationClientWrapper.waitForStackToComplete(sharedResourceStackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+sharedResourceStackName));
-				
+
+		// A completed stack does not guarantee the databases match the template, so check them.
+		validateDatabases((DatabaseDescriptor[]) context.get(DATABASE_DESCRIPTORS));
+
 		// Build each bean stalk environment.
 		List<String> environmentNames = buildEnvironments(sharedStackResults);
 	}
@@ -502,7 +510,9 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		context.put(DELETION_POLICY, Constants.isProd(stack) ? DeletionPolicy.Retain.name() : DeletionPolicy.Delete.name());
 		
 		// Create the descriptors for all of the database.
-		context.put(DATABASE_DESCRIPTORS, createDatabaseDescriptors());
+		DatabaseDescriptor[] databaseDescriptors = createDatabaseDescriptors();
+		context.put(DATABASE_DESCRIPTORS, databaseDescriptors);
+		context.put(DATABASE_SUBNETS, getDatabaseSubnets(databaseDescriptors));
 
 		context.put(CLOUDWATCH_LOG_RETENTION_DAYS, LOG_RETENTION_IN_DAYS);
 
@@ -537,8 +547,36 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	}
 
 	/**
+	 * The private subnets that the shared DB subnet group may use, resolved from the distinct instance
+	 * classes of every database of this stack.
+	 *
+	 * @see VpcSubnetUtils#getDatabaseSubnets(CloudFormationClientWrapper, RdsClientWrapper, String,
+	 *      String, List)
+	 */
+	String getDatabaseSubnets(DatabaseDescriptor[] databaseDescriptors) {
+		List<String> instanceClasses = Arrays.stream(databaseDescriptors).map(DatabaseDescriptor::getInstanceClass)
+				.distinct().collect(Collectors.toList());
+		return VpcSubnetUtils.getDatabaseSubnets(cloudFormationClientWrapper, rdsClientWrapper,
+				config.getProperty(PROPERTY_KEY_STACK), config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR),
+				instanceClasses);
+	}
+
+	/**
+	 * Verify each database was actually deployed with the requested Multi-AZ setting.
+	 * <p>
+	 * RDS can accept a Multi-AZ change and then silently drop it, which leaves a successfully deployed
+	 * stack whose real state does not match its template and which no later update will correct, since
+	 * the template value never changes again (PLFM-9965).
+	 */
+	void validateDatabases(DatabaseDescriptor[] databaseDescriptors) {
+		for (DatabaseDescriptor descriptor : databaseDescriptors) {
+			rdsClientWrapper.validateMultiAZ(descriptor.getInstanceIdentifier(), descriptor.isMultiAZ());
+		}
+	}
+
+	/**
 	 * Create a descriptor for each database to be created.
-	 * 
+	 *
 	 * @return
 	 */
 	public DatabaseDescriptor[] createDatabaseDescriptors() {
@@ -723,13 +761,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 * @return
 	 */
 	List<String> getPrivateSubnets(String color) {
-		String stack = config.getProperty(PROPERTY_KEY_STACK);
-		String privateSubnets = cloudFormationClientWrapper.getOutput(
-				Constants.createVpcPrivateSubnetsStackName(stack, color),
-				Constants.VPC_PRIVATE_SUBNETS_STACK_PRIVATE_SUBNETS_OUPUT_KEY);
-		String[] privateSubnetIds = privateSubnets.split(",");
-		List<String> trimmedIds = Arrays.stream(privateSubnetIds).map(v -> v.trim()).collect(Collectors.toList());
-		return trimmedIds;
+		return VpcSubnetUtils.getPrivateSubnets(cloudFormationClientWrapper,
+				config.getProperty(PROPERTY_KEY_STACK), color);
 	}
 
 }

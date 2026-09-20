@@ -234,6 +234,10 @@
 		</dependency>
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>rds</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>cloudformation</artifactId>
 			<version>${amazon.sdk.v2.version}</version>
 		</dependency>

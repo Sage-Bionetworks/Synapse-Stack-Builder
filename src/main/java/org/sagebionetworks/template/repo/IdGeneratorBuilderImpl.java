@@ -1,6 +1,7 @@
 package org.sagebionetworks.template.repo;
 
 import java.io.StringWriter;
+import java.util.List;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
@@ -12,6 +13,7 @@ import org.sagebionetworks.template.config.Configuration;
 import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.CreateOrUpdateStackRequest;
 import org.sagebionetworks.template.LoggerFactory;
+import org.sagebionetworks.template.RdsClientWrapper;
 import org.sagebionetworks.template.repo.beanstalk.SecretBuilder;
 
 import com.google.inject.Inject;
@@ -26,16 +28,19 @@ public class IdGeneratorBuilderImpl implements IdGeneratorBuilder {
 	Configuration config;
 	Logger logger;
 	SecretBuilder secretBuilder;
+	RdsClientWrapper rdsClientWrapper;
 
 	@Inject
 	public IdGeneratorBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper, VelocityEngine velocityEngine,
-                                  Configuration config, LoggerFactory loggerFactory, SecretBuilder secretBuilder) {
+                                  Configuration config, LoggerFactory loggerFactory, SecretBuilder secretBuilder,
+                                  RdsClientWrapper rdsClientWrapper) {
 		super();
 		this.cloudFormationClientWrapper = cloudFormationClientWrapper;
 		this.velocityEngine = velocityEngine;
 		this.config = config;
 		this.logger = loggerFactory.getLogger(IdGeneratorBuilderImpl.class);
 		this.secretBuilder = secretBuilder;
+		this.rdsClientWrapper = rdsClientWrapper;
 	}
 
 	@Override
@@ -51,6 +56,11 @@ public class IdGeneratorBuilderImpl implements IdGeneratorBuilder {
 		context.put(VPC_SUBNET_COLOR, color);
 		context.put(DATABASE_IDENTIFIER, databaseIdentifier);
 		context.put(HOSTED_ZONE, hostedZoneId);
+		context.put(DB_INSTANCE_CLASS, ID_GENERATOR_DB_INSTANCE_CLASS);
+		// This database is Multi-AZ, so its subnet group must exclude any zone that cannot host the
+		// instance class, otherwise RDS silently leaves it single-AZ. See PLFM-9965.
+		context.put(DATABASE_SUBNETS, VpcSubnetUtils.getDatabaseSubnets(cloudFormationClientWrapper, rdsClientWrapper,
+				stack, color, List.of(ID_GENERATOR_DB_INSTANCE_CLASS)));
 
 		Parameter parameter = Parameter.builder()
 				.parameterKey(Constants.PARAMETER_MYSQL_PASSWORD)

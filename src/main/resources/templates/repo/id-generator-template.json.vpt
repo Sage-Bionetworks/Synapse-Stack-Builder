@@ -13,14 +13,10 @@
 			"Type": "AWS::RDS::DBSubnetGroup",
 			"Properties": {
 				"DBSubnetGroupDescription": "The ID generator database is deployed to the ${subnetGroupColor} private subnets.",
-				"SubnetIds": {
-					"Fn::Split": [
-						",",
-						{
-							"Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-Private-Subnets"
-						}
-					]
-				}
+				#* Only the ${subnetGroupColor} private subnets in an availability zone that offers this
+				   database's instance class, resolved by IdGeneratorBuilderImpl. Including a zone that
+				   cannot host the class lets RDS silently drop the Multi-AZ standby. *#
+				"SubnetIds": [${databaseSubnets}]
 			}
 		},
 		"${stack}IdGeneratorDBSecurityGroup": {
@@ -84,7 +80,7 @@
 				"AllowMajorVersionUpgrade": false,
 				"AutoMinorVersionUpgrade": true,
 				"BackupRetentionPeriod": "7",
-				"DBInstanceClass": "db.m6g.large",
+				"DBInstanceClass": "${dbInstanceClass}",
 				"DBInstanceIdentifier": "${databaseIdentifier}",
 				"DBName": "${stack}idgen",
 				"DBParameterGroupName": {
