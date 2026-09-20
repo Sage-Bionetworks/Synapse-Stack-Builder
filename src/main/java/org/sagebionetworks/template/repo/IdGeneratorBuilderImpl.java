@@ -1,9 +1,7 @@
 package org.sagebionetworks.template.repo;
 
 import java.io.StringWriter;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
@@ -61,7 +59,8 @@ public class IdGeneratorBuilderImpl implements IdGeneratorBuilder {
 		context.put(DB_INSTANCE_CLASS, ID_GENERATOR_DB_INSTANCE_CLASS);
 		// This database is Multi-AZ, so its subnet group must exclude any zone that cannot host the
 		// instance class, otherwise RDS silently leaves it single-AZ. See PLFM-9965.
-		context.put(DATABASE_SUBNETS, getDatabaseSubnets(stack, color));
+		context.put(DATABASE_SUBNETS, VpcSubnetUtils.getDatabaseSubnets(cloudFormationClientWrapper, rdsClientWrapper,
+				stack, color, List.of(ID_GENERATOR_DB_INSTANCE_CLASS)));
 
 		Parameter parameter = Parameter.builder()
 				.parameterKey(Constants.PARAMETER_MYSQL_PASSWORD)
@@ -85,21 +84,6 @@ public class IdGeneratorBuilderImpl implements IdGeneratorBuilder {
 		this.cloudFormationClientWrapper.createOrUpdateStack(new CreateOrUpdateStackRequest().withStackName(stackName)
 				.withTemplateBody(resultJSON).withParameters(parameter));
 
-	}
-
-	/**
-	 * The color's private subnets that are in an availability zone able to host the ID generator's DB
-	 * instance class.
-	 */
-	List<String> getDatabaseSubnets(String stack, String color) {
-		String privateSubnets = cloudFormationClientWrapper.getOutput(
-				Constants.createVpcPrivateSubnetsStackName(stack, color),
-				Constants.VPC_PRIVATE_SUBNETS_STACK_PRIVATE_SUBNETS_OUPUT_KEY);
-		List<String> subnetIds = Arrays.stream(privateSubnets.split(",")).map(String::trim)
-				.collect(Collectors.toList());
-		return rdsClientWrapper.getAvailableSubnetsForDBInstanceClasses(Constants.RDS_ENGINE,
-				Constants.RDS_ENGINE_VERSION, List.of(ID_GENERATOR_DB_INSTANCE_CLASS), subnetIds,
-				Constants.RDS_MINIMUM_SUBNET_COUNT);
 	}
 
 }

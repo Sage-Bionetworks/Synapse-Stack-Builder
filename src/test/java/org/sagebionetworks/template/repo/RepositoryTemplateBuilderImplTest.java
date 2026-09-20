@@ -169,6 +169,12 @@ public class RepositoryTemplateBuilderImplTest {
 	 */
 	private static final List<String> EXPECTED_DATABASE_SUBNETS = Arrays.asList("subnet1", "subnet4");
 
+	/**
+	 * The subnets are passed to the context as a single string, already quoted and comma separated so
+	 * the template can substitute it as the elements of the DB subnet group's SubnetIds array.
+	 */
+	private static final String EXPECTED_DATABASE_SUBNETS_STRING = "\"subnet1\",\"subnet4\"";
+
 	@Mock
 	private CloudFormationClientWrapper mockCloudFormationClientWrapper;
 	@Mock
@@ -1235,7 +1241,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(1000, desc.getDbThroughput());
 
 		// the subnet group is limited to the zones that offer both DB instance classes (PLFM-9965)
-		assertEquals(EXPECTED_DATABASE_SUBNETS, context.get(DATABASE_SUBNETS));
+		assertEquals(EXPECTED_DATABASE_SUBNETS_STRING, context.get(DATABASE_SUBNETS));
 		verify(mockRdsClientWrapper).getAvailableSubnetsForDBInstanceClasses(RDS_ENGINE, RDS_ENGINE_VERSION,
 				List.of("db.t2.small", "db.t2.micro"), List.of("subnet1", "subnet2", "subnet4"),
 				RDS_MINIMUM_SUBNET_COUNT);
@@ -1298,7 +1304,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("m6g.large", context.get(Constants.OPENSEARCH_MASTER_INSTANCE_TYPE));
 		assertEquals(2, context.get(Constants.OPENSEARCH_AVAILABILITY_ZONE_COUNT));
 		assertEquals(openSearchSubnets, context.get(Constants.OPENSEARCH_SUBNETS));
-		assertEquals(EXPECTED_DATABASE_SUBNETS, context.get(DATABASE_SUBNETS));
+		assertEquals(EXPECTED_DATABASE_SUBNETS_STRING, context.get(DATABASE_SUBNETS));
 	}
 
 	@Test
@@ -1736,9 +1742,9 @@ public class RepositoryTemplateBuilderImplTest {
 				new DatabaseDescriptor().withInstanceClass("db.t2.micro") };
 
 		// call under test
-		List<String> subnets = builder.getDatabaseSubnets(descriptors);
+		String subnets = builder.getDatabaseSubnets(descriptors);
 
-		assertEquals(EXPECTED_DATABASE_SUBNETS, subnets);
+		assertEquals(EXPECTED_DATABASE_SUBNETS_STRING, subnets);
 		verify(mockRdsClientWrapper).getAvailableSubnetsForDBInstanceClasses(RDS_ENGINE, RDS_ENGINE_VERSION,
 				List.of("db.t2.small", "db.t2.micro"), List.of("subnet1", "subnet2", "subnet4"),
 				RDS_MINIMUM_SUBNET_COUNT);

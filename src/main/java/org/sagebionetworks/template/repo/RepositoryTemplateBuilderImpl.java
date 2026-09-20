@@ -547,23 +547,18 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	}
 
 	/**
-	 * The private subnets that the shared DB subnet group may use.
-	 * <p>
-	 * A DB subnet group that includes an availability zone where one of the DB instance classes is not
-	 * offered lets RDS pick that zone for a Multi-AZ standby. RDS then abandons the conversion and
-	 * returns the instance to 'available' with no failure event, so CloudFormation reports success while
-	 * the database stays single-AZ (PLFM-9965). Keep only the zones that can host every DB instance
-	 * class in this stack, and fail the build when too few remain.
+	 * The private subnets that the shared DB subnet group may use, resolved from the distinct instance
+	 * classes of every database of this stack.
 	 *
-	 * @return the subnets that support all of the databases, always at least
-	 *         {@link Constants#RDS_MINIMUM_SUBNET_COUNT}.
+	 * @see VpcSubnetUtils#getDatabaseSubnets(CloudFormationClientWrapper, RdsClientWrapper, String,
+	 *      String, List)
 	 */
-	List<String> getDatabaseSubnets(DatabaseDescriptor[] databaseDescriptors) {
+	String getDatabaseSubnets(DatabaseDescriptor[] databaseDescriptors) {
 		List<String> instanceClasses = Arrays.stream(databaseDescriptors).map(DatabaseDescriptor::getInstanceClass)
 				.distinct().collect(Collectors.toList());
-		List<String> vpcSubnets = getPrivateSubnets(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR));
-		return rdsClientWrapper.getAvailableSubnetsForDBInstanceClasses(Constants.RDS_ENGINE,
-				Constants.RDS_ENGINE_VERSION, instanceClasses, vpcSubnets, Constants.RDS_MINIMUM_SUBNET_COUNT);
+		return VpcSubnetUtils.getDatabaseSubnets(cloudFormationClientWrapper, rdsClientWrapper,
+				config.getProperty(PROPERTY_KEY_STACK), config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR),
+				instanceClasses);
 	}
 
 	/**
@@ -766,13 +761,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	 * @return
 	 */
 	List<String> getPrivateSubnets(String color) {
-		String stack = config.getProperty(PROPERTY_KEY_STACK);
-		String privateSubnets = cloudFormationClientWrapper.getOutput(
-				Constants.createVpcPrivateSubnetsStackName(stack, color),
-				Constants.VPC_PRIVATE_SUBNETS_STACK_PRIVATE_SUBNETS_OUPUT_KEY);
-		String[] privateSubnetIds = privateSubnets.split(",");
-		List<String> trimmedIds = Arrays.stream(privateSubnetIds).map(v -> v.trim()).collect(Collectors.toList());
-		return trimmedIds;
+		return VpcSubnetUtils.getPrivateSubnets(cloudFormationClientWrapper,
+				config.getProperty(PROPERTY_KEY_STACK), color);
 	}
 
 }
