@@ -883,7 +883,10 @@
                         {
                             "Action": "s3:*",
                             "Effect": "Allow",
-                            "Resource": "arn:aws:s3:::elasticbeanstalk-us-east-1*/*"
+                            "Resource": [
+                                "arn:aws:s3:::elasticbeanstalk-us-east-1*",
+                                "arn:aws:s3:::elasticbeanstalk-us-east-1*/*"
+                            ]
                         },
                         {
                             "Action": "logs:*",
@@ -1069,13 +1072,7 @@
 							"Resource": "*"
 						}
 					]
-				},
-				"Tags": [
-					{
-						"Key": "SecHubSuppressCis3.8",
-						"Value": "true"
-					}
-				]
+				}
 			}
 		},
 		"${stack}${instance}CMKAlias": {
