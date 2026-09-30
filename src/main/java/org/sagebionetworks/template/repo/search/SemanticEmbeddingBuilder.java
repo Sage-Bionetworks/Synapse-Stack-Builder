@@ -1,8 +1,5 @@
 package org.sagebionetworks.template.repo.search;
 
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
-import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,7 +9,7 @@ import java.util.Optional;
 
 import org.apache.logging.log4j.Logger;
 import org.sagebionetworks.template.LoggerFactory;
-import org.sagebionetworks.template.config.RepoConfiguration;
+import org.sagebionetworks.template.ThreadProvider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,8 +24,8 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.opensearch.OpenSearchClient;
-import software.amazon.awssdk.services.opensearch.model.DomainStatus;
+import software.amazon.awssdk.services.cloudformation.model.Output;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
 
 /**
  * Registers the embedding model that SearchIndex semantic search queries against on the stack's
@@ -57,6 +54,9 @@ public class SemanticEmbeddingBuilder {
 	static final String MODEL_GROUP_NAME = "synapse-semantic-embedding";
 	static final String MODEL_NAME = "synapse-semantic-embedding";
 
+	static final String OUTPUT_DOMAIN_ENDPOINT = "SynapseSearchIndexDomainEndpoint";
+	static final String OUTPUT_BEDROCK_EMBED_ROLE_ARN = "SynapseSearchIndexBedrockEmbedRoleArn";
+
 	private static final String SIGNING_SERVICE = "es";
 	private static final Region REGION = Region.US_EAST_1;
 	private static final int HTTP_NOT_FOUND = 404;
@@ -68,33 +68,30 @@ public class SemanticEmbeddingBuilder {
 	private static final ObjectMapper MAPPER = new ObjectMapper();
 
 	private final Logger logger;
-	private final RepoConfiguration config;
-	private final OpenSearchClient domainManagementClient;
 	private final SdkHttpClient httpClient;
 	private final AwsCredentialsProvider credentialsProvider;
+	private final ThreadProvider threadProvider;
 
 	@Inject
-	public SemanticEmbeddingBuilder(LoggerFactory loggerFactory, RepoConfiguration config,
-			OpenSearchClient domainManagementClient, SdkHttpClient httpClient,
-			AwsCredentialsProvider credentialsProvider) {
+	public SemanticEmbeddingBuilder(LoggerFactory loggerFactory, SdkHttpClient httpClient,
+			AwsCredentialsProvider credentialsProvider, ThreadProvider threadProvider) {
 		this.logger = loggerFactory.getLogger(SemanticEmbeddingBuilder.class);
-		this.config = config;
-		this.domainManagementClient = domainManagementClient;
 		this.httpClient = httpClient;
 		this.credentialsProvider = credentialsProvider;
+		this.threadProvider = threadProvider;
 	}
 
-	public void buildSemanticEmbedding() throws InterruptedException {
-		String domainName = config.getProperty(PROPERTY_KEY_STACK) + "-" + config.getProperty(PROPERTY_KEY_INSTANCE)
-				+ "-synidx";
-		DomainStatus domain = domainManagementClient.describeDomain(req -> req.domainName(domainName)).domainStatus();
-		String host = resolveHost(domain, domainName);
-		// arn:aws:es:<region>:<accountId>:domain/<domainName>
-		String bedrockRoleArn = "arn:aws:iam::" + domain.arn().split(":")[4] + ":role/" + domainName + "-bedrock-embed";
+	/**
+	 * @param sharedResources the completed shared resources stack, whose outputs name the domain
+	 *                        endpoint and the role the connector hands to Bedrock.
+	 */
+	public void buildSemanticEmbedding(Stack sharedResources) throws InterruptedException {
+		String host = requiredOutput(sharedResources, OUTPUT_DOMAIN_ENDPOINT);
+		String bedrockRoleArn = requiredOutput(sharedResources, OUTPUT_BEDROCK_EMBED_ROLE_ARN);
 
 		Optional<String> deployed = findNewestDeployedModel(host);
 		if (deployed.isPresent()) {
-			logger.info("Semantic embedding model {} is already deployed on {}.", deployed.get(), domainName);
+			logger.info("Semantic embedding model {} is already deployed on {}.", deployed.get(), host);
 			return;
 		}
 
@@ -109,19 +106,13 @@ public class SemanticEmbeddingBuilder {
 		post(host, "/_plugins/_ml/models/" + modelId + "/_deploy", "{}");
 
 		awaitDeployed(host, modelId);
-		logger.info("Registered semantic embedding model {} on {}.", modelId, domainName);
+		logger.info("Registered semantic embedding model {} on {}.", modelId, host);
 	}
 
-	/**
-	 * A VPC-attached domain publishes only a per-network endpoint; a public one only the top-level
-	 * field.
-	 */
-	private String resolveHost(DomainStatus domain, String domainName) {
-		String endpoint = domain.vpcOptions() != null ? domain.endpoints().get("vpc") : domain.endpoint();
-		if (endpoint == null || endpoint.trim().isEmpty()) {
-			throw new IllegalStateException("No endpoint for OpenSearch domain " + domainName);
-		}
-		return endpoint.replace("https://", "");
+	private static String requiredOutput(Stack stack, String outputKey) {
+		return stack.outputs().stream().filter(output -> outputKey.equals(output.outputKey()))
+				.map(Output::outputValue).findFirst()
+				.orElseThrow(() -> new IllegalStateException("Failed to find shared resources output: " + outputKey));
 	}
 
 	/**
@@ -137,7 +128,7 @@ public class SemanticEmbeddingBuilder {
 				return;
 			}
 			logger.info("Waiting for model {} to deploy, state: {}", modelId, state);
-			Thread.sleep(DEPLOY_POLL_INTERVAL_MS);
+			threadProvider.sleep(DEPLOY_POLL_INTERVAL_MS);
 		}
 		throw new IllegalStateException("Semantic embedding model " + modelId + " did not reach DEPLOYED.");
 	}

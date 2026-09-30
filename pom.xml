@@ -190,10 +190,6 @@
         </dependency>
 		<dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>opensearch</artifactId>
-        </dependency>
-		<dependency>
-            <groupId>software.amazon.awssdk</groupId>
             <artifactId>http-auth-aws</artifactId>
         </dependency>
 		<dependency>

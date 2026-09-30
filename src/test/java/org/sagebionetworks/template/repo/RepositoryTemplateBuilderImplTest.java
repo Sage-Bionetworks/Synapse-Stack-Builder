@@ -400,6 +400,7 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(mockRdsClientWrapper).validateMultiAZ("prod-101-db", true);
 		verify(mockRdsClientWrapper).validateMultiAZ("prod-101-table-0", false);
 		verify(mockRdsClientWrapper).validateMultiAZ("prod-101-table-1", false);
+		verify(mockSemanticEmbeddingBuilder).buildSemanticEmbedding(sharedResouces);
 
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
@@ -533,6 +534,13 @@ public class RepositoryTemplateBuilderImplTest {
 		// granted iam:PassRole on the role that connector names.
 		assertFalse(resources.getJSONObject("prod101SynapesRepoWorkersBedrockManagedPolicy").toString()
 				.contains("PassRole"));
+		// SemanticEmbeddingBuilder reads the endpoint and role from these outputs.
+		JSONObject outputs = templateJson.getJSONObject("Outputs");
+		assertEquals("[\"SynapseSearchIndexDomain\",\"DomainEndpoint\"]", outputs
+				.getJSONObject("SynapseSearchIndexDomainEndpoint").getJSONObject("Value").get("Fn::GetAtt").toString());
+		assertEquals("[\"SynapseSearchIndexBedrockEmbedRole\",\"Arn\"]", outputs
+				.getJSONObject("SynapseSearchIndexBedrockEmbedRoleArn").getJSONObject("Value").get("Fn::GetAtt")
+				.toString());
 	}
 
 	void validateOpenApiSchema(JSONObject bedrockAgentProps) {

@@ -235,7 +235,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 
 		// The OpenSearch domain now exists, so register its embedding model before any repository
 		// instance starts looking for one.
-		semanticEmbeddingBuilder.buildSemanticEmbedding();
+		semanticEmbeddingBuilder.buildSemanticEmbedding(sharedStackResults);
 
 		// Build each bean stalk environment.
 		List<String> environmentNames = buildEnvironments(sharedStackResults);

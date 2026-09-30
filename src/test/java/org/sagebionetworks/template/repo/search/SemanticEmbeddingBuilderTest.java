@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,9 +26,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.sagebionetworks.template.Constants;
 import org.sagebionetworks.template.LoggerFactory;
-import org.sagebionetworks.template.config.RepoConfiguration;
+import org.sagebionetworks.template.ThreadProvider;
 
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -39,10 +37,8 @@ import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpResponse;
-import software.amazon.awssdk.services.opensearch.OpenSearchClient;
-import software.amazon.awssdk.services.opensearch.model.DescribeDomainRequest;
-import software.amazon.awssdk.services.opensearch.model.DescribeDomainResponse;
-import software.amazon.awssdk.services.opensearch.model.DomainStatus;
+import software.amazon.awssdk.services.cloudformation.model.Output;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
 
 @ExtendWith(MockitoExtension.class)
 public class SemanticEmbeddingBuilderTest {
@@ -52,11 +48,9 @@ public class SemanticEmbeddingBuilderTest {
 	@Mock
 	private Logger mockLogger;
 	@Mock
-	private RepoConfiguration mockConfig;
-	@Mock
-	private OpenSearchClient mockDomainManagementClient;
-	@Mock
 	private SdkHttpClient mockHttpClient;
+	@Mock
+	private ThreadProvider mockThreadProvider;
 
 	private final AwsCredentialsProvider credentialsProvider = () -> AwsBasicCredentials.create("id", "secret");
 
@@ -69,6 +63,15 @@ public class SemanticEmbeddingBuilderTest {
 	private List<String> requestedPaths;
 	private List<String> requestBodies;
 
+	private static final String ROLE_ARN = "arn:aws:iam::123456789012:role/dev-test-synidx-bedrock-embed";
+
+	private final Stack sharedResources = Stack.builder().outputs(
+			Output.builder().outputKey(SemanticEmbeddingBuilder.OUTPUT_DOMAIN_ENDPOINT)
+					.outputValue("search-dev-test-synidx.us-east-1.es.amazonaws.com").build(),
+			Output.builder().outputKey(SemanticEmbeddingBuilder.OUTPUT_BEDROCK_EMBED_ROLE_ARN).outputValue(ROLE_ARN)
+					.build())
+			.build();
+
 	private SemanticEmbeddingBuilder builder;
 
 	@BeforeEach
@@ -77,13 +80,12 @@ public class SemanticEmbeddingBuilderTest {
 		requestedPaths = new ArrayList<>();
 		requestBodies = new ArrayList<>();
 		when(mockLoggerFactory.getLogger(SemanticEmbeddingBuilder.class)).thenReturn(mockLogger);
-		builder = new SemanticEmbeddingBuilder(mockLoggerFactory, mockConfig, mockDomainManagementClient,
-				mockHttpClient, credentialsProvider);
+		builder = new SemanticEmbeddingBuilder(mockLoggerFactory, mockHttpClient, credentialsProvider,
+				mockThreadProvider);
 	}
 
 	@Test
 	public void testBuildSemanticEmbeddingWithNothingProvisioned() throws Exception {
-		setupDomain("dev-test-synidx", "search-dev-test-synidx.us-east-1.es.amazonaws.com", null);
 		setupHttp();
 		// No system indexes yet, so every ML-Commons search 404s.
 		respondNotFound("/_plugins/_ml/models/_search");
@@ -96,7 +98,7 @@ public class SemanticEmbeddingBuilderTest {
 		respond("/_plugins/_ml/models/_search", hit("model-1", "\"model_state\":\"DEPLOYED\""));
 
 		// call under test
-		builder.buildSemanticEmbedding();
+		builder.buildSemanticEmbedding(sharedResources);
 
 		assertEquals(List.of("/_plugins/_ml/models/_search", "/_plugins/_ml/model_groups/_search",
 				"/_plugins/_ml/model_groups/_register", "/_plugins/_ml/connectors/_search",
@@ -107,7 +109,7 @@ public class SemanticEmbeddingBuilderTest {
 		// the repository validates its indexes against.
 		String connectorBody = requestBodies.get(4);
 		assertTrue(connectorBody
-				.contains("\"roleArn\":\"arn:aws:iam::123456789012:role/dev-test-synidx-bedrock-embed\""),
+				.contains("\"roleArn\":\"" + ROLE_ARN + "\""),
 				connectorBody);
 		assertTrue(connectorBody.contains("\"model\":\"amazon.titan-embed-text-v2:0\""), connectorBody);
 		assertTrue(connectorBody.contains("\"dimensions\":1024"), connectorBody);
@@ -117,12 +119,11 @@ public class SemanticEmbeddingBuilderTest {
 
 	@Test
 	public void testBuildSemanticEmbeddingWithModelAlreadyDeployed() throws Exception {
-		setupDomain("dev-test-synidx", "search-dev-test-synidx.us-east-1.es.amazonaws.com", null);
 		setupHttp();
 		respond("/_plugins/_ml/models/_search", hit("model-existing", "\"model_state\":\"DEPLOYED\""));
 
 		// call under test
-		builder.buildSemanticEmbedding();
+		builder.buildSemanticEmbedding(sharedResources);
 
 		// Re-running a stack build must not mint a second connector or model.
 		assertEquals(List.of("/_plugins/_ml/models/_search"), requestedPaths);
@@ -130,7 +131,6 @@ public class SemanticEmbeddingBuilderTest {
 
 	@Test
 	public void testBuildSemanticEmbeddingWithExistingConnectorAndGroup() throws Exception {
-		setupDomain("dev-test-synidx", "search-dev-test-synidx.us-east-1.es.amazonaws.com", null);
 		setupHttp();
 		respondNotFound("/_plugins/_ml/models/_search");
 		respond("/_plugins/_ml/model_groups/_search", hit("group-existing", "\"name\":\"synapse-semantic-embedding\""));
@@ -141,29 +141,34 @@ public class SemanticEmbeddingBuilderTest {
 		respond("/_plugins/_ml/models/_search", hit("model-2", "\"model_state\":\"DEPLOYED\""));
 
 		// call under test
-		builder.buildSemanticEmbedding();
+		builder.buildSemanticEmbedding(sharedResources);
 
 		assertTrue(requestBodies.get(3).contains("\"model_group_id\":\"group-existing\""), requestBodies.get(3));
 		assertTrue(requestBodies.get(3).contains("\"connector_id\":\"connector-existing\""), requestBodies.get(3));
 	}
 
 	@Test
-	public void testBuildSemanticEmbeddingWithVpcDomain() throws Exception {
-		setupDomain("prod-101-synidx", "ignored-public-endpoint",
-				"vpc-prod-101-synidx.us-east-1.es.amazonaws.com");
+	public void testBuildSemanticEmbeddingWithDeployInProgress() throws Exception {
 		setupHttp();
-		respond("/_plugins/_ml/models/_search", hit("model-existing", "\"model_state\":\"DEPLOYED\""));
+		respondNotFound("/_plugins/_ml/models/_search");
+		respond("/_plugins/_ml/model_groups/_search", hit("group-existing", "\"name\":\"synapse-semantic-embedding\""));
+		respond("/_plugins/_ml/connectors/_search",
+				hit("connector-existing", "\"name\":\"synapse-semantic-embedding-bedrock\""));
+		respond("/_plugins/_ml/models/_register", "{\"model_id\":\"model-3\"}");
+		respond("/_plugins/_ml/models/model-3/_deploy", "{}");
+		respond("/_plugins/_ml/models/_search", hit("model-3", "\"model_state\":\"DEPLOYING\""));
+		respond("/_plugins/_ml/models/_search", hit("model-3", "\"model_state\":\"DEPLOYED\""));
 
 		// call under test
-		builder.buildSemanticEmbedding();
+		builder.buildSemanticEmbedding(sharedResources);
 
-		assertEquals("https://vpc-prod-101-synidx.us-east-1.es.amazonaws.com/_plugins/_ml/models/_search",
+		verify(mockThreadProvider).sleep(SemanticEmbeddingBuilder.DEPLOY_POLL_INTERVAL_MS);
+		assertEquals("https://search-dev-test-synidx.us-east-1.es.amazonaws.com/_plugins/_ml/models/_search",
 				requestedUris.get(0));
 	}
 
 	@Test
 	public void testBuildSemanticEmbeddingWithFailedConnectorCreate() throws Exception {
-		setupDomain("dev-test-synidx", "search-dev-test-synidx.us-east-1.es.amazonaws.com", null);
 		setupHttp();
 		respondNotFound("/_plugins/_ml/models/_search");
 		respondNotFound("/_plugins/_ml/model_groups/_search");
@@ -173,7 +178,7 @@ public class SemanticEmbeddingBuilderTest {
 		respondWithStatus("/_plugins/_ml/connectors/_create", 403,
 				"{\"error\":{\"type\":\"security_exception\",\"reason\":\"not authorized to perform: iam:PassRole\"}}");
 
-		String message = assertThrows(IllegalStateException.class, () -> builder.buildSemanticEmbedding())
+		String message = assertThrows(IllegalStateException.class, () -> builder.buildSemanticEmbedding(sharedResources))
 				.getMessage();
 
 		assertTrue(message.contains("iam:PassRole"), message);
@@ -182,35 +187,16 @@ public class SemanticEmbeddingBuilderTest {
 	}
 
 	@Test
-	public void testBuildSemanticEmbeddingWithNoDomainEndpoint() {
-		setupDomain("dev-test-synidx", null, null);
+	public void testBuildSemanticEmbeddingWithMissingOutput() {
+		Stack withoutEndpoint = Stack.builder().outputs(Output.builder()
+				.outputKey(SemanticEmbeddingBuilder.OUTPUT_BEDROCK_EMBED_ROLE_ARN).outputValue(ROLE_ARN).build())
+				.build();
 
-		String message = assertThrows(IllegalStateException.class, () -> builder.buildSemanticEmbedding())
-				.getMessage();
+		String message = assertThrows(IllegalStateException.class,
+				() -> builder.buildSemanticEmbedding(withoutEndpoint)).getMessage();
 
-		assertEquals("No endpoint for OpenSearch domain dev-test-synidx", message);
+		assertEquals("Failed to find shared resources output: SynapseSearchIndexDomainEndpoint", message);
 		verify(mockHttpClient, never()).prepareRequest(any());
-	}
-
-	private void setupDomain(String domainName, String publicEndpoint, String vpcEndpoint) {
-		when(mockConfig.getProperty(Constants.PROPERTY_KEY_STACK)).thenReturn(domainName.split("-")[0]);
-		when(mockConfig.getProperty(Constants.PROPERTY_KEY_INSTANCE)).thenReturn(domainName.split("-")[1]);
-		DomainStatus.Builder status = DomainStatus.builder()
-				.domainName(domainName)
-				.arn("arn:aws:es:us-east-1:123456789012:domain/" + domainName);
-		if (vpcEndpoint == null) {
-			status.endpoint(publicEndpoint);
-		} else {
-			status.vpcOptions(vpc -> vpc.vpcId("vpc-1")).endpoints(Map.of("vpc", vpcEndpoint));
-		}
-		DescribeDomainResponse response = DescribeDomainResponse.builder().domainStatus(status.build()).build();
-		when(mockDomainManagementClient.describeDomain(any(Consumer.class))).thenAnswer(invocation -> {
-			Consumer<DescribeDomainRequest.Builder> req = invocation.getArgument(0);
-			DescribeDomainRequest.Builder captured = DescribeDomainRequest.builder();
-			req.accept(captured);
-			assertEquals(domainName, captured.build().domainName());
-			return response;
-		});
 	}
 
 	private final List<String> requestedUris = new ArrayList<>();

@@ -375,10 +375,9 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 
 	@Provides
 	public SemanticEmbeddingBuilder semanticEmbeddingBuilderProvider(LoggerFactory loggerFactory,
-			RepoConfiguration config) {
-		return new SemanticEmbeddingBuilder(loggerFactory, config,
-				software.amazon.awssdk.services.opensearch.OpenSearchClient.builder().region(Region.US_EAST_1).build(),
-				ApacheHttpClient.builder().build(), DefaultCredentialsProvider.create());
+			ThreadProvider threadProvider) {
+		return new SemanticEmbeddingBuilder(loggerFactory, ApacheHttpClient.builder().build(),
+				DefaultCredentialsProvider.create(), threadProvider);
 	}
 	
 	@Provides

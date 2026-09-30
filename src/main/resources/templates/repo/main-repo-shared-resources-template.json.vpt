@@ -1128,6 +1128,18 @@
 					]
 				}
 			}
+		},
+		"SynapseSearchIndexDomainEndpoint": {
+			"Description": "The endpoint of the SearchIndex OpenSearch domain.",
+			"Value": {
+				"Fn::GetAtt": ["SynapseSearchIndexDomain", "DomainEndpoint"]
+			}
+		},
+		"SynapseSearchIndexBedrockEmbedRoleArn": {
+			"Description": "The role the SearchIndex OpenSearch domain assumes to invoke Bedrock embeddings.",
+			"Value": {
+				"Fn::GetAtt": ["SynapseSearchIndexBedrockEmbedRole", "Arn"]
+			}
 		},	
 		#if($deploymentTarget == "BEANSTALK")
 		"BeanstalkApplicationId": {
