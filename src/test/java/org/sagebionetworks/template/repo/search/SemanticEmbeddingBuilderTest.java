@@ -83,7 +83,7 @@ public class SemanticEmbeddingBuilderTest {
 
 	@Test
 	public void testBuildSemanticEmbeddingWithNothingProvisioned() throws Exception {
-		setupDomain("dev-bfauble-synidx", "search-dev-bfauble-synidx.us-east-1.es.amazonaws.com", null);
+		setupDomain("dev-test-synidx", "search-dev-test-synidx.us-east-1.es.amazonaws.com", null);
 		setupHttp();
 		// No system indexes yet, so every ML-Commons search 404s.
 		respondNotFound("/_plugins/_ml/models/_search");
@@ -107,7 +107,7 @@ public class SemanticEmbeddingBuilderTest {
 		// the repository validates its indexes against.
 		String connectorBody = requestBodies.get(4);
 		assertTrue(connectorBody
-				.contains("\"roleArn\":\"arn:aws:iam::123456789012:role/dev-bfauble-synidx-bedrock-embed\""),
+				.contains("\"roleArn\":\"arn:aws:iam::123456789012:role/dev-test-synidx-bedrock-embed\""),
 				connectorBody);
 		assertTrue(connectorBody.contains("\"model\":\"amazon.titan-embed-text-v2:0\""), connectorBody);
 		assertTrue(connectorBody.contains("\"dimensions\":1024"), connectorBody);
@@ -117,7 +117,7 @@ public class SemanticEmbeddingBuilderTest {
 
 	@Test
 	public void testBuildSemanticEmbeddingWithModelAlreadyDeployed() throws Exception {
-		setupDomain("dev-bfauble-synidx", "search-dev-bfauble-synidx.us-east-1.es.amazonaws.com", null);
+		setupDomain("dev-test-synidx", "search-dev-test-synidx.us-east-1.es.amazonaws.com", null);
 		setupHttp();
 		respond("/_plugins/_ml/models/_search", hit("model-existing", "\"model_state\":\"DEPLOYED\""));
 
@@ -130,7 +130,7 @@ public class SemanticEmbeddingBuilderTest {
 
 	@Test
 	public void testBuildSemanticEmbeddingWithExistingConnectorAndGroup() throws Exception {
-		setupDomain("dev-bfauble-synidx", "search-dev-bfauble-synidx.us-east-1.es.amazonaws.com", null);
+		setupDomain("dev-test-synidx", "search-dev-test-synidx.us-east-1.es.amazonaws.com", null);
 		setupHttp();
 		respondNotFound("/_plugins/_ml/models/_search");
 		respond("/_plugins/_ml/model_groups/_search", hit("group-existing", "\"name\":\"synapse-semantic-embedding\""));
@@ -163,7 +163,7 @@ public class SemanticEmbeddingBuilderTest {
 
 	@Test
 	public void testBuildSemanticEmbeddingWithFailedConnectorCreate() throws Exception {
-		setupDomain("dev-bfauble-synidx", "search-dev-bfauble-synidx.us-east-1.es.amazonaws.com", null);
+		setupDomain("dev-test-synidx", "search-dev-test-synidx.us-east-1.es.amazonaws.com", null);
 		setupHttp();
 		respondNotFound("/_plugins/_ml/models/_search");
 		respondNotFound("/_plugins/_ml/model_groups/_search");
@@ -183,12 +183,12 @@ public class SemanticEmbeddingBuilderTest {
 
 	@Test
 	public void testBuildSemanticEmbeddingWithNoDomainEndpoint() {
-		setupDomain("dev-bfauble-synidx", null, null);
+		setupDomain("dev-test-synidx", null, null);
 
 		String message = assertThrows(IllegalStateException.class, () -> builder.buildSemanticEmbedding())
 				.getMessage();
 
-		assertEquals("No endpoint for OpenSearch domain dev-bfauble-synidx", message);
+		assertEquals("No endpoint for OpenSearch domain dev-test-synidx", message);
 		verify(mockHttpClient, never()).prepareRequest(any());
 	}
 

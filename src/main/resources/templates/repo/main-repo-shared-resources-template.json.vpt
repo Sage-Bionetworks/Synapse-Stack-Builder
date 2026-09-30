@@ -17,7 +17,10 @@
 			"Type": "AWS::RDS::DBSubnetGroup",
 			"Properties": {
 				"DBSubnetGroupDescription": "Repository database subnet group defines where RDS instances can be deployed.",
-				"SubnetIds": { "Fn::Split" : [ ",", {"Fn::ImportValue": "${vpcExportPrefix}-private-subnets-${subnetGroupColor}-Private-Subnets"} ] },
+				#* Only the ${subnetGroupColor} private subnets in an availability zone that offers every
+				   DB instance class of this stack. Resolved by RepositoryTemplateBuilderImpl rather than
+				   imported whole, so RDS cannot place a Multi-AZ standby in a zone that cannot host it. *#
+				"SubnetIds": [${databaseSubnets}],
 			}
 		},
 		"${stack}${instance}VpcDBSecurityGroup": {
@@ -880,7 +883,10 @@
                         {
                             "Action": "s3:*",
                             "Effect": "Allow",
-                            "Resource": "arn:aws:s3:::elasticbeanstalk-us-east-1*/*"
+                            "Resource": [
+                                "arn:aws:s3:::elasticbeanstalk-us-east-1*",
+                                "arn:aws:s3:::elasticbeanstalk-us-east-1*/*"
+                            ]
                         },
                         {
                             "Action": "logs:*",
@@ -1066,7 +1072,13 @@
 							"Resource": "*"
 						}
 					]
-				}
+				},
+                "Tags": [
+                    {
+                        "Key": "SecHubSuppressCis3.8",
+                        "Value": "true"
+                    }
+                ]
 			}
 		},
 		"${stack}${instance}CMKAlias": {

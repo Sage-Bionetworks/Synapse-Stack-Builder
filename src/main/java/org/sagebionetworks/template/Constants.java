@@ -199,6 +199,29 @@ public class Constants {
 
 	public static final String VPC_PRIVATE_SUBNETS_STACK_PRIVATE_SUBNETS_OUPUT_KEY = "PrivateSubnets";
 
+	/*
+	 * The engine and version of every RDS instance we deploy. These MUST match the "Engine" and
+	 * "EngineVersion" of the DB instances in repo/main-repo-shared-resources-template.json.vpt and
+	 * repo/id-generator-template.json.vpt: they are used to ask RDS which availability zones offer a
+	 * given DB instance class. The templates are not driven from these values because "Engine" is an
+	 * immutable CloudFormation property, so changing the rendered string would force a replacement of
+	 * the database. RepositoryTemplateBuilderImplTest asserts the rendered templates still agree.
+	 */
+	public static final String RDS_ENGINE = "mysql";
+	public static final String RDS_ENGINE_VERSION = "8.4.8";
+
+	/**
+	 * An RDS DB subnet group must span at least two availability zones, so a stack cannot be deployed
+	 * unless at least this many of the color's private subnets can host every DB instance class.
+	 */
+	public static final int RDS_MINIMUM_SUBNET_COUNT = 2;
+
+	/**
+	 * The instance class of the ID generator database. Unlike the repository databases this is not
+	 * configurable, but it still needs to be known to determine which availability zones can host it.
+	 */
+	public static final String ID_GENERATOR_DB_INSTANCE_CLASS = "db.m6g.large";
+
 	// context keys
 	public static final String SUBNETS = "subnets";
 	public static final String OPENSEARCH_SUBNETS = "openSearchSubnets";
@@ -216,6 +239,8 @@ public class Constants {
 	public static final String PEER_ROLE_ARN = "peerRoleArn";
 	public static final String AVAILABILITY_ZONES = "availabilityZones";
 	public static final String DATABASE_DESCRIPTORS = "databaseDescriptors";
+	public static final String DATABASE_SUBNETS = "databaseSubnets";
+	public static final String DB_INSTANCE_CLASS = "dbInstanceClass";
 	public static final String ENVIRONMENT = "environment";
 	public static final String DB_ENDPOINT_SUFFIX = "dbEndpointSuffix";
 	public static final String REPO_BEANSTALK_NUMBER = "repoBeanstalkNumber";
