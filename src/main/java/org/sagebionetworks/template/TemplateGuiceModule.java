@@ -97,7 +97,6 @@ import org.sagebionetworks.template.repo.kinesis.firehose.KinesisFirehoseVelocit
 import org.sagebionetworks.template.repo.queues.SnsAndSqsConfig;
 import org.sagebionetworks.template.repo.queues.SnsAndSqsVelocityContextProvider;
 import org.sagebionetworks.template.repo.queues.SqsQueueDescriptor;
-import org.sagebionetworks.template.repo.search.SemanticEmbeddingBuilder;
 import org.sagebionetworks.template.s3.S3BucketBuilder;
 import org.sagebionetworks.template.s3.S3BucketBuilderImpl;
 import org.sagebionetworks.template.s3.S3Config;
@@ -371,13 +370,6 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public OpenSearchClientFactory openSearchClientFactoryProvider() {
 		return new OpenSearchClientFactoryImpl(ApacheHttpClient.builder().build());
-	}
-
-	@Provides
-	public SemanticEmbeddingBuilder semanticEmbeddingBuilderProvider(LoggerFactory loggerFactory,
-			ThreadProvider threadProvider) {
-		return new SemanticEmbeddingBuilder(loggerFactory, ApacheHttpClient.builder().build(),
-				DefaultCredentialsProvider.create(), threadProvider);
 	}
 	
 	@Provides

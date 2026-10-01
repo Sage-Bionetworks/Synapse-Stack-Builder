@@ -9,8 +9,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -26,17 +24,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.opensearch.client.opensearch.generic.Body;
+import org.opensearch.client.opensearch.generic.OpenSearchGenericClient;
+import org.opensearch.client.opensearch.generic.Request;
+import org.opensearch.client.opensearch.generic.Response;
 import org.sagebionetworks.template.LoggerFactory;
+import org.sagebionetworks.template.OpenSearchClientFactory;
+import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.ThreadProvider;
 
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.http.ExecutableHttpRequest;
-import software.amazon.awssdk.http.HttpExecuteRequest;
-import software.amazon.awssdk.http.HttpExecuteResponse;
-import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.cloudformation.model.Output;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
 
@@ -48,11 +44,11 @@ public class SemanticEmbeddingBuilderTest {
 	@Mock
 	private Logger mockLogger;
 	@Mock
-	private SdkHttpClient mockHttpClient;
+	private OpenSearchClientFactory mockClientFactory;
+	@Mock
+	private OpenSearchGenericClient mockClient;
 	@Mock
 	private ThreadProvider mockThreadProvider;
-
-	private final AwsCredentialsProvider credentialsProvider = () -> AwsBasicCredentials.create("id", "secret");
 
 	/**
 	 * Responses queued by request path, and the paths actually requested in order. A path with more
@@ -63,11 +59,12 @@ public class SemanticEmbeddingBuilderTest {
 	private List<String> requestedPaths;
 	private List<String> requestBodies;
 
+	private static final String HOST = "search-dev-test-synidx.us-east-1.es.amazonaws.com";
 	private static final String ROLE_ARN = "arn:aws:iam::123456789012:role/dev-test-synidx-bedrock-embed";
 
 	private final Stack sharedResources = Stack.builder().outputs(
 			Output.builder().outputKey(SemanticEmbeddingBuilder.OUTPUT_DOMAIN_ENDPOINT)
-					.outputValue("search-dev-test-synidx.us-east-1.es.amazonaws.com").build(),
+					.outputValue(HOST).build(),
 			Output.builder().outputKey(SemanticEmbeddingBuilder.OUTPUT_BEDROCK_EMBED_ROLE_ARN).outputValue(ROLE_ARN)
 					.build())
 			.build();
@@ -80,8 +77,8 @@ public class SemanticEmbeddingBuilderTest {
 		requestedPaths = new ArrayList<>();
 		requestBodies = new ArrayList<>();
 		when(mockLoggerFactory.getLogger(SemanticEmbeddingBuilder.class)).thenReturn(mockLogger);
-		builder = new SemanticEmbeddingBuilder(mockLoggerFactory, mockHttpClient, credentialsProvider,
-				mockThreadProvider);
+		builder = new SemanticEmbeddingBuilder(mockLoggerFactory, mockClientFactory, mockThreadProvider,
+				new TemplateGuiceModule().velocityEngineProvider());
 	}
 
 	@Test
@@ -113,6 +110,8 @@ public class SemanticEmbeddingBuilderTest {
 				connectorBody);
 		assertTrue(connectorBody.contains("\"model\":\"amazon.titan-embed-text-v2:0\""), connectorBody);
 		assertTrue(connectorBody.contains("\"dimensions\":1024"), connectorBody);
+		// ML-Commons substitutes these at predict time, so Velocity must pass them through untouched.
+		assertTrue(connectorBody.contains("\\\"inputText\\\": \\\"${parameters.inputText}\\\""), connectorBody);
 		// Registering without an explicit group silently auto-creates a second one.
 		assertTrue(requestBodies.get(5).contains("\"model_group_id\":\"group-1\""), requestBodies.get(5));
 	}
@@ -163,8 +162,6 @@ public class SemanticEmbeddingBuilderTest {
 		builder.buildSemanticEmbedding(sharedResources);
 
 		verify(mockThreadProvider).sleep(SemanticEmbeddingBuilder.DEPLOY_POLL_INTERVAL_MS);
-		assertEquals("https://search-dev-test-synidx.us-east-1.es.amazonaws.com/_plugins/_ml/models/_search",
-				requestedUris.get(0));
 	}
 
 	@Test
@@ -196,34 +193,31 @@ public class SemanticEmbeddingBuilderTest {
 				() -> builder.buildSemanticEmbedding(withoutEndpoint)).getMessage();
 
 		assertEquals("Failed to find shared resources output: SynapseSearchIndexDomainEndpoint", message);
-		verify(mockHttpClient, never()).prepareRequest(any());
+		verify(mockClientFactory, never()).getDomainGenericClient(any());
 	}
 
-	private final List<String> requestedUris = new ArrayList<>();
-
 	/**
-	 * Records each signed request and replays the body registered for its path, so the assertions can
-	 * read the JSON that would actually reach ML-Commons.
+	 * Records each request and replays the body registered for its path, so the assertions can read
+	 * the JSON that would actually reach ML-Commons.
 	 */
-	private void setupHttp() {
-		when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class))).thenAnswer(invocation -> {
-			HttpExecuteRequest request = invocation.getArgument(0);
-			String path = request.httpRequest().encodedPath();
+	private void setupHttp() throws Exception {
+		when(mockClientFactory.getDomainGenericClient(HOST)).thenReturn(mockClient);
+		when(mockClient.execute(any(Request.class))).thenAnswer(invocation -> {
+			Request request = invocation.getArgument(0);
+			String path = request.getEndpoint();
 			requestedPaths.add(path);
-			requestedUris.add(request.httpRequest().getUri().toString());
-			requestBodies.add(readRequestBody(request));
+			requestBodies.add(request.getBody().map(Body::bodyAsString).orElse(""));
 
 			Deque<Stub> stubs = responseByPath.get(path);
 			if (stubs == null || stubs.isEmpty()) {
 				throw new IllegalStateException("No stubbed response for " + path);
 			}
 			Stub stub = stubs.size() > 1 ? stubs.poll() : stubs.peek();
-			ExecutableHttpRequest executable = mock(ExecutableHttpRequest.class);
-			when(executable.call()).thenReturn(HttpExecuteResponse.builder()
-					.response(SdkHttpResponse.builder().statusCode(stub.status).build())
-					.responseBody(AbortableInputStream.create(toStream(stub.body)))
-					.build());
-			return executable;
+			Response response = mock(Response.class);
+			when(response.getStatus()).thenReturn(stub.status);
+			when(response.getBody()).thenReturn(
+					Optional.of(Body.from(stub.body.getBytes(StandardCharsets.UTF_8), "application/json")));
+			return response;
 		});
 	}
 
@@ -252,19 +246,5 @@ public class SemanticEmbeddingBuilderTest {
 
 	private static String hit(String id, String source) {
 		return "{\"hits\":{\"hits\":[{\"_id\":\"" + id + "\",\"_source\":{" + source + "}}]}}";
-	}
-
-	private static InputStream toStream(String body) {
-		return new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8));
-	}
-
-	private static String readRequestBody(HttpExecuteRequest request) throws Exception {
-		Optional<software.amazon.awssdk.http.ContentStreamProvider> provider = request.contentStreamProvider();
-		if (!provider.isPresent()) {
-			return "";
-		}
-		try (InputStream in = provider.get().newStream()) {
-			return new String(in.readAllBytes(), StandardCharsets.UTF_8);
-		}
 	}
 }

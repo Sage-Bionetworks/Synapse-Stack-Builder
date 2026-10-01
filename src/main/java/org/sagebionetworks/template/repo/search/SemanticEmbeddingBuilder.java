@@ -1,28 +1,24 @@
 package org.sagebionetworks.template.repo.search;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
+import java.io.StringWriter;
 import java.util.Optional;
 
 import org.apache.logging.log4j.Logger;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+import org.opensearch.client.opensearch.generic.Body;
+import org.opensearch.client.opensearch.generic.OpenSearchGenericClient;
+import org.opensearch.client.opensearch.generic.Requests;
+import org.opensearch.client.opensearch.generic.Response;
 import org.sagebionetworks.template.LoggerFactory;
+import org.sagebionetworks.template.OpenSearchClientFactory;
 import org.sagebionetworks.template.ThreadProvider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.http.HttpExecuteRequest;
-import software.amazon.awssdk.http.HttpExecuteResponse;
-import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudformation.model.Output;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
@@ -57,7 +53,8 @@ public class SemanticEmbeddingBuilder {
 	static final String OUTPUT_DOMAIN_ENDPOINT = "SynapseSearchIndexDomainEndpoint";
 	static final String OUTPUT_BEDROCK_EMBED_ROLE_ARN = "SynapseSearchIndexBedrockEmbedRoleArn";
 
-	private static final String SIGNING_SERVICE = "es";
+	static final String CONNECTOR_TEMPLATE = "templates/repo/search/semantic-embedding-connector.json.vpt";
+
 	private static final Region REGION = Region.US_EAST_1;
 	private static final int HTTP_NOT_FOUND = 404;
 
@@ -68,17 +65,17 @@ public class SemanticEmbeddingBuilder {
 	private static final ObjectMapper MAPPER = new ObjectMapper();
 
 	private final Logger logger;
-	private final SdkHttpClient httpClient;
-	private final AwsCredentialsProvider credentialsProvider;
+	private final OpenSearchClientFactory clientFactory;
 	private final ThreadProvider threadProvider;
+	private final VelocityEngine velocityEngine;
 
 	@Inject
-	public SemanticEmbeddingBuilder(LoggerFactory loggerFactory, SdkHttpClient httpClient,
-			AwsCredentialsProvider credentialsProvider, ThreadProvider threadProvider) {
+	public SemanticEmbeddingBuilder(LoggerFactory loggerFactory, OpenSearchClientFactory clientFactory,
+			ThreadProvider threadProvider, VelocityEngine velocityEngine) {
 		this.logger = loggerFactory.getLogger(SemanticEmbeddingBuilder.class);
-		this.httpClient = httpClient;
-		this.credentialsProvider = credentialsProvider;
+		this.clientFactory = clientFactory;
 		this.threadProvider = threadProvider;
+		this.velocityEngine = velocityEngine;
 	}
 
 	/**
@@ -88,24 +85,25 @@ public class SemanticEmbeddingBuilder {
 	public void buildSemanticEmbedding(Stack sharedResources) throws InterruptedException {
 		String host = requiredOutput(sharedResources, OUTPUT_DOMAIN_ENDPOINT);
 		String bedrockRoleArn = requiredOutput(sharedResources, OUTPUT_BEDROCK_EMBED_ROLE_ARN);
+		OpenSearchGenericClient client = clientFactory.getDomainGenericClient(host);
 
-		Optional<String> deployed = findNewestDeployedModel(host);
+		Optional<String> deployed = findNewestDeployedModel(client);
 		if (deployed.isPresent()) {
 			logger.info("Semantic embedding model {} is already deployed on {}.", deployed.get(), host);
 			return;
 		}
 
-		String modelGroupId = findOrCreateModelGroup(host);
-		String connectorId = findOrCreateConnector(host, bedrockRoleArn);
+		String modelGroupId = findOrCreateModelGroup(client);
+		String connectorId = findOrCreateConnector(client, bedrockRoleArn);
 		// model_group_id is always explicit: registering without one silently auto-creates a second
 		// model group alongside the one this step owns.
-		String modelId = requiredId(post(host, "/_plugins/_ml/models/_register", String.format(
+		String modelId = requiredId(post(client, "/_plugins/_ml/models/_register", String.format(
 				"{\"name\":\"%s\",\"function_name\":\"remote\",\"model_group_id\":\"%s\",\"connector_id\":\"%s\","
 						+ "\"description\":\"Synapse semantic search embeddings (%s/%d).\"}",
 				MODEL_NAME, modelGroupId, connectorId, FOUNDATION_MODEL, DIMENSION)), "model_id");
-		post(host, "/_plugins/_ml/models/" + modelId + "/_deploy", "{}");
+		post(client, "/_plugins/_ml/models/" + modelId + "/_deploy", "{}");
 
-		awaitDeployed(host, modelId);
+		awaitDeployed(client, modelId);
 		logger.info("Registered semantic embedding model {} on {}.", modelId, host);
 	}
 
@@ -119,9 +117,9 @@ public class SemanticEmbeddingBuilder {
 	 * Blocks until the newly registered model can answer a predict call, so the repository instances
 	 * started later in this build find it rather than failing until their next scheduled reconcile.
 	 */
-	private void awaitDeployed(String host, String modelId) throws InterruptedException {
+	private void awaitDeployed(OpenSearchGenericClient client, String modelId) throws InterruptedException {
 		for (int attempt = 0; attempt < DEPLOY_POLL_ATTEMPTS; attempt++) {
-			String state = post(host, "/_plugins/_ml/models/_search",
+			String state = post(client, "/_plugins/_ml/models/_search",
 					"{\"size\":1,\"query\":{\"ids\":{\"values\":[\"" + modelId + "\"]}}}")
 							.path("hits").path("hits").path(0).path("_source").path("model_state").asText();
 			if ("DEPLOYED".equals(state)) {
@@ -133,27 +131,27 @@ public class SemanticEmbeddingBuilder {
 		throw new IllegalStateException("Semantic embedding model " + modelId + " did not reach DEPLOYED.");
 	}
 
-	private Optional<String> findNewestDeployedModel(String host) {
+	private Optional<String> findNewestDeployedModel(OpenSearchGenericClient client) {
 		// Only a DEPLOYED model can answer a predict call, and the newest one wins so a duplicate left
 		// behind by an earlier run does not shadow the current registration.
-		return firstHitId(host, "/_plugins/_ml/models/_search", String.format(
+		return firstHitId(client, "/_plugins/_ml/models/_search", String.format(
 				"{\"size\":1,\"query\":{\"bool\":{\"filter\":[{\"term\":{\"name.keyword\":\"%s\"}},"
 						+ "{\"term\":{\"model_state\":\"DEPLOYED\"}}]}},"
 						+ "\"sort\":[{\"created_time\":{\"order\":\"desc\"}}]}",
 				MODEL_NAME));
 	}
 
-	private String findOrCreateModelGroup(String host) {
-		return firstHitId(host, "/_plugins/_ml/model_groups/_search", searchByName(MODEL_GROUP_NAME))
-				.orElseGet(() -> requiredId(post(host, "/_plugins/_ml/model_groups/_register", String.format(
+	private String findOrCreateModelGroup(OpenSearchGenericClient client) {
+		return firstHitId(client, "/_plugins/_ml/model_groups/_search", searchByName(MODEL_GROUP_NAME))
+				.orElseGet(() -> requiredId(post(client, "/_plugins/_ml/model_groups/_register", String.format(
 						"{\"name\":\"%s\",\"description\":\"Synapse semantic search embedding models.\"}",
 						MODEL_GROUP_NAME)), "model_group_id"));
 	}
 
-	private String findOrCreateConnector(String host, String bedrockRoleArn) {
-		return firstHitId(host, "/_plugins/_ml/connectors/_search", searchByName(CONNECTOR_NAME))
+	private String findOrCreateConnector(OpenSearchGenericClient client, String bedrockRoleArn) {
+		return firstHitId(client, "/_plugins/_ml/connectors/_search", searchByName(CONNECTOR_NAME))
 				.orElseGet(() -> requiredId(
-						post(host, "/_plugins/_ml/connectors/_create", connectorBody(bedrockRoleArn)),
+						post(client, "/_plugins/_ml/connectors/_create", connectorBody(bedrockRoleArn)),
 						"connector_id"));
 	}
 
@@ -164,32 +162,27 @@ public class SemanticEmbeddingBuilder {
 	 * instead of the ML-Commons default of failing the bulk item outright.
 	 */
 	private String connectorBody(String bedrockRoleArn) {
-		return String.format("{\"name\":\"%s\","
-				+ "\"description\":\"Synapse semantic search embeddings via Amazon Bedrock.\","
-				+ "\"version\":1,\"protocol\":\"aws_sigv4\","
-				+ "\"parameters\":{\"region\":\"%s\",\"service_name\":\"bedrock\",\"model\":\"%s\","
-				+ "\"dimensions\":%d,\"normalize\":true,\"embeddingTypes\":[\"float\"]},"
-				+ "\"credential\":{\"roleArn\":\"%s\"},"
-				+ "\"client_config\":{\"max_retry_times\":4,\"retry_backoff_policy\":\"exponential_full_jitter\"},"
-				+ "\"actions\":[{\"action_type\":\"predict\",\"method\":\"POST\","
-				+ "\"url\":\"https://bedrock-runtime.%s.amazonaws.com/model/%s/invoke\","
-				+ "\"headers\":{\"content-type\":\"application/json\",\"x-amz-content-sha256\":\"required\"},"
-				+ "\"request_body\":\"{ \\\"inputText\\\": \\\"${parameters.inputText}\\\", "
-				+ "\\\"dimensions\\\": ${parameters.dimensions}, "
-				+ "\\\"normalize\\\": ${parameters.normalize}, "
-				+ "\\\"embeddingTypes\\\": ${parameters.embeddingTypes} }\","
-				+ "\"pre_process_function\":\"connector.pre_process.bedrock.embedding\","
-				+ "\"post_process_function\":\"connector.post_process.bedrock.embedding\"}]}",
-				CONNECTOR_NAME, REGION.id(), FOUNDATION_MODEL, DIMENSION, bedrockRoleArn, REGION.id(),
-				FOUNDATION_MODEL);
+		VelocityContext context = new VelocityContext();
+		context.put("connectorName", CONNECTOR_NAME);
+		context.put("region", REGION.id());
+		context.put("foundationModel", FOUNDATION_MODEL);
+		context.put("dimension", DIMENSION);
+		context.put("bedrockRoleArn", bedrockRoleArn);
+		StringWriter writer = new StringWriter();
+		velocityEngine.getTemplate(CONNECTOR_TEMPLATE).merge(context, writer);
+		try {
+			return MAPPER.readTree(writer.toString()).toString();
+		} catch (IOException e) {
+			throw new IllegalStateException("Connector template is not valid JSON", e);
+		}
 	}
 
 	private static String searchByName(String name) {
 		return String.format("{\"size\":1,\"query\":{\"term\":{\"name.keyword\":\"%s\"}}}", name);
 	}
 
-	private Optional<String> firstHitId(String host, String endpoint, String requestBody) {
-		JsonNode hits = post(host, endpoint, requestBody).path("hits").path("hits");
+	private Optional<String> firstHitId(OpenSearchGenericClient client, String endpoint, String requestBody) {
+		JsonNode hits = post(client, endpoint, requestBody).path("hits").path("hits");
 		return hits.isEmpty() ? Optional.empty() : Optional.of(hits.get(0).path("_id").asText());
 	}
 
@@ -201,57 +194,22 @@ public class SemanticEmbeddingBuilder {
 		return id.asText();
 	}
 
-	/**
-	 * SigV4-sign and POST to an ML-Commons endpoint. The plugin's REST API has no AWS SDK client and no
-	 * CloudFormation resource, so the request is signed by hand for the {@code es} service.
-	 */
-	JsonNode post(String host, String endpoint, String requestBody) {
-		byte[] body = requestBody.getBytes(StandardCharsets.UTF_8);
-		SdkHttpFullRequest request = SdkHttpFullRequest.builder()
-				.method(SdkHttpMethod.POST)
-				.uri(URI.create("https://" + host + endpoint))
-				.putHeader("Content-Type", "application/json")
-				.putHeader("Content-Length", String.valueOf(body.length))
-				.contentStreamProvider(() -> new ByteArrayInputStream(body))
-				.build();
-
-		SignedRequest signed = AwsV4HttpSigner.create().sign(req -> req
-				.identity(credentialsProvider.resolveCredentials())
-				.request(request)
-				.payload(request.contentStreamProvider().orElseThrow())
-				.putProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, SIGNING_SERVICE)
-				.putProperty(AwsV4HttpSigner.REGION_NAME, REGION.id()));
-
-		try {
-			HttpExecuteResponse response = httpClient.prepareRequest(HttpExecuteRequest.builder()
-					.request(signed.request())
-					.contentStreamProvider(signed.payload().orElse(null))
-					.build()).call();
-
-			String responseBody = readBody(response);
-			int status = response.httpResponse().statusCode();
+	private static JsonNode post(OpenSearchGenericClient client, String endpoint, String requestBody) {
+		try (Response response = client
+				.execute(Requests.builder().method("POST").endpoint(endpoint).json(requestBody).build())) {
+			String responseBody = response.getBody().map(Body::bodyAsString).orElse("");
 			// A domain that has never held this kind of ML resource has no backing system index, so a
 			// search 404s rather than returning zero hits.
-			if (status == HTTP_NOT_FOUND) {
+			if (response.getStatus() == HTTP_NOT_FOUND) {
 				return MAPPER.createObjectNode();
 			}
-			if (!response.httpResponse().isSuccessful()) {
-				throw new IllegalStateException(
-						"ML-Commons request to " + endpoint + " failed with " + status + ": " + responseBody);
+			if (response.getStatus() >= 300) {
+				throw new IllegalStateException("ML-Commons request to " + endpoint + " failed with "
+						+ response.getStatus() + ": " + responseBody);
 			}
 			return MAPPER.readTree(responseBody);
 		} catch (IOException e) {
 			throw new IllegalStateException("Failed ML-Commons request to " + endpoint, e);
-		}
-	}
-
-	private static String readBody(HttpExecuteResponse response) throws IOException {
-		Optional<InputStream> stream = response.responseBody().map(body -> (InputStream) body);
-		if (!stream.isPresent()) {
-			return "";
-		}
-		try (InputStream in = stream.get()) {
-			return new String(in.readAllBytes(), StandardCharsets.UTF_8);
 		}
 	}
 }
