@@ -41,7 +41,7 @@
 		"DeletionPolicy": "Delete",
 		"Properties": {
 			"DomainName": "${stack}-${instance}-synidx",
-			"EngineVersion": "OpenSearch_3.5",
+			"EngineVersion": "OpenSearch_3.7",
 			## For prod, openSearchInstanceType / openSearchMasterInstanceType /
 			## openSearchAvailabilityZoneCount and the pruned openSearchSubnets list are all injected
 			## from RepositoryTemplateBuilderImpl. The AZ count drives ZoneAwarenessConfig here and
@@ -136,6 +136,61 @@
 				{
 					"Key": "Name",
 					"Value": "${stack}-${instance}-synidx"
+				}
+			]
+		}
+	},
+	"SynapseSearchIndexBedrockEmbedRole": {
+		"Type": "AWS::IAM::Role",
+		"Properties": {
+			"RoleName": "${stack}-${instance}-synidx-bedrock-embed",
+			"AssumeRolePolicyDocument": {
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Principal": {
+							"Service": "es.amazonaws.com"
+						},
+						"Action": "sts:AssumeRole",
+						"Condition": {
+							"StringEquals": {
+								"aws:SourceAccount": {
+									"Ref": "AWS::AccountId"
+								}
+							},
+							"ArnLike": {
+								"aws:SourceArn": {"Fn::Sub": "arn:aws:es:#[[${AWS::Region}:${AWS::AccountId}]]#:domain/${stack}-${instance}-synidx"}
+							}
+						}
+					}
+				]
+			},
+			"Policies": [
+				{
+					"PolicyName": "${stack}-${instance}-synidx-bedrock-embed-policy",
+					"PolicyDocument": {
+						"Version": "2012-10-17",
+						"Statement": [
+							{
+								"Effect": "Allow",
+								"Action": "bedrock:InvokeModel",
+								"Resource": {"Fn::Sub": "arn:aws:bedrock:#[[${AWS::Region}]]#::foundation-model/amazon.titan-embed-text-v2:0"}
+							}
+						]
+					}
+				}
+			],
+			"Tags": [
+				{
+					"Key": "Application",
+					"Value": {
+						"Ref": "AWS::StackName"
+					}
+				},
+				{
+					"Key": "Name",
+					"Value": "${stack}-${instance}-synidx-bedrock-embed"
 				}
 			]
 		}

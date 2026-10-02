@@ -143,6 +143,7 @@ import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
 import org.sagebionetworks.template.repo.ecs.DockerImageBuilder;
 import org.sagebionetworks.template.repo.ecs.EcsEnvironmentDescriptor;
 import org.sagebionetworks.template.repo.grid.GridContextProvider;
+import org.sagebionetworks.template.repo.search.SemanticEmbeddingBuilder;
 import org.sagebionetworks.template.vpc.Color;
 
 import com.google.common.collect.Lists;
@@ -213,6 +214,8 @@ public class RepositoryTemplateBuilderImplTest {
 	private DockerImageBuilder mockDockerImageBuilder;
 	@Mock
 	private LoadBalancerAlarmsConfig mockLoadBalancerAlarmsConfig;
+	@Mock
+	private SemanticEmbeddingBuilder mockSemanticEmbeddingBuilder;
 
 	@Captor
 	private ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
@@ -259,7 +262,7 @@ public class RepositoryTemplateBuilderImplTest {
 						new GridContextProvider(gridQueueRef, config)),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
 				mockEc2ClientWrapper, mockRdsClientWrapper, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive,
-				mockDockerImageBuilder, mockLoadBalancerAlarmsConfig);
+				mockDockerImageBuilder, mockLoadBalancerAlarmsConfig, mockSemanticEmbeddingBuilder);
 
 		builderSpy = Mockito.spy(builder);
 
@@ -397,6 +400,7 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(mockRdsClientWrapper).validateMultiAZ("prod-101-db", true);
 		verify(mockRdsClientWrapper).validateMultiAZ("prod-101-table-0", false);
 		verify(mockRdsClientWrapper).validateMultiAZ("prod-101-table-1", false);
+		verify(mockSemanticEmbeddingBuilder).buildSemanticEmbedding(sharedResouces);
 
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
@@ -500,7 +504,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.has("SynapseSearchIndexDomain"));
 		JSONObject prodDomainProps = resources.getJSONObject("SynapseSearchIndexDomain").getJSONObject("Properties");
 		assertEquals("prod-101-synidx", prodDomainProps.getString("DomainName"));
-		assertEquals("OpenSearch_3.5", prodDomainProps.getString("EngineVersion"));
+		assertEquals("OpenSearch_3.7", prodDomainProps.getString("EngineVersion"));
 		JSONObject prodClusterConfig = prodDomainProps.getJSONObject("ClusterConfig");
 		assertEquals(2, prodClusterConfig.getInt("InstanceCount"));
 		assertEquals("r6g.xlarge.search", prodClusterConfig.getString("InstanceType"));
@@ -519,6 +523,24 @@ public class RepositoryTemplateBuilderImplTest {
 				.contains("prod101SynapesRepoWorkersServiceRole"));
 		assertTrue(resources.has("prod101SynapseSearchIndexSecurityGroup"));
 
+		JSONObject prodEmbedRoleProps = resources.getJSONObject("SynapseSearchIndexBedrockEmbedRole")
+				.getJSONObject("Properties");
+		assertEquals("prod-101-synidx-bedrock-embed", prodEmbedRoleProps.getString("RoleName"));
+		assertEquals("es.amazonaws.com", prodEmbedRoleProps.getJSONObject("AssumeRolePolicyDocument")
+				.getJSONArray("Statement").getJSONObject(0).getJSONObject("Principal").getString("Service"));
+		assertTrue(prodEmbedRoleProps.getJSONArray("Policies").toString()
+				.contains("foundation-model/amazon.titan-embed-text-v2:0"));
+		// Only the provisioning identity registers the connector, so the deployed application is never
+		// granted iam:PassRole on the role that connector names.
+		assertFalse(resources.getJSONObject("prod101SynapesRepoWorkersBedrockManagedPolicy").toString()
+				.contains("PassRole"));
+		// SemanticEmbeddingBuilder reads the endpoint and role from these outputs.
+		JSONObject outputs = templateJson.getJSONObject("Outputs");
+		assertEquals("[\"SynapseSearchIndexDomain\",\"DomainEndpoint\"]", outputs
+				.getJSONObject("SynapseSearchIndexDomainEndpoint").getJSONObject("Value").get("Fn::GetAtt").toString());
+		assertEquals("[\"SynapseSearchIndexBedrockEmbedRole\",\"Arn\"]", outputs
+				.getJSONObject("SynapseSearchIndexBedrockEmbedRoleArn").getJSONObject("Value").get("Fn::GetAtt")
+				.toString());
 	}
 
 	void validateOpenApiSchema(JSONObject bedrockAgentProps) {
@@ -811,7 +833,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.has("SynapseSearchIndexDomain"));
 		JSONObject devDomainProps = resources.getJSONObject("SynapseSearchIndexDomain").getJSONObject("Properties");
 		assertEquals("dev-101-synidx", devDomainProps.getString("DomainName"));
-		assertEquals("OpenSearch_3.5", devDomainProps.getString("EngineVersion"));
+		assertEquals("OpenSearch_3.7", devDomainProps.getString("EngineVersion"));
 		JSONObject devClusterConfig = devDomainProps.getJSONObject("ClusterConfig");
 		assertEquals(1, devClusterConfig.getInt("InstanceCount"));
 		assertEquals("t3.small.search", devClusterConfig.getString("InstanceType"));
@@ -827,6 +849,9 @@ public class RepositoryTemplateBuilderImplTest {
 		// has no ENIs and the security group is not created.
 		assertFalse(devDomainProps.has("VPCOptions"));
 		assertFalse(resources.has("dev101SynapseSearchIndexSecurityGroup"));
+
+		assertEquals("dev-101-synidx-bedrock-embed", resources.getJSONObject("SynapseSearchIndexBedrockEmbedRole")
+				.getJSONObject("Properties").getString("RoleName"));
 
 	}
 
