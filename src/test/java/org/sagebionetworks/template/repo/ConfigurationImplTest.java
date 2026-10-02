@@ -51,7 +51,7 @@ public class ConfigurationImplTest {
 		config.initializeWithDefaults(DEFAULT_REPO_PROPERTIES);
 		// Load the default value.
 		String defaultValue = config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS);
-		assertEquals("db.t3.small", defaultValue);
+		assertEquals("db.t4g.small", defaultValue);
 		// Override the default by string a sytem property
 		String overrrideValue = "this is the override";
 		System.setProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS, overrrideValue);
