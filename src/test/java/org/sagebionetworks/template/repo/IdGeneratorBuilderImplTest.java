@@ -107,6 +107,7 @@ public class IdGeneratorBuilderImplTest {
 		assertTrue(resources.has("prodIdGeneratorHighWriteLatency"));
 		assertTrue(resources.has("prodIdGeneratorHighCPUUtilization"));
 		assertTrue(resources.has("prodIdGeneratorLowFreeStorageSpace"));
+		assertTrue(resources.has("prodIdGeneratorLowFreeableMemory"));
 		Parameter[] params = request.getParameters();
 		assertNotNull(params);
 		Parameter param = params[0];
@@ -135,6 +136,7 @@ public class IdGeneratorBuilderImplTest {
 		assertFalse(resources.has("devIdGeneratorHighWriteLatency"));
 		assertFalse(resources.has("devIdGeneratorHighCPUUtilization"));
 		assertFalse(resources.has("devIdGeneratorLowFreeStorageSpace"));
+		assertFalse(resources.has("devIdGeneratorLowFreeableMemory"));
 		Parameter[] params = request.getParameters();
 		assertNotNull(params);
 		Parameter param = params[0];
