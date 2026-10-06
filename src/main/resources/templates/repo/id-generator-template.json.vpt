@@ -68,7 +68,8 @@
 				"Parameters": {
 					"slow_query_log": "1",
 					"long_query_time": "1",
-					"max_allowed_packet": "16777216"
+					"max_allowed_packet": "16777216",
+					"require_secure_transport": "1"
 				}
 			}
 		},
