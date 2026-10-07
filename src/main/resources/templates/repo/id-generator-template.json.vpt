@@ -222,7 +222,33 @@
 				"MetricName": "FreeStorageSpace",
 				"Namespace": "AWS/RDS",
 				"Statistic": "Average",
-				"Threshold": 524288
+				"Threshold": 2147483648
+			}
+		},
+		"${stack}IdGeneratorLowFreeableMemory": {
+			"Type": "AWS::CloudWatch::Alarm",
+			"Properties": {
+				"ActionsEnabled": true,
+				"AlarmActions": [
+					{
+						"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"
+					}
+				],
+				"AlarmDescription": "Alert when database freeable memory is low.",
+				"AlarmName": "${databaseIdentifier}-Low-Freeable-Memory",
+				"ComparisonOperator": "LessThanOrEqualToThreshold",
+				"Dimensions": [
+					{
+						"Name": "DBInstanceIdentifier",
+						"Value": "${databaseIdentifier}"
+					}
+				],
+				"EvaluationPeriods": 2,
+				"Period": 300,
+				"MetricName": "FreeableMemory",
+				"Namespace": "AWS/RDS",
+				"Statistic": "Average",
+				"Threshold": 536870912
 			}
 		}
 		#end

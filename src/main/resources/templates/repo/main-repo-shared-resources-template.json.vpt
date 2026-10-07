@@ -275,6 +275,33 @@
 				"Threshold" : ${descriptor.getTenPercentOfAllocatedStroageBytes()}
 			}
 		},
+		"${descriptor.resourceName}LowFreeableMemory": {
+			"Type" : "AWS::CloudWatch::Alarm",
+			"DependsOn": [
+				"${descriptor.resourceName}"
+			],
+			"Properties" : {
+				"ActionsEnabled" : true,
+				"AlarmActions" : [
+					{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
+				],
+				"AlarmDescription" : "Alert when database freeable memory is low.",
+				"AlarmName" : "${descriptor.instanceIdentifier}-Low-Freeable-Memory",
+				"ComparisonOperator" : "LessThanOrEqualToThreshold",
+				"Dimensions" : [
+					{
+						"Name" : "DBInstanceIdentifier",
+						"Value" : "${descriptor.instanceIdentifier}"
+					}
+				],
+				"EvaluationPeriods" : 2,
+				"Period" : 300,
+				"MetricName" : "FreeableMemory",
+				"Namespace" : "AWS/RDS",
+				"Statistic" : "Average",
+				"Threshold" : 1073741824
+			}
+		},
 		"${descriptor.resourceName}EventsNotification": {
 			"Type" : "AWS::RDS::EventSubscription",
 			"DependsOn": [
