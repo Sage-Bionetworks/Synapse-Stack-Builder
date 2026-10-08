@@ -22,6 +22,7 @@ public class DatabaseDescriptor {
 	private int backupRetentionPeriodDays = 0;
 	private DeletionPolicy deletionPolicy = DeletionPolicy.Snapshot;
 	private int dbThroughput = -1;
+	private int diskQueueDepthThreshold;
 
 	/**
 	 * @return the deletionPolicy
@@ -251,10 +252,30 @@ public class DatabaseDescriptor {
 		return this;
 	}
 
+	/**
+	 * The DiskQueueDepth above which the high disk queue depth alarm fires.
+	 * 
+	 * @return
+	 */
+	public int getDiskQueueDepthThreshold() {
+		return diskQueueDepthThreshold;
+	}
+
+	/**
+	 * The DiskQueueDepth above which the high disk queue depth alarm fires.
+	 * 
+	 * @param diskQueueDepthThreshold
+	 * @return
+	 */
+	public DatabaseDescriptor withDiskQueueDepthThreshold(int diskQueueDepthThreshold) {
+		this.diskQueueDepthThreshold = diskQueueDepthThreshold;
+		return this;
+	}
+
 	@Override
 	public int hashCode() {
 		return Objects.hash(allocatedStorage, backupRetentionPeriodDays, dbIops, dbName, dbStorageType, dbThroughput, deletionPolicy,
-				instanceClass, instanceIdentifier, maxAllocatedStorage, multiAZ, resourceName, snapshotIdentifier);
+				diskQueueDepthThreshold, instanceClass, instanceIdentifier, maxAllocatedStorage, multiAZ, resourceName, snapshotIdentifier);
 	}
 
 	@Override
@@ -269,6 +290,7 @@ public class DatabaseDescriptor {
 		return allocatedStorage == other.allocatedStorage && backupRetentionPeriodDays == other.backupRetentionPeriodDays
 				&& dbIops == other.dbIops && Objects.equals(dbName, other.dbName) && dbStorageType == other.dbStorageType
 				&& dbThroughput == other.dbThroughput && deletionPolicy == other.deletionPolicy
+				&& diskQueueDepthThreshold == other.diskQueueDepthThreshold
 				&& Objects.equals(instanceClass, other.instanceClass) && Objects.equals(instanceIdentifier, other.instanceIdentifier)
 				&& maxAllocatedStorage == other.maxAllocatedStorage && multiAZ == other.multiAZ
 				&& Objects.equals(resourceName, other.resourceName) && Objects.equals(snapshotIdentifier, other.snapshotIdentifier);
@@ -280,7 +302,7 @@ public class DatabaseDescriptor {
 				+ maxAllocatedStorage + ", instanceClass=" + instanceClass + ", instanceIdentifier=" + instanceIdentifier
 				+ ", snapshotIdentifier=" + snapshotIdentifier + ", dbName=" + dbName + ", multiAZ=" + multiAZ + ", dbStorageType="
 				+ dbStorageType + ", dbIops=" + dbIops + ", backupRetentionPeriodDays=" + backupRetentionPeriodDays + ", deletionPolicy="
-				+ deletionPolicy + ", dbThroughput=" + dbThroughput + "]";
+				+ deletionPolicy + ", dbThroughput=" + dbThroughput + ", diskQueueDepthThreshold=" + diskQueueDepthThreshold + "]";
 	}
 
 }
