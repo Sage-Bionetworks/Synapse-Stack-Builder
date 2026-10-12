@@ -521,7 +521,25 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(prodDomainProps.getJSONObject("SoftwareUpdateOptions").getBoolean("AutoSoftwareUpdateEnabled"));
 		assertTrue(prodDomainProps.getJSONObject("AccessPolicies").toString()
 				.contains("prod101SynapesRepoWorkersServiceRole"));
+		assertTrue(prodDomainProps.getJSONObject("AccessPolicies").toString()
+				.contains("SynapseSearchIndexMlProxyRole"));
 		assertTrue(resources.has("prod101SynapseSearchIndexSecurityGroup"));
+
+		// The build host cannot reach the VPC-attached domain, so the proxy function runs in the
+		// domain's own subnets, whose CIDR the domain security group admits.
+		JSONObject prodProxyProps = resources.getJSONObject("SynapseSearchIndexMlProxyFunction")
+				.getJSONObject("Properties");
+		JSONObject prodProxyVpcConfig = prodProxyProps.getJSONObject("VpcConfig");
+		assertEquals(prodSubnetIds.toString(), prodProxyVpcConfig.getJSONArray("SubnetIds").toString());
+		assertEquals("{\"Ref\":\"prod101SynapseSearchIndexMlProxySecurityGroup\"}",
+				prodProxyVpcConfig.getJSONArray("SecurityGroupIds").get(0).toString());
+		assertTrue(resources.has("prod101SynapseSearchIndexMlProxySecurityGroup"));
+		assertEquals("[\"SynapseSearchIndexDomain\",\"DomainEndpoint\"]", prodProxyProps.getJSONObject("Environment")
+				.getJSONObject("Variables").getJSONObject("DOMAIN_ENDPOINT").get("Fn::GetAtt").toString());
+		String prodProxyPolicies = resources.getJSONObject("SynapseSearchIndexMlProxyRole")
+				.getJSONObject("Properties").getJSONArray("Policies").toString();
+		assertTrue(prodProxyPolicies.contains("iam:PassRole"), prodProxyPolicies);
+		assertTrue(prodProxyPolicies.contains("SynapseSearchIndexBedrockEmbedRole"), prodProxyPolicies);
 
 		JSONObject prodEmbedRoleProps = resources.getJSONObject("SynapseSearchIndexBedrockEmbedRole")
 				.getJSONObject("Properties");
@@ -530,17 +548,19 @@ public class RepositoryTemplateBuilderImplTest {
 				.getJSONArray("Statement").getJSONObject(0).getJSONObject("Principal").getString("Service"));
 		assertTrue(prodEmbedRoleProps.getJSONArray("Policies").toString()
 				.contains("foundation-model/amazon.titan-embed-text-v2:0"));
-		// Only the provisioning identity registers the connector, so the deployed application is never
+		// Only the proxy function registers the connector, so the deployed application is never
 		// granted iam:PassRole on the role that connector names.
 		assertFalse(resources.getJSONObject("prod101SynapesRepoWorkersBedrockManagedPolicy").toString()
 				.contains("PassRole"));
-		// SemanticEmbeddingBuilder reads the endpoint and role from these outputs.
+		// SemanticEmbeddingBuilder reads the endpoint, role, and proxy function from these outputs.
 		JSONObject outputs = templateJson.getJSONObject("Outputs");
 		assertEquals("[\"SynapseSearchIndexDomain\",\"DomainEndpoint\"]", outputs
 				.getJSONObject("SynapseSearchIndexDomainEndpoint").getJSONObject("Value").get("Fn::GetAtt").toString());
 		assertEquals("[\"SynapseSearchIndexBedrockEmbedRole\",\"Arn\"]", outputs
 				.getJSONObject("SynapseSearchIndexBedrockEmbedRoleArn").getJSONObject("Value").get("Fn::GetAtt")
 				.toString());
+		assertEquals("SynapseSearchIndexMlProxyFunction", outputs
+				.getJSONObject("SynapseSearchIndexMlProxyFunctionName").getJSONObject("Value").getString("Ref"));
 	}
 
 	void validateOpenApiSchema(JSONObject bedrockAgentProps) {
@@ -849,6 +869,10 @@ public class RepositoryTemplateBuilderImplTest {
 		// has no ENIs and the security group is not created.
 		assertFalse(devDomainProps.has("VPCOptions"));
 		assertFalse(resources.has("dev101SynapseSearchIndexSecurityGroup"));
+		// The public dev domain is reachable without a VPC, so the proxy function has none.
+		assertFalse(resources.getJSONObject("SynapseSearchIndexMlProxyFunction").getJSONObject("Properties")
+				.has("VpcConfig"));
+		assertFalse(resources.has("dev101SynapseSearchIndexMlProxySecurityGroup"));
 
 		assertEquals("dev-101-synidx-bedrock-embed", resources.getJSONObject("SynapseSearchIndexBedrockEmbedRole")
 				.getJSONObject("Properties").getString("RoleName"));

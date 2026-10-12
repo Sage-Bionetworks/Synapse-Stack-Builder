@@ -114,11 +114,14 @@
 								#if (${stack} == 'dev')
 									{"Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:root"}
 								#else
+								[
 									#if ($deploymentTarget == "ECS_FARGATE")
-										{"Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersEcsTaskRole", "Arn"]}
+										{"Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersEcsTaskRole", "Arn"]},
 									#else
-										{"Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"]}
+										{"Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersServiceRole", "Arn"]},
 									#end
+									{"Fn::GetAtt": ["SynapseSearchIndexMlProxyRole", "Arn"]}
+								]
 								#end
 						},
 						"Action": "es:ESHttp*",
@@ -191,6 +194,156 @@
 				{
 					"Key": "Name",
 					"Value": "${stack}-${instance}-synidx-bedrock-embed"
+				}
+			]
+		}
+	},
+	## The build host runs outside the stack VPC and cannot reach a VPC-attached domain, so
+	## SemanticEmbeddingBuilder sends its ML-Commons calls through this function. It signs with its
+	## own role, which holds the iam:PassRole that creating the Bedrock connector requires.
+	"SynapseSearchIndexMlProxyRole": {
+		"Type": "AWS::IAM::Role",
+		"Properties": {
+			"RoleName": "${stack}-${instance}-synidx-ml-proxy",
+			"AssumeRolePolicyDocument": {
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Principal": {
+							"Service": "lambda.amazonaws.com"
+						},
+						"Action": "sts:AssumeRole"
+					}
+				]
+			},
+			"ManagedPolicyArns": [
+				"arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+			],
+			"Policies": [
+				{
+					"PolicyName": "${stack}-${instance}-synidx-ml-proxy-policy",
+					"PolicyDocument": {
+						"Version": "2012-10-17",
+						"Statement": [
+							{
+								"Effect": "Allow",
+								"Action": "es:ESHttpPost",
+								"Resource": {"Fn::Sub": "arn:aws:es:#[[${AWS::Region}]]#:#[[${AWS::AccountId}]]#:domain/${stack}-${instance}-synidx/*"}
+							},
+							{
+								"Effect": "Allow",
+								"Action": "iam:PassRole",
+								"Resource": {"Fn::GetAtt": ["SynapseSearchIndexBedrockEmbedRole", "Arn"]}
+							}
+						]
+					}
+				}
+			],
+			"Tags": [
+				{
+					"Key": "Application",
+					"Value": {
+						"Ref": "AWS::StackName"
+					}
+				},
+				{
+					"Key": "Name",
+					"Value": "${stack}-${instance}-synidx-ml-proxy"
+				}
+			]
+		}
+	},
+	#if (${stack} != 'dev')
+	"${stack}${instance}SynapseSearchIndexMlProxySecurityGroup": {
+		"Type": "AWS::EC2::SecurityGroup",
+		"Properties": {
+			"GroupDescription": "Security group for the SearchIndex ML-Commons proxy function in ${stack}${instance}",
+			"VpcId": {
+				"Fn::ImportValue": "${vpcExportPrefix}-VPCId"
+			},
+			"Tags": [
+				{
+					"Key": "Application",
+					"Value": {
+						"Ref": "AWS::StackName"
+					}
+				},
+				{
+					"Key": "Name",
+					"Value": "${stack}${instance}SynapseSearchIndexMlProxySecurityGroup"
+				}
+			]
+		}
+	},
+	#end
+	"SynapseSearchIndexMlProxyFunction": {
+		"Type": "AWS::Lambda::Function",
+		"Properties": {
+			"Handler": "index.handler",
+			"Role": {"Fn::GetAtt": ["SynapseSearchIndexMlProxyRole", "Arn"]},
+			"Runtime": "python3.12",
+			"Timeout": 60,
+			"Environment": {
+				"Variables": {
+					"DOMAIN_ENDPOINT": {"Fn::GetAtt": ["SynapseSearchIndexDomain", "DomainEndpoint"]}
+				}
+			},
+			## Prod places the function in the domain's own subnets, whose CIDR the domain security
+			## group admits. Dev's domain is public, so the function needs no VPC.
+			#if (${stack} != 'dev')
+			"VpcConfig": {
+				"SecurityGroupIds": [
+					{ "Ref": "${stack}${instance}SynapseSearchIndexMlProxySecurityGroup" }
+				],
+				"SubnetIds": [
+					#foreach($subnetId in $openSearchSubnets)
+						"$subnetId"#if($foreach.hasNext),#end
+					#end
+				]
+			},
+			#end
+			"Code": {
+				"ZipFile": {
+					"Fn::Join": [
+						"\n",
+						[
+							"import os",
+							"import urllib.error",
+							"import urllib.request",
+							"",
+							"import boto3",
+							"from botocore.auth import SigV4Auth",
+							"from botocore.awsrequest import AWSRequest",
+							"",
+							"def handler(event, context):",
+							"    path = event['path']",
+							"    if not path.startswith('/_plugins/_ml/'):",
+							"        raise ValueError('Path is not an ML-Commons API: ' + path)",
+							"    url = 'https://' + os.environ['DOMAIN_ENDPOINT'] + path",
+							"    body = event['body'].encode('utf-8')",
+							"    signed = AWSRequest(method='POST', url=url, data=body, headers={'Content-Type': 'application/json'})",
+							"    SigV4Auth(boto3.Session().get_credentials(), 'es', os.environ['AWS_REGION']).add_auth(signed)",
+							"    request = urllib.request.Request(url, data=body, headers=dict(signed.headers), method='POST')",
+							"    try:",
+							"        with urllib.request.urlopen(request, timeout=50) as response:",
+							"            return {'status': response.status, 'body': response.read().decode('utf-8')}",
+							"    except urllib.error.HTTPError as e:",
+							"        return {'status': e.code, 'body': e.read().decode('utf-8')}"
+						]
+					]
+				}
+			},
+			"Tags": [
+				{
+					"Key": "Application",
+					"Value": {
+						"Ref": "AWS::StackName"
+					}
+				},
+				{
+					"Key": "Name",
+					"Value": "${stack}-${instance}-synidx-ml-proxy"
 				}
 			]
 		}
