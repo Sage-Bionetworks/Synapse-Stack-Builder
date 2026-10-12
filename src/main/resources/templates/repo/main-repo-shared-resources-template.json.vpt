@@ -1140,7 +1140,13 @@
 			"Value": {
 				"Fn::GetAtt": ["SynapseSearchIndexBedrockEmbedRole", "Arn"]
 			}
-		},	
+		},
+		"SynapseSearchIndexMlProxyFunctionName": {
+			"Description": "The function that forwards ML-Commons requests to the SearchIndex OpenSearch domain from inside its network.",
+			"Value": {
+				"Ref": "SynapseSearchIndexMlProxyFunction"
+			}
+		},
 		#if($deploymentTarget == "BEANSTALK")
 		"BeanstalkApplicationId": {
 			"Description": "The elastic bean stalk application ID",
