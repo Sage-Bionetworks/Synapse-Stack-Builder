@@ -112,6 +112,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -401,6 +402,10 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(mockRdsClientWrapper).validateMultiAZ("prod-101-table-0", false);
 		verify(mockRdsClientWrapper).validateMultiAZ("prod-101-table-1", false);
 		verify(mockSemanticEmbeddingBuilder).buildSemanticEmbedding(sharedResouces);
+		// The databases are validated last so a Multi-AZ mismatch does not block the environment deployments.
+		InOrder inOrder = Mockito.inOrder(mockCloudFormationClientWrapper, mockRdsClientWrapper);
+		inOrder.verify(mockCloudFormationClientWrapper, times(4)).createOrUpdateStack(any());
+		inOrder.verify(mockRdsClientWrapper).validateMultiAZ("prod-101-db", true);
 
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);

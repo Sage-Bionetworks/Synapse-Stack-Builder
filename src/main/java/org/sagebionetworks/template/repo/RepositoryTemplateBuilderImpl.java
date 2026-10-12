@@ -230,15 +230,17 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		// Wait for the shared resources to complete
 		Stack sharedStackResults = cloudFormationClientWrapper.waitForStackToComplete(sharedResourceStackName).orElseThrow(()->new IllegalStateException("Stack does not exist: "+sharedResourceStackName));
 
-		// A completed stack does not guarantee the databases match the template, so check them.
-		validateDatabases((DatabaseDescriptor[]) context.get(DATABASE_DESCRIPTORS));
-
 		// The OpenSearch domain now exists, so register its embedding model before any repository
 		// instance starts looking for one.
 		semanticEmbeddingBuilder.buildSemanticEmbedding(sharedStackResults);
 
 		// Build each bean stalk environment.
 		List<String> environmentNames = buildEnvironments(sharedStackResults);
+
+		// A completed stack does not guarantee the databases match the template, so check them.
+		// This is done last so a Multi-AZ mismatch fails the build without blocking the environment
+		// deployments; the mismatch can then be remedied manually.
+		validateDatabases((DatabaseDescriptor[]) context.get(DATABASE_DESCRIPTORS));
 	}
 	
 	/**
