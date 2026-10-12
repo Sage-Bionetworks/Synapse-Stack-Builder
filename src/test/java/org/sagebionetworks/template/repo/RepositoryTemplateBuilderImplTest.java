@@ -540,6 +540,7 @@ public class RepositoryTemplateBuilderImplTest {
 				.getJSONObject("Properties").getJSONArray("Policies").toString();
 		assertTrue(prodProxyPolicies.contains("iam:PassRole"), prodProxyPolicies);
 		assertTrue(prodProxyPolicies.contains("SynapseSearchIndexBedrockEmbedRole"), prodProxyPolicies);
+		assertProxyLogGroup(resources);
 
 		JSONObject prodEmbedRoleProps = resources.getJSONObject("SynapseSearchIndexBedrockEmbedRole")
 				.getJSONObject("Properties");
@@ -561,6 +562,19 @@ public class RepositoryTemplateBuilderImplTest {
 				.toString());
 		assertEquals("SynapseSearchIndexMlProxyFunction", outputs
 				.getJSONObject("SynapseSearchIndexMlProxyFunctionName").getJSONObject("Value").getString("Ref"));
+	}
+
+	/**
+	 * The stack owns the proxy function's log group, so it is deleted with the stack and keeps the
+	 * central retention, rather than Lambda creating one on first invoke that never expires.
+	 */
+	private static void assertProxyLogGroup(JSONObject resources) {
+		JSONObject logGroup = resources.getJSONObject("SynapseSearchIndexMlProxyLogGroup");
+		assertFalse(logGroup.has("DeletionPolicy"));
+		JSONObject logGroupProps = logGroup.getJSONObject("Properties");
+		assertEquals("/aws/lambda/${SynapseSearchIndexMlProxyFunction}",
+				logGroupProps.getJSONObject("LogGroupName").getString("Fn::Sub"));
+		assertEquals(Constants.LOG_RETENTION_IN_DAYS, logGroupProps.getInt("RetentionInDays"));
 	}
 
 	void validateOpenApiSchema(JSONObject bedrockAgentProps) {
@@ -873,6 +887,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertFalse(resources.getJSONObject("SynapseSearchIndexMlProxyFunction").getJSONObject("Properties")
 				.has("VpcConfig"));
 		assertFalse(resources.has("dev101SynapseSearchIndexMlProxySecurityGroup"));
+		assertProxyLogGroup(resources);
 
 		assertEquals("dev-101-synidx-bedrock-embed", resources.getJSONObject("SynapseSearchIndexBedrockEmbedRole")
 				.getJSONObject("Properties").getString("RoleName"));

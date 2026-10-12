@@ -347,4 +347,15 @@
 				}
 			]
 		}
+	},
+	## Owned by the stack so it is deleted with it; otherwise Lambda creates it on first invoke
+	## with no retention and it outlives the stack.
+	"SynapseSearchIndexMlProxyLogGroup": {
+		"Type": "AWS::Logs::LogGroup",
+		"Properties": {
+			"LogGroupName": {
+				"Fn::Sub": "/aws/lambda/#[[${SynapseSearchIndexMlProxyFunction}]]#"
+			},
+			"RetentionInDays": ${cloudwatchLogRetentionInDays}
+		}
 	}
