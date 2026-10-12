@@ -77,7 +77,7 @@ public class IdGeneratorBuilderImplTest {
 
 		availableSubnets = List.of("subnet-a", "subnet-c");
 		when(mockCloudFormationClientWrapper.getOutput(any(), any())).thenReturn("subnet-a, subnet-b, subnet-c");
-		when(mockRdsClientWrapper.getAvailableSubnetsForDBInstanceClasses(any(), any(), any(), any(), anyInt()))
+		when(mockRdsClientWrapper.getAvailableSubnetsForDBInstanceClasses(any(), any(), any(), any(), any(), anyInt()))
 				.thenReturn(availableSubnets);
 
 		builder = new IdGeneratorBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, config, mockLoggerFactory,
@@ -153,7 +153,7 @@ public class IdGeneratorBuilderImplTest {
 		builder.buildAndDeploy();
 
 		verify(mockRdsClientWrapper).getAvailableSubnetsForDBInstanceClasses(RDS_ENGINE, RDS_ENGINE_VERSION,
-				List.of(ID_GENERATOR_DB_INSTANCE_CLASS), List.of("subnet-a", "subnet-b", "subnet-c"),
+				List.of(ID_GENERATOR_DB_INSTANCE_CLASS), List.of("subnet-a", "subnet-b", "subnet-c"), List.of(),
 				RDS_MINIMUM_SUBNET_COUNT);
 
 		verify(mockCloudFormationClientWrapper).createOrUpdateStack(requestCaptor.capture());

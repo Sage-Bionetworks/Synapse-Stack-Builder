@@ -82,6 +82,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_MAX
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_TABLES_RDS_THROUGHPUT;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_VPC_SUBNET_COLOR;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_RDS_EXCLUDED_AVAILABILITY_ZONES;
 import static org.sagebionetworks.template.Constants.RDS_ENGINE;
 import static org.sagebionetworks.template.Constants.RDS_ENGINE_VERSION;
 import static org.sagebionetworks.template.Constants.RDS_MINIMUM_SUBNET_COUNT;
@@ -298,8 +299,11 @@ public class RepositoryTemplateBuilderImplTest {
 	 * that creates the shared context needs the RDS lookup stubbed.
 	 */
 	private void setupDatabaseSubnets() {
+		// the default value of the property is empty
+		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_EXCLUDED_AVAILABILITY_ZONES))
+				.thenReturn(new String[] { "" });
 		when(mockRdsClientWrapper.getAvailableSubnetsForDBInstanceClasses(anyString(), anyString(), any(), any(),
-				anyInt())).thenReturn(EXPECTED_DATABASE_SUBNETS);
+				any(), anyInt())).thenReturn(EXPECTED_DATABASE_SUBNETS);
 	}
 
 	private void configureStack(String inputStack) throws InterruptedException {
@@ -1273,7 +1277,7 @@ public class RepositoryTemplateBuilderImplTest {
 		// the subnet group is limited to the zones that offer both DB instance classes (PLFM-9965)
 		assertEquals(EXPECTED_DATABASE_SUBNETS_STRING, context.get(DATABASE_SUBNETS));
 		verify(mockRdsClientWrapper).getAvailableSubnetsForDBInstanceClasses(RDS_ENGINE, RDS_ENGINE_VERSION,
-				List.of("db.t2.small", "db.t2.micro"), List.of("subnet1", "subnet2", "subnet4"),
+				List.of("db.t2.small", "db.t2.micro"), List.of("subnet1", "subnet2", "subnet4"), List.of(),
 				RDS_MINIMUM_SUBNET_COUNT);
 
 		verify(mockContextProvider1).addToContext(context);
@@ -1776,8 +1780,33 @@ public class RepositoryTemplateBuilderImplTest {
 
 		assertEquals(EXPECTED_DATABASE_SUBNETS_STRING, subnets);
 		verify(mockRdsClientWrapper).getAvailableSubnetsForDBInstanceClasses(RDS_ENGINE, RDS_ENGINE_VERSION,
-				List.of("db.t2.small", "db.t2.micro"), List.of("subnet1", "subnet2", "subnet4"),
+				List.of("db.t2.small", "db.t2.micro"), List.of("subnet1", "subnet2", "subnet4"), List.of(),
 				RDS_MINIMUM_SUBNET_COUNT);
+	}
+
+	/**
+	 * RDS can list an instance class as orderable in a zone and still reject it there for a Multi-AZ
+	 * standby, so the configured zones are passed on to be excluded (PLFM-9965).
+	 */
+	@Test
+	public void testGetDatabaseSubnetsWithExcludedZones() {
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
+		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
+				.thenReturn("subnet1, subnet2, subnet4");
+		setupDatabaseSubnets();
+		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_EXCLUDED_AVAILABILITY_ZONES))
+				.thenReturn(new String[] { "us-east-1b", "us-east-1e" });
+		DatabaseDescriptor[] descriptors = new DatabaseDescriptor[] {
+				new DatabaseDescriptor().withInstanceClass("db.r8g.2xlarge") };
+
+		// call under test
+		String subnets = builder.getDatabaseSubnets(descriptors);
+
+		assertEquals(EXPECTED_DATABASE_SUBNETS_STRING, subnets);
+		verify(mockRdsClientWrapper).getAvailableSubnetsForDBInstanceClasses(RDS_ENGINE, RDS_ENGINE_VERSION,
+				List.of("db.r8g.2xlarge"), List.of("subnet1", "subnet2", "subnet4"),
+				List.of("us-east-1b", "us-east-1e"), RDS_MINIMUM_SUBNET_COUNT);
 	}
 
 	/**

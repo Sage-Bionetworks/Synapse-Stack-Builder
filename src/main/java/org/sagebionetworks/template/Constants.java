@@ -68,6 +68,7 @@ public class Constants {
 
 	public static final String PROPERTY_KEY_VPC_SUBNET_COLOR = "org.sagebionetworks.vpc.subnet.color";
 	public static final String PROPERTY_KEY_REPO_RDS_MULTI_AZ = "org.sagebionetworks.repo.rds.multi.az";
+	public static final String PROPERTY_KEY_RDS_EXCLUDED_AVAILABILITY_ZONES = "org.sagebionetworks.rds.excluded.availability.zones";
 	public static final String PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS = "org.sagebionetworks.repo.rds.instance.class";
 	public static final String PROPERTY_KEY_REPO_RDS_STORAGE_TYPE = "org.sagebionetworks.repo.rds.storage.type";
 	public static final String PROPERTY_KEY_REPO_RDS_IOPS = "org.sagebionetworks.repo.rds.iops";

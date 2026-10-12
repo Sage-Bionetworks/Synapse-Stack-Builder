@@ -3,15 +3,18 @@ package org.sagebionetworks.template;
 import com.google.inject.Inject;
 import org.apache.logging.log4j.Logger;
 
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.rds.RdsClient;
 import software.amazon.awssdk.services.rds.model.AvailabilityZone;
 import software.amazon.awssdk.services.rds.model.DBInstance;
 import software.amazon.awssdk.services.rds.model.DbInstanceNotFoundException;
 import software.amazon.awssdk.services.rds.model.DescribeDbInstancesRequest;
 import software.amazon.awssdk.services.rds.model.DescribeDbInstancesResponse;
+import software.amazon.awssdk.services.rds.model.DescribeEventsRequest;
 import software.amazon.awssdk.services.rds.model.DescribeOrderableDbInstanceOptionsRequest;
-import software.amazon.awssdk.services.rds.model.OrderableDBInstanceOption;
+import software.amazon.awssdk.services.rds.model.Event;
 import software.amazon.awssdk.services.rds.model.PendingModifiedValues;
+import software.amazon.awssdk.services.rds.model.SourceType;
 
 import java.util.HashSet;
 import java.util.List;
@@ -21,6 +24,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class RdsClientWrapperImpl implements RdsClientWrapper {
+
+	/**
+	 * How far back to look for the events that explain a failed Multi-AZ conversion, and how many of
+	 * the most recent ones to report.
+	 */
+	static final int EVENT_LOOKBACK_MINUTES = 24 * 60;
+	static final int MAX_REPORTED_EVENTS = 5;
 
 	RdsClient rds;
 	Ec2ClientWrapper ec2ClientWrapper;
@@ -47,7 +57,7 @@ public class RdsClientWrapperImpl implements RdsClientWrapper {
 
 	@Override
 	public List<String> getAvailableSubnetsForDBInstanceClasses(String engine, String engineVersion,
-			List<String> dbInstanceClasses, List<String> subnets, int minCount) {
+			List<String> dbInstanceClasses, List<String> subnets, List<String> excludedZones, int minCount) {
 		if (dbInstanceClasses == null || dbInstanceClasses.isEmpty()) {
 			throw new IllegalArgumentException("At least one DB instance class is required");
 		}
@@ -61,6 +71,11 @@ public class RdsClientWrapperImpl implements RdsClientWrapper {
 			} else {
 				commonZones.retainAll(zones);
 			}
+		}
+		// RDS can list a class as orderable in a zone and still reject it there for a standby.
+		if (commonZones.removeAll(excludedZones)) {
+			logger.info(String.format("Excluded availability zones %s from the subnets for DB instance classes %s",
+					excludedZones, dbInstanceClasses));
 		}
 		List<String> availableSubnets = commonZones.stream().map(zoneToSubnetMap::get).filter(Objects::nonNull).sorted()
 				.collect(Collectors.toList());
@@ -87,15 +102,35 @@ public class RdsClientWrapperImpl implements RdsClientWrapper {
 			return;
 		}
 		/*
-		 * RDS accepts a Multi-AZ conversion, then abandons it without any failure event when the DB
-		 * instance class is not offered in the availability zone it picks for the standby, so a
-		 * successful stack can still be left single-AZ (PLFM-9965).
+		 * RDS accepts a Multi-AZ conversion, then abandons it and returns the instance to 'available'
+		 * when it cannot place the standby in the availability zone it picked, so a successful stack can
+		 * still be left single-AZ (PLFM-9965). The only record of why is an RDS event such as "Instance
+		 * type db.r8g.2xlarge in availability zone us-east-1b is unsupported", even when that zone is
+		 * listed as orderable for the class.
 		 */
 		throw new IllegalStateException(String.format(
-				"Database %s should have MultiAZ=%s but is MultiAZ=%s. RDS accepted the change and then abandoned it,"
-						+ " most likely because the instance class is not offered in the standby's availability zone."
-						+ " Check 'aws rds describe-events --source-identifier %s --source-type db-instance'.",
-				dbInstanceIdentifier, expectedMultiAZ, actualMultiAZ, dbInstanceIdentifier));
+				"Database %s should have MultiAZ=%s but is MultiAZ=%s. RDS accepted the change and then abandoned it."
+						+ " If an event below names an availability zone that does not support the instance class,"
+						+ " add that zone to %s. Recent events: %s",
+				dbInstanceIdentifier, expectedMultiAZ, actualMultiAZ,
+				Constants.PROPERTY_KEY_RDS_EXCLUDED_AVAILABILITY_ZONES, getRecentEvents(dbInstanceIdentifier)));
+	}
+
+	/**
+	 * The most recent RDS events of a DB instance, oldest first. Failing to read them must not hide
+	 * the mismatch being reported, so an error is logged and no events are returned.
+	 */
+	List<String> getRecentEvents(String dbInstanceIdentifier) {
+		DescribeEventsRequest req = DescribeEventsRequest.builder().sourceType(SourceType.DB_INSTANCE)
+				.sourceIdentifier(dbInstanceIdentifier).duration(EVENT_LOOKBACK_MINUTES).build();
+		try {
+			List<Event> events = rds.describeEvents(req).events();
+			return events.stream().skip(Math.max(0, events.size() - MAX_REPORTED_EVENTS))
+					.map(event -> event.date() + " " + event.message()).collect(Collectors.toList());
+		} catch (SdkException e) {
+			logger.warn("Failed to read the RDS events of " + dbInstanceIdentifier, e);
+			return List.of();
+		}
 	}
 
 	DBInstance describeInstance(String dbInstanceIdentifier) {

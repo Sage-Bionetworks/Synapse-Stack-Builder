@@ -12,16 +12,20 @@ public interface RdsClientWrapper {
 
 	/**
 	 * Filter the given subnets down to those in an availability zone that offers every one of the given
-	 * DB instance classes. Throws an IllegalArgumentException when fewer than minCount subnets remain,
-	 * since a DB subnet group that includes a zone the instance class is not offered in lets RDS pick
-	 * that zone for the standby and silently abandon a Multi-AZ conversion.
+	 * DB instance classes and is not one of the excluded zones. Throws an IllegalArgumentException when
+	 * fewer than minCount subnets remain, since a DB subnet group that includes a zone that cannot host
+	 * the instance class lets RDS pick that zone for the standby and abandon a Multi-AZ conversion.
+	 * <p>
+	 * The zones are excluded by name because RDS can report a class as orderable in a zone and then
+	 * reject it there as unsupported when placing the standby (PLFM-9965).
 	 */
 	public List<String> getAvailableSubnetsForDBInstanceClasses(String engine, String engineVersion,
-			List<String> dbInstanceClasses, List<String> subnets, int minCount);
+			List<String> dbInstanceClasses, List<String> subnets, List<String> excludedZones, int minCount);
 
 	/**
 	 * Verify the deployed Multi-AZ state of a DB instance matches what was requested, throwing an
-	 * IllegalStateException when it does not. A conversion that is still in flight is accepted.
+	 * IllegalStateException that includes the instance's recent RDS events when it does not. A
+	 * conversion that is still in flight is accepted.
 	 */
 	public void validateMultiAZ(String dbInstanceIdentifier, boolean expectedMultiAZ);
 

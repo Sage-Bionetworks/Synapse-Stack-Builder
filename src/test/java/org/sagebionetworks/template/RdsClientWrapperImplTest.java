@@ -5,11 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -32,10 +35,15 @@ import software.amazon.awssdk.services.rds.model.DBInstance;
 import software.amazon.awssdk.services.rds.model.DbInstanceNotFoundException;
 import software.amazon.awssdk.services.rds.model.DescribeDbInstancesRequest;
 import software.amazon.awssdk.services.rds.model.DescribeDbInstancesResponse;
+import software.amazon.awssdk.services.rds.model.DescribeEventsRequest;
+import software.amazon.awssdk.services.rds.model.DescribeEventsResponse;
 import software.amazon.awssdk.services.rds.model.DescribeOrderableDbInstanceOptionsRequest;
 import software.amazon.awssdk.services.rds.model.DescribeOrderableDbInstanceOptionsResponse;
+import software.amazon.awssdk.services.rds.model.Event;
 import software.amazon.awssdk.services.rds.model.OrderableDBInstanceOption;
 import software.amazon.awssdk.services.rds.model.PendingModifiedValues;
+import software.amazon.awssdk.services.rds.model.RdsException;
+import software.amazon.awssdk.services.rds.model.SourceType;
 import software.amazon.awssdk.services.rds.paginators.DescribeOrderableDBInstanceOptionsIterable;
 
 @ExtendWith(MockitoExtension.class)
@@ -59,6 +67,8 @@ public class RdsClientWrapperImplTest {
 	ArgumentCaptor<DescribeOrderableDbInstanceOptionsRequest> optionsRequestCaptor;
 	@Captor
 	ArgumentCaptor<DescribeDbInstancesRequest> instancesRequestCaptor;
+	@Captor
+	ArgumentCaptor<DescribeEventsRequest> eventsRequestCaptor;
 
 	RdsClientWrapper wrapper;
 
@@ -122,7 +132,7 @@ public class RdsClientWrapperImplTest {
 
 		// call under test
 		List<String> subnets = wrapper.getAvailableSubnetsForDBInstanceClasses(ENGINE, ENGINE_VERSION,
-				List.of(REPO_CLASS), List.of("subnet-a", "subnet-b", "subnet-c", "subnet-d"), 2);
+				List.of(REPO_CLASS), List.of("subnet-a", "subnet-b", "subnet-c", "subnet-d"), List.of(), 2);
 
 		assertEquals(Arrays.asList("subnet-a", "subnet-c", "subnet-d"), subnets);
 		verify(mockEc2ClientWrapper)
@@ -147,7 +157,8 @@ public class RdsClientWrapperImplTest {
 
 		// call under test
 		List<String> subnets = wrapper.getAvailableSubnetsForDBInstanceClasses(ENGINE, ENGINE_VERSION,
-				List.of(REPO_CLASS, TABLE_CLASS), List.of("subnet-a", "subnet-b", "subnet-c", "subnet-d"), 2);
+				List.of(REPO_CLASS, TABLE_CLASS), List.of("subnet-a", "subnet-b", "subnet-c", "subnet-d"), List.of(),
+				2);
 
 		// only us-east-1a and us-east-1c offer both classes
 		assertEquals(Arrays.asList("subnet-a", "subnet-c"), subnets);
@@ -171,10 +182,71 @@ public class RdsClientWrapperImplTest {
 
 		// call under test
 		IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> {
-			wrapper.getAvailableSubnetsForDBInstanceClasses(ENGINE, ENGINE_VERSION, classes, allSubnets, 2);
+			wrapper.getAvailableSubnetsForDBInstanceClasses(ENGINE, ENGINE_VERSION, classes, allSubnets, List.of(), 2);
 		});
 		assertEquals(String.format("Could not find 2 available subnets for DB instance classes %s in %s", classes,
 				allSubnets), e.getMessage());
+	}
+
+	/**
+	 * RDS listed db.r8g.2xlarge as orderable in us-east-1b and then rejected it there for the standby
+	 * of prod-609-db, so a configured zone must be dropped even though it is offered (PLFM-9965).
+	 */
+	@Test
+	public void testGetAvailableSubnetsForDBInstanceClassesWithExcludedZones() {
+		when(mockEc2ClientWrapper.getAvailabityZoneToSubnetMap(any())).thenReturn(zoneToSubnetMap());
+		DescribeOrderableDBInstanceOptionsIterable repoOptions = optionsIterable("us-east-1a", "us-east-1b",
+				"us-east-1c", "us-east-1d");
+		when(mockRds.describeOrderableDBInstanceOptionsPaginator(argThat(requestForClass(REPO_CLASS))))
+				.thenReturn(repoOptions);
+
+		// call under test
+		List<String> subnets = wrapper.getAvailableSubnetsForDBInstanceClasses(ENGINE, ENGINE_VERSION,
+				List.of(REPO_CLASS), List.of("subnet-a", "subnet-b", "subnet-c", "subnet-d"), List.of("us-east-1b"),
+				2);
+
+		assertEquals(Arrays.asList("subnet-a", "subnet-c", "subnet-d"), subnets);
+		verify(mockLogger).info(
+				"Excluded availability zones [us-east-1b] from the subnets for DB instance classes [db.r8g.2xlarge]");
+	}
+
+	/**
+	 * Excluding a zone can leave too few subnets, which must fail the build like any other shortfall.
+	 */
+	@Test
+	public void testGetAvailableSubnetsForDBInstanceClassesWithExcludedZonesTooFew() {
+		when(mockEc2ClientWrapper.getAvailabityZoneToSubnetMap(any())).thenReturn(zoneToSubnetMap());
+		DescribeOrderableDBInstanceOptionsIterable repoOptions = optionsIterable("us-east-1a", "us-east-1b");
+		when(mockRds.describeOrderableDBInstanceOptionsPaginator(argThat(requestForClass(REPO_CLASS))))
+				.thenReturn(repoOptions);
+		List<String> allSubnets = List.of("subnet-a", "subnet-b", "subnet-c", "subnet-d");
+
+		// call under test
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> {
+			wrapper.getAvailableSubnetsForDBInstanceClasses(ENGINE, ENGINE_VERSION, List.of(REPO_CLASS), allSubnets,
+					List.of("us-east-1b"), 2);
+		});
+		assertEquals(String.format("Could not find 2 available subnets for DB instance classes %s in %s",
+				List.of(REPO_CLASS), allSubnets), e.getMessage());
+	}
+
+	/**
+	 * An excluded zone that is not offered anyway changes nothing and is not reported.
+	 */
+	@Test
+	public void testGetAvailableSubnetsForDBInstanceClassesWithExcludedZoneNotOffered() {
+		when(mockEc2ClientWrapper.getAvailabityZoneToSubnetMap(any())).thenReturn(zoneToSubnetMap());
+		DescribeOrderableDBInstanceOptionsIterable repoOptions = optionsIterable("us-east-1a", "us-east-1c");
+		when(mockRds.describeOrderableDBInstanceOptionsPaginator(argThat(requestForClass(REPO_CLASS))))
+				.thenReturn(repoOptions);
+
+		// call under test
+		List<String> subnets = wrapper.getAvailableSubnetsForDBInstanceClasses(ENGINE, ENGINE_VERSION,
+				List.of(REPO_CLASS), List.of("subnet-a", "subnet-b", "subnet-c", "subnet-d"), List.of("us-east-1b"),
+				2);
+
+		assertEquals(Arrays.asList("subnet-a", "subnet-c"), subnets);
+		verifyNoMoreInteractions(mockLogger);
 	}
 
 	@Test
@@ -183,7 +255,8 @@ public class RdsClientWrapperImplTest {
 
 		// call under test
 		IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> {
-			wrapper.getAvailableSubnetsForDBInstanceClasses(ENGINE, ENGINE_VERSION, List.of(), allSubnets, 2);
+			wrapper.getAvailableSubnetsForDBInstanceClasses(ENGINE, ENGINE_VERSION, List.of(), allSubnets, List.of(),
+					2);
 		});
 		assertEquals("At least one DB instance class is required", e.getMessage());
 		verifyNoMoreInteractions(mockRds);
@@ -211,12 +284,16 @@ public class RdsClientWrapperImplTest {
 
 	/**
 	 * This is the failure PLFM-9965 was opened for: the stack said Multi-AZ, RDS accepted the change
-	 * and then abandoned it without an event, leaving the database single-AZ.
+	 * and then abandoned it, leaving the database single-AZ. The only record of why is an RDS event, so
+	 * it must be part of the error.
 	 */
 	@Test
 	public void testValidateMultiAZAbandoned() {
 		when(mockRds.describeDBInstances(any(DescribeDbInstancesRequest.class))).thenReturn(
 				instanceResponse(DBInstance.builder().dbInstanceIdentifier(INSTANCE_ID).multiAZ(false).build()));
+		when(mockRds.describeEvents(eventsRequestCaptor.capture())).thenReturn(eventsResponse(
+				"Applying modification to convert to a Multi-AZ DB Instance",
+				"Instance type db.r8g.2xlarge in availability zone us-east-1b is unsupported; putting database instance into available"));
 
 		// call under test
 		IllegalStateException e = assertThrows(IllegalStateException.class, () -> {
@@ -224,6 +301,54 @@ public class RdsClientWrapperImplTest {
 		});
 		assertTrue(e.getMessage().startsWith("Database prod-606-db should have MultiAZ=true but is MultiAZ=false."),
 				e.getMessage());
+		assertTrue(e.getMessage().contains("add that zone to org.sagebionetworks.rds.excluded.availability.zones."),
+				e.getMessage());
+		assertTrue(e.getMessage().endsWith("Recent events: [" + eventTime(0)
+				+ " Applying modification to convert to a Multi-AZ DB Instance, " + eventTime(1)
+				+ " Instance type db.r8g.2xlarge in availability zone us-east-1b is unsupported; putting database instance into available]"),
+				e.getMessage());
+		DescribeEventsRequest request = eventsRequestCaptor.getValue();
+		assertEquals(SourceType.DB_INSTANCE, request.sourceType());
+		assertEquals(INSTANCE_ID, request.sourceIdentifier());
+		assertEquals(RdsClientWrapperImpl.EVENT_LOOKBACK_MINUTES, request.duration());
+	}
+
+	/**
+	 * Only the most recent events are reported, since the cause of the failure is the latest one.
+	 */
+	@Test
+	public void testValidateMultiAZAbandonedReportsOnlyRecentEvents() {
+		when(mockRds.describeDBInstances(any(DescribeDbInstancesRequest.class))).thenReturn(
+				instanceResponse(DBInstance.builder().dbInstanceIdentifier(INSTANCE_ID).multiAZ(false).build()));
+		when(mockRds.describeEvents(any(DescribeEventsRequest.class)))
+				.thenReturn(eventsResponse("e0", "e1", "e2", "e3", "e4", "e5", "e6"));
+
+		// call under test
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> {
+			wrapper.validateMultiAZ(INSTANCE_ID, true);
+		});
+		assertTrue(e.getMessage().endsWith("Recent events: [" + eventTime(2) + " e2, " + eventTime(3) + " e3, "
+				+ eventTime(4) + " e4, " + eventTime(5) + " e5, " + eventTime(6) + " e6]"), e.getMessage());
+	}
+
+	/**
+	 * Failing to read the events must not hide the mismatch.
+	 */
+	@Test
+	public void testValidateMultiAZAbandonedWithEventsFailure() {
+		when(mockRds.describeDBInstances(any(DescribeDbInstancesRequest.class))).thenReturn(
+				instanceResponse(DBInstance.builder().dbInstanceIdentifier(INSTANCE_ID).multiAZ(false).build()));
+		RdsException failure = (RdsException) RdsException.builder().message("denied").build();
+		when(mockRds.describeEvents(any(DescribeEventsRequest.class))).thenThrow(failure);
+
+		// call under test
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> {
+			wrapper.validateMultiAZ(INSTANCE_ID, true);
+		});
+		assertTrue(e.getMessage().startsWith("Database prod-606-db should have MultiAZ=true but is MultiAZ=false."),
+				e.getMessage());
+		assertTrue(e.getMessage().endsWith("Recent events: []"), e.getMessage());
+		verify(mockLogger).warn(eq("Failed to read the RDS events of prod-606-db"), eq(failure));
 	}
 
 	/**
@@ -252,6 +377,7 @@ public class RdsClientWrapperImplTest {
 				.thenReturn(instanceResponse(DBInstance.builder().dbInstanceIdentifier(INSTANCE_ID).multiAZ(false)
 						.pendingModifiedValues(PendingModifiedValues.builder().dbInstanceClass(REPO_CLASS).build())
 						.build()));
+		when(mockRds.describeEvents(any(DescribeEventsRequest.class))).thenReturn(eventsResponse());
 
 		// call under test
 		assertThrows(IllegalStateException.class, () -> {
@@ -302,6 +428,21 @@ public class RdsClientWrapperImplTest {
 
 	private static DescribeDbInstancesResponse instanceResponse(DBInstance instance) {
 		return DescribeDbInstancesResponse.builder().dbInstances(instance).build();
+	}
+
+	/**
+	 * Events with the given messages, oldest first, one minute apart.
+	 */
+	private static DescribeEventsResponse eventsResponse(String... messages) {
+		List<Event> events = new ArrayList<>();
+		for (int i = 0; i < messages.length; i++) {
+			events.add(Event.builder().date(eventTime(i)).message(messages[i]).build());
+		}
+		return DescribeEventsResponse.builder().events(events).build();
+	}
+
+	private static Instant eventTime(int index) {
+		return Instant.parse("2026-10-12T02:34:48Z").plusSeconds(60L * index);
 	}
 
 	/**

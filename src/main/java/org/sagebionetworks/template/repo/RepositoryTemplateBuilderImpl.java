@@ -57,6 +57,7 @@ import static org.sagebionetworks.template.Constants.PROPERTY_KEY_ENABLE_RDS_ENH
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_IMAGE_PIPELINE_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_INSTANCE;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_OAUTH_ENDPOINT;
+import static org.sagebionetworks.template.Constants.PROPERTY_KEY_RDS_EXCLUDED_AVAILABILITY_ZONES;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE;
@@ -558,17 +559,20 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 
 	/**
 	 * The private subnets that the shared DB subnet group may use, resolved from the distinct instance
-	 * classes of every database of this stack.
+	 * classes of every database of this stack, minus the configured excluded availability zones.
 	 *
 	 * @see VpcSubnetUtils#getDatabaseSubnets(CloudFormationClientWrapper, RdsClientWrapper, String,
-	 *      String, List)
+	 *      String, List, List)
 	 */
 	String getDatabaseSubnets(DatabaseDescriptor[] databaseDescriptors) {
 		List<String> instanceClasses = Arrays.stream(databaseDescriptors).map(DatabaseDescriptor::getInstanceClass)
 				.distinct().collect(Collectors.toList());
+		// The default is empty, which splits into a single blank entry.
+		List<String> excludedZones = Arrays.stream(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_EXCLUDED_AVAILABILITY_ZONES))
+				.filter(zone -> !zone.isEmpty()).collect(Collectors.toList());
 		return VpcSubnetUtils.getDatabaseSubnets(cloudFormationClientWrapper, rdsClientWrapper,
 				config.getProperty(PROPERTY_KEY_STACK), config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR),
-				instanceClasses);
+				instanceClasses, excludedZones);
 	}
 
 	/**

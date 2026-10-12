@@ -58,9 +58,10 @@ public class IdGeneratorBuilderImpl implements IdGeneratorBuilder {
 		context.put(HOSTED_ZONE, hostedZoneId);
 		context.put(DB_INSTANCE_CLASS, ID_GENERATOR_DB_INSTANCE_CLASS);
 		// This database is Multi-AZ, so its subnet group must exclude any zone that cannot host the
-		// instance class, otherwise RDS silently leaves it single-AZ. See PLFM-9965.
+		// instance class, otherwise RDS silently leaves it single-AZ. See PLFM-9965. The repository's
+		// excluded zones are not applied: this long-lived database uses another instance class.
 		context.put(DATABASE_SUBNETS, VpcSubnetUtils.getDatabaseSubnets(cloudFormationClientWrapper, rdsClientWrapper,
-				stack, color, List.of(ID_GENERATOR_DB_INSTANCE_CLASS)));
+				stack, color, List.of(ID_GENERATOR_DB_INSTANCE_CLASS), List.of()));
 
 		Parameter parameter = Parameter.builder()
 				.parameterKey(Constants.PARAMETER_MYSQL_PASSWORD)
