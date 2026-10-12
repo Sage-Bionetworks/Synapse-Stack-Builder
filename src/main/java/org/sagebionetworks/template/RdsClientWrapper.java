@@ -6,7 +6,9 @@ public interface RdsClientWrapper {
 
 	/**
 	 * The availability zones where the given DB instance class can be created for the given engine.
-	 * Unlike EC2 instance types, DB instance classes are not offered in every zone of a region.
+	 * Unlike EC2 instance types, DB instance classes are not offered in every zone of a region. A zone
+	 * is only included when EC2 also offers the instance type that backs the class (the class name
+	 * without its "db." prefix), so a class without a matching EC2 type has no zones.
 	 */
 	public List<String> getAvailabilityZonesForDBInstanceClass(String engine, String engineVersion, String dbInstanceClass);
 
