@@ -2836,4 +2836,112 @@ public class S3BucketBuilderImplTest {
 	private LifecycleRule.Builder allBucketRule(String ruleName) {
 		return LifecycleRule.builder().id(ruleName).filter(LifecycleRuleFilter.builder().build()).status(ExpirationStatus.ENABLED);
 	}
+
+	private LifecycleRule.Builder taggedRule(String ruleName, String tagName, String tagValue) {
+		return LifecycleRule.builder().id(ruleName)
+				.filter(LifecycleRuleFilter.builder().tag(Tag.builder().key(tagName).value(tagValue).build()).build())
+				.status(ExpirationStatus.ENABLED);
+	}
+
+	private S3BucketDescriptor bucketWithTagExpiration(String tagName, String tagValue, Integer days) {
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		bucket.setName("${stack}.bucket");
+		bucket.setTagExpirationConfiguration(new S3TagExpirationConfiguration()
+				.withTagFilter(new S3TagFilter().withName(tagName).withValue(tagValue))
+				.withDays(days));
+		return bucket;
+	}
+
+	private void stubBucketBuild() {
+		when(mockVelocity.getTemplate(any())).thenReturn(mockTemplate);
+
+		doAnswer(invocation -> {
+			((StringWriter) invocation.getArgument(1)).append("{}");
+			return null;
+		}).when(mockTemplate).merge(any(), any());
+
+		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(Stack.builder().build()));
+		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
+	}
+
+	@Test
+	public void testBuildAllBucketsWithTagExpiration() throws InterruptedException {
+
+		S3BucketDescriptor bucket = bucketWithTagExpiration("synapse-status", "archive", 1);
+
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		stubBucketBuild();
+
+		// Call under test
+		builder.buildAllBuckets();
+
+		verify(mockS3Client).putBucketLifecycleConfiguration(bucketLifeCycleConfigurationCaptor.capture());
+
+		BucketLifecycleConfiguration config = bucketLifeCycleConfigurationCaptor.getValue().lifecycleConfiguration();
+
+		LifecycleRule rule = config.rules().stream()
+				.filter(r -> S3BucketBuilderImpl.RULE_ID_TAG_EXPIRATION.equals(r.id()))
+				.findFirst().orElseThrow();
+
+		// The tag is what keeps the rule from expiring every object in the bucket
+		assertEquals(Tag.builder().key("synapse-status").value("archive").build(), rule.filter().tag());
+		assertEquals(Integer.valueOf(1), rule.expiration().days());
+		assertEquals(ExpirationStatus.ENABLED, rule.status());
+	}
+
+	// An unchanged rule must not provoke a needless put, which is what the up-to-date predicate is for.
+	@Test
+	public void testBuildAllBucketsWithTagExpirationAlreadyUpToDate() throws InterruptedException {
+
+		S3BucketDescriptor bucket = bucketWithTagExpiration("synapse-status", "archive", 1);
+
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		stubBucketBuild();
+
+		when(mockS3Client.getBucketLifecycleConfiguration(any(GetBucketLifecycleConfigurationRequest.class)))
+				.thenReturn(GetBucketLifecycleConfigurationResponse.builder().rules(
+						allBucketRule(S3BucketBuilderImpl.RULE_ID_ABORT_MULTIPART_UPLOADS)
+								.abortIncompleteMultipartUpload(AbortIncompleteMultipartUpload.builder()
+										.daysAfterInitiation(S3BucketBuilderImpl.ABORT_MULTIPART_UPLOAD_DAYS).build())
+								.build(),
+						taggedRule(S3BucketBuilderImpl.RULE_ID_TAG_EXPIRATION, "synapse-status", "archive")
+								.expiration(LifecycleExpiration.builder().days(1).build()).build()
+				).build());
+
+		// Call under test
+		builder.buildAllBuckets();
+
+		verify(mockS3Client, never()).putBucketLifecycleConfiguration(any(PutBucketLifecycleConfigurationRequest.class));
+	}
+
+	@Test
+	public void testBuildAllBucketsWithNoTagExpirationAndExistingRule() throws InterruptedException {
+
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+		bucket.setName("${stack}.bucket");
+		// No tag expiration configured, so an existing rule must be taken off the bucket
+
+		when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(bucket));
+		stubBucketBuild();
+
+		when(mockS3Client.getBucketLifecycleConfiguration(any(GetBucketLifecycleConfigurationRequest.class)))
+				.thenReturn(GetBucketLifecycleConfigurationResponse.builder().rules(
+						allBucketRule(S3BucketBuilderImpl.RULE_ID_ABORT_MULTIPART_UPLOADS)
+								.abortIncompleteMultipartUpload(AbortIncompleteMultipartUpload.builder()
+										.daysAfterInitiation(S3BucketBuilderImpl.ABORT_MULTIPART_UPLOAD_DAYS).build())
+								.build(),
+						taggedRule(S3BucketBuilderImpl.RULE_ID_TAG_EXPIRATION, "synapse-status", "archive")
+								.expiration(LifecycleExpiration.builder().days(1).build()).build()
+				).build());
+
+		// Call under test
+		builder.buildAllBuckets();
+
+		verify(mockS3Client).putBucketLifecycleConfiguration(bucketLifeCycleConfigurationCaptor.capture());
+
+		BucketLifecycleConfiguration config = bucketLifeCycleConfigurationCaptor.getValue().lifecycleConfiguration();
+
+		assertEquals(1, config.rules().size());
+		assertEquals(S3BucketBuilderImpl.RULE_ID_ABORT_MULTIPART_UPLOADS, config.rules().get(0).id());
+	}
 }

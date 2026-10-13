@@ -221,6 +221,75 @@ public class S3ConfigValidatorTest {
 	}
 	
 	@Test
+	public void testValidateWithTagExpirationConfiguration() {
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+
+		bucket.setName("bucket");
+		bucket.setTagExpirationConfiguration(new S3TagExpirationConfiguration()
+				.withTagFilter(new S3TagFilter().withName("synapse-status").withValue("archive"))
+				.withDays(1)
+		);
+
+		when(mockConfig.getBuckets()).thenReturn(Arrays.asList(bucket));
+
+		validator.validate();
+	}
+
+	// Without a tag the rule would expire every object in the bucket, so the tag may not be omitted.
+	@Test
+	public void testValidateWithTagExpirationConfigurationWithNoTagFilter() {
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+
+		bucket.setName("bucket");
+		bucket.setTagExpirationConfiguration(new S3TagExpirationConfiguration().withDays(1));
+
+		when(mockConfig.getBuckets()).thenReturn(Arrays.asList(bucket));
+
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+			validator.validate();
+		});
+
+		assertEquals("The tagFilter for the tag expiration in bucket bucket is required.", ex.getMessage());
+	}
+
+	@Test
+	public void testValidateWithTagExpirationConfigurationWithNoDays() {
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+
+		bucket.setName("bucket");
+		bucket.setTagExpirationConfiguration(new S3TagExpirationConfiguration()
+				.withTagFilter(new S3TagFilter().withName("synapse-status").withValue("archive"))
+		);
+
+		when(mockConfig.getBuckets()).thenReturn(Arrays.asList(bucket));
+
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+			validator.validate();
+		});
+
+		assertEquals("The days value must be greater than 0 for the tag expiration in bucket bucket", ex.getMessage());
+	}
+
+	@Test
+	public void testValidateWithTagExpirationConfigurationWithZeroDays() {
+		S3BucketDescriptor bucket = new S3BucketDescriptor();
+
+		bucket.setName("bucket");
+		bucket.setTagExpirationConfiguration(new S3TagExpirationConfiguration()
+				.withTagFilter(new S3TagFilter().withName("synapse-status").withValue("archive"))
+				.withDays(0)
+		);
+
+		when(mockConfig.getBuckets()).thenReturn(Arrays.asList(bucket));
+
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+			validator.validate();
+		});
+
+		assertEquals("The days value must be greater than 0 for the tag expiration in bucket bucket", ex.getMessage());
+	}
+
+	@Test
 	public void testValidateWithIntArchiveConfigurationWithArchiveMinDays() {
 		S3BucketDescriptor bucket = new S3BucketDescriptor();
 
