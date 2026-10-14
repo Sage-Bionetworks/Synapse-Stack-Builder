@@ -42,6 +42,7 @@ public class S3ConfigValidator {
 		config.getBuckets().stream().forEach(bucket -> {
 			validateStorageClassTransitions(bucket);
 			validateIntArchiveConfiguration(bucket);
+			validateTagExpirationConfiguration(bucket);
 			validateNotificationsConfiguration(bucket);
 		});
 		
@@ -66,6 +67,24 @@ public class S3ConfigValidator {
 		}
 	}
 	
+	private void validateTagExpirationConfiguration(S3BucketDescriptor bucket) {
+		if (bucket.getTagExpirationConfiguration() == null) {
+			return;
+		}
+
+		S3TagExpirationConfiguration config = bucket.getTagExpirationConfiguration();
+
+		// The tag is what limits the rule to the objects Synapse condemned. Without it the rule would
+		// expire every object in the bucket, so it is required rather than defaulted.
+		ValidateArgument.required(config.getTagFilter(), "The tagFilter for the tag expiration in bucket " + bucket.getName());
+		ValidateArgument.requiredNotBlank(config.getTagFilter().getName(),
+				"The tagFilter name for the tag expiration in bucket " + bucket.getName());
+		ValidateArgument.requiredNotBlank(config.getTagFilter().getValue(),
+				"The tagFilter value for the tag expiration in bucket " + bucket.getName());
+		ValidateArgument.requirement(config.getDays() != null && config.getDays() > 0,
+				"The days value must be greater than 0 for the tag expiration in bucket " + bucket.getName());
+	}
+
 	private void validateIntArchiveConfiguration(S3BucketDescriptor bucket) {
 		if (bucket.getIntArchiveConfiguration() == null) {
 			return;
