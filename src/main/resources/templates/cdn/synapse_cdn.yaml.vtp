@@ -3,23 +3,46 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: >-
   Provision Cloudfront distribution for a synapse.org endpoint (www, staging, tst)
 Resources:
+  CloudfrontWebACL:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Scope: CLOUDFRONT
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: CloudFrontWebACL
+      Rules:
+        - Name: AWSManagedRulesCommonRuleSet
+          Priority: 1
+          OverrideAction:
+            Count: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSCommon
   Cloudfront:
     Type: AWS::CloudFront::Distribution
     DeletionPolicy: Retain
     DependsOn: CacheHeaderOverrideOnErrorFct
     Properties:
       DistributionConfig:
-        Comment: 'Cloudfront distribution for ${SubDomainName}.synapse.org'
+        Comment: 'Cloudfront distribution for ${Origin}'
         Origins:
-          - DomainName: '${SubDomainName}.synapse.org'
-            Id: CustomOriginId
+          - Id: CustomOriginId
+            DomainName: ${Origin}
             CustomOriginConfig:
               OriginProtocolPolicy: https-only
         Enabled: true
         HttpVersion: 'http2'
         DefaultRootObject: index.html
         Aliases:
-          - 'cdn-${SubDomainName}.synapse.org'
+          - 'cdn-${Origin}'
         DefaultCacheBehavior:
           DefaultTTL: 3600
           AllowedMethods:
@@ -37,11 +60,16 @@ Resources:
             EventType: viewer-response
             FunctionARN: !GetAtt CacheHeaderOverrideOnErrorFct.FunctionARN
           ViewerProtocolPolicy: redirect-to-https
+        Logging:
+          Bucket: ${stack}.log.sagebase.org.s3.amazonaws.com
+          IncludeCookies: false
+          Prefix: cdn/${StackInstanceAlias}/
         PriceClass: PriceClass_100
         ViewerCertificate:
           AcmCertificateArn: ${AcmCertificateArn}
           MinimumProtocolVersion: TLSv1.2_2021
           SslSupportMethod: sni-only
+        WebACLId: !GetAtt CloudfrontWebACL.Arn
   CacheHeaderOverrideOnErrorFct:
     Type: AWS::CloudFront::Function
     Properties:
@@ -71,7 +99,7 @@ Resources:
       FunctionConfig:
         Comment: Overrides the cache headers if status code returned is 4xx or 5xx
         Runtime: cloudfront-js-1.0
-      Name: '${SubDomainName}-hoverride-fct'
+      Name: '${StackInstanceAlias}-hoverride-fct'
 
 Outputs:
   CloudfrontId:
