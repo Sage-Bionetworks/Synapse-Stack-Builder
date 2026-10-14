@@ -507,6 +507,15 @@
 							"Fn::GetAtt": ["${environment.refName}ALB", "LoadBalancerFullName"]
 						}
 					}
+					#if(${alarm.useTargetGroupDimension})
+					,
+					{
+						"Name": "TargetGroup",
+						"Value": {
+							"Fn::GetAtt": ["${environment.refName}TargetGroup", "TargetGroupFullName"]
+						}
+					}
+					#end
 				]
 			}
 		}
