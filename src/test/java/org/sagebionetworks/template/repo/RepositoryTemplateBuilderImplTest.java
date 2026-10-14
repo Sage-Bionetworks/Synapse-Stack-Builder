@@ -434,6 +434,9 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.has("prod101Table1RepositoryDBHighWriteLatency"));
 		assertTrue(resources.has("prod101Table1RepositoryDBHighCPUUtilization"));
 		assertTrue(resources.has("prod101Table1RepositoryDBLowFreeStorageSpace"));
+		assertTrue(resources.has("prod101Table1RepositoryDBHighDiskQueueDepth"));
+		assertEquals(50, resources.getJSONObject("prod101RepositoryDBHighDiskQueueDepth").getJSONObject("Properties").getInt("Threshold"));
+		assertEquals(175, resources.getJSONObject("prod101Table1RepositoryDBHighDiskQueueDepth").getJSONObject("Properties").getInt("Threshold"));
 
 		assertTrue(resources.has("prod101RepositoryDB"));
 		JSONObject repoDB = (JSONObject) resources.get("prod101RepositoryDB");
@@ -662,6 +665,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.has("prod101Table1RepositoryDBHighWriteLatency"));
 		assertTrue(resources.has("prod101Table1RepositoryDBHighCPUUtilization"));
 		assertTrue(resources.has("prod101Table1RepositoryDBLowFreeStorageSpace"));
+		assertTrue(resources.has("prod101Table1RepositoryDBHighDiskQueueDepth"));
 
 		assertTrue(resources.has("prod101RepositoryDB"));
 		JSONObject repoDB = (JSONObject) resources.get("prod101RepositoryDB");
@@ -790,6 +794,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertFalse(resources.has("devd101Table1RepositoryDBHighWriteLatency"));
 		assertFalse(resources.has("dev101Table1RepositoryDBHighCPUUtilization"));
 		assertFalse(resources.has("dev101Table1RepositoryDBLowFreeStorageSpace"));
+		assertFalse(resources.has("dev101Table1RepositoryDBHighDiskQueueDepth"));
 
 		assertTrue(resources.has("dev101RepositoryDB"));
 		JSONObject repoDB = (JSONObject) resources.get("dev101RepositoryDB");
@@ -950,6 +955,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertFalse(resources.has("devd101Table1RepositoryDBHighWriteLatency"));
 		assertFalse(resources.has("dev101Table1RepositoryDBHighCPUUtilization"));
 		assertFalse(resources.has("dev101Table1RepositoryDBLowFreeStorageSpace"));
+		assertFalse(resources.has("dev101Table1RepositoryDBHighDiskQueueDepth"));
 
 		assertTrue(resources.has("dev101RepositoryDB"));
 		JSONObject repoDB = (JSONObject) resources.get("dev101RepositoryDB");
@@ -1691,13 +1697,15 @@ public class RepositoryTemplateBuilderImplTest {
 						.withDbStorageType(DatabaseStorageType.standard.name()).withInstanceClass("db.t2.small")
 						.withInstanceIdentifier("prod-101-db").withMaxAllocatedStorage(8).withMultiAZ(true)
 						.withResourceName("prod101RepositoryDB").withSnapshotIdentifier(null)
-						.withDeletionPolicy(DeletionPolicy.Snapshot),
+						.withDeletionPolicy(DeletionPolicy.Snapshot)
+						.withDiskQueueDepthThreshold(50),
 				// tables
 				new DatabaseDescriptor().withAllocatedStorage(3).withBackupRetentionPeriodDays(1).withDbIops(1000)
 						.withDbThroughput(1000).withDbName("prod101").withDbStorageType(DatabaseStorageType.gp3.name())
 						.withInstanceClass("db.t2.micro").withInstanceIdentifier("prod-101-table-0")
 						.withMaxAllocatedStorage(6).withMultiAZ(false).withResourceName("prod101Table0RepositoryDB")
-						.withSnapshotIdentifier(null).withDeletionPolicy(DeletionPolicy.Snapshot) };
+						.withSnapshotIdentifier(null).withDeletionPolicy(DeletionPolicy.Snapshot)
+						.withDiskQueueDepthThreshold(175) };
 		assertEquals(2, results.length);
 		assertEquals(expected[0], results[0]);
 		assertEquals(expected[1], results[1]);
@@ -1737,13 +1745,15 @@ public class RepositoryTemplateBuilderImplTest {
 						.withDbStorageType(DatabaseStorageType.standard.name()).withInstanceClass("db.t2.small")
 						.withInstanceIdentifier("dev-101-db").withMaxAllocatedStorage(8).withMultiAZ(true)
 						.withResourceName("dev101RepositoryDB").withSnapshotIdentifier(null)
-						.withDeletionPolicy(DeletionPolicy.Delete),
+						.withDeletionPolicy(DeletionPolicy.Delete)
+						.withDiskQueueDepthThreshold(50),
 				// tables
 				new DatabaseDescriptor().withAllocatedStorage(3).withBackupRetentionPeriodDays(0).withDbIops(1000)
 						.withDbThroughput(1000).withDbName("dev101").withDbStorageType(DatabaseStorageType.gp3.name())
 						.withInstanceClass("db.t2.micro").withInstanceIdentifier("dev-101-table-0")
 						.withMaxAllocatedStorage(6).withMultiAZ(false).withResourceName("dev101Table0RepositoryDB")
-						.withSnapshotIdentifier(null).withDeletionPolicy(DeletionPolicy.Delete) };
+						.withSnapshotIdentifier(null).withDeletionPolicy(DeletionPolicy.Delete)
+						.withDiskQueueDepthThreshold(175) };
 		assertEquals(2, results.length);
 		assertEquals(expected[0], results[0]);
 		assertEquals(expected[1], results[1]);
