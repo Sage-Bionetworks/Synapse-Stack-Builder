@@ -144,6 +144,9 @@ import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformSummary;
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
 	public static final List<String> MACHINE_TYPE_LIST = List.of("Workers", "Repository");
 	public static final List<String> POOL_TYPE_LIST = List.of("Idgen", "Main", "Migration", "Tables");
+	// DiskQueueDepth alarm thresholds, based on observed prod usage.
+	public static final int REPO_DB_DISK_QUEUE_DEPTH_THRESHOLD = 50;
+	public static final int TABLES_DB_DISK_QUEUE_DEPTH_THRESHOLD = 175;
 
 	private final CloudFormationClientWrapper cloudFormationClientWrapper;
 	private final Ec2ClientWrapper ec2ClientWrapper;
@@ -607,7 +610,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				.withMultiAZ(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ))
 				// 0 indicates no automated backups will be created.
 				.withBackupRetentionPeriodDays(7)
-				.withDeletionPolicy(Constants.isProd(stack)? DeletionPolicy.Snapshot: DeletionPolicy.Delete);
+				.withDeletionPolicy(Constants.isProd(stack)? DeletionPolicy.Snapshot: DeletionPolicy.Delete)
+				.withDiskQueueDepthThreshold(REPO_DB_DISK_QUEUE_DEPTH_THRESHOLD);
 		
 
 		String repoSnapshotIdentifier = config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER);
@@ -636,7 +640,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				.withInstanceClass(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).withMultiAZ(false)
 				// 0 indicates no automated backups will be created.
 				.withBackupRetentionPeriodDays(Constants.isProd(stack)? 1 : 0)
-				.withDeletionPolicy(Constants.isProd(stack)? DeletionPolicy.Snapshot: DeletionPolicy.Delete);
+				.withDeletionPolicy(Constants.isProd(stack)? DeletionPolicy.Snapshot: DeletionPolicy.Delete)
+				.withDiskQueueDepthThreshold(TABLES_DB_DISK_QUEUE_DEPTH_THRESHOLD);
 			if (useSnapshotForRepoDB) {
 				String snapshotIdentifier = repoTableSnapshotIdentifiers[i];
 				tableDbDescriptor = tableDbDescriptor.withSnapshotIdentifier(snapshotIdentifier);

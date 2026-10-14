@@ -275,6 +275,33 @@
 				"Threshold" : ${descriptor.getTenPercentOfAllocatedStroageBytes()}
 			}
 		},
+		"${descriptor.resourceName}HighDiskQueueDepth": {
+			"Type" : "AWS::CloudWatch::Alarm",
+			"DependsOn": [
+				"${descriptor.resourceName}"
+			],
+			"Properties" : {
+				"ActionsEnabled" : true,
+				"AlarmActions" : [
+					{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
+				],
+				"AlarmDescription" : "Alert when database disk queue depth is exceeded.",
+				"AlarmName" : "${descriptor.instanceIdentifier}-High-Disk-Queue-Depth",
+				"ComparisonOperator" : "GreaterThanThreshold",
+				"Dimensions" : [
+					{
+						"Name" : "DBInstanceIdentifier",
+						"Value" : "${descriptor.instanceIdentifier}"
+					}
+				],
+				"EvaluationPeriods" : 3,
+				"Period" : 300,
+				"MetricName" : "DiskQueueDepth",
+				"Namespace" : "AWS/RDS",
+				"Statistic" : "Average",
+				"Threshold" : ${descriptor.diskQueueDepthThreshold}
+			}
+		},
 		"${descriptor.resourceName}EventsNotification": {
 			"Type" : "AWS::RDS::EventSubscription",
 			"DependsOn": [

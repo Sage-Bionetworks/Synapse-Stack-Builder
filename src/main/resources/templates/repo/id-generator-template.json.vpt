@@ -224,6 +224,32 @@
 				"Statistic": "Average",
 				"Threshold": 524288
 			}
+		},
+		"${stack}IdGeneratorHighDiskQueueDepth": {
+			"Type": "AWS::CloudWatch::Alarm",
+			"Properties": {
+				"ActionsEnabled": true,
+				"AlarmActions": [
+					{
+						"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"
+					}
+				],
+				"AlarmDescription": "Alert when database disk queue depth is exceeded.",
+				"AlarmName": "${databaseIdentifier}-High-Disk-Queue-Depth",
+				"ComparisonOperator": "GreaterThanThreshold",
+				"Dimensions": [
+					{
+						"Name": "DBInstanceIdentifier",
+						"Value": "${databaseIdentifier}"
+					}
+				],
+				"EvaluationPeriods": 3,
+				"Period": 300,
+				"MetricName": "DiskQueueDepth",
+				"Namespace": "AWS/RDS",
+				"Statistic": "Average",
+				"Threshold": 1
+			}
 		}
 		#end
 	},
