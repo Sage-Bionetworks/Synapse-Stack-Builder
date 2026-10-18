@@ -4,19 +4,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,17 +21,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.opensearch.client.opensearch.generic.Body;
-import org.opensearch.client.opensearch.generic.OpenSearchGenericClient;
-import org.opensearch.client.opensearch.generic.Request;
-import org.opensearch.client.opensearch.generic.Response;
 import org.sagebionetworks.template.LoggerFactory;
-import org.sagebionetworks.template.OpenSearchClientFactory;
 import org.sagebionetworks.template.TemplateGuiceModule;
 import org.sagebionetworks.template.ThreadProvider;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.cloudformation.model.Output;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.InvocationType;
+import software.amazon.awssdk.services.lambda.model.InvokeRequest;
+import software.amazon.awssdk.services.lambda.model.InvokeResponse;
 
 @ExtendWith(MockitoExtension.class)
 public class SemanticEmbeddingBuilderTest {
@@ -44,9 +44,7 @@ public class SemanticEmbeddingBuilderTest {
 	@Mock
 	private Logger mockLogger;
 	@Mock
-	private OpenSearchClientFactory mockClientFactory;
-	@Mock
-	private OpenSearchGenericClient mockClient;
+	private LambdaClient mockLambdaClient;
 	@Mock
 	private ThreadProvider mockThreadProvider;
 
@@ -61,12 +59,16 @@ public class SemanticEmbeddingBuilderTest {
 
 	private static final String HOST = "search-dev-test-synidx.us-east-1.es.amazonaws.com";
 	private static final String ROLE_ARN = "arn:aws:iam::123456789012:role/dev-test-synidx-bedrock-embed";
+	private static final String PROXY_FUNCTION = "dev-test-shared-resources-SynapseSearchIndexMlProxyFun-abc123";
+	private static final ObjectMapper MAPPER = new ObjectMapper();
 
 	private final Stack sharedResources = Stack.builder().outputs(
 			Output.builder().outputKey(SemanticEmbeddingBuilder.OUTPUT_DOMAIN_ENDPOINT)
 					.outputValue(HOST).build(),
 			Output.builder().outputKey(SemanticEmbeddingBuilder.OUTPUT_BEDROCK_EMBED_ROLE_ARN).outputValue(ROLE_ARN)
-					.build())
+					.build(),
+			Output.builder().outputKey(SemanticEmbeddingBuilder.OUTPUT_ML_PROXY_FUNCTION_NAME)
+					.outputValue(PROXY_FUNCTION).build())
 			.build();
 
 	private SemanticEmbeddingBuilder builder;
@@ -77,7 +79,7 @@ public class SemanticEmbeddingBuilderTest {
 		requestedPaths = new ArrayList<>();
 		requestBodies = new ArrayList<>();
 		when(mockLoggerFactory.getLogger(SemanticEmbeddingBuilder.class)).thenReturn(mockLogger);
-		builder = new SemanticEmbeddingBuilder(mockLoggerFactory, mockClientFactory, mockThreadProvider,
+		builder = new SemanticEmbeddingBuilder(mockLoggerFactory, mockLambdaClient, mockThreadProvider,
 				new TemplateGuiceModule().velocityEngineProvider());
 	}
 
@@ -193,31 +195,61 @@ public class SemanticEmbeddingBuilderTest {
 				() -> builder.buildSemanticEmbedding(withoutEndpoint)).getMessage();
 
 		assertEquals("Failed to find shared resources output: SynapseSearchIndexDomainEndpoint", message);
-		verify(mockClientFactory, never()).getDomainGenericClient(any());
+		verify(mockLambdaClient, never()).invoke(any(InvokeRequest.class));
+	}
+
+	@Test
+	public void testBuildSemanticEmbeddingWithMissingProxyOutput() {
+		Stack withoutProxy = Stack.builder().outputs(
+				Output.builder().outputKey(SemanticEmbeddingBuilder.OUTPUT_DOMAIN_ENDPOINT).outputValue(HOST).build(),
+				Output.builder().outputKey(SemanticEmbeddingBuilder.OUTPUT_BEDROCK_EMBED_ROLE_ARN).outputValue(ROLE_ARN)
+						.build())
+				.build();
+
+		String message = assertThrows(IllegalStateException.class,
+				() -> builder.buildSemanticEmbedding(withoutProxy)).getMessage();
+
+		assertEquals("Failed to find shared resources output: SynapseSearchIndexMlProxyFunctionName", message);
+		verify(mockLambdaClient, never()).invoke(any(InvokeRequest.class));
+	}
+
+	@Test
+	public void testBuildSemanticEmbeddingWithUnreachableDomain() {
+		// The proxy raises (rather than returning a status) when it cannot reach the domain at all.
+		when(mockLambdaClient.invoke(any(InvokeRequest.class))).thenReturn(InvokeResponse.builder()
+				.functionError("Unhandled")
+				.payload(SdkBytes.fromUtf8String("{\"errorType\":\"TimeoutError\",\"errorMessage\":\"timed out\"}"))
+				.build());
+
+		String message = assertThrows(IllegalStateException.class, () -> builder.buildSemanticEmbedding(sharedResources))
+				.getMessage();
+
+		assertTrue(message.startsWith("Failed ML-Commons request to /_plugins/_ml/models/_search"), message);
+		assertTrue(message.contains("timed out"), message);
 	}
 
 	/**
-	 * Records each request and replays the body registered for its path, so the assertions can read
-	 * the JSON that would actually reach ML-Commons.
+	 * Records each request the proxy function is asked to forward and replays the status and body
+	 * registered for its path, so the assertions can read the JSON that would actually reach
+	 * ML-Commons.
 	 */
 	private void setupHttp() throws Exception {
-		when(mockClientFactory.getDomainGenericClient(HOST)).thenReturn(mockClient);
-		when(mockClient.execute(any(Request.class))).thenAnswer(invocation -> {
-			Request request = invocation.getArgument(0);
-			String path = request.getEndpoint();
+		when(mockLambdaClient.invoke(any(InvokeRequest.class))).thenAnswer(invocation -> {
+			InvokeRequest request = invocation.getArgument(0);
+			assertEquals(PROXY_FUNCTION, request.functionName());
+			assertEquals(InvocationType.REQUEST_RESPONSE, request.invocationType());
+			JsonNode proxied = MAPPER.readTree(request.payload().asUtf8String());
+			String path = proxied.path("path").asText();
 			requestedPaths.add(path);
-			requestBodies.add(request.getBody().map(Body::bodyAsString).orElse(""));
+			requestBodies.add(proxied.path("body").asText());
 
 			Deque<Stub> stubs = responseByPath.get(path);
 			if (stubs == null || stubs.isEmpty()) {
 				throw new IllegalStateException("No stubbed response for " + path);
 			}
 			Stub stub = stubs.size() > 1 ? stubs.poll() : stubs.peek();
-			Response response = mock(Response.class);
-			when(response.getStatus()).thenReturn(stub.status);
-			when(response.getBody()).thenReturn(
-					Optional.of(Body.from(stub.body.getBytes(StandardCharsets.UTF_8), "application/json")));
-			return response;
+			String payload = MAPPER.createObjectNode().put("status", stub.status).put("body", stub.body).toString();
+			return InvokeResponse.builder().statusCode(200).payload(SdkBytes.fromUtf8String(payload)).build();
 		});
 	}
 
