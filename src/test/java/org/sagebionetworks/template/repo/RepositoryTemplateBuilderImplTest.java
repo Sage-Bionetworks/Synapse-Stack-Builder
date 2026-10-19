@@ -434,6 +434,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.has("prod101Table1RepositoryDBHighWriteLatency"));
 		assertTrue(resources.has("prod101Table1RepositoryDBHighCPUUtilization"));
 		assertTrue(resources.has("prod101Table1RepositoryDBLowFreeStorageSpace"));
+		assertTrue(resources.has("prod101Table1RepositoryDBLowFreeableMemory"));
 		assertTrue(resources.has("prod101Table1RepositoryDBHighDiskQueueDepth"));
 		assertEquals(50, resources.getJSONObject("prod101RepositoryDBHighDiskQueueDepth").getJSONObject("Properties").getInt("Threshold"));
 		assertEquals(175, resources.getJSONObject("prod101Table1RepositoryDBHighDiskQueueDepth").getJSONObject("Properties").getInt("Threshold"));
@@ -699,6 +700,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.has("prod101Table1RepositoryDBHighWriteLatency"));
 		assertTrue(resources.has("prod101Table1RepositoryDBHighCPUUtilization"));
 		assertTrue(resources.has("prod101Table1RepositoryDBLowFreeStorageSpace"));
+		assertTrue(resources.has("prod101Table1RepositoryDBLowFreeableMemory"));
 		assertTrue(resources.has("prod101Table1RepositoryDBHighDiskQueueDepth"));
 
 		assertTrue(resources.has("prod101RepositoryDB"));
@@ -828,6 +830,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertFalse(resources.has("devd101Table1RepositoryDBHighWriteLatency"));
 		assertFalse(resources.has("dev101Table1RepositoryDBHighCPUUtilization"));
 		assertFalse(resources.has("dev101Table1RepositoryDBLowFreeStorageSpace"));
+		assertFalse(resources.has("dev101Table1RepositoryDBLowFreeableMemory"));
 		assertFalse(resources.has("dev101Table1RepositoryDBHighDiskQueueDepth"));
 
 		assertTrue(resources.has("dev101RepositoryDB"));
@@ -994,6 +997,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertFalse(resources.has("devd101Table1RepositoryDBHighWriteLatency"));
 		assertFalse(resources.has("dev101Table1RepositoryDBHighCPUUtilization"));
 		assertFalse(resources.has("dev101Table1RepositoryDBLowFreeStorageSpace"));
+		assertFalse(resources.has("dev101Table1RepositoryDBLowFreeableMemory"));
 		assertFalse(resources.has("dev101Table1RepositoryDBHighDiskQueueDepth"));
 
 		assertTrue(resources.has("dev101RepositoryDB"));
