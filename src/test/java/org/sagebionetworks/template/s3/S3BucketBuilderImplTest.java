@@ -2512,6 +2512,7 @@ public class S3BucketBuilderImplTest {
 		
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(virusScannerStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
+		when(mockCloudFormationClientWrapper.getOutput(any(), any())).thenReturn("notificationTopicArn");
 		
 		String expectedBucket = stack + "-lambda-bucket";
 		String expectedKey = "artifacts/virus-scanner/lambda-name.zip";
@@ -2536,6 +2537,8 @@ public class S3BucketBuilderImplTest {
 		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_NOTIFICATION_EMAIL), "notification@sagebase.org");
 		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_LAMBDA_BUCKET), expectedBucket);
 		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_LAMBDA_KEY), expectedKey);
+		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_NOTIFICATION_TOPIC_ARN), "notificationTopicArn");
+		verify(mockCloudFormationClientWrapper).getOutput("synapse-" + stack + "-global-resources", S3BucketBuilderImpl.CF_OUTPUT_GLOBAL_NOTIFICATION_TOPIC);
 
 		assertEquals(bucketPolicyBuilderContext.get(Constants.STACK), stack);
 		
@@ -2632,6 +2635,7 @@ public class S3BucketBuilderImplTest {
 		
 		when(mockCloudFormationClientWrapper.describeStack(any())).thenReturn(Optional.of(virusScannerStack));
 		when(mockTagsProvider.getStackTags(mockConfig)).thenReturn(Collections.emptyList());
+		when(mockCloudFormationClientWrapper.getOutput(any(), any())).thenReturn("notificationTopicArn");
 				
 		// Fake an existing config for the scanner
 		GetBucketNotificationConfigurationResponse bucketConfiguration = GetBucketNotificationConfigurationResponse.builder()
@@ -2672,6 +2676,8 @@ public class S3BucketBuilderImplTest {
 		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_NOTIFICATION_EMAIL), "notification@sagebase.org");
 		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_LAMBDA_BUCKET), expectedBucket);
 		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_LAMBDA_KEY), expectedKey);
+		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_NOTIFICATION_TOPIC_ARN), "notificationTopicArn");
+		verify(mockCloudFormationClientWrapper).getOutput("synapse-" + stack + "-global-resources", S3BucketBuilderImpl.CF_OUTPUT_GLOBAL_NOTIFICATION_TOPIC);
 
 		assertEquals(bucketPolicyBuilderContext.get(Constants.STACK), stack);
 

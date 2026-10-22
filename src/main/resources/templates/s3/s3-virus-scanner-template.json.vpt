@@ -307,6 +307,50 @@
              "SqsManagedSseEnabled": true
          }
       },
+#if(${stack} == 'prod')
+      "ScanResultSQSOldestMessageAlarm":{
+         "Type":"AWS::CloudWatch::Alarm",
+         "Properties":{
+            "ActionsEnabled":true,
+            "AlarmActions":["${notificationTopicArn}"],
+            "AlarmDescription":"Alarm when oldest message in the virus scanner scan result queue exceeds 2 seconds for 3 consecutive 5 minute periods",
+            "AlarmName":"${stack}-synapse-virus-scanner-scan-result-queue-oldest-message-exceed-time",
+            "ComparisonOperator":"GreaterThanThreshold",
+            "Dimensions":[{
+               "Name":"QueueName",
+               "Value":{"Fn::GetAtt":["ScanResultSQS", "QueueName"]}
+            }],
+            "EvaluationPeriods":3,
+            "MetricName":"ApproximateAgeOfOldestMessage",
+            "Namespace":"AWS/SQS",
+            "Period":300,
+            "Statistic":"Maximum",
+            "Threshold":2,
+            "Unit":"Seconds"
+         }
+      },
+      "VirusScanDeadLetterQueueOldestMessageAlarm":{
+         "Type":"AWS::CloudWatch::Alarm",
+         "Properties":{
+            "ActionsEnabled":true,
+            "AlarmActions":["${notificationTopicArn}"],
+            "AlarmDescription":"Alarm when oldest message in the virus scanner dead letter queue exceeds 120 hours (nothing consumes this queue)",
+            "AlarmName":"${stack}-synapse-virus-scanner-dead-letter-queue-oldest-message-exceed-time",
+            "ComparisonOperator":"GreaterThanThreshold",
+            "Dimensions":[{
+               "Name":"QueueName",
+               "Value":{"Fn::GetAtt":["VirusScanDeadLetterQueue", "QueueName"]}
+            }],
+            "EvaluationPeriods":1,
+            "MetricName":"ApproximateAgeOfOldestMessage",
+            "Namespace":"AWS/SQS",
+            "Period":300,
+            "Statistic":"Maximum",
+            "Threshold":432000,
+            "Unit":"Seconds"
+         }
+      },
+#end
       "VirusDefinitionUpdateRole":{
          "Type":"AWS::IAM::Role",
          "DependsOn":[

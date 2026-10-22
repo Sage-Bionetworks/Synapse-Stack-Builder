@@ -138,11 +138,13 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	
 	static final String CF_OUTPUT_VIRUS_TRIGGER_TOPIC = "ScanTriggerSNSTopic";
 	static final String CF_OUTPUT_VIRUS_UPDATER_LAMBDA = "VirusScanDefinitionUpdaterLambda";
+	static final String CF_OUTPUT_GLOBAL_NOTIFICATION_TOPIC = "NotificationTopic";
 	
 	static final String CF_PROPERTY_BUCKETS = "buckets";
 	static final String CF_PROPERTY_LAMBDA_BUCKET = "lambdaBucket";
 	static final String CF_PROPERTY_LAMBDA_KEY = "lambdaKey";
 	static final String CF_PROPERTY_NOTIFICATION_EMAIL = "notificationEmail";
+	static final String CF_PROPERTY_NOTIFICATION_TOPIC_ARN = "notificationTopicArn";
 	
 	static final String VIRUS_SCANNER_STACK_NAME = "${stack}-synapse-virus-scanner";
 	static final String VIRUS_SCANNER_NOTIFICATION_CONFIG_NAME = "virusScannerNotificationConfiguration";
@@ -323,6 +325,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		context.put(CF_PROPERTY_NOTIFICATION_EMAIL, config.getNotificationEmail());
 		context.put(CF_PROPERTY_LAMBDA_BUCKET, lambdaArtifactBucket);
 		context.put(CF_PROPERTY_LAMBDA_KEY, lambdaArtifactKey);
+		context.put(CF_PROPERTY_NOTIFICATION_TOPIC_ARN, cloudFormationClientWrapper.getOutput(String.format(GLOBAL_RESOURCES_STACK_NAME_FORMAT, stack), CF_OUTPUT_GLOBAL_NOTIFICATION_TOPIC));
 		
 		// Merge the context with the template
 		Template template = velocity.getTemplate(Constants.TEMPLATE_S3_VIRUS_SCANNER);
