@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -19,6 +21,8 @@ import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sagebionetworks.template.LoggerFactory;
@@ -47,6 +51,8 @@ public class SemanticEmbeddingBuilderTest {
 	private LambdaClient mockLambdaClient;
 	@Mock
 	private ThreadProvider mockThreadProvider;
+	@Captor
+	private ArgumentCaptor<Throwable> errorCaptor;
 
 	/**
 	 * Responses queued by request path, and the paths actually requested in order. A path with more
@@ -177,11 +183,41 @@ public class SemanticEmbeddingBuilderTest {
 		respondWithStatus("/_plugins/_ml/connectors/_create", 403,
 				"{\"error\":{\"type\":\"security_exception\",\"reason\":\"not authorized to perform: iam:PassRole\"}}");
 
-		String message = assertThrows(IllegalStateException.class, () -> builder.buildSemanticEmbedding(sharedResources))
-				.getMessage();
+		// call under test
+		builder.buildSemanticEmbedding(sharedResources);
 
+		String message = loggedRegistrationFailure().getMessage();
 		assertTrue(message.contains("iam:PassRole"), message);
-		// Nothing is registered against a connector that was never created.
+		// A 4xx is not retried, and nothing is registered against a connector that was never created.
+		assertEquals(1, requestedPaths.stream().filter("/_plugins/_ml/connectors/_create"::equals).count());
+		assertTrue(!requestedPaths.contains("/_plugins/_ml/models/_register"), requestedPaths.toString());
+	}
+
+	@Test
+	public void testBuildSemanticEmbeddingWithTransientGatewayTimeout() throws Exception {
+		setupHttp();
+		respondWithStatus("/_plugins/_ml/models/_search", 504, "<html>504 Gateway Time-out</html>");
+		respond("/_plugins/_ml/models/_search", hit("model-existing", "\"model_state\":\"DEPLOYED\""));
+
+		// call under test
+		builder.buildSemanticEmbedding(sharedResources);
+
+		assertEquals(List.of("/_plugins/_ml/models/_search", "/_plugins/_ml/models/_search"), requestedPaths);
+		verify(mockLogger, never()).error(any(String.class), any(Throwable.class));
+	}
+
+	@Test
+	public void testBuildSemanticEmbeddingWithPersistentGatewayTimeout() throws Exception {
+		setupHttp();
+		respondWithStatus("/_plugins/_ml/models/_search", 504, "<html>504 Gateway Time-out</html>");
+
+		// call under test
+		builder.buildSemanticEmbedding(sharedResources);
+
+		String message = loggedRegistrationFailure().getCause().getMessage();
+		assertEquals("ML-Commons request to /_plugins/_ml/models/_search failed with 504: <html>504 Gateway Time-out</html>",
+				message);
+		assertEquals(SemanticEmbeddingBuilder.REQUEST_MAX_ATTEMPTS, requestedPaths.size());
 		assertTrue(!requestedPaths.contains("/_plugins/_ml/models/_register"), requestedPaths.toString());
 	}
 
@@ -214,18 +250,26 @@ public class SemanticEmbeddingBuilderTest {
 	}
 
 	@Test
-	public void testBuildSemanticEmbeddingWithUnreachableDomain() {
+	public void testBuildSemanticEmbeddingWithUnreachableDomain() throws Exception {
 		// The proxy raises (rather than returning a status) when it cannot reach the domain at all.
 		when(mockLambdaClient.invoke(any(InvokeRequest.class))).thenReturn(InvokeResponse.builder()
 				.functionError("Unhandled")
 				.payload(SdkBytes.fromUtf8String("{\"errorType\":\"TimeoutError\",\"errorMessage\":\"timed out\"}"))
 				.build());
 
-		String message = assertThrows(IllegalStateException.class, () -> builder.buildSemanticEmbedding(sharedResources))
-				.getMessage();
+		// call under test
+		builder.buildSemanticEmbedding(sharedResources);
 
+		String message = loggedRegistrationFailure().getCause().getMessage();
 		assertTrue(message.startsWith("Failed ML-Commons request to /_plugins/_ml/models/_search"), message);
 		assertTrue(message.contains("timed out"), message);
+		verify(mockLambdaClient, times(SemanticEmbeddingBuilder.REQUEST_MAX_ATTEMPTS)).invoke(any(InvokeRequest.class));
+	}
+
+	private Throwable loggedRegistrationFailure() {
+		verify(mockLogger).error(eq("Failed to register the semantic embedding model on " + HOST
+				+ "; semantic search is unavailable until a later stack build registers it."), errorCaptor.capture());
+		return errorCaptor.getValue();
 	}
 
 	/**

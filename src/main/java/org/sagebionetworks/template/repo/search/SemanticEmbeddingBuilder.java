@@ -9,6 +9,8 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.sagebionetworks.template.LoggerFactory;
 import org.sagebionetworks.template.ThreadProvider;
+import org.sagebionetworks.util.RetryException;
+import org.sagebionetworks.util.TimeUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,6 +41,10 @@ import software.amazon.awssdk.services.lambda.model.InvokeResponse;
  *
  * <p>Every resource is found by name before it is created, so re-running a stack build is a no-op
  * and a partially completed earlier run resumes where it stopped.</p>
+ *
+ * <p>Only semantic search depends on the model, so a domain that cannot register it is logged rather
+ * than failing the stack build: the repository reports semantic search as unavailable until a later
+ * stack build registers the model, and every other feature deploys normally.</p>
  */
 public class SemanticEmbeddingBuilder {
 
@@ -67,6 +73,10 @@ public class SemanticEmbeddingBuilder {
 	static final int DEPLOY_POLL_ATTEMPTS = 30;
 	static final long DEPLOY_POLL_INTERVAL_MS = 4000L;
 
+	// A single-node dev domain intermittently answers 5xx under load; retry before giving up on the model.
+	static final int REQUEST_MAX_ATTEMPTS = 5;
+	static final long REQUEST_INITIAL_RETRY_DELAY_MS = 1000L;
+
 	private static final ObjectMapper MAPPER = new ObjectMapper();
 
 	private final Logger logger;
@@ -92,7 +102,15 @@ public class SemanticEmbeddingBuilder {
 		String host = requiredOutput(sharedResources, OUTPUT_DOMAIN_ENDPOINT);
 		String bedrockRoleArn = requiredOutput(sharedResources, OUTPUT_BEDROCK_EMBED_ROLE_ARN);
 		String proxyFunction = requiredOutput(sharedResources, OUTPUT_ML_PROXY_FUNCTION_NAME);
+		try {
+			registerModel(host, bedrockRoleArn, proxyFunction);
+		} catch (RuntimeException e) {
+			logger.error("Failed to register the semantic embedding model on " + host
+					+ "; semantic search is unavailable until a later stack build registers it.", e);
+		}
+	}
 
+	private void registerModel(String host, String bedrockRoleArn, String proxyFunction) throws InterruptedException {
 		Optional<String> deployed = findNewestDeployedModel(proxyFunction);
 		if (deployed.isPresent()) {
 			logger.info("Semantic embedding model {} is already deployed on {}.", deployed.get(), host);
@@ -201,13 +219,32 @@ public class SemanticEmbeddingBuilder {
 	}
 
 	private JsonNode post(String proxyFunction, String endpoint, String requestBody) {
+		try {
+			return TimeUtils.waitForExponentialMaxRetry(REQUEST_MAX_ATTEMPTS, REQUEST_INITIAL_RETRY_DELAY_MS,
+					() -> postOnce(proxyFunction, endpoint, requestBody));
+		} catch (RetryException e) {
+			throw new IllegalStateException("ML-Commons request to " + endpoint + " still failed after "
+					+ REQUEST_MAX_ATTEMPTS + " attempts", e.getCause());
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new IllegalStateException("Failed ML-Commons request to " + endpoint, e);
+		}
+	}
+
+	/**
+	 * @throws RetryException when the proxy could not complete the request or the domain answered 5xx,
+	 *                        both of which a wedged-but-recovering domain clears on its own.
+	 */
+	private JsonNode postOnce(String proxyFunction, String endpoint, String requestBody) throws RetryException {
 		String payload = MAPPER.createObjectNode().put("path", endpoint).put("body", requestBody).toString();
 		InvokeResponse invoke = lambdaClient.invoke(InvokeRequest.builder().functionName(proxyFunction)
 				.invocationType(InvocationType.REQUEST_RESPONSE).payload(SdkBytes.fromUtf8String(payload)).build());
 		String invokeBody = invoke.payload().asUtf8String();
 		// The proxy raises only when it cannot complete the request; every HTTP status comes back as data.
 		if (invoke.functionError() != null) {
-			throw new IllegalStateException("Failed ML-Commons request to " + endpoint + ": " + invokeBody);
+			throw new RetryException(
+					new IllegalStateException("Failed ML-Commons request to " + endpoint + ": " + invokeBody));
 		}
 		try {
 			JsonNode response = MAPPER.readTree(invokeBody);
@@ -219,8 +256,12 @@ public class SemanticEmbeddingBuilder {
 				return MAPPER.createObjectNode();
 			}
 			if (status >= 300) {
-				throw new IllegalStateException("ML-Commons request to " + endpoint + " failed with "
-						+ status + ": " + responseBody);
+				IllegalStateException failure = new IllegalStateException(
+						"ML-Commons request to " + endpoint + " failed with " + status + ": " + responseBody);
+				if (status >= 500) {
+					throw new RetryException(failure);
+				}
+				throw failure;
 			}
 			return MAPPER.readTree(responseBody);
 		} catch (IOException e) {
