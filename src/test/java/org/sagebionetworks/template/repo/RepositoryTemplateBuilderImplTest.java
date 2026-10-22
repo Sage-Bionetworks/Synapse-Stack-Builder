@@ -143,7 +143,6 @@ import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
 import org.sagebionetworks.template.repo.ecs.DockerImageBuilder;
 import org.sagebionetworks.template.repo.ecs.EcsEnvironmentDescriptor;
 import org.sagebionetworks.template.repo.grid.GridContextProvider;
-import org.sagebionetworks.template.repo.search.SemanticEmbeddingBuilder;
 import org.sagebionetworks.template.vpc.Color;
 
 import com.google.common.collect.Lists;
@@ -214,8 +213,6 @@ public class RepositoryTemplateBuilderImplTest {
 	private DockerImageBuilder mockDockerImageBuilder;
 	@Mock
 	private LoadBalancerAlarmsConfig mockLoadBalancerAlarmsConfig;
-	@Mock
-	private SemanticEmbeddingBuilder mockSemanticEmbeddingBuilder;
 
 	@Captor
 	private ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
@@ -262,7 +259,7 @@ public class RepositoryTemplateBuilderImplTest {
 						new GridContextProvider(gridQueueRef, config)),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
 				mockEc2ClientWrapper, mockRdsClientWrapper, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive,
-				mockDockerImageBuilder, mockLoadBalancerAlarmsConfig, mockSemanticEmbeddingBuilder);
+				mockDockerImageBuilder, mockLoadBalancerAlarmsConfig);
 
 		builderSpy = Mockito.spy(builder);
 
@@ -400,7 +397,6 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(mockRdsClientWrapper).validateMultiAZ("prod-101-db", true);
 		verify(mockRdsClientWrapper).validateMultiAZ("prod-101-table-0", false);
 		verify(mockRdsClientWrapper).validateMultiAZ("prod-101-table-1", false);
-		verify(mockSemanticEmbeddingBuilder).buildSemanticEmbedding(sharedResouces);
 
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
@@ -529,10 +525,11 @@ public class RepositoryTemplateBuilderImplTest {
 				.contains("SynapseSearchIndexMlProxyRole"));
 		assertTrue(resources.has("prod101SynapseSearchIndexSecurityGroup"));
 
-		// The build host cannot reach the VPC-attached domain, so the proxy function runs in the
-		// domain's own subnets, whose CIDR the domain security group admits.
+		// The proxy function runs in the domain's own subnets, whose CIDR the domain security group
+		// admits, under a fixed name the workers derive from the stack and instance.
 		JSONObject prodProxyProps = resources.getJSONObject("SynapseSearchIndexMlProxyFunction")
 				.getJSONObject("Properties");
+		assertEquals("prod-101-synidx-ml-proxy", prodProxyProps.getString("FunctionName"));
 		JSONObject prodProxyVpcConfig = prodProxyProps.getJSONObject("VpcConfig");
 		assertEquals(prodSubnetIds.toString(), prodProxyVpcConfig.getJSONArray("SubnetIds").toString());
 		assertEquals("{\"Ref\":\"prod101SynapseSearchIndexMlProxySecurityGroup\"}",
@@ -554,18 +551,16 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(prodEmbedRoleProps.getJSONArray("Policies").toString()
 				.contains("foundation-model/amazon.titan-embed-text-v2:0"));
 		// Only the proxy function registers the connector, so the deployed application is never
-		// granted iam:PassRole on the role that connector names.
+		// granted iam:PassRole on the role that connector names; it may only invoke the proxy.
 		assertFalse(resources.getJSONObject("prod101SynapesRepoWorkersBedrockManagedPolicy").toString()
 				.contains("PassRole"));
-		// SemanticEmbeddingBuilder reads the endpoint, role, and proxy function from these outputs.
+		String workersPolicy = resources.getJSONObject("prod101SynapesRepoWorkersServiceManagedPolicy").toString();
+		assertFalse(workersPolicy.contains("PassRole"), workersPolicy);
+		assertTrue(workersPolicy.contains("\"Action\":\"lambda:InvokeFunction\""), workersPolicy);
+		assertTrue(workersPolicy.contains(":function:prod-101-synidx-ml-proxy\""), workersPolicy);
 		JSONObject outputs = templateJson.getJSONObject("Outputs");
 		assertEquals("[\"SynapseSearchIndexDomain\",\"DomainEndpoint\"]", outputs
 				.getJSONObject("SynapseSearchIndexDomainEndpoint").getJSONObject("Value").get("Fn::GetAtt").toString());
-		assertEquals("[\"SynapseSearchIndexBedrockEmbedRole\",\"Arn\"]", outputs
-				.getJSONObject("SynapseSearchIndexBedrockEmbedRoleArn").getJSONObject("Value").get("Fn::GetAtt")
-				.toString());
-		assertEquals("SynapseSearchIndexMlProxyFunction", outputs
-				.getJSONObject("SynapseSearchIndexMlProxyFunctionName").getJSONObject("Value").getString("Ref"));
 	}
 
 	/**

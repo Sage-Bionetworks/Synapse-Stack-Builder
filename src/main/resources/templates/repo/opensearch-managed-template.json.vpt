@@ -198,9 +198,9 @@
 			]
 		}
 	},
-	## The build host runs outside the stack VPC and cannot reach a VPC-attached domain, so
-	## SemanticEmbeddingBuilder sends its ML-Commons calls through this function. It signs with its
-	## own role, which holds the iam:PassRole that creating the Bedrock connector requires.
+	## Creating the Bedrock connector requires iam:PassRole on the role it names, which the workers
+	## do not hold. The workers' semantic embedding bootstrap sends its ML-Commons registration calls
+	## through this function, which signs with its own role holding that single grant.
 	"SynapseSearchIndexMlProxyRole": {
 		"Type": "AWS::IAM::Role",
 		"Properties": {
@@ -280,6 +280,8 @@
 	"SynapseSearchIndexMlProxyFunction": {
 		"Type": "AWS::Lambda::Function",
 		"Properties": {
+			## The workers derive this name from the stack and instance to invoke the function.
+			"FunctionName": "${stack}-${instance}-synidx-ml-proxy",
 			"Handler": "index.handler",
 			"Role": {"Fn::GetAtt": ["SynapseSearchIndexMlProxyRole", "Arn"]},
 			"Runtime": "python3.12",
