@@ -1,0 +1,30 @@
+		,
+		"${stack}Route53QueryLogGroup": {
+			"Type": "AWS::Logs::LogGroup",
+			"DeletionPolicy": "${deletionPolicy}",
+			"Properties": {
+				"LogGroupName": "/aws/route53/${stack}-public-hosted-zones",
+				"RetentionInDays": ${cloudwatchLogRetentionInDays}
+			}
+		},
+		"${stack}Route53QueryLogResourcePolicy": {
+			"Type": "AWS::Logs::ResourcePolicy",
+			"DependsOn": "${stack}Route53QueryLogGroup",
+			"Properties": {
+				"PolicyName": "${stack}-route53-query-logging",
+				"PolicyDocument": {
+					"Fn::Join": [
+						"",
+						[
+							"{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"Route53QueryLogsToCloudWatchLogs\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"route53.amazonaws.com\"},\"Action\":[\"logs:CreateLogStream\",\"logs:PutLogEvents\"],\"Resource\":\"arn:aws:logs:",
+							{ "Ref": "AWS::Region" },
+							":",
+							{ "Ref": "AWS::AccountId" },
+							":log-group:/aws/route53/${stack}-public-hosted-zones:*\",\"Condition\":{\"StringEquals\":{\"aws:SourceAccount\":\"",
+							{ "Ref": "AWS::AccountId" },
+							"\"}}}]}"
+						]
+					]
+				}
+			}
+		}
