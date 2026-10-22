@@ -245,6 +245,10 @@
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>cognitoidentityprovider</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>route53</artifactId>
+		</dependency>
 	</dependencies>
 	<build>
 		<resources>
