@@ -107,6 +107,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	);
 	
 	static final String RULE_ID_RETENTION = "retentionRule";
+	static final String RULE_ID_TAG_EXPIRATION = "tagExpirationRule";
 	static final String RULE_ID_CLASS_TRANSITION = "ClassTransitionRule";
 	static final String RULE_ID_ABORT_MULTIPART_UPLOADS = "abortMultipartUploadsRule";
 	static final int ABORT_MULTIPART_UPLOAD_DAYS = 60;
@@ -501,6 +502,18 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			}
 		}
 
+		if (bucket.getTagExpirationConfiguration() != null) {
+			if (addOrUpdateRule(rules, bucket.getName(), RULE_ID_TAG_EXPIRATION, bucket.getTagExpirationConfiguration(),
+					this::createTagExpirationRule, this::isTagExpirationRuleUpToDate)) {
+				update = true;
+			}
+		} else {
+			if (rules.remove(RULE_ID_TAG_EXPIRATION) != null) {
+				LOG.info("The {} rule was found on bucket {}, removing.", RULE_ID_TAG_EXPIRATION, bucket.getName());
+				update = true;
+			}
+		}
+
 		if (bucket.getStorageClassTransitions() != null) {
 			for (S3BucketClassTransition transition : bucket.getStorageClassTransitions()) {
 				String transitionRuleName = classTransitionRuleId(transition.getStorageClass());
@@ -643,6 +656,30 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		return rule.filter() != null
 				&& rule.expiration() != null
 				&& bucket.getRetentionDays().equals(rule.expiration().days());
+	}
+
+	// Unlike the other rules this one is scoped to a tag rather than the whole bucket, since the objects to
+	// delete are a subset identified by Synapse rather than everything that reaches a given age.
+	private LifecycleRule createTagExpirationRule(String ruleName, S3TagExpirationConfiguration config) {
+		return LifecycleRule.builder()
+				.id(ruleName)
+				.status(ExpirationStatus.ENABLED)
+				.filter(tagLifecycleFilter(config.getTagFilter()))
+				.expiration(LifecycleExpiration.builder().days(config.getDays()).build())
+				.build();
+	}
+
+	private boolean isTagExpirationRuleUpToDate(LifecycleRule rule, S3TagExpirationConfiguration config) {
+		return rule.filter() != null
+				&& tagLifecycleFilter(config.getTagFilter()).equals(rule.filter())
+				&& rule.expiration() != null
+				&& config.getDays().equals(rule.expiration().days());
+	}
+
+	private static LifecycleRuleFilter tagLifecycleFilter(S3TagFilter tagFilter) {
+		return LifecycleRuleFilter.builder()
+				.tag(Tag.builder().key(tagFilter.getName()).value(tagFilter.getValue()).build())
+				.build();
 	}
 
 	private LifecycleRule createClassTransitionRule(String ruleName, S3BucketClassTransition transition) {
