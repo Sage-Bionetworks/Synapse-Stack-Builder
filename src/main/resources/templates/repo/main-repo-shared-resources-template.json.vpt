@@ -714,8 +714,8 @@
                          },
                          {
                              "Effect": "Allow",
-                             "Action": "lambda:InvokeFunction",
-                             "Resource": {"Fn::Sub": "arn:aws:lambda:#[[${AWS::Region}]]#:#[[${AWS::AccountId}]]#:function:${stack}-${instance}-synidx-ml-proxy"}
+                             "Action": "iam:PassRole",
+                             "Resource": {"Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/${stack}-${instance}-synidx-bedrock-embed"}
                          },
                          {
                              "Effect": "Allow",

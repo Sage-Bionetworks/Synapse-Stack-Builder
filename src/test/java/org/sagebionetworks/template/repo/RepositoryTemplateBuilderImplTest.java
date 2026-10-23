@@ -521,27 +521,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(prodDomainProps.getJSONObject("SoftwareUpdateOptions").getBoolean("AutoSoftwareUpdateEnabled"));
 		assertTrue(prodDomainProps.getJSONObject("AccessPolicies").toString()
 				.contains("prod101SynapesRepoWorkersServiceRole"));
-		assertTrue(prodDomainProps.getJSONObject("AccessPolicies").toString()
-				.contains("SynapseSearchIndexMlProxyRole"));
 		assertTrue(resources.has("prod101SynapseSearchIndexSecurityGroup"));
 
-		// The proxy function runs in the domain's own subnets, whose CIDR the domain security group
-		// admits, under a fixed name the workers derive from the stack and instance.
-		JSONObject prodProxyProps = resources.getJSONObject("SynapseSearchIndexMlProxyFunction")
-				.getJSONObject("Properties");
-		assertEquals("prod-101-synidx-ml-proxy", prodProxyProps.getString("FunctionName"));
-		JSONObject prodProxyVpcConfig = prodProxyProps.getJSONObject("VpcConfig");
-		assertEquals(prodSubnetIds.toString(), prodProxyVpcConfig.getJSONArray("SubnetIds").toString());
-		assertEquals("{\"Ref\":\"prod101SynapseSearchIndexMlProxySecurityGroup\"}",
-				prodProxyVpcConfig.getJSONArray("SecurityGroupIds").get(0).toString());
-		assertTrue(resources.has("prod101SynapseSearchIndexMlProxySecurityGroup"));
-		assertEquals("[\"SynapseSearchIndexDomain\",\"DomainEndpoint\"]", prodProxyProps.getJSONObject("Environment")
-				.getJSONObject("Variables").getJSONObject("DOMAIN_ENDPOINT").get("Fn::GetAtt").toString());
-		String prodProxyPolicies = resources.getJSONObject("SynapseSearchIndexMlProxyRole")
-				.getJSONObject("Properties").getJSONArray("Policies").toString();
-		assertTrue(prodProxyPolicies.contains("iam:PassRole"), prodProxyPolicies);
-		assertTrue(prodProxyPolicies.contains("SynapseSearchIndexBedrockEmbedRole"), prodProxyPolicies);
-		assertProxyLogGroup(resources);
 
 		JSONObject prodEmbedRoleProps = resources.getJSONObject("SynapseSearchIndexBedrockEmbedRole")
 				.getJSONObject("Properties");
@@ -550,30 +531,15 @@ public class RepositoryTemplateBuilderImplTest {
 				.getJSONArray("Statement").getJSONObject(0).getJSONObject("Principal").getString("Service"));
 		assertTrue(prodEmbedRoleProps.getJSONArray("Policies").toString()
 				.contains("foundation-model/amazon.titan-embed-text-v2:0"));
-		// Only the proxy function registers the connector, so the deployed application is never
-		// granted iam:PassRole on the role that connector names; it may only invoke the proxy.
+		// The workers register the connector, so they may pass only the role it names.
 		assertFalse(resources.getJSONObject("prod101SynapesRepoWorkersBedrockManagedPolicy").toString()
 				.contains("PassRole"));
 		String workersPolicy = resources.getJSONObject("prod101SynapesRepoWorkersServiceManagedPolicy").toString();
-		assertFalse(workersPolicy.contains("PassRole"), workersPolicy);
-		assertTrue(workersPolicy.contains("\"Action\":\"lambda:InvokeFunction\""), workersPolicy);
-		assertTrue(workersPolicy.contains(":function:prod-101-synidx-ml-proxy\""), workersPolicy);
+		assertTrue(workersPolicy.contains("\"Action\":\"iam:PassRole\""), workersPolicy);
+		assertTrue(workersPolicy.contains(":role/prod-101-synidx-bedrock-embed\""), workersPolicy);
 		JSONObject outputs = templateJson.getJSONObject("Outputs");
 		assertEquals("[\"SynapseSearchIndexDomain\",\"DomainEndpoint\"]", outputs
 				.getJSONObject("SynapseSearchIndexDomainEndpoint").getJSONObject("Value").get("Fn::GetAtt").toString());
-	}
-
-	/**
-	 * The stack owns the proxy function's log group, so it is deleted with the stack and keeps the
-	 * central retention, rather than Lambda creating one on first invoke that never expires.
-	 */
-	private static void assertProxyLogGroup(JSONObject resources) {
-		JSONObject logGroup = resources.getJSONObject("SynapseSearchIndexMlProxyLogGroup");
-		assertFalse(logGroup.has("DeletionPolicy"));
-		JSONObject logGroupProps = logGroup.getJSONObject("Properties");
-		assertEquals("/aws/lambda/${SynapseSearchIndexMlProxyFunction}",
-				logGroupProps.getJSONObject("LogGroupName").getString("Fn::Sub"));
-		assertEquals(Constants.LOG_RETENTION_IN_DAYS, logGroupProps.getInt("RetentionInDays"));
 	}
 
 	void validateOpenApiSchema(JSONObject bedrockAgentProps) {
@@ -886,11 +852,6 @@ public class RepositoryTemplateBuilderImplTest {
 		// has no ENIs and the security group is not created.
 		assertFalse(devDomainProps.has("VPCOptions"));
 		assertFalse(resources.has("dev101SynapseSearchIndexSecurityGroup"));
-		// The public dev domain is reachable without a VPC, so the proxy function has none.
-		assertFalse(resources.getJSONObject("SynapseSearchIndexMlProxyFunction").getJSONObject("Properties")
-				.has("VpcConfig"));
-		assertFalse(resources.has("dev101SynapseSearchIndexMlProxySecurityGroup"));
-		assertProxyLogGroup(resources);
 
 		assertEquals("dev-101-synidx-bedrock-embed", resources.getJSONObject("SynapseSearchIndexBedrockEmbedRole")
 				.getJSONObject("Properties").getString("RoleName"));
