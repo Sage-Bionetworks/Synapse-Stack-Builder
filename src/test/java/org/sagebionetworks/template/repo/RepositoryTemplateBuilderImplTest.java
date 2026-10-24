@@ -143,7 +143,6 @@ import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
 import org.sagebionetworks.template.repo.ecs.DockerImageBuilder;
 import org.sagebionetworks.template.repo.ecs.EcsEnvironmentDescriptor;
 import org.sagebionetworks.template.repo.grid.GridContextProvider;
-import org.sagebionetworks.template.repo.search.SemanticEmbeddingBuilder;
 import org.sagebionetworks.template.vpc.Color;
 
 import com.google.common.collect.Lists;
@@ -214,8 +213,6 @@ public class RepositoryTemplateBuilderImplTest {
 	private DockerImageBuilder mockDockerImageBuilder;
 	@Mock
 	private LoadBalancerAlarmsConfig mockLoadBalancerAlarmsConfig;
-	@Mock
-	private SemanticEmbeddingBuilder mockSemanticEmbeddingBuilder;
 
 	@Captor
 	private ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
@@ -262,7 +259,7 @@ public class RepositoryTemplateBuilderImplTest {
 						new GridContextProvider(gridQueueRef, config)),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
 				mockEc2ClientWrapper, mockRdsClientWrapper, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive,
-				mockDockerImageBuilder, mockLoadBalancerAlarmsConfig, mockSemanticEmbeddingBuilder);
+				mockDockerImageBuilder, mockLoadBalancerAlarmsConfig);
 
 		builderSpy = Mockito.spy(builder);
 
@@ -400,7 +397,6 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(mockRdsClientWrapper).validateMultiAZ("prod-101-db", true);
 		verify(mockRdsClientWrapper).validateMultiAZ("prod-101-table-0", false);
 		verify(mockRdsClientWrapper).validateMultiAZ("prod-101-table-1", false);
-		verify(mockSemanticEmbeddingBuilder).buildSemanticEmbedding(sharedResouces);
 
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
@@ -525,26 +521,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(prodDomainProps.getJSONObject("SoftwareUpdateOptions").getBoolean("AutoSoftwareUpdateEnabled"));
 		assertTrue(prodDomainProps.getJSONObject("AccessPolicies").toString()
 				.contains("prod101SynapesRepoWorkersServiceRole"));
-		assertTrue(prodDomainProps.getJSONObject("AccessPolicies").toString()
-				.contains("SynapseSearchIndexMlProxyRole"));
 		assertTrue(resources.has("prod101SynapseSearchIndexSecurityGroup"));
 
-		// The build host cannot reach the VPC-attached domain, so the proxy function runs in the
-		// domain's own subnets, whose CIDR the domain security group admits.
-		JSONObject prodProxyProps = resources.getJSONObject("SynapseSearchIndexMlProxyFunction")
-				.getJSONObject("Properties");
-		JSONObject prodProxyVpcConfig = prodProxyProps.getJSONObject("VpcConfig");
-		assertEquals(prodSubnetIds.toString(), prodProxyVpcConfig.getJSONArray("SubnetIds").toString());
-		assertEquals("{\"Ref\":\"prod101SynapseSearchIndexMlProxySecurityGroup\"}",
-				prodProxyVpcConfig.getJSONArray("SecurityGroupIds").get(0).toString());
-		assertTrue(resources.has("prod101SynapseSearchIndexMlProxySecurityGroup"));
-		assertEquals("[\"SynapseSearchIndexDomain\",\"DomainEndpoint\"]", prodProxyProps.getJSONObject("Environment")
-				.getJSONObject("Variables").getJSONObject("DOMAIN_ENDPOINT").get("Fn::GetAtt").toString());
-		String prodProxyPolicies = resources.getJSONObject("SynapseSearchIndexMlProxyRole")
-				.getJSONObject("Properties").getJSONArray("Policies").toString();
-		assertTrue(prodProxyPolicies.contains("iam:PassRole"), prodProxyPolicies);
-		assertTrue(prodProxyPolicies.contains("SynapseSearchIndexBedrockEmbedRole"), prodProxyPolicies);
-		assertProxyLogGroup(resources);
 
 		JSONObject prodEmbedRoleProps = resources.getJSONObject("SynapseSearchIndexBedrockEmbedRole")
 				.getJSONObject("Properties");
@@ -553,32 +531,15 @@ public class RepositoryTemplateBuilderImplTest {
 				.getJSONArray("Statement").getJSONObject(0).getJSONObject("Principal").getString("Service"));
 		assertTrue(prodEmbedRoleProps.getJSONArray("Policies").toString()
 				.contains("foundation-model/amazon.titan-embed-text-v2:0"));
-		// Only the proxy function registers the connector, so the deployed application is never
-		// granted iam:PassRole on the role that connector names.
+		// The workers register the connector, so they may pass only the role it names.
 		assertFalse(resources.getJSONObject("prod101SynapesRepoWorkersBedrockManagedPolicy").toString()
 				.contains("PassRole"));
-		// SemanticEmbeddingBuilder reads the endpoint, role, and proxy function from these outputs.
+		String workersPolicy = resources.getJSONObject("prod101SynapesRepoWorkersServiceManagedPolicy").toString();
+		assertTrue(workersPolicy.contains("\"Action\":\"iam:PassRole\""), workersPolicy);
+		assertTrue(workersPolicy.contains(":role/prod-101-synidx-bedrock-embed\""), workersPolicy);
 		JSONObject outputs = templateJson.getJSONObject("Outputs");
 		assertEquals("[\"SynapseSearchIndexDomain\",\"DomainEndpoint\"]", outputs
 				.getJSONObject("SynapseSearchIndexDomainEndpoint").getJSONObject("Value").get("Fn::GetAtt").toString());
-		assertEquals("[\"SynapseSearchIndexBedrockEmbedRole\",\"Arn\"]", outputs
-				.getJSONObject("SynapseSearchIndexBedrockEmbedRoleArn").getJSONObject("Value").get("Fn::GetAtt")
-				.toString());
-		assertEquals("SynapseSearchIndexMlProxyFunction", outputs
-				.getJSONObject("SynapseSearchIndexMlProxyFunctionName").getJSONObject("Value").getString("Ref"));
-	}
-
-	/**
-	 * The stack owns the proxy function's log group, so it is deleted with the stack and keeps the
-	 * central retention, rather than Lambda creating one on first invoke that never expires.
-	 */
-	private static void assertProxyLogGroup(JSONObject resources) {
-		JSONObject logGroup = resources.getJSONObject("SynapseSearchIndexMlProxyLogGroup");
-		assertFalse(logGroup.has("DeletionPolicy"));
-		JSONObject logGroupProps = logGroup.getJSONObject("Properties");
-		assertEquals("/aws/lambda/${SynapseSearchIndexMlProxyFunction}",
-				logGroupProps.getJSONObject("LogGroupName").getString("Fn::Sub"));
-		assertEquals(Constants.LOG_RETENTION_IN_DAYS, logGroupProps.getInt("RetentionInDays"));
 	}
 
 	void validateOpenApiSchema(JSONObject bedrockAgentProps) {
@@ -891,11 +852,6 @@ public class RepositoryTemplateBuilderImplTest {
 		// has no ENIs and the security group is not created.
 		assertFalse(devDomainProps.has("VPCOptions"));
 		assertFalse(resources.has("dev101SynapseSearchIndexSecurityGroup"));
-		// The public dev domain is reachable without a VPC, so the proxy function has none.
-		assertFalse(resources.getJSONObject("SynapseSearchIndexMlProxyFunction").getJSONObject("Properties")
-				.has("VpcConfig"));
-		assertFalse(resources.has("dev101SynapseSearchIndexMlProxySecurityGroup"));
-		assertProxyLogGroup(resources);
 
 		assertEquals("dev-101-synidx-bedrock-embed", resources.getJSONObject("SynapseSearchIndexBedrockEmbedRole")
 				.getJSONObject("Properties").getString("RoleName"));

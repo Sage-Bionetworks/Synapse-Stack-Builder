@@ -714,6 +714,11 @@
                          },
                          {
                              "Effect": "Allow",
+                             "Action": "iam:PassRole",
+                             "Resource": {"Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/${stack}-${instance}-synidx-bedrock-embed"}
+                         },
+                         {
+                             "Effect": "Allow",
                              "Action": [
                                  "execute-api:*"
                              ],
@@ -1187,18 +1192,6 @@
 			"Description": "The endpoint of the SearchIndex OpenSearch domain.",
 			"Value": {
 				"Fn::GetAtt": ["SynapseSearchIndexDomain", "DomainEndpoint"]
-			}
-		},
-		"SynapseSearchIndexBedrockEmbedRoleArn": {
-			"Description": "The role the SearchIndex OpenSearch domain assumes to invoke Bedrock embeddings.",
-			"Value": {
-				"Fn::GetAtt": ["SynapseSearchIndexBedrockEmbedRole", "Arn"]
-			}
-		},
-		"SynapseSearchIndexMlProxyFunctionName": {
-			"Description": "The function that forwards ML-Commons requests to the SearchIndex OpenSearch domain from inside its network.",
-			"Value": {
-				"Ref": "SynapseSearchIndexMlProxyFunction"
 			}
 		},
 		#if($deploymentTarget == "BEANSTALK")
