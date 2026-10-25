@@ -125,6 +125,7 @@ import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.rds.RdsClient;
+import software.amazon.awssdk.services.route53.Route53Client;
 import software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkClient;
 import software.amazon.awssdk.services.glue.GlueClient;
 import software.amazon.awssdk.services.imagebuilder.ImagebuilderClient;
@@ -274,6 +275,12 @@ public class TemplateGuiceModule extends com.google.inject.AbstractModule {
 	@Provides
 	public Ec2Client provideAmazonEc2(){
 		Ec2Client client = Ec2Client.builder().region(Region.US_EAST_1).build();
+		return client;
+	}
+
+	@Provides
+	public Route53Client provideRoute53Client(){
+		Route53Client client = Route53Client.builder().region(Region.US_EAST_1).build();
 		return client;
 	}
 
