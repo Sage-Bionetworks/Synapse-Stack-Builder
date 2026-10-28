@@ -30,7 +30,8 @@
 			"name": "${stack}.table.row.changes"
 		},
 		{
-			"name": "${stack}.access.record.sagebase.org"
+			"name": "${stack}.access.record.sagebase.org",
+			"retentionDays": 2555
 		},
 		{
 			"name": "${stack}.snapshot.record.sagebase.org"

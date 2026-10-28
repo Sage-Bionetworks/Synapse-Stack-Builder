@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -66,6 +67,9 @@ public class RdsClientWrapperImplTest {
 	public void before() {
 		when(mockLoggerFactory.getLogger(any())).thenReturn(mockLogger);
 		wrapper = new RdsClientWrapperImpl(mockRds, mockEc2ClientWrapper, mockLoggerFactory);
+		// EC2 offers every instance type in every zone unless a test says otherwise.
+		lenient().when(mockEc2ClientWrapper.getAvailabilityZonesForInstanceType(any()))
+				.thenReturn(List.of("us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d", "us-east-1e", "us-east-1f"));
 	}
 
 	@Test
@@ -107,6 +111,41 @@ public class RdsClientWrapperImplTest {
 
 		// call under test
 		List<String> zones = wrapper.getAvailabilityZonesForDBInstanceClass(ENGINE, ENGINE_VERSION, REPO_CLASS);
+
+		assertEquals(List.of(), zones);
+	}
+
+	/**
+	 * RDS listed db.r8g.2xlarge as orderable in us-east-1b, where EC2 does not offer r8g.2xlarge, and
+	 * then rejected the standby of prod-609-db there (PLFM-9965).
+	 */
+	@Test
+	public void testGetAvailabilityZonesForDBInstanceClassNotOfferedByEc2() {
+		DescribeOrderableDBInstanceOptionsIterable options = optionsIterable("us-east-1a", "us-east-1b", "us-east-1c");
+		when(mockRds.describeOrderableDBInstanceOptionsPaginator(any(DescribeOrderableDbInstanceOptionsRequest.class)))
+				.thenReturn(options);
+		when(mockEc2ClientWrapper.getAvailabilityZonesForInstanceType("r8g.2xlarge"))
+				.thenReturn(List.of("us-east-1a", "us-east-1c", "us-east-1d"));
+
+		// call under test
+		List<String> zones = wrapper.getAvailabilityZonesForDBInstanceClass(ENGINE, ENGINE_VERSION, REPO_CLASS);
+
+		assertEquals(Arrays.asList("us-east-1a", "us-east-1c"), zones);
+	}
+
+	/**
+	 * A class whose name does not match an EC2 instance type has no zones, so the build fails rather
+	 * than trusting RDS alone.
+	 */
+	@Test
+	public void testGetAvailabilityZonesForDBInstanceClassWithoutEc2Type() {
+		DescribeOrderableDBInstanceOptionsIterable options = optionsIterable("us-east-1a", "us-east-1c");
+		when(mockRds.describeOrderableDBInstanceOptionsPaginator(any(DescribeOrderableDbInstanceOptionsRequest.class)))
+				.thenReturn(options);
+		when(mockEc2ClientWrapper.getAvailabilityZonesForInstanceType("x2g.large")).thenReturn(List.of());
+
+		// call under test
+		List<String> zones = wrapper.getAvailabilityZonesForDBInstanceClass(ENGINE, ENGINE_VERSION, "db.x2g.large");
 
 		assertEquals(List.of(), zones);
 	}

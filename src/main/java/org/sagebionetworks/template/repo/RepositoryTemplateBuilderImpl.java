@@ -127,7 +127,6 @@ import org.sagebionetworks.template.repo.beanstalk.ssl.TargetGroup;
 import org.sagebionetworks.template.repo.cloudwatchlogs.CloudwatchLogsVelocityContextProvider;
 import org.sagebionetworks.template.repo.ecs.DockerImageBuilder;
 import org.sagebionetworks.template.repo.ecs.EcsEnvironmentDescriptor;
-import org.sagebionetworks.template.repo.search.SemanticEmbeddingBuilder;
 
 import com.google.inject.Inject;
 
@@ -144,6 +143,9 @@ import software.amazon.awssdk.services.elasticbeanstalk.model.PlatformSummary;
 public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder {
 	public static final List<String> MACHINE_TYPE_LIST = List.of("Workers", "Repository");
 	public static final List<String> POOL_TYPE_LIST = List.of("Idgen", "Main", "Migration", "Tables");
+	// DiskQueueDepth alarm thresholds, based on observed prod usage.
+	public static final int REPO_DB_DISK_QUEUE_DEPTH_THRESHOLD = 50;
+	public static final int TABLES_DB_DISK_QUEUE_DEPTH_THRESHOLD = 175;
 
 	private final CloudFormationClientWrapper cloudFormationClientWrapper;
 	private final Ec2ClientWrapper ec2ClientWrapper;
@@ -162,7 +164,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 	private final TimeToLive timeToLive;
 	private final DockerImageBuilder dockerImageBuilder;
 	private final LoadBalancerAlarmsConfig loadBalancerAlarmsConfig;
-	private final SemanticEmbeddingBuilder semanticEmbeddingBuilder;
 
 	@Inject
 	public RepositoryTemplateBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper, VelocityEngine velocityEngine,
@@ -172,8 +173,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
                                          StackTagsProvider stackTagsProvider, CloudwatchLogsVelocityContextProvider cloudwatchLogsVelocityContextProvider,
                                          Ec2ClientWrapper ec2ClientWrapper, RdsClientWrapper rdsClientWrapper,
                                          ElasticBeanstalkClient beanstalkClient, ImageBuilderClient imageBuilderClient, TimeToLive ttl,
-                                         DockerImageBuilder dockerImageBuilder, LoadBalancerAlarmsConfig loadBalancerAlarmsConfig,
-                                         SemanticEmbeddingBuilder semanticEmbeddingBuilder) {
+                                         DockerImageBuilder dockerImageBuilder, LoadBalancerAlarmsConfig loadBalancerAlarmsConfig) {
 		super();
 		this.cloudFormationClientWrapper = cloudFormationClientWrapper;
 		this.ec2ClientWrapper = ec2ClientWrapper;
@@ -192,7 +192,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		this.timeToLive = ttl;
 		this.dockerImageBuilder = dockerImageBuilder;
 		this.loadBalancerAlarmsConfig = loadBalancerAlarmsConfig;
-		this.semanticEmbeddingBuilder = semanticEmbeddingBuilder;
 	}
 
 	public String getActualBeanstalkAmazonLinuxPlatform() {
@@ -232,10 +231,6 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 
 		// A completed stack does not guarantee the databases match the template, so check them.
 		validateDatabases((DatabaseDescriptor[]) context.get(DATABASE_DESCRIPTORS));
-
-		// The OpenSearch domain now exists, so register its embedding model before any repository
-		// instance starts looking for one.
-		semanticEmbeddingBuilder.buildSemanticEmbedding(sharedStackResults);
 
 		// Build each bean stalk environment.
 		List<String> environmentNames = buildEnvironments(sharedStackResults);
@@ -607,7 +602,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				.withMultiAZ(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ))
 				// 0 indicates no automated backups will be created.
 				.withBackupRetentionPeriodDays(7)
-				.withDeletionPolicy(Constants.isProd(stack)? DeletionPolicy.Snapshot: DeletionPolicy.Delete);
+				.withDeletionPolicy(Constants.isProd(stack)? DeletionPolicy.Snapshot: DeletionPolicy.Delete)
+				.withDiskQueueDepthThreshold(REPO_DB_DISK_QUEUE_DEPTH_THRESHOLD);
 		
 
 		String repoSnapshotIdentifier = config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER);
@@ -636,7 +632,8 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 				.withInstanceClass(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).withMultiAZ(false)
 				// 0 indicates no automated backups will be created.
 				.withBackupRetentionPeriodDays(Constants.isProd(stack)? 1 : 0)
-				.withDeletionPolicy(Constants.isProd(stack)? DeletionPolicy.Snapshot: DeletionPolicy.Delete);
+				.withDeletionPolicy(Constants.isProd(stack)? DeletionPolicy.Snapshot: DeletionPolicy.Delete)
+				.withDiskQueueDepthThreshold(TABLES_DB_DISK_QUEUE_DEPTH_THRESHOLD);
 			if (useSnapshotForRepoDB) {
 				String snapshotIdentifier = repoTableSnapshotIdentifiers[i];
 				tableDbDescriptor = tableDbDescriptor.withSnapshotIdentifier(snapshotIdentifier);
