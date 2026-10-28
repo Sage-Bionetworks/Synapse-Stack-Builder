@@ -143,7 +143,6 @@ import org.sagebionetworks.template.repo.cloudwatchlogs.LogType;
 import org.sagebionetworks.template.repo.ecs.DockerImageBuilder;
 import org.sagebionetworks.template.repo.ecs.EcsEnvironmentDescriptor;
 import org.sagebionetworks.template.repo.grid.GridContextProvider;
-import org.sagebionetworks.template.repo.search.SemanticEmbeddingBuilder;
 import org.sagebionetworks.template.vpc.Color;
 
 import com.google.common.collect.Lists;
@@ -214,8 +213,6 @@ public class RepositoryTemplateBuilderImplTest {
 	private DockerImageBuilder mockDockerImageBuilder;
 	@Mock
 	private LoadBalancerAlarmsConfig mockLoadBalancerAlarmsConfig;
-	@Mock
-	private SemanticEmbeddingBuilder mockSemanticEmbeddingBuilder;
 
 	@Captor
 	private ArgumentCaptor<CreateOrUpdateStackRequest> requestCaptor;
@@ -262,7 +259,7 @@ public class RepositoryTemplateBuilderImplTest {
 						new GridContextProvider(gridQueueRef, config)),
 				mockElasticBeanstalkSolutionStackNameProvider, mockStackTagsProvider, mockCwlContextProvider,
 				mockEc2ClientWrapper, mockRdsClientWrapper, mockBeanstalkClient, mockImageBuilderClient, mockTimeToLive,
-				mockDockerImageBuilder, mockLoadBalancerAlarmsConfig, mockSemanticEmbeddingBuilder);
+				mockDockerImageBuilder, mockLoadBalancerAlarmsConfig);
 
 		builderSpy = Mockito.spy(builder);
 
@@ -400,7 +397,6 @@ public class RepositoryTemplateBuilderImplTest {
 		verify(mockRdsClientWrapper).validateMultiAZ("prod-101-db", true);
 		verify(mockRdsClientWrapper).validateMultiAZ("prod-101-table-0", false);
 		verify(mockRdsClientWrapper).validateMultiAZ("prod-101-table-1", false);
-		verify(mockSemanticEmbeddingBuilder).buildSemanticEmbedding(sharedResouces);
 
 		List<CreateOrUpdateStackRequest> list = requestCaptor.getAllValues();
 		CreateOrUpdateStackRequest request = list.get(0);
@@ -434,6 +430,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.has("prod101Table1RepositoryDBHighWriteLatency"));
 		assertTrue(resources.has("prod101Table1RepositoryDBHighCPUUtilization"));
 		assertTrue(resources.has("prod101Table1RepositoryDBLowFreeStorageSpace"));
+		assertTrue(resources.has("prod101Table1RepositoryDBLowFreeableMemory"));
 		assertTrue(resources.has("prod101Table1RepositoryDBHighDiskQueueDepth"));
 		assertEquals(50, resources.getJSONObject("prod101RepositoryDBHighDiskQueueDepth").getJSONObject("Properties").getInt("Threshold"));
 		assertEquals(175, resources.getJSONObject("prod101Table1RepositoryDBHighDiskQueueDepth").getJSONObject("Properties").getInt("Threshold"));
@@ -526,6 +523,7 @@ public class RepositoryTemplateBuilderImplTest {
 				.contains("prod101SynapesRepoWorkersServiceRole"));
 		assertTrue(resources.has("prod101SynapseSearchIndexSecurityGroup"));
 
+
 		JSONObject prodEmbedRoleProps = resources.getJSONObject("SynapseSearchIndexBedrockEmbedRole")
 				.getJSONObject("Properties");
 		assertEquals("prod-101-synidx-bedrock-embed", prodEmbedRoleProps.getString("RoleName"));
@@ -533,17 +531,15 @@ public class RepositoryTemplateBuilderImplTest {
 				.getJSONArray("Statement").getJSONObject(0).getJSONObject("Principal").getString("Service"));
 		assertTrue(prodEmbedRoleProps.getJSONArray("Policies").toString()
 				.contains("foundation-model/amazon.titan-embed-text-v2:0"));
-		// Only the provisioning identity registers the connector, so the deployed application is never
-		// granted iam:PassRole on the role that connector names.
+		// The workers register the connector, so they may pass only the role it names.
 		assertFalse(resources.getJSONObject("prod101SynapesRepoWorkersBedrockManagedPolicy").toString()
 				.contains("PassRole"));
-		// SemanticEmbeddingBuilder reads the endpoint and role from these outputs.
+		String workersPolicy = resources.getJSONObject("prod101SynapesRepoWorkersServiceManagedPolicy").toString();
+		assertTrue(workersPolicy.contains("\"Action\":\"iam:PassRole\""), workersPolicy);
+		assertTrue(workersPolicy.contains(":role/prod-101-synidx-bedrock-embed\""), workersPolicy);
 		JSONObject outputs = templateJson.getJSONObject("Outputs");
 		assertEquals("[\"SynapseSearchIndexDomain\",\"DomainEndpoint\"]", outputs
 				.getJSONObject("SynapseSearchIndexDomainEndpoint").getJSONObject("Value").get("Fn::GetAtt").toString());
-		assertEquals("[\"SynapseSearchIndexBedrockEmbedRole\",\"Arn\"]", outputs
-				.getJSONObject("SynapseSearchIndexBedrockEmbedRoleArn").getJSONObject("Value").get("Fn::GetAtt")
-				.toString());
 	}
 
 	void validateOpenApiSchema(JSONObject bedrockAgentProps) {
@@ -665,6 +661,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.has("prod101Table1RepositoryDBHighWriteLatency"));
 		assertTrue(resources.has("prod101Table1RepositoryDBHighCPUUtilization"));
 		assertTrue(resources.has("prod101Table1RepositoryDBLowFreeStorageSpace"));
+		assertTrue(resources.has("prod101Table1RepositoryDBLowFreeableMemory"));
 		assertTrue(resources.has("prod101Table1RepositoryDBHighDiskQueueDepth"));
 
 		assertTrue(resources.has("prod101RepositoryDB"));
@@ -794,6 +791,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertFalse(resources.has("devd101Table1RepositoryDBHighWriteLatency"));
 		assertFalse(resources.has("dev101Table1RepositoryDBHighCPUUtilization"));
 		assertFalse(resources.has("dev101Table1RepositoryDBLowFreeStorageSpace"));
+		assertFalse(resources.has("dev101Table1RepositoryDBLowFreeableMemory"));
 		assertFalse(resources.has("dev101Table1RepositoryDBHighDiskQueueDepth"));
 
 		assertTrue(resources.has("dev101RepositoryDB"));
@@ -955,6 +953,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertFalse(resources.has("devd101Table1RepositoryDBHighWriteLatency"));
 		assertFalse(resources.has("dev101Table1RepositoryDBHighCPUUtilization"));
 		assertFalse(resources.has("dev101Table1RepositoryDBLowFreeStorageSpace"));
+		assertFalse(resources.has("dev101Table1RepositoryDBLowFreeableMemory"));
 		assertFalse(resources.has("dev101Table1RepositoryDBHighDiskQueueDepth"));
 
 		assertTrue(resources.has("dev101RepositoryDB"));

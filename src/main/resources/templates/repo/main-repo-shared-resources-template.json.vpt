@@ -275,6 +275,33 @@
 				"Threshold" : ${descriptor.getTenPercentOfAllocatedStroageBytes()}
 			}
 		},
+		"${descriptor.resourceName}LowFreeableMemory": {
+			"Type" : "AWS::CloudWatch::Alarm",
+			"DependsOn": [
+				"${descriptor.resourceName}"
+			],
+			"Properties" : {
+				"ActionsEnabled" : true,
+				"AlarmActions" : [
+					{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
+				],
+				"AlarmDescription" : "Alert when database freeable memory is low.",
+				"AlarmName" : "${descriptor.instanceIdentifier}-Low-Freeable-Memory",
+				"ComparisonOperator" : "LessThanOrEqualToThreshold",
+				"Dimensions" : [
+					{
+						"Name" : "DBInstanceIdentifier",
+						"Value" : "${descriptor.instanceIdentifier}"
+					}
+				],
+				"EvaluationPeriods" : 2,
+				"Period" : 300,
+				"MetricName" : "FreeableMemory",
+				"Namespace" : "AWS/RDS",
+				"Statistic" : "Average",
+				"Threshold" : 1073741824
+			}
+		},
 		"${descriptor.resourceName}HighDiskQueueDepth": {
 			"Type" : "AWS::CloudWatch::Alarm",
 			"DependsOn": [
@@ -684,6 +711,11 @@
                                  "es:DescribeDomainConfig"
                              ],
                              "Resource": {"Fn::Sub": "arn:aws:es:#[[${AWS::Region}]]#:#[[${AWS::AccountId}]]#:domain/${stack}-${instance}-synidx"}
+                         },
+                         {
+                             "Effect": "Allow",
+                             "Action": "iam:PassRole",
+                             "Resource": {"Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/${stack}-${instance}-synidx-bedrock-embed"}
                          },
                          {
                              "Effect": "Allow",
@@ -1162,12 +1194,6 @@
 				"Fn::GetAtt": ["SynapseSearchIndexDomain", "DomainEndpoint"]
 			}
 		},
-		"SynapseSearchIndexBedrockEmbedRoleArn": {
-			"Description": "The role the SearchIndex OpenSearch domain assumes to invoke Bedrock embeddings.",
-			"Value": {
-				"Fn::GetAtt": ["SynapseSearchIndexBedrockEmbedRole", "Arn"]
-			}
-		},	
 		#if($deploymentTarget == "BEANSTALK")
 		"BeanstalkApplicationId": {
 			"Description": "The elastic bean stalk application ID",
