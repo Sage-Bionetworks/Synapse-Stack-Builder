@@ -323,6 +323,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		context.put(CF_PROPERTY_NOTIFICATION_EMAIL, config.getNotificationEmail());
 		context.put(CF_PROPERTY_LAMBDA_BUCKET, lambdaArtifactBucket);
 		context.put(CF_PROPERTY_LAMBDA_KEY, lambdaArtifactKey);
+		context.put(Constants.GLOBAL_RESOURCES_EXPORT_PREFIX, Constants.createGlobalResourcesExportPrefix(stack));
 		
 		// Merge the context with the template
 		Template template = velocity.getTemplate(Constants.TEMPLATE_S3_VIRUS_SCANNER);

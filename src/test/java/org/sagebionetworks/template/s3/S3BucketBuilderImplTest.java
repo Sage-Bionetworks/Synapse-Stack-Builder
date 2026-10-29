@@ -2536,6 +2536,7 @@ public class S3BucketBuilderImplTest {
 		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_NOTIFICATION_EMAIL), "notification@sagebase.org");
 		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_LAMBDA_BUCKET), expectedBucket);
 		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_LAMBDA_KEY), expectedKey);
+		assertEquals(virusScannerBuilderContext.get(Constants.GLOBAL_RESOURCES_EXPORT_PREFIX), Constants.createGlobalResourcesExportPrefix(stack));
 
 		assertEquals(bucketPolicyBuilderContext.get(Constants.STACK), stack);
 		
@@ -2672,6 +2673,7 @@ public class S3BucketBuilderImplTest {
 		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_NOTIFICATION_EMAIL), "notification@sagebase.org");
 		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_LAMBDA_BUCKET), expectedBucket);
 		assertEquals(virusScannerBuilderContext.get(S3BucketBuilderImpl.CF_PROPERTY_LAMBDA_KEY), expectedKey);
+		assertEquals(virusScannerBuilderContext.get(Constants.GLOBAL_RESOURCES_EXPORT_PREFIX), Constants.createGlobalResourcesExportPrefix(stack));
 
 		assertEquals(bucketPolicyBuilderContext.get(Constants.STACK), stack);
 

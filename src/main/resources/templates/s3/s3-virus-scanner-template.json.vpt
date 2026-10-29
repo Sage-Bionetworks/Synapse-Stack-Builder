@@ -526,6 +526,50 @@
             ]
          }
       }
+      #if(${stack} == 'prod')
+      ,"ScanResultQueueOldestMessageAlarm":{
+         "Type":"AWS::CloudWatch::Alarm",
+         "Properties":{
+            "ActionsEnabled":true,
+            "AlarmActions":[{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}],
+            "AlarmDescription":"Alarm when oldest message in the virus scan result queue exceeds 2 seconds for 15 minutes",
+            "AlarmName":"${stack}-synapse-virus-scanner-scan-result-queue-oldest-message-exceed-time",
+            "ComparisonOperator":"GreaterThanThreshold",
+            "Dimensions":[{
+               "Name":"QueueName",
+               "Value":{"Fn::GetAtt":["ScanResultSQS", "QueueName"]}
+            }],
+            "EvaluationPeriods":3,
+            "MetricName":"ApproximateAgeOfOldestMessage",
+            "Namespace":"AWS/SQS",
+            "Period":300,
+            "Statistic":"Maximum",
+            "Threshold":2,
+            "Unit":"Seconds"
+         }
+      },
+      "VirusScanDeadLetterQueueOldestMessageAlarm":{
+         "Type":"AWS::CloudWatch::Alarm",
+         "Properties":{
+            "ActionsEnabled":false,
+            "AlarmActions":[{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}],
+            "AlarmDescription":"Alarm when oldest message in the virus scan dead letter queue exceeds 2 seconds for 15 minutes",
+            "AlarmName":"${stack}-synapse-virus-scanner-dead-letter-queue-oldest-message-exceed-time",
+            "ComparisonOperator":"GreaterThanThreshold",
+            "Dimensions":[{
+               "Name":"QueueName",
+               "Value":{"Fn::GetAtt":["VirusScanDeadLetterQueue", "QueueName"]}
+            }],
+            "EvaluationPeriods":3,
+            "MetricName":"ApproximateAgeOfOldestMessage",
+            "Namespace":"AWS/SQS",
+            "Period":300,
+            "Statistic":"Maximum",
+            "Threshold":2,
+            "Unit":"Seconds"
+         }
+      }
+      #end
    },
    "Outputs": {
    		"ScanTriggerSNSTopic": {
