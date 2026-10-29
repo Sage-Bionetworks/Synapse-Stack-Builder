@@ -36,6 +36,11 @@ public class S3BucketDescriptor {
 	private S3IntArchiveConfiguration intArchiveConfiguration;
 	
 	/**
+	 * Optional configuration to permanently delete the objects carrying a given tag
+	 */
+	private S3TagExpirationConfiguration tagExpirationConfiguration;
+
+	/**
 	 * Optional configuration bit to setup notifications to an sns topic
 	 */
 	private S3NotificationsConfiguration notificationsConfiguration;
@@ -104,6 +109,14 @@ public class S3BucketDescriptor {
 		this.intArchiveConfiguration = intArchiveConfiguration;
 	}
 	
+	public S3TagExpirationConfiguration getTagExpirationConfiguration() {
+		return tagExpirationConfiguration;
+	}
+
+	public void setTagExpirationConfiguration(S3TagExpirationConfiguration tagExpirationConfiguration) {
+		this.tagExpirationConfiguration = tagExpirationConfiguration;
+	}
+
 	public S3NotificationsConfiguration getNotificationsConfiguration() {
 		return notificationsConfiguration;
 	}
@@ -115,7 +128,7 @@ public class S3BucketDescriptor {
 	@Override
 	public int hashCode() {
 		return Objects.hash(devOnly, intArchiveConfiguration, inventoryEnabled, name, notificationsConfiguration, retentionDays,
-				storageClassTransitions, virusScanEnabled);
+				storageClassTransitions, tagExpirationConfiguration, virusScanEnabled);
 	}
 
 	@Override
@@ -134,14 +147,17 @@ public class S3BucketDescriptor {
 				&& inventoryEnabled == other.inventoryEnabled && Objects.equals(name, other.name)
 				&& Objects.equals(notificationsConfiguration, other.notificationsConfiguration)
 				&& Objects.equals(retentionDays, other.retentionDays)
-				&& Objects.equals(storageClassTransitions, other.storageClassTransitions) && virusScanEnabled == other.virusScanEnabled;
+				&& Objects.equals(storageClassTransitions, other.storageClassTransitions)
+				&& Objects.equals(tagExpirationConfiguration, other.tagExpirationConfiguration)
+				&& virusScanEnabled == other.virusScanEnabled;
 	}
 
 	@Override
 	public String toString() {
 		return "S3BucketDescriptor [name=" + name + ", inventoryEnabled=" + inventoryEnabled + ", retentionDays=" + retentionDays
 				+ ", devOnly=" + devOnly + ", storageClassTransitions=" + storageClassTransitions + ", intArchiveConfiguration="
-				+ intArchiveConfiguration + ", notificationsConfiguration=" + notificationsConfiguration + ", virusScanEnabled="
+				+ intArchiveConfiguration + ", tagExpirationConfiguration=" + tagExpirationConfiguration
+				+ ", notificationsConfiguration=" + notificationsConfiguration + ", virusScanEnabled="
 				+ virusScanEnabled + "]";
 	}
 
