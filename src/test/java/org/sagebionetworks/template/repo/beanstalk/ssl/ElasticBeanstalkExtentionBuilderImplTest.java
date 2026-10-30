@@ -16,6 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.velocity.app.VelocityEngine;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -175,6 +176,10 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 
 		assertTrue(alarmsConf.contains("AWSELBSomeAlarm"));
 		assertTrue(alarmsConf.contains("-AWS-ELB-Some-Alarm"));
+		assertTrue(alarmsConf.contains("AWSELBTargetGroupAlarm"));
+		// Only the alarm configured to use the target group dimension should include it
+		assertEquals(1, StringUtils.countMatches(alarmsConf, "- Name: TargetGroup"));
+		assertTrue(alarmsConf.contains("{ \"Fn::GetAtt\" : [\"AWSEBV2LoadBalancerTargetGroup\", \"TargetGroupFullName\"] }"));
 
 		JSONObject albJson = new JSONObject(albDependencies.toString());
 				
@@ -213,7 +218,17 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		alarm.setStatistic(Statistic.SUM);
 		alarm.setPeriod(60);
 		alarm.setThreshold(20D);
-		return Arrays.asList(alarm);
+		LoadBalancerAlarm targetGroupAlarm = new LoadBalancerAlarm();
+		targetGroupAlarm.setName("Target-Group-Alarm");
+		targetGroupAlarm.setDescription("Description");
+		targetGroupAlarm.setMetric("UnHealthyHostCount");
+		targetGroupAlarm.setComparisonOperator(ComparisonOperator.GREATER_THAN_THRESHOLD);
+		targetGroupAlarm.setEvaluationPeriods(3);
+		targetGroupAlarm.setStatistic(Statistic.MINIMUM);
+		targetGroupAlarm.setPeriod(300);
+		targetGroupAlarm.setThreshold(0D);
+		targetGroupAlarm.setUseTargetGroupDimension(true);
+		return Arrays.asList(alarm, targetGroupAlarm);
 	}
 
 }

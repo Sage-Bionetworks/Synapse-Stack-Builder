@@ -20,6 +20,7 @@ public class LoadBalancerAlarm {
 	private Integer evaluationPeriods;
 	private Double threshold;
 	private ComparisonOperator comparisonOperator;
+	private boolean useTargetGroupDimension;
 
 	public String getName() {
 		return name;
@@ -89,9 +90,21 @@ public class LoadBalancerAlarm {
 		this.comparisonOperator = comparisonOperator;
 	}
 
+	/**
+	 * @return True if the alarm should include the TargetGroup dimension in addition to the LoadBalancer dimension.
+	 *         Required for metrics that are only published per target group (e.g. UnHealthyHostCount)
+	 */
+	public boolean isUseTargetGroupDimension() {
+		return useTargetGroupDimension;
+	}
+
+	public void setUseTargetGroupDimension(boolean useTargetGroupDimension) {
+		this.useTargetGroupDimension = useTargetGroupDimension;
+	}
+
 	@Override
 	public int hashCode() {
-		return Objects.hash(comparisonOperator, description, evaluationPeriods, metric, name, period, statistic, threshold);
+		return Objects.hash(comparisonOperator, description, evaluationPeriods, metric, name, period, statistic, threshold, useTargetGroupDimension);
 	}
 
 	@Override
@@ -109,7 +122,7 @@ public class LoadBalancerAlarm {
 		return comparisonOperator == other.comparisonOperator && Objects.equals(description, other.description)
 				&& Objects.equals(evaluationPeriods, other.evaluationPeriods) && Objects.equals(metric, other.metric)
 				&& Objects.equals(name, other.name) && Objects.equals(period, other.period) && statistic == other.statistic
-				&& Objects.equals(threshold, other.threshold);
+				&& Objects.equals(threshold, other.threshold) && useTargetGroupDimension == other.useTargetGroupDimension;
 	}
 
 }
