@@ -161,6 +161,10 @@ Resources:
                         VIRUS_SCANNER_REPO_API=https://sagebionetworks.jfrog.io/artifactory/api/storage/lambda-artifacts/org/sagebionetworks/virus-scanner/
                         VIRUS_SCANNER_LATEST_SPEC=$(curl -s "$VIRUS_SCANNER_REPO_API?lastModified" | tr -d "[:blank:]" | grep -oP '(?<="uri":")[^"]*')
                         VIRUS_SCANNER_LATEST_URL=$(curl -s "$VIRUS_SCANNER_LATEST_SPEC" | tr -d "[:blank:]" | grep -oP '(?<="downloadUri":")[^"]*')
+                        echo "Resolved artifact URL: '$VIRUS_SCANNER_LATEST_URL'"
+                        if [ -z "$VIRUS_SCANNER_LATEST_URL" ] || [ "$VIRUS_SCANNER_LATEST_URL" = "null" ]; then
+                          echo "ERROR: Failed to retrieve virus scanner artifact URL from Artifactory."
+                        fi
                         export CMD_PROPS=\
                         " -Dorg.sagebionetworks.stack=dev"\
                         " -Dorg.sagebionetworks.lambda.virusscanner.artifactUrl=$VIRUS_SCANNER_LATEST_URL"
