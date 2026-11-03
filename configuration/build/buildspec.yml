@@ -14,6 +14,17 @@ phases:
       - export AWS_ACCESS_KEY_ID=$(echo $STS_CREDENTIALS | jq -r '.AccessKeyId')
       - export AWS_SECRET_KEY=$(echo $STS_CREDENTIALS | jq -r '.SecretAccessKey')
       - export AWS_SESSION_TOKEN=$(echo $STS_CREDENTIALS | jq -r '.Token')
-      - export CMD_PROPS="-Dorg.sagebionetworks.stack=dev -Dorg.sagebionetworks.instance=${user} -Dorg.sagebionetworks.vpc.subnet.color=Green -Dorg.sagebionetworks.beanstalk.number.repo=0 -Dorg.sagebionetworks.beanstalk.number.workers=0"
+      # RepositoryBuilderMain builds the S3 buckets, which deploys the virus scanner lambda.
+      # Use the latest published artifact rather than the version pinned in repo-defaults.properties.
+      - |
+        VIRUS_SCANNER_REPO_API=https://sagebionetworks.jfrog.io/artifactory/api/storage/lambda-artifacts/org/sagebionetworks/virus-scanner/
+        VIRUS_SCANNER_LATEST_SPEC=$(curl -sf "$VIRUS_SCANNER_REPO_API?lastModified" | jq -r '.uri // empty')
+        VIRUS_SCANNER_LATEST_URL=$(curl -sf "$VIRUS_SCANNER_LATEST_SPEC" | jq -r '.downloadUri // empty')
+        echo "Resolved virus scanner artifact URL: '$VIRUS_SCANNER_LATEST_URL'"
+        if [ -z "$VIRUS_SCANNER_LATEST_URL" ]; then
+          echo "ERROR: Failed to retrieve virus scanner artifact URL from Artifactory."
+          exit 1
+        fi
+      - export CMD_PROPS="-Dorg.sagebionetworks.stack=dev -Dorg.sagebionetworks.instance=${user} -Dorg.sagebionetworks.vpc.subnet.color=Green -Dorg.sagebionetworks.beanstalk.number.repo=0 -Dorg.sagebionetworks.beanstalk.number.workers=0 -Dorg.sagebionetworks.lambda.virusscanner.artifactUrl=$VIRUS_SCANNER_LATEST_URL"
       - mvn clean install
       - java -Xms256m -Xmx2g -cp ./target/stack-builder-0.2.0-SNAPSHOT-jar-with-dependencies.jar $CMD_PROPS org.sagebionetworks.template.repo.RepositoryBuilderMain
