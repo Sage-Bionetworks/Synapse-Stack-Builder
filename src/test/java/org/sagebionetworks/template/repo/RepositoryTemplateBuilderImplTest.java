@@ -432,6 +432,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertTrue(resources.has("prod101Table1RepositoryDBLowFreeStorageSpace"));
 		assertTrue(resources.has("prod101Table1RepositoryDBLowFreeableMemory"));
 		assertTrue(resources.has("prod101Table1RepositoryDBHighDiskQueueDepth"));
+		assertFalse(resources.getJSONObject("prod101CMK").getJSONObject("Properties").getJSONObject("KeyPolicy")
+				.toString().contains("SynapseDeveloper"));
 		assertEquals(50, resources.getJSONObject("prod101RepositoryDBHighDiskQueueDepth").getJSONObject("Properties").getInt("Threshold"));
 		assertEquals(175, resources.getJSONObject("prod101Table1RepositoryDBHighDiskQueueDepth").getJSONObject("Properties").getInt("Threshold"));
 
@@ -856,6 +858,8 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("dev-101-synidx-bedrock-embed", resources.getJSONObject("SynapseSearchIndexBedrockEmbedRole")
 				.getJSONObject("Properties").getString("RoleName"));
 
+		assertTrue(resources.getJSONObject("dev101CMK").getJSONObject("Properties").getJSONObject("KeyPolicy")
+				.toString().contains("AWSReservedSSO_SynapseDeveloper_*"));
 	}
 
 	@Test
