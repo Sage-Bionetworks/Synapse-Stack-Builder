@@ -17,6 +17,13 @@
 				"archiveAccessDays": 90,
 				"deepArchiveAccessDays": 180
 			},
+			"tagExpirationConfiguration": {
+				"tagFilter": {
+					"name": "synapse-status",
+					"value": "archive"
+				},
+				"days": 1
+			},
 			"virusScanEnabled": true
 		},
 		{
