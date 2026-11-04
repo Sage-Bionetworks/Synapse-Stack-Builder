@@ -41,7 +41,7 @@
                     "Name" : "QueueName",
                     "Value" : 	{"Fn::GetAtt":["${queueDescriptor.queueReferenceName}Queue", "QueueName"]}
                 }],
-                "EvaluationPeriods" : 1,
+                "EvaluationPeriods" : 3,
                 "MetricName" : "ApproximateAgeOfOldestMessage",
                 "Namespace" : "AWS/SQS",
                 "Period" : 300,
