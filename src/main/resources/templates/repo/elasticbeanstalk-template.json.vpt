@@ -464,7 +464,7 @@
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.id.generator.database.connection.url",
-						"Value": "jdbc:mysql://${stack}-id-generator-db.${stack}.sagebase.org/${stack}idgen"
+						"Value": "jdbc:mysql://${stack}-id-generator-db.${stack}.sagebase.org/${stack}idgen?verifyServerCertificate=false&useSSL=true&requireSSL=true"
 					},
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
