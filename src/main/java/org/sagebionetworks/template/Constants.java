@@ -289,6 +289,7 @@ public class Constants {
 	public static final String SES_SYNAPSE_DOMAIN = "synapse.org";
 	public static final String GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC = "SesSynapseOrgComplaintTopic";
 	public static final String GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC = "SesSynapseOrgBounceTopic";
+	public static final String GLOBAL_CFSTACK_OUTPUT_KEY_ROUTE53_QUERY_LOG_GROUP_ARN = "Route53QueryLogGroupArn";
 
 	public static final String EC2_INSTANCE_TYPE = "Ec2InstanceType";
 	public static final String EC2_INSTANCE_MEMORY = "Ec2InstanceMemory";
