@@ -253,7 +253,7 @@
 							},
 							{
 								"Name": "org.sagebionetworks.id.generator.database.connection.url",
-								"Value": "jdbc:mysql://${stack}-id-generator-db.${stack}.sagebase.org/${stack}idgen"
+								"Value": "jdbc:mysql://${stack}-id-generator-db.${stack}.sagebase.org/${stack}idgen?sslMode=REQUIRED"
 							},
 							{
 								"Name": "org.sagebionetworks.repository.database.username",
@@ -265,7 +265,7 @@
 							},
 							{
 								"Name": "org.sagebionetworks.repository.database.connection.url",
-								"Value": "jdbc:mysql://${stack}-${instance}-db.${dbEndpointSuffix}/${stack}${instance}?verifyServerCertificate=false&useSSL=true&requireSSL=true"
+								"Value": "jdbc:mysql://${stack}-${instance}-db.${dbEndpointSuffix}/${stack}${instance}?sslMode=REQUIRED"
 							},
 							{
 								"Name": "org.sagebionetworks.table.cluster.use.ssl",
