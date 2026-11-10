@@ -38,10 +38,15 @@ public class RdsClientWrapperImpl implements RdsClientWrapper {
 			String dbInstanceClass) {
 		DescribeOrderableDbInstanceOptionsRequest req = DescribeOrderableDbInstanceOptionsRequest.builder()
 				.engine(engine).engineVersion(engineVersion).dbInstanceClass(dbInstanceClass).build();
+		// RDS can list a class as orderable in a zone where EC2 does not offer the matching instance
+		// type, and then reject a Multi-AZ standby there (PLFM-9965), so only keep the zones both offer.
+		Set<String> ec2Zones = new HashSet<>(
+				ec2ClientWrapper.getAvailabilityZonesForInstanceType(dbInstanceClass.replaceFirst("^db\\.", "")));
 		return rds.describeOrderableDBInstanceOptionsPaginator(req).stream()
 				.flatMap(res -> res.orderableDBInstanceOptions().stream())
 				.flatMap(option -> option.availabilityZones().stream())
 				.map(AvailabilityZone::name)
+				.filter(ec2Zones::contains)
 				.distinct().collect(Collectors.toList());
 	}
 

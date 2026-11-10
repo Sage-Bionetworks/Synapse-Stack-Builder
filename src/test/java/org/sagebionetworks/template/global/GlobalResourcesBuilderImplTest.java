@@ -8,8 +8,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
+import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_ROUTE53_QUERY_LOG_GROUP_ARN;
 import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC;
 import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC;
 import static org.sagebionetworks.template.Constants.IDENTITY_ARN;
@@ -51,6 +54,16 @@ import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityPr
 import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeUserPoolClientRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeUserPoolClientResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UserPoolClientType;
+import software.amazon.awssdk.services.route53.Route53Client;
+import software.amazon.awssdk.services.route53.model.CreateQueryLoggingConfigRequest;
+import software.amazon.awssdk.services.route53.model.HostedZone;
+import software.amazon.awssdk.services.route53.model.HostedZoneConfig;
+import software.amazon.awssdk.services.route53.model.ListHostedZonesRequest;
+import software.amazon.awssdk.services.route53.model.ListHostedZonesResponse;
+import software.amazon.awssdk.services.route53.model.ListQueryLoggingConfigsRequest;
+import software.amazon.awssdk.services.route53.model.ListQueryLoggingConfigsResponse;
+import software.amazon.awssdk.services.route53.model.QueryLoggingConfig;
+import software.amazon.awssdk.services.route53.model.QueryLoggingConfigAlreadyExistsException;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -76,7 +89,15 @@ public class GlobalResourcesBuilderImplTest {
 	
 	@Mock
 	CognitoIdentityProviderClient mockCognitoIdentityProviderClient;
-	
+
+	@Mock
+	Route53Client mockRoute53Client;
+
+	@Captor
+	ArgumentCaptor<CreateQueryLoggingConfigRequest> createQueryLoggingConfigRequestCaptor;
+
+	static final String LOG_GROUP_ARN = "arn:aws:logs:us-east-1:123456789012:log-group:/aws/route53/prod-public-hosted-zones";
+
 	Stack stack;
 	
     List<Tag> expectedTags;
@@ -97,7 +118,7 @@ public class GlobalResourcesBuilderImplTest {
         Tag t = Tag.builder().key("aKey").value("aValue").build();
         expectedTags.add(t);
 
-        builder = new GlobalResourcesBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, mockConfig, mockStackTagsProvider, mockSesClient, mockStsClient, mockSecretsManager, mockCognitoIdentityProviderClient);
+        builder = new GlobalResourcesBuilderImpl(mockCloudFormationClientWrapper, velocityEngine, mockConfig, mockStackTagsProvider, mockSesClient, mockStsClient, mockSecretsManager, mockCognitoIdentityProviderClient, mockRoute53Client);
 
         List<Output> outputs = List.of(
         		Output.builder().outputKey("CognitoUserPoolClientId").outputValue("client-101").build(),
@@ -167,6 +188,7 @@ public class GlobalResourcesBuilderImplTest {
 
         verify(mockSesClient, never()).setComplaintNotificationTopic(anyString(), anyString());
         verify(mockSesClient, never()).setBounceNotificationTopic(anyString(), anyString());
+        verifyZeroInteractions(mockRoute53Client);
 
         verify(mockSecretsManager, times(3)).createSecret(createSecretRequestCaptor.capture());
         // check that the correct secret keys and values are passed
@@ -189,6 +211,12 @@ public class GlobalResourcesBuilderImplTest {
         when(mockStsClient.getCallerIdentity()).thenReturn(GetCallerIdentityResponse.builder().arn("currentIdentityArn").build());
         when(mockCloudFormationClientWrapper.getOutput("synapse-prod-global-resources", GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC)).thenReturn("complaintTopicArn");
         when(mockCloudFormationClientWrapper.getOutput("synapse-prod-global-resources", GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC)).thenReturn("bounceTopicArn");
+        when(mockCloudFormationClientWrapper.getOutput("synapse-prod-global-resources", GLOBAL_CFSTACK_OUTPUT_KEY_ROUTE53_QUERY_LOG_GROUP_ARN)).thenReturn(LOG_GROUP_ARN);
+        when(mockRoute53Client.listHostedZones(any(ListHostedZonesRequest.class))).thenReturn(ListHostedZonesResponse.builder()
+        		.hostedZones(publicZone("/hostedzone/ZONE1", "synapse.org."))
+        		.isTruncated(false)
+        		.build());
+        when(mockRoute53Client.listQueryLoggingConfigs(any(ListQueryLoggingConfigsRequest.class))).thenReturn(noQueryLoggingConfigs());
         when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
         when(mockCloudFormationClientWrapper.waitForStackToComplete("synapse-prod-global-resources")).thenReturn(Optional.of(stack));
         DescribeUserPoolClientResponse userPoolClientResponse = 
@@ -213,6 +241,8 @@ public class GlobalResourcesBuilderImplTest {
 
         verify(mockSesClient).setComplaintNotificationTopic(SES_SYNAPSE_DOMAIN, "complaintTopicArn");
         verify(mockSesClient).setBounceNotificationTopic(SES_SYNAPSE_DOMAIN, "bounceTopicArn");
+        verify(mockRoute53Client).createQueryLoggingConfig(CreateQueryLoggingConfigRequest.builder()
+        		.hostedZoneId("ZONE1").cloudWatchLogsLogGroupArn(LOG_GROUP_ARN).build());
 
         verify(mockSecretsManager, times(3)).createSecret(createSecretRequestCaptor.capture());
         // check that the correct secret keys and values are passed
@@ -235,7 +265,101 @@ public class GlobalResourcesBuilderImplTest {
                 && validateSesTopics(templateJSON)
                 && validateRdsSnapshotCmk(stack, templateJSON)
                 && validateWebAclLogGroup(stack, templateJSON)
+                && validateRoute53QueryLogging(stack, templateJSON)
         );
+    }
+
+    private boolean validateRoute53QueryLogging(String stack, JSONObject templateJSON) {
+        final JSONObject resources = templateJSON.getJSONObject("Resources");
+        final List<String> expectedKeys = List.of(stack + "Route53QueryLogGroup", stack + "Route53QueryLogResourcePolicy");
+        assertEquals("/aws/route53/" + stack + "-public-hosted-zones",
+                resources.getJSONObject(stack + "Route53QueryLogGroup").getJSONObject("Properties").getString("LogGroupName"));
+        // the policy document must be valid JSON once joined
+        JSONObject policyJoin = resources.getJSONObject(stack + "Route53QueryLogResourcePolicy")
+                .getJSONObject("Properties").getJSONObject("PolicyDocument");
+        StringBuilder policy = new StringBuilder();
+        policyJoin.getJSONArray("Fn::Join").getJSONArray(1).forEach(part -> policy.append(part instanceof String ? part : "x"));
+        assertEquals("route53.amazonaws.com", new JSONObject(policy.toString()).getJSONArray("Statement")
+                .getJSONObject(0).getJSONObject("Principal").getString("Service"));
+        return resources.keySet().containsAll(expectedKeys)
+                && templateJSON.getJSONObject("Outputs").has(GLOBAL_CFSTACK_OUTPUT_KEY_ROUTE53_QUERY_LOG_GROUP_ARN);
+    }
+
+    @Test
+    public void testEnableQueryLoggingOnPublicHostedZones() {
+        when(mockRoute53Client.listHostedZones(any(ListHostedZonesRequest.class))).thenReturn(ListHostedZonesResponse.builder()
+        		.hostedZones(
+        				publicZone("/hostedzone/ZONE1", "synapse.org."),
+        				HostedZone.builder().id("/hostedzone/PRIVATE").name("private.org.")
+        					.config(HostedZoneConfig.builder().privateZone(true).build()).build(),
+        				publicZone("/hostedzone/ZONE2", "prod.sagebase.org."))
+        		.isTruncated(false)
+        		.build());
+        when(mockRoute53Client.listQueryLoggingConfigs(ListQueryLoggingConfigsRequest.builder().hostedZoneId("ZONE1").build()))
+        		.thenReturn(noQueryLoggingConfigs());
+        when(mockRoute53Client.listQueryLoggingConfigs(ListQueryLoggingConfigsRequest.builder().hostedZoneId("ZONE2").build()))
+        		.thenReturn(ListQueryLoggingConfigsResponse.builder()
+        				.queryLoggingConfigs(QueryLoggingConfig.builder().id("existing").hostedZoneId("ZONE2").build()).build());
+
+        // call under test
+        builder.enableQueryLoggingOnPublicHostedZones(LOG_GROUP_ARN);
+
+        verify(mockRoute53Client, times(1)).createQueryLoggingConfig(createQueryLoggingConfigRequestCaptor.capture());
+        CreateQueryLoggingConfigRequest req = createQueryLoggingConfigRequestCaptor.getValue();
+        assertEquals("ZONE1", req.hostedZoneId());
+        assertEquals(LOG_GROUP_ARN, req.cloudWatchLogsLogGroupArn());
+        verify(mockRoute53Client, never()).listQueryLoggingConfigs(ListQueryLoggingConfigsRequest.builder().hostedZoneId("PRIVATE").build());
+    }
+
+    @Test
+    public void testEnableQueryLoggingOnPublicHostedZonesWithPagination() {
+        when(mockRoute53Client.listHostedZones(ListHostedZonesRequest.builder().build())).thenReturn(ListHostedZonesResponse.builder()
+        		.hostedZones(publicZone("/hostedzone/ZONE1", "synapse.org."))
+        		.isTruncated(true)
+        		.nextMarker("next")
+        		.build());
+        when(mockRoute53Client.listHostedZones(ListHostedZonesRequest.builder().marker("next").build())).thenReturn(ListHostedZonesResponse.builder()
+        		.hostedZones(publicZone("/hostedzone/ZONE2", "prod.sagebase.org."))
+        		.isTruncated(false)
+        		.build());
+        when(mockRoute53Client.listQueryLoggingConfigs(any(ListQueryLoggingConfigsRequest.class))).thenReturn(noQueryLoggingConfigs());
+
+        // call under test
+        builder.enableQueryLoggingOnPublicHostedZones(LOG_GROUP_ARN);
+
+        verify(mockRoute53Client, times(2)).createQueryLoggingConfig(createQueryLoggingConfigRequestCaptor.capture());
+        List<CreateQueryLoggingConfigRequest> requests = createQueryLoggingConfigRequestCaptor.getAllValues();
+        assertEquals("ZONE1", requests.get(0).hostedZoneId());
+        assertEquals("ZONE2", requests.get(1).hostedZoneId());
+    }
+
+    @Test
+    public void testEnableQueryLoggingWithAlreadyExistsException() {
+        when(mockRoute53Client.listQueryLoggingConfigs(any(ListQueryLoggingConfigsRequest.class))).thenReturn(noQueryLoggingConfigs());
+        when(mockRoute53Client.createQueryLoggingConfig(any(CreateQueryLoggingConfigRequest.class)))
+        		.thenThrow(QueryLoggingConfigAlreadyExistsException.builder().message("exists").build());
+
+        // call under test, should not throw
+        builder.enableQueryLogging(publicZone("/hostedzone/ZONE1", "synapse.org."), LOG_GROUP_ARN);
+
+        verify(mockRoute53Client).createQueryLoggingConfig(any(CreateQueryLoggingConfigRequest.class));
+    }
+
+    @Test
+    public void testEnableQueryLoggingOnPublicHostedZonesWithMissingArn() {
+        assertThrows(IllegalStateException.class, () -> {
+        	// call under test
+        	builder.enableQueryLoggingOnPublicHostedZones(null);
+        });
+        verifyZeroInteractions(mockRoute53Client);
+    }
+
+    private static HostedZone publicZone(String id, String name) {
+        return HostedZone.builder().id(id).name(name).config(HostedZoneConfig.builder().privateZone(false).build()).build();
+    }
+
+    private static ListQueryLoggingConfigsResponse noQueryLoggingConfigs() {
+        return ListQueryLoggingConfigsResponse.builder().queryLoggingConfigs(List.of()).build();
     }
 
     private boolean validateStackNotificationTopics(String stack, JSONObject templateJSON) {

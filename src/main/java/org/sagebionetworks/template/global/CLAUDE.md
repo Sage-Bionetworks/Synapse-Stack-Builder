@@ -6,6 +6,10 @@ Builds account-level global resources (KMS, IAM, Cognito, SES, Bedrock knowledge
 
 - **Cognito → Secrets Manager copy.** After the stack completes, `copyCognitoSecretsToSecretsManager` reads the Cognito app client id/secret via the Cognito API and writes them to Secrets Manager under `{stackPrefix}.{KEY}` (also stores the OIDC discovery-doc URL). `setSecret` is create-or-`putSecretValue` idempotent. Do not move this into the CFN template — CFN can't retrieve the app secret.
 - **SES topic wiring is prod-only** — gated by `"prod".equalsIgnoreCase(stack)` (a raw string compare, not `Constants.isProd`). Match the existing check if you add similar prod-gating here.
+- **Route 53 query logging is prod-only and covers every public hosted zone** (PLFM-9962). The zones aren't CFN-managed, so the template only creates `${stack}Route53QueryLogGroup` plus an `AWS::Logs::ResourcePolicy` for `route53.amazonaws.com`. After that, `enableQueryLoggingOnPublicHostedZones` lists the account's public zones and calls `CreateQueryLoggingConfig` on any zone that doesn't have one yet. Gotchas:
+  - The `Route53QueryLogGroupArn` output deliberately has no trailing `:*` (`GetAtt Arn` includes it, and Route 53 rejects that).
+  - The resource policy's `PolicyDocument` is a string built with `Fn::Join`, because `Fn::Sub`'s `${...}` collides with Velocity.
+  - The log group must stay `Retain` on prod, because zone configs outside CFN point at it.
 
 ## WaitConditionHandler (`waitconditions/`)
 

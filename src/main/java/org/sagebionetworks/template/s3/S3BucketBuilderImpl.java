@@ -107,6 +107,7 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	);
 	
 	static final String RULE_ID_RETENTION = "retentionRule";
+	static final String RULE_ID_TAG_EXPIRATION = "tagExpirationRule";
 	static final String RULE_ID_CLASS_TRANSITION = "ClassTransitionRule";
 	static final String RULE_ID_ABORT_MULTIPART_UPLOADS = "abortMultipartUploadsRule";
 	static final int ABORT_MULTIPART_UPLOAD_DAYS = 60;
@@ -138,12 +139,14 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 	
 	static final String CF_OUTPUT_VIRUS_TRIGGER_TOPIC = "ScanTriggerSNSTopic";
 	static final String CF_OUTPUT_VIRUS_UPDATER_LAMBDA = "VirusScanDefinitionUpdaterLambda";
-	
+	static final String CF_OUTPUT_GLOBAL_NOTIFICATION_TOPIC = "NotificationTopic";
+
 	static final String CF_PROPERTY_BUCKETS = "buckets";
 	static final String CF_PROPERTY_LAMBDA_BUCKET = "lambdaBucket";
 	static final String CF_PROPERTY_LAMBDA_KEY = "lambdaKey";
 	static final String CF_PROPERTY_NOTIFICATION_EMAIL = "notificationEmail";
-	
+	static final String CF_PROPERTY_NOTIFICATION_TOPIC_ARN = "notificationTopicArn";
+
 	static final String VIRUS_SCANNER_STACK_NAME = "${stack}-synapse-virus-scanner";
 	static final String VIRUS_SCANNER_NOTIFICATION_CONFIG_NAME = "virusScannerNotificationConfiguration";
 	static final String VIRUS_SCANNER_KEY_TEMPLATE = "artifacts/virus-scanner/%s";
@@ -323,7 +326,9 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		context.put(CF_PROPERTY_NOTIFICATION_EMAIL, config.getNotificationEmail());
 		context.put(CF_PROPERTY_LAMBDA_BUCKET, lambdaArtifactBucket);
 		context.put(CF_PROPERTY_LAMBDA_KEY, lambdaArtifactKey);
-		
+		context.put(CF_PROPERTY_NOTIFICATION_TOPIC_ARN, cloudFormationClientWrapper.getOutput(String.format(GLOBAL_RESOURCES_STACK_NAME_FORMAT, stack), CF_OUTPUT_GLOBAL_NOTIFICATION_TOPIC));
+		context.put(Constants.GLOBAL_RESOURCES_EXPORT_PREFIX, Constants.createGlobalResourcesExportPrefix(stack));
+
 		// Merge the context with the template
 		Template template = velocity.getTemplate(Constants.TEMPLATE_S3_VIRUS_SCANNER);
 		
@@ -501,6 +506,18 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 			}
 		}
 
+		if (bucket.getTagExpirationConfiguration() != null) {
+			if (addOrUpdateRule(rules, bucket.getName(), RULE_ID_TAG_EXPIRATION, bucket.getTagExpirationConfiguration(),
+					this::createTagExpirationRule, this::isTagExpirationRuleUpToDate)) {
+				update = true;
+			}
+		} else {
+			if (rules.remove(RULE_ID_TAG_EXPIRATION) != null) {
+				LOG.info("The {} rule was found on bucket {}, removing.", RULE_ID_TAG_EXPIRATION, bucket.getName());
+				update = true;
+			}
+		}
+
 		if (bucket.getStorageClassTransitions() != null) {
 			for (S3BucketClassTransition transition : bucket.getStorageClassTransitions()) {
 				String transitionRuleName = classTransitionRuleId(transition.getStorageClass());
@@ -643,6 +660,30 @@ public class S3BucketBuilderImpl implements S3BucketBuilder {
 		return rule.filter() != null
 				&& rule.expiration() != null
 				&& bucket.getRetentionDays().equals(rule.expiration().days());
+	}
+
+	// Unlike the other rules this one is scoped to a tag rather than the whole bucket, since the objects to
+	// delete are a subset identified by Synapse rather than everything that reaches a given age.
+	private LifecycleRule createTagExpirationRule(String ruleName, S3TagExpirationConfiguration config) {
+		return LifecycleRule.builder()
+				.id(ruleName)
+				.status(ExpirationStatus.ENABLED)
+				.filter(tagLifecycleFilter(config.getTagFilter()))
+				.expiration(LifecycleExpiration.builder().days(config.getDays()).build())
+				.build();
+	}
+
+	private boolean isTagExpirationRuleUpToDate(LifecycleRule rule, S3TagExpirationConfiguration config) {
+		return rule.filter() != null
+				&& tagLifecycleFilter(config.getTagFilter()).equals(rule.filter())
+				&& rule.expiration() != null
+				&& config.getDays().equals(rule.expiration().days());
+	}
+
+	private static LifecycleRuleFilter tagLifecycleFilter(S3TagFilter tagFilter) {
+		return LifecycleRuleFilter.builder()
+				.tag(Tag.builder().key(tagFilter.getName()).value(tagFilter.getValue()).build())
+				.build();
 	}
 
 	private LifecycleRule createClassTransitionRule(String ruleName, S3BucketClassTransition transition) {

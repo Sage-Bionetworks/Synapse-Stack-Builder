@@ -48,6 +48,17 @@
 		"evaluationPeriods": 1,
 		"threshold": 0,
 		"comparisonOperator": "GREATER_THAN_THRESHOLD"
+	},
+	{
+		"name": "Unhealthy-Hosts-Alarm",
+		"description": "Alarm when one or more targets remain unhealthy without being replaced",
+		"metric": "UnHealthyHostCount",
+		"statistic": "MINIMUM",
+		"period": 300,
+		"evaluationPeriods": 3,
+		"threshold": 0,
+		"comparisonOperator": "GREATER_THAN_THRESHOLD",
+		"useTargetGroupDimension": true
 	}],
 	"PORTAL": [{
 		"name": "5xx-High-Rate-Alarm",
@@ -98,6 +109,17 @@
 		"evaluationPeriods": 1,
 		"threshold": 0,
 		"comparisonOperator": "GREATER_THAN_THRESHOLD"
+	},
+	{
+		"name": "Unhealthy-Hosts-Alarm",
+		"description": "Alarm when one or more targets remain unhealthy without being replaced",
+		"metric": "UnHealthyHostCount",
+		"statistic": "MINIMUM",
+		"period": 300,
+		"evaluationPeriods": 3,
+		"threshold": 0,
+		"comparisonOperator": "GREATER_THAN_THRESHOLD",
+		"useTargetGroupDimension": true
 	}]
 
 }

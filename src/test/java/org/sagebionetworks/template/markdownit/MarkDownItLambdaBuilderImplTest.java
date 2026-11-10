@@ -1,6 +1,7 @@
 package org.sagebionetworks.template.markdownit;
 
 import org.apache.velocity.app.VelocityEngine;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -126,6 +127,24 @@ public class MarkDownItLambdaBuilderImplTest {
         assertTrue(resources.has("MarkdownItApiStage"));
         assertTrue(resources.has("CustomDomain"));
         assertTrue(resources.has("BasePathMapping"));
+        assertTrue(resources.has("mdlambdaSuccessRateAlarm"));
+        JSONObject alarmProps = resources.getJSONObject("mdlambdaSuccessRateAlarm").getJSONObject("Properties");
+        assertEquals("dev-markdown-it-lambda-success-rate", alarmProps.getString("AlarmName"));
+        assertEquals("us-east-1-synapse-dev-global-resources-NotificationTopic", alarmProps.getJSONArray("AlarmActions").getJSONObject(0).getString("Fn::ImportValue"));
+        assertEquals("LessThanThreshold", alarmProps.getString("ComparisonOperator"));
+        assertEquals(95, alarmProps.getInt("Threshold"));
+        assertEquals(3, alarmProps.getInt("EvaluationPeriods"));
+        assertEquals(3, alarmProps.getInt("DatapointsToAlarm"));
+        JSONArray alarmMetrics = alarmProps.getJSONArray("Metrics");
+        assertEquals(3, alarmMetrics.length());
+        assertEquals("100 - 100 * errors / MAX([errors, invocations])", alarmMetrics.getJSONObject(0).getString("Expression"));
+        assertTrue(alarmMetrics.getJSONObject(0).getBoolean("ReturnData"));
+        for (int i = 1; i < alarmMetrics.length(); i++) {
+            JSONObject metricStat = alarmMetrics.getJSONObject(i).getJSONObject("MetricStat");
+            assertEquals(300, metricStat.getInt("Period"));
+            assertEquals("AWS/Lambda", metricStat.getJSONObject("Metric").getString("Namespace"));
+            assertEquals("mdlambda", metricStat.getJSONObject("Metric").getJSONArray("Dimensions").getJSONObject(0).getJSONObject("Value").getString("Ref"));
+        }
 
         assertEquals("dev-markdown-it-function-signed", argCaptorWaitForStack.getValue());
         assertEquals("dev-markdown-it-function-signed", argCaptorDescribeStack.getValue());
@@ -202,6 +221,24 @@ public class MarkDownItLambdaBuilderImplTest {
         assertTrue(resources.has("MarkdownItApiStage"));
         assertTrue(resources.has("CustomDomain"));
         assertTrue(resources.has("BasePathMapping"));
+        assertTrue(resources.has("mdlambdaSuccessRateAlarm"));
+        JSONObject alarmProps = resources.getJSONObject("mdlambdaSuccessRateAlarm").getJSONObject("Properties");
+        assertEquals("prod-markdown-it-lambda-success-rate", alarmProps.getString("AlarmName"));
+        assertEquals("us-east-1-synapse-prod-global-resources-NotificationTopic", alarmProps.getJSONArray("AlarmActions").getJSONObject(0).getString("Fn::ImportValue"));
+        assertEquals("LessThanThreshold", alarmProps.getString("ComparisonOperator"));
+        assertEquals(95, alarmProps.getInt("Threshold"));
+        assertEquals(3, alarmProps.getInt("EvaluationPeriods"));
+        assertEquals(3, alarmProps.getInt("DatapointsToAlarm"));
+        JSONArray alarmMetrics = alarmProps.getJSONArray("Metrics");
+        assertEquals(3, alarmMetrics.length());
+        assertEquals("100 - 100 * errors / MAX([errors, invocations])", alarmMetrics.getJSONObject(0).getString("Expression"));
+        assertTrue(alarmMetrics.getJSONObject(0).getBoolean("ReturnData"));
+        for (int i = 1; i < alarmMetrics.length(); i++) {
+            JSONObject metricStat = alarmMetrics.getJSONObject(i).getJSONObject("MetricStat");
+            assertEquals(300, metricStat.getInt("Period"));
+            assertEquals("AWS/Lambda", metricStat.getJSONObject("Metric").getString("Namespace"));
+            assertEquals("mdlambda", metricStat.getJSONObject("Metric").getJSONArray("Dimensions").getJSONObject(0).getJSONObject("Value").getString("Ref"));
+        }
 
         assertEquals("prod-markdown-it-function-signed", argCaptorWaitForStack.getValue());
         assertEquals("prod-markdown-it-function-signed", argCaptorDescribeStack.getValue());

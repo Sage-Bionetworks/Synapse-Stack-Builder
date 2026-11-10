@@ -276,6 +276,33 @@
 				"Threshold" : ${descriptor.getTenPercentOfAllocatedStroageBytes()}
 			}
 		},
+		"${descriptor.resourceName}LowFreeableMemory": {
+			"Type" : "AWS::CloudWatch::Alarm",
+			"DependsOn": [
+				"${descriptor.resourceName}"
+			],
+			"Properties" : {
+				"ActionsEnabled" : true,
+				"AlarmActions" : [
+					{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}
+				],
+				"AlarmDescription" : "Alert when database freeable memory is low.",
+				"AlarmName" : "${descriptor.instanceIdentifier}-Low-Freeable-Memory",
+				"ComparisonOperator" : "LessThanOrEqualToThreshold",
+				"Dimensions" : [
+					{
+						"Name" : "DBInstanceIdentifier",
+						"Value" : "${descriptor.instanceIdentifier}"
+					}
+				],
+				"EvaluationPeriods" : 2,
+				"Period" : 300,
+				"MetricName" : "FreeableMemory",
+				"Namespace" : "AWS/RDS",
+				"Statistic" : "Average",
+				"Threshold" : 1073741824
+			}
+		},
 		"${descriptor.resourceName}HighDiskQueueDepth": {
 			"Type" : "AWS::CloudWatch::Alarm",
 			"DependsOn": [
@@ -688,6 +715,11 @@
                          },
                          {
                              "Effect": "Allow",
+                             "Action": "iam:PassRole",
+                             "Resource": {"Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/${stack}-${instance}-synidx-bedrock-embed"}
+                         },
+                         {
+                             "Effect": "Allow",
                              "Action": [
                                  "execute-api:*"
                              ],
@@ -1070,7 +1102,7 @@
 								    "aws:PrincipalArn": [
                                         { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:root" },
                                         { "Fn::ImportValue": "us-east-1-synapse-${stack}-cmk-SynapseDeploymentRoleArn"},
-                                        { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/Deployment-Pipeline-CodeBuildServiceRole" },
+                                        { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/*-CodeBuildServiceRole" },
                                         #if($deploymentTarget == "ECS_FARGATE")
                                         { "Fn::GetAtt": ["${stack}${instance}SynapesRepoWorkersEcsTaskRole", "Arn"] },
                                         { "Fn::GetAtt": ["${stack}${instance}SynapesPortalEcsTaskRole", "Arn"] },
@@ -1082,7 +1114,6 @@
                                         #else
                                         { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Administrator_693a85eb20cd5043" },
                                         { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Developer_1513da6c8161f765" },
-                                        { "Fn::Sub": "arn:aws:iam::#[[${AWS::AccountId}]]#:role/Synapse-Build-${instance}-CodeBuildServiceRole" }
                                         #end
                                     ]
                                 }
@@ -1163,12 +1194,6 @@
 				"Fn::GetAtt": ["SynapseSearchIndexDomain", "DomainEndpoint"]
 			}
 		},
-		"SynapseSearchIndexBedrockEmbedRoleArn": {
-			"Description": "The role the SearchIndex OpenSearch domain assumes to invoke Bedrock embeddings.",
-			"Value": {
-				"Fn::GetAtt": ["SynapseSearchIndexBedrockEmbedRole", "Arn"]
-			}
-		},	
 		#if($deploymentTarget == "BEANSTALK")
 		"BeanstalkApplicationId": {
 			"Description": "The elastic bean stalk application ID",

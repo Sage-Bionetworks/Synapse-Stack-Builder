@@ -4,6 +4,7 @@ import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOG_RETENTION_DA
 import static org.sagebionetworks.template.Constants.COGNITO_USER_POOL_CF_OUTPUT_NAME;
 import static org.sagebionetworks.template.Constants.COGNITO_USER_POOL_CLIENT_CF_OUTPUT_NAME;
 import static org.sagebionetworks.template.Constants.DELETION_POLICY;
+import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_ROUTE53_QUERY_LOG_GROUP_ARN;
 import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_SES_BOUNCE_TOPIC;
 import static org.sagebionetworks.template.Constants.GLOBAL_CFSTACK_OUTPUT_KEY_SES_COMPLAINT_TOPIC;
 import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_STACK_NAME_FORMAT;
@@ -26,6 +27,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -46,6 +49,13 @@ import software.amazon.awssdk.services.cloudformation.model.Stack;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeUserPoolClientRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeUserPoolClientResponse;
+import software.amazon.awssdk.services.route53.Route53Client;
+import software.amazon.awssdk.services.route53.model.CreateQueryLoggingConfigRequest;
+import software.amazon.awssdk.services.route53.model.HostedZone;
+import software.amazon.awssdk.services.route53.model.ListHostedZonesRequest;
+import software.amazon.awssdk.services.route53.model.ListHostedZonesResponse;
+import software.amazon.awssdk.services.route53.model.ListQueryLoggingConfigsRequest;
+import software.amazon.awssdk.services.route53.model.QueryLoggingConfigAlreadyExistsException;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest;
 import software.amazon.awssdk.services.secretsmanager.model.PutSecretValueRequest;
@@ -55,6 +65,10 @@ import software.amazon.awssdk.utils.StringUtils;
 
 public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
 
+	private static final Logger LOGGER = LogManager.getLogger(GlobalResourcesBuilderImpl.class);
+
+	static final String HOSTED_ZONE_ID_PREFIX = "/hostedzone/";
+
 	private final CloudFormationClientWrapper cloudFormationClientWrapper;
     private final VelocityEngine velocityEngine;
     private final Configuration config;
@@ -63,6 +77,7 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
 	private final StsClient stsClient;
 	private final SecretsManagerClient secretsManager;
 	private final CognitoIdentityProviderClient cognitoIdentityProviderClient;
+	private final Route53Client route53Client;
 
     @Inject
     public GlobalResourcesBuilderImpl(CloudFormationClientWrapper cloudFormationClientWrapper,
@@ -72,7 +87,8 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
                                       SesClientWrapper sesClientWrapper,
                                       StsClient stsClient,
                                       SecretsManagerClient secretsManager,
-                                      CognitoIdentityProviderClient cognitoIdentityProviderClient) {
+                                      CognitoIdentityProviderClient cognitoIdentityProviderClient,
+                                      Route53Client route53Client) {
         this.cloudFormationClientWrapper = cloudFormationClientWrapper;
         this.velocityEngine = velocityEngine;
         this.config = config;
@@ -81,6 +97,7 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
         this.stsClient = stsClient;
 		this.secretsManager = secretsManager;
 		this.cognitoIdentityProviderClient = cognitoIdentityProviderClient;
+		this.route53Client = route53Client;
     }
 
     @Override
@@ -106,10 +123,59 @@ public class GlobalResourcesBuilderImpl implements GlobalResourcesBuilder {
         // Secrets Manager, so we do that as a post-processing step using the AWS client directly
         copyCognitoSecretsToSecretsManager(config.getProperty(PROPERTY_KEY_STACK), stack.get());
         
-        // setup SES notifications on prod stack
+        // setup SES notifications and Route 53 query logging on prod stack
         if ("prod".equalsIgnoreCase(config.getProperty(PROPERTY_KEY_STACK))) {
             setupSesTopics(stackName);
+            enableQueryLoggingOnPublicHostedZones(
+            		cloudFormationClientWrapper.getOutput(stackName, GLOBAL_CFSTACK_OUTPUT_KEY_ROUTE53_QUERY_LOG_GROUP_ARN));
         }
+    }
+
+    /**
+     * The hosted zones are not managed by CloudFormation, so query logging is attached to each
+     * public hosted zone in the account directly. Zones that already have a query logging config
+     * are left untouched (Route 53 allows only one per zone).
+     *
+     * @param logGroupArn The ARN of the log group (without the trailing ':*')
+     */
+    void enableQueryLoggingOnPublicHostedZones(String logGroupArn) {
+    	if (StringUtils.isEmpty(logGroupArn))
+    		throw new IllegalStateException("Stack output '"+GLOBAL_CFSTACK_OUTPUT_KEY_ROUTE53_QUERY_LOG_GROUP_ARN+"' is required.");
+
+    	String marker = null;
+    	do {
+    		ListHostedZonesResponse response = route53Client.listHostedZones(ListHostedZonesRequest.builder().marker(marker).build());
+    		for (HostedZone zone : response.hostedZones()) {
+    			if (zone.config() != null && Boolean.TRUE.equals(zone.config().privateZone())) {
+    				continue;
+    			}
+    			enableQueryLogging(zone, logGroupArn);
+    		}
+    		marker = Boolean.TRUE.equals(response.isTruncated()) ? response.nextMarker() : null;
+    	} while (marker != null);
+    }
+
+    void enableQueryLogging(HostedZone zone, String logGroupArn) {
+    	String hostedZoneId = zone.id().replace(HOSTED_ZONE_ID_PREFIX, "");
+
+    	boolean hasQueryLogging = !route53Client.listQueryLoggingConfigs(ListQueryLoggingConfigsRequest.builder()
+    			.hostedZoneId(hostedZoneId)
+    			.build()).queryLoggingConfigs().isEmpty();
+
+    	if (hasQueryLogging) {
+    		LOGGER.info("Query logging already enabled for hosted zone {} ({})", zone.name(), hostedZoneId);
+    		return;
+    	}
+
+    	try {
+    		route53Client.createQueryLoggingConfig(CreateQueryLoggingConfigRequest.builder()
+    				.hostedZoneId(hostedZoneId)
+    				.cloudWatchLogsLogGroupArn(logGroupArn)
+    				.build());
+    		LOGGER.info("Enabled query logging for hosted zone {} ({}) to {}", zone.name(), hostedZoneId, logGroupArn);
+    	} catch (QueryLoggingConfigAlreadyExistsException e) {
+    		LOGGER.info("Query logging already enabled for hosted zone {} ({})", zone.name(), hostedZoneId);
+    	}
     }
     
     void copyCognitoSecretsToSecretsManager(String stackPrefix, Stack cfStack) {

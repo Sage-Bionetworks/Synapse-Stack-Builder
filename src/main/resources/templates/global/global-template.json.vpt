@@ -4,6 +4,7 @@
 	"Resources": {
 #parse("templates/global/sns-template.json.vpt")
 #parse("templates/global/webacl-cloudwatch-loggroup.json.vpt")
+#parse("templates/global/route53-query-logging.json.vpt")
 #parse("templates/global/bedrock-kb-template.json.vpt")
 #parse("templates/global/rds-snapshot-encryption-key.json.vpt")
 #parse("templates/global/cognito-user-pool.json.vpt")
@@ -85,6 +86,38 @@
 								"Ref": "AWS::StackName"
 							},
 							"WebAclCloudWatchLogGroupArn"
+						]
+					]
+		        }
+		    }
+		},
+		"Route53QueryLogGroupArn": {
+		    "Description": "Cloudwatch log group for public Route 53 hosted zone query logs (no trailing ':*', as required by CreateQueryLoggingConfig)",
+		    "Value": {
+				"Fn::Join": [
+					"",
+					[
+						"arn:aws:logs:",
+						{ "Ref": "AWS::Region" },
+						":",
+						{ "Ref": "AWS::AccountId" },
+						":log-group:",
+						{ "Ref": "${stack}Route53QueryLogGroup" }
+					]
+				]
+			},
+		    "Export": {
+		        "Name": {
+					"Fn::Join": [
+						"-",
+						[
+							{
+								"Ref": "AWS::Region"
+							},
+							{
+								"Ref": "AWS::StackName"
+							},
+							"Route53QueryLogGroupArn"
 						]
 					]
 		        }
