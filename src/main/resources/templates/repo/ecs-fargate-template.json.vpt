@@ -488,6 +488,9 @@
 			"Properties": {
 				"AlarmName": "${environment.name}-AWS-ELB-${alarm.name}",
 				"AlarmDescription": "${alarm.description}",
+				#if(${alarm.disableActions})
+				"ActionsEnabled": false,
+				#end
 				"AlarmActions": [
 					{
 						"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"
