@@ -534,6 +534,13 @@
 			"oldestMessageInQueueAlarmThresholdSec": 4
 		},
 		{
+			"queueName": "GRID_SNAPSHOT_EXPORT.fifo",
+			"subscribedTopicNames": [
+			],
+			"messageVisibilityTimeoutSec": 120,
+			"oldestMessageInQueueAlarmThresholdSec": 900
+		},
+		{
 			"queueName": "GRID_REPLICA_CHANGES_VALIDATION",
 			"subscribedTopicNames": [
 				"GRID_REPLICA_CHANGES"
