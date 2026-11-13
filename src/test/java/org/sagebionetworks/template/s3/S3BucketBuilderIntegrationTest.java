@@ -102,7 +102,10 @@ public class S3BucketBuilderIntegrationTest {
         bucket2.setName("${stack}.bucket2.sagebase.org");
         bucket2.setDevOnly(true);
 
-        when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(dataBucket, inventoryBucket, bucket, bucket2));
+        S3BucketDescriptor staticContentBucket = new S3BucketDescriptor();
+        staticContentBucket.setName("${stack}.static-content.sagebase.org");
+
+        when(mockS3Config.getBuckets()).thenReturn(Arrays.asList(dataBucket, inventoryBucket, bucket, bucket2, staticContentBucket));
 
         Stack bucketPolicyStack = Stack.builder().build();
 

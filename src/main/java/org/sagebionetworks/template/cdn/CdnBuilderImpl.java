@@ -38,6 +38,8 @@ public class CdnBuilderImpl implements CdnBuilder {
 
 	private static final String TEMPLATE_STACK_DATA_CDN = "templates/cdn/synapse-data-cdn.json.vtp";
 
+	private static final String TEMPLATE_STACK_STATIC_CONTENT_CDN = "templates/cdn/synapse-static-content-cdn.json.vtp";
+
 	private RepoConfiguration config;
 	private VelocityEngine velocity;
 	private CloudFormationClientWrapper cloudFormationClientWrapper;
@@ -76,6 +78,14 @@ public class CdnBuilderImpl implements CdnBuilder {
 			ctxt.put(CTXT_KEY_SUBDOMAIN_NAME, subDomain);
 			String publicKeyHash = DigestUtils.md5Hex(dataCDNPublicKey);
 			ctxt.put(CTXT_KEY_PUBLIC_KEY_HASH, publicKeyHash);
+		} else if (Type.STATIC_CONTENT.equals(type)) {
+			String stack = config.getProperty(PROPERTY_KEY_STACK);
+			ctxt.put(STACK, stack);
+			// Shares the data CDN's certificate; it must also cover the static content domain.
+			String acmCertificateArn = config.getProperty(PROPERTY_KEY_DATA_CDN_CERTIFICATE_ARN);
+			ctxt.put(CTXT_KEY_ACM_CERT_ARN, acmCertificateArn);
+			String subDomain = Constants.isProd(stack) ? PROD_STACK_NAME : DEV_STACK_NAME;
+			ctxt.put(CTXT_KEY_SUBDOMAIN_NAME, subDomain);
 		} else {
 			throw new IllegalArgumentException("A valid CdnBuilder Type must be used.");
 		}
@@ -94,6 +104,9 @@ public class CdnBuilderImpl implements CdnBuilder {
 		} else if (Type.DATA.equals(type)){
 			template = velocity.getTemplate(TEMPLATE_STACK_DATA_CDN);
 			cfStackName = String.format("cdn-%s-data-synapse", context.get(STACK));
+		} else if (Type.STATIC_CONTENT.equals(type)) {
+			template = velocity.getTemplate(TEMPLATE_STACK_STATIC_CONTENT_CDN);
+			cfStackName = String.format("cdn-%s-static-content-synapse", context.get(STACK));
 		} else {
 			throw new IllegalArgumentException("A valid CdnBuilder Type must be used.");
 		}

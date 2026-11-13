@@ -138,6 +138,42 @@
                  }]
             }
        }
-  	}
+  	},
+    "devstaticcontentsagebaseorgBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": "dev.static-content.sagebase.org",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "AllowCloudFrontServicePrincipal",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "cloudfront.amazonaws.com"
+              },
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::dev.static-content.sagebase.org/*",
+              "Condition": {
+                "StringEquals": {
+                  "AWS:SourceArn": {"Fn::ImportValue": "devstatic-content-sagebase-org-CDN-ARN"}
+                }
+              }
+            },
+            {
+              "Sid": "RestrictToTLSRequestsOnly",
+              "Action": "s3:*",
+              "Effect": "Deny",
+              "Resource": [
+                "arn:aws:s3:::dev.static-content.sagebase.org",
+                "arn:aws:s3:::dev.static-content.sagebase.org/*"
+              ],
+              "Condition": {"Bool": {"aws:SecureTransport": "false"}},
+              "Principal": "*"
+            }
+          ]
+        }
+      }
+    }
   }
 }

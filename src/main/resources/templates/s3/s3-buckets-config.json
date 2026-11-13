@@ -95,6 +95,9 @@
 		{
 			"name": "${stack}.code-interpreter.staging.sagebase.org",
 			"retentionDays": 1
+		},
+		{
+			"name": "${stack}.static-content.sagebase.org"
 		}
 
 	],
