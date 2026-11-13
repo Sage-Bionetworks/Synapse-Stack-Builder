@@ -332,6 +332,10 @@
 								"Value": "${dataCdnDomainName}"
 							},
 							{
+								"Name": "org.sagebionetworks.email.images.base.url",
+								"Value": "${emailImagesBaseUrl}"
+							},
+							{
 								"Name": "org.sagebionetworks.oauth2.sagebio.discoveryDocument",
 								"Value": "${DiscoveryDocumentUrl}"
 							},

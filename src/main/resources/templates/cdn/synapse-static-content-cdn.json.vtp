@@ -1,0 +1,83 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Provision a CloudFront distribution for Synapse static content",
+  "Resources": {
+    "CloudFront": {
+      "Type": "AWS::CloudFront::Distribution",
+      "DependsOn": [
+        "OriginAccessControl"
+      ],
+      "Properties": {
+        "DistributionConfig": {
+          "Aliases": ["static.${SubDomainName}.sagebase.org"],
+          "Comment": "CloudFront distribution for ${stack}.static-content.sagebase.org",
+          "Origins": [
+            {
+              "DomainName": "${stack}.static-content.sagebase.org.s3.us-east-1.amazonaws.com",
+              "Id": "${stack}.static-content.sagebase.org",
+              "OriginAccessControlId": {
+                "Ref": "OriginAccessControl"
+              },
+              "S3OriginConfig": {
+                "OriginAccessIdentity": ""
+              }
+            }
+          ],
+          "DefaultCacheBehavior": {
+            "AllowedMethods": [
+              "GET",
+              "HEAD"
+            ],
+            "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+            "Compress": true,
+            "TargetOriginId": "${stack}.static-content.sagebase.org",
+            "ViewerProtocolPolicy": "redirect-to-https"
+          },
+          "Enabled": true,
+          "HttpVersion": "http2and3",
+          "IPV6Enabled": false,
+          "PriceClass": "PriceClass_100",
+          "ViewerCertificate": {
+            "AcmCertificateArn" : "${AcmCertificateArn}",
+            "MinimumProtocolVersion" : "TLSv1.2_2021",
+            "SslSupportMethod" : "sni-only"
+          }
+        }
+      }
+    },
+    "OriginAccessControl": {
+      "Type": "AWS::CloudFront::OriginAccessControl",
+      "Properties": {
+        "OriginAccessControlConfig": {
+          "Description": "Origin Access Control for origin ${stack}.static-content.sagebase.org",
+          "Name": "${stack}static-content-origin-access-control",
+          "OriginAccessControlOriginType": "s3",
+          "SigningBehavior": "always",
+          "SigningProtocol": "sigv4"
+        }
+      }
+    },
+    "CloudFrontRecordSet": {
+      "Type" : "AWS::Route53::RecordSet",
+      "Properties" : {
+        "AliasTarget" : {
+          "DNSName" : { "Fn::GetAtt": ["CloudFront", "DomainName"] },
+          "HostedZoneId" : "Z2FDTNDATAQYW2"
+        },
+        "Comment" : "Record set for the CloudFront distribution for ${stack}.static-content.sagebase.org",
+        "HostedZoneName" : "${SubDomainName}.sagebase.org.",
+        "Name" : "static.${SubDomainName}.sagebase.org",
+        "Type" : "A"
+      }
+    }
+  },
+  "Outputs" : {
+    "CloudFrontDistributionARN" : {
+      "Description" : "The ARN for the ${stack}.static-content.sagebase.org CloudFront distribution",
+      "Value" : { "Fn::Join": ["", ["arn:aws:cloudfront::", { "Ref": "AWS::AccountId" }, ":distribution/", { "Ref": "CloudFront" }]] },
+      "Export" : {
+        "Name" : "${stack}static-content-sagebase-org-CDN-ARN"
+      }
+    }
+  }
+}

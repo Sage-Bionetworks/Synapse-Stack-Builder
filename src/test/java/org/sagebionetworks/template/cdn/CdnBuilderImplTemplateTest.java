@@ -114,4 +114,35 @@ public class CdnBuilderImplTemplateTest {
 		assertEquals(1, optStack.get().tags().size());
 		assertEquals(tag, optStack.get().tags().get(0));
 	}
+
+	@Test
+	void testBuildStaticContentCdnStackTemplate() throws Exception {
+		List<Tag> expectedTags = new ArrayList<>();
+		Tag tag = Tag.builder().key("aKey").value("aValue").build();
+		expectedTags.add(tag);
+		Stack expectedStack = Stack.builder().stackName("cdn-tst-static-content-synapse").tags(expectedTags).build();
+		when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
+
+		when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
+		when(mockCloudFormationClientWrapper.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
+
+		when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("tst");
+		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.certificate.arn")).thenReturn("arn:aws:acm:us-east-1:5678:certificate/1234");
+
+		// call under test
+		Optional<Stack> optStack = builder.buildCdnStack(CdnBuilder.Type.STATIC_CONTENT);
+
+		String expectedTemplate = new JSONObject(TemplateUtils.loadContentFromFile("cdn/synapse-static-content-cdn-test.json")).toString(5);
+
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
+		CreateOrUpdateStackRequest req = createOrUpdateStackRequestArgumentCaptor.getValue();
+		assertEquals("cdn-tst-static-content-synapse", req.getStackName());
+		assertEquals(expectedTemplate, new JSONObject(req.getTemplateBody()).toString(5));
+		assertEquals(expectedTags, req.getTags());
+
+		assertTrue(optStack.isPresent());
+		assertEquals("cdn-tst-static-content-synapse", optStack.get().stackName());
+		assertEquals(1, optStack.get().tags().size());
+		assertEquals(tag, optStack.get().tags().get(0));
+	}
 }
