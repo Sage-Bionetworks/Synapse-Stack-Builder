@@ -180,6 +180,8 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		// Only the alarm configured to use the target group dimension should include it
 		assertEquals(1, StringUtils.countMatches(alarmsConf, "- Name: TargetGroup"));
 		assertTrue(alarmsConf.contains("{ \"Fn::GetAtt\" : [\"AWSEBV2LoadBalancerTargetGroup\", \"TargetGroupFullName\"] }"));
+		// Only the alarm configured with disabled actions should include ActionsEnabled: false
+		assertEquals(1, StringUtils.countMatches(alarmsConf, "ActionsEnabled: false"));
 
 		JSONObject albJson = new JSONObject(albDependencies.toString());
 				
@@ -218,6 +220,7 @@ public class ElasticBeanstalkExtentionBuilderImplTest {
 		alarm.setStatistic(Statistic.SUM);
 		alarm.setPeriod(60);
 		alarm.setThreshold(20D);
+		alarm.setDisableActions(true);
 		LoadBalancerAlarm targetGroupAlarm = new LoadBalancerAlarm();
 		targetGroupAlarm.setName("Target-Group-Alarm");
 		targetGroupAlarm.setDescription("Description");
