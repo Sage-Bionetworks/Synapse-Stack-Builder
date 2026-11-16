@@ -1,5 +1,6 @@
 package org.sagebionetworks.template.repo.queues;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PREFIX;
@@ -56,6 +57,28 @@ public class SnsAndSqsTest {
 		assertFalse(json.toString().contains("AWS::CloudWatch::Alarm"));
 	}
 	
+	@Test
+	public void testFifoQueueDeadLetter() {
+		JSONObject json = mergeTemplateForStack("dev");
+		JSONObject queueProps = json.getJSONObject("GridSnapshotExportFifoQueue").getJSONObject("Properties");
+		JSONObject redrive = queueProps.getJSONObject("RedrivePolicy");
+		assertEquals("30", redrive.get("maxReceiveCount").toString());
+		assertEquals("GridSnapshotExportFifoDeadLetter",
+				redrive.getJSONObject("deadLetterTargetArn").getJSONArray("Fn::GetAtt").getString(0));
+		JSONObject dlqProps = json.getJSONObject("GridSnapshotExportFifoDeadLetter").getJSONObject("Properties");
+		assertTrue(dlqProps.getBoolean("FifoQueue"));
+		assertEquals("dev-101-GRID_SNAPSHOT_EXPORT-dead-letter.fifo", dlqProps.getString("QueueName"));
+	}
+
+	@Test
+	public void testStandardQueueDeadLetter() {
+		JSONObject json = mergeTemplateForStack("dev");
+		JSONObject dlqProps = json.getJSONObject("WebhookMessageDeadLetter").getJSONObject("Properties");
+		assertFalse(dlqProps.has("FifoQueue"));
+		assertEquals(1, dlqProps.length());
+		assertEquals("dev-101-WEBHOOK_MESSAGE-dead-letter", dlqProps.getString("QueueName"));
+	}
+
 	/**
 	 * Merge the template to the context using the provided stack.
 	 * @param stack

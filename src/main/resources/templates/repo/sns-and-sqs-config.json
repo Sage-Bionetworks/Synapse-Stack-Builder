@@ -538,6 +538,7 @@
 			"subscribedTopicNames": [
 			],
 			"messageVisibilityTimeoutSec": 120,
+			"deadLetterQueueMaxFailureCount": 30,
 			"oldestMessageInQueueAlarmThresholdSec": 900
 		},
 		{

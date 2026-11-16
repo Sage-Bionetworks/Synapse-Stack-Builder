@@ -59,6 +59,17 @@ public class SqsQueueDescriptor {
 		return Constants.createCamelCaseName(queueName.replace(".", "_"), "_");
 	}
 
+	/**
+	 * The name of the dead-letter queue (without stack/instance prefix). The DLQ of a
+	 * FIFO queue must also be FIFO, so its name must end with '.fifo'.
+	 */
+	public String getDeadLetterQueueName() {
+		if (getFifoQueue()) {
+			return queueName.substring(0, queueName.length() - ".fifo".length()) + "-dead-letter.fifo";
+		}
+		return queueName + "-dead-letter";
+	}
+
 	public Set<SnsTopicDescriptor> getSubscribedTopicDescriptors() {
 		return subscribedTopicDescriptors;
 	}
