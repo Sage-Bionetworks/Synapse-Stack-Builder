@@ -21,6 +21,7 @@ public class LoadBalancerAlarm {
 	private Double threshold;
 	private ComparisonOperator comparisonOperator;
 	private boolean useTargetGroupDimension;
+	private boolean disableActions;
 
 	public String getName() {
 		return name;
@@ -102,9 +103,21 @@ public class LoadBalancerAlarm {
 		this.useTargetGroupDimension = useTargetGroupDimension;
 	}
 
+	/**
+	 * @return True if the alarm actions should be disabled (ActionsEnabled: false). The alarm still changes state
+	 *         and is visible in CloudWatch, but no notification is sent.
+	 */
+	public boolean isDisableActions() {
+		return disableActions;
+	}
+
+	public void setDisableActions(boolean disableActions) {
+		this.disableActions = disableActions;
+	}
+
 	@Override
 	public int hashCode() {
-		return Objects.hash(comparisonOperator, description, evaluationPeriods, metric, name, period, statistic, threshold, useTargetGroupDimension);
+		return Objects.hash(comparisonOperator, description, evaluationPeriods, metric, name, period, statistic, threshold, useTargetGroupDimension, disableActions);
 	}
 
 	@Override
@@ -122,7 +135,8 @@ public class LoadBalancerAlarm {
 		return comparisonOperator == other.comparisonOperator && Objects.equals(description, other.description)
 				&& Objects.equals(evaluationPeriods, other.evaluationPeriods) && Objects.equals(metric, other.metric)
 				&& Objects.equals(name, other.name) && Objects.equals(period, other.period) && statistic == other.statistic
-				&& Objects.equals(threshold, other.threshold) && useTargetGroupDimension == other.useTargetGroupDimension;
+				&& Objects.equals(threshold, other.threshold) && useTargetGroupDimension == other.useTargetGroupDimension
+				&& disableActions == other.disableActions;
 	}
 
 }
