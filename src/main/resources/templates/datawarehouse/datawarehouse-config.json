@@ -1442,13 +1442,8 @@
 		},
 		{
 			"name": "asyncjobrecords",
-			"description" : "The table contains a record of every asynchronous job that ran, written when the job completed or failed. A job that never ended, e.g., because its worker stopped, has no record; the call that started it is still in the processedaccessrecord. For a job whose request carries a table query, the record includes the query, but the request bodies of other job types are never recorded.",
+			"description" : "The table contains a record of every asynchronous job that ran, written when the job completed or failed, with the job's full request and response bodies. Its columns follow the asynchronous job status. A job that never ended, e.g., because its worker stopped, has no record; the call that started it is still in the processedaccessrecord. A record too large for the delivery stream is not written, and its job is logged instead.",
 			"columns":[{
-				"name": "timestamp",
-				"type" : "timestamp",
-				"comment" : "The time when the job ended."
-			},
-			{
 				"name": "job_id",
 				"type" : "bigint",
 				"comment" : "The id of the job."
@@ -1459,24 +1454,14 @@
 				"comment" : "The type of the job, e.g., QUERY, DOWNLOAD_CSV_FROM_TABLE, AGENT_CHAT."
 			},
 			{
-				"name": "request_concrete_type",
+				"name": "job_state",
 				"type" : "string",
-				"comment" : "The concrete type of the job's request body."
+				"comment" : "The state the job ended in: COMPLETE or FAILED."
 			},
 			{
-				"name": "user_id",
+				"name": "started_by",
 				"type" : "bigint",
 				"comment" : "The id of the user who started the job."
-			},
-			{
-				"name": "session_id",
-				"type" : "string",
-				"comment" : "The UUID assigned to the API request that started the job. By joining this table with the processedaccessrecord on session_id, more information about the call that started the job can be found."
-			},
-			{
-				"name": "entity_id",
-				"type" : "bigint",
-				"comment" : "The id (without 'syn' prefix) of the entity the job's request names, for the request types that name one."
 			},
 			{
 				"name": "started_on",
@@ -1484,39 +1469,39 @@
 				"comment" : "The time when the job started."
 			},
 			{
+				"name": "changed_on",
+				"type" : "timestamp",
+				"comment" : "The time when the job ended."
+			},
+			{
 				"name": "runtime_ms",
 				"type" : "bigint",
 				"comment" : "How long the job ran, in milliseconds."
 			},
 			{
-				"name": "outcome",
-				"type" : "string",
-				"comment" : "How the job ended: COMPLETE or FAILED."
-			},
-			{
-				"name": "exception_class",
+				"name": "exception",
 				"type" : "string",
 				"comment" : "The class of the exception that failed the job."
 			},
 			{
-				"name": "query",
+				"name": "error_message",
 				"type" : "string",
-				"comment" : "The JSON of the table query carried by the job's request, including its additional filters, selected facets and cohort definitions; read it with json_extract. Null for requests that carry no table query, or whose query could not be read, such as a malformed next page token."
+				"comment" : "The one line error message of a failed job."
 			},
 			{
-				"name": "result_count",
-				"type" : "bigint",
-				"comment" : "The query count returned by a query job. Null when the request's part mask did not ask for the count, and for jobs that do not return a query result bundle, such as a next page query."
+				"name": "session_id",
+				"type" : "string",
+				"comment" : "The UUID assigned to the API request that started the job. By joining this table with the processedaccessrecord on session_id, more information about the call that started the job can be found."
 			},
 			{
-				"name": "facet_post_processing_applied",
-				"type" : "boolean",
-				"comment" : "True when the facet counts returned by a query job were post-processed, e.g., rounded or noised."
+				"name": "request_body",
+				"type" : "string",
+				"comment" : "The JSON of the job's request body; read it with json_extract. Its shape depends on the job_type, e.g., the table query of a QUERY job is in $.query."
 			},
 			{
-				"name": "truncated",
-				"type" : "boolean",
-				"comment" : "True when the query was too large to record in full, so only the start of its SQL was kept."
+				"name": "response_body",
+				"type" : "string",
+				"comment" : "The JSON of the job's response body; read it with json_extract. Null for a failed job."
 			},
 			{
 				"name": "stack",
