@@ -24,7 +24,10 @@
         ,"${queueDescriptor.queueReferenceName}DeadLetter":{
             "Type" : "AWS::SQS::Queue",
             "Properties":{
-            "QueueName": "${stack}-${instance}-${queueDescriptor.queueName}-dead-letter"
+            #if ( $queueDescriptor.fifoQueue)
+            "FifoQueue": true,
+            #end
+            "QueueName": "${stack}-${instance}-${queueDescriptor.deadLetterQueueName}"
             }
         }
         #end

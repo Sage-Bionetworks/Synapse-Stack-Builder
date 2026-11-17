@@ -46,6 +46,7 @@ public class SqsQueueDescriptorTest {
 				messageRetentionPeriodSec);
 		assertFalse(d.getFifoQueue());
 		assertEquals("Goodname", d.getQueueReferenceName());
+		assertEquals("goodName-dead-letter", d.getDeadLetterQueueName());
 	}
 
 	@Test
@@ -55,5 +56,6 @@ public class SqsQueueDescriptorTest {
 				messageRetentionPeriodSec);
 		assertTrue(d.getFifoQueue());
 		assertEquals("GoodnameFifo", d.getQueueReferenceName());
+		assertEquals("goodName-dead-letter.fifo", d.getDeadLetterQueueName());
 	}
 }
