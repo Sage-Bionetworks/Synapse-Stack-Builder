@@ -153,6 +153,17 @@
 		"threshold": 0,
 		"comparisonOperator": "GREATER_THAN_THRESHOLD",
 		"useTargetGroupDimension": true
+	},
+	{
+		"name": "Target-High-Average-Response-Time-Alarm",
+		"description": "Alarm when an high average response time is detected from the targets",
+		"metric": "TargetResponseTime",
+		"statistic": "AVERAGE",
+		"period": 300,
+		"evaluationPeriods": 1,
+		"threshold": 1,
+		"comparisonOperator": "GREATER_THAN_OR_EQUAL_TO_THRESHOLD",
+		"disableActions": true
 	}]
 
 }
