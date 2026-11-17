@@ -1,5 +1,6 @@
 package org.sagebionetworks.template.repo.queues;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PREFIX;
@@ -45,6 +46,21 @@ public class SnsAndSqsTest {
 		assertTrue(json.has("AddFilesToDownloadListOldestMessageAlarm"));
 		assertTrue(json.has("DoiOldestMessageAlarm"));
 		assertTrue(json.has("StorageReportOldestMessageAlarm"));
+		// queues with both an oldest-message alarm and a DLQ also get a DLQ alarm
+		assertTrue(json.has("FileUpdateDeadLetterNewMessagesAlarm"));
+		assertTrue(json.has("SearchIndexDeadLetterNewMessagesAlarm"));
+		assertTrue(json.has("WebhookMessageDeadLetterNewMessagesAlarm"));
+		assertTrue(json.has("SearchIndexLifecycleDeadLetterNewMessagesAlarm"));
+		// DLQs also get an ApproximateAgeOfOldestMessage alarm (Vanta: message age monitored)
+		assertTrue(json.has("FileUpdateDeadLetterOldestMessageAlarm"));
+		assertTrue(json.has("SearchIndexDeadLetterOldestMessageAlarm"));
+		assertTrue(json.has("WebhookMessageDeadLetterOldestMessageAlarm"));
+		assertTrue(json.has("SearchIndexLifecycleDeadLetterOldestMessageAlarm"));
+		assertEquals(604800, json.getJSONObject("FileUpdateDeadLetterOldestMessageAlarm").getJSONObject("Properties").getInt("Threshold"));
+		// DLQs use max retention so messages do not expire before investigation
+		assertEquals("1209600", json.getJSONObject("FileUpdateDeadLetter").getJSONObject("Properties").getString("MessageRetentionPeriod"));
+		// queues without a DLQ get no DLQ alarm
+		assertFalse(json.has("DoiDeadLetterNewMessagesAlarm"));
 	}
 	
 	@Test
