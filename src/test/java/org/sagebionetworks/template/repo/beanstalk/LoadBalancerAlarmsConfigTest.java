@@ -39,7 +39,7 @@ public class LoadBalancerAlarmsConfigTest {
 		Injector injector = Guice.createInjector(new TemplateGuiceModule());
 		LoadBalancerAlarmsConfig config = injector.getInstance(LoadBalancerAlarmsConfig.class);
 		List<LoadBalancerAlarm> workers = config.get(EnvironmentType.REPOSITORY_WORKERS);
-		assertEquals(3, workers.size());
+		assertEquals(4, workers.size());
 		for (LoadBalancerAlarm alarm : workers) {
 			// Workers only receive health check traffic: only the unhealthy hosts alarm notifies
 			assertEquals(alarm.getName(), !"UnHealthyHostCount".equals(alarm.getMetric()), alarm.isDisableActions());
