@@ -1,6 +1,6 @@
 {
 	"githubRepo": "Synapse-ETL-Jobs",
-	"version": "1.67.0",
+	"version": "1.69.0",
 	"extraScripts": ["utils.py","glue_job.py"],
 	"tableDescriptors": [{
 			"name": "processedaccessrecord",
@@ -1439,6 +1439,91 @@
 				"projection.dt.interval.unit": "MONTHS"
 			},
 			"location": "s3://${stack}.filehandles.sagebase.org/fileHandleAssociations/records/"
+		},
+		{
+			"name": "asyncjobrecords",
+			"description" : "The table contains a record of every asynchronous job that ran, written when the job completed or failed, with the job's full request and response bodies. Its columns follow the asynchronous job status. A job that never ended, e.g., because its worker stopped, has no record; the call that started it is still in the processedaccessrecord. A record too large for the delivery stream is not written, and its job is logged instead.",
+			"columns":[{
+				"name": "job_id",
+				"type" : "bigint",
+				"comment" : "The id of the job."
+			},
+			{
+				"name": "job_type",
+				"type" : "string",
+				"comment" : "The type of the job, e.g., QUERY, DOWNLOAD_CSV_FROM_TABLE, AGENT_CHAT."
+			},
+			{
+				"name": "job_state",
+				"type" : "string",
+				"comment" : "The state the job ended in: COMPLETE or FAILED."
+			},
+			{
+				"name": "started_by",
+				"type" : "bigint",
+				"comment" : "The id of the user who started the job."
+			},
+			{
+				"name": "started_on",
+				"type" : "timestamp",
+				"comment" : "The time when the job started."
+			},
+			{
+				"name": "changed_on",
+				"type" : "timestamp",
+				"comment" : "The time when the job ended."
+			},
+			{
+				"name": "runtime_ms",
+				"type" : "bigint",
+				"comment" : "How long the job ran, in milliseconds."
+			},
+			{
+				"name": "exception",
+				"type" : "string",
+				"comment" : "The class of the exception that failed the job."
+			},
+			{
+				"name": "error_message",
+				"type" : "string",
+				"comment" : "The one line error message of a failed job."
+			},
+			{
+				"name": "session_id",
+				"type" : "string",
+				"comment" : "The UUID assigned to the API request that started the job. By joining this table with the processedaccessrecord on session_id, more information about the call that started the job can be found."
+			},
+			{
+				"name": "request_body",
+				"type" : "string",
+				"comment" : "The JSON of the job's request body; read it with json_extract. Its shape depends on the job_type, e.g., the table query of a QUERY job is in $.query."
+			},
+			{
+				"name": "response_body",
+				"type" : "string",
+				"comment" : "The JSON of the job's response body; read it with json_extract. Null for a failed job."
+			},
+			{
+				"name": "stack",
+				"type" : "string",
+				"comment" : "The stack (prod, dev) on which the job ran."
+			},
+			{
+				"name": "instance",
+				"type" : "string",
+				"comment" : "The version of the stack that ran the job."
+			}],
+			"partitionKeys":[{
+				"name": "record_date",
+				"type" : "date",
+				"comment" : "The data is partitioned for fast and cost effective queries. The timestamp field is converted into a date and stored in the record_date field for partitioning. The date should be used as a condition (WHERE CLAUSE) in the queries."
+			}],
+			"parameters": {
+				"projection.enabled": "true",
+				"projection.record_date.type": "date",
+				"projection.record_date.range": "NOW-5YEARS,NOW",
+				"projection.record_date.format": "yyyy-MM-dd"
+			}
 		}
 	],
 	"etlJobDescriptors":[{
@@ -1545,6 +1630,13 @@
 			"scriptName": "project_settings_snapshots.py",
 			"sourcePath" : "log.sagebase.org/projectSettingSnapshots/records/",
 			"targetTable": "projectsettingsnapshots"
+		},
+		{
+			"name": "asyncjobrecords",
+			"description": "This job processes the asynchronous job records",
+			"scriptName": "async_job_records.py",
+			"sourcePath" : "log.sagebase.org/asyncJobRecords/records/",
+			"targetTable": "asyncjobrecords"
 		}
 	]
 }
