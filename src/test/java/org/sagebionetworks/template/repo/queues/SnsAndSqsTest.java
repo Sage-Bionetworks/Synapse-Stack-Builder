@@ -83,6 +83,7 @@ public class SnsAndSqsTest {
 		JSONObject dlqProps = json.getJSONObject("GridSnapshotExportFifoDeadLetter").getJSONObject("Properties");
 		assertTrue(dlqProps.getBoolean("FifoQueue"));
 		assertEquals("dev-101-GRID_SNAPSHOT_EXPORT-dead-letter.fifo", dlqProps.getString("QueueName"));
+		assertEquals("1209600", dlqProps.getString("MessageRetentionPeriod"));
 	}
 
 	@Test
@@ -90,8 +91,9 @@ public class SnsAndSqsTest {
 		JSONObject json = mergeTemplateForStack("dev");
 		JSONObject dlqProps = json.getJSONObject("WebhookMessageDeadLetter").getJSONObject("Properties");
 		assertFalse(dlqProps.has("FifoQueue"));
-		assertEquals(1, dlqProps.length());
+		assertEquals(2, dlqProps.length());
 		assertEquals("dev-101-WEBHOOK_MESSAGE-dead-letter", dlqProps.getString("QueueName"));
+		assertEquals("1209600", dlqProps.getString("MessageRetentionPeriod"));
 	}
 
 	/**

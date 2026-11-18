@@ -27,7 +27,7 @@
             #if ( $queueDescriptor.fifoQueue)
             "FifoQueue": true,
             #end
-            "QueueName": "${stack}-${instance}-${queueDescriptor.deadLetterQueueName}"
+            "QueueName": "${stack}-${instance}-${queueDescriptor.deadLetterQueueName}",
             ## Max retention (14 days). For standard queues SQS preserves the original enqueue timestamp
             ## on redrive, so the DLQ retention must exceed the source queue's or messages can expire on arrival.
             "MessageRetentionPeriod": "1209600"
@@ -56,14 +56,14 @@
                 "Unit" : "Seconds"
             }
         }
-            #if ($queueDescriptor.deadLetterQueueMaxFailureCount)
+        #if ($queueDescriptor.deadLetterQueueMaxFailureCount)
         ,"${queueDescriptor.queueReferenceName}DeadLetterNewMessagesAlarm":{
             "Type" : "AWS::CloudWatch::Alarm",
             "Properties" : {
                 "ActionsEnabled" : true,
                 "AlarmActions" : [{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}],
                 "AlarmDescription" : "Alarm when new messages arrive in the ${queueDescriptor.queueName} dead-letter queue (fires on each increase in visible messages, so messages already sitting in the DLQ do not mask new failures)",
-                "AlarmName" : "${stack}-${instance}-${queueDescriptor.queueName}-dead-letter-new-messages",
+                "AlarmName" : "${stack}-${instance}-${queueDescriptor.deadLetterQueueName}-new-messages",
                 "ComparisonOperator" : "GreaterThanThreshold",
                 "EvaluationPeriods" : 1,
                 "Threshold" : 0,
@@ -102,7 +102,7 @@
                 "ActionsEnabled" : true,
                 "AlarmActions" : [{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}],
                 "AlarmDescription" : "Alarm when oldest message in the ${queueDescriptor.queueName} dead-letter queue exceeds 7 days (halfway to the 14-day retention); drain or redrive the DLQ to clear",
-                "AlarmName" : "${stack}-${instance}-${queueDescriptor.queueName}-dead-letter-oldest-message-exceed-time",
+                "AlarmName" : "${stack}-${instance}-${queueDescriptor.deadLetterQueueName}-oldest-message-exceed-time",
                 "ComparisonOperator" : "GreaterThanOrEqualToThreshold",
                 "Dimensions" : [{
                     "Name" : "QueueName",
