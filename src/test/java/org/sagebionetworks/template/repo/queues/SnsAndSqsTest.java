@@ -46,6 +46,21 @@ public class SnsAndSqsTest {
 		assertTrue(json.has("AddFilesToDownloadListOldestMessageAlarm"));
 		assertTrue(json.has("DoiOldestMessageAlarm"));
 		assertTrue(json.has("StorageReportOldestMessageAlarm"));
+		// queues with both an oldest-message alarm and a DLQ also get a DLQ alarm
+		assertTrue(json.has("FileUpdateDeadLetterNewMessagesAlarm"));
+		assertTrue(json.has("SearchIndexDeadLetterNewMessagesAlarm"));
+		assertTrue(json.has("WebhookMessageDeadLetterNewMessagesAlarm"));
+		assertTrue(json.has("SearchIndexLifecycleDeadLetterNewMessagesAlarm"));
+		// DLQs also get an ApproximateAgeOfOldestMessage alarm (Vanta: message age monitored)
+		assertTrue(json.has("FileUpdateDeadLetterOldestMessageAlarm"));
+		assertTrue(json.has("SearchIndexDeadLetterOldestMessageAlarm"));
+		assertTrue(json.has("WebhookMessageDeadLetterOldestMessageAlarm"));
+		assertTrue(json.has("SearchIndexLifecycleDeadLetterOldestMessageAlarm"));
+		assertEquals(604800, json.getJSONObject("FileUpdateDeadLetterOldestMessageAlarm").getJSONObject("Properties").getInt("Threshold"));
+		// DLQs use max retention so messages do not expire before investigation
+		assertEquals("1209600", json.getJSONObject("FileUpdateDeadLetter").getJSONObject("Properties").getString("MessageRetentionPeriod"));
+		// queues without a DLQ get no DLQ alarm
+		assertFalse(json.has("DoiDeadLetterNewMessagesAlarm"));
 	}
 	
 	@Test
@@ -68,6 +83,7 @@ public class SnsAndSqsTest {
 		JSONObject dlqProps = json.getJSONObject("GridSnapshotExportFifoDeadLetter").getJSONObject("Properties");
 		assertTrue(dlqProps.getBoolean("FifoQueue"));
 		assertEquals("dev-101-GRID_SNAPSHOT_EXPORT-dead-letter.fifo", dlqProps.getString("QueueName"));
+		assertEquals("1209600", dlqProps.getString("MessageRetentionPeriod"));
 	}
 
 	@Test
@@ -75,8 +91,9 @@ public class SnsAndSqsTest {
 		JSONObject json = mergeTemplateForStack("dev");
 		JSONObject dlqProps = json.getJSONObject("WebhookMessageDeadLetter").getJSONObject("Properties");
 		assertFalse(dlqProps.has("FifoQueue"));
-		assertEquals(1, dlqProps.length());
+		assertEquals(2, dlqProps.length());
 		assertEquals("dev-101-WEBHOOK_MESSAGE-dead-letter", dlqProps.getString("QueueName"));
+		assertEquals("1209600", dlqProps.getString("MessageRetentionPeriod"));
 	}
 
 	/**

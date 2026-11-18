@@ -27,7 +27,10 @@
             #if ( $queueDescriptor.fifoQueue)
             "FifoQueue": true,
             #end
-            "QueueName": "${stack}-${instance}-${queueDescriptor.deadLetterQueueName}"
+            "QueueName": "${stack}-${instance}-${queueDescriptor.deadLetterQueueName}",
+            ## Max retention (14 days). For standard queues SQS preserves the original enqueue timestamp
+            ## on redrive, so the DLQ retention must exceed the source queue's or messages can expire on arrival.
+            "MessageRetentionPeriod": "1209600"
             }
         }
         #end
@@ -53,6 +56,69 @@
                 "Unit" : "Seconds"
             }
         }
+        #if ($queueDescriptor.deadLetterQueueMaxFailureCount)
+        ,"${queueDescriptor.queueReferenceName}DeadLetterNewMessagesAlarm":{
+            "Type" : "AWS::CloudWatch::Alarm",
+            "Properties" : {
+                "ActionsEnabled" : true,
+                "AlarmActions" : [{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}],
+                "AlarmDescription" : "Alarm when new messages arrive in the ${queueDescriptor.queueName} dead-letter queue (fires on each increase in visible messages, so messages already sitting in the DLQ do not mask new failures)",
+                "AlarmName" : "${stack}-${instance}-${queueDescriptor.deadLetterQueueName}-new-messages",
+                "ComparisonOperator" : "GreaterThanThreshold",
+                "EvaluationPeriods" : 1,
+                "Threshold" : 0,
+                "TreatMissingData" : "notBreaching",
+                "Metrics" : [
+                    {
+                        "Id" : "visible",
+                        "ReturnData" : false,
+                        "MetricStat" : {
+                            "Metric" : {
+                                "Namespace" : "AWS/SQS",
+                                "MetricName" : "ApproximateNumberOfMessagesVisible",
+                                "Dimensions" : [{
+                                    "Name" : "QueueName",
+                                    "Value" : {"Fn::GetAtt":["${queueDescriptor.queueReferenceName}DeadLetter", "QueueName"]}
+                                }]
+                            },
+                            "Period" : 300,
+                            "Stat" : "Maximum"
+                        }
+                    },
+                    {
+                        "Id" : "newMessages",
+                        "Label" : "Increase in visible messages in ${queueDescriptor.queueName} dead-letter queue",
+                        "Expression" : "DIFF(visible)",
+                        "ReturnData" : true
+                    }
+                ]
+            }
+        }
+        ## Quieter backstop: stays in ALARM until the DLQ is drained. Age counts from the original
+        ## enqueue time (preserved on redrive), so 7 days is halfway to the 14-day DLQ retention.
+        ,"${queueDescriptor.queueReferenceName}DeadLetterOldestMessageAlarm":{
+            "Type" : "AWS::CloudWatch::Alarm",
+            "Properties" : {
+                "ActionsEnabled" : true,
+                "AlarmActions" : [{"Fn::ImportValue": "${globalResourcesExportPrefix}-NotificationTopic"}],
+                "AlarmDescription" : "Alarm when oldest message in the ${queueDescriptor.queueName} dead-letter queue exceeds 7 days (halfway to the 14-day retention); drain or redrive the DLQ to clear",
+                "AlarmName" : "${stack}-${instance}-${queueDescriptor.deadLetterQueueName}-oldest-message-exceed-time",
+                "ComparisonOperator" : "GreaterThanOrEqualToThreshold",
+                "Dimensions" : [{
+                    "Name" : "QueueName",
+                    "Value" : {"Fn::GetAtt":["${queueDescriptor.queueReferenceName}DeadLetter", "QueueName"]}
+                }],
+                "EvaluationPeriods" : 1,
+                "MetricName" : "ApproximateAgeOfOldestMessage",
+                "Namespace" : "AWS/SQS",
+                "Period" : 300,
+                "Statistic" : "Maximum",
+                "Threshold" : 604800,
+                "TreatMissingData" : "notBreaching",
+                "Unit" : "Seconds"
+            }
+        }
+            #end
 
         #end
         ,"WriteTo${queueDescriptor.queueReferenceName}QueuePolicy":{
