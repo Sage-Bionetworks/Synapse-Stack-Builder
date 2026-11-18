@@ -86,6 +86,34 @@ class CdnBuilderImplTest {
 		assertEquals("12345", ctxt.get("DataCdnPublicKey"));
 	}
 
+	// Verifies the static content CDN context for a non-prod stack uses the dev subdomain and the shared certificate ARN.
+	@Test
+	void testCreateStaticContentContextWithNonProdStack() {
+		when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("tst");
+		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.certificate.arn")).thenReturn("arn:aws:acm:us-east-1:5678:certificate/1234");
+
+		// call under test
+		VelocityContext ctxt = builder.createContext(CdnBuilder.Type.STATIC_CONTENT);
+
+		assertEquals("arn:aws:acm:us-east-1:5678:certificate/1234", ctxt.get("AcmCertificateArn"));
+		assertEquals("dev", ctxt.get("SubDomainName"));
+		assertEquals("tst", ctxt.get("stack"));
+	}
+
+	// Verifies the static content CDN context for the prod stack uses the prod subdomain and the shared certificate ARN.
+	@Test
+	void testCreateStaticContentContextWithProdStack() {
+		when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("prod");
+		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.certificate.arn")).thenReturn("arn:aws:acm:us-east-1:5678:certificate/1234");
+
+		// call under test
+		VelocityContext ctxt = builder.createContext(CdnBuilder.Type.STATIC_CONTENT);
+
+		assertEquals("arn:aws:acm:us-east-1:5678:certificate/1234", ctxt.get("AcmCertificateArn"));
+		assertEquals("prod", ctxt.get("SubDomainName"));
+		assertEquals("prod", ctxt.get("stack"));
+	}
+
 	@Test
 	void testBuildCdnStack() throws Exception{
 		when(mockVelocityEngine.getTemplate(any(String.class))).thenReturn(mockTemplate);
@@ -165,5 +193,45 @@ class CdnBuilderImplTest {
 		assertEquals(1, optStack.get().tags().size());
 		assertEquals(tag, optStack.get().tags().get(0));
 
+	}
+
+	// Verifies the static content CDN stack is built from its own template under the expected stack name.
+	@Test
+	void testBuildStaticContentCdnStack() throws Exception{
+		when(mockVelocityEngine.getTemplate(any(String.class))).thenReturn(mockTemplate);
+		doAnswer(new Answer<Void>() {
+			@Override
+			public Void answer(InvocationOnMock invocation) throws Throwable {
+				StringWriter writer = (StringWriter) invocation.getArgument(1);
+				writer.append("someJsonTemplate");
+				return null;
+			}
+		}).when(mockTemplate).merge(any(), any());
+		List<Tag> expectedTags = new ArrayList<>();
+		Tag tag = Tag.builder().key("aKey").value("aValue").build();
+		expectedTags.add(tag);
+		Stack expectedStack = Stack.builder().stackName("cdn-tst-static-content-synapse").tags(expectedTags).build();
+		when(mockStackTagsProvider.getStackTags(mockConfig)).thenReturn(expectedTags);
+
+		when(mockCloudFormationClientWrapper.waitForStackToComplete(any(String.class))).thenReturn(Optional.of(expectedStack));
+		when(mockCloudFormationClientWrapper.describeStack(any(String.class))).thenReturn(Optional.of(expectedStack));
+
+		when(mockConfig.getProperty("org.sagebionetworks.stack")).thenReturn("tst");
+		when(mockConfig.getProperty("org.sagebionetworks.cloudfront.certificate.arn")).thenReturn("arn:aws:acm:us-east-1:5678:certificate/1234");
+
+		// call under test
+		Optional<Stack> optStack = builder.buildCdnStack(CdnBuilder.Type.STATIC_CONTENT);
+
+		verify(mockVelocityEngine).getTemplate("templates/cdn/synapse-static-content-cdn.json.vtp");
+		verify(mockCloudFormationClientWrapper).createOrUpdateStack(createOrUpdateStackRequestArgumentCaptor.capture());
+		CreateOrUpdateStackRequest req = createOrUpdateStackRequestArgumentCaptor.getValue();
+		assertEquals("cdn-tst-static-content-synapse", req.getStackName());
+		assertEquals("someJsonTemplate", req.getTemplateBody());
+		assertEquals(expectedTags, req.getTags());
+
+		assertTrue(optStack.isPresent());
+		assertEquals("cdn-tst-static-content-synapse", optStack.get().stackName());
+		assertEquals(1, optStack.get().tags().size());
+		assertEquals(tag, optStack.get().tags().get(0));
 	}
 }
