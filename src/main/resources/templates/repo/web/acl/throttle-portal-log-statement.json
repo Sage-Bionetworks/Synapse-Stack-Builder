@@ -1,0 +1,22 @@
+{
+	"RateBasedStatement": {
+		"Limit": 500,
+		"AggregateKeyType": "IP",
+		"ScopeDownStatement": {
+			"ByteMatchStatement": {
+				"SearchString": "/Portal/log",
+				"FieldToMatch": {
+					"UriPath": {
+					}
+				},
+				"TextTransformations": [
+					{
+						"Priority": 0,
+						"Type": "NONE"
+					}
+				],
+				"PositionalConstraint": "EXACTLY"
+			}
+		}
+	}
+}

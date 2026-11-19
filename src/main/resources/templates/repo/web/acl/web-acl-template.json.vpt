@@ -19,6 +19,10 @@
 			        "ContentType": "APPLICATION_JSON",
 			        "Content": "{\"reason\":\"limit of 10,000 calls per 5 minutes\"}"
 			      },
+			      "throttle-portal-response-body": {
+			        "ContentType": "APPLICATION_JSON",
+			        "Content": "{\"reason\":\"limit of 500 calls per 5 minutes\"}"
+			      },
 			      "geo-restriction-response-body": {
                     "ContentType": "APPLICATION_JSON",
                     "Content": "{\"errorCode\": \"GEO_RESTRICTION\", \"reason\":\"Requests originating from this region are blocked. For more information see: https://grants.nih.gov/grants/guide/notice-files/NOT-OD-25-083.html. If you think you see this error message by mistake, please submit a request at https://sagebionetworks.jira.com/servicedesk/customer/portal/9/group/16/create/84.\"}"
@@ -84,9 +88,45 @@
 						}
 					},
 					{
+						"Name": "${stack}-${instance}-throttle-portal-log",
+					    "Priority": 3,
+						"Statement": #parse("templates/repo/web/acl/throttle-portal-log-statement.json"),
+						"Action": {
+						  "Block": {
+						    "CustomResponse": {
+						      "ResponseCode": 429,
+						      "CustomResponseBodyKey": "throttle-portal-response-body"
+						    }
+						  }
+						},
+						"VisibilityConfig": {
+						  "SampledRequestsEnabled": true,
+						  "CloudWatchMetricsEnabled": true,
+						  "MetricName": "${stack}${instance}ThrottlePortalLogRule"
+						}
+					},
+					{
+						"Name": "${stack}-${instance}-throttle-portal-csp-report",
+					    "Priority": 4,
+						"Statement": #parse("templates/repo/web/acl/throttle-portal-csp-report-statement.json"),
+						"Action": {
+						  "Block": {
+						    "CustomResponse": {
+						      "ResponseCode": 429,
+						      "CustomResponseBodyKey": "throttle-portal-response-body"
+						    }
+						  }
+						},
+						"VisibilityConfig": {
+						  "SampledRequestsEnabled": true,
+						  "CloudWatchMetricsEnabled": true,
+						  "MetricName": "${stack}${instance}ThrottlePortalCspReportRule"
+						}
+					},
+					{
 						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-size-restrictions-rule",
-						"Priority": 3,
+						"Priority": 5,
 						"Statement": #parse("templates/repo/web/acl/size-restriction-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
@@ -97,7 +137,7 @@
 					{
 						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-URI-Query-SQL-Injection-Rule",
-						"Priority": 4,
+						"Priority": 6,
 						"Statement": #parse("templates/repo/web/acl/uri-query-sql-injection-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
@@ -108,7 +148,7 @@
 					{
 						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-Body-SQL-Injection-Rule",
-						"Priority": 5,
+						"Priority": 7,
 						"Statement": #parse("templates/repo/web/acl/body-sql-injection-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
@@ -119,7 +159,7 @@
 					{
 						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-Header-SQL-Injection-Rule",
-						"Priority": 6,
+						"Priority": 8,
 						"Statement": #parse("templates/repo/web/acl/header-sql-injection-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
@@ -130,7 +170,7 @@
 					{
 						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-URI-Query-XSS-Rule",
-						"Priority": 7,
+						"Priority": 9,
 						"Statement": #parse("templates/repo/web/acl/uri-query-xss-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
@@ -141,7 +181,7 @@
 					{
 						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-Body-XSS-Rule",
-						"Priority": 8,
+						"Priority": 10,
 						"Statement": #parse("templates/repo/web/acl/body-xss-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
@@ -152,7 +192,7 @@
 					{
 						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-Header-XSS-Rule",
-						"Priority": 9,
+						"Priority": 11,
 						"Statement": #parse("templates/repo/web/acl/header-xss-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
@@ -163,7 +203,7 @@
 					{
 						"Action": { "Block": {} },
 						"Name": "${stack}-${instance}-Path-Traversal-Local-Rule",
-						"Priority": 10,
+						"Priority": 12,
 						"Statement": #parse("templates/repo/web/acl/path-traversal-local-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
@@ -174,7 +214,7 @@
 					{
 						"Action": { "Count": {} },
 						"Name": "${stack}-${instance}-Path-Traversal-Remote-Rule",
-						"Priority": 11,
+						"Priority": 13,
 						"Statement": #parse("templates/repo/web/acl/path-traversal-remote-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
@@ -187,7 +227,7 @@
 							${adminRuleAction}
 						},
 						"Name": "${stack}-${instance}-Admin-Access-Rule",
-						"Priority": 12,
+						"Priority": 14,
 						"Statement": #parse("templates/repo/web/acl/admin-access-statement.json"),
 						"VisibilityConfig": {
 							"CloudWatchMetricsEnabled": true,
