@@ -17,6 +17,8 @@ import org.sagebionetworks.template.config.RepoConfiguration;
 import java.io.StringWriter;
 import java.util.Optional;
 
+import static org.sagebionetworks.template.Constants.CTXT_KEY_ORIGIN;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_STACK_INSTANCE_ALIAS;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_SUBDOMAIN_NAME;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_BEANSTALK_SSL_ARN;
 import static org.sagebionetworks.template.Constants.PROPERTY_KEY_STACK_INSTANCE_ALIAS;
@@ -59,15 +61,19 @@ public class CdnBuilderImpl implements CdnBuilder {
 	VelocityContext createContext(Type type) {
 		VelocityContext ctxt = new VelocityContext();
 
+		String stack = config.getProperty(PROPERTY_KEY_STACK);
+		ctxt.put(STACK, stack);
+
 		if (Type.PORTAL.equals(type)) {
 			// The ACM ARN is the same as the one used for portal
 			String acmCertificateArn = config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN + "portal");
 			ctxt.put(CTXT_KEY_ACM_CERT_ARN, acmCertificateArn);
+			// Need to handle tst so can't just derive from stack
 			String stackInstanceAlias = config.getProperty(PROPERTY_KEY_STACK_INSTANCE_ALIAS);
-			ctxt.put(CTXT_KEY_SUBDOMAIN_NAME, stackInstanceAlias);
+			String origin = origin(stack, stackInstanceAlias);
+			ctxt.put(CTXT_KEY_ORIGIN, origin);
+			ctxt.put(CTXT_KEY_STACK_INSTANCE_ALIAS, stackInstanceAlias);
 		} else if (Type.DATA.equals(type)) {
-			String stack = config.getProperty(PROPERTY_KEY_STACK);
-			ctxt.put(STACK, stack);
 			String dataCDNPublicKey = config.getProperty(PROPERTY_KEY_DATA_CDN_PUBLIC_KEY);
 			ctxt.put(CTXT_KEY_PUBLIC_KEY, dataCDNPublicKey);
 			String acmCertificateArn = config.getProperty(PROPERTY_KEY_DATA_CDN_CERTIFICATE_ARN);
@@ -88,9 +94,31 @@ public class CdnBuilderImpl implements CdnBuilder {
 		String cfStackName;
 		VelocityContext context = createContext(type);
 
+		// 	stack always in context
+		/*
+			For PORTAL type:
+				Naming rules for stack and origin endpoints given an instance alias (prod | staging | tst):
+				Stack name: cdn-<alias>-synapse (prod and dev stacks are in different accounts so naming the same)
+				Origin:
+					If dev stack:
+						prod: dev.synapse.org
+						staging: dev-staging.synapse.org
+						tst: dev-tst.synapse.org
+					If prod stack:
+						prod: www.synapse.org
+						staging: staging.synapse.org
+						tst: tst.synapse.org
+				CDN subdomain: cdn-<origin>
+			For DATA type:
+				There's only one instance alias: prod
+				Stack name: cdn-<stack>-data-synapse
+				Origin: <stack>data.sagebase.org.s3.us-east-1.amazonaws.com (bucket)
+				CDN domain: data.<stack>.sagebase.org
+		*/
+
 		if (Type.PORTAL.equals(type)) {
 			template = velocity.getTemplate(TEMPLATE_STACK_PORTAL_CDN);
-			cfStackName = String.format("cdn-%s-synapse", context.get(CTXT_KEY_SUBDOMAIN_NAME));
+			cfStackName = String.format("cdn-%s-synapse", context.get(CTXT_KEY_STACK_INSTANCE_ALIAS));
 		} else if (Type.DATA.equals(type)){
 			template = velocity.getTemplate(TEMPLATE_STACK_DATA_CDN);
 			cfStackName = String.format("cdn-%s-data-synapse", context.get(STACK));
@@ -113,5 +141,33 @@ public class CdnBuilderImpl implements CdnBuilder {
 			throw new RuntimeException(e);
 		}
 		return cloudFormationClientWrapper.describeStack(cfStackName);
+	}
+
+	private String origin(String stack, String instanceAlias) {
+		String origin = null;
+		if ("prod".equals(stack)) {
+			if ("prod".equals(instanceAlias)) {
+				origin = "www.synapse.org";
+			} else if ("staging".equals(instanceAlias)) {
+				origin = "staging.synapse.org";
+			} else if ("tst".equals(instanceAlias)) {
+				origin = "tst.synapse.org";
+			} else {
+				throw new IllegalArgumentException("Instance alias must be prod, staging, or tst.");
+			}
+		} else if ("dev".equals(stack)) {
+			if ("prod".equals(instanceAlias)) {
+				origin = "dev.synapse.org";
+			} else if ("staging".equals(instanceAlias)) {
+				origin = "dev-staging.synapse.org";
+			} else if ("tst".equals(instanceAlias)) {
+				origin = "dev-tst.synapse.org";
+			} else {
+				throw new IllegalArgumentException("Instance alias must be prod, staging, or tst.");
+			}
+		} else {
+			throw new IllegalArgumentException("Stack must be either dev or prod.");
+		}
+		return origin;
 	}
 }
