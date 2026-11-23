@@ -22,6 +22,7 @@ import static org.sagebionetworks.template.Constants.CLOUDWATCH_LOGS_DESCRIPTORS
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_DOMAIN_NAME;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_PRIVATE_KEY_ID;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_EMAIL_IMAGES_BASE_URL;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DOCUSIGN_API_BASE_PATH;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DOCUSIGN_OAUTH_BASE_PATH;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
@@ -96,9 +97,11 @@ import static org.sagebionetworks.template.Constants.TEMPLATE_ECS_FARGATE_ENVIRO
 import static org.sagebionetworks.template.Constants.VPC_EXPORT_PREFIX;
 import static org.sagebionetworks.template.Constants.VPC_SUBNET_COLOR;
 
+import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -1524,6 +1527,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(2048, context.get(EC2_INSTANCE_MEMORY));
 		assertEquals(String.join(",", EXPECTED_SUBNETS), context.get(BEANSTALK_INSTANCES_SUBNETS));
 		assertEquals("data.dev.sagebase.org", context.get(CTXT_KEY_DATA_CDN_DOMAIN_NAME));
+		assertEquals("https://static.dev.sagebase.org/email-images", context.get(CTXT_KEY_EMAIL_IMAGES_BASE_URL));
 		assertEquals("dataCdnPrivateKeyId", context.get(CTXT_KEY_DATA_CDN_PRIVATE_KEY_ID));
 		assertEquals("discoveryDocumentUrl", context.get(CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL));
 		assertEquals("docusignApiBasePath", context.get(CTXT_KEY_DOCUSIGN_API_BASE_PATH));
@@ -1966,6 +1970,7 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals(databaseEndpointSuffix, context.get(DB_ENDPOINT_SUFFIX));
 		assertEquals("https://oauthendpoint", context.get(OAUTH_ENDPOINT));
 		assertEquals("data.dev.sagebase.org", context.get(CTXT_KEY_DATA_CDN_DOMAIN_NAME));
+		assertEquals("https://static.dev.sagebase.org/email-images", context.get(CTXT_KEY_EMAIL_IMAGES_BASE_URL));
 		assertEquals("dataCdnPrivateKeyId", context.get(CTXT_KEY_DATA_CDN_PRIVATE_KEY_ID));
 		assertEquals("discoveryDocumentUrl", context.get(CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL));
 		assertEquals("docusignApiBasePath", context.get(CTXT_KEY_DOCUSIGN_API_BASE_PATH));
@@ -2056,5 +2061,155 @@ public class RepositoryTemplateBuilderImplTest {
 		ListPlatformVersionsResponse expectedResult = ListPlatformVersionsResponse.builder()
 				.platformSummaryList(expectedSummaries).build();
 		when(mockBeanstalkClient.listPlatformVersions(expectedRequest)).thenReturn(expectedResult);
+	}
+
+	@Test
+	public void testBuildEcsEnvironmentTemplateWithEmailImagesBaseUrl() throws Exception {
+
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
+		when(config.getIntegerProperty(PROPERTY_KEY_ECS_TASK_CPU)).thenReturn(1024);
+		when(config.getIntegerProperty(PROPERTY_KEY_ECS_TASK_MEMORY)).thenReturn(4096);
+		when(config.getIntegerProperty(PROPERTY_KEY_ECS_CONTAINER_PORT)).thenReturn(8443);
+
+		for (EnvironmentType type : EnvironmentType.values()) {
+			String version = "version-" + type.getShortName();
+			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + type.getShortName())).thenReturn(0);
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName())).thenReturn(version);
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL + type.getShortName()))
+					.thenReturn("url-" + type.getShortName());
+			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MIN_INSTANCES + type.getShortName())).thenReturn(1);
+			when(config.getIntegerProperty(PROPERTY_KEY_BEANSTALK_MAX_INSTANCES + type.getShortName())).thenReturn(2);
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN + type.getShortName())).thenReturn("the:ssl:arn");
+			when(config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE + type.getShortName())).thenReturn("synapes.org");
+		}
+
+		when(mockDockerImageBuilder.buildAndPushImage(any(), any(), anyInt(), any(), any()))
+				.thenReturn("123456.dkr.ecr.us-east-1.amazonaws.com/dev-synapse-repo:dev-101-version-repo-0");
+
+		
+
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
+		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
+
+		when(config.getProperty((PROPERTY_KEY_OAUTH_ENDPOINT))).thenReturn("https://oauthendpoint");
+
+		when(config
+				.getIntegerProperty(PROPERTY_KEY_BEANSTALK_NUMBER + EnvironmentType.REPOSITORY_SERVICES.getShortName()))
+				.thenReturn(0);
+
+		when(mockSecretBuilder.getCMKAlias()).thenReturn(keyAlias);
+
+		when(mockCwlContextProvider.getLogDescriptors(any(EnvironmentType.class))).thenReturn(logDescriptors);
+
+		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
+		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
+				.thenReturn(String.join(",", EXPECTED_SUBNETS));
+		when(config.getProperty("org.sagebionetworks.cloudfront.private.key.id")).thenReturn("dataCdnPrivateKeyId");
+		when(config.getProperty("org.sagebionetworks.oauth2.sagebio.discoveryDocument"))
+				.thenReturn("discoveryDocumentUrl");
+		when(config.getProperty(PROPERTY_KEY_DOCUSIGN_API_BASE_PATH)).thenReturn("docusignApiBasePath");
+		when(config.getProperty(PROPERTY_KEY_DOCUSIGN_OAUTH_BASE_PATH)).thenReturn("docusignOauthBasePath");
+		when(mockLoadBalancerAlarmsConfig.getOrDefault(any(), any())).thenReturn(java.util.Collections.emptyList());
+
+				EcsEnvironmentDescriptor environment = builder.createEcsEnvironments(secretsSouce).get(0);
+		VelocityContext context = builder.createEcsEnvironmentContext(sharedResouces, environment);
+		StringWriter writer = new StringWriter();
+
+		// call under test
+		velocityEngine.getTemplate(TEMPLATE_ECS_FARGATE_ENVIRONMENT).merge(context, writer);
+
+		String template = writer.toString();
+		assertTrue(template.contains("\"Name\": \"org.sagebionetworks.email.images.base.url\""));
+		assertTrue(template.contains("\"Value\": \"https://static.dev.sagebase.org/email-images\""));
+	}
+
+	@Test
+	public void testBuildAndDeployDevWithEmailImagesBaseUrl() throws Exception {
+
+
+		when(config.getProperty(Constants.PROPERTY_KEY_DEPLOYMENT_BEANSTALK_OR_ECS)).thenReturn("BEANSTALK");
+		when(mockTimeToLive.createTimeToLiveParameter()).thenReturn(
+				Optional.of(Parameter.builder().parameterKey(PARAM_KEY_TIME_TO_LIVE).parameterValue("NONE").build()));
+
+		when(mockStackTagsProvider.getStackTags(config)).thenReturn(expectedTags);
+		when(config.getProperty(PROPERTY_KEY_STACK)).thenReturn(stack);
+		when(config.getProperty(PROPERTY_KEY_INSTANCE)).thenReturn(instance);
+		when(config.getProperty(PROPERTY_KEY_VPC_SUBNET_COLOR)).thenReturn(vpcSubnetColor);
+		when(mockSecretBuilder.getRepositoryDatabasePassword()).thenReturn("somePassword");
+
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_ALLOCATED_STORAGE)).thenReturn(4);
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(8);
+		when(config.getProperty(PROPERTY_KEY_REPO_RDS_INSTANCE_CLASS)).thenReturn("db.t2.small");
+		when(config.getBooleanProperty(PROPERTY_KEY_REPO_RDS_MULTI_AZ)).thenReturn(true);
+		when(config.getProperty(PROPERTY_KEY_REPO_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.standard.name());
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_IOPS)).thenReturn(-1);
+		when(config.getIntegerProperty(PROPERTY_KEY_REPO_RDS_THROUGHPUT)).thenReturn(-1);
+
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_ALLOCATED_STORAGE)).thenReturn(3);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_MAX_ALLOCATED_STORAGE)).thenReturn(6);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_INSTANCE_COUNT)).thenReturn(2);
+		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_INSTANCE_CLASS)).thenReturn("db.t2.micro");
+		when(config.getProperty(PROPERTY_KEY_TABLES_RDS_STORAGE_TYPE)).thenReturn(DatabaseStorageType.io1.name());
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_IOPS)).thenReturn(1000);
+		when(config.getIntegerProperty(PROPERTY_KEY_TABLES_RDS_THROUGHPUT)).thenReturn(15000);
+		when(config.getProperty(PROPERTY_KEY_IMAGE_PIPELINE_ARN)).thenReturn(imagePipelineArn);
+
+		for (EnvironmentType type : EnvironmentType.values()) {
+			String version = "version-" + type.getShortName();
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_VERSION + type.getShortName())).thenReturn(version);
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_HEALTH_CHECK_URL + type.getShortName()))
+					.thenReturn("url-" + type.getShortName());
+			when(config.getProperty(PROPERTY_KEY_BEANSTALK_SSL_ARN + type.getShortName())).thenReturn("the:ssl:arn");
+			when(config.getProperty(PROPERTY_KEY_ROUTE_53_HOSTED_ZONE + type.getShortName())).thenReturn("synapes.org");
+		}
+
+		when(mockArtifactCopy.copyArtifactIfNeeded(any(), any(), anyInt()))
+				.thenReturn(new SourceBundle("bucket", "key-one"));
+
+		when(config.getProperty((PROPERTY_KEY_OAUTH_ENDPOINT))).thenReturn("https://oauthendpoint");
+
+		when(config.getProperty(PROPERTY_KEY_EC2_INSTANCE_TYPE)).thenReturn("t2.medium");
+
+		when(mockSecretBuilder.createSecrets()).thenReturn(secretsSouce);
+		when(mockSecretBuilder.getCMKAlias()).thenReturn(keyAlias);
+
+		when(mockElasticBeanstalkSolutionStackNameProvider.getSolutionStackName(anyString(), anyString(), anyString()))
+				.thenReturn("fake stack");
+		when(mockCwlContextProvider.getLogDescriptors(any(EnvironmentType.class))).thenReturn(logDescriptors);
+		when(config.getProperty(PROPERTY_KEY_ENABLE_RDS_ENHANCED_MONITORING)).thenReturn("true"); // does not matter if
+																									// dev
+		when(config.getProperty(PROPERTY_KEY_RDS_REPO_SNAPSHOT_IDENTIFIER)).thenReturn(NOSNAPSHOT);
+		String[] noSnapshots = new String[] { NOSNAPSHOT };
+		when(config.getCommaSeparatedProperty(PROPERTY_KEY_RDS_TABLES_SNAPSHOT_IDENTIFIERS)).thenReturn(noSnapshots);
+		setupValidBeanstalkConfig();
+		setupDatabaseSubnets();
+		List<String> EXPECTED_SUBNETS = Arrays.asList("subnet1", "subnet2", "subnet4");
+		when(mockCloudFormationClientWrapper.getOutput(anyString(), anyString()))
+				.thenReturn(String.join(",", EXPECTED_SUBNETS));
+		when(mockEc2ClientWrapper.getAvailableSubnetsForInstanceType(anyString(), any())).thenReturn(EXPECTED_SUBNETS);
+		stack = "dev";
+		configureStack(stack);
+		when(config.getProperty(PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID)).thenReturn("CdnPrivateKeyId");
+		when(config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT)).thenReturn("discoveryDocumentUrl");
+		when(config.getProperty(PROPERTY_KEY_DOCUSIGN_API_BASE_PATH)).thenReturn("docusignApiBasePath");
+		when(config.getProperty(PROPERTY_KEY_DOCUSIGN_OAUTH_BASE_PATH)).thenReturn("docusignOauthBasePath");
+		when(mockImageBuilderClient.getLatestImageIdForImagePipelineArn(imagePipelineArn)).thenReturn(imageId);
+
+		// call under test
+		builder.buildAndDeploy();
+
+		verify(mockCloudFormationClientWrapper, times(4)).createOrUpdateStack(requestCaptor.capture());
+		Map<String, String> templatesByStackName = requestCaptor.getAllValues().stream()
+				.collect(Collectors.toMap(CreateOrUpdateStackRequest::getStackName, CreateOrUpdateStackRequest::getTemplateBody));
+		String optionName = "\"OptionName\": \"org.sagebionetworks.email.images.base.url\"";
+		String optionValue = "\"Value\": \"https://static.dev.sagebase.org/email-images\"";
+		for (String stackName : List.of("repo-dev-101-0", "workers-dev-101-0")) {
+			assertTrue(templatesByStackName.get(stackName).contains(optionName), stackName);
+			assertTrue(templatesByStackName.get(stackName).contains(optionValue), stackName);
+		}
+		// The portal does not send emails so it is not given the setting
+		assertFalse(templatesByStackName.get("portal-dev-101-0").contains(optionName));
 	}
 }

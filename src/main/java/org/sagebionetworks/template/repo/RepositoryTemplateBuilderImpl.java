@@ -11,6 +11,7 @@ import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_CDN_PRIVATE_K
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DOCUSIGN_API_BASE_PATH;
 import static org.sagebionetworks.template.Constants.CTXT_KEY_DOCUSIGN_OAUTH_BASE_PATH;
+import static org.sagebionetworks.template.Constants.CTXT_KEY_EMAIL_IMAGES_BASE_URL;
 import static org.sagebionetworks.template.Constants.DATABASE_DESCRIPTORS;
 import static org.sagebionetworks.template.Constants.DATABASE_SUBNETS;
 import static org.sagebionetworks.template.Constants.DATA_CDN_DOMAIN_NAME_FMT;
@@ -19,6 +20,7 @@ import static org.sagebionetworks.template.Constants.DELETION_POLICY;
 import static org.sagebionetworks.template.Constants.DEPLOYMENT_TARGET;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_MEMORY;
 import static org.sagebionetworks.template.Constants.EC2_INSTANCE_TYPE;
+import static org.sagebionetworks.template.Constants.EMAIL_IMAGES_URL_PATH;
 import static org.sagebionetworks.template.Constants.ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.EXCEPTION_THROWER;
 import static org.sagebionetworks.template.Constants.GLOBAL_RESOURCES_EXPORT_PREFIX;
@@ -83,6 +85,7 @@ import static org.sagebionetworks.template.Constants.SHARED_RESOURCES_STACK_NAME
 import static org.sagebionetworks.template.Constants.SOLUTION_STACK_NAME;
 import static org.sagebionetworks.template.Constants.STACK;
 import static org.sagebionetworks.template.Constants.STACK_CMK_ALIAS;
+import static org.sagebionetworks.template.Constants.STATIC_CONTENT_CDN_DOMAIN_NAME_FMT;
 import static org.sagebionetworks.template.Constants.TEMPLATE_BEANSTALK_ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.TEMPLATE_ECS_FARGATE_ENVIRONMENT;
 import static org.sagebionetworks.template.Constants.TEMPLATE_SHARED_RESOURCES_MAIN_JSON_VTP;
@@ -365,6 +368,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		String cdnPrivateKeyId = config.getProperty(PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID);
 		context.put(CTXT_KEY_DATA_CDN_PRIVATE_KEY_ID, cdnPrivateKeyId);
 		context.put(CTXT_KEY_DATA_CDN_DOMAIN_NAME, String.format(DATA_CDN_DOMAIN_NAME_FMT, stack));
+		context.put(CTXT_KEY_EMAIL_IMAGES_BASE_URL, "https://" + String.format(STATIC_CONTENT_CDN_DOMAIN_NAME_FMT, stack) + EMAIL_IMAGES_URL_PATH);
 		context.put(CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL, config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT));
 
 		// DocuSign base paths
@@ -444,6 +448,7 @@ public class RepositoryTemplateBuilderImpl implements RepositoryTemplateBuilder 
 		String cdnPrivateKeyId = config.getProperty(PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID);
 		context.put(CTXT_KEY_DATA_CDN_PRIVATE_KEY_ID, cdnPrivateKeyId);
 		context.put(CTXT_KEY_DATA_CDN_DOMAIN_NAME, String.format(DATA_CDN_DOMAIN_NAME_FMT, stack));
+		context.put(CTXT_KEY_EMAIL_IMAGES_BASE_URL, "https://" + String.format(STATIC_CONTENT_CDN_DOMAIN_NAME_FMT, stack) + EMAIL_IMAGES_URL_PATH);
 
 		context.put(CTXT_KEY_DATA_DISCOVERY_DOCUMENT_URL, config.getProperty(SAGEBIO_COGNITO_APP_DISCOVERY_DOCUMENT));
 

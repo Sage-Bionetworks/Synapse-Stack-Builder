@@ -54,6 +54,21 @@
 								}
 							}
 						},
+#elseif ($bucket.name == "${stack}.static-content.sagebase.org")
+						{
+							"Sid": "AllowCloudFrontServicePrincipal",
+							"Effect": "Allow",
+							"Principal": {
+								"Service": "cloudfront.amazonaws.com"
+							},
+							"Action": "s3:GetObject",
+							"Resource": "arn:aws:s3:::$bucket.name/*",
+							"Condition": {
+								"StringEquals": {
+									"AWS:SourceArn": {"Fn::ImportValue": "${stack}static-content-sagebase-org-CDN-ARN"}
+								}
+							}
+						},
 #end
 						{
 							"Sid": "RestrictToTLSRequestsOnly",
