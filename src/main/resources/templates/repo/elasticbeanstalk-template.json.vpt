@@ -557,6 +557,11 @@
                          "OptionName": "org.sagebionetworks.cloudfront.domainname",
                          "Value": "${dataCdnDomainName}"
                      },
+                    {
+                         "Namespace": "aws:elasticbeanstalk:application:environment",
+                         "OptionName": "org.sagebionetworks.email.images.base.url",
+                         "Value": "${emailImagesBaseUrl}"
+                     },
 					{
 						"Namespace": "aws:elasticbeanstalk:application:environment",
 						"OptionName": "org.sagebionetworks.oauth2.sagebio.discoveryDocument",
