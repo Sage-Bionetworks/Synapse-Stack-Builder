@@ -140,6 +140,12 @@ public class Constants {
 	public static final String PROPERTY_KEY_DATA_CDN_PRIVATE_KEY_ID = "org.sagebionetworks.cloudfront.private.key.id";
 	public static final String DATA_CDN_DOMAIN_NAME_FMT = "data.%s.sagebase.org";
 
+	// Domain of the CDN serving Synapse's static content, keyed by stack
+	public static final String STATIC_CONTENT_CDN_DOMAIN_NAME_FMT = "static.%s.sagebase.org";
+
+	// Folder of the static content bucket holding the images embedded in Synapse emails
+	public static final String EMAIL_IMAGES_URL_PATH = "/email-images";
+
 	// Etl jobs needs database name to create separate stack
 	public static final String PROPERTY_KEY_DATAWAREHOUSE_GLUE_DATABASE_NAME = "org.sagebionetworks.synapse.datawarehouse.glue.database.name";
 
@@ -303,6 +309,7 @@ public class Constants {
 	public static final String CTXT_KEY_PUBLIC_KEY_HASH = "PublicKeyHash";
 	public static final String CTXT_KEY_DATA_CDN_PRIVATE_KEY_ID = "dataCdnPrivateKeyId";
 	public static final String CTXT_KEY_DATA_CDN_DOMAIN_NAME = "dataCdnDomainName";
+	public static final String CTXT_KEY_EMAIL_IMAGES_BASE_URL = "emailImagesBaseUrl";
 
 	public static final String CTXT_ENABLE_ENHANCED_RDS_MONITORING = "EnableRdsEnhancedMonitoring";
 
