@@ -134,6 +134,11 @@
 				"name": "entity_id",
 				"type" : "bigint",
 				"comment" : "The Synapse object identifier sent by the user in the request url, if any."
+			},
+			{
+				"name": "original_user_id",
+				"type" : "bigint",
+				"comment" : "When the request was made with a read-only impersonation token, the unique identifier of the Synapse user who is acting as the user in user_id. Null for all other requests."
 			}],
 			"partitionKeys":[{
 				"name": "record_date",
