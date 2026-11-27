@@ -1056,13 +1056,29 @@ public class RepositoryTemplateBuilderImplTest {
 		validateEnhancedMonitoring(properties, enableEnhancedMonitoring);
 	}
 
+	private static void validatePortalThrottleRule(JSONObject rule, String expectedName, int expectedPriority,
+			String expectedPath) {
+		assertEquals(expectedName, rule.get("Name"));
+		assertEquals(expectedPriority, rule.getInt("Priority"));
+		JSONObject rateBased = rule.getJSONObject("Statement").getJSONObject("RateBasedStatement");
+		assertEquals(500, rateBased.getInt("Limit"));
+		assertEquals("IP", rateBased.getString("AggregateKeyType"));
+		JSONObject byteMatch = rateBased.getJSONObject("ScopeDownStatement").getJSONObject("ByteMatchStatement");
+		assertEquals(expectedPath, byteMatch.getString("SearchString"));
+		assertEquals("EXACTLY", byteMatch.getString("PositionalConstraint"));
+		JSONObject customResponse = rule.getJSONObject("Action").getJSONObject("Block")
+				.getJSONObject("CustomResponse");
+		assertEquals(429, customResponse.getInt("ResponseCode"));
+		assertEquals("throttle-portal-response-body", customResponse.getString("CustomResponseBodyKey"));
+	}
+
 	public static void validateWebAcl(JSONObject resources) {
 		JSONObject webAcl = resources.getJSONObject("prod101WebACL");
 		JSONObject props = webAcl.getJSONObject("Properties");
 		JSONArray rules = props.getJSONArray("Rules");
-		assertEquals(13, rules.length());
+		assertEquals(15, rules.length());
 
-		JSONObject adminRule = rules.getJSONObject(12);
+		JSONObject adminRule = rules.getJSONObject(14);
 		assertEquals("prod-101-Admin-Access-Rule", adminRule.get("Name"));
 		assertEquals("{\"Block\":{}}", adminRule.getJSONObject("Action").toString());
 
@@ -1094,7 +1110,13 @@ public class RepositoryTemplateBuilderImplTest {
 		assertEquals("192.168.0.0/16", nonRoutableAddresses.getString(2));
 		assertEquals("127.0.0.0/8", nonRoutableAddresses.getString(3));
 
-		JSONObject sizeRestrictionsRule = rules.getJSONObject(3);
+		validatePortalThrottleRule(rules.getJSONObject(3), "prod-101-throttle-portal-log", 3, "/Portal/log");
+		validatePortalThrottleRule(rules.getJSONObject(4), "prod-101-throttle-portal-csp-report", 4,
+				"/Portal/csp-report");
+		assertEquals("{\"reason\":\"limit of 500 calls per 5 minutes\"}", props.getJSONObject("CustomResponseBodies")
+				.getJSONObject("throttle-portal-response-body").getString("Content"));
+
+		JSONObject sizeRestrictionsRule = rules.getJSONObject(5);
 		assertEquals("prod-101-size-restrictions-rule", sizeRestrictionsRule.get("Name"));
 		JSONObject statement = sizeRestrictionsRule.getJSONObject("Statement");
 		JSONArray ruleSizeStatements = statement.getJSONObject("OrStatement").getJSONArray("Statements");
